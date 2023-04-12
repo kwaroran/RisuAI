@@ -1,1 +1,3 @@
-# RisuAI-release
+# RisuAI
+
+A AIChat Client
