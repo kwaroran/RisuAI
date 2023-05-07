@@ -65,6 +65,8 @@
         messageInput = ''
         $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message = cha
         rerolls = []
+        await sleep(10)
+        updateInputSize()
         await sendChatMain()
 
     }
@@ -165,7 +167,7 @@
     let inputHeight = "44px"
     let inputEle:HTMLTextAreaElement
 
-    async function updateInputSize() {
+    function updateInputSize() {
         if(inputEle){
             inputEle.style.height = "0";
             inputHeight = (inputEle.scrollHeight) + "px";
