@@ -17,7 +17,7 @@
 
     let subMenu = 0
     let subberMenu = 0
-
+    let emos:[string, string][] = []
     let tokens = {
         desc: 0,
         firstMsg: 0,
@@ -119,13 +119,18 @@
                 }
             }
         }
+        emos = currentChar.data.emotionImages
     })
 
+    
     $: {
         if(database.characters[$selectedCharID].chaId === currentChar.data.chaId){
             database.characters[$selectedCharID] = currentChar.data
         }
-
+        else{
+            loadTokenize(currentChar.data)
+        }
+        emos = currentChar.data.emotionImages
         DataBase.set(database)
     }
 
@@ -252,22 +257,23 @@
                 <tr>
                     <div class="text-gray-500">{language.noImages}</div>
                 </tr>
+            {:else}
+                {#each emos as emo, i}
+                    <tr>
+                        {#await getCharImage(emo[1], 'plain')}
+                            <td class="font-medium truncate w-1/3"></td>
+                        {:then im}
+                            <td class="font-medium truncate w-1/3"><img src={im} alt="img" class="w-full"></td>                        
+                        {/await}
+                        <td class="font-medium truncate w-1/2">
+                            <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" bind:value={currentChar.data.emotionImages[i][0]}>
+                        </td>
+                        <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                            rmCharEmotion($selectedCharID,i)
+                        }}><TrashIcon /></button>
+                    </tr>
+                {/each}
             {/if}
-            {#each currentChar.data.emotionImages as emo, i}
-                <tr>
-                    {#await getCharImage(emo[1], 'plain')}
-                        <td class="font-medium truncate w-1/3"></td>
-                    {:then im}
-                        <td class="font-medium truncate w-1/3"><img src={im} alt="img" class="w-full"></td>                        
-                    {/await}
-                    <td class="font-medium truncate w-1/2">
-                        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" bind:value={currentChar.data.emotionImages[i][0]}>
-                    </td>
-                    <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
-                        rmCharEmotion($selectedCharID,i)
-                    }}><TrashIcon /></button>
-                </tr>
-            {/each}
         </table>
 
         <div class="text-gray-500 hover:text-neutral-200 mt-2 flex">
