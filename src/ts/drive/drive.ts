@@ -76,7 +76,7 @@ export async function checkDriverInit() {
     } catch (error) {
         console.error(error)
         alertError(`Backup Error: ${error}`)
-        return true
+        return false
     }
 }
 
@@ -228,10 +228,12 @@ async function loadDrive(ACCESS_TOKEN:string) {
                 }
             }
         }
+        db.didFirstSetup = true
         const dbjson = JSON.stringify(db)
         const dbData = pako.deflate(
             Buffer.from(dbjson, 'utf-8')
         )
+
         if(isTauri){
             await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
             relaunch()
