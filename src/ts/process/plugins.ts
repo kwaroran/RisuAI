@@ -107,6 +107,7 @@ export function getCurrentPluginMax(prov:string){
 
 let pluginWorker:Worker = null
 let providerRes:{success:boolean, content:string} = null
+let translatorRes:{success:boolean, content:string} = null
 
 function postMsgPluginWorker(type:string, body:any){
     const bod = {
@@ -115,6 +116,8 @@ function postMsgPluginWorker(type:string, body:any){
     }
     pluginWorker.postMessage(bod)
 }
+
+let pluginTranslator = false
 
 export async function loadPlugins() {
     let db = get(DataBase)
@@ -127,10 +130,12 @@ export async function loadPlugins() {
         const da = await fetch("/pluginApi.js")
         const pluginApiString = await da.text()
         let pluginjs = `${pluginApiString}\n`
+        let pluginLoadedJs = ''
 
         for(const plug of db.plugins){
-            pluginjs += `(() => {${plug.script}})()`
+            pluginLoadedJs += `(() => {${plug.script}})()`
         }
+        pluginjs = pluginjs.replace('//{{placeholder}}',pluginLoadedJs)
 
         const blob = new Blob([pluginjs], {type: 'application/javascript'});
         pluginWorker = new Worker(URL.createObjectURL(blob));
@@ -166,6 +171,31 @@ export async function loadPlugins() {
                         }
                     }
                     break
+                }
+                case "resTrans":{
+                    const provres:{success:boolean, content:string} = data.body
+                    if(checkNullish(provres.success) || checkNullish(provres.content)){
+                        translatorRes = {
+                            success: false,
+                            content :"plugin didn't respond 'success' or 'content' in response object"
+                        }
+                    }
+                    else if(typeof(provres.content) !== 'string'){
+                        translatorRes = {
+                            success: false,
+                            content :"plugin didn't respond 'content' in response object in string"
+                        }
+                    }
+                    else{
+                        translatorRes = {
+                            success: !!provres.success,
+                            content: provres.content
+                        }
+                    }
+                    break
+                }
+                case "useTranslator": {
+                    pluginTranslator = true
                 }
                 case "fetch": {
                     postMsgPluginWorker('fetchData',{
@@ -205,6 +235,33 @@ export async function loadPlugins() {
                 }
             }
         })
+    }
+}
+
+export async function translatorPlugin(text:string, from:string, to:string) {
+    if(!pluginTranslator){
+        return false
+    }
+    else{
+        try {
+            translatorRes = null
+            postMsgPluginWorker("requestTrans", {text, from, to})
+            while(true){
+                await sleep(50)
+                if(providerRes){
+                    break
+                }
+            }
+            return {
+                success: translatorRes.success,
+                content: translatorRes.content
+            }
+        } catch (error) {
+            return {
+                success: false,
+                content: "unknownError"
+            }   
+        }
     }
 }
 

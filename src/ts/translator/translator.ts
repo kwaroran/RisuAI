@@ -1,28 +1,34 @@
 import { Body,fetch,ResponseType } from "@tauri-apps/api/http"
 import { isTauri } from "../globalApi"
+import { translatorPlugin } from "../process/plugins"
 
 let cache={
     origin: [''],
     trans: ['']
 }
 
-export async function translate(params:string, reverse:boolean) {
+export async function translate(text:string, reverse:boolean) {
     if(!isTauri){
-        return params
+        return text
+    }
+    const plug = await translatorPlugin(text, reverse ? 'ko' : 'en', reverse ? 'en' : 'ko')
+    if(plug){
+        return plug.content
     }
     if(!reverse){
-        const ind = cache.origin.indexOf(params)
+        const ind = cache.origin.indexOf(text)
         if(ind !== -1){
             return cache.trans[ind]
         }
     }
     else{
-        const ind = cache.trans.indexOf(params)
+        const ind = cache.trans.indexOf(text)
         if(ind !== -1){
             return cache.origin[ind]
         }
     }
-    return googleTrans(params, reverse)
+
+    return googleTrans(text, reverse)
 }
 
 async function googleTrans(text:string, reverse:boolean) {
@@ -45,5 +51,8 @@ async function googleTrans(text:string, reverse:boolean) {
     })
 
     const res = f.data as {sentences:{trans?:string}[]}
+    if(typeof(f.data) === 'string'){
+        return res
+    }
     return res.sentences.filter((s) => 'trans' in s).map((s) => s.trans).join('');
 }
