@@ -24,6 +24,24 @@
         frequency_penalty?: number
         bias?: {[key:string]:string}
     }
+
+    async function transferDataAsync(type:string,body:any) {
+        const id = `${Date.now()}_${Math.random()}`
+        postMessage({
+            type: 'fetch',
+            body: {id: id, ...body}
+        })
+        while(true){
+            await sleep(50)
+            for(let i=0;i<__risuPlugin__.fetchResponseQueue.length;i++){
+                const q = __risuPlugin__.fetchResponseQueue[i]
+                if(q.id === id){
+                    __risuPlugin__.fetchResponseQueue.splice(i, 1)
+                    return q.data
+                }
+            }
+        }
+    }
     
     async function risuFetch(url:string, arg:{body:any,headers?:{[key:string]:string}}){
         const id = `${Date.now()}_${Math.random()}`
@@ -89,6 +107,18 @@
             body: data
         })
     }
+
+
+    function getChar(){
+        return transferDataAsync('getChar', '')
+    }
+
+    function setChar(char:any){
+        postMessage({
+            type: 'setChar',
+            body: char
+        })
+    }
     
     async function handleOnmessage(data:{type:string,body:any}) {
         if(!data.type){
@@ -143,5 +173,9 @@
         const data:{type:string,body:any} = ev.data
     }
 
-    //{{placeholder}}
+    {
+        const __risuPlugin__ = null
+        const transferDataAsync = null
+        //{{placeholder}}
+    }
 })()

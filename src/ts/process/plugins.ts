@@ -5,6 +5,7 @@ import { DataBase } from "../database";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from ".";
 import { globalFetch } from "../globalApi";
+import { selectedCharID } from "../stores";
 
 export const customProviderStore = writable([] as string[])
 
@@ -228,6 +229,20 @@ export async function loadPlugins() {
                         })
                     }
                     break
+                }
+                case "getChar":{
+                    const db = get(DataBase)
+                    const charid = get(selectedCharID)
+                    const char = db.characters[charid]
+                    postMsgPluginWorker('fetchData',{
+                        id: data.body.id,
+                        data: char
+                    })
+                }
+                case "setChar":{
+                    const db = get(DataBase)
+                    const charid = get(selectedCharID)
+                    db.characters[charid] = data.body
                 }
                 case "log":{
                     console.log(data.body)
