@@ -203,13 +203,13 @@
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
     <span class="text-neutral-200 mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
-    <button on:click={() => {selectCharImg($selectedCharID)}}>
+    <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
         {#if currentChar.data.image === ''}
             <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" />
         {:else}
             {#await getCharImage(currentChar.data.image, 'css')}
                 <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500"></div>
-            {:then im} 
+            {:then im}
                 <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" style={im} />                
             {/await}
         {/if}
