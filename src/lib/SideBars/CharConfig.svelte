@@ -196,7 +196,7 @@
     <span class="text-neutral-200">{language.authorNote} <Help key="charNote"/></span>
     <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
     <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-
+                       
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle}/>
         <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
