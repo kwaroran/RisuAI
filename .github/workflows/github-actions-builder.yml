@@ -22,8 +22,9 @@ jobs:
           node-version: 18
       - id: set_var
         run: |
-          content=`cat version.json`
-          echo "::set-output name=packageJson::$content"
+          echo 'VERSION_JSON<<EOF' >> $GITHUB_ENV
+          cat ./version.json >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - name: install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -46,8 +47,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
-          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-unknown-linux-gnu/release/**/*.deb
@@ -59,8 +60,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
-          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
@@ -72,8 +73,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
-          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-pc-windows-msvc/release/**/*.msi

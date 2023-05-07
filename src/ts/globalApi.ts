@@ -105,7 +105,7 @@ export async function getFileSrc(loc:string) {
                     }
                     return "/sw/img/" + encoded   
                 } catch (error) {
-                    location.reload()
+
                 }
             }
             else{
@@ -252,9 +252,15 @@ export async function loadData() {
                 }
                 if(navigator.serviceWorker){
                     usingSw = true
-                    const rej = await  navigator.serviceWorker.register("/sw.js", {
+                    await navigator.serviceWorker.register("/sw.js", {
                         scope: "/"
                     });
+
+                    await sleep(100)
+                    const da = await fetch('/sw/init')
+                    if(!(da.status >= 200 && da.status < 300)){
+                        location.reload()
+                    }
                 }
                 else{
                     usingSw = false
