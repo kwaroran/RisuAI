@@ -15,6 +15,10 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - id: set_var
+        run: |
+          content=`cat /version.json`
+          echo "::set-output name=packageJson::$content"
       - uses: actions/checkout@v3
       - name: setup node
         uses: actions/setup-node@v3
@@ -42,8 +46,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{ github.event.head_commit.message }}"
-          name: "${{ github.event.head_commit.message }}"
+          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-unknown-linux-gnu/release/**/*.deb
@@ -55,8 +59,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{ github.event.head_commit.message }}"
-          name: "${{ github.event.head_commit.message }}"
+          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
@@ -68,8 +72,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{ github.event.head_commit.message }}"
-          name: "${{ github.event.head_commit.message }}"
+          tag_name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
+          name: "${{fromJson(steps.set_var.outputs.packageJson).version}}"
           generate_release_notes: true
           files: |
             src-tauri/target/x86_64-pc-windows-msvc/release/**/*.msi
