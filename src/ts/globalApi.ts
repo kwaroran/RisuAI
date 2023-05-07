@@ -247,6 +247,9 @@ export async function loadData() {
                     JSON.parse(Buffer.from(pako.inflate(Buffer.from(gotStorage))).toString('utf-8'))
                 )
                 const isDriverMode = await checkDriverInit()
+                if(isDriverMode){
+                    return
+                }
                 if(navigator.serviceWorker){
                     usingSw = true
                     const rej = await  navigator.serviceWorker.register("/sw.js", {
@@ -256,8 +259,6 @@ export async function loadData() {
                 else{
                     usingSw = false
                 }
-                
-
             }
             try {
                 await pargeChunks()
