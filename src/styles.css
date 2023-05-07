@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  margin: 0;
+  padding: 0;
+  margin-top: 0px;
+  background-color: #282a36;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+:root{
+  --FontColorStandard: #fafafa;
+  --FontColorBold : #fafafa;
+  --FontColorItalic : #8C8D93;
+  --FontColorItalicBold : #8C8D93;
+
+}
+
+html, body{
+  height: 100%
+}
+
+.chattext p{
+  color: var(--FontColorStandard);
+}
+
+.chattext2 pre{
+  background-color: #282a36;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.chattext em{
+  color: var(--FontColorItalic);
+}
+
+.chattext strong{
+  color: var(--FontColorBold);
+}
+
+.chattext strong em{
+  color: var(--FontColorItalicBold);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+*{
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.setting-area textarea{
+    height: 10rem;
+    min-height: 10rem;
+}
+
+.chattext p:first-child{
+  margin-top: 0.3rem;
+}
+
+.items-start {
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
+}
+.items-start {
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
+}
+
+.items-center {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+#app{
+  width: 100%;
+  height: 100%;
+}
+
+.input-text{
+  border: none;
+  outline: 0;
+  border-bottom: 1px solid #6272a4;
+}

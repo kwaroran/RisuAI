@@ -1,0 +1,110 @@
+{
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devPath": "http://localhost:5174",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": {
+    "productName": "RisuAI",
+    "version": "0.6.2"
+  },
+  "tauri": {
+    "allowlist": {
+      "app": {
+        "all": true
+      },
+      "process": {
+        "relaunch": true
+      },
+      "protocol": {
+        "all": true,
+        "assetScope": ["asset","$APPDATA","$APPDATA/*","$APPDATA/**/*", "/data/**/*"]
+      },
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "fs":{
+        "all": true,
+        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*"]
+      },
+      "path":{
+        "all": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["https://*/*", "https://*/**/*","http://*/*", "http://*/**/*"]
+      },
+      "window": {
+        "center": false,
+        "close": false,
+        "create": false,
+        "hide": false,
+        "maximize": true,
+        "minimize": false,
+        "print": false,
+        "requestUserAttention": false,
+        "setAlwaysOnTop": false,
+        "setCursorGrab": false,
+        "setCursorIcon": false,
+        "setCursorPosition": false,
+        "setCursorVisible": false,
+        "setDecorations": false,
+        "setFocus": false,
+        "setFullscreen": true,
+        "setIcon": false,
+        "setIgnoreCursorEvents": false,
+        "setMaxSize": false,
+        "setMinSize": false,
+        "setPosition": false,
+        "setResizable": false,
+        "setSize": false,
+        "setSkipTaskbar": false,
+        "setTitle": false,
+        "show": false,
+        "startDragging": false,
+        "unmaximize": false,
+        "unminimize": false
+      },
+      "dialog": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "co.aiclient.risu",
+      "targets": "all"
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "RisuAI",
+        "width": 1024,
+        "height": 768,
+        "minWidth": 300,
+        "minHeight": 500
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+[package]
+name = "risuai"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.2.1", features = [] }
+
+[dependencies]
+tauri = { version = "1.2.4", features = ["app-all", "dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "protocol-all", "shell-open", "window-maximize", "window-set-fullscreen"] }
+serde_json = "1.0"
+tiktoken-rs = "0.4.0"
+base64 = "0.21.0"
+reqwest = { version = "0.11.16", features = ["json"] }
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
+
+# [lib]
+# crate-type = ["staticlib", "cdylib", "rlib"]
