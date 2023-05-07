@@ -52,7 +52,7 @@ async function googleTrans(text:string, reverse:boolean) {
 
     const res = f.data as {sentences:{trans?:string}[]}
     if(typeof(f.data) === 'string'){
-        return res
+        return res as unknown as string
     }
     return res.sentences.filter((s) => 'trans' in s).map((s) => s.trans).join('');
 }
