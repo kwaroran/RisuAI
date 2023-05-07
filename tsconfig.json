@@ -16,7 +16,7 @@
     "checkJs": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js", "public/pluginApi.ts"],
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js"],
   "exclude": ["src/**/web/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "ignoreDeprecations": "5.0"

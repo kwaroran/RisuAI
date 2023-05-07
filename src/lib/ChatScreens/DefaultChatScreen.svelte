@@ -5,7 +5,7 @@
     import { DataBase, appVer, type Message } from "../../ts/database";
     import { getCharImage } from "../../ts/characters";
     import { doingChat, sendChat } from "../../ts/process/index";
-    import { findCharacterbyId, messageForm } from "../../ts/util";
+    import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { translate } from "../../ts/translator/translator";
     import { alertError } from "../../ts/alert";
