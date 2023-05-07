@@ -67,6 +67,7 @@ export async function checkDriverInit() {
             }
             else{
                 alertError(await res.text())
+                location.search = ''
             }
             return true
         }
@@ -74,6 +75,7 @@ export async function checkDriverInit() {
             return false
         }   
     } catch (error) {
+        location.search = ''
         console.error(error)
         alertError(`Backup Error: ${error}`)
         return false
