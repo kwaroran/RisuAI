@@ -20,6 +20,9 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
                     if(char.viewScreen !== 'emotion'){
                         return v
                     }
+                    if(emoChanged){
+                        return v
+                    }
                     const emoName = script.out.substring(6).trim()
                     let charemotions = get(CharEmotion)
                     let tempEmotion = charemotions[char.chaId]

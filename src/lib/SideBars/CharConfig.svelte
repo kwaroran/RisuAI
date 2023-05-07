@@ -396,7 +396,7 @@
                 </tr>
             {/each}
         </table>
-        <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="experimental"/></span>
+        <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <table class="contain w-full max-w-full tabler mt-2 flex flex-col p-2 gap-2">
             {#if currentChar.data.customscript.length === 0}
                     <div class="text-gray-500">No Scripts</div>
