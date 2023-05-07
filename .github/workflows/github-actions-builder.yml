@@ -17,7 +17,7 @@ jobs:
     steps:
       - id: set_var
         run: |
-          content=`cat /version.json`
+          content=`cat ./version.json`
           echo "::set-output name=packageJson::$content"
       - uses: actions/checkout@v3
       - name: setup node
