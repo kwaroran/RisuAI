@@ -22,7 +22,7 @@
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast'}
     <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
-        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-11/12 overflow-y-auto">
+        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}

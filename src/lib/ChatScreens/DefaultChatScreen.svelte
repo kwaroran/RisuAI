@@ -11,7 +11,8 @@
     import { alertError } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import {cloneDeep} from 'lodash'
-  import { processScript } from "src/ts/process/scripts";
+     import { processScript } from "src/ts/process/scripts";
+  import GithubStars from "../Others/GithubStars.svelte";
 
     let messageInput = ''
     let openMenu = false
@@ -186,6 +187,7 @@
         <div class="h-full w-full flex flex-col overflow-y-auto items-center">
             <h2 class="text-4xl text-white mb-0 mt-6 font-black">RisuAI</h2>
             <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
+            <GithubStars />
         </div>
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {

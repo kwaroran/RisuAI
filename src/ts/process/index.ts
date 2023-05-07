@@ -8,7 +8,7 @@ import { loadLoreBookPrompt } from "../lorebook";
 import { findCharacterbyId, replacePlaceholders } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
-import { processScript } from "./scripts";
+import { processScript, processScriptFull } from "./scripts";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -282,23 +282,26 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     }, 'model')
 
     let result = ''
+    let emoChanged = false
 
     if(req.type === 'fail'){
         alertError(req.result)
         return false
     }
     else{
-        result = reformatContent(req.result)
+        const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')
+        result = result2.data
+        emoChanged = result2.emoChanged
         db.characters[selectedChar].chats[selectedChat].message.push({
             role: 'char',
             data: result,
-            saying: processScript(currentChar,currentChar.chaId, 'editoutput')
+            saying: currentChar.chaId
         })
         setDatabase(db)
     }
 
 
-    if(currentChar.viewScreen === 'emotion'){
+    if(currentChar.viewScreen === 'emotion' && (!emoChanged)){
 
         let currentEmotion = currentChar.emotionImages
 

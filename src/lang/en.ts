@@ -50,6 +50,13 @@ export const languageEnglish = {
                 + "\n- if the key starts with **|**, the key's value will not change."
                 + "\n- if the key starts with **$**, the key's value will more likely to change."
                 + "\n\nwhen the image is first generated, you can only change it by modifying 'Current Image Generation Data' in below.",
+
+        regexScript: "Regex Script is a custom script that is embbedded to the character. it replaces string that matches IN to OUT.\n\nThere are three type options."
+                + "- **Modify Input** modifys user's input"
+                + "- **Modify Output** modifys character's output"
+                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and *\\*.\n\nOUT is a normal string."
+                + "\n\n If OUT starts with @@, it doesn't replaces the string, but instead does a special effect if matching string founds."
+                + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
         experimental: "This is a experimental setting. it might be unstable."
     },
     setup: {
@@ -199,6 +206,8 @@ export const languageEnglish = {
     type: "Type",
     editInput: "Modfiy Input",
     editOutput: "Modfiy Output",
-    editProcess: "Modfiy Request Data"
+    editProcess: "Modfiy Request Data",
+    loadLatest: "Load Latest Backup",
+    loadOthers: "Load Other Backups"
 
 }
