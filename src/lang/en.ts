@@ -199,6 +199,8 @@ export const languageEnglish = {
     type: "Type",
     editInput: "Modfiy Input",
     editOutput: "Modfiy Output",
-    editProcess: "Modfiy Request Data"
+    editProcess: "Modfiy Request Data",
+    loadLatest: "Load Latest Backup",
+    loadOthers: "Load Other Backups"
 
 }

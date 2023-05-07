@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { alertError, alertInput, alertNormal, alertStore } from "../alert";
+import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { DataBase, setDatabase, type Database } from "../database";
 import { forageStorage, getUnpargeables, isTauri } from "../globalApi";
 import pako from "pako";
@@ -177,8 +177,8 @@ async function loadDrive(ACCESS_TOKEN:string) {
         return d.name
     })
 
-    let latestDb:DriveFile = null
-    let latestDbDate = 0
+
+    let dbs:[DriveFile,number][] = []
 
     for(const f of files){
         if(f.name.endsWith("-database.risudat")){
@@ -187,15 +187,26 @@ async function loadDrive(ACCESS_TOKEN:string) {
                 continue
             }
             else{
-                if(tm > latestDbDate){
-                    latestDb = f
-                    latestDbDate = tm
-                }
+                dbs.push([f,tm])
             }
         }
     }
-    if(latestDbDate !== 0){
-        const db:Database = JSON.parse(Buffer.from(pako.inflate(await getFileData(ACCESS_TOKEN, latestDb.id))).toString('utf-8'))
+    dbs.sort((a,b) => {
+        return b[1] - a[1]
+    })
+
+    if(dbs.length !== 0){
+        let selectables:string[] = []
+        for(let i=0;i<dbs.length;i++){
+            selectables.push(`Backup saved in ${(new Date(dbs[i][1] * 1000)).toLocaleString()}`)
+            if(selectables.length > 7){
+                break
+            }
+        }
+        const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
+        const selectedDb = dbs[selectedIndex][0]
+        
+        const db:Database = JSON.parse(Buffer.from(pako.inflate(await getFileData(ACCESS_TOKEN, selectedDb.id))).toString('utf-8'))
         const requiredImages = (getUnpargeables(db))
         let ind = 0;
         for(const images of requiredImages){
@@ -252,6 +263,9 @@ async function loadDrive(ACCESS_TOKEN:string) {
                 msg: "Success, Refresh your app."
             })
         }
+    }
+    else{
+        location.search = ''
     }
 }
 
