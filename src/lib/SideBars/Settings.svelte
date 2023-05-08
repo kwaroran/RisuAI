@@ -267,6 +267,10 @@
             <option value="false" class="bg-darkbg appearance-none">Disable</option>
             <option value="true" class="bg-darkbg appearance-none">Enable</option>
         </select>
+        <div class="flex items-center mt-2">
+            <Check bind:check={$DataBase.sdConfig.enable_hr}/>
+            <span>Enable Hires</span>
+        </div>
         {#if $DataBase.sdConfig.enable_hr === true}
             <span class="text-neutral-200">denoising_strength</span>
             <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="10" bind:value={$DataBase.sdConfig.denoising_strength}>

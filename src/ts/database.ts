@@ -6,7 +6,7 @@ import { saveImage as saveImageGlobal } from './globalApi';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.7.1'
+export let appVer = '0.7.2'
 
 
 export function setDatabase(data:Database){
