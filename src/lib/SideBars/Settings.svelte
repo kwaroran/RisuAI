@@ -127,10 +127,13 @@
         </select>
     {/if}
     {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
-        <span class="text-neutral-200">TextGen {language.providerURL}</span>
+        <span class="text-neutral-200">TextGen {language.providerURL} <Help key="oogaboogaURL"/></span>
         <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" placeholder="https://..." bind:value={$DataBase.textgenWebUIURL}>
         <span class="text-draculared text-xs mb-2">You must use WebUI without agpl license or use unmodified version with agpl license to observe the contents of the agpl license.</span>
         <span class="text-draculared text-xs mb-2">You must use textgen webui with --no-stream and without --cai-chat or --chat</span>
+        {#if !isTauri}
+            <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
+        {/if}
     {/if}
     <span class="text-neutral-200">{language.mainPrompt} <Help key="mainprompt"/></span>
     <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={$DataBase.mainPrompt}></textarea>
