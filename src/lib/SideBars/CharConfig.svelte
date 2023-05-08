@@ -5,7 +5,7 @@
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
-    import { addCharEmotion, addingEmotion, exportChar, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
+    import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
     import { alertConfirm, alertError, alertSelectChar } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
@@ -14,6 +14,7 @@
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
   import RegexData from "./RegexData.svelte";
+  import { exportChar } from "src/ts/characterCards";
 
     let subMenu = 0
     let subberMenu = 0

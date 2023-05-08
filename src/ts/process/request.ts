@@ -111,7 +111,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
             const proompt = stringlizeChat(formated, currentChar.name)
-            if(DURL.includes('api')){
+            const isNewAPI = DURL.includes('api')
+            if(isNewAPI){
                 bodyTemplate = {
                     'max_new_tokens': 80,
                     'do_sample': true,
@@ -174,6 +175,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             console.log(res.data)
             if(res.ok){
                 try {
+                    if(isNewAPI){
+                        return {
+                            type: 'success',
+                            result: dat.results[0].text.substring(proompt.length)
+                        }
+                    }
                     return {
                         type: 'success',
                         result: dat.data[0].substring(proompt.length)
