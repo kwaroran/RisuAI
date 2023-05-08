@@ -129,6 +129,9 @@ export async function stableDiff(currentChar:character,prompt:string){
                     "prompt": prompts.join(','),
                     "negative_prompt": neg,
                     'sampler_name': db.sdConfig.sampler_name
+                },
+                headers:{
+                    'Content-Type': 'application/json'
                 }
             })   
 
