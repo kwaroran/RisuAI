@@ -133,6 +133,10 @@ export async function stableDiff(currentChar:character,prompt:string){
                     "denoising_strength": db.sdConfig.denoising_strength,
                     "hr_scale": db.sdConfig.hr_scale,
                     "hr_upscaler": db.sdConfig.hr_upscaler
+                    'sampler_name': db.sdConfig.sampler_name
+                },
+                headers:{
+                    'Content-Type': 'application/json'
                 }
             })   
 
