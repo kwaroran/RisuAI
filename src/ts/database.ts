@@ -178,7 +178,7 @@ export function setDatabase(data:Database){
             sampler_name:"Euler a",
             script_name:"",
             denoising_strength:0.7,
-            enable_hr:true,
+            enable_hr:false,
             hr_scale:1.25,
             hr_upscaler:"Latent"
         }
@@ -348,7 +348,7 @@ interface sdConfig{
     sampler_name:string
     script_name:string
     denoising_strength:number
-    enable_hr:string
+    enable_hr:boolean
     hr_scale: number
     hr_upscaler:string
 }
