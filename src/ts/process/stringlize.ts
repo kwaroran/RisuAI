@@ -11,10 +11,10 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
             resultString.push("'System Note: " + form.content)
         }
         else if(form.role === 'user'){
-            resultString.push("User: " + form.content)
+            resultString.push("user: " + form.content)
         }
         else if(form.role === 'assistant'){
-            resultString.push("Assistant: " + form.content)
+            resultString.push("assistant: " + form.content)
         }
     }
     return resultString.join('\n\n') + `\n\n${char}:`
