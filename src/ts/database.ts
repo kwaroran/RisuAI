@@ -177,8 +177,9 @@ export function setDatabase(data:Database){
             height:512,
             sampler_name:"Euler a",
             script_name:"",
-            enable_hr:false,
-            hr_scale: 2,
+            denoising_strength:0.7,
+            enable_hr:true,
+            hr_scale:1.25,
             hr_upscaler:"Latent"
         }
     }
@@ -346,7 +347,8 @@ interface sdConfig{
     height:number
     sampler_name:string
     script_name:string
-    enable_hr:boolean
+    denoising_strength:number
+    enable_hr:string
     hr_scale: number
     hr_upscaler:string
 }
