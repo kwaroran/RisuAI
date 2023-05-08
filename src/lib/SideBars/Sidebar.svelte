@@ -3,7 +3,8 @@
     import { DataBase } from "../../ts/database";
     import BarIcon from "./BarIcon.svelte";
     import { Plus, User, X, Settings, Users, Edit3Icon, ArrowUp, ArrowDown, ListIcon, LayoutGridIcon, PlusIcon} from 'lucide-svelte'
-    import { characterFormatUpdate, createNewCharacter, createNewGroup, getCharImage, importCharacter } from "../../ts/characters";
+    import { characterFormatUpdate, createNewCharacter, createNewGroup, getCharImage } from "../../ts/characters";
+    import {importCharacter} from 'src/ts/characterCards'
     import SettingsDom from './Settings.svelte'
     import CharConfig from "./CharConfig.svelte";
     import { language } from "../../lang";
