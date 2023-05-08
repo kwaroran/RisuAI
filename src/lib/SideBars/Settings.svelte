@@ -262,11 +262,6 @@
         <span class="text-neutral-200">Sampler</span>
         <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.sdConfig.sampler_name}>
         
-        <span class="text-neutral-200">Upscaler</span>
-        <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.sdConfig.enable_hr}>
-            <option value="false" class="bg-darkbg appearance-none">Disable</option>
-            <option value="true" class="bg-darkbg appearance-none">Enable</option>
-        </select>
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.sdConfig.enable_hr}/>
             <span>Enable Hires</span>
