@@ -4,6 +4,7 @@ import { requestChatData } from "./request"
 import { alertError } from "../alert"
 import { globalFetch } from "../globalApi"
 import { CharEmotion } from "../stores"
+import type { OpenAIChat } from "."
 
 
 export async function stableDiff(currentChar:character,prompt:string){
@@ -128,7 +129,14 @@ export async function stableDiff(currentChar:character,prompt:string){
                     "cfg_scale": db.sdCFG,
                     "prompt": prompts.join(','),
                     "negative_prompt": neg,
-                    'sampler_name': db.sdConfig.sampler_name
+                    'sampler_name': db.sdConfig.sampler_name,
+                    "enable_hr": db.sdConfig.enable_hr,
+                    "denoising_strength": db.sdConfig.denoising_strength,
+                    "hr_scale": db.sdConfig.hr_scale,
+                    "hr_upscaler": db.sdConfig.hr_upscaler
+                },
+                headers:{
+                    'Content-Type': 'application/json'
                 }
             })   
 

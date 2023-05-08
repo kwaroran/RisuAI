@@ -6,7 +6,7 @@ import { saveImage as saveImageGlobal } from './globalApi';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.7.1'
+export let appVer = '0.7.2'
 
 
 export function setDatabase(data:Database){
@@ -177,8 +177,9 @@ export function setDatabase(data:Database){
             height:512,
             sampler_name:"Euler a",
             script_name:"",
+            denoising_strength:0.7,
             enable_hr:false,
-            hr_scale: 2,
+            hr_scale:1.25,
             hr_upscaler:"Latent"
         }
     }
@@ -346,6 +347,7 @@ interface sdConfig{
     height:number
     sampler_name:string
     script_name:string
+    denoising_strength:number
     enable_hr:boolean
     hr_scale: number
     hr_upscaler:string

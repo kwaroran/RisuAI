@@ -109,20 +109,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
         case "textgen_webui":{
             let DURL = db.textgenWebUIURL
-            if((!DURL.endsWith('textgen')) && (!DURL.endsWith('textgen/'))){
-                if(DURL.endsWith('/')){
-                    DURL += 'run/textgen'
-                }
-                else{
-                    DURL += '/run/textgen'
-                }
-            }
-
+            let bodyTemplate:any
             const proompt = stringlizeChat(formated, currentChar.name)
-
-            const payload = [
-                proompt,
-                {
+            if(DURL.includes('api')){
+                bodyTemplate = {
                     'max_new_tokens': 80,
                     'do_sample': true,
                     'temperature': (db.temperature / 100),
@@ -139,14 +129,41 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     'early_stopping': false,
                     'truncation_length': maxTokens,
                     'ban_eos_token': false,
-                    'custom_stopping_strings': [`\nUser:`],
+                    'custom_stopping_strings': [`\nUser:`,`\nuser:`],
                     'seed': -1,
                     add_bos_token: true,
+                    prompt: proompt
                 }
-            ];
-
-            const bodyTemplate = { "data": [JSON.stringify(payload)] };
-
+            }
+            else{
+                const payload = [
+                    proompt,
+                    {
+                        'max_new_tokens': 80,
+                        'do_sample': true,
+                        'temperature': (db.temperature / 100),
+                        'top_p': 0.9,
+                        'typical_p': 1,
+                        'repetition_penalty': (db.PresensePenalty / 100),
+                        'encoder_repetition_penalty': 1,
+                        'top_k': 100,
+                        'min_length': 0,
+                        'no_repeat_ngram_size': 0,
+                        'num_beams': 1,
+                        'penalty_alpha': 0,
+                        'length_penalty': 1,
+                        'early_stopping': false,
+                        'truncation_length': maxTokens,
+                        'ban_eos_token': false,
+                        'custom_stopping_strings': [`\nUser:`,`\nuser:`],
+                        'seed': -1,
+                        add_bos_token: true,
+                    }
+                ];
+    
+                bodyTemplate = { "data": [JSON.stringify(payload)] };
+    
+            }
             const res = await globalFetch(DURL, {
                 body: bodyTemplate,
                 headers: {}

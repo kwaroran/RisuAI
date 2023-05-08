@@ -57,7 +57,9 @@ export const languageEnglish = {
                 + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and *\\*.\n\nOUT is a normal string."
                 + "\n\n If OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
                 + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
-        experimental: "This is a experimental setting. it might be unstable."
+        experimental: "This is a experimental setting. it might be unstable.",
+        oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
+                + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
