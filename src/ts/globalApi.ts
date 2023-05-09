@@ -466,9 +466,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 headers["Content-Type"] =  `application/json`
             }
             if(arg.rawResponse){
-                const furl = new URL("/proxy")
-                furl.searchParams.set("url", url)
-
+                const furl = `/proxy?url=${encodeURIComponent(url)}`
+            
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
                     headers: arg.headers,
@@ -482,9 +481,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }   
             }
             else{
-                const furl = new URL("/proxy")
-                furl.searchParams.set("url", url)
-
+                const furl = `/proxy?url=${encodeURIComponent(url)}`
 
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
@@ -500,6 +497,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }
             }
         } catch (error) {
+            console.log(error)
             return {
                 ok:false,
                 data: `${error}`
