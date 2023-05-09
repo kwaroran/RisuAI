@@ -53,9 +53,6 @@
         }
     }
 
-    $:{
-        loadTokenize(currentChar.data)
-    }
 
     async function addGroupChar(){
         let group = currentChar.data
@@ -134,6 +131,7 @@
         }
         emos = currentChar.data.emotionImages
         DataBase.set(database)
+        loadTokenize(currentChar.data)
     }
 
     onDestroy(unsub);
