@@ -38,7 +38,7 @@ async function fetchProxy(request) {
         const status = originalResponse.status;
         let newResponseHeaders = new Headers(responseHeaders);
 
-        newResponseHeaders.set('access-control-allow-origin', 'https://risu.pages.dev/');
+        newResponseHeaders.set('access-control-allow-origin', 'https://risuai.xyz/');
         newResponseHeaders.set('access-control-allow-credentials', "true");
         newResponseHeaders.delete('content-security-policy');
         newResponseHeaders.delete('content-security-policy-report-only');

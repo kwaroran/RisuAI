@@ -3,14 +3,14 @@ export function onRequest(context) {
     return drive(request, context.env);
 }
 
-const encodedRedirectUri = encodeURIComponent("https://risu.pages.dev/")
+const encodedRedirectUri = encodeURIComponent("https://risuai.xyz/")
 
 async function drive(request, env){
 
     const url = new URL(request.url);
 
     const headerE = {
-        "Access-Control-Allow-Origin": "https://risu.pages.dev",
+        "Access-Control-Allow-Origin": "https://risuai.xyz",
         "Access-Control-Allow-Headers": "*"
     }
     

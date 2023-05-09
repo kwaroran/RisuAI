@@ -6,7 +6,7 @@ convertor.setOption('simpleLineBreaks', true);
 
 export function ParseMarkdown(data:string) {
     return DOMPurify.sanitize(convertor.makeHtml(data), {
-        FORBID_TAGS: ['a']
+        FORBID_TAGS: []
     })
 }
 

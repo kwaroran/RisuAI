@@ -8,7 +8,7 @@ import { get } from "svelte/store";
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
-import { checkUpdate } from "./update";
+import { checkOldDomain, checkUpdate } from "./update";
 import { selectedCharID } from "./stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "./process/plugins";
@@ -265,6 +265,7 @@ export async function loadData() {
                 else{
                     usingSw = false
                 }
+                checkOldDomain()
             }
             try {
                 await pargeChunks()
@@ -465,7 +466,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 headers["Content-Type"] =  `application/json`
             }
             if(arg.rawResponse){
-                const furl = new URL("https://risu.pages.dev/proxy")
+                const furl = new URL("/proxy")
                 furl.searchParams.set("url", url)
 
                 const da = await fetch(furl, {
@@ -481,7 +482,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }   
             }
             else{
-                const furl = new URL("https://risu.pages.dev/proxy")
+                const furl = new URL("/proxy")
                 furl.searchParams.set("url", url)
 
 
