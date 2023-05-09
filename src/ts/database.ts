@@ -9,7 +9,6 @@ export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
 export let appVer = '0.8.0'
 
-
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
         data.characters = []
