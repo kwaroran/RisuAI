@@ -11,28 +11,6 @@ import { characterFormatUpdate } from "./characters"
 import { downloadFile, readImage } from "./globalApi"
 import { cloneDeep } from "lodash"
 
-type OfficialCardSpec = {
-    spec: 'chara_card_v2'
-    spec_version: '2.0' // May 8th addition
-    data: {
-        name: string
-        description: string
-        personality: string
-        scenario: string
-        first_mes: string
-        mes_example: string
-        creator_notes: string
-        system_prompt: string
-        post_history_instructions: string
-        alternate_greetings: string[]
-        character_book?: CharacterBook
-        tags: string[]
-        creator: string
-        character_version: number
-        extensions: Record<string, any>
-    }
-}
-  
 type CharacterBook = null  
 
 export async function importCharacter() {

@@ -21,19 +21,17 @@
     function createScratch(){
         reseter();
         const cid = createNewCharacter()
-        selectedCharID.set(cid)
+        selectedCharID.set(-1)
     }
     function createGroup(){
         reseter();
         const cid = createNewGroup()
-        selectedCharID.set(cid)
+        selectedCharID.set(-1)
     }
     async function createImport(){
         reseter();
         const cid = await importCharacter()
-        if(cid){
-            selectedCharID.set(cid)
-        }
+        selectedCharID.set(-1)
     }
 
     function changeChar(index:number){
