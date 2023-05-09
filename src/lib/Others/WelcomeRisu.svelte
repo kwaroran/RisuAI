@@ -1,8 +1,10 @@
 <script>
+
     import { ArrowBigLeftIcon } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
-  import { addDefaultCharacters } from "src/ts/characters";
+    import { addDefaultCharacters } from "src/ts/characters";
     import { DataBase } from "src/ts/database";
+  import { sleep } from "src/ts/util";
 
     let step = 0
     let provider = 0
@@ -167,6 +169,8 @@
                     $DataBase.forceReplaceUrl2 = $DataBase.forceReplaceUrl
                     await addDefaultCharacters()
                     $DataBase.didFirstSetup = true
+                    await sleep(2000)
+                    location.reload()
                 }}>• {language.confirm}</button>
             </div>
         {/if}
