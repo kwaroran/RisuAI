@@ -53,7 +53,7 @@ function versionStringToNumber(versionString:string):number {
 
 export function checkOldDomain(){
     let db = get(DataBase)
-    if(true){
+    if(isOldDomain){
         if(!db.didFirstSetup){
             location.href = 'https://risuai.xyz'
             alertMd("Redirecting...")
