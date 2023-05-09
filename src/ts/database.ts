@@ -172,6 +172,12 @@ export function setDatabase(data:Database){
     if(checkNullish(data.bias)){
         data.bias = []
     }
+    if(checkNullish(data.requestmet)){
+        data.requestmet = 'normal'
+    }
+    if(checkNullish(data.requestproxy)){
+        data.requestproxy = ''
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -340,6 +346,8 @@ export interface Database{
     emotionPrompt2:string
     useSayNothing:boolean
     didFirstSetup: boolean
+    requestmet: string
+    requestproxy: string
 }
 
 

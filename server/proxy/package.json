@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cors-anywhere": "^0.4.4",
+    "http-proxy": "^1.18.1"
+  }
+}

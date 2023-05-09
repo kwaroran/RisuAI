@@ -310,8 +310,84 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
     }
 
-    if(isTauri){
+    if(db.requestmet === 'proxy'){
+        try {
+            let headers = arg.headers ?? {}
+            if(!headers["Content-Type"]){
+                headers["Content-Type"] =  `application/json`
+            }
+            const furl = new URL(db.requestproxy)
+            furl.pathname = url
 
+            const da = await fetch(furl, {
+                body: JSON.stringify(arg.body),
+                headers: arg.headers,
+                method: method
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", da.ok)
+                return {
+                    ok: da.ok,
+                    data: new Uint8Array(await da.arrayBuffer())
+                }   
+            }
+            else{
+                const dat = await da.json()
+                addFetchLog(dat, da.ok)
+                return {
+                    ok: da.ok,
+                    data: dat
+                }
+            }
+
+        } catch (error) {
+            return {
+                ok: false,
+                data: `${error}`,
+            }
+        }
+    }
+    if(db.requestmet === 'plain'){
+        try {
+            let headers = arg.headers ?? {}
+            if(!headers["Content-Type"]){
+                headers["Content-Type"] =  `application/json`
+            }
+            const furl = new URL(url)
+
+            const da = await fetch(furl, {
+                body: JSON.stringify(arg.body),
+                headers: arg.headers,
+                method: method
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", da.ok)
+                return {
+                    ok: da.ok,
+                    data: new Uint8Array(await da.arrayBuffer())
+                }   
+            }
+            else{
+                const dat = await da.json()
+                addFetchLog(dat, da.ok)
+                return {
+                    ok: da.ok,
+                    data: dat
+                }
+            }
+
+        } catch (error) {
+            return {
+                ok: false,
+                data: `${error}`,
+            }
+        }
+    }
+
+
+    if(isTauri){
         if(db.requester === 'new'){
             try {
                 let preHeader = arg.headers ?? {}
