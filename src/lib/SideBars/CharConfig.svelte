@@ -13,8 +13,8 @@
     import { onDestroy } from "svelte";
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
-  import RegexData from "./RegexData.svelte";
-  import { exportChar } from "src/ts/characterCards";
+    import RegexData from "./RegexData.svelte";
+    import { exportChar } from "src/ts/characterCards";
 
     let subMenu = 0
     let subberMenu = 0
