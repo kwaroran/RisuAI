@@ -47,7 +47,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
           name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
@@ -60,7 +60,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
           name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
@@ -73,7 +73,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          tag_name: "${{fromJson(env.VERSION_JSON).version}}"
+          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
           name: "${{fromJson(env.VERSION_JSON).version}}"
           generate_release_notes: true
           files: |
