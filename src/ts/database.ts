@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.7.5'
+export let appVer = '0.7.6'
 
 
 export function setDatabase(data:Database){
@@ -171,6 +171,12 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.bias)){
         data.bias = []
+    }
+    if(checkNullish(data.requestmet)){
+        data.requestmet = 'normal'
+    }
+    if(checkNullish(data.requestproxy)){
+        data.requestproxy = ''
     }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
@@ -340,6 +346,8 @@ export interface Database{
     emotionPrompt2:string
     useSayNothing:boolean
     didFirstSetup: boolean
+    requestmet: string
+    requestproxy: string
 }
 
 
