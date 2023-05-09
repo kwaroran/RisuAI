@@ -45,7 +45,7 @@ export async function checkDriverInit() {
         const code = loc.get('code')
     
         if(code){
-            const res = await fetch(`https://aichandict.xyz/api/drive/access?code=${encodeURIComponent(code)}`)
+            const res = await fetch(`/drive?code=${encodeURIComponent(code)}`)
             if(res.status >= 200 && res.status < 300){
                 const json:{
                     access_token:string,
