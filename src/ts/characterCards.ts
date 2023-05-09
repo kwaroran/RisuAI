@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertConfirm, alertError, alertNormal, alertStore } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, saveImage, setDatabase } from "./database"
+import { DataBase, defaultSdDataFunc, type character, saveImage, setDatabase, type customscript } from "./database"
 import { checkNullish, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
@@ -9,6 +9,7 @@ import exifr from 'exifr'
 import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
 import { downloadFile, readImage } from "./globalApi"
+import { cloneDeep } from "lodash"
 
 type OfficialCardSpec = {
     spec: 'chara_card_v2'
@@ -43,7 +44,8 @@ export async function importCharacter() {
         if(f.name.endsWith('json')){
             const da = JSON.parse(Buffer.from(f.data).toString('utf-8'))
             if(await importSpecv2(da)){
-                return
+                let db = get(DataBase)
+                return db.characters.length - 1
             }
             if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
                 let db = get(DataBase)
@@ -86,13 +88,12 @@ export async function importCharacter() {
         await sleep(10)
         const img = f.data
         const readed = (await exifr.parse(img, true))
-
-        console.log(readed)
         if(readed.chara){
             // standard spec v2 imports
             const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-            if(await importSpecv2(charaData)){
-                return
+            if(await importSpecv2(charaData, img)){
+                let db = get(DataBase)
+                return db.characters.length - 1
             }
         }
         if(readed.risuai){
@@ -272,26 +273,71 @@ export async function exportChar(charaID:number) {
 }
 
 
-async function importSpecv2(card:CharacterCardV2):Promise<boolean>{
+async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boolean>{
     if(!card ||card.spec !== 'chara_card_v2'){
         return false
     }
-    let data = card.data
-
+    const data = card.data
+    const im = img ? await saveImage(PngMetadata.filter(img)) : undefined
     let db = get(DataBase)
 
-    const risuext = data.extensions.risuai
-    if(risuext && risuext.emotions){
-        for(let i=0;i<risuext.emotions.length;i++){
-            alertStore.set({
-                type: 'wait',
-                msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
-            })
-            await sleep(10)
-            const imgp = await saveImage(risuext.emotions[i][1] as any)
-            data.extensions.risuai.emotions[i][1] = imgp
+    const risuext = cloneDeep(data.extensions.risuai)
+    let emotions:[string, string][] = []
+    let bias:[string, number][] = []
+    let viewScreen: "none" | "emotion" | "imggen" = 'none'
+    let customScripts:customscript[] = []
+    let utilityBot = false
+    let sdData = defaultSdDataFunc()
+
+    if(risuext){
+        if(risuext.emotions){
+            for(let i=0;i<risuext.emotions.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
+                })
+                await sleep(10)
+                const imgp = await saveImage(Buffer.from(risuext.emotions[i][1], 'base64'))
+                emotions.push([risuext.emotions[i][0],imgp])
+            }
         }
+        bias = risuext.bias ?? bias
+        viewScreen = risuext.viewScreen ?? viewScreen
+        customScripts = risuext.customScripts ?? customScripts
+        utilityBot = risuext.utilityBot ?? utilityBot
+        sdData = risuext.sdData ?? sdData
     }
+
+    let char:character = {
+        name: data.name,
+        firstMessage: data.first_mes,
+        desc: data.description,
+        notes: data.post_history_instructions,
+        chats: [{
+            message: [],
+            note: '',
+            name: 'Chat 1',
+            localLore: []
+        }],
+        chatPage: 0,
+        image: im,
+        emotionImages: emotions,
+        bias: bias,
+        globalLore: [], //lorebook
+        viewScreen: viewScreen,
+        chaId: uuidv4(),
+        sdData: sdData,
+        utilityBot: utilityBot,
+        customscript: customScripts,
+        exampleMessage: data.mes_example
+    }
+
+    
+    setDatabase(db)
+
+
+    return true
+
 }
 
 
@@ -315,7 +361,12 @@ type CharacterCardV2 = {
         character_version: number
         extensions: {
             risuai?:{
-                emotions:[string, string][]
+                emotions?:[string, string][]
+                bias?:[string, number][],
+                viewScreen?: "none" | "emotion" | "imggen",
+                customScripts?:customscript[]
+                utilityBot?: boolean,
+                sdData?:[string,string][]
             }
         }
     }

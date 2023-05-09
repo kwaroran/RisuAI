@@ -3,6 +3,7 @@ import { checkNullish } from './util';
 import { changeLanguage } from '../lang';
 import type { RisuPlugin } from './process/plugins';
 import { saveImage as saveImageGlobal } from './globalApi';
+import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -406,7 +407,7 @@ const defaultSdData:[string,string][] = [
 ]
 
 export const defaultSdDataFunc = () =>{
-    return JSON.parse(JSON.stringify(defaultSdData))
+    return cloneDeep(defaultSdData)
 }
 
 export function updateTextTheme(){
