@@ -16,7 +16,8 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
         if(script.type === mode){
             const reg = new RegExp(script.in,'g')
             data = data.replace(reg, (v) => {
-                if(script.out.startsWith('@@emo ')){
+                const outScript = script.out.replace(dreg, v)
+                if(outScript.startsWith('@@emo ')){
                     if(char.viewScreen !== 'emotion'){
                         return v
                     }
@@ -44,7 +45,7 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
                     }
                     return v
                 }
-                return script.out.replace(dreg, v)
+                return outScript
             })
         }
     }

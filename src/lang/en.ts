@@ -55,6 +55,7 @@ export const languageEnglish = {
                 + "- **Modify Input** modifys user's input"
                 + "- **Modify Output** modifys character's output"
                 + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and *\\*.\n\nOUT is a normal string."
+                + "\n\n If OUT has {{data}} in string, it replaces to matched string."
                 + "\n\n If OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
                 + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
         experimental: "This is a experimental setting. it might be unstable.",

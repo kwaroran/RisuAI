@@ -11,7 +11,7 @@
     import Check from "../Others/Check.svelte";
     import { getRequestLog, isTauri } from "../../ts/globalApi";
     import { checkDriver } from "../../ts/drive/drive";
-  import Help from "../Others/Help.svelte";
+    import Help from "../Others/Help.svelte";
     let subMenu = -1
     let subSubMenu = 0
     export let openPresetList =false
