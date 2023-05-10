@@ -112,6 +112,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let bodyTemplate:any
             const proompt = stringlizeChat(formated, currentChar.name)
             const isNewAPI = DURL.includes('api')
+            const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
+
             if(isNewAPI){
                 bodyTemplate = {
                     'max_new_tokens': 80,
@@ -119,7 +121,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     'temperature': (db.temperature / 100),
                     'top_p': 0.9,
                     'typical_p': 1,
-                    'repetition_penalty': (db.PresensePenalty / 100),
+                    'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
                     'encoder_repetition_penalty': 1,
                     'top_k': 100,
                     'min_length': 0,
@@ -130,7 +132,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     'early_stopping': false,
                     'truncation_length': maxTokens,
                     'ban_eos_token': false,
-                    'custom_stopping_strings': [`\nUser:`,`\nuser:`],
+                    'stopping_strings': stopStrings,
                     'seed': -1,
                     add_bos_token: true,
                     prompt: proompt
@@ -145,7 +147,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         'temperature': (db.temperature / 100),
                         'top_p': 0.9,
                         'typical_p': 1,
-                        'repetition_penalty': (db.PresensePenalty / 100),
+                        'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
                         'encoder_repetition_penalty': 1,
                         'top_k': 100,
                         'min_length': 0,
@@ -156,7 +158,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         'early_stopping': false,
                         'truncation_length': maxTokens,
                         'ban_eos_token': false,
-                        'custom_stopping_strings': [`\nUser:`,`\nuser:`],
+                        'custom_stopping_strings': stopStrings,
                         'seed': -1,
                         add_bos_token: true,
                     }
@@ -175,15 +177,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             console.log(res.data)
             if(res.ok){
                 try {
-                    if(isNewAPI){
-                        return {
-                            type: 'success',
-                            result: dat.results[0].text.substring(proompt.length)
+                    let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
+
+                    for(const stopStr of stopStrings){
+                        if(result.endsWith(stopStr)){
+                            result.substring(0,result.length - stopStr.length)
                         }
                     }
+
                     return {
                         type: 'success',
-                        result: dat.data[0].substring(proompt.length)
+                        result: result
                     }
                 } catch (error) {                    
                     return {

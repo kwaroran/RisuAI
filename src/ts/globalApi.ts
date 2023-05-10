@@ -15,6 +15,7 @@ import { loadPlugins } from "./process/plugins";
 import { alertError, alertStore } from "./alert";
 import { checkDriverInit } from "./drive/drive";
 import { hasher } from "./parser";
+import { characterHubImport } from "./characterCards";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -266,6 +267,9 @@ export async function loadData() {
                     usingSw = false
                 }
                 checkOldDomain()
+                if(get(DataBase).didFirstSetup){
+                    characterHubImport()
+                }
             }
             try {
                 await pargeChunks()
