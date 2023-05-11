@@ -426,6 +426,23 @@
             <Check bind:check={currentChar.data.utilityBot}/>
             <span>{language.utilityBot}</span>
         </div>
+
+        <span class="text-neutral-200">{language.exampleMessage}</span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.exampleMessage}></textarea>
+
+        <span class="text-neutral-200">{language.creatorNotes} <Help key="charFirstMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
+
+        <span class="text-neutral-200">{language.systemPrompt} <Help key="charFirstMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
+
+        <span class="text-neutral-200">{language.characterNotes} <Help key="charFirstMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
+
+        <span class="text-neutral-200">{language.personality} <Help key="charFirstMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
+
+
         <button on:click={async () => {
             exportChar($selectedCharID)
         }} class="text-neutral-200 mt-6 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.exportCharacter}</button>

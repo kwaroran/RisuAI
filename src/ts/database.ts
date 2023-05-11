@@ -238,6 +238,16 @@ export interface character{
     customscript: customscript[]
     utilityBot: boolean
     exampleMessage:string
+
+    creatorNotes:string
+    systemPrompt:string
+    postHistoryInstructions:string
+    alternateGreetings:string[]
+    tags:string[]
+    creator:string
+    characterVersion: number
+    personality:string
+    scenario:string
 }
 
 export interface groupChat{

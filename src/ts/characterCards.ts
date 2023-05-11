@@ -160,20 +160,11 @@ export async function characterHubImport() {
 
 function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined = undefined):character{
 
-    let desc = charaData.description ?? ''
-
-    if(charaData.personality){
-        desc += '\n\n' + charaData.personality
-    }
-
-    if(charaData.scenario){
-        desc += '\n\n' + charaData.scenario
-    }
 
     return {
         name: charaData.name ?? 'unknown name',
         firstMessage: charaData.first_mes ?? 'unknown first message',
-        desc: desc,
+        desc:  charaData.description ?? '',
         notes: '',
         chats: [{
             message: [],
@@ -191,7 +182,16 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         sdData: defaultSdDataFunc(),
         utilityBot: false,
         customscript: [],
-        exampleMessage: charaData.mes_example
+        exampleMessage: charaData.mes_example,
+        creatorNotes:'',
+        systemPrompt:'',
+        postHistoryInstructions:'',
+        alternateGreetings:[],
+        tags:[],
+        creator:"",
+        characterVersion: 0,
+        personality: charaData.personality ?? '',
+        scenario:charaData.scenario ?? '',
     }
 }
 
@@ -320,10 +320,10 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
     }
 
     let char:character = {
-        name: data.name,
-        firstMessage: data.first_mes,
-        desc: data.description,
-        notes: data.post_history_instructions,
+        name: data.name ?? '',
+        firstMessage: data.first_mes ?? '',
+        desc: data.description ?? '',
+        notes: '',
         chats: [{
             message: [],
             note: '',
@@ -340,7 +340,16 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         sdData: sdData,
         utilityBot: utilityBot,
         customscript: customScripts,
-        exampleMessage: data.mes_example
+        exampleMessage: data.mes_example ?? '',
+        creatorNotes:data.creator_notes ?? '',
+        systemPrompt:data.system_prompt ?? '',
+        postHistoryInstructions:data.post_history_instructions ?? '',
+        alternateGreetings:data.alternate_greetings ?? [],
+        tags:data.tags ?? [],
+        creator:data.creator ?? '',
+        characterVersion: data.character_version ?? 0,
+        personality:data.personality ?? '',
+        scenario:data.scenario ?? '',
     }
 
     

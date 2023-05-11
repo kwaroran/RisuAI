@@ -211,6 +211,11 @@ export const languageEnglish = {
     editOutput: "Modfiy Output",
     editProcess: "Modfiy Request Data",
     loadLatest: "Load Latest Backup",
-    loadOthers: "Load Other Backups"
-
+    loadOthers: "Load Other Backups",
+    exampleMessage: "Example Message",
+    creatorNotes: "Creator's Quote",
+    systemPrompt: "System Prompt",
+    characterNotes: "Character Notes",
+    personality: "Personality",
+    alternateGreetings: "Alternate Greetings"
 }

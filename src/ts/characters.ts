@@ -303,7 +303,16 @@ export function createBlankChar():character{
         sdData: defaultSdDataFunc(),
         utilityBot: false,
         customscript: [],
-        exampleMessage: ''
+        exampleMessage: '',
+        creatorNotes:'',
+        systemPrompt:'',
+        postHistoryInstructions:'',
+        alternateGreetings:[],
+        tags:[],
+        creator:"",
+        characterVersion: 0,
+        personality:"",
+        scenario:"",
     }
 }
 
