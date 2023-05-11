@@ -10,7 +10,7 @@ import { open } from '@tauri-apps/api/shell';
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
-    const REDIRECT_URI = 'https://risu.pages.dev/';
+    const REDIRECT_URI = isTauri ? "https://risuai.xyz/" : `https://${location.host}/`
     const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
     const encodedRedirectUri = encodeURIComponent(REDIRECT_URI);
     const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${type}`;
@@ -45,7 +45,7 @@ export async function checkDriverInit() {
         const code = loc.get('code')
     
         if(code){
-            const res = await fetch(`https://aichandict.xyz/api/drive/access?code=${encodeURIComponent(code)}`)
+            const res = await fetch(`/drive?code=${encodeURIComponent(code)}`)
             if(res.status >= 200 && res.status < 300){
                 const json:{
                     access_token:string,

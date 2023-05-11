@@ -11,28 +11,6 @@ import { characterFormatUpdate } from "./characters"
 import { downloadFile, readImage } from "./globalApi"
 import { cloneDeep } from "lodash"
 
-type OfficialCardSpec = {
-    spec: 'chara_card_v2'
-    spec_version: '2.0' // May 8th addition
-    data: {
-        name: string
-        description: string
-        personality: string
-        scenario: string
-        first_mes: string
-        mes_example: string
-        creator_notes: string
-        system_prompt: string
-        post_history_instructions: string
-        alternate_greetings: string[]
-        character_book?: CharacterBook
-        tags: string[]
-        creator: string
-        character_version: number
-        extensions: Record<string, any>
-    }
-}
-  
 type CharacterBook = null  
 
 export async function importCharacter() {
@@ -49,29 +27,7 @@ export async function importCharacter() {
             }
             if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
                 let db = get(DataBase)
-                db.characters.push({
-                    name: da.char_name ?? da.name,
-                    firstMessage: da.char_greeting ?? da.first_mes,
-                    desc: da.char_persona ?? da.description,
-                    notes: '',
-                    chats: [{
-                        message: [],
-                        note: '',
-                        name: 'Chat 1',
-                        localLore: []
-                    }],
-                    chatPage: 0,
-                    image: '',
-                    emotionImages: [],
-                    bias: [],
-                    globalLore: [],
-                    viewScreen: 'none',
-                    chaId: uuidv4(),
-                    sdData: defaultSdDataFunc(),
-                    utilityBot: false,
-                    customscript: [],
-                    exampleMessage: ''
-                })
+                db.characters.push(convertOldTavernAndJSON(da))
                 DataBase.set(db)
                 alertNormal(language.importedCharacter)
                 return
@@ -104,7 +60,6 @@ export async function importCharacter() {
                 alertError(language.errors.noData)
                 return
             }
-
 
             let char:character = va.data
             let db = get(DataBase)
@@ -140,38 +95,12 @@ export async function importCharacter() {
         }
         else if(readed.chara){
             const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-            if(charaData.first_mes && charaData.name && charaData.description){
-                const imgp = await saveImage(PngMetadata.filter(img))
-                let db = get(DataBase)
-                db.characters.push({
-                    name: charaData.name,
-                    firstMessage: charaData.first_mes,
-                    desc: charaData.description,
-                    notes: '',
-                    chats: [{
-                        message: [],
-                        note: '',
-                        name: 'Chat 1',
-                        localLore: []
-                    }],
-                    chatPage: 0,
-                    image: imgp,
-                    emotionImages: [],
-                    bias: [],
-                    globalLore: [],
-                    viewScreen: 'none',
-                    chaId: uuidv4(),
-                    sdData: defaultSdDataFunc(),
-                    utilityBot: false,
-                    customscript: [],
-                    exampleMessage: ''
-                })
-                DataBase.set(db)
-                alertNormal(language.importedCharacter)
-                return db.characters.length - 1
-            }
-            alertError(language.errors.noData)
-            return null
+            const imgp = await saveImage(PngMetadata.filter(img))
+            let db = get(DataBase)
+            db.characters.push(convertOldTavernAndJSON(charaData, imgp))
+            DataBase.set(db)
+            alertNormal(language.importedCharacter)
+            return db.characters.length - 1
         }   
         else{
             alertError(language.errors.noData)
@@ -183,6 +112,88 @@ export async function importCharacter() {
     }
 }
 
+export async function characterHubImport() {
+    const charPath = (new URLSearchParams(location.search)).get('charahub')
+    try {
+        if(charPath){
+            const url = new URL(location.href);
+            url.searchParams.delete('charahub');
+            window.history.pushState(null, '', url.toString());
+            const chara = await fetch("https://api.characterhub.org/api/characters/download", {
+                method: "POST",
+                body: JSON.stringify({
+                    "format": "tavern",
+                    "fullPath": charPath,
+                    "version": "main"
+                }),
+                headers: {
+                    "content-type": "application/json"
+                }
+            })
+            const img = new Uint8Array(await chara.arrayBuffer())
+    
+            const readed = (await exifr.parse(img, true))
+            {
+                const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
+                if(await importSpecv2(charaData, img)){
+                    
+                    return
+                }
+            }
+            {
+                const imgp = await saveImage(PngMetadata.filter(img))
+                let db = get(DataBase)
+                const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))    
+                db.characters.push(convertOldTavernAndJSON(charaData, imgp))
+    
+                DataBase.set(db)
+                alertNormal(language.importedCharacter)
+                return
+            }
+        }
+    } catch (error) {
+        alertError(language.errors.noData)
+        return null
+    }
+}
+
+
+function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined = undefined):character{
+
+    let desc = charaData.description ?? ''
+
+    if(charaData.personality){
+        desc += '\n\n' + charaData.personality
+    }
+
+    if(charaData.scenario){
+        desc += '\n\n' + charaData.scenario
+    }
+
+    return {
+        name: charaData.name ?? 'unknown name',
+        firstMessage: charaData.first_mes ?? 'unknown first message',
+        desc: desc,
+        notes: '',
+        chats: [{
+            message: [],
+            note: '',
+            name: 'Chat 1',
+            localLore: []
+        }],
+        chatPage: 0,
+        image: imgp,
+        emotionImages: [],
+        bias: [],
+        globalLore: [],
+        viewScreen: 'none',
+        chaId: uuidv4(),
+        sdData: defaultSdDataFunc(),
+        utilityBot: false,
+        customscript: [],
+        exampleMessage: charaData.mes_example
+    }
+}
 
 export async function exportChar(charaID:number) {
     const db = get(DataBase)
@@ -335,7 +346,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
     
     setDatabase(db)
 
-
+    alertNormal(language.importedCharacter)
     return true
 
 }
@@ -379,7 +390,7 @@ interface OldTavernChar{
     create_date: string
     description: string
     first_mes: string
-    mes_example: "<START>"
+    mes_example: string
     name: string
     personality: ""
     scenario: ""

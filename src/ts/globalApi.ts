@@ -8,13 +8,14 @@ import { get } from "svelte/store";
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
-import { checkUpdate } from "./update";
+import { checkOldDomain, checkUpdate } from "./update";
 import { selectedCharID } from "./stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "./process/plugins";
 import { alertError, alertStore } from "./alert";
 import { checkDriverInit } from "./drive/drive";
 import { hasher } from "./parser";
+import { characterHubImport } from "./characterCards";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -265,6 +266,10 @@ export async function loadData() {
                 else{
                     usingSw = false
                 }
+                checkOldDomain()
+                if(get(DataBase).didFirstSetup){
+                    characterHubImport()
+                }
             }
             try {
                 await pargeChunks()
@@ -310,8 +315,84 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
     }
 
-    if(isTauri){
+    if(db.requestmet === 'proxy'){
+        try {
+            let headers = arg.headers ?? {}
+            if(!headers["Content-Type"]){
+                headers["Content-Type"] =  `application/json`
+            }
+            const furl = new URL(db.requestproxy)
+            furl.pathname = url
 
+            const da = await fetch(furl, {
+                body: JSON.stringify(arg.body),
+                headers: arg.headers,
+                method: method
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", da.ok)
+                return {
+                    ok: da.ok,
+                    data: new Uint8Array(await da.arrayBuffer())
+                }   
+            }
+            else{
+                const dat = await da.json()
+                addFetchLog(dat, da.ok)
+                return {
+                    ok: da.ok,
+                    data: dat
+                }
+            }
+
+        } catch (error) {
+            return {
+                ok: false,
+                data: `${error}`,
+            }
+        }
+    }
+    if(db.requestmet === 'plain'){
+        try {
+            let headers = arg.headers ?? {}
+            if(!headers["Content-Type"]){
+                headers["Content-Type"] =  `application/json`
+            }
+            const furl = new URL(url)
+
+            const da = await fetch(furl, {
+                body: JSON.stringify(arg.body),
+                headers: arg.headers,
+                method: method
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", da.ok)
+                return {
+                    ok: da.ok,
+                    data: new Uint8Array(await da.arrayBuffer())
+                }   
+            }
+            else{
+                const dat = await da.json()
+                addFetchLog(dat, da.ok)
+                return {
+                    ok: da.ok,
+                    data: dat
+                }
+            }
+
+        } catch (error) {
+            return {
+                ok: false,
+                data: `${error}`,
+            }
+        }
+    }
+
+
+    if(isTauri){
         if(db.requester === 'new'){
             try {
                 let preHeader = arg.headers ?? {}
@@ -389,9 +470,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 headers["Content-Type"] =  `application/json`
             }
             if(arg.rawResponse){
-                const furl = new URL("https://risu.pages.dev/proxy")
-                furl.searchParams.set("url", url)
-
+                const furl = `/proxy?url=${encodeURIComponent(url)}`
+            
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
                     headers: arg.headers,
@@ -405,9 +485,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }   
             }
             else{
-                const furl = new URL("https://risu.pages.dev/proxy")
-                furl.searchParams.set("url", url)
-
+                const furl = `/proxy?url=${encodeURIComponent(url)}`
 
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
@@ -423,6 +501,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }
             }
         } catch (error) {
+            console.log(error)
             return {
                 ok:false,
                 data: `${error}`
