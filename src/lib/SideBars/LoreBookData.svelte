@@ -16,7 +16,7 @@
             value.secondkey = value.secondkey ?? ''
             open = !open
         }}>
-            <span>{value.comment.length === 0 ? 'Unnamed Lore' : value.comment}</span>
+            <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
         <button class="valuer" on:click={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)

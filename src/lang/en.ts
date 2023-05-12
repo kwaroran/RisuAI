@@ -65,7 +65,7 @@ export const languageEnglish = {
                 + "\n\nExample format of conversations:"
                 + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hello\n<START>\n{{user}}: hi\nHaruhi: hello\n```"
                 + "\n\n```<START>``` Marks the beginning of a new conversation.",
-        creatorQuotes: "Quote that appearances on top of first message. Used to inform users about this character. It doesn't go into prompt.",
+        creatorQuotes: "Note that appearances on top of first message. Used to inform users about this character. It doesn't go into prompt.",
         systemPrompt: "A prompt that replaces main prompt in settings if its not blank.",
         chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory.",
         personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
@@ -225,7 +225,7 @@ export const languageEnglish = {
     loadLatest: "Load Latest Backup",
     loadOthers: "Load Other Backups",
     exampleMessage: "Example Message",
-    creatorNotes: "Creator's Quote",
+    creatorNotes: "Creator's Comment",
     systemPrompt: "System Prompt",
     characterNotes: "Character Notes",
     personality: "Personality",

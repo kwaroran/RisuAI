@@ -102,15 +102,16 @@ export async function loadLoreBookPrompt(){
             }
         }
 
-        if(firstKeyActivation && lore.secondKey.length === 0){
-            activatiedPrompt.push(lore.content)
-            continue
-        }
-
-        for(const key of lore.secondKey){
-            if(formatedChat.includes(key)){
+        if(firstKeyActivation){
+            if(lore.secondKey.length === 0){
                 activatiedPrompt.push(lore.content)
-                break
+                continue
+            }
+            for(const key of lore.secondKey){
+                if(formatedChat.includes(key)){
+                    activatiedPrompt.push(lore.content)
+                    break
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
 <div class="flex w-full justify-center">
     <div class="w-3xl max-w-80p bg-darkbg rounded-md p-3 text-white text-sm">
-        <h1 class="text-xl font-bold mb-2">Creator's Quote
+        <h1 class="text-xl font-bold mb-2">{language.creatorNotes}
             <button class="float-right" on:click={onRemove}>
                 <XIcon />
             </button>
@@ -12,6 +12,7 @@
 </div>
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
+  import { language } from "src/lang";
   import { ParseMarkdown } from "src/ts/parser";
 
     export let onRemove: () => void
