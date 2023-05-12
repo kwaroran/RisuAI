@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body{
+body {
   margin: 0;
   padding: 0;
   margin-top: 0px;
@@ -11,37 +11,37 @@ body{
   overflow-x: hidden;
 }
 
-:root{
+:root {
   --FontColorStandard: #fafafa;
-  --FontColorBold : #fafafa;
-  --FontColorItalic : #8C8D93;
-  --FontColorItalicBold : #8C8D93;
-
+  --FontColorBold: #fafafa;
+  --FontColorItalic: #8c8d93;
+  --FontColorItalicBold: #8c8d93;
 }
 
-html, body{
-  height: 100%
+html,
+body {
+  height: 100%;
 }
 
-.chattext p{
+.chattext p {
   color: var(--FontColorStandard);
 }
 
-.chattext2 pre{
+.chattext2 pre {
   background-color: #282a36;
   padding: 0.5rem;
   overflow-x: auto;
 }
 
-.chattext em{
+.chattext em {
   color: var(--FontColorItalic);
 }
 
-.chattext strong{
+.chattext strong {
   color: var(--FontColorBold);
 }
 
-.chattext strong em{
+.chattext strong em {
   color: var(--FontColorItalicBold);
 }
 
@@ -52,29 +52,29 @@ html, body{
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #888;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
 }
 
-*{
+* {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.setting-area textarea{
-    height: 10rem;
-    min-height: 10rem;
+.setting-area textarea {
+  height: 10rem;
+  min-height: 10rem;
 }
 
-.chattext p:first-child{
+.chattext p:first-child {
   margin-top: 0.3rem;
 }
 
@@ -98,12 +98,12 @@ html, body{
   align-items: center;
 }
 
-#app{
+#app {
   width: 100%;
   height: 100%;
 }
 
-.input-text{
+.input-text {
   border: none;
   outline: 0;
   border-bottom: 1px solid #6272a4;

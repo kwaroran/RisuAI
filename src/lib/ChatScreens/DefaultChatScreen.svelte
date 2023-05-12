@@ -1,379 +1,454 @@
 <script lang="ts">
-    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, RefreshCcwIcon, Send } from "lucide-svelte";
-    import { selectedCharID } from "../../ts/stores";
-    import Chat from "./Chat.svelte";
-    import { DataBase, appVer, type Message } from "../../ts/database";
-    import { getCharImage } from "../../ts/characters";
-    import { doingChat, sendChat } from "../../ts/process/index";
-    import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
-    import { language } from "../../lang";
-    import { translate } from "../../ts/translator/translator";
-    import { alertError } from "../../ts/alert";
-    import sendSound from '../../etc/send.mp3'
-    import {cloneDeep} from 'lodash'
-     import { processScript } from "src/ts/process/scripts";
+  import {
+    DatabaseIcon,
+    DicesIcon,
+    LanguagesIcon,
+    MenuIcon,
+    RefreshCcwIcon,
+    Send,
+  } from "lucide-svelte";
+  import { selectedCharID } from "../../ts/stores";
+  import Chat from "./Chat.svelte";
+  import { DataBase, appVer, type Message } from "../../ts/database";
+  import { getCharImage } from "../../ts/characters";
+  import { doingChat, sendChat } from "../../ts/process/index";
+  import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
+  import { language } from "../../lang";
+  import { translate } from "../../ts/translator/translator";
+  import { alertError } from "../../ts/alert";
+  import sendSound from "../../etc/send.mp3";
+  import { cloneDeep } from "lodash";
+  import { processScript } from "src/ts/process/scripts";
   import GithubStars from "../Others/GithubStars.svelte";
   import CreatorQuote from "./CreatorQuote.svelte";
 
-    let messageInput = ''
-    let openMenu = false
-    export let openChatList = false
-    let loadPages = 30
-    let autoMode = false
-    let rerolls:Message[][] = []
-    let rerollid = -1
-    let lastCharId = -1
+  let messageInput = "";
+  let openMenu = false;
+  export let openChatList = false;
+  let loadPages = 30;
+  let autoMode = false;
+  let rerolls: Message[][] = [];
+  let rerollid = -1;
+  let lastCharId = -1;
 
-    async function send() {
-        let selectedChar = $selectedCharID
-        console.log('send')
-        if($doingChat){
-            return
-        }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
-
-        let cha = $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message
-
-        if(messageInput === ''){
-            if($DataBase.characters[selectedChar].type !== 'group'){
-                if(cha.length === 0 || cha[cha.length - 1].role !== 'user'){
-                    if($DataBase.useSayNothing){
-                        cha.push({
-                            role: 'user',
-                            data: '*says nothing*'
-                        })
-                    }
-                }
-            }
-        }
-        else{
-            const char = $DataBase.characters[selectedChar]
-            if(char.type === 'character'){
-                cha.push({
-                    role: 'user',
-                    data: processScript(char,messageInput,'editinput')
-                })
-            }
-            else{
-                cha.push({
-                    role: 'user',
-                    data: messageInput
-                })
-            }
-        }
-        messageInput = ''
-        $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message = cha
-        rerolls = []
-        await sleep(10)
-        updateInputSize()
-        await sendChatMain()
-
+  async function send() {
+    let selectedChar = $selectedCharID;
+    console.log("send");
+    if ($doingChat) {
+      return;
+    }
+    if (lastCharId !== $selectedCharID) {
+      rerolls = [];
+      rerollid = -1;
     }
 
-    async function reroll() {
-        if($doingChat){
-            return
+    let cha =
+      $DataBase.characters[selectedChar].chats[
+        $DataBase.characters[selectedChar].chatPage
+      ].message;
+
+    if (messageInput === "") {
+      if ($DataBase.characters[selectedChar].type !== "group") {
+        if (cha.length === 0 || cha[cha.length - 1].role !== "user") {
+          if ($DataBase.useSayNothing) {
+            cha.push({
+              role: "user",
+              data: "*says nothing*",
+            });
+          }
         }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
-        if(rerollid < rerolls.length - 1){
-            if(Array.isArray(rerolls[rerollid + 1])){
-                let db = $DataBase
-                rerollid += 1
-                db.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cloneDeep(rerolls[rerollid])
-                $DataBase = db
-            }
-            return
-        }
-        if(rerolls.length === 0){
-            rerolls.push($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message)
-            rerollid = rerolls.length - 1
-        }
-        let cha = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
-        if(cha.length === 0 ){
-            return
-        }
-        openMenu = false
-        const saying = cha[cha.length - 1].saying
-        let sayingQu = 2
-        while(cha[cha.length - 1].role !== 'user'){
-            if(cha[cha.length - 1].saying === saying){
-                sayingQu -= 1
-                if(sayingQu === 0){
-                    break
-                }   
-            }
-            cha.pop()
-        }
-        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cha
-        await sendChatMain()
+      }
+    } else {
+      const char = $DataBase.characters[selectedChar];
+      if (char.type === "character") {
+        cha.push({
+          role: "user",
+          data: processScript(char, messageInput, "editinput"),
+        });
+      } else {
+        cha.push({
+          role: "user",
+          data: messageInput,
+        });
+      }
     }
+    messageInput = "";
+    $DataBase.characters[selectedChar].chats[
+      $DataBase.characters[selectedChar].chatPage
+    ].message = cha;
+    rerolls = [];
+    await sleep(10);
+    updateInputSize();
+    await sendChatMain();
+  }
 
-    async function unReroll() {
-        if(rerollid <= 0){
-            return
-        }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
-        if($doingChat){
-            return
-        }
-        if(Array.isArray(rerolls[rerollid - 1])){
-            let db = $DataBase
-            rerollid -= 1
-            db.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cloneDeep(rerolls[rerollid])
-            $DataBase = db
-        }
+  async function reroll() {
+    if ($doingChat) {
+      return;
     }
-
-    async function sendChatMain(saveReroll = false) {
-        messageInput = ''
-        try {
-            await sendChat()            
-        } catch (error) {
-            alertError(`${error}`)
-        }
-        rerolls.push(cloneDeep($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message))
-        rerollid = rerolls.length - 1
-        lastCharId = $selectedCharID
-        $doingChat = false
-        if($DataBase.playMessage){
-            const audio = new Audio(sendSound);
-            audio.play();
-        }
+    if (lastCharId !== $selectedCharID) {
+      rerolls = [];
+      rerollid = -1;
     }
-
-    async function runAutoMode() {
-        if(autoMode){
-            autoMode = false
-            return
-        }
-        const selectedChar = $selectedCharID
-        autoMode = true
-        while(autoMode){
-            await sendChatMain()
-            if(selectedChar !== $selectedCharID){
-                autoMode = false
-            }
-        }
+    if (rerollid < rerolls.length - 1) {
+      if (Array.isArray(rerolls[rerollid + 1])) {
+        let db = $DataBase;
+        rerollid += 1;
+        db.characters[$selectedCharID].chats[
+          $DataBase.characters[$selectedCharID].chatPage
+        ].message = cloneDeep(rerolls[rerollid]);
+        $DataBase = db;
+      }
+      return;
     }
-
-    export let customStyle = ''
-    let inputHeight = "44px"
-    let inputEle:HTMLTextAreaElement
-
-    function updateInputSize() {
-        if(inputEle){
-            inputEle.style.height = "0";
-            inputHeight = (inputEle.scrollHeight) + "px";
-            inputEle.style.height = inputHeight
-        }
+    if (rerolls.length === 0) {
+      rerolls.push(
+        $DataBase.characters[$selectedCharID].chats[
+          $DataBase.characters[$selectedCharID].chatPage
+        ].message
+      );
+      rerollid = rerolls.length - 1;
     }
+    let cha =
+      $DataBase.characters[$selectedCharID].chats[
+        $DataBase.characters[$selectedCharID].chatPage
+      ].message;
+    if (cha.length === 0) {
+      return;
+    }
+    openMenu = false;
+    const saying = cha[cha.length - 1].saying;
+    let sayingQu = 2;
+    while (cha[cha.length - 1].role !== "user") {
+      if (cha[cha.length - 1].saying === saying) {
+        sayingQu -= 1;
+        if (sayingQu === 0) {
+          break;
+        }
+      }
+      cha.pop();
+    }
+    $DataBase.characters[$selectedCharID].chats[
+      $DataBase.characters[$selectedCharID].chatPage
+    ].message = cha;
+    await sendChatMain();
+  }
 
-    $: updateInputSize()
+  async function unReroll() {
+    if (rerollid <= 0) {
+      return;
+    }
+    if (lastCharId !== $selectedCharID) {
+      rerolls = [];
+      rerollid = -1;
+    }
+    if ($doingChat) {
+      return;
+    }
+    if (Array.isArray(rerolls[rerollid - 1])) {
+      let db = $DataBase;
+      rerollid -= 1;
+      db.characters[$selectedCharID].chats[
+        $DataBase.characters[$selectedCharID].chatPage
+      ].message = cloneDeep(rerolls[rerollid]);
+      $DataBase = db;
+    }
+  }
 
+  async function sendChatMain(saveReroll = false) {
+    messageInput = "";
+    try {
+      await sendChat();
+    } catch (error) {
+      alertError(`${error}`);
+    }
+    rerolls.push(
+      cloneDeep(
+        $DataBase.characters[$selectedCharID].chats[
+          $DataBase.characters[$selectedCharID].chatPage
+        ].message
+      )
+    );
+    rerollid = rerolls.length - 1;
+    lastCharId = $selectedCharID;
+    $doingChat = false;
+    if ($DataBase.playMessage) {
+      const audio = new Audio(sendSound);
+      audio.play();
+    }
+  }
+
+  async function runAutoMode() {
+    if (autoMode) {
+      autoMode = false;
+      return;
+    }
+    const selectedChar = $selectedCharID;
+    autoMode = true;
+    while (autoMode) {
+      await sendChatMain();
+      if (selectedChar !== $selectedCharID) {
+        autoMode = false;
+      }
+    }
+  }
+
+  export let customStyle = "";
+  let inputHeight = "44px";
+  let inputEle: HTMLTextAreaElement;
+
+  function updateInputSize() {
+    if (inputEle) {
+      inputEle.style.height = "0";
+      inputHeight = inputEle.scrollHeight + "px";
+      inputEle.style.height = inputHeight;
+    }
+  }
+
+  $: updateInputSize();
 </script>
+
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="w-full h-full" style={customStyle} on:click={() => {
-    openMenu = false
-}}>
-    {#if $selectedCharID < 0}
-        <div class="h-full w-full flex flex-col overflow-y-auto items-center">
-            <h2 class="text-4xl text-white mb-0 mt-6 font-black">RisuAI</h2>
-            <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
-            <GithubStars />
-        </div>
-    {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {
-            //@ts-ignore
-            const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
-            if(scrolled < 100 && $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length > loadPages){
-                loadPages += 30
+<div
+  class="h-full w-full"
+  style={customStyle}
+  on:click={() => {
+    openMenu = false;
+  }}
+>
+  {#if $selectedCharID < 0}
+    <div class="flex h-full w-full flex-col items-center overflow-y-auto">
+      <h2 class="mb-0 mt-6 text-4xl font-black text-white">RisuAI</h2>
+      <h3 class="mt-1 text-gray-500">Version {appVer}</h3>
+      <GithubStars />
+    </div>
+  {:else}
+    <div
+      class="relative flex h-full w-full flex-col-reverse overflow-y-auto"
+      on:scroll={(e) => {
+        //@ts-ignore
+        const scrolled =
+          e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop;
+        if (
+          scrolled < 100 &&
+          $DataBase.characters[$selectedCharID].chats[
+            $DataBase.characters[$selectedCharID].chatPage
+          ].message.length > loadPages
+        ) {
+          loadPages += 30;
+        }
+      }}
+    >
+      <div class="mb-2 mt-2 flex items-end">
+        <textarea
+          class="input-text maxw ml-4 mr-2 flex-grow resize-none overflow-x-hidden overflow-y-hidden border-gray-700 bg-transparent p-2 text-xl text-neutral-200 focus:bg-selected"
+          bind:value={messageInput}
+          bind:this={inputEle}
+          on:keydown={(e) => {
+            if (e.key.toLocaleLowerCase() === "enter" && !e.shiftKey) {
+              send();
+              e.preventDefault();
             }
-        }}>
-            <div class="flex items-end mt-2 mb-2">
-                <textarea class="text-neutral-200 p-2 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected maxw overflow-y-hidden overflow-x-hidden"
-                    bind:value={messageInput}
-                    bind:this={inputEle}
-                    on:keydown={(e) => {
-                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
-                            send()
-                            e.preventDefault()
-                        }
-                        if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
-                            reroll()
-                            e.preventDefault()
-                        }
-                    }}
-                    on:input={updateInputSize}
-                    style:height={inputHeight}
-                />
+            if (e.key.toLocaleLowerCase() === "m" && e.ctrlKey) {
+              reroll();
+              e.preventDefault();
+            }
+          }}
+          on:input={updateInputSize}
+          style:height={inputHeight}
+        />
 
-                
-                {#if $doingChat}
-                    <div
-                        class="mr-2 bg-selected flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors">
-                        <div class="loadmove" class:autoload={autoMode}>
-                        </div>
-                    </div>
-                {:else}
-                    <div on:click={send}
-                        class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
-                    </div>
-                {/if}
-                <div on:click={(e) => {
-                    openMenu = !openMenu
-                    e.stopPropagation()
-                }}
-                class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
-            </div>
-            </div>
-            {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
-                {#if chat.role === 'char'}
-                    {#if $DataBase.characters[$selectedCharID].type !== 'group'}
-                        <Chat
-                            idx={chat.index}
-                            name={$DataBase.characters[$selectedCharID].name} 
-                            message={chat.data}
-                            img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
-                            rerollIcon={i === 0}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                        />
-                    {:else}
-                        <Chat
-                            idx={chat.index}
-                            name={findCharacterbyId(chat.saying).name} 
-                            rerollIcon={i === 0}
-                            message={chat.data}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                            img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                        />
-                    {/if}
-                {:else}
-                    <Chat
-                        idx={chat.index}
-                        name={$DataBase.username} 
-                        message={chat.data}
-                        img={getCharImage($DataBase.userIcon, 'css')}
-                    />
-                {/if}
-            {/each}
-            {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length <= loadPages}
-                {#if $DataBase.characters[$selectedCharID].type !== 'group'}
-                    <Chat
-                        name={$DataBase.characters[$selectedCharID].name}
-                        message={$DataBase.characters[$selectedCharID].firstMsgIndex === -1 ? $DataBase.characters[$selectedCharID].firstMessage :
-                            $DataBase.characters[$selectedCharID].alternateGreetings[$DataBase.characters[$selectedCharID].firstMsgIndex]}
-                        img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
-                        idx={-1}
-                        altGreeting={$DataBase.characters[$selectedCharID].alternateGreetings.length > 0}
-                        onReroll={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
-                            if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex >= (cha.alternateGreetings.length - 1)){
-                                    cha.firstMsgIndex = -1
-                                }
-                                else{
-                                    cha.firstMsgIndex += 1
-                                }
-                            }
-                            $DataBase.characters[$selectedCharID] = cha
-                        }}
-                        unReroll={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
-                            if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex === -1){
-                                    cha.firstMsgIndex = (cha.alternateGreetings.length - 1)
-                                }
-                                else{
-                                    cha.firstMsgIndex -= 1
-                                }
-                            }
-                            $DataBase.characters[$selectedCharID] = cha
-                        }}
-                    />
-                    {#if !$DataBase.characters[$selectedCharID].removedQuotes && $DataBase.characters[$selectedCharID].creatorNotes.length >= 2}
-                        <CreatorQuote quote={$DataBase.characters[$selectedCharID].creatorNotes} onRemove={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
-                            if(cha.type !== 'group'){
-                                cha.removedQuotes = true
-                            }
-                            $DataBase.characters[$selectedCharID] = cha
-                        }} />
-                    {/if}
-                {/if}
-            {/if}
-
-            {#if openMenu}
-                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-gray-200" on:click={(e) => {
-                    e.stopPropagation()
-                }}>
-                    {#if $DataBase.characters[$selectedCharID].type === 'group'}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={runAutoMode}>
-                            <DicesIcon />
-                            <span class="ml-2">{language.autoMode}</span>
-                        </div>
-                    {/if}
-
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
-                        openChatList = true
-                        openMenu = false
-                    }}>
-                        <DatabaseIcon />
-                        <span class="ml-2">{language.chatList}</span>
-                    </div>
-                    {#if $DataBase.translator !== ''}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            $doingChat = true
-                            messageInput = (await translate(messageInput, true))
-                            $doingChat = false
-                        }}>
-                            <LanguagesIcon />
-                            <span class="ml-2">{language.translateInput}</span>
-                        </div>
-                    {/if}
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
-                        <RefreshCcwIcon />
-                        <span class="ml-2">{language.reroll}</span>
-                    </div>
-                </div>
-
-            {/if}
+        {#if $doingChat}
+          <div
+            class="mr-2 flex h-12 w-12 items-center justify-center rounded-md bg-selected text-white transition-colors hover:bg-green-500"
+          >
+            <div class="loadmove" class:autoload={autoMode} />
+          </div>
+        {:else}
+          <div
+            on:click={send}
+            class="mr-2 flex h-12 w-12 items-center justify-center rounded-md bg-gray-500 text-white transition-colors hover:bg-green-500"
+          >
+            <Send />
+          </div>
+        {/if}
+        <div
+          on:click={(e) => {
+            openMenu = !openMenu;
+            e.stopPropagation();
+          }}
+          class="mr-2 flex h-12 w-12 items-center justify-center rounded-md bg-gray-500 text-white transition-colors hover:bg-green-500"
+        >
+          <MenuIcon />
         </div>
+      </div>
+      {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
+        {#if chat.role === "char"}
+          {#if $DataBase.characters[$selectedCharID].type !== "group"}
+            <Chat
+              idx={chat.index}
+              name={$DataBase.characters[$selectedCharID].name}
+              message={chat.data}
+              img={getCharImage(
+                $DataBase.characters[$selectedCharID].image,
+                "css"
+              )}
+              rerollIcon={i === 0}
+              onReroll={reroll}
+              {unReroll}
+            />
+          {:else}
+            <Chat
+              idx={chat.index}
+              name={findCharacterbyId(chat.saying).name}
+              rerollIcon={i === 0}
+              message={chat.data}
+              onReroll={reroll}
+              {unReroll}
+              img={getCharImage(findCharacterbyId(chat.saying).image, "css")}
+            />
+          {/if}
+        {:else}
+          <Chat
+            idx={chat.index}
+            name={$DataBase.username}
+            message={chat.data}
+            img={getCharImage($DataBase.userIcon, "css")}
+          />
+        {/if}
+      {/each}
+      {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length <= loadPages}
+        {#if $DataBase.characters[$selectedCharID].type !== "group"}
+          <Chat
+            name={$DataBase.characters[$selectedCharID].name}
+            message={$DataBase.characters[$selectedCharID].firstMsgIndex === -1
+              ? $DataBase.characters[$selectedCharID].firstMessage
+              : $DataBase.characters[$selectedCharID].alternateGreetings[
+                  $DataBase.characters[$selectedCharID].firstMsgIndex
+                ]}
+            img={getCharImage(
+              $DataBase.characters[$selectedCharID].image,
+              "css"
+            )}
+            idx={-1}
+            altGreeting={$DataBase.characters[$selectedCharID]
+              .alternateGreetings.length > 0}
+            onReroll={() => {
+              const cha = $DataBase.characters[$selectedCharID];
+              if (cha.type !== "group") {
+                if (cha.firstMsgIndex >= cha.alternateGreetings.length - 1) {
+                  cha.firstMsgIndex = -1;
+                } else {
+                  cha.firstMsgIndex += 1;
+                }
+              }
+              $DataBase.characters[$selectedCharID] = cha;
+            }}
+            unReroll={() => {
+              const cha = $DataBase.characters[$selectedCharID];
+              if (cha.type !== "group") {
+                if (cha.firstMsgIndex === -1) {
+                  cha.firstMsgIndex = cha.alternateGreetings.length - 1;
+                } else {
+                  cha.firstMsgIndex -= 1;
+                }
+              }
+              $DataBase.characters[$selectedCharID] = cha;
+            }}
+          />
+          {#if !$DataBase.characters[$selectedCharID].removedQuotes && $DataBase.characters[$selectedCharID].creatorNotes.length >= 2}
+            <CreatorQuote
+              quote={$DataBase.characters[$selectedCharID].creatorNotes}
+              onRemove={() => {
+                const cha = $DataBase.characters[$selectedCharID];
+                if (cha.type !== "group") {
+                  cha.removedQuotes = true;
+                }
+                $DataBase.characters[$selectedCharID] = cha;
+              }}
+            />
+          {/if}
+        {/if}
+      {/if}
 
-    {/if}
+      {#if openMenu}
+        <div
+          class="absolute bottom-16 right-2 flex flex-col gap-3 bg-darkbg p-5 text-gray-200"
+          on:click={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          {#if $DataBase.characters[$selectedCharID].type === "group"}
+            <div
+              class="flex cursor-pointer items-center transition-colors hover:text-green-500"
+              on:click={runAutoMode}
+            >
+              <DicesIcon />
+              <span class="ml-2">{language.autoMode}</span>
+            </div>
+          {/if}
+
+          <div
+            class="flex cursor-pointer items-center transition-colors hover:text-green-500"
+            on:click={() => {
+              openChatList = true;
+              openMenu = false;
+            }}
+          >
+            <DatabaseIcon />
+            <span class="ml-2">{language.chatList}</span>
+          </div>
+          {#if $DataBase.translator !== ""}
+            <div
+              class="flex cursor-pointer items-center transition-colors hover:text-green-500"
+              on:click={async () => {
+                $doingChat = true;
+                messageInput = await translate(messageInput, true);
+                $doingChat = false;
+              }}
+            >
+              <LanguagesIcon />
+              <span class="ml-2">{language.translateInput}</span>
+            </div>
+          {/if}
+          <div
+            class="flex cursor-pointer items-center transition-colors hover:text-green-500"
+            on:click={reroll}
+          >
+            <RefreshCcwIcon />
+            <span class="ml-2">{language.reroll}</span>
+          </div>
+        </div>
+      {/if}
+    </div>
+  {/if}
 </div>
+
 <style>
-    .maxw{
-        max-width: calc(100vw - 10rem);
-    }
-    .loadmove {
-        animation: spin 1s linear infinite;
-        border-radius: 50%;
-        border: 0.4rem solid rgba(0,0,0,0);
-        width: 1rem;
-        height: 1rem;
-        border-top: 0.4rem solid #6272a4;
-        border-left: 0.4rem solid #6272a4;
-    }
+  .maxw {
+    max-width: calc(100vw - 10rem);
+  }
+  .loadmove {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    border: 0.4rem solid rgba(0, 0, 0, 0);
+    width: 1rem;
+    height: 1rem;
+    border-top: 0.4rem solid #6272a4;
+    border-left: 0.4rem solid #6272a4;
+  }
 
-    .autoload{
-        border-top: 0.4rem solid #10b981;
-        border-left: 0.4rem solid #10b981;
-    }
+  .autoload {
+    border-top: 0.4rem solid #10b981;
+    border-left: 0.4rem solid #10b981;
+  }
 
-    @keyframes spin {
-        
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
     }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 </style>

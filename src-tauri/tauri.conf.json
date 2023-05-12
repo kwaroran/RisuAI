@@ -20,24 +20,41 @@
       },
       "protocol": {
         "all": true,
-        "assetScope": ["asset","$APPDATA","$APPDATA/*","$APPDATA/**/*", "/data/**/*"]
+        "assetScope": [
+          "asset",
+          "$APPDATA",
+          "$APPDATA/*",
+          "$APPDATA/**/*",
+          "/data/**/*"
+        ]
       },
       "all": false,
       "shell": {
         "all": false,
         "open": true
       },
-      "fs":{
+      "fs": {
         "all": true,
-        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*"]
+        "scope": [
+          "$APPDATA",
+          "$APPDATA/*",
+          "$APPDATA/**/*",
+          "$DOWNLOAD/*",
+          "/data/**/*"
+        ]
       },
-      "path":{
+      "path": {
         "all": true
       },
       "http": {
         "all": true,
         "request": true,
-        "scope": ["https://*/*", "https://*/**/*","http://*/*", "http://*/**/*"]
+        "scope": [
+          "https://*/*",
+          "https://*/**/*",
+          "http://*/*",
+          "http://*/**/*"
+        ]
       },
       "window": {
         "center": false,

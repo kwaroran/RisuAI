@@ -2,17 +2,15 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 import wasm from "vite-plugin-wasm";
-import { internalIpV4 } from 'internal-ip'
+import { internalIpV4 } from "internal-ip";
 import topLevelAwait from "vite-plugin-top-level-await";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-  
-  const host = await internalIpV4()
+  const host = await internalIpV4();
 
   return {
     plugins: [
-      
       svelte({
         preprocess: [
           sveltePreprocess({
@@ -34,11 +32,11 @@ export default defineConfig(async () => {
     clearScreen: false,
     // tauri expects a fixed port, fail if that port is not available
     server: {
-      host: '0.0.0.0', // listen on all addresses
+      host: "0.0.0.0", // listen on all addresses
       port: 5174,
       strictPort: true,
       hmr: {
-        protocol: 'ws',
+        protocol: "ws",
         host,
         port: 5184,
       },
@@ -48,16 +46,18 @@ export default defineConfig(async () => {
     envPrefix: ["VITE_", "TAURI_"],
     build: {
       // Tauri supports es2021
-      target: process.env.TAURI_PLATFORM == "windows" ? "chrome105" : "safari13",
+      target:
+        process.env.TAURI_PLATFORM == "windows" ? "chrome105" : "safari13",
       // don't minify for debug builds
-      minify: process.env.TAURI_DEBUG ? false : 'esbuild',
+      minify: process.env.TAURI_DEBUG ? false : "esbuild",
       // produce sourcemaps for debug builds
       sourcemap: !!process.env.TAURI_DEBUG,
     },
 
-    resolve:{
-      alias:{
-        'src':'/src'
-      }
-    }
-}});
+    resolve: {
+      alias: {
+        src: "/src",
+      },
+    },
+  };
+});
