@@ -8,6 +8,7 @@
   } from "../../ts/stores";
   import { DataBase } from "../../ts/database";
   import BarIcon from "./BarIcon.svelte";
+  import SidebarIndicator from "./SidebarIndicator.svelte";
   import {
     Plus,
     User,
@@ -34,6 +35,8 @@
   import Botpreset from "../Others/botpreset.svelte";
   import { onDestroy } from "svelte";
   import { isEqual } from "lodash";
+  import SidebarAvatar from "./SidebarAvatar.svelte";
+  import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -61,7 +64,6 @@
     characterFormatUpdate(index);
     selectedCharID.set(index);
   }
-
   function reseter() {
     menuMode = 0;
     sideBarMode = 0;
@@ -71,7 +73,6 @@
   }
 
   let charImages: string[] = [];
-
   const unsub = DataBase.subscribe((db) => {
     let newCharImages: string[] = [];
     for (const cha of db.characters) {
@@ -86,7 +87,7 @@
 </script>
 
 <div
-  class="flex h-full w-20 min-w-20 flex-col items-center overflow-x-hidden overflow-y-scroll bg-bgcolor text-white shadow-lg"
+  class="flex h-full w-20 min-w-20 flex-col items-center overflow-x-hidden overflow-y-scroll bg-bgcolor text-white shadow-lg gap-2"
   class:editMode
 >
   <button
@@ -98,21 +99,44 @@
   <div class="h-8 min-h-8 w-14 min-w-14 bg-transparent" />
   {#if menuMode === 0}
     {#each charImages as charimg, i}
-      <div class="flex items-center">
+      <div class="group relative flex items-center px-2">
+        <SidebarIndicator
+          isActive={$selectedCharID === i && sideBarMode !== 1}
+        />
         {#if charimg !== ""}
-          <BarIcon
-            onClick={() => {
+          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+          <div
+            on:click={() => {
               changeChar(i);
             }}
-            additionalStyle={getCharImage($DataBase.characters[i].image, "css")}
-          />
+            on:keydown={(e) => {
+              if (e.key === "Enter") {
+                changeChar(i);
+              }
+            }}
+            tabindex="0"
+          >
+            {#await getCharImage($DataBase.characters[i].image, "plain") then img}
+              <SidebarAvatar src={img} size="56" />
+            {:catch}
+              <SidebarAvatar size="56" src="https://via.placeholder.com/150" />
+            {/await}
+          </div>
         {:else}
-          <BarIcon
-            onClick={() => {
+          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+          <div
+            on:click={() => {
               changeChar(i);
             }}
-            additionalStyle={i === $selectedCharID ? "background:#44475a" : ""}
-          />
+            on:keydown={(e) => {
+              if (e.key === "Enter") {
+                changeChar(i);
+              }
+            }}
+            tabindex="0"
+          >
+            <SidebarAvatar size="56" src="https://via.placeholder.com/150" />
+          </div>
         {/if}
         {#if editMode}
           <div class="mt-2 flex flex-col">
@@ -146,17 +170,29 @@
         {/if}
       </div>
     {/each}
-    <BarIcon
-      onClick={() => {
-        if (sideBarMode === 1) {
-          reseter();
-          sideBarMode = 0;
-        } else {
-          reseter();
-          sideBarMode = 1;
-        }
-      }}><PlusIcon /></BarIcon
-    >
+    <div class="flex flex-col items-center space-y-2 px-2">
+      <BaseRoundedButton
+        onClick={() => {
+          if (sideBarMode === 1) {
+            reseter();
+            sideBarMode = 0;
+          } else {
+            reseter();
+            sideBarMode = 1;
+          }
+        }}
+        ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          /></svg
+        ></BaseRoundedButton
+      >
+    </div>
   {:else}
     <BarIcon
       onClick={() => {

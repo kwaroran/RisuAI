@@ -1,8 +1,9 @@
+<!-- TODO: REMOVE AND REFACTOR TO BASE BUTTON UI COMPONENT -->
+
 <script lang="ts">
   export let onClick = () => {};
   export let additionalStyle: string | Promise<string> = "";
 </script>
-
 {#await additionalStyle}
   <button on:click={onClick} class="ico"><slot /></button>
 {:then as}
@@ -16,7 +17,6 @@
     height: 3.5rem;
     width: 3.5rem;
     min-height: 3.5rem;
-    margin-top: 0.5rem;
     --tw-shadow-color: 0, 0, 0;
     --tw-shadow: 0 10px 15px -3px rgba(var(--tw-shadow-color), 0.1),
       0 4px 6px -2px rgba(var(--tw-shadow-color), 0.05);
