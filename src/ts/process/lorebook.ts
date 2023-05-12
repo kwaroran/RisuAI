@@ -96,53 +96,56 @@ export async function loadLoreBookPrompt() {
   formatedLore.sort((a, b) => {
     return b.order - a.order;
   });
+    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
+        return msg.data
+    }).join('||').replace(rmRegex,'').toLocaleLowerCase()
 
-  const formatedChat = currentChat
-    .slice(currentChat.length - loreDepth, currentChat.length)
-    .map((msg) => {
-      return msg.data;
-    })
-    .join("||")
-    .replace(rmRegex, "")
-    .toLocaleLowerCase();
+    let loreListUpdated = true
+    
+    while(loreListUpdated){
+        loreListUpdated = false
+        const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
+        for(let i=0;i<formatedLore.length;i++){
+            const lore = formatedLore[i]
+            if(lore.activatied){
+                continue
+            }
+            const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
+            if(totalTokens > loreToken){
+                break
+            }
 
-  let loreListUpdated = true;
-
-  while (loreListUpdated) {
-    loreListUpdated = false;
-    for (let i = 0; i < formatedLore.length; i++) {
-      const lore = formatedLore[i];
-      if (lore.activatied) {
-        continue;
-      }
-      const totalTokens = await tokenize(
-        activatiedPrompt.concat([lore.content]).join("\n\n")
-      );
-      if (totalTokens > loreToken) {
-        break;
-      }
-
-      if (lore.keys === "always") {
-        activatiedPrompt.push(lore.content);
-        lore.activatied = true;
-        loreListUpdated = true;
-        continue;
-      }
-
-      let firstKeyActivation = false;
-      for (const key of lore.keys) {
-        if (formatedChat.includes(key)) {
-          firstKeyActivation = true;
-          break;
-        }
-      }
-
-      if (firstKeyActivation) {
-        if (lore.secondKey.length === 0) {
-          activatiedPrompt.push(lore.content);
-          lore.activatied = true;
-          loreListUpdated = true;
-          continue;
+            if(lore.keys === 'always'){
+                activatiedPrompt.push(lore.content)
+                lore.activatied = true
+                loreListUpdated = true
+                continue
+            }
+    
+            let firstKeyActivation = false
+            for(const key of lore.keys){
+                if(formatedChat.includes(key)){
+                    firstKeyActivation = true
+                    break
+                }
+            }
+    
+            if(firstKeyActivation){
+                if(lore.secondKey.length === 0){
+                    activatiedPrompt.push(lore.content)
+                    lore.activatied = true
+                    loreListUpdated = true
+                    continue
+                }
+                for(const key of lore.secondKey){
+                    if(formatedChat.includes(key)){
+                        activatiedPrompt.push(lore.content)
+                        lore.activatied = true
+                        loreListUpdated = true
+                        break
+                    }
+                }
+            }
         }
         for (const key of lore.secondKey) {
           if (formatedChat.includes(key)) {
