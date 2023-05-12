@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
-import { alertConfirm, alertError, alertNormal, alertStore } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, saveImage, setDatabase, type customscript } from "./database"
+import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert"
+import { DataBase, defaultSdDataFunc, type character, saveImage, setDatabase, type customscript, type loreSettings, type loreBook } from "./database"
 import { checkNullish, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
@@ -11,7 +11,6 @@ import { characterFormatUpdate } from "./characters"
 import { downloadFile, readImage } from "./globalApi"
 import { cloneDeep } from "lodash"
 
-type CharacterBook = null  
 
 export async function importCharacter() {
     try {
@@ -160,20 +159,11 @@ export async function characterHubImport() {
 
 function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined = undefined):character{
 
-    let desc = charaData.description ?? ''
-
-    if(charaData.personality){
-        desc += '\n\n' + charaData.personality
-    }
-
-    if(charaData.scenario){
-        desc += '\n\n' + charaData.scenario
-    }
 
     return {
         name: charaData.name ?? 'unknown name',
         firstMessage: charaData.first_mes ?? 'unknown first message',
-        desc: desc,
+        desc:  charaData.description ?? '',
         notes: '',
         chats: [{
             message: [],
@@ -191,13 +181,27 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         sdData: defaultSdDataFunc(),
         utilityBot: false,
         customscript: [],
-        exampleMessage: charaData.mes_example
+        exampleMessage: charaData.mes_example,
+        creatorNotes:'',
+        systemPrompt:'',
+        postHistoryInstructions:'',
+        alternateGreetings:[],
+        tags:[],
+        creator:"",
+        characterVersion: 0,
+        personality: charaData.personality ?? '',
+        scenario:charaData.scenario ?? '',
+        firstMsgIndex: -1
     }
 }
 
 export async function exportChar(charaID:number) {
     const db = get(DataBase)
-    let char:character = JSON.parse(JSON.stringify(db.characters[charaID]))
+    let char = cloneDeep(db.characters[charaID])
+
+    if(char.type === 'group'){
+        return
+    }
 
     if(!char.image){
         alertError('Image Required')
@@ -205,6 +209,12 @@ export async function exportChar(charaID:number) {
     }
     const conf = await alertConfirm(language.exportConfirm)
     if(!conf){
+        return
+    }
+
+    const sel = await alertSelect(['Export as Spec V2','Export as Old RisuCard'])
+    if(sel === '0'){
+        exportSpecV2(char)
         return
     }
 
@@ -288,6 +298,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
     if(!card ||card.spec !== 'chara_card_v2'){
         return false
     }
+
     const data = card.data
     const im = img ? await saveImage(PngMetadata.filter(img)) : undefined
     let db = get(DataBase)
@@ -319,11 +330,45 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         sdData = risuext.sdData ?? sdData
     }
 
+    const charbook = data.character_book
+    let lorebook:loreBook[] = []
+    let loresettings:undefined|loreSettings = undefined
+    let loreExt:undefined|any = undefined
+    if(charbook){
+        if((!checkNullish(charbook.recursive_scanning)) &&
+            (!checkNullish(charbook.scan_depth)) &&
+            (!checkNullish(charbook.token_budget))){
+            loresettings = {
+                tokenBudget:charbook.token_budget,
+                scanDepth:charbook.scan_depth,
+                recursiveScanning: charbook.recursive_scanning
+            }
+        }
+
+        loreExt = charbook.extensions
+
+        for(const book of charbook.entries){
+            lorebook.push({
+                key: book.keys.join(', '),
+                secondkey: book.secondary_keys?.join(', ') ?? '',
+                insertorder: book.insertion_order,
+                comment: book.name ?? book.comment ?? "",
+                content: book.content,
+                mode: "normal",
+                alwaysActive: book.constant ?? false,
+                selective: book.selective ?? false,
+                extentions: book.extensions
+            })
+        }
+
+    }
+
+
     let char:character = {
-        name: data.name,
-        firstMessage: data.first_mes,
-        desc: data.description,
-        notes: data.post_history_instructions,
+        name: data.name ?? '',
+        firstMessage: data.first_mes ?? '',
+        desc: data.description ?? '',
+        notes: '',
         chats: [{
             message: [],
             note: '',
@@ -334,21 +379,137 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         image: im,
         emotionImages: emotions,
         bias: bias,
-        globalLore: [], //lorebook
+        globalLore: lorebook, //lorebook
         viewScreen: viewScreen,
         chaId: uuidv4(),
         sdData: sdData,
         utilityBot: utilityBot,
         customscript: customScripts,
-        exampleMessage: data.mes_example
+        exampleMessage: data.mes_example ?? '',
+        creatorNotes:data.creator_notes ?? '',
+        systemPrompt:data.system_prompt ?? '',
+        postHistoryInstructions:data.post_history_instructions ?? '',
+        alternateGreetings:data.alternate_greetings ?? [],
+        tags:data.tags ?? [],
+        creator:data.creator ?? '',
+        characterVersion: data.character_version ?? 0,
+        personality:data.personality ?? '',
+        scenario:data.scenario ?? '',
+        firstMsgIndex: -1,
+        removedQuotes: false,
+        loreSettings: loresettings,
+        loreExt: loreExt,
+        additionalData: {
+            tag: data.tags,
+            creator: data.creator,
+            character_version: data.character_version
+        }
     }
 
+    db.characters.push(char)
     
     setDatabase(db)
 
     alertNormal(language.importedCharacter)
     return true
 
+}
+
+export async function exportSpecV2(char:character) {
+    let img = await readImage(char.image)
+
+    try{
+
+        let charBook:charBookEntry[] = []
+        for(const lore of char.globalLore){
+            charBook.push({
+                keys: lore.key.split(',').map(r => r.trim()),
+                secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
+                content: lore.content,
+                extensions: lore.extentions ?? {},
+                enabled: true,
+                insertion_order: lore.insertorder,
+                constant: lore.alwaysActive,
+                selective:lore.selective,
+                name: lore.comment,
+                comment: lore.comment
+            })
+        }
+
+        const card:CharacterCardV2 = {
+            spec: "chara_card_v2",
+            spec_version: "2.0",
+            data: {
+                name: char.name,
+                description: char.desc,
+                personality: char.personality,
+                scenario: char.scenario,
+                first_mes: char.firstMessage,
+                mes_example: char.exampleMessage,
+                creator_notes: char.creatorNotes,
+                system_prompt: char.systemPrompt,
+                post_history_instructions: char.postHistoryInstructions,
+                alternate_greetings: char.alternateGreetings,
+                character_book: {
+                    scan_depth: char.loreSettings?.scanDepth,
+                    token_budget: char.loreSettings?.tokenBudget,
+                    recursive_scanning: char.loreSettings?.recursiveScanning,
+                    extensions: char.loreExt ?? {},
+                    entries: []
+                },
+                tags: char.additionalData?.tag ?? [],
+                creator: char.additionalData?.creator ?? '',
+                character_version: char.additionalData?.character_version ?? 0,
+                extensions: {
+                    risuai: {
+                        emotions: char.emotionImages,
+                        bias: char.bias,
+                        viewScreen: char.viewScreen,
+                        customScripts: char.customscript,
+                        utilityBot: char.utilityBot,
+                        sdData: char.sdData
+                    }
+                }
+            }
+        }
+
+
+        if(card.data.extensions.risuai.emotions && card.data.extensions.risuai.emotions.length > 0){
+            for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
+                })
+                const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
+                char.emotionImages[i][1] = Buffer.from(rData).toString('base64')
+            }
+        }
+    
+        alertStore.set({
+            type: 'wait',
+            msg: 'Loading... (Writing Exif)'
+        })
+
+        await sleep(10)
+        img = PngMetadata.write(img, {
+            'chara': Buffer.from(JSON.stringify(card)).toString('base64'),
+        })
+
+        alertStore.set({
+            type: 'wait',
+            msg: 'Loading... (Writing)'
+        })
+        
+        char.image = ''
+        await sleep(10)
+        await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.png`, img)
+
+        alertNormal(language.successExport)
+
+    }
+    catch(e){
+        alertError(`${e}`)
+    }
 }
 
 
@@ -395,4 +556,34 @@ interface OldTavernChar{
     personality: ""
     scenario: ""
     talkativeness: "0.5"
+}
+type CharacterBook = {
+    name?: string
+    description?: string
+    scan_depth?: number // agnai: "Memory: Chat History Depth"
+    token_budget?: number // agnai: "Memory: Context Limit"
+    recursive_scanning?: boolean // no agnai equivalent. whether entry content can trigger other entries
+    extensions: Record<string, any>
+    entries: Array<charBookEntry>
+  }
+
+interface charBookEntry{
+    keys: Array<string>
+    content: string
+    extensions: Record<string, any>
+    enabled: boolean
+    insertion_order: number // if two entries inserted, lower "insertion order" = inserted higher
+
+    // FIELDS WITH NO CURRENT EQUIVALENT IN SILLY
+    name?: string // not used in prompt engineering
+    priority?: number // if token budget reached, lower priority value = discarded first
+
+    // FIELDS WITH NO CURRENT EQUIVALENT IN AGNAI
+    id?: number // not used in prompt engineering
+    comment?: string // not used in prompt engineering
+    selective?: boolean // if `true`, require a key from both `keys` and `secondary_keys` to trigger the entry
+    secondary_keys?: Array<string> // see field `selective`. ignored if selective == false
+    constant?: boolean // if true, always inserted in the prompt (within budget limit)
+    position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
+    
 }

@@ -10,13 +10,14 @@
     import { replacePlaceholders } from "../../ts/util";
     export let message = ''
     export let name = ''
-    export let img = ''
+    export let img:string|Promise<string> = ''
     export let idx = -1
     export let rerollIcon = false
     export let onReroll = () => {}
     export let unReroll = () => {}
     let translating = false
     let editMode = false
+    export let altGreeting = false
 
     let msgDisplay = ''
 
@@ -60,15 +61,13 @@
 
     $: displaya(message)
 </script>
-<div class="flex">
+<div class="flex max-w-full">
     <div class="text-neutral-200 mt-2 p-2 bg-transparent flex-grow ml-4 mr-4 border-t-gray-900 border-opacity-30 border-transparent flexium items-start">
-        {#if img === ''}
-            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`}>
-            
-            </div>
-        {:else}
-            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={img + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
-        {/if}
+        {#await img}
+            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
+        {:then m}
+            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
+        {/await}
         <span class="flex flex-col ml-4 w-full">
             <div class="flexium items-center chat">
                 <span class="chat text-xl unmargin">{name}</span>
@@ -106,8 +105,8 @@
                             <LanguagesIcon />
                         </button>
                     {/if}
-                    {#if rerollIcon}
-                        {#if $DataBase.swipe}
+                    {#if rerollIcon || altGreeting}
+                        {#if $DataBase.swipe || altGreeting}
                             <button class="ml-2 hover:text-green-500 transition-colors" on:click={unReroll}>
                                 <ArrowLeft size={22}/>
                             </button>

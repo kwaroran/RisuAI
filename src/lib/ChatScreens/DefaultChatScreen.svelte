@@ -13,6 +13,7 @@
     import {cloneDeep} from 'lodash'
      import { processScript } from "src/ts/process/scripts";
   import GithubStars from "../Others/GithubStars.svelte";
+  import CreatorQuote from "./CreatorQuote.svelte";
 
     let messageInput = ''
     let openMenu = false
@@ -237,88 +238,81 @@
             {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
                     {#if $DataBase.characters[$selectedCharID].type !== 'group'}
-                        {#await getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
-                            <Chat
-                                idx={chat.index}
-                                name={$DataBase.characters[$selectedCharID].name} 
-                                message={chat.data}
-                                img={''}
-                                rerollIcon={i === 0}
-                                onReroll={reroll}
-                                unReroll={unReroll}
-                            />
-                        {:then im} 
-                            <Chat
-                                idx={chat.index}
-                                name={$DataBase.characters[$selectedCharID].name} 
-                                message={chat.data}
-                                img={im}
-                                rerollIcon={i === 0}
-                                onReroll={reroll}
-                                unReroll={unReroll}
-
-                            />
-                        {/await}
+                        <Chat
+                            idx={chat.index}
+                            name={$DataBase.characters[$selectedCharID].name} 
+                            message={chat.data}
+                            img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
+                            rerollIcon={i === 0}
+                            onReroll={reroll}
+                            unReroll={unReroll}
+                        />
                     {:else}
-                        {#await getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            <Chat
-                                idx={chat.index}
-                                name={findCharacterbyId(chat.saying).name} 
-                                message={chat.data}
-                                rerollIcon={i === 0}
-                                onReroll={reroll}
-                                unReroll={unReroll}
-                                img={''}
-                            />
-                        {:then im} 
-                            <Chat
-                                idx={chat.index}
-                                name={findCharacterbyId(chat.saying).name} 
-                                rerollIcon={i === 0}
-                                message={chat.data}
-                                onReroll={reroll}
-                                unReroll={unReroll}
-                                img={im}
-                            />
-                        {/await}
+                        <Chat
+                            idx={chat.index}
+                            name={findCharacterbyId(chat.saying).name} 
+                            rerollIcon={i === 0}
+                            message={chat.data}
+                            onReroll={reroll}
+                            unReroll={unReroll}
+                            img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
+                        />
                     {/if}
                 {:else}
-                    {#await getCharImage($DataBase.userIcon, 'css')}
-                        <Chat
-                            idx={chat.index}
-                            name={$DataBase.username} 
-                            message={chat.data}
-                            img={''}
-                        />
-                    {:then im}
-                        <Chat
-                            idx={chat.index}
-                            name={$DataBase.username} 
-                            message={chat.data}
-                            img={im}
-                        />
-                    {/await}
+                    <Chat
+                        idx={chat.index}
+                        name={$DataBase.username} 
+                        message={chat.data}
+                        img={getCharImage($DataBase.userIcon, 'css')}
+                    />
                 {/if}
             {/each}
             {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length <= loadPages}
                 {#if $DataBase.characters[$selectedCharID].type !== 'group'}
-                    {#await getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
-                        <Chat
-                            name={$DataBase.characters[$selectedCharID].name}
-                            message={ $DataBase.characters[$selectedCharID].firstMessage}
-                            img={''}
-                            idx={-1}
-                        />      
-                    {:then im}
-                        <Chat
-                            name={$DataBase.characters[$selectedCharID].name}
-                            message={ $DataBase.characters[$selectedCharID].firstMessage}
-                            img={im}
-                            idx={-1}
-                        />
-                    {/await}
+                    <Chat
+                        name={$DataBase.characters[$selectedCharID].name}
+                        message={$DataBase.characters[$selectedCharID].firstMsgIndex === -1 ? $DataBase.characters[$selectedCharID].firstMessage :
+                            $DataBase.characters[$selectedCharID].alternateGreetings[$DataBase.characters[$selectedCharID].firstMsgIndex]}
+                        img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
+                        idx={-1}
+                        altGreeting={$DataBase.characters[$selectedCharID].alternateGreetings.length > 0}
+                        onReroll={() => {
+                            const cha = $DataBase.characters[$selectedCharID]
+                            if(cha.type !== 'group'){
+                                if (cha.firstMsgIndex >= (cha.alternateGreetings.length - 1)){
+                                    cha.firstMsgIndex = -1
+                                }
+                                else{
+                                    cha.firstMsgIndex += 1
+                                }
+                            }
+                            $DataBase.characters[$selectedCharID] = cha
+                        }}
+                        unReroll={() => {
+                            const cha = $DataBase.characters[$selectedCharID]
+                            if(cha.type !== 'group'){
+                                if (cha.firstMsgIndex === -1){
+                                    cha.firstMsgIndex = (cha.alternateGreetings.length - 1)
+                                }
+                                else{
+                                    cha.firstMsgIndex -= 1
+                                }
+                            }
+                            $DataBase.characters[$selectedCharID] = cha
+                        }}
+                    />
+                    {#if !$DataBase.characters[$selectedCharID].removedQuotes && $DataBase.characters[$selectedCharID].creatorNotes.length >= 2}
+                        <CreatorQuote quote={$DataBase.characters[$selectedCharID].creatorNotes} onRemove={() => {
+                            const cha = $DataBase.characters[$selectedCharID]
+                            if(cha.type !== 'group'){
+                                cha.removedQuotes = true
+                            }
+                            $DataBase.characters[$selectedCharID] = cha
+                        }} />
+                    {/if}
                 {/if}
             {/if}
+
             {#if openMenu}
                 <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-gray-200" on:click={(e) => {
                     e.stopPropagation()

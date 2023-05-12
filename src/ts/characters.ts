@@ -37,6 +37,7 @@ export function createNewGroup(){
         emotionImages: [],
         customscript: [],
         chaId: uuidv4(),
+        firstMsgIndex: -1
     })
     setDatabase(db)
     return db.characters.length - 1
@@ -269,6 +270,18 @@ export function characterFormatUpdate(index:number|character){
         if(checkNullish(cha.utilityBot)){
             cha.utilityBot = false
         }
+        cha.alternateGreetings = cha.alternateGreetings ?? []
+        cha.exampleMessage = cha.exampleMessage ?? ''
+        cha.creatorNotes = cha.creatorNotes ?? ''
+        cha.systemPrompt = cha.systemPrompt ?? ''
+        cha.postHistoryInstructions = cha.postHistoryInstructions ?? ''
+        cha.tags = cha.tags ?? []
+        cha.creator = cha.creator ?? ''
+        cha.characterVersion = cha.characterVersion ?? 0
+        cha.personality = cha.personality ?? ''
+        cha.scenario = cha.scenario ?? ''
+        cha.firstMsgIndex = cha.firstMsgIndex ?? -1
+
     }
     if(checkNullish(cha.customscript)){
         cha.customscript = []
@@ -303,7 +316,17 @@ export function createBlankChar():character{
         sdData: defaultSdDataFunc(),
         utilityBot: false,
         customscript: [],
-        exampleMessage: ''
+        exampleMessage: '',
+        creatorNotes:'',
+        systemPrompt:'',
+        postHistoryInstructions:'',
+        alternateGreetings:[],
+        tags:[],
+        creator:"",
+        characterVersion: 0,
+        personality:"",
+        scenario:"",
+        firstMsgIndex: -1
     }
 }
 

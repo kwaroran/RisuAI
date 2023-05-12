@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.7.9'
+export let appVer = '0.8.0'
 
 
 export function setDatabase(data:Database){
@@ -178,6 +178,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.requestproxy)){
         data.requestproxy = ''
     }
+    if(checkNullish(data.showUnrecommended)){
+        data.showUnrecommended = false
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -213,11 +216,14 @@ export interface customscript{
 
 export interface loreBook{
     key:string
+    secondkey:string
     insertorder: number
     comment: string
     content: string
     mode: 'multiple'|'constant'|'normal',
     alwaysActive: boolean
+    selective:boolean
+    extentions?:{}
 }
 
 export interface character{
@@ -238,7 +244,33 @@ export interface character{
     customscript: customscript[]
     utilityBot: boolean
     exampleMessage:string
+    removedQuotes?:boolean
+    creatorNotes:string
+    systemPrompt:string
+    postHistoryInstructions:string
+    alternateGreetings:string[]
+    tags:string[]
+    creator:string
+    characterVersion: number
+    personality:string
+    scenario:string
+    firstMsgIndex:number
+    loreSettings?:loreSettings
+    loreExt?:any
+    additionalData?: {
+        tag?:string[]
+        creator?:string
+        character_version?:number
+    }
 }
+
+
+export interface loreSettings{
+    tokenBudget: number
+    scanDepth:number
+    recursiveScanning: boolean
+}
+
 
 export interface groupChat{
     type: 'group'
@@ -255,6 +287,11 @@ export interface groupChat{
     emotionImages: [string, string][]
     customscript: customscript[],
     chaId: string
+    alternateGreetings?: string[]
+    creatorNotes?:string,
+    removedQuotes?:boolean
+    firstMsgIndex?:number,
+    loreSettings?:loreSettings
 }
 
 export interface botPreset{
@@ -348,6 +385,7 @@ export interface Database{
     didFirstSetup: boolean
     requestmet: string
     requestproxy: string
+    showUnrecommended:boolean
 }
 
 

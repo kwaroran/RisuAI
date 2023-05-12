@@ -4,11 +4,12 @@ import { CharEmotion, selectedCharID } from "../stores";
 import { tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { loadLoreBookPrompt } from "../lorebook";
+import { loadLoreBookPrompt } from "./lorebook";
 import { findCharacterbyId, replacePlaceholders } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull } from "./scripts";
+import { exampleMessage } from "./exampleMessages";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -99,9 +100,11 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     }
 
     if(!currentChar.utilityBot){
+        const mainp = currentChar.systemPrompt.length > 3 ? currentChar.systemPrompt : db.mainPrompt
+
         unformated.main.push({
             role: 'system',
-            content: replacePlaceholders(db.mainPrompt + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)
+            content: replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)
         })
     
         if(db.jailbreakToggle){
@@ -122,10 +125,30 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         content: replacePlaceholders(currentChat.note, currentChar.name)
     })
 
-    unformated.description.push({
-        role: 'system',
-        content: replacePlaceholders((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, currentChar.name)
-    })
+    if(currentChar.postHistoryInstructions !== ''){
+        unformated.authorNote.push({
+            role: 'system',
+            content: replacePlaceholders(currentChar.postHistoryInstructions, currentChar.name)
+        })
+    }
+
+    {
+        let description = replacePlaceholders((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, currentChar.name)
+
+        if(currentChar.personality){
+            description += replacePlaceholders("\n\nDescription of {{char}}: " + currentChar.personality,currentChar.name)
+        }
+
+        if(currentChar.scenario){
+            description += replacePlaceholders("\n\nCircumstances and context of the dialogue: " + currentChar.scenario,currentChar.name)
+        }
+
+        unformated.description.push({
+            role: 'system',
+            content: description
+        })
+
+    }
 
     unformated.lorebook.push({
         role: 'system',
@@ -139,20 +162,12 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         }).join('\n\n')
     }).join('\n\n')) + db.maxResponse) + 150
 
-    let chats:OpenAIChat[] = []
+    let chats:OpenAIChat[] = exampleMessage(currentChar)
     
-    if(nowChatroom.type === 'group'){
-        chats.push({
-            role: 'system',
-            content: '[Start a new group chat]'
-        })
-    }
-    else{
-        chats.push({
-            role: 'system',
-            content: '[Start a new chat]'
-        })
-    }
+    chats.push({
+        role: 'system',
+        content: '[Start a new chat]'
+    })
 
     chats.push({
         role: 'assistant',
@@ -349,25 +364,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
                 }
             }
         }        
-        // const promptbody:OpenAIChat[] = [
-        //     {
-
-        //         role:'system',
-        //         content: `assistant is a emotion extractor. user will input a prompt of a character, and assistant must output the emotion of a character.\n\n must chosen from this list: ${shuffleArray(emotionList).join(', ')} \noutput only one word.`
-        //     },
-        //     {
-        //         role: 'user',
-        //         content: `"Good morning, Master! Is there anything I can do for you today?"`
-        //     },
-        //     {
-        //         role: 'assistant',
-        //         content: 'happy'
-        //     },
-        //     {
-        //         role: 'user',
-        //         content: result
-        //     },
-        // ]
 
         const promptbody:OpenAIChat[] = [
             {
