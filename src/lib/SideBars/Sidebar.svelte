@@ -118,11 +118,7 @@
             }}
             tabindex="0"
           >
-            {#await getCharImage($DataBase.characters[i].image, "plain") then img}
-              <SidebarAvatar src={img} size="56" />
-            {:catch}
-              <SidebarAvatar size="56" src="https://via.placeholder.com/150" />
-            {/await}
+            <SidebarAvatar src={getCharImage($DataBase.characters[i].image, "plain")} size="56" />
           </div>
         {:else}
           <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
