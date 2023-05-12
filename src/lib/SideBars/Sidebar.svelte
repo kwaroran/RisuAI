@@ -36,6 +36,7 @@
   import { onDestroy } from "svelte";
   import { isEqual } from "lodash";
   import SidebarAvatar from "./SidebarAvatar.svelte";
+  import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -101,7 +102,9 @@
   {#if menuMode === 0}
     {#each charImages as charimg, i}
       <div class="group relative flex items-center px-2">
-        <SidebarIndicator isActive={$selectedCharID === i} />
+        <SidebarIndicator
+          isActive={$selectedCharID === i && sideBarMode !== 1}
+        />
         {#if charimg !== ""}
           <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
           <div
@@ -169,17 +172,29 @@
         {/if}
       </div>
     {/each}
-    <BarIcon
-      onClick={() => {
-        if (sideBarMode === 1) {
-          reseter();
-          sideBarMode = 0;
-        } else {
-          reseter();
-          sideBarMode = 1;
-        }
-      }}><PlusIcon /></BarIcon
-    >
+    <div class="flex flex-col items-center space-y-2 px-2">
+      <BaseRoundedButton
+        onClick={() => {
+          if (sideBarMode === 1) {
+            reseter();
+            sideBarMode = 0;
+          } else {
+            reseter();
+            sideBarMode = 1;
+          }
+        }}
+        ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          /></svg
+        ></BaseRoundedButton
+      >
+    </div>
   {:else}
     <BarIcon
       onClick={() => {
