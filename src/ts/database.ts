@@ -223,6 +223,7 @@ export interface loreBook{
     mode: 'multiple'|'constant'|'normal',
     alwaysActive: boolean
     selective:boolean
+    extentions?:{}
 }
 
 export interface character{
@@ -255,6 +256,12 @@ export interface character{
     scenario:string
     firstMsgIndex:number
     loreSettings?:loreSettings
+    loreExt?:any
+    additionalData?: {
+        tag?:string[]
+        creator?:string
+        character_version?:number
+    }
 }
 
 
@@ -263,6 +270,7 @@ export interface loreSettings{
     scanDepth:number
     recursiveScanning: boolean
 }
+
 
 export interface groupChat{
     type: 'group'
