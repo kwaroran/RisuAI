@@ -7,7 +7,7 @@
   {#if src}
     <img
       {src}
-      class="bg-skin-border sidebar-avatar rounded-full object-cover"
+      class="bg-skin-border sidebar-avatar rounded-md object-cover object-top"
       style:width={size + "px"}
       style:height={size + "px"}
       style:minWidth={size + "px"}
@@ -15,7 +15,7 @@
     />
   {:else}
     <div
-      class="bg-skin-border sidebar-avatar rounded-full"
+      class="bg-skin-border sidebar-avatar rounded-md bg-top"
       style:width={size + "px"}
       style:height={size + "px"}
       style:minWidth={size + "px"}
