@@ -472,7 +472,7 @@
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.scenario}></textarea>
         {/if}
 
-        <span class="text-neutral-200 mt-2">{language.altGreet} <Help key="bias"/></span>
+        <span class="text-neutral-200 mt-2">{language.altGreet}</span>
         <table class="contain w-full max-w-full tabler mt-2">
             <tr>
                 <th class="font-medium">{language.value}</th>
