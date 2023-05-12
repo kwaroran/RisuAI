@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     import {selectedCharID} from '../../ts/stores'
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
-    import { addLorebook, exportLoreBook, importLoreBook } from "../../ts/lorebook";
+    import { addLorebook, exportLoreBook, importLoreBook } from "../../ts/process/lorebook";
     import LoreBookData from "./LoreBookData.svelte";
     let submenu = 0
 </script>
@@ -18,6 +18,11 @@
         submenu = 1
     }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 1}>
         <span>{language.Chat}</span>
+    </button>
+    <button on:click={() => {
+        submenu = 2
+    }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 2}>
+        <span>{language.settings}</span>
     </button>
 </div>
 <span class="text-gray-500 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>

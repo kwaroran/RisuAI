@@ -54,7 +54,7 @@ export const languageEnglish = {
         regexScript: "Regex Script is a custom script that is embbedded to the character. it replaces string that matches IN to OUT.\n\nThere are three type options."
                 + "- **Modify Input** modifys user's input"
                 + "- **Modify Output** modifys character's output"
-                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and without backslashes in start and end.\n\nOUT is a normal string."
+                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a normal string."
                 + "\n\n If OUT has {{data}} in string, it replaces to matched string."
                 + "\n\n If OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
                 + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
@@ -70,7 +70,8 @@ export const languageEnglish = {
         chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory.",
         personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
-        utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**"
+        utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
+        loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore."
 
     },
     setup: {
@@ -233,5 +234,10 @@ export const languageEnglish = {
     unrecommended: "Not Recommended",
     chatNotes: "Chat Notes",
     showUnrecommended: "Show Unrecommended Settings",
-    altGreet: "Alternative First Messages"
+    altGreet: "Alternative First Messages",
+    scripts: "Scripts",
+    settings: "Settings",
+    selective: "Selective",
+    SecondaryKeys: 'Secondary keys',
+
 }

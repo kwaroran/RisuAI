@@ -3,7 +3,7 @@
     import { tokenize } from "../../ts/tokenizer";
     import { DataBase, type Database, type character, type groupChat } from "../../ts/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
@@ -156,6 +156,11 @@
     <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3;subberMenu = 0}}>
         <BookIcon />
     </button>
+    {#if currentChar.type === 'character'}
+        <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
+            <CurlyBracesIcon />
+        </button>
+    {/if}
     <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
         <ActivityIcon />
     </button>
@@ -370,32 +375,9 @@
 {:else if subMenu === 3}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>
     <LoreBook />
-{:else if subMenu === 2}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
-    {#if currentChar.type !== 'group'}
-        <span class="text-neutral-200">{language.exampleMessage} <Help key="exampleMessage"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.exampleMessage}></textarea>
-
-        <span class="text-neutral-200">{language.creatorNotes} <Help key="creatorQuotes"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.creatorNotes} on:input={() => {
-            currentChar.data.removedQuotes = false
-        }}></textarea>
-
-        <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.systemPrompt}></textarea>
-
-        <span class="text-neutral-200">{language.chatNotes} <Help key="chatNote"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-        
-        {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
-            <span class="text-neutral-200">{language.personality} <Help key="personality" unrecommended/></span>
-            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.personality}></textarea>
-        {/if}
-        {#if $DataBase.showUnrecommended || currentChar.data.scenario.length > 3}
-            <span class="text-neutral-200">{language.scenario} <Help key="scenario" unrecommended/></span>
-            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.scenario}></textarea>
-        {/if}
+{:else if subMenu === 4}
+    {#if currentChar.type === 'character'}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
 
         <span class="text-neutral-200 mt-2">Bias <Help key="bias"/></span>
         <table class="contain w-full max-w-full tabler mt-2">
@@ -432,7 +414,63 @@
                     }}><TrashIcon /></button>
                 </tr>
             {/each}
+            
         </table>
+
+        <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
+        <table class="contain w-full max-w-full tabler mt-2 flex flex-col p-2 gap-2">
+            {#if currentChar.data.customscript.length === 0}
+                    <div class="text-gray-500">No Scripts</div>
+            {/if}
+            {#each currentChar.data.customscript as customscript, i}
+                <RegexData bind:value={currentChar.data.customscript[i]}  onRemove={() => {
+                    if(currentChar.type === 'character'){
+                        let customscript = currentChar.data.customscript
+                        customscript.splice(i, 1)
+                        currentChar.data.customscript = customscript
+                    }
+                }}/>
+            {/each}
+        </table>
+        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
+            if(currentChar.type === 'character'){
+                let script = currentChar.data.customscript
+                script.push({
+                  comment: "",
+                  in: "",
+                  out: "",
+                  type: "editinput"
+                })
+                currentChar.data.customscript = script
+            }
+        }}><PlusIcon /></button>
+    {/if}
+{:else if subMenu === 2}
+    <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
+    {#if currentChar.type !== 'group'}
+        <span class="text-neutral-200">{language.exampleMessage} <Help key="exampleMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.exampleMessage}></textarea>
+
+        <span class="text-neutral-200">{language.creatorNotes} <Help key="creatorQuotes"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.creatorNotes} on:input={() => {
+            currentChar.data.removedQuotes = false
+        }}></textarea>
+
+        <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.systemPrompt}></textarea>
+
+        <span class="text-neutral-200">{language.chatNotes} <Help key="chatNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
+        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
+        
+        {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
+            <span class="text-neutral-200">{language.personality} <Help key="personality" unrecommended/></span>
+            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.personality}></textarea>
+        {/if}
+        {#if $DataBase.showUnrecommended || currentChar.data.scenario.length > 3}
+            <span class="text-neutral-200">{language.scenario} <Help key="scenario" unrecommended/></span>
+            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.scenario}></textarea>
+        {/if}
 
         <span class="text-neutral-200 mt-2">{language.altGreet} <Help key="bias"/></span>
         <table class="contain w-full max-w-full tabler mt-2">
@@ -476,33 +514,6 @@
             {/each}
         </table>
 
-        <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
-        <table class="contain w-full max-w-full tabler mt-2 flex flex-col p-2 gap-2">
-            {#if currentChar.data.customscript.length === 0}
-                    <div class="text-gray-500">No Scripts</div>
-            {/if}
-            {#each currentChar.data.customscript as customscript, i}
-                <RegexData bind:value={currentChar.data.customscript[i]}  onRemove={() => {
-                    if(currentChar.type === 'character'){
-                        let customscript = currentChar.data.customscript
-                        customscript.splice(i, 1)
-                        currentChar.data.customscript = customscript
-                    }
-                }}/>
-            {/each}
-        </table>
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.customscript
-                script.push({
-                  comment: "",
-                  in: "",
-                  out: "",
-                  type: "editinput"
-                })
-                currentChar.data.customscript = script
-            }
-        }}><PlusIcon /></button>
       
         {#if $DataBase.showUnrecommended || currentChar.data.utilityBot}
             <div class="flex items-center mt-4">

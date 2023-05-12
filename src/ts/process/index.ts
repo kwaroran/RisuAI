@@ -4,7 +4,7 @@ import { CharEmotion, selectedCharID } from "../stores";
 import { tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { loadLoreBookPrompt } from "../lorebook";
+import { loadLoreBookPrompt } from "./lorebook";
 import { findCharacterbyId, replacePlaceholders } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";

@@ -216,11 +216,13 @@ export interface customscript{
 
 export interface loreBook{
     key:string
+    secondkey:string
     insertorder: number
     comment: string
     content: string
     mode: 'multiple'|'constant'|'normal',
     alwaysActive: boolean
+    selective:boolean
 }
 
 export interface character{
