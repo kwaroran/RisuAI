@@ -254,6 +254,14 @@ export interface character{
     personality:string
     scenario:string
     firstMsgIndex:number
+    loreSettings?:loreSettings
+}
+
+
+export interface loreSettings{
+    tokenBudget: number
+    scanDepth:number
+    recursiveScanning: boolean
 }
 
 export interface groupChat{
@@ -275,6 +283,7 @@ export interface groupChat{
     creatorNotes?:string,
     removedQuotes?:boolean
     firstMsgIndex?:number,
+    loreSettings?:loreSettings
 }
 
 export interface botPreset{

@@ -21,7 +21,9 @@ export default {
       maxWidth:{
         'half': '50%',
         '80p': '80%',
+        '80vw': '80vw',
         '14': '3.5rem',
+        '100vw': '100vw'
       },
       borderWidth: {
         '1': '1px',

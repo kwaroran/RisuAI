@@ -43,6 +43,7 @@ interface formatedLore{
     secondKey:string[]
     content: string
     order: number
+    activatied: boolean
 }
 
 const rmRegex = / |\n/g
@@ -50,11 +51,14 @@ const rmRegex = / |\n/g
 export async function loadLoreBookPrompt(){
     const selectedID = get(selectedCharID)
     const db = get(DataBase)
-    const page = db.characters[selectedID].chatPage
-    const globalLore = db.characters[selectedID].globalLore
-    const charLore = db.characters[selectedID].chats[page].localLore
+    const char = db.characters[selectedID]
+    const page = char.chatPage
+    const globalLore = char.globalLore
+    const charLore = char.chats[page].localLore
     const fullLore = globalLore.concat(charLore)
-    const currentChat = db.characters[selectedID].chats[page].message
+    const currentChat = char.chats[page].message
+    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
 
     let activatiedPrompt: string[] = []
 
@@ -70,7 +74,8 @@ export async function loadLoreBookPrompt(){
                     return a.length > 1
                 }) : [],
                 content: lore.content,
-                order: lore.insertorder
+                order: lore.insertorder,
+                activatied: false
             })
         }
     }
@@ -79,40 +84,58 @@ export async function loadLoreBookPrompt(){
         return b.order - a.order
     })
 
-    const formatedChat = currentChat.slice(currentChat.length - db.loreBookDepth,currentChat.length).map((msg) => {
+    const formatedChat = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
         return msg.data
     }).join('||').replace(rmRegex,'').toLocaleLowerCase()
 
-    for(const lore of formatedLore){
-        const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
-        if(totalTokens > db.loreBookToken){
-            break
-        }
-
-        if(lore.keys === 'always'){
-            activatiedPrompt.push(lore.content)
-            continue
-        }
-
-        let firstKeyActivation = false
-        for(const key of lore.keys){
-            if(formatedChat.includes(key)){
-                firstKeyActivation = true
-                break
-            }
-        }
-
-        if(firstKeyActivation){
-            if(lore.secondKey.length === 0){
-                activatiedPrompt.push(lore.content)
+    let loreListUpdated = true
+    
+    while(loreListUpdated){
+        loreListUpdated = false
+        for(let i=0;i<formatedLore.length;i++){
+            const lore = formatedLore[i]
+            if(lore.activatied){
                 continue
             }
-            for(const key of lore.secondKey){
+            const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
+            if(totalTokens > loreToken){
+                break
+            }
+    
+            if(lore.keys === 'always'){
+                activatiedPrompt.push(lore.content)
+                lore.activatied = true
+                loreListUpdated = true
+                continue
+            }
+    
+            let firstKeyActivation = false
+            for(const key of lore.keys){
                 if(formatedChat.includes(key)){
-                    activatiedPrompt.push(lore.content)
+                    firstKeyActivation = true
                     break
                 }
             }
+    
+            if(firstKeyActivation){
+                if(lore.secondKey.length === 0){
+                    activatiedPrompt.push(lore.content)
+                    lore.activatied = true
+                    loreListUpdated = true
+                    continue
+                }
+                for(const key of lore.secondKey){
+                    if(formatedChat.includes(key)){
+                        activatiedPrompt.push(lore.content)
+                        lore.activatied = true
+                        loreListUpdated = true
+                        break
+                    }
+                }
+            }
+        }
+        if(!(char.loreSettings?.recursiveScanning)){
+            break
         }
     }
 
@@ -129,6 +152,8 @@ export async function importLoreBook(mode:'global'|'local'){
     if(!lorebook){
         return
     }
+ 
+
 
     try {
         const importedlore = JSON.parse(Buffer.from(lorebook).toString('utf-8'))

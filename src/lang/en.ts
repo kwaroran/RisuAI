@@ -239,5 +239,6 @@ export const languageEnglish = {
     settings: "Settings",
     selective: "Selective",
     SecondaryKeys: 'Secondary keys',
-
+    useGlobalSettings: "Use Global Settings",
+    recursiveScanning: "Recursive Scanning"
 }

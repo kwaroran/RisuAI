@@ -1,6 +1,6 @@
-<div class="flex w-full justify-center">
-    <div class="w-3xl max-w-80p bg-darkbg rounded-md p-3 text-white text-sm">
-        <h1 class="text-xl font-bold mb-2">{language.creatorNotes}
+<div class="flex w-full justify-center mt-4 max-w-100vw">
+    <div class="w-5/6 max-w-80vw bg-darkbg rounded-md p-3 text-white text-sm">
+        <h1 class="font-bold mb-2">{language.creatorNotes}
             <button class="float-right" on:click={onRemove}>
                 <XIcon />
             </button>
