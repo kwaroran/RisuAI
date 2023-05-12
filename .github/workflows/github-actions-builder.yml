@@ -22,9 +22,7 @@ jobs:
           node-version: 18
       - id: set_var
         run: |
-          echo 'VERSION_JSON<<EOF' >> $GITHUB_ENV
-          cat ./version.json >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          echo "VERSION_JSON=$(jq -c . < version.json)" >> $GITHUB_ENV
       - name: install pnpm
         uses: pnpm/action-setup@v2
         with:

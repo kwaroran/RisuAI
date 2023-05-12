@@ -499,7 +499,10 @@
         <Check bind:check={$DataBase.useSayNothing}/>
         <span>{language.sayNothing}</span>
     </div>
-
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.showUnrecommended}/>
+        <span>{language.showUnrecommended}</span>
+    </div>
     <button
         on:click={async () => {
             alertMd(getRequestLog())

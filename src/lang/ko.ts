@@ -183,7 +183,7 @@ export const languageKorean = {
         regexScript: "정규식 스크립트는 캐릭터에 종속된 커스텀 스크립트입니다. IN의 조건에 맞는 문자열을 OUT으로 변경합니다.\n\n타입은 세가지가 있습니다."
             + "- **입력문 수정** 유저의 입력문을 수정합니다"
             + "- **출력문 수정** 캐릭터의 출력문을 수정합니다"
-            + "- **리퀘스트 데이터 수정** 리퀘스트를 보낼 때 채팅 데이터를 수정합니다.\n\nIN은 flag와 *\\* 가 없는 Regex여야 합니다.\n\nOUT은 일반 문자열입니다."
+            + "- **리퀘스트 데이터 수정** 리퀘스트를 보낼 때 채팅 데이터를 수정합니다.\n\nIN은 flag가 없고, 양끝에 슬레시가 없는 Regex여야 합니다.\n\nOUT은 일반 문자열입니다."
             + "\n\n 만약 OUT 문자열에 {{data}}가 있으면, 매칭된 문자열로 바뀝니다."
             + "\n\n 만약 OUT이 @@로 시작된다면, 특수한 효과를 냅니다"
             + "\n\n- @@emo (emotion name)\n\n        감정 이미지 모드일 시 (emotion name)을 감정으로 정하고 감정 처리를 하지 않습니다.",
@@ -208,5 +208,22 @@ export const languageKorean = {
     editOutput: "출력문 수정",
     editProcess: "리퀘스트 데이터 수정",
     loadLatest: "가장 최근 백업 불러오기",
-    loadOthers: "다른 백업 불러오기"
+    loadOthers: "다른 백업 불러오기",
+    exampleMessage: "예시 대화",
+    creatorNotes: "제작자 코멘트",
+    systemPrompt: "시스템 프롬프트",
+    characterNotes: "캐릭터 노트",
+    personality: "성격",
+    scenario: "시나리오",
+    alternateGreetings: "추가 첫 메시지",
+    unrecommended: "비권장",
+    chatNotes: "채팅 노트",
+    showUnrecommended: "비권장 설정 보이기",
+    altGreet: "추가 첫 메시지",
+    scripts: "스크립트",
+    settings: "설정",
+    selective: "멀티플 키",
+    SecondaryKeys: '두번째 키',
+    useGlobalSettings: "글로벌 설정 사용",
+    recursiveScanning: "재귀 검색"
 }

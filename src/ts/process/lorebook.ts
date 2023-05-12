@@ -1,11 +1,11 @@
 import { get } from "svelte/store";
-import {selectedCharID} from './stores'
-import { DataBase, setDatabase, type loreBook } from "./database";
-import { tokenize } from "./tokenizer";
-import { selectSingleFile } from "./util";
-import { alertError, alertNormal } from "./alert";
-import { language } from "../lang";
-import { downloadFile } from "./globalApi";
+import {selectedCharID} from '../stores'
+import { DataBase, setDatabase, type loreBook } from "../database";
+import { tokenize } from "../tokenizer";
+import { selectSingleFile } from "../util";
+import { alertError, alertNormal } from "../alert";
+import { language } from "../../lang";
+import { downloadFile } from "../globalApi";
 
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
@@ -17,7 +17,9 @@ export function addLorebook(type:number) {
             content: '',
             mode: 'normal',
             insertorder: 100,
-            alwaysActive: false
+            alwaysActive: false,
+            secondkey: "",
+            selective: false
         })
     }
     else{
@@ -28,16 +30,20 @@ export function addLorebook(type:number) {
             content: '',
             mode: 'normal',
             insertorder: 100,
-            alwaysActive: false
+            alwaysActive: false,
+            secondkey: "",
+            selective: false
         })
     }
     setDatabase(db)
 }
 
 interface formatedLore{
-    keys:string[]|'always'
+    keys:string[]|'always',
+    secondKey:string[]
     content: string
     order: number
+    activatied: boolean
 }
 
 const rmRegex = / |\n/g
@@ -45,11 +51,14 @@ const rmRegex = / |\n/g
 export async function loadLoreBookPrompt(){
     const selectedID = get(selectedCharID)
     const db = get(DataBase)
-    const page = db.characters[selectedID].chatPage
-    const globalLore = db.characters[selectedID].globalLore
-    const charLore = db.characters[selectedID].chats[page].localLore
+    const char = db.characters[selectedID]
+    const page = char.chatPage
+    const globalLore = char.globalLore
+    const charLore = char.chats[page].localLore
     const fullLore = globalLore.concat(charLore)
-    const currentChat = db.characters[selectedID].chats[page].message
+    const currentChat = char.chats[page].message
+    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
 
     let activatiedPrompt: string[] = []
 
@@ -61,8 +70,12 @@ export async function loadLoreBookPrompt(){
                 keys: lore.alwaysActive ? 'always' : lore.key.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                     return a.length > 1
                 }),
+                secondKey: lore.selective ? lore.secondkey.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                    return a.length > 1
+                }) : [],
                 content: lore.content,
-                order: lore.insertorder
+                order: lore.insertorder,
+                activatied: false
             })
         }
     }
@@ -71,26 +84,59 @@ export async function loadLoreBookPrompt(){
         return b.order - a.order
     })
 
-    const formatedChat = currentChat.slice(currentChat.length - db.loreBookDepth,currentChat.length).map((msg) => {
+    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
         return msg.data
     }).join('||').replace(rmRegex,'').toLocaleLowerCase()
 
-    for(const lore of formatedLore){
-        const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
-        if(totalTokens > db.loreBookToken){
-            break
-        }
-
-        if(lore.keys === 'always'){
-            activatiedPrompt.push(lore.content)
-            continue
-        }
-
-        for(const key of lore.keys){
-            if(formatedChat.includes(key)){
-                activatiedPrompt.push(lore.content)
+    let loreListUpdated = true
+    
+    while(loreListUpdated){
+        loreListUpdated = false
+        const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
+        for(let i=0;i<formatedLore.length;i++){
+            const lore = formatedLore[i]
+            if(lore.activatied){
+                continue
+            }
+            const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
+            if(totalTokens > loreToken){
                 break
             }
+
+            if(lore.keys === 'always'){
+                activatiedPrompt.push(lore.content)
+                lore.activatied = true
+                loreListUpdated = true
+                continue
+            }
+    
+            let firstKeyActivation = false
+            for(const key of lore.keys){
+                if(formatedChat.includes(key)){
+                    firstKeyActivation = true
+                    break
+                }
+            }
+    
+            if(firstKeyActivation){
+                if(lore.secondKey.length === 0){
+                    activatiedPrompt.push(lore.content)
+                    lore.activatied = true
+                    loreListUpdated = true
+                    continue
+                }
+                for(const key of lore.secondKey){
+                    if(formatedChat.includes(key)){
+                        activatiedPrompt.push(lore.content)
+                        lore.activatied = true
+                        loreListUpdated = true
+                        break
+                    }
+                }
+            }
+        }
+        if(!(char.loreSettings?.recursiveScanning)){
+            break
         }
     }
 
@@ -107,6 +153,8 @@ export async function importLoreBook(mode:'global'|'local'){
     if(!lorebook){
         return
     }
+ 
+
 
     try {
         const importedlore = JSON.parse(Buffer.from(lorebook).toString('utf-8'))
@@ -129,10 +177,12 @@ export async function importLoreBook(mode:'global'|'local'){
                 lore.push({
                     key: currentLore.key.join(', '),
                     insertorder: currentLore.order,
-                    comment: currentLore.comment.length < 1 ? 'Unnamed Imported Lore': currentLore.comment,
+                    comment: currentLore.comment.length < 1 ? 'Unnamed Imported Lore' : currentLore.comment,
                     content: currentLore.content,
                     mode: "normal",
-                    alwaysActive: currentLore.constant
+                    alwaysActive: currentLore.constant,
+                    secondkey: "",
+                    selective: false
                 })
             }
         }
