@@ -192,6 +192,7 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         characterVersion: 0,
         personality: charaData.personality ?? '',
         scenario:charaData.scenario ?? '',
+        firstMsgIndex: -1
     }
 }
 
@@ -350,6 +351,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         characterVersion: data.character_version ?? 0,
         personality:data.personality ?? '',
         scenario:data.scenario ?? '',
+        firstMsgIndex: -1,
+        removedQuotes: false
     }
 
     

@@ -178,6 +178,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.requestproxy)){
         data.requestproxy = ''
     }
+    if(checkNullish(data.showUnrecommended)){
+        data.showUnrecommended = false
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -238,7 +241,7 @@ export interface character{
     customscript: customscript[]
     utilityBot: boolean
     exampleMessage:string
-
+    removedQuotes?:boolean
     creatorNotes:string
     systemPrompt:string
     postHistoryInstructions:string
@@ -248,6 +251,7 @@ export interface character{
     characterVersion: number
     personality:string
     scenario:string
+    firstMsgIndex:number
 }
 
 export interface groupChat{
@@ -265,6 +269,10 @@ export interface groupChat{
     emotionImages: [string, string][]
     customscript: customscript[],
     chaId: string
+    alternateGreetings?: string[]
+    creatorNotes?:string,
+    removedQuotes?:boolean
+    firstMsgIndex?:number,
 }
 
 export interface botPreset{
@@ -358,6 +366,7 @@ export interface Database{
     didFirstSetup: boolean
     requestmet: string
     requestproxy: string
+    showUnrecommended:boolean
 }
 
 

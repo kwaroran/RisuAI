@@ -22,13 +22,15 @@
     let tokens = {
         desc: 0,
         firstMsg: 0,
-        localNote: 0
+        localNote: 0,
+        charaNote: 0
     }
 
     let lasttokens = {
         desc: '',
         firstMsg: '',
-        localNote: ''
+        localNote: '',
+        charaNote: ''
     }
 
     async function loadTokenize(chara){
@@ -45,12 +47,18 @@
                 lasttokens.firstMsg = chara.firstMessage
                 tokens.firstMsg = await tokenize(chara.firstMessage)
             }
+            if(lasttokens.charaNote !== chara.postHistoryInstructions){
+            lasttokens.charaNote = chara.postHistoryInstructions
+            tokens.charaNote = await tokenize(chara.postHistoryInstructions)
+        
+        }
         }
         if(lasttokens.localNote !== currentChar.data.chats[currentChar.data.chatPage].note){
             lasttokens.localNote = currentChar.data.chats[currentChar.data.chatPage].note
             tokens.localNote = await tokenize(currentChar.data.chats[currentChar.data.chatPage].note)
         
         }
+
     }
 
 
@@ -163,6 +171,10 @@
         <span class="text-neutral-200">{language.firstMessage} <Help key="charFirstMessage"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
         <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
+        <span class="text-neutral-200">{language.authorNote} <Help key="charNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.postHistoryInstructions}></textarea>
+        <span class="text-gray-400 mb-6 text-sm">{tokens.charaNote} {language.tokens}</span>
+     
     {:else}
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
         <span class="text-neutral-200">{language.character}</span>
@@ -191,11 +203,13 @@
             </button>
         </div>
 
+        <span class="text-neutral-200">{language.chatNotes} <Help key="charNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
+        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
+        
+
     {/if}
-    <span class="text-neutral-200">{language.authorNote} <Help key="charNote"/></span>
-    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
-    <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-                       
+                      
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle}/>
         <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
@@ -359,6 +373,30 @@
 {:else if subMenu === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
     {#if currentChar.type !== 'group'}
+        <span class="text-neutral-200">{language.exampleMessage} <Help key="exampleMessage"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.exampleMessage}></textarea>
+
+        <span class="text-neutral-200">{language.creatorNotes} <Help key="creatorQuotes"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.creatorNotes} on:input={() => {
+            currentChar.data.removedQuotes = false
+        }}></textarea>
+
+        <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.systemPrompt}></textarea>
+
+        <span class="text-neutral-200">{language.chatNotes} <Help key="chatNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
+        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
+        
+        {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
+            <span class="text-neutral-200">{language.personality} <Help key="personality" unrecommended/></span>
+            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.personality}></textarea>
+        {/if}
+        {#if $DataBase.showUnrecommended || currentChar.data.scenario.length > 3}
+            <span class="text-neutral-200">{language.scenario} <Help key="scenario" unrecommended/></span>
+            <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.scenario}></textarea>
+        {/if}
+
         <span class="text-neutral-200 mt-2">Bias <Help key="bias"/></span>
         <table class="contain w-full max-w-full tabler mt-2">
             <tr>
@@ -374,7 +412,7 @@
             </tr>
             {#if currentChar.data.bias.length === 0}
                 <tr>
-                    <div class="text-gray-500">{language.noBias}</div>
+                    <div class="text-gray-500"> {language.noBias}</div>
                 </tr>
             {/if}
             {#each currentChar.data.bias as bias, i}
@@ -395,6 +433,49 @@
                 </tr>
             {/each}
         </table>
+
+        <span class="text-neutral-200 mt-2">{language.altGreet} <Help key="bias"/></span>
+        <table class="contain w-full max-w-full tabler mt-2">
+            <tr>
+                <th class="font-medium">{language.value}</th>
+                <th class="font-medium cursor-pointer w-10">
+                    <button class="hover:text-green-500" on:click={() => {
+                        if(currentChar.type === 'character'){
+                            let alternateGreetings = currentChar.data.alternateGreetings
+                            alternateGreetings.push('')
+                            currentChar.data.alternateGreetings = alternateGreetings
+                        }
+                    }}>
+                        <PlusIcon />
+                    </button>
+                </th>
+            </tr>
+            {#if currentChar.data.alternateGreetings.length === 0}
+                <tr>
+                    <div class="text-gray-500"> No Messages</div>
+                </tr>
+            {/if}
+            {#each currentChar.data.alternateGreetings as bias, i}
+                <tr>
+                    <td class="font-medium truncate">
+                        <textarea class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-full resize-none" bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." />
+                    </td>
+                    <th class="font-medium cursor-pointer w-10">
+                        <button class="hover:text-green-500" on:click={() => {
+                            if(currentChar.type === 'character'){
+                                currentChar.data.firstMsgIndex = -1
+                                let alternateGreetings = currentChar.data.alternateGreetings
+                                alternateGreetings.splice(i, 1)
+                                currentChar.data.alternateGreetings = alternateGreetings
+                            }
+                        }}>
+                            <TrashIcon />
+                        </button>
+                    </th>
+                </tr>
+            {/each}
+        </table>
+
         <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <table class="contain w-full max-w-full tabler mt-2 flex flex-col p-2 gap-2">
             {#if currentChar.data.customscript.length === 0}
@@ -410,7 +491,7 @@
                 }}/>
             {/each}
         </table>
-        <th class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
                 let script = currentChar.data.customscript
                 script.push({
@@ -421,27 +502,14 @@
                 })
                 currentChar.data.customscript = script
             }
-        }}><PlusIcon /></th>
-        <div class="flex items-center mt-4">
-            <Check bind:check={currentChar.data.utilityBot}/>
-            <span>{language.utilityBot}</span>
-        </div>
-
-        <span class="text-neutral-200">{language.exampleMessage}</span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.exampleMessage}></textarea>
-
-        <span class="text-neutral-200">{language.creatorNotes} <Help key="charFirstMessage"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
-
-        <span class="text-neutral-200">{language.systemPrompt} <Help key="charFirstMessage"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
-
-        <span class="text-neutral-200">{language.characterNotes} <Help key="charFirstMessage"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
-
-        <span class="text-neutral-200">{language.personality} <Help key="charFirstMessage"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
-
+        }}><PlusIcon /></button>
+      
+        {#if $DataBase.showUnrecommended || currentChar.data.utilityBot}
+            <div class="flex items-center mt-4">
+                <Check bind:check={currentChar.data.utilityBot}/>
+                <span>{language.utilityBot} <Help key="utilityBot" unrecommended/></span>
+            </div>
+        {/if}
 
         <button on:click={async () => {
             exportChar($selectedCharID)
@@ -449,10 +517,10 @@
     
     {:else}
 
-    <div class="flex mb-2 items-center">
-        <Check bind:check={currentChar.data.useCharacterLore}/>
-        <span class="text-neutral-200 ml-2">{language.useCharLorebook} <Help key="experimental"/></span>
-    </div>
+        <div class="flex mb-2 items-center">
+            <Check bind:check={currentChar.data.useCharacterLore}/>
+            <span class="text-neutral-200 ml-2">{language.useCharLorebook} <Help key="experimental"/></span>
+        </div>
     
     {/if}
     <button on:click={async () => {

@@ -20,6 +20,7 @@ export default {
       },
       maxWidth:{
         'half': '50%',
+        '80p': '80%',
         '14': '3.5rem',
       },
       borderWidth: {
@@ -27,6 +28,7 @@ export default {
       },
       width: {
         '2xl': '48rem',
+        '3xl': '72rem',
       },
       minHeight:{
         '8': '2rem',

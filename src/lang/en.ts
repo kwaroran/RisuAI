@@ -35,7 +35,7 @@ export const languageEnglish = {
         msgSound: "Plays *ding* sound when character responses",
         charDesc: "Brief description of the character. this effects characters response.",
         charFirstMessage: "First message of the character. this highly effects characters response.",
-        charNote: "a note that strongly effects model behavior. works in current chat. also known as memory.",
+        charNote: "a note that strongly effects model behavior. embbedded to current character. also known as UJB.",
         toggleNsfw: "toggles NSFW/jailbreak prompt on and off.",
         lorebook: "Lorebook is a user-made dictionary for AI. AI only sees it when where is an activation keys in the context.",
         loreName: "name of the lore. it dosen't effects the Ai.",
@@ -54,13 +54,24 @@ export const languageEnglish = {
         regexScript: "Regex Script is a custom script that is embbedded to the character. it replaces string that matches IN to OUT.\n\nThere are three type options."
                 + "- **Modify Input** modifys user's input"
                 + "- **Modify Output** modifys character's output"
-                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and *\\*.\n\nOUT is a normal string."
+                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and without backslashes in start and end.\n\nOUT is a normal string."
                 + "\n\n If OUT has {{data}} in string, it replaces to matched string."
                 + "\n\n If OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
                 + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
         experimental: "This is a experimental setting. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
-                + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments."
+                + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
+        exampleMessage: "Example conversations that effects output of the character. it dosen't uses tokens permanently."
+                + "\n\nExample format of conversations:"
+                + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hello\n<START>\n{{user}}: hi\nHaruhi: hello\n```"
+                + "\n\n```<START>``` Marks the beginning of a new conversation.",
+        creatorQuotes: "Quote that appearances on top of first message. Used to inform users about this character. It doesn't go into prompt.",
+        systemPrompt: "A prompt that replaces main prompt in settings if its not blank.",
+        chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory.",
+        personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
+        scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
+        utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**"
+
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -217,5 +228,10 @@ export const languageEnglish = {
     systemPrompt: "System Prompt",
     characterNotes: "Character Notes",
     personality: "Personality",
-    alternateGreetings: "Alternate Greetings"
+    scenario: "Scenario",
+    alternateGreetings: "Alternate Greetings",
+    unrecommended: "Not Recommended",
+    chatNotes: "Chat Notes",
+    showUnrecommended: "Show Unrecommended Settings",
+    altGreet: "Alternative First Messages"
 }
