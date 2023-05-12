@@ -84,7 +84,7 @@ export async function loadLoreBookPrompt(){
         return b.order - a.order
     })
 
-    const formatedChat = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
+    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
         return msg.data
     }).join('||').replace(rmRegex,'').toLocaleLowerCase()
 
@@ -92,6 +92,7 @@ export async function loadLoreBookPrompt(){
     
     while(loreListUpdated){
         loreListUpdated = false
+        const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
         for(let i=0;i<formatedLore.length;i++){
             const lore = formatedLore[i]
             if(lore.activatied){
@@ -101,7 +102,7 @@ export async function loadLoreBookPrompt(){
             if(totalTokens > loreToken){
                 break
             }
-    
+
             if(lore.keys === 'always'){
                 activatiedPrompt.push(lore.content)
                 lore.activatied = true
