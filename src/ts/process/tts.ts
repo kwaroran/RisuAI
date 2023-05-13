@@ -5,6 +5,7 @@ import { DataBase, type character } from "../database";
 export async function sayTTS(character:character,text:string) {
 
     let db = get(DataBase)
+    text = text.replace(/\*/g,'')
 
     switch(character.ttsMode){
         case "webspeech":{
