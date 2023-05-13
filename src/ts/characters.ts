@@ -281,6 +281,11 @@ export function characterFormatUpdate(index:number|character){
         cha.personality = cha.personality ?? ''
         cha.scenario = cha.scenario ?? ''
         cha.firstMsgIndex = cha.firstMsgIndex ?? -1
+        cha.additionalData = cha.additionalData ?? {
+            tag: [],
+            creator: '',
+            character_version: 0
+        }
 
     }
     if(checkNullish(cha.customscript)){
