@@ -120,10 +120,12 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         })
     }
 
-    unformated.authorNote.push({
-        role: 'system',
-        content: replacePlaceholders(currentChat.note, currentChar.name)
-    })
+    if(currentChat.note !== ''){
+        unformated.authorNote.push({
+            role: 'system',
+            content: replacePlaceholders(currentChar.postHistoryInstructions, currentChat.note)
+        })
+    }
 
     if(currentChar.postHistoryInstructions !== ''){
         unformated.authorNote.push({
