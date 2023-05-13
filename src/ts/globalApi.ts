@@ -319,7 +319,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
     
         const urlHost = (new URL(url)).hostname
-        let forcePlainFetch = knownHostes.includes(urlHost)
+        let forcePlainFetch = knownHostes.includes(urlHost) && (!isTauri)
     
         if(db.requestmet === 'plain' || forcePlainFetch){
             try {
