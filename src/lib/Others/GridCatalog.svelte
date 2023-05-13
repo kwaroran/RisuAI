@@ -12,6 +12,27 @@
         selectedCharID.set(index)
         endGrid()
     }
+
+    function formatChars(search:string){
+        let charas:{
+            image:string
+            index:number
+            type:string
+        }[] = []
+
+        for(let i=0;i<$DataBase.characters.length;i++){
+            const c = $DataBase.characters[i]
+            if(c.name.replace(/ /g,"").toLocaleLowerCase().includes(search.toLocaleLowerCase().replace(/ /g,""))){
+                charas.push({
+                    image: c.image,
+                    index: i,
+                    type: c.type
+                })
+            }
+        }
+        return charas
+        
+    }
 </script>
 
 <div class="h-full w-full flex justify-center">
@@ -20,14 +41,12 @@
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-4/5 text-xl" placeholder="Search" bind:value={search}>
         <div class="w-full flex justify-center">
             <div class="flex flex-wrap gap-2 mx-auto container">
-                {#each $DataBase.characters.filter((c) => {
-                    return c.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())
-                }) as char, i}
+                {#each formatChars(search) as char}
                     <div class="flex items-center text-neutral-200">
                         {#if char.image}
-                            <BarIcon onClick={() => {changeChar(i)}} additionalStyle={getCharImage($DataBase.characters[i].image, 'css')}></BarIcon>
+                            <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
                         {:else}
-                            <BarIcon onClick={() => {changeChar(i)}} additionalStyle={i === $selectedCharID ? 'background:#44475a' : ''}>
+                            <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={char.index === $selectedCharID ? 'background:#44475a' : ''}>
                                 {#if char.type === 'group'}
                                     <Users />
                                 {:else}
