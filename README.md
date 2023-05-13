@@ -3,6 +3,11 @@
 
 > A AIChat Frontend like Tavern, with great accessibility. Run in web or with installer.
 
+Web version
+ - Go to http://risuai.xyz/
+
+Installer version
+ - Download at https://github.com/kwaroran/RisuAI-release/releases
 
 ## Features
  - **Emotion Images**
@@ -21,11 +26,3 @@
    - Choose it from 3 themes
  - **Customizable, Friendly UI**
    - Great Accessibility and mobile friendly
-
-## Installation
-
-Installer version
- - Download at https://github.com/kwaroran/RisuAI-release/releases
-
-Web version
- - Go to http://risuai.xyz/
