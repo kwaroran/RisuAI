@@ -288,146 +288,69 @@ export async function loadData() {
     }
 }
 
+const knownHostes = ["localhost","172.0.0.1"]
+
 export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET"}) {
-    const db = get(DataBase)
-    const method = arg.method ?? "POST"
-
-    function addFetchLog(response:any, success:boolean){
-        try{
-            fetchLog.unshift({
-                body: JSON.stringify(arg.body, null, 2),
-                header: JSON.stringify(arg.headers ?? {}, null, 2),
-                response: JSON.stringify(response, null, 2),
-                success: success,
-                date: (new Date()).toLocaleTimeString(),
-                url: url
-            })
-        }
-        catch{
-            fetchLog.unshift({
-                body: JSON.stringify(arg.body, null, 2),
-                header: JSON.stringify(arg.headers ?? {}, null, 2),
-                response: `${response}`,
-                success: success,
-                date: (new Date()).toLocaleTimeString(),
-                url: url
-            })
-        }
-    }
-
-    if(db.requestmet === 'proxy'){
-        try {
-            let headers = arg.headers ?? {}
-            if(!headers["Content-Type"]){
-                headers["Content-Type"] =  `application/json`
+    try {
+        const db = get(DataBase)
+        const method = arg.method ?? "POST"
+    
+        function addFetchLog(response:any, success:boolean){
+            try{
+                fetchLog.unshift({
+                    body: JSON.stringify(arg.body, null, 2),
+                    header: JSON.stringify(arg.headers ?? {}, null, 2),
+                    response: JSON.stringify(response, null, 2),
+                    success: success,
+                    date: (new Date()).toLocaleTimeString(),
+                    url: url
+                })
             }
-            const furl = new URL(db.requestproxy)
-            furl.pathname = url
-
-            const da = await fetch(furl, {
-                body: JSON.stringify(arg.body),
-                headers: arg.headers,
-                method: method
-            })
-
-            if(arg.rawResponse){
-                addFetchLog("Uint8Array Response", da.ok)
-                return {
-                    ok: da.ok,
-                    data: new Uint8Array(await da.arrayBuffer())
-                }   
-            }
-            else{
-                const dat = await da.json()
-                addFetchLog(dat, da.ok)
-                return {
-                    ok: da.ok,
-                    data: dat
-                }
-            }
-
-        } catch (error) {
-            return {
-                ok: false,
-                data: `${error}`,
+            catch{
+                fetchLog.unshift({
+                    body: JSON.stringify(arg.body, null, 2),
+                    header: JSON.stringify(arg.headers ?? {}, null, 2),
+                    response: `${response}`,
+                    success: success,
+                    date: (new Date()).toLocaleTimeString(),
+                    url: url
+                })
             }
         }
-    }
-    if(db.requestmet === 'plain'){
-        try {
-            let headers = arg.headers ?? {}
-            if(!headers["Content-Type"]){
-                headers["Content-Type"] =  `application/json`
-            }
-            const furl = new URL(url)
-
-            const da = await fetch(furl, {
-                body: JSON.stringify(arg.body),
-                headers: arg.headers,
-                method: method
-            })
-
-            if(arg.rawResponse){
-                addFetchLog("Uint8Array Response", da.ok)
-                return {
-                    ok: da.ok,
-                    data: new Uint8Array(await da.arrayBuffer())
-                }   
-            }
-            else{
-                const dat = await da.json()
-                addFetchLog(dat, da.ok)
-                return {
-                    ok: da.ok,
-                    data: dat
-                }
-            }
-
-        } catch (error) {
-            return {
-                ok: false,
-                data: `${error}`,
-            }
-        }
-    }
-
-
-    if(isTauri){
-        if(db.requester === 'new'){
+    
+        const urlHost = (new URL(url)).hostname
+        let forcePlainFetch = knownHostes.includes(urlHost)
+    
+        if(db.requestmet === 'plain' || forcePlainFetch){
             try {
-                let preHeader = arg.headers ?? {}
-                preHeader["Content-Type"] = `application/json`
-                const body = JSON.stringify(arg.body)
-                const header = JSON.stringify(preHeader)
-                const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
-                const d:{
-                    success: boolean
-                    body:string
-                } = JSON.parse(res)
-                
-                if(!d.success){
-                    addFetchLog(Buffer.from(d.body, 'base64').toString('utf-8'), false)
+                let headers = arg.headers ?? {}
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/json`
+                }
+                const furl = new URL(url)
+    
+                const da = await fetch(furl, {
+                    body: JSON.stringify(arg.body),
+                    headers: arg.headers,
+                    method: method
+                })
+    
+                if(arg.rawResponse){
+                    addFetchLog("Uint8Array Response", da.ok)
                     return {
-                        ok:false,
-                        data: Buffer.from(d.body, 'base64').toString('utf-8')
-                    }
+                        ok: da.ok,
+                        data: new Uint8Array(await da.arrayBuffer())
+                    }   
                 }
                 else{
-                    if(arg.rawResponse){
-                        addFetchLog("Uint8Array Response", true)
-                        return {
-                            ok:true,
-                            data: new Uint8Array(Buffer.from(d.body, 'base64'))
-                        }
+                    const dat = await da.json()
+                    addFetchLog(dat, da.ok)
+                    return {
+                        ok: da.ok,
+                        data: dat
                     }
-                    else{
-                        addFetchLog(JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')), true)
-                        return {
-                            ok:true,
-                            data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8'))
-                        }
-                    }
-                }   
+                }
+    
             } catch (error) {
                 return {
                     ok: false,
@@ -435,77 +358,164 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 }
             }
         }
-
-        const body = Body.json(arg.body)
-        const headers = arg.headers ?? {}
-        const d = await TauriFetch(url, {
-            body: body,
-            method: method,
-            headers: headers,
-            timeout: {
-                secs: db.timeOut,
-                nanos: 0
-            },
-            responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON
-        })
-        if(arg.rawResponse){
-            addFetchLog("Uint8Array Response", d.ok)
-            return {
-                ok: d.ok,
-                data: new Uint8Array(d.data as number[]),
+        if(db.requestmet === 'proxy'){
+            try {
+                let headers = arg.headers ?? {}
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/json`
+                }
+                const furl = new URL(db.requestproxy)
+                furl.pathname = url
+    
+                const da = await fetch(furl, {
+                    body: JSON.stringify(arg.body),
+                    headers: arg.headers,
+                    method: method
+                })
+    
+                if(arg.rawResponse){
+                    addFetchLog("Uint8Array Response", da.ok)
+                    return {
+                        ok: da.ok,
+                        data: new Uint8Array(await da.arrayBuffer())
+                    }   
+                }
+                else{
+                    const dat = await da.json()
+                    addFetchLog(dat, da.ok)
+                    return {
+                        ok: da.ok,
+                        data: dat
+                    }
+                }
+    
+            } catch (error) {
+                return {
+                    ok: false,
+                    data: `${error}`,
+                }
+            }
+        }
+        if(isTauri){
+            if(db.requester === 'new'){
+                try {
+                    let preHeader = arg.headers ?? {}
+                    preHeader["Content-Type"] = `application/json`
+                    const body = JSON.stringify(arg.body)
+                    const header = JSON.stringify(preHeader)
+                    const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
+                    const d:{
+                        success: boolean
+                        body:string
+                    } = JSON.parse(res)
+                    
+                    if(!d.success){
+                        addFetchLog(Buffer.from(d.body, 'base64').toString('utf-8'), false)
+                        return {
+                            ok:false,
+                            data: Buffer.from(d.body, 'base64').toString('utf-8')
+                        }
+                    }
+                    else{
+                        if(arg.rawResponse){
+                            addFetchLog("Uint8Array Response", true)
+                            return {
+                                ok:true,
+                                data: new Uint8Array(Buffer.from(d.body, 'base64'))
+                            }
+                        }
+                        else{
+                            addFetchLog(JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')), true)
+                            return {
+                                ok:true,
+                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8'))
+                            }
+                        }
+                    }   
+                } catch (error) {
+                    return {
+                        ok: false,
+                        data: `${error}`,
+                    }
+                }
+            }
+    
+            const body = Body.json(arg.body)
+            const headers = arg.headers ?? {}
+            const d = await TauriFetch(url, {
+                body: body,
+                method: method,
+                headers: headers,
+                timeout: {
+                    secs: db.timeOut,
+                    nanos: 0
+                },
+                responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON
+            })
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", d.ok)
+                return {
+                    ok: d.ok,
+                    data: new Uint8Array(d.data as number[]),
+                }
+            }
+            else{
+                addFetchLog(d.data, d.ok)
+                return {
+                    ok: d.ok,
+                    data: d.data,
+                }
             }
         }
         else{
-            addFetchLog(d.data, d.ok)
-            return {
-                ok: d.ok,
-                data: d.data,
-            }
-        }
-    }
-    else{
-        try {
-            let headers = arg.headers ?? {}
-            if(!headers["Content-Type"]){
-                headers["Content-Type"] =  `application/json`
-            }
-            if(arg.rawResponse){
-                const furl = `/proxy?url=${encodeURIComponent(url)}`
-            
-                const da = await fetch(furl, {
-                    body: JSON.stringify(arg.body),
-                    headers: arg.headers,
-                    method: method
-                })
-
-                addFetchLog("Uint8Array Response", da.ok)
+            try {
+                let headers = arg.headers ?? {}
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/json`
+                }
+                if(arg.rawResponse){
+                    const furl = `/proxy?url=${encodeURIComponent(url)}`
+                
+                    const da = await fetch(furl, {
+                        body: JSON.stringify(arg.body),
+                        headers: arg.headers,
+                        method: method
+                    })
+    
+                    addFetchLog("Uint8Array Response", da.ok)
+                    return {
+                        ok: da.ok,
+                        data: new Uint8Array(await da.arrayBuffer())
+                    }   
+                }
+                else{
+                    const furl = `/proxy?url=${encodeURIComponent(url)}`
+    
+                    const da = await fetch(furl, {
+                        body: JSON.stringify(arg.body),
+                        headers: arg.headers,
+                        method: method
+                    })
+    
+                    const dat = await da.json()
+                    addFetchLog(dat, da.ok)
+                    return {
+                        ok: da.ok,
+                        data: dat
+                    }
+                }
+            } catch (error) {
+                console.log(error)
                 return {
-                    ok: da.ok,
-                    data: new Uint8Array(await da.arrayBuffer())
-                }   
-            }
-            else{
-                const furl = `/proxy?url=${encodeURIComponent(url)}`
-
-                const da = await fetch(furl, {
-                    body: JSON.stringify(arg.body),
-                    headers: arg.headers,
-                    method: method
-                })
-
-                const dat = await da.json()
-                addFetchLog(dat, da.ok)
-                return {
-                    ok: da.ok,
-                    data: dat
+                    ok:false,
+                    data: `${error}`
                 }
             }
-        } catch (error) {
-            console.log(error)
-            return {
-                ok:false,
-                data: `${error}`
-            }
+        }   
+    } catch (error) {
+        return {
+            ok:false,
+            data: `${error}`
         }
     }
 }
