@@ -12,7 +12,7 @@
  - **Group Chats**
    - Multiple characters in one chat
  - **Plugins**
-   - Add your features own providers with one file.
+   - Add your features and providers with one file.
  - **Regex Script**
    - Modify Ai's Output by simple Regex
  - **Lorebook**
