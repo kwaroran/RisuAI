@@ -28,6 +28,7 @@ export function exampleMessage(char:character):OpenAIChat[]{
                 role: "system",
                 content: '[Start a new chat]'
             })
+            currentMessage = null
         }
         else if(lowered.startsWith('{{char}}:')  || lowered.startsWith('<bot>:') || lowered.startsWith(`${char.name}:`)){
             add()
