@@ -169,15 +169,19 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         content: '[Start a new chat]'
     })
 
-    chats.push({
-        role: 'assistant',
-        content: processScript(currentChar,
-            replacePlaceholders(nowChatroom.firstMessage, currentChar.name),
-        'editprocess')
-    })
-    currentTokens += await tokenize(processScript(currentChar,
-        replacePlaceholders(nowChatroom.firstMessage, currentChar.name),
-    'editprocess'))
+    if(nowChatroom.type !== 'group'){
+        const firstMsg = nowChatroom.firstMsgIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[nowChatroom.firstMsgIndex]
+
+        chats.push({
+            role: 'assistant',
+            content: processScript(currentChar,
+                replacePlaceholders(firstMsg, currentChar.name),
+            'editprocess')
+        })
+        currentTokens += await tokenize(processScript(currentChar,
+            replacePlaceholders(firstMsg, currentChar.name),
+        'editprocess'))
+    }
 
     const ms = currentChat.message
     for(const msg of ms){
