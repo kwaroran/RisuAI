@@ -1,8 +1,31 @@
 # RisuAI
+![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe)
 
-A AIChat Client, but better.
+> A AIChat Frontend, with better security and accessibility. Run in web or with installer.
 
 
-Msi version: https://github.com/kwaroran/RisuAI-release/releases
+## Features
+ - **Emotion Images**
+   - Also known as expressions. Works without additional programs
+ - **Multiple AI Providers**
+   - OpenAI, Oogabooga, etc.
+ - **Group Chats**
+   - Multiple characters in one chat
+ - **Plugins**
+   - Add your features own providers with one file.
+ - **Regex Script**
+   - Modify Ai's Output by simple Regex
+ - **Lorebook**
+   - Also known as world infos or memory book
+ - **Themes**
+   - Choose it from 3 themes
+ - **Customizable, Friendly UI**
+   - Great Accessibility and mobile friendly
 
-Web version: http://risuai.xyz/
+## Installation
+
+Installer version
+ - Download at https://github.com/kwaroran/RisuAI-release/releases
+
+Web version
+ - Go to http://risuai.xyz/
