@@ -455,7 +455,7 @@ export async function exportSpecV2(char:character) {
                     token_budget: char.loreSettings?.tokenBudget,
                     recursive_scanning: char.loreSettings?.recursiveScanning,
                     extensions: char.loreExt ?? {},
-                    entries: []
+                    entries: charBook
                 },
                 tags: char.additionalData?.tag ?? [],
                 creator: char.additionalData?.creator ?? '',
