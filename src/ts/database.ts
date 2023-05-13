@@ -181,6 +181,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.showUnrecommended)){
         data.showUnrecommended = false
     }
+    if(checkNullish(data.elevenLabKey)){
+        data.elevenLabKey = ''
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -262,6 +265,8 @@ export interface character{
         creator?:string
         character_version?:number
     }
+    ttsMode?:string
+    ttsSpeech?:string
 }
 
 
@@ -386,6 +391,7 @@ export interface Database{
     requestmet: string
     requestproxy: string
     showUnrecommended:boolean
+    elevenLabKey:string
 }
 
 

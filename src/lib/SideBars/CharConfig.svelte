@@ -3,7 +3,7 @@
     import { tokenize } from "../../ts/tokenizer";
     import { DataBase, type Database, type character, type groupChat } from "../../ts/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
@@ -15,6 +15,7 @@
     import Help from "../Others/Help.svelte";
     import RegexData from "./RegexData.svelte";
     import { exportChar } from "src/ts/characterCards";
+    import { getElevenTTSVoices, getWebSpeechTTSVoices } from "src/ts/process/tts";
 
     let subMenu = 0
     let subberMenu = 0
@@ -157,6 +158,9 @@
         <BookIcon />
     </button>
     {#if currentChar.type === 'character'}
+        <button class={subMenu === 5 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 5}}>
+            <Volume2Icon />
+        </button>
         <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
             <CurlyBracesIcon />
         </button>
@@ -444,6 +448,49 @@
                 currentChar.data.customscript = script
             }
         }}><PlusIcon /></button>
+    {/if}
+{:else if subMenu === 5}
+    {#if currentChar.type === 'character'}
+        <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
+        <span class="text-neutral-200">{language.provider}</span>
+        <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsMode} on:change={() => {
+            if(currentChar.type === 'character'){
+                currentChar.data.ttsSpeech = ''
+            }
+        }}>
+            <option value="" class="bg-darkbg appearance-none">{language.disabled}</option>
+            <option value="elevenlab" class="bg-darkbg appearance-none">ElevenLabs</option>
+            <option value="webspeech" class="bg-darkbg appearance-none">Web Speech</option>
+        </select>
+        
+
+        {#if currentChar.data.ttsMode === 'webspeech'}
+            {#if !speechSynthesis}
+                <span class="text-neutral-200">Web Speech isn't supported in your browser or OS</span>
+            {:else}
+                <span class="text-neutral-200">{language.Speech}</span>
+                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
+                    <option value="" class="bg-darkbg appearance-none">Auto</option>
+                    {#each getWebSpeechTTSVoices() as voice}
+                        <option value={voice} class="bg-darkbg appearance-none">{voice}</option>
+                    {/each}
+                </select>
+                {#if currentChar.data.ttsSpeech !== ''}
+                    <span class="text-red-400 text-sm">If you do not set it to Auto, it may not work properly when importing from another OS or browser.</span>
+                {/if}
+            {/if}
+        {:else if currentChar.data.ttsMode === 'elevenlab'}
+            <span class="text-sm mb-2 text-gray-400">Please set the ElevenLabs API key in "global Settings → Bot Settings → Others → ElevenLabs API key"</span>
+            {#await getElevenTTSVoices() then voices}
+                <span class="text-neutral-200">{language.Speech}</span>
+                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
+                    <option value="" class="bg-darkbg appearance-none">Unset</option>
+                        {#each voices as voice}
+                            <option value={voice.voice_id} class="bg-darkbg appearance-none">{voice.name}</option>
+                        {/each}
+                </select>
+            {/await}
+        {/if}
     {/if}
 {:else if subMenu === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>

@@ -10,6 +10,7 @@ import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull } from "./scripts";
 import { exampleMessage } from "./exampleMessages";
+import { sayTTS } from "./tts";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -165,7 +166,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     }).join('\n\n')) + db.maxResponse) + 150
 
     let chats:OpenAIChat[] = exampleMessage(currentChar)
-    
+
     chats.push({
         role: 'system',
         content: '[Start a new chat]'
@@ -214,9 +215,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         currentTokens += (await tokenize(systemMsg) + 1)
     }
 
-    console.log(currentTokens)
-    console.log(maxContextTokens)
-
     while(currentTokens > maxContextTokens){
         if(chats.length <= 1){
             alertError(language.errors.toomuchtoken)
@@ -227,8 +225,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         currentTokens -= (await tokenize(chats[0].content) + 1)
         chats.splice(0, 1)
     }
-
-    console.log(currentTokens)
 
     let bias:{[key:number]:number} = {}
 
@@ -318,6 +314,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             data: result,
             saying: currentChar.chaId
         })
+        await sayTTS(currentChar, result)
         setDatabase(db)
     }
 

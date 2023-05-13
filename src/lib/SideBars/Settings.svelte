@@ -277,8 +277,10 @@
     {/if}
 
 
-    
-    
+    <span class="text-neutral-200 mt-4 text-lg font-bold">TTS</span>
+    <span class="text-neutral-200 mt-2">ElevenLabs API key</span>
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.elevenLabKey}>
+
     
 {:else if subMenu == 3}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>

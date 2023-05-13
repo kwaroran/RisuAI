@@ -241,5 +241,6 @@ export const languageEnglish = {
     useGlobalSettings: "Use Global Settings",
     recursiveScanning: "Recursive Scanning",
     creator: "Creator",
-    CharVersion: "Character Version"
+    CharVersion: "Character Version",
+    Speech: "Speech"
 }
