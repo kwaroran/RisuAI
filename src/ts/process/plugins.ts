@@ -134,7 +134,7 @@ export async function loadPlugins() {
         let pluginLoadedJs = ''
 
         for(const plug of db.plugins){
-            pluginLoadedJs += `(() => {${plug.script}})()`
+            pluginLoadedJs += `\n(() => {${plug.script}})();\n`
         }
         pluginjs = pluginjs.replace('//{{placeholder}}',pluginLoadedJs)
 

@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.9.2'
+export let appVer = '0.9.3'
 
 
 export function setDatabase(data:Database){
