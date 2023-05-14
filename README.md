@@ -1,4 +1,3 @@
-> :warning: ***CURRENTLY WEB VERSION IS IN MAINTENANCE***
 
 # RisuAI
 ![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe)
