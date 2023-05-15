@@ -475,6 +475,9 @@
     <span class="text-neutral-200">{language.emotionPrompt}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.emotionPrompt2} placeholder="Leave it blank to use default">
 
+    <span class="text-neutral-200">{language.SuperMemory} Prompt <Help key="experimental"/></span>
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default">
+
     <span class="text-neutral-200">{language.requestretrys}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.requestRetrys}>
 
@@ -504,6 +507,10 @@
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.showUnrecommended}/>
         <span>{language.showUnrecommended}</span>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.useExperimental}/>
+        <span>{language.useExperimental}</span>
     </div>
     <button
         on:click={async () => {

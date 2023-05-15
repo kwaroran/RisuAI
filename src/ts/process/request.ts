@@ -9,7 +9,7 @@ import { globalFetch } from "../globalApi";
 interface requestDataArgument{
     formated: OpenAIChat[]
     bias: {[key:number]:number}
-    currentChar: character
+    currentChar?: character
     temperature?: number
     maxTokens?:number
     PresensePenalty?: number
@@ -110,7 +110,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case "textgen_webui":{
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
-            const proompt = stringlizeChat(formated, currentChar.name)
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
             const isNewAPI = DURL.includes('api')
             const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
 

@@ -11,10 +11,13 @@ import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull } from "./scripts";
 import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
+import { supaMemory } from "./supaMemory";
+import { v4 } from "uuid";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
     content: string
+    memo?:string
 }
 
 export const doingChat = writable(false)
@@ -165,11 +168,19 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         }).join('\n\n')
     }).join('\n\n')) + db.maxResponse) + 150
 
-    let chats:OpenAIChat[] = exampleMessage(currentChar)
+    const examples = exampleMessage(currentChar)
 
+    for(const example of examples){
+        currentTokens += await tokenize(example.content)
+    }
+
+    let chats:OpenAIChat[] = examples
+
+    
     chats.push({
         role: 'system',
-        content: '[Start a new chat]'
+        content: '[Start a new chat]',
+        memo: "NewChat"
     })
 
     if(nowChatroom.type !== 'group'){
@@ -198,10 +209,13 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
                 formedChat = `${db.username}: ${formedChat}`
             }
         }
-
+        if(!msg.chatId){
+            msg.chatId = v4()
+        }
         chats.push({
             role: msg.role === 'user' ? 'user' : 'assistant',
-            content: formedChat
+            content: formedChat,
+            memo: msg.chatId
         })
         currentTokens += (await tokenize(formedChat) + 1)
     }
@@ -215,17 +229,28 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         currentTokens += (await tokenize(systemMsg) + 1)
     }
 
-    while(currentTokens > maxContextTokens){
-        if(chats.length <= 1){
-            alertError(language.errors.toomuchtoken)
-            
+    if(nowChatroom.supaMemory){
+        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom)
+        if(sp.error){
+            alertError(sp.error)
             return false
         }
-
-        currentTokens -= (await tokenize(chats[0].content) + 1)
-        chats.splice(0, 1)
+        chats = sp.chats
+        currentTokens = sp.currentTokens
+        currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
     }
-
+    else{
+        while(currentTokens > maxContextTokens){
+            if(chats.length <= 1){
+                alertError(language.errors.toomuchtoken)
+                
+                return false
+            }
+    
+            currentTokens -= (await tokenize(chats[0].content) + 1)
+            chats.splice(0, 1)
+        }    
+    }
     let bias:{[key:number]:number} = {}
 
     for(let i=0;i<currentChar.bias.length;i++){
@@ -291,6 +316,11 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         sysPrompts = []
     }
 
+
+
+    for(let i=0;i<formated.length;i++){
+        formated[i].memo = undefined
+    }
 
     const req = await requestChatData({
         formated: formated,

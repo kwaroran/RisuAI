@@ -242,5 +242,8 @@ export const languageEnglish = {
     recursiveScanning: "Recursive Scanning",
     creator: "Creator",
     CharVersion: "Character Version",
-    Speech: "Speech"
+    Speech: "Speech",
+    ToggleSuperMemory: "Toggle SupaMemory",
+    SuperMemory:"SupaMemory",
+    useExperimental: "Able Experimental Features"
 }
