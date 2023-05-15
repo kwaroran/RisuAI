@@ -184,6 +184,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.elevenLabKey)){
         data.elevenLabKey = ''
     }
+    if(checkNullish(data.supaMemoryPrompt)){
+        data.supaMemoryPrompt = ''
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -267,6 +270,7 @@ export interface character{
     }
     ttsMode?:string
     ttsSpeech?:string
+    supaMemory?:boolean
 }
 
 
@@ -297,6 +301,7 @@ export interface groupChat{
     removedQuotes?:boolean
     firstMsgIndex?:number,
     loreSettings?:loreSettings
+    supaMemory?:boolean
 }
 
 export interface botPreset{
@@ -339,7 +344,8 @@ export interface Database{
     aiModel: string
     jailbreakToggle:boolean
     loreBookDepth: number
-    loreBookToken: number
+    loreBookToken: number,
+    supaMemoryPrompt: string
     username: string
     userIcon: string
     additionalPrompt: string
@@ -414,12 +420,14 @@ export interface Chat{
     name:string
     localLore: loreBook[]
     sdData?:string
+    supaMemoryData?:string
 }
 
 export interface Message{
     role: 'user'|'char'
     data: string
     saying?: string
+    chatId?:string
 }
 
 
