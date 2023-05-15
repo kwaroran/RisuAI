@@ -398,6 +398,7 @@ export interface Database{
     requestproxy: string
     showUnrecommended:boolean
     elevenLabKey:string
+    useExperimental:boolean
 }
 
 

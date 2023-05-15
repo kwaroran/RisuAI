@@ -244,5 +244,6 @@ export const languageEnglish = {
     CharVersion: "Character Version",
     Speech: "Speech",
     ToggleSuperMemory: "Toggle SupaMemory",
-    SuperMemory:"SupaMemory"
+    SuperMemory:"SupaMemory",
+    useExperimental: "Able Experimental Features"
 }

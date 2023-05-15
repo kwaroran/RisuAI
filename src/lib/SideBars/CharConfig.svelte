@@ -224,10 +224,12 @@
         <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
     </div>
     
+    {#if $DataBase.useExperimental}
     <div class="flex mt-2 items-center">
         <Check bind:check={currentChar.data.supaMemory}/>
         <span class="text-neutral-200 ml-2">{language.ToggleSuperMemory} <Help key="experimental"/></span>
     </div>
+    {/if}
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
     <span class="text-neutral-200 mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
@@ -592,11 +594,12 @@
             <span class="text-neutral-200">{language.SuperMemory} <Help key="experimental"/></span>
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></textarea>
         {/if}
-        <div class="flex mb-2 items-center">
-            <Check bind:check={currentChar.data.useCharacterLore}/>
-            <span class="text-neutral-200 ml-2">{language.useCharLorebook} <Help key="experimental"/></span>
-        </div>
-    
+        {#if $DataBase.useExperimental}
+            <div class="flex mb-2 items-center">
+                <Check bind:check={currentChar.data.useCharacterLore}/>
+                <span class="text-neutral-200 ml-2">{language.useCharLorebook} <Help key="experimental"/></span>
+            </div>
+        {/if}
     {/if}
     <button on:click={async () => {
         const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
