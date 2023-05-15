@@ -87,35 +87,53 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                 chunkSize += tokens
             }
     
-            const promptbody:OpenAIChat[] = [
-                {
-                    role: "user",
-                    content: stringlizedChat
-                },
-                {
-                    role: "system",
-                    content: db.supaMemoryPrompt === '' ?
-                    "[Summarize the ongoing role story. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
-                    : db.supaMemoryPrompt
-                }
-            ]
+            const supaPrompt = db.supaMemoryPrompt === '' ?
+            "[Summarize the ongoing role story. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
+            : db.supaMemoryPrompt
     
-            const da = await requestChatData({
-                formated: promptbody,
-                bias: {}
-            }, 'submodel')
+            const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:"
 
-            if(da.type === 'fail'){
+            const da = await fetch("https://api.openai.com/v1/completions",{
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + db.openAIKey
+                },
+                method: "POST",
+                body: JSON.stringify({
+                    "model": "text-davinci-003",
+                    "prompt": promptbody,
+                    "max_tokens": 500,
+                    "temperature": 0
+                })
+            })
+
+            // const promptbody:OpenAIChat[] = [
+            //     {
+            //         role: "user",
+            //         content: stringlizedChat
+            //     },
+            //     {
+            //         role: "system",
+            //         content: supaPrompt
+            //     }
+            // ]
+            // const da = await requestChatData({
+            //     formated: promptbody,
+            //     bias: {}
+            // }, 'submodel')
+
+            const result = (await da.json()).choices[0].text.trim()
+            if(da.status < 200 || da.status >= 300){
                 return {
                     currentTokens: currentTokens,
                     chats: chats,
-                    error: "SupaMemory: HTTP: " + da.result
+                    error: "SupaMemory: HTTP: " + await da.text()
                 }
             }
 
-            const tokenz = await tokenize(da.result + '\n\n') + 5
+            const tokenz = await tokenize(result + '\n\n') + 5
             currentTokens += tokenz
-            supaMemory += da.result + '\n\n'
+            supaMemory += result + '\n\n'
             console.log(tokenz)
         }
 
