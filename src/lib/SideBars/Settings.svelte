@@ -398,6 +398,11 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.roundIcons}/>
+        <span>{language.roundIcons}</span>
+    </div>
+
+    <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.instantRemove}/>
         <span>{language.instantRemove}</span>
     </div>

@@ -246,5 +246,6 @@ export const languageEnglish = {
     ToggleSuperMemory: "Toggle SupaMemory",
     SuperMemory:"SupaMemory",
     useExperimental: "Able Experimental Features",
-    showMemoryLimit: "Show Memory Limit"
+    showMemoryLimit: "Show Memory Limit",
+    roundIcons: "Round Icons"
 }

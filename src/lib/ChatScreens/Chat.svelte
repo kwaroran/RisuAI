@@ -65,9 +65,11 @@
 <div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
     <div class="text-neutral-200 mt-1 mb-1 p-2 bg-transparent flex-grow ml-4 mr-4 border-t-gray-900 border-opacity-30 border-transparent flexium items-start">
         {#await img}
-            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
+            <div class="shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`}
+            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
         {:then m}
-            <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
+            <div class="shadow-lg bg-gray-500 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`}
+            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
         {/await}
         <span class="flex flex-col ml-4 w-full">
             <div class="flexium items-center chat">

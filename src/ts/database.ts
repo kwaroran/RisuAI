@@ -406,6 +406,7 @@ export interface Database{
     elevenLabKey:string
     useExperimental:boolean
     showMemoryLimit:boolean
+    roundIcons:boolean
 }
 
 
