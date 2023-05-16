@@ -10,6 +10,7 @@
     import { replacePlaceholders } from "../../ts/util";
     export let message = ''
     export let name = ''
+    export let isLastMemory:boolean
     export let img:string|Promise<string> = ''
     export let idx = -1
     export let rerollIcon = false
@@ -61,8 +62,8 @@
 
     $: displaya(message)
 </script>
-<div class="flex max-w-full">
-    <div class="text-neutral-200 mt-2 p-2 bg-transparent flex-grow ml-4 mr-4 border-t-gray-900 border-opacity-30 border-transparent flexium items-start">
+<div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
+    <div class="text-neutral-200 mt-1 mb-1 p-2 bg-transparent flex-grow ml-4 mr-4 border-t-gray-900 border-opacity-30 border-transparent flexium items-start">
         {#await img}
             <div class="rounded-md shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem`} />
         {:then m}
@@ -142,7 +143,7 @@
         justify-content: flex-start;
     }
     .chat{
-        max-width: calc(95% - 0.5rem);
+        max-width: calc(100% - 0.5rem);
         word-break: normal;
         overflow-wrap: anywhere;
     }

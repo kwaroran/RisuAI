@@ -108,3 +108,7 @@ html, body{
   outline: 0;
   border-bottom: 1px solid #6272a4;
 }
+
+.bgc{
+  border-top: 1px solid rgba(98, 114, 164, 0.3);
+}

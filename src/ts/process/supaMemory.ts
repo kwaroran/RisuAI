@@ -5,7 +5,7 @@ import { tokenize } from "../tokenizer";
 import { findCharacterbyId } from "../util";
 import { requestChatData } from "./request";
 
-export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxContextTokens:number,room:Chat,char:character|groupChat): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string}>{
+export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxContextTokens:number,room:Chat,char:character|groupChat): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
     const db = get(DataBase)
     console.log("Memory: " + currentTokens)
 
@@ -147,7 +147,8 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
         return {
             currentTokens: currentTokens,
             chats: chats,
-            memory: lastId + '\n' + supaMemory
+            memory: lastId + '\n' + supaMemory,
+            lastId: lastId
         }
 
     }

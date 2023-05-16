@@ -27,7 +27,8 @@ export function messageForm(arg:Message[], loadPages:number){
             role: m.role,
             data: reformatContent(m.data),
             index: i,
-            saying: m.saying
+            saying: m.saying,
+            chatId: m.chatId ?? 'none'
         })
     }
     return a.slice(0, loadPages)

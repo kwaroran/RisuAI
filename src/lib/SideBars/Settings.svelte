@@ -364,6 +364,11 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.showMemoryLimit}/>
+        <span>{language.showMemoryLimit}</span>
+    </div>
+
+    <div class="flex items-center mt-2">
         <Check check={$DataBase.customBackground !== ''} onChange={async (check) => {
             if(check){
                 $DataBase.customBackground = '-'
