@@ -408,6 +408,7 @@ export interface Database{
     showMemoryLimit:boolean
     roundIcons:boolean
     useStreaming:boolean
+    palmAPI:string
 }
 
 

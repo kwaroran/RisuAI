@@ -252,6 +252,78 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             break
         }
+        case 'palm2':{
+            const body = {
+                "prompt": {
+                      "text": stringlizeChat(formated, currentChar?.name ?? '')
+                },
+                "safetySettings":[
+                    {
+                        "category": "HARM_CATEGORY_UNSPECIFIED",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_DEROGATORY",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_TOXICITY",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_VIOLENCE",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_SEXUAL",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_MEDICAL",
+                        "threshold": "BLOCK_NONE"
+                    },
+                    {
+                        "category": "HARM_CATEGORY_DANGEROUS",
+                        "threshold": "BLOCK_NONE"
+                    }
+                ],
+                "temperature": arg.temperature,
+                "maxOutputTokens": arg.maxTokens,
+                "candidate_count": 1
+            }
+            const res = await globalFetch(`https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText?key=${db.palmAPI}`, {
+                body: body,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+
+            if(res.ok){
+                if(res.data.candidates){
+                    let output:string = res.data.candidates[0].output
+                    const ind = output.search(/(system note)|(user)|(assistant):/gi)
+                    if(ind >= 0){
+                        output = output.substring(0, ind)
+                    }
+                    return {
+                        type: 'success',
+                        result: output
+                    }
+                }
+                else{
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(res.data)}`
+                    }
+                }
+            }
+            else{
+                return {
+                    type: 'fail',
+                    result: `${JSON.stringify(res.data)}`
+                }
+            }
+        }
         default:{            
             return {
                 type: 'fail',

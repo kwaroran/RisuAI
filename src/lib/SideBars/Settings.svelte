@@ -98,6 +98,7 @@
         <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
         <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
         <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
+        <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
         {#if $DataBase.plugins.length > 0}
             <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
         {/if}
@@ -107,12 +108,17 @@
     <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.subModel}>
         <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
         <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
+        <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
         <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
         {#if $customProviderStore.length > 0}
             <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
         {/if}
     </select>
 
+    {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
+        <span class="text-neutral-200">Palm2 {language.apiKey}</span>
+        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.palmAPI}>
+    {/if}
     {#if $DataBase.aiModel === 'gpt35' || $DataBase.aiModel === 'gpt4' || $DataBase.subModel === 'gpt4' || $DataBase.subModel === 'gpt35'}
         <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
         <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
@@ -411,7 +417,7 @@
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
     <span class="text-draculared text-xs mb-4">{language.pluginWarn}</span>
 
-
+    
     <div class="border-solid border-borderc p-2 flex flex-col border-1">
         {#if $DataBase.plugins.length === 0}
             <span class="text-gray-500">No Plugins</span>
