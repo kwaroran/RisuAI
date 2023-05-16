@@ -354,12 +354,10 @@
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="50" max="200" bind:value={$DataBase.iconsize}>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
-    {#if isTauri}
-        <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.autoTranslate} />
-            <span>{language.autoTranslation}</span>
-        </div>
-    {/if}
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.autoTranslate} />
+        <span>{language.autoTranslation}</span>
+    </div>
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen}/>
         <span>{language.fullscreen}</span>
