@@ -5,8 +5,10 @@ import { tokenize } from "../tokenizer";
 import { findCharacterbyId } from "../util";
 import { requestChatData } from "./request";
 
-export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxContextTokens:number,room:Chat,char:character|groupChat): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string}>{
+export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxContextTokens:number,room:Chat,char:character|groupChat): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
     const db = get(DataBase)
+    console.log("Memory: " + currentTokens)
+
     if(currentTokens > maxContextTokens){
         let coIndex = -1
         for(let i=0;i<chats.length;i++){
@@ -29,25 +31,27 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
             const id = splited.splice(0,1)[0]
             const data = splited.join('\n')
 
-            for(let i=0;i<chats.length;i++){
+            let i =0;
+            while(true){
+                if(chats.length === 0){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "SupaMemory: chat ID not found"
+                    }
+                }
                 if(chats[0].memo === id){
                     break
                 }
                 currentTokens -= (await tokenize(chats[0].content) + 1)
                 chats.splice(0, 1)
-            }
-
-            if(chats.length === 0){
-                return {
-                    currentTokens: currentTokens,
-                    chats: chats,
-                    error: "SupaMemory: chat ID not found"
-                }
+                i += 1
             }
 
             supaMemory = data
             currentTokens += await tokenize(supaMemory) + 1
         }
+
 
         if(currentTokens < maxContextTokens){
             chats.unshift({
@@ -134,7 +138,6 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
             const tokenz = await tokenize(result + '\n\n') + 5
             currentTokens += tokenz
             supaMemory += result + '\n\n'
-            console.log(tokenz)
         }
 
         chats.unshift({
@@ -144,7 +147,8 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
         return {
             currentTokens: currentTokens,
             chats: chats,
-            memory: lastId + '\n' + supaMemory
+            memory: lastId + '\n' + supaMemory,
+            lastId: lastId
         }
 
     }

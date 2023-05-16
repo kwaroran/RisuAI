@@ -246,6 +246,7 @@
                             rerollIcon={i === 0}
                             onReroll={reroll}
                             unReroll={unReroll}
+                            isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
                         />
                     {:else}
                         <Chat
@@ -256,6 +257,7 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
+                            isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
                         />
                     {/if}
                 {:else}
@@ -264,6 +266,7 @@
                         name={$DataBase.username} 
                         message={chat.data}
                         img={getCharImage($DataBase.userIcon, 'css')}
+                        isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
                     />
                 {/if}
             {/each}
@@ -300,6 +303,8 @@
                             }
                             $DataBase.characters[$selectedCharID] = cha
                         }}
+                        isLastMemory={false}
+
                     />
                     {#if !$DataBase.characters[$selectedCharID].removedQuotes && $DataBase.characters[$selectedCharID].creatorNotes.length >= 2}
                         <CreatorQuote quote={$DataBase.characters[$selectedCharID].creatorNotes} onRemove={() => {

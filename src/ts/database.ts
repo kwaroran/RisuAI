@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '0.9.6'
+export let appVer = '1.10.0'
 
 
 export function setDatabase(data:Database){
@@ -79,6 +79,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.language)){
         data.language = 'en'
+    }
+    if(checkNullish(data.swipe)){
+        data.swipe = true
     }
     if(checkNullish(data.translator)){
         data.translator = ''
@@ -186,6 +189,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.supaMemoryPrompt)){
         data.supaMemoryPrompt = ''
+    }
+    if(checkNullish(data.showMemoryLimit)){
+        data.showMemoryLimit = false
     }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
@@ -399,6 +405,10 @@ export interface Database{
     showUnrecommended:boolean
     elevenLabKey:string
     useExperimental:boolean
+    showMemoryLimit:boolean
+    roundIcons:boolean
+    useStreaming:boolean
+    palmAPI:string
 }
 
 
@@ -422,6 +432,7 @@ export interface Chat{
     localLore: loreBook[]
     sdData?:string
     supaMemoryData?:string
+    lastMemory?:string
 }
 
 export interface Message{

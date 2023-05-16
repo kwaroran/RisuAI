@@ -80,8 +80,8 @@ export async function stableDiff(currentChar:character,prompt:string){
     }, 'submodel')
 
 
-    if(rq.type === 'fail'){
-        alertError(rq.result)
+    if(rq.type === 'fail' || rq.type === 'streaming'){
+        alertError(`${rq.result}`)
         return false
     }
     else{

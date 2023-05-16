@@ -238,18 +238,21 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         chats = sp.chats
         currentTokens = sp.currentTokens
         currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
+        currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory
     }
     else{
         while(currentTokens > maxContextTokens){
             if(chats.length <= 1){
                 alertError(language.errors.toomuchtoken)
-                
+
                 return false
             }
-    
+
             currentTokens -= (await tokenize(chats[0].content) + 1)
             chats.splice(0, 1)
-        }    
+        }
+        currentChat.lastMemory = chats[0].memo
+        console.log(currentChat.lastMemory)
     }
     let bias:{[key:number]:number} = {}
 
@@ -334,6 +337,9 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     if(req.type === 'fail'){
         alertError(req.result)
         return false
+    }
+    else if(req.type === 'streaming'){
+        
     }
     else{
         const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')
@@ -426,8 +432,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             maxTokens: 30,
         }, 'submodel')
 
-        if(rq.type === 'fail'){
-            alertError(rq.result)
+        if(rq.type === 'fail' || rq.type === 'streaming'){
+            alertError(`${rq.result}`)
             return true
         }
         else{

@@ -245,5 +245,8 @@ export const languageEnglish = {
     Speech: "Speech",
     ToggleSuperMemory: "Toggle SupaMemory",
     SuperMemory:"SupaMemory",
-    useExperimental: "Able Experimental Features"
+    useExperimental: "Able Experimental Features",
+    showMemoryLimit: "Show Memory Limit",
+    roundIcons: "Round Icons",
+    useStreaming: "Use Streaming"
 }
