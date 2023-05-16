@@ -407,6 +407,7 @@ export interface Database{
     useExperimental:boolean
     showMemoryLimit:boolean
     roundIcons:boolean
+    useStreaming:boolean
 }
 
 

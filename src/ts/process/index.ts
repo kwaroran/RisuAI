@@ -338,6 +338,9 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         alertError(req.result)
         return false
     }
+    else if(req.type === 'streaming'){
+        
+    }
     else{
         const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')
         result = result2.data
@@ -429,8 +432,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             maxTokens: 30,
         }, 'submodel')
 
-        if(rq.type === 'fail'){
-            alertError(rq.result)
+        if(rq.type === 'fail' || rq.type === 'streaming'){
+            alertError(`${rq.result}`)
             return true
         }
         else{

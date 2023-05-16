@@ -19,6 +19,9 @@ interface requestDataArgument{
 type requestDataResponse = {
     type: 'success'|'fail'
     result: string
+}|{
+    type: "streaming",
+    result: ReadableStreamDefaultReader<Uint8Array>
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel'):Promise<requestDataResponse> {
@@ -66,6 +69,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             if(replacerURL.endsWith('v1/')){
                 replacerURL += 'chat/completions'
+            }
+
+            if(db.useStreaming){
+                const da = await fetch(replacerURL, {
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Authorization": "Bearer " + db.openAIKey
+                    },
+                })
+
+                const reader = da.body.getReader()
+
+                return {
+                    type: 'streaming',
+                    result: reader
+                }
             }
 
             const res = await globalFetch(replacerURL, {
