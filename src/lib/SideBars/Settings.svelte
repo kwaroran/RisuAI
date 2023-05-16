@@ -341,13 +341,11 @@
     {/if}
 
 
-    {#if isTauri}
-        <span class="text-neutral-200 mt-4">{language.translator}</span>
-        <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.translator}>
-            <option value="" class="bg-darkbg appearance-none">{language.disabled}</option>
-            <option value="ko" class="bg-darkbg appearance-none">한국어</option>
-        </select>
-    {/if}
+    <span class="text-neutral-200 mt-4">{language.translator}</span>
+    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.translator}>
+        <option value="" class="bg-darkbg appearance-none">{language.disabled}</option>
+        <option value="ko" class="bg-darkbg appearance-none">한국어</option>
+    </select>
     <span class="text-neutral-200">{language.UISize}</span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="50" max="200" bind:value={$DataBase.zoomsize}>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.zoomsize)}%</span>

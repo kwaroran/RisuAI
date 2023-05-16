@@ -1,4 +1,4 @@
-import { Body,fetch,ResponseType } from "@tauri-apps/api/http"
+import { Body,fetch as TauriFetch,ResponseType } from "@tauri-apps/api/http"
 import { isTauri } from "../globalApi"
 import { translatorPlugin } from "../process/plugins"
 import { sleep } from "../util"
@@ -11,9 +11,6 @@ let cache={
 let waitTrans = 0
 
 export async function translate(text:string, reverse:boolean) {
-    if(!isTauri){
-        return text
-    }
     const plug = await translatorPlugin(text, reverse ? 'ko' : 'en', reverse ? 'en' : 'ko')
     if(plug){
         return plug.content
@@ -35,39 +32,45 @@ export async function translate(text:string, reverse:boolean) {
 }
 
 async function googleTrans(text:string, reverse:boolean) {
-    const time = Date.now()
-    if(time < waitTrans){
-        const waitTime = waitTrans - time
-        waitTrans += 5000
-        await sleep(waitTime)
-    }
-    else{
-        waitTrans = time + 5000
-    }
+
     const arg = {
+
         from: reverse ? 'ko' : 'en',
+
         to: reverse ? 'en' : 'ko',
-        host: 'translate.google.com',
+
+        host: 'translate.googleapis.com',
+
     }
-    const body = Body.form({
-        sl: reverse ? 'ko' : 'en',
-        tl: reverse ? 'en' : 'ko',
-        q: text,
-    })
-    const url = `https://${arg.host}/translate_a/single?client=at&dt=t&dt=rm&dj=1`
+
+
+
+    const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
+
+
 
     const f = await fetch(url, {
-        method: "POST",
-        body: body,
-        responseType: ResponseType.JSON
+
+        method: "GET",
+
     })
 
-    const res = f.data as {sentences:{trans?:string}[]}
-    if(typeof(f.data) === 'string'){
+    const res = await f.json()
+
+    
+
+    if(typeof(res) === 'string'){
+
         return res as unknown as string
+
     }
-    const result = res.sentences.filter((s) => 'trans' in s).map((s) => s.trans).join('');
+
+    const result = res[0].map((s) => s[0]).filter(Boolean).join('');
+
     cache.origin.push(reverse ? result : text)
+
     cache.trans.push(reverse ? text : result)
+
     return result
+
 }
