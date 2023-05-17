@@ -248,5 +248,5 @@ export const languageEnglish = {
     useExperimental: "Able Experimental Features",
     showMemoryLimit: "Show Memory Limit",
     roundIcons: "Round Icons",
-    useStreaming: "Use Streaming"
+    streaming: "Streaming"
 }

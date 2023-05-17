@@ -48,6 +48,7 @@ specifiers:
   vite: ^4.2.1
   vite-plugin-top-level-await: ^1.3.0
   vite-plugin-wasm: ^3.2.2
+  web-streams-polyfill: ^3.2.1
 
 dependencies:
   '@dqbd/tiktoken': 1.0.4
@@ -71,6 +72,7 @@ dependencies:
   showdown: 2.1.0
   sweetalert2: 11.7.3
   uuid: 9.0.0
+  web-streams-polyfill: 3.2.1
 
 devDependencies:
   '@sveltejs/vite-plugin-svelte': 2.0.4_svelte@3.58.0+vite@4.2.1
@@ -2273,6 +2275,11 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       xml-name-validator: 4.0.0
+    dev: false
+
+  /web-streams-polyfill/3.2.1:
+    resolution: {integrity: sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==}
+    engines: {node: '>= 8'}
     dev: false
 
   /webidl-conversions/7.0.0:

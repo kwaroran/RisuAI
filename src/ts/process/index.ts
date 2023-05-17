@@ -328,7 +328,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     const req = await requestChatData({
         formated: formated,
         bias: bias,
-        currentChar: currentChar
+        currentChar: currentChar,
+        useStreaming: true
     }, 'model')
 
     let result = ''
@@ -339,7 +340,23 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         return false
     }
     else if(req.type === 'streaming'){
-        
+        const reader = req.result.getReader()
+        const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+        db.characters[selectedChar].chats[selectedChat].message.push({
+            role: 'char',
+            data: "",
+            saying: currentChar.chaId
+        })
+        while(true){
+            const readed = (await reader.read())
+            if(readed.value){
+                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data =readed.value
+                setDatabase(db)
+            }
+            if(readed.done){
+                break
+            }   
+        }
     }
     else{
         const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')

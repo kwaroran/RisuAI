@@ -46,7 +46,7 @@ function versionStringToNumber(versionString:string):number {
     return Number(
       versionString
         .split(".")
-        .map((component) => component.padStart(2, "0"))
+        .map((component) => component.padStart(4, "0"))
         .join("")
     );
 }

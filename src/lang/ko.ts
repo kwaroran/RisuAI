@@ -225,5 +225,14 @@ export const languageKorean = {
     selective: "멀티플 키",
     SecondaryKeys: '두번째 키',
     useGlobalSettings: "글로벌 설정 사용",
-    recursiveScanning: "재귀 검색"
+    recursiveScanning: "재귀 검색",
+    creator: "제작자",
+    CharVersion: "캐릭터 버전",
+    Speech: "음성",
+    ToggleSuperMemory: "SupaMemory 토글",
+    SuperMemory:"SupaMemory",
+    useExperimental: "실험적 요소 보이기",
+    showMemoryLimit: "기억 한계치 보이기",
+    roundIcons: "둥근 아이콘",
+    streaming: "스트리밍"
 }

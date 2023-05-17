@@ -13,7 +13,8 @@ interface requestDataArgument{
     temperature?: number
     maxTokens?:number
     PresensePenalty?: number
-    frequencyPenalty?: number
+    frequencyPenalty?: number,
+    useStreaming?:boolean
 }
 
 type requestDataResponse = {
@@ -21,7 +22,7 @@ type requestDataResponse = {
     result: string
 }|{
     type: "streaming",
-    result: ReadableStreamDefaultReader<Uint8Array>
+    result: ReadableStream<string>
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel'):Promise<requestDataResponse> {
@@ -60,6 +61,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
                 logit_bias: bias,
+                stream: false
             })
 
             let replacerURL = replacer === '' ? 'https://api.openai.com/v1/chat/completions' : replacer
@@ -71,19 +73,59 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 replacerURL += 'chat/completions'
             }
 
-            if(db.useStreaming){
+            if(db.useStreaming && arg.useStreaming){
+                body.stream = true
                 const da = await fetch(replacerURL, {
                     body: JSON.stringify(body),
+                    method: "POST",
                     headers: {
-                        "Authorization": "Bearer " + db.openAIKey
+                        "Authorization": "Bearer " + db.openAIKey,
+                        "Content-Type": "application/json"
                     },
                 })
 
-                const reader = da.body.getReader()
+                if(da.status !== 200){
+                    return {
+                        type: "fail",
+                        result: await da.text()
+                    }
+                }
+
+                let dataUint = new Uint8Array([])
+
+                const transtream = new TransformStream<Uint8Array, string>(  {
+                    async transform(chunk, control) {
+                        dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
+                        try {
+                            const datas = dataUint.toString().split('\n')
+                            let readed = ''
+                            for(const data of datas){
+                                if(data.startsWith("data: ")){
+                                    try {
+                                        const rawChunk = data.replace("data: ", "")
+                                        if(rawChunk === "[DONE]"){
+                                            control.enqueue(readed)
+                                            return
+                                        }
+                                        const chunk = JSON.parse(rawChunk).choices[0].delta.content
+                                        if(chunk){
+                                            readed += chunk
+                                        }
+                                    } catch (error) {}
+                                }
+                            }
+                            control.enqueue(readed)
+                        } catch (error) {
+                            
+                        }
+                    }
+                },)
+
+                da.body.pipeTo(transtream.writable)
 
                 return {
                     type: 'streaming',
-                    result: reader
+                    result: transtream.readable
                 }
             }
 
