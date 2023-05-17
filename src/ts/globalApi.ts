@@ -369,9 +369,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
     
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
-                    headers: {
-                        "risu-header": encodeURIComponent(JSON.stringify(arg.headers))
-                    },
+                    headers: arg.headers,
                     method: method
                 })
     
@@ -480,7 +478,9 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 
                     const da = await fetch(furl, {
                         body: JSON.stringify(arg.body),
-                        headers: arg.headers,
+                        headers: {
+                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers))
+                        },
                         method: method
                     })
     
