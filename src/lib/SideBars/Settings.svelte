@@ -121,7 +121,11 @@
     {/if}
     {#if $DataBase.aiModel === 'gpt35' || $DataBase.aiModel === 'gpt4' || $DataBase.subModel === 'gpt4' || $DataBase.subModel === 'gpt35'}
         <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
+        <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
+        <div class="flex items-center mt-2 mb-4">
+            <Check bind:check={$DataBase.useStreaming}/>
+            <span>OpenAI {language.streaming}</span>
+        </div>
     {/if}
     {#if $DataBase.aiModel === 'custom'}
         <span class="text-neutral-200 mt-2">{language.plugin}</span>
