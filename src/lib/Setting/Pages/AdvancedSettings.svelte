@@ -29,7 +29,7 @@
 <span class="text-neutral-200">{language.requestretrys}</span>
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.requestRetrys}>
 
-<span class="text-neutral-200">Request Method</span>
+<span class="text-neutral-200">Request Type</span>
 <select class="bg-transparent input-text text-gray-200 appearance-none text-sm mb-4" bind:value={$DataBase.requestmet}>
     <option value="normal" class="bg-darkbg appearance-none">Normal</option>
     <option value="proxy" class="bg-darkbg appearance-none">Proxy</option>
