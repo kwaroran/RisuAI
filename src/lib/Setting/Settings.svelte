@@ -103,7 +103,7 @@
     </div>
 </div>
 {#if openPresetList}
-    <Botpreset />
+    <Botpreset close={() => {openPresetList = false}} />
 {/if}
 <style>
     .setting-bg{
