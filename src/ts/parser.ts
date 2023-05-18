@@ -2,6 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 import type { character, groupChat } from './database';
 import { getFileSrc } from './globalApi';
+import { processScript } from './process/scripts';
 
 const convertor = new showdown.Converter({
     simpleLineBreaks: true,
@@ -21,6 +22,9 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
 
 export async function ParseMarkdown(data:string, char:(character | groupChat) = null) {
     if(char && char.type !== 'group'){
+        if(char.customscript){
+            data = processScript(char, data, 'editdisplay')
+        }
         if(char.additionalAssets){
             for(const asset of char.additionalAssets){
                 const assetPath = await getFileSrc(asset[1])
