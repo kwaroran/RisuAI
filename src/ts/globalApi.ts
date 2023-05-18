@@ -5,6 +5,7 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
+import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
@@ -163,7 +164,7 @@ export async function readImage(data:string) {
     }
 }
 
-export async function saveImage(data:Uint8Array, customId:string = ''){
+export async function saveAsset(data:Uint8Array, customId:string = ''){
     let id = ''
     if(customId !== ''){
         id = customId
@@ -534,7 +535,7 @@ function getBasename(data:string){
 export function getUnpargeables(db:Database) {
     let unpargeable:string[] = []
 
-    function addParge(data:string){
+    function addUnparge(data:string){
         if(!data){
             return
         }
@@ -547,16 +548,23 @@ export function getUnpargeables(db:Database) {
         }
     }
 
-    addParge(db.customBackground)
-    addParge(db.userIcon)
+    addUnparge(db.customBackground)
+    addUnparge(db.userIcon)
 
     for(const cha of db.characters){
         if(cha.image){
-            addParge(cha.image)
+            addUnparge(cha.image)
         }
         if(cha.emotionImages){
             for(const em of cha.emotionImages){
-                addParge(em[1])
+                addUnparge(em[1])
+            }
+        }
+        if(cha.type !== 'group'){
+            if(cha.additionalAssets){
+                for(const em of cha.additionalAssets){
+                    addUnparge(em[1])
+                }
             }
         }
     }
@@ -654,4 +662,13 @@ export function getRequestLog(){
     }
     console.log(logString)
     return logString
+}
+
+export function openURL(url:string){
+    if(isTauri){
+        open(url)
+    }
+    else{
+        window.open(url, "_blank")
+    }
 }

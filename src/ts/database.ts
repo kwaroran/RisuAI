@@ -2,12 +2,12 @@ import { get, writable } from 'svelte/store';
 import { checkNullish } from './util';
 import { changeLanguage } from '../lang';
 import type { RisuPlugin } from './process/plugins';
-import { saveImage as saveImageGlobal } from './globalApi';
+import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.11.0'
+export let appVer = '1.12.0'
 
 
 export function setDatabase(data:Database){
@@ -277,6 +277,7 @@ export interface character{
     ttsMode?:string
     ttsSpeech?:string
     supaMemory?:boolean
+    additionalAssets?:[string, string][]
 }
 
 

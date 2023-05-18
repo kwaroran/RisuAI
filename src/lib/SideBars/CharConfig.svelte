@@ -1,7 +1,7 @@
 <script lang="ts">
     import { language } from "../../lang";
     import { tokenize } from "../../ts/tokenizer";
-    import { DataBase, type Database, type character, type groupChat } from "../../ts/database";
+    import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/database";
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
@@ -9,7 +9,7 @@
     import LoreBook from "./LoreBookSetting.svelte";
     import { alertConfirm, alertError, alertSelectChar } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId } from "../../ts/util";
+    import { findCharacterbyId, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
@@ -578,6 +578,59 @@
             {/each}
         </table>
       
+        <span class="text-neutral-200 mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
+        <table class="contain w-full max-w-full tabler mt-2">
+            <tr>
+                <th class="font-medium">{language.value}</th>
+                <th class="font-medium cursor-pointer w-10">
+                    <button class="hover:text-green-500" on:click={async () => {
+                        if(currentChar.type === 'character'){
+                            const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3'])
+                            currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
+                            if(!da){
+                                return
+                            }
+                            for(const f of da){
+                                console.log(f)
+                                const img = f.data
+                                const imgp = await saveAsset(img)
+                                const name = f.name
+                                currentChar.data.additionalAssets.push([name, imgp])
+                                currentChar.data.additionalAssets = currentChar.data.additionalAssets
+                            }
+                        }
+                    }}>
+                        <PlusIcon />
+                    </button>
+                </th>
+            </tr>
+            {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+                <tr>
+                    <div class="text-gray-500"> No Assets</div>
+                </tr>
+            {:else}
+                {#each currentChar.data.additionalAssets as assets, i}
+                    <tr>
+                        <td class="font-medium truncate">
+                            <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-full resize-none" bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
+                        </td>
+                        <th class="font-medium cursor-pointer w-10">
+                            <button class="hover:text-green-500" on:click={() => {
+                                if(currentChar.type === 'character'){
+                                    currentChar.data.firstMsgIndex = -1
+                                    let additionalAssets = currentChar.data.additionalAssets
+                                    additionalAssets.splice(i, 1)
+                                    currentChar.data.additionalAssets = additionalAssets
+                                }
+                            }}>
+                                <TrashIcon />
+                            </button>
+                        </th>
+                    </tr>
+                {/each}
+            {/if}
+        </table>
+
         {#if $DataBase.showUnrecommended || currentChar.data.utilityBot}
             <div class="flex items-center mt-4">
                 <Check bind:check={currentChar.data.utilityBot}/>

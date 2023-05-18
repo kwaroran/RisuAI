@@ -1,4 +1,5 @@
 import "./styles.css";
+import "core-js/actual"
 import App from "./App.svelte";
 import { loadData } from "./ts/globalApi";
 import { ReadableStream, WritableStream, TransformStream } from "web-streams-polyfill/ponyfill/es2018";

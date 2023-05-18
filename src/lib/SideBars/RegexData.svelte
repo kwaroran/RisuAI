@@ -34,6 +34,7 @@
                 <option value="editinput">{language.editInput}</option>
                 <option value="editoutput">{language.editOutput}</option>
                 <option value="editprocess">{language.editProcess}</option>
+                <option value="editdisplay">{language.editDisplay}</option>
             </select>
             <span class="text-neutral-200 mt-6">IN:</span>
             <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.in}>

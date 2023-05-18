@@ -6,14 +6,16 @@
             </button>
         </h1>
         <div class="ml-2 max-w-full break-words text chat chattext prose prose-invert">
-            {@html ParseMarkdown(quote)}
+            {#await ParseMarkdown(quote) then md} 
+                {@html md}
+            {/await}
         </div>
     </div>
 </div>
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
-  import { language } from "src/lang";
-  import { ParseMarkdown } from "src/ts/parser";
+    import { language } from "src/lang";
+    import { ParseMarkdown } from "src/ts/parser";
 
     export let onRemove: () => void
     export let quote:string

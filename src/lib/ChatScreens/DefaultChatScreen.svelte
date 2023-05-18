@@ -247,6 +247,7 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                            character={$DataBase.characters[$selectedCharID]}
                         />
                     {:else}
                         <Chat
@@ -258,10 +259,12 @@
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
                             isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                            character={findCharacterbyId(chat.saying)}
                         />
                     {/if}
                 {:else}
                     <Chat
+                        character={$DataBase.characters[$selectedCharID]}
                         idx={chat.index}
                         name={$DataBase.username} 
                         message={chat.data}
@@ -273,6 +276,7 @@
             {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length <= loadPages}
                 {#if $DataBase.characters[$selectedCharID].type !== 'group'}
                     <Chat
+                        character={$DataBase.characters[$selectedCharID]}
                         name={$DataBase.characters[$selectedCharID].name}
                         message={$DataBase.characters[$selectedCharID].firstMsgIndex === -1 ? $DataBase.characters[$selectedCharID].firstMessage :
                             $DataBase.characters[$selectedCharID].alternateGreetings[$DataBase.characters[$selectedCharID].firstMsgIndex]}

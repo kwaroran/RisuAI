@@ -7,25 +7,28 @@
     import LoreBookData from "./LoreBookData.svelte";
     import Check from "../Others/Check.svelte";
     let submenu = 0
+    let globalMode = false
 </script>
 
-<div class="flex w-full">
-    <button on:click={() => {
-        submenu = 0
-    }} class="flex-1 border-solid border-borderc border-1 p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 0}>
-        <span>{$DataBase.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 1
-    }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 1}>
-        <span>{language.Chat}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 2
-    }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 2}>
-        <span>{language.settings}</span>
-    </button>
-</div>
+{#if !globalMode}
+    <div class="flex w-full">
+        <button on:click={() => {
+            submenu = 0
+        }} class="flex-1 border-solid border-borderc border-1 p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 0}>
+            <span>{$DataBase.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 1
+        }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 1}>
+            <span>{language.Chat}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 2
+        }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 2}>
+            <span>{language.settings}</span>
+        </button>
+    </div>
+{/if}
 {#if submenu !== 2}
     <span class="text-gray-500 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     <div class="border-solid border-borderc p-2 flex flex-col border-1">
