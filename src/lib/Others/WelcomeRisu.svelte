@@ -104,34 +104,6 @@
                 <img class="w-3/4 mt-2" src="/ss3.webp" alt="example"></button>
             </div>
         {:else if step === 4}
-            <h2>{language.setup.theme}</h2>
-            <div class="flex flex-col items-start ml-2">
-                <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = ''
-                    step += 1
-                }}><span>• Standard Risu</span>
-                <img class="w-3/4 mt-2" src="/ss2.webp" alt="example"></button>
-                <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = 'waifu'
-                    step += 1
-                }}><span>• Waifulike</span>
-                <img class="w-3/4 mt-2" src="/ss3.webp" alt="example"></button>
-            </div>
-        {:else if step === 4}
-            <h2>{language.setup.theme}</h2>
-            <div class="flex flex-col items-start ml-2">
-                <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = ''
-                    step += 1
-                }}><span>• Standard Risu</span>
-                <img class="w-3/4 mt-2" src="/ss2.webp" alt="example"></button>
-                <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = 'waifu'
-                    step += 1
-                }}><span>• Waifulike</span>
-                <img class="w-3/4 mt-2" src="/ss3.webp" alt="example"></button>
-            </div>
-        {:else if step === 5}
             <h2>{language.setup.texttheme}</h2>
             <div class="flex flex-col items-start ml-2">
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
@@ -159,7 +131,7 @@
                     </div>
                 </button>
             </div>
-        {:else if step === 6}
+        {:else if step === 5}
             <h2>{language.setup.inputName}</h2>
             <div class="w-full ml-2">
                 <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected m-0" bind:value={$DataBase.username}>

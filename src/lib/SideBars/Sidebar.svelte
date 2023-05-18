@@ -227,7 +227,7 @@
     {#if $selectedCharID < 0 || $settingsOpen}
       <div>
         <h1 class="text-xl">Welcome to RisuAI!</h1>
-        <span class="text-xs text-gray-400">Click a bot to start chating</span>
+        <span class="text-xs text-gray-400">Select a bot to start chating</span>
       </div>
     {:else}
       <CharConfig />
