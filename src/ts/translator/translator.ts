@@ -1,7 +1,4 @@
-import { Body,fetch as TauriFetch,ResponseType } from "@tauri-apps/api/http"
-import { isTauri } from "../globalApi"
 import { translatorPlugin } from "../process/plugins"
-import { sleep } from "../util"
 
 let cache={
     origin: [''],
