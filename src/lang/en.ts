@@ -71,7 +71,8 @@ export const languageEnglish = {
         personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
-        loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore."
+        loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
+        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image"
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -251,5 +252,7 @@ export const languageEnglish = {
     streaming: "Streaming",
     chatBot:'Chat Bot',
     otherBots:'Other Bots',
-    user:"User"
+    user:"User",
+    additionalAssets:"Additional Assets",
+    editDisplay: "Modify Display"
 }

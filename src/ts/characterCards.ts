@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, saveImage, setDatabase, type customscript, type loreSettings, type loreBook } from "./database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./database"
 import { checkNullish, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import exifr from 'exifr'
 import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
-import { downloadFile, readImage } from "./globalApi"
+import { downloadFile, readImage, saveAsset } from "./globalApi"
 import { cloneDeep } from "lodash"
 
 
@@ -69,7 +69,7 @@ export async function importCharacter() {
                         msg: `Loading... (Getting Emotions ${i} / ${char.emotionImages.length})`
                     })
                     await sleep(10)
-                    const imgp = await saveImage(char.emotionImages[i][1] as any)
+                    const imgp = await saveAsset(char.emotionImages[i][1] as any)
                     char.emotionImages[i][1] = imgp
                 }
             }
@@ -85,7 +85,7 @@ export async function importCharacter() {
             }
 
             char.chatPage = 0
-            char.image = await saveImage(PngMetadata.filter(img))
+            char.image = await saveAsset(PngMetadata.filter(img))
             db.characters.push(characterFormatUpdate(char))
             char.chaId = uuidv4()
             setDatabase(db)
@@ -94,7 +94,7 @@ export async function importCharacter() {
         }
         else if(readed.chara){
             const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-            const imgp = await saveImage(PngMetadata.filter(img))
+            const imgp = await saveAsset(PngMetadata.filter(img))
             let db = get(DataBase)
             db.characters.push(convertOldTavernAndJSON(charaData, imgp))
             DataBase.set(db)
@@ -140,7 +140,7 @@ export async function characterHubImport() {
                 }
             }
             {
-                const imgp = await saveImage(PngMetadata.filter(img))
+                const imgp = await saveAsset(PngMetadata.filter(img))
                 let db = get(DataBase)
                 const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))    
                 db.characters.push(convertOldTavernAndJSON(charaData, imgp))
@@ -300,7 +300,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
     }
 
     const data = card.data
-    const im = img ? await saveImage(PngMetadata.filter(img)) : undefined
+    const im = img ? await saveAsset(PngMetadata.filter(img)) : undefined
     let db = get(DataBase)
 
     const risuext = cloneDeep(data.extensions.risuai)
@@ -310,6 +310,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
     let customScripts:customscript[] = []
     let utilityBot = false
     let sdData = defaultSdDataFunc()
+    let extAssets:[string,string][] = []
 
     if(risuext){
         if(risuext.emotions){
@@ -319,8 +320,19 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
                     msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
                 })
                 await sleep(10)
-                const imgp = await saveImage(Buffer.from(risuext.emotions[i][1], 'base64'))
+                const imgp = await saveAsset(Buffer.from(risuext.emotions[i][1], 'base64'))
                 emotions.push([risuext.emotions[i][0],imgp])
+            }
+        }
+        if(risuext.additionalAssets){
+            for(let i=0;i<risuext.additionalAssets.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting Assets ${i} / ${risuext.additionalAssets.length})`
+                })
+                await sleep(10)
+                const imgp = await saveAsset(Buffer.from(risuext.additionalAssets[i][1], 'base64'))
+                extAssets.push([risuext.additionalAssets[i][0],imgp])
             }
         }
         bias = risuext.bias ?? bias
@@ -403,7 +415,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
             tag: data.tags,
             creator: data.creator,
             character_version: data.character_version
-        }
+        },
+        additionalAssets: extAssets
     }
 
     db.characters.push(char)
@@ -467,7 +480,8 @@ export async function exportSpecV2(char:character) {
                         viewScreen: char.viewScreen,
                         customScripts: char.customscript,
                         utilityBot: char.utilityBot,
-                        sdData: char.sdData
+                        sdData: char.sdData,
+                        additionalAssets: char.additionalAssets
                     }
                 }
             }
@@ -478,10 +492,22 @@ export async function exportSpecV2(char:character) {
             for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
                 alertStore.set({
                     type: 'wait',
-                    msg: `Loading... (Getting Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
+                    msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
                 })
                 const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
                 char.emotionImages[i][1] = Buffer.from(rData).toString('base64')
+            }
+        }
+
+        
+        if(card.data.extensions.risuai.additionalAssets && card.data.extensions.risuai.additionalAssets.length > 0){
+            for(let i=0;i<card.data.extensions.risuai.additionalAssets.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
+                })
+                const rData = await readImage(card.data.extensions.risuai.additionalAssets[i][1])
+                char.additionalAssets[i][1] = Buffer.from(rData).toString('base64')
             }
         }
     
@@ -538,7 +564,8 @@ type CharacterCardV2 = {
                 viewScreen?: "none" | "emotion" | "imggen",
                 customScripts?:customscript[]
                 utilityBot?: boolean,
-                sdData?:[string,string][]
+                sdData?:[string,string][],
+                additionalAssets?:[string,string][],
             }
         }
     }

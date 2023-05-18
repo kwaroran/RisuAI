@@ -4,7 +4,7 @@ import type { character } from "../database";
 
 const dreg = /{{data}}/g
 
-type ScriptMode = 'editinput'|'editoutput'|'editprocess'
+type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
 
 export function processScript(char:character, data:string, mode:ScriptMode){
     return processScriptFull(char, data, mode).data

@@ -33,7 +33,11 @@
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
-                <span class="text-gray-300 chattext prose prose-invert chattext2">{@html ParseMarkdown($alertStore.msg)}</span>
+                <span class="text-gray-300 chattext prose prose-invert chattext2">
+                    {#await ParseMarkdown($alertStore.msg) then msg}
+                        {@html msg}                        
+                    {/await}
+                </span>
             {:else if $alertStore.type !== 'select'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
             {/if}

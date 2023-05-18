@@ -4,7 +4,7 @@
     import AutoresizeArea from "./AutoresizeArea.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/database";
+    import { DataBase, type character, type groupChat } from "../../ts/database";
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "../../ts/translator/translator";
     import { replacePlaceholders } from "../../ts/util";
@@ -16,6 +16,7 @@
     export let rerollIcon = false
     export let onReroll = () => {}
     export let unReroll = () => {}
+    export let character:character|groupChat|null = null
     let translating = false
     let editMode = false
     export let altGreeting = false
@@ -127,10 +128,12 @@
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
             {:else}
-                <span class="text chat chattext prose prose-invert"
-                    style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
-                >{@html ParseMarkdown(msgDisplay)}</span>
+                {#await ParseMarkdown(msgDisplay, character) then md} 
+                    <span class="text chat chattext prose prose-invert"
+                        style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
+                        style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                    >{@html md}</span>
+                {/await}
             {/if}
         </span>
 

@@ -237,5 +237,7 @@ export const languageKorean = {
     streaming: "스트리밍",
     chatBot:'채팅 봇',
     otherBots:'기타 봇',
-    user:"유저"
+    user:"유저",
+    editDisplay: "디스플레이 수정"
+
 }

@@ -163,7 +163,7 @@ export async function readImage(data:string) {
     }
 }
 
-export async function saveImage(data:Uint8Array, customId:string = ''){
+export async function saveAsset(data:Uint8Array, customId:string = ''){
     let id = ''
     if(customId !== ''){
         id = customId
@@ -534,7 +534,7 @@ function getBasename(data:string){
 export function getUnpargeables(db:Database) {
     let unpargeable:string[] = []
 
-    function addParge(data:string){
+    function addUnparge(data:string){
         if(!data){
             return
         }
@@ -547,16 +547,23 @@ export function getUnpargeables(db:Database) {
         }
     }
 
-    addParge(db.customBackground)
-    addParge(db.userIcon)
+    addUnparge(db.customBackground)
+    addUnparge(db.userIcon)
 
     for(const cha of db.characters){
         if(cha.image){
-            addParge(cha.image)
+            addUnparge(cha.image)
         }
         if(cha.emotionImages){
             for(const em of cha.emotionImages){
-                addParge(em[1])
+                addUnparge(em[1])
+            }
+        }
+        if(cha.type !== 'group'){
+            if(cha.additionalAssets){
+                for(const em of cha.additionalAssets){
+                    addUnparge(em[1])
+                }
             }
         }
     }

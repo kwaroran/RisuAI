@@ -1,5 +1,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
+import type { character, groupChat } from './database';
+import { getFileSrc } from './globalApi';
 
 const convertor = new showdown.Converter({
     simpleLineBreaks: true,
@@ -17,7 +19,15 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     }
 });
 
-export function ParseMarkdown(data:string) {
+export async function ParseMarkdown(data:string, char:(character | groupChat) = null) {
+    if(char && char.type !== 'group'){
+        if(char.additionalAssets){
+            for(const asset of char.additionalAssets){
+                const assetPath = await getFileSrc(asset[1])
+                data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).replaceAll(`{{img::${asset[0]}}}`,`<img src="${asset[0]}" />`)
+            }
+        }
+    }
     return DOMPurify.sanitize(convertor.makeHtml(data), {
         ADD_TAGS: ["iframe"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
