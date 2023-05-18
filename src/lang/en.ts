@@ -248,5 +248,8 @@ export const languageEnglish = {
     useExperimental: "Able Experimental Features",
     showMemoryLimit: "Show Memory Limit",
     roundIcons: "Round Icons",
-    streaming: "Streaming"
+    streaming: "Streaming",
+    chatBot:'Chat Bot',
+    otherBots:'Other Bots',
+    user:"User"
 }

@@ -29,10 +29,9 @@
     getCharImage,
   } from "../../ts/characters";
   import { importCharacter } from "src/ts/characterCards";
-  import SettingsDom from "./Settings.svelte";
   import CharConfig from "./CharConfig.svelte";
   import { language } from "../../lang";
-  import Botpreset from "../Others/botpreset.svelte";
+  import Botpreset from "../Setting/botpreset.svelte";
   import { onDestroy } from "svelte";
   import { isEqual } from "lodash";
   import SidebarAvatar from "./SidebarAvatar.svelte";
@@ -226,7 +225,10 @@
   </button>
   {#if sideBarMode === 0}
     {#if $selectedCharID < 0 || $settingsOpen}
-      <SettingsDom bind:openPresetList />
+      <div>
+        <h1 class="text-xl">Welcome to RisuAI!</h1>
+        <span class="text-xs text-gray-400">Click a bot to start chating</span>
+      </div>
     {:else}
       <CharConfig />
     {/if}

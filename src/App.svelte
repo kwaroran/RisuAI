@@ -1,13 +1,14 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import {ArrowRight} from 'lucide-svelte'
-    import { SizeStore, sideBarStore } from './ts/stores';
+    import { SizeStore, settingsOpen, sideBarStore } from './ts/stores';
     import { DataBase, loadedStore } from './ts/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import { alertStore } from './ts/alert';
     import GridChars from './lib/Others/GridCatalog.svelte';
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
+    import Settings from './lib/Setting/Settings.svelte';
 
     let didFirstSetup: boolean  = false
     let gridOpen = false
@@ -27,6 +28,8 @@
         </div>
     {:else if !didFirstSetup}
         <WelcomeRisu />
+    {:else if $settingsOpen}
+        <Settings />
     {:else}
         {#if gridOpen}
             <GridChars endGrid={() => {gridOpen = false}} />
