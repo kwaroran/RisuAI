@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActivityIcon, BotIcon, CodeIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { ActivityIcon, BotIcon, BoxIcon, CodeIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -10,6 +10,7 @@
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
     import { SizeStore, settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
+  import Communities from "./Pages/Communities.svelte";
     let selected = -1
     let openPresetList = false
     if(window.innerWidth >= 700){
@@ -64,6 +65,12 @@
                     <ActivityIcon />
                     <span>{language.advancedSettings}</span>
                 </button>
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 7} on:click={() => {
+                    selected = 7
+                }}>
+                    <BoxIcon />
+                    <span>{language.community}</span>
+                </button>
                 {#if window.innerWidth < 700}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-white" on:click={() => {
                         settingsOpen.set(false)
@@ -87,6 +94,8 @@
                     <FilesSettings />
                 {:else if selected === 6}
                     <AdvancedSettings />
+                {:else if selected === 7}
+                    <Communities />
                 {/if}
                 <button class="absolute top-2 right-2 hover:text-green-500" on:click={() => {
                     if(window.innerWidth >= 700){

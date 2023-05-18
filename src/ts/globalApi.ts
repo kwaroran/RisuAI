@@ -5,6 +5,7 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
+import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
@@ -661,4 +662,13 @@ export function getRequestLog(){
     }
     console.log(logString)
     return logString
+}
+
+export function openURL(url:string){
+    if(isTauri){
+        open(url)
+    }
+    else{
+        window.open(url, "_blank")
+    }
 }

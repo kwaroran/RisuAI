@@ -254,5 +254,6 @@ export const languageEnglish = {
     otherBots:'Other Bots',
     user:"User",
     additionalAssets:"Additional Assets",
-    editDisplay: "Modify Display"
+    editDisplay: "Modify Display",
+    community: "Community"
 }

@@ -238,6 +238,7 @@ export const languageKorean = {
     chatBot:'채팅 봇',
     otherBots:'기타 봇',
     user:"유저",
-    editDisplay: "디스플레이 수정"
+    editDisplay: "디스플레이 수정",
+    community: "커뮤니티"
 
 }
