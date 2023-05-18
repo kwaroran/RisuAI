@@ -1,12 +1,26 @@
 import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 
-const convertor = new showdown.Converter()
-convertor.setOption('simpleLineBreaks', true);
+const convertor = new showdown.Converter({
+    simpleLineBreaks: true,
+    strikethrough: true,
+    tables: true
+})
+
+
+DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
+    if (data.tagName === "iframe") {
+       const src = node.getAttribute("src") || "";
+       if (!src.startsWith("https://www.youtube.com/embed/")) {
+          return node.parentNode.removeChild(node);
+       }
+    }
+});
 
 export function ParseMarkdown(data:string) {
     return DOMPurify.sanitize(convertor.makeHtml(data), {
-        FORBID_TAGS: []
+        ADD_TAGS: ["iframe"],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
     })
 }
 
