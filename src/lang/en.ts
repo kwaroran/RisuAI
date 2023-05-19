@@ -72,7 +72,11 @@ export const languageEnglish = {
         scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
         loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
-        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image"
+        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image",
+        superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
+        + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
+        + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
+        + "After it is all setup, you can able it in the setting of a character."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -244,8 +248,8 @@ export const languageEnglish = {
     creator: "Creator",
     CharVersion: "Character Version",
     Speech: "Speech",
-    ToggleSuperMemory: "Toggle SupaMemory",
-    SuperMemory:"SupaMemory",
+    ToggleSuperMemory: "Toggle SuperMemory",
+    SuperMemory:"SuperMemory",
     useExperimental: "Able Experimental Features",
     showMemoryLimit: "Show Memory Limit",
     roundIcons: "Round Icons",

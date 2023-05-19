@@ -3,7 +3,7 @@ import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "..
 import { DataBase, setDatabase, type Database } from "../database";
 import { forageStorage, getUnpargeables, isTauri } from "../globalApi";
 import pako from "pako";
-import { BaseDirectory, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
+import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/api/process';
 import { open } from '@tauri-apps/api/shell';
@@ -167,11 +167,16 @@ async function loadDrive(ACCESS_TOKEN:string) {
     let loadedForageKeys = false
 
     async function checkImageExists(images:string) {
-        if(!loadedForageKeys){
-            foragekeys = await forageStorage.keys()
-            loadedForageKeys = true
+        if(isTauri){
+            return await exists(`assets/` + images, {dir: BaseDirectory.AppData})
         }
-        return foragekeys.includes('assets/' + images)
+        else{
+            if(!loadedForageKeys){
+                foragekeys = await forageStorage.keys()
+                loadedForageKeys = true
+            }
+            return foragekeys.includes('assets/' + images)
+        }
     }
     const fileNames = files.map((d) => {
         return d.name

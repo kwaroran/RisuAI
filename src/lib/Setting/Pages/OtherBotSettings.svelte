@@ -59,7 +59,7 @@
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.elevenLabKey}>
 
 
-<span class="text-neutral-200 mt-4 text-lg font-bold">SupaMemory</span>
+<span class="text-neutral-200 mt-4 text-lg font-bold">{language.SuperMemory} <Help key="superMemory" /></span>
 <span class="text-neutral-200 mt-4">{language.SuperMemory} {language.model}</span>
 <select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.supaMemoryType}>
     <option value="none" class="bg-darkbg appearance-none">None</option>
