@@ -95,45 +95,60 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
             "[Summarize the ongoing role story. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
     
-            const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:"
+            let result = ''
 
-            const da = await fetch("https://api.openai.com/v1/completions",{
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + db.openAIKey
-                },
-                method: "POST",
-                body: JSON.stringify({
-                    "model": "text-davinci-003",
-                    "prompt": promptbody,
-                    "max_tokens": 500,
-                    "temperature": 0
+            if(db.supaMemoryType !== 'subModel'){
+                const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:"
+
+                const da = await fetch("https://api.openai.com/v1/completions",{
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + db.openAIKey
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        "model": db.supaMemoryType === 'curie' ? "text-curie-001" : "text-davinci-003",
+                        "prompt": promptbody,
+                        "max_tokens": 500,
+                        "temperature": 0
+                    })
                 })
-            })
-
-            // const promptbody:OpenAIChat[] = [
-            //     {
-            //         role: "user",
-            //         content: stringlizedChat
-            //     },
-            //     {
-            //         role: "system",
-            //         content: supaPrompt
-            //     }
-            // ]
-            // const da = await requestChatData({
-            //     formated: promptbody,
-            //     bias: {}
-            // }, 'submodel')
-
-            const result = (await da.json()).choices[0].text.trim()
-            if(da.status < 200 || da.status >= 300){
-                return {
-                    currentTokens: currentTokens,
-                    chats: chats,
-                    error: "SupaMemory: HTTP: " + await da.text()
+    
+                if(da.status < 200 || da.status >= 300){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "SupaMemory: HTTP: " + await da.text()
+                    }
                 }
+                result = (await da.json()).choices[0].text.trim()
             }
+            else {
+                const promptbody:OpenAIChat[] = [
+                    {
+                        role: "user",
+                        content: stringlizedChat
+                    },
+                    {
+                        role: "system",
+                        content: supaPrompt
+                    }
+                ]
+                const da = await requestChatData({
+                    formated: promptbody,
+                    bias: {}
+                }, 'submodel')
+                if(da.type === 'fail' || da.type === 'streaming'){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "SupaMemory: HTTP: " + da.result
+                    }
+                }
+                result = da.result
+            }
+
+
 
             const tokenz = await tokenize(result + '\n\n') + 5
             currentTokens += tokenz

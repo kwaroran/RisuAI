@@ -229,7 +229,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         currentTokens += (await tokenize(systemMsg) + 1)
     }
 
-    if(nowChatroom.supaMemory){
+    if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom)
         if(sp.error){
             alertError(sp.error)

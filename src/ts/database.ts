@@ -193,6 +193,12 @@ export function setDatabase(data:Database){
     if(checkNullish(data.showMemoryLimit)){
         data.showMemoryLimit = false
     }
+    if(checkNullish(data.supaMemoryKey)){
+        data.supaMemoryKey = ""
+    }
+    if(checkNullish(data.supaMemoryType)){
+        data.supaMemoryType = "none"
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -409,7 +415,9 @@ export interface Database{
     showMemoryLimit:boolean
     roundIcons:boolean
     useStreaming:boolean
-    palmAPI:string
+    palmAPI:string,
+    supaMemoryKey:string
+    supaMemoryType:string
 }
 
 
