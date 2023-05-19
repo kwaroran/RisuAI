@@ -30,7 +30,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     let trys = 0
     while(true){
         const da = await requestChatDataMain(arg, model)
-        if(da.type === 'success'){
+        if(da.type === 'success' || da.type === 'streaming'){
             return da
         }
         trys += 1
