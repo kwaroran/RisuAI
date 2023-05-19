@@ -66,33 +66,11 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
 
         let lastId = ''
 
-        while(currentTokens > maxContextTokens){
-            const maxChunkSize = maxContextTokens > 3000 ? 1200 : Math.floor(maxContextTokens / 2.5)
-            let chunkSize = 0
-            let stringlizedChat = ''
-            
-            while(true){
-                const cont = chats[0]
-                if(!cont){
-                    return {
-                        currentTokens: currentTokens,
-                        chats: chats,
-                        error: "Not Enough Chunks"
-                    }
-                }
-                const tokens = await tokenize(cont.content) + 1
-                if((chunkSize + tokens) > maxChunkSize){
-                    lastId = cont.memo
-                    break
-                }
-                stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
-                chats.splice(0, 1)
-                currentTokens -= tokens
-                chunkSize += tokens
-            }
-    
+
+        async function summarize(stringlizedChat:string){
+
             const supaPrompt = db.supaMemoryPrompt === '' ?
-            "[Summarize the ongoing role story. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
+            "[Summarize the ongoing role story, including as many events from the past as possible, using assistant as a narrative helper;do not analyze. include all of the characters' names, statuses, thoughts, relationships, and attire. Be sure to include dialogue exchanges and context by referencing previous statements and reactions. assistant's summary should provide an objective overview of the story while also considering relevant past conversations and events. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
     
             let result = ''
@@ -147,12 +125,74 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                 }
                 result = da.result
             }
+            return result
+        }
 
+        if(supaMemory.split('\n\n').length >= 4){
+            const result = await summarize(supaMemory)
+            if(typeof(result) !== 'string'){
+                return result
+            }
+            currentTokens -= await tokenize(supaMemory)
+            currentTokens += await tokenize(result  + '\n\n')
+            supaMemory = result + '\n\n'
+        }
 
+        while(currentTokens > maxContextTokens){
+            let maxChunkSize = maxContextTokens > 3500 ? 1200 : Math.floor(maxContextTokens / 3)
+            while((currentTokens - (maxChunkSize * 0.7)) > maxContextTokens){
+                maxChunkSize = Math.floor(maxChunkSize * 0.7)
+                if(maxChunkSize < 500){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "Not Enough Tokens"
+                    }
+                }
+            }
+
+            let chunkSize = 0
+            let stringlizedChat = ''
+            
+            while(true){
+                const cont = chats[0]
+                if(!cont){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "Not Enough Tokens"
+                    }
+                }
+                const tokens = await tokenize(cont.content) + 1
+                if((chunkSize + tokens) > maxChunkSize){
+                    lastId = cont.memo
+                    break
+                }
+                stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
+                chats.splice(0, 1)
+                currentTokens -= tokens
+                chunkSize += tokens
+            }
+    
+            const result = await summarize(stringlizedChat)
+
+            if(typeof(result) !== 'string'){
+                return result
+            }
 
             const tokenz = await tokenize(result + '\n\n') + 5
             currentTokens += tokenz
-            supaMemory += result + '\n\n'
+            supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
+            if(supaMemory.split('\n\n').length >= 4){
+                const result = await summarize(supaMemory)
+                if(typeof(result) !== 'string'){
+                    return result
+                }
+                currentTokens -= await tokenize(supaMemory)
+                currentTokens += await tokenize(result + '\n\n')
+                supaMemory = result + '\n\n'
+            }
+
         }
 
         chats.unshift({
@@ -172,3 +212,4 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
         chats: chats
     }
 }
+
