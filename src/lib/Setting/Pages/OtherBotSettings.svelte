@@ -57,3 +57,21 @@
 <span class="text-neutral-200 mt-4 text-lg font-bold">TTS</span>
 <span class="text-neutral-200 mt-2">ElevenLabs API key</span>
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.elevenLabKey}>
+
+
+<span class="text-neutral-200 mt-4 text-lg font-bold">SupaMemory</span>
+<span class="text-neutral-200 mt-4">{language.SuperMemory} {language.model}</span>
+<select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.supaMemoryType}>
+    <option value="none" class="bg-darkbg appearance-none">None</option>
+    <option value="davinci" class="bg-darkbg appearance-none">OpenAI Davinci</option>
+    <option value="curie" class="bg-darkbg appearance-none">OpenAI Curie</option>
+    <option value="subModel" class="bg-darkbg appearance-none">{language.submodel} ({language.unrecommended})</option>
+</select>
+{#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie'}
+    <span class="text-neutral-200">{language.SuperMemory} OpenAI Key</span>
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.supaMemoryKey}>
+{/if}
+{#if $DataBase.supaMemoryType !== 'none'}
+    <span class="text-neutral-200">{language.SuperMemory} Prompt</span>
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default">
+{/if}

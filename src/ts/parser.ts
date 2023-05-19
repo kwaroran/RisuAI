@@ -28,7 +28,7 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
         if(char.additionalAssets){
             for(const asset of char.additionalAssets){
                 const assetPath = await getFileSrc(asset[1])
-                data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).replaceAll(`{{img::${asset[0]}}}`,`<img src="${asset[0]}" />`)
+                data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" />`)
             }
         }
     }

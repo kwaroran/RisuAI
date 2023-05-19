@@ -224,11 +224,11 @@
         <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
     </div>
     
-    {#if $DataBase.useExperimental}
-    <div class="flex mt-2 items-center">
-        <Check bind:check={currentChar.data.supaMemory}/>
-        <span class="text-neutral-200 ml-2">{language.ToggleSuperMemory} <Help key="experimental"/></span>
-    </div>
+    {#if $DataBase.supaMemoryType !== 'none'}
+        <div class="flex mt-2 items-center">
+            <Check bind:check={currentChar.data.supaMemory}/>
+            <span class="text-neutral-200 ml-2">{language.ToggleSuperMemory}</span>
+        </div>
     {/if}
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
@@ -518,7 +518,7 @@
         <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
         
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
-            <span class="text-neutral-200">{language.SuperMemory} <Help key="experimental"/></span>
+            <span class="text-neutral-200">{language.SuperMemory}</span>
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></textarea>
         {/if}
         {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
@@ -644,7 +644,7 @@
     
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
-            <span class="text-neutral-200">{language.SuperMemory} <Help key="experimental"/></span>
+            <span class="text-neutral-200">{language.SuperMemory}</span>
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></textarea>
         {/if}
         {#if $DataBase.useExperimental}

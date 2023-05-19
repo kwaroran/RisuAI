@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.12.0'
+export let appVer = '1.13.0'
 
 
 export function setDatabase(data:Database){
@@ -192,6 +192,12 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.showMemoryLimit)){
         data.showMemoryLimit = false
+    }
+    if(checkNullish(data.supaMemoryKey)){
+        data.supaMemoryKey = ""
+    }
+    if(checkNullish(data.supaMemoryType)){
+        data.supaMemoryType = "none"
     }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
@@ -409,7 +415,9 @@ export interface Database{
     showMemoryLimit:boolean
     roundIcons:boolean
     useStreaming:boolean
-    palmAPI:string
+    palmAPI:string,
+    supaMemoryKey:string
+    supaMemoryType:string
 }
 
 
