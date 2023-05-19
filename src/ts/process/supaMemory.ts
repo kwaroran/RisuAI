@@ -103,7 +103,7 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                 const da = await fetch("https://api.openai.com/v1/completions",{
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer " + db.openAIKey
+                        "Authorization": "Bearer " + db.supaMemoryKey
                     },
                     method: "POST",
                     body: JSON.stringify({
