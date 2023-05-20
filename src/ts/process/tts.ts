@@ -2,6 +2,8 @@ import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../database";
 
+let sourceNode:AudioBufferSourceNode = null
+
 export async function sayTTS(character:character,text:string) {
 
     let db = get(DataBase)
@@ -47,7 +49,7 @@ export async function sayTTS(character:character,text:string) {
             })
             if(da.status >= 200 && da.status < 300){
                 const audioBuffer = await audioContext.decodeAudioData(await da.arrayBuffer())
-                const sourceNode = audioContext.createBufferSource();
+                sourceNode = audioContext.createBufferSource();
                 sourceNode.buffer = audioBuffer;
                 sourceNode.connect(audioContext.destination);            
                 sourceNode.start();
@@ -58,6 +60,15 @@ export async function sayTTS(character:character,text:string) {
         }
     }
 
+}
+
+export function stopTTS(){
+    if(sourceNode){
+        sourceNode.stop()
+    }
+    if(speechSynthesis && SpeechSynthesisUtterance){
+        speechSynthesis.cancel()
+    }
 }
 
 

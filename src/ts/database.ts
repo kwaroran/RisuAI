@@ -316,6 +316,7 @@ export interface groupChat{
     firstMsgIndex?:number,
     loreSettings?:loreSettings
     supaMemory?:boolean
+    ttsMode?:string
 }
 
 export interface botPreset{

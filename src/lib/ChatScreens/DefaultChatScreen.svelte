@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, RefreshCcwIcon, Send } from "lucide-svelte";
+    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, RefreshCcwIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, appVer, type Message } from "../../ts/database";
@@ -14,6 +14,7 @@
     import { processScript } from "src/ts/process/scripts";
     import GithubStars from "../Others/GithubStars.svelte";
     import CreatorQuote from "./CreatorQuote.svelte";
+  import { stopTTS } from "src/ts/process/tts";
 
     let messageInput = ''
     let openMenu = false
@@ -330,6 +331,17 @@
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={runAutoMode}>
                             <DicesIcon />
                             <span class="ml-2">{language.autoMode}</span>
+                        </div>
+                    {/if}
+
+                    
+                    <!-- svelte-ignore empty-block -->
+                    {#if $DataBase.characters[$selectedCharID].ttsMode === 'webspeech' || $DataBase.characters[$selectedCharID].ttsMode === 'elevenlab'}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                            stopTTS()
+                        }}>
+                            <MicOffIcon />
+                            <span class="ml-2">{language.ttsStop}</span>
                         </div>
                     {/if}
 
