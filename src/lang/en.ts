@@ -259,5 +259,9 @@ export const languageEnglish = {
     user:"User",
     additionalAssets:"Additional Assets",
     editDisplay: "Modify Display",
-    community: "Community"
+    community: "Community",
+    textBackgrounds: "Custom Text Screen Color",
+    textBorder: "Text Outlines",
+    textScreenRound: "Round Text Screen",
+    textScreenBorder: "Text Screen Borders"
 }

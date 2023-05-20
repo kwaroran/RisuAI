@@ -418,6 +418,10 @@ export interface Database{
     palmAPI:string,
     supaMemoryKey:string
     supaMemoryType:string
+    textScreenColor?:string
+    textBorder?:boolean
+    textScreenRounded?:boolean
+    textScreenBorder?:string
 }
 
 

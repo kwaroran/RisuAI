@@ -11,9 +11,9 @@
     import { alertError } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import {cloneDeep} from 'lodash'
-     import { processScript } from "src/ts/process/scripts";
-  import GithubStars from "../Others/GithubStars.svelte";
-  import CreatorQuote from "./CreatorQuote.svelte";
+    import { processScript } from "src/ts/process/scripts";
+    import GithubStars from "../Others/GithubStars.svelte";
+    import CreatorQuote from "./CreatorQuote.svelte";
 
     let messageInput = ''
     let openMenu = false

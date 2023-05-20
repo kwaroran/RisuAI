@@ -53,6 +53,7 @@ export default defineConfig(async () => {
       minify: process.env.TAURI_DEBUG ? false : 'esbuild',
       // produce sourcemaps for debug builds
       sourcemap: !!process.env.TAURI_DEBUG,
+      chunkSizeWarningLimit: 2000
     },
 
     resolve:{

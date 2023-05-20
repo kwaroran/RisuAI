@@ -10,6 +10,11 @@
     let openChatList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
+    const externalStyles = 
+            ("background: " + ($DataBase.textScreenColor ? ($DataBase.textScreenColor + '80') : "rgba(0,0,0,0.8)") + ';\n')
+        +   ($DataBase.textBorder ? "text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" : '')
+        +   ($DataBase.textScreenRounded ? "border-radius: 2rem; padding: 1rem;" : '')
+        +   ($DataBase.textScreenBorder ? `border: 0.3rem solid ${$DataBase.textScreenBorder};` : '')
     let bgImg= ''
     let lastBg = ''
 
@@ -27,7 +32,7 @@
                 <ResizeBox />
             {/if}
         {/if}
-        <DefaultChatScreen customStyle={bgImg.length > 2 ? 'background: rgba(0,0,0,0.8)': ''} bind:openChatList/>
+        <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList/>
     </div>
 {:else if $DataBase.theme === 'waifu'}
     <div class="flex-grow h-full flex justify-center" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
@@ -39,13 +44,13 @@
             {/if}
         {/if}
         <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}>
-            <DefaultChatScreen customStyle={'background: rgba(0,0,0,0.8);backdrop-filter: blur(4px);'} bind:openChatList/>
+            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
     </div>
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
         <div class="w-full h-1/3 absolute z-10 bottom-0 left-0">
-            <DefaultChatScreen customStyle={'background: rgba(0,0,0,0.8);backdrop-filter: blur(4px);'} bind:openChatList/>
+            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
