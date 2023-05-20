@@ -54,7 +54,7 @@
   }
   async function createImport() {
     reseter();
-    const cid = await importCharacter();
+    await importCharacter();
     selectedCharID.set(-1);
   }
 
