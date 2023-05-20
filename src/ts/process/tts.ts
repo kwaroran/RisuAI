@@ -2,10 +2,22 @@ import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../database";
 
+let sourceNode:AudioBufferSourceNode = null
+
 export async function sayTTS(character:character,text:string) {
 
     let db = get(DataBase)
     text = text.replace(/\*/g,'')
+
+    if(character.ttsReadOnlyQuoted){
+        const matches = text.match(/"(.*?)"/g)
+        if(matches.length > 0){
+            text = matches.map(match => match.slice(1, -1)).join("");
+        }
+        else{
+            text = ''
+        }
+    }
 
     switch(character.ttsMode){
         case "webspeech":{
@@ -19,7 +31,7 @@ export async function sayTTS(character:character,text:string) {
                     }
                 }
                 utterThis.voice = voices[voiceIndex]
-                speechSynthesis.speak(utterThis)
+                const speak = speechSynthesis.speak(utterThis)
             }
             break
         }
@@ -37,7 +49,7 @@ export async function sayTTS(character:character,text:string) {
             })
             if(da.status >= 200 && da.status < 300){
                 const audioBuffer = await audioContext.decodeAudioData(await da.arrayBuffer())
-                const sourceNode = audioContext.createBufferSource();
+                sourceNode = audioContext.createBufferSource();
                 sourceNode.buffer = audioBuffer;
                 sourceNode.connect(audioContext.destination);            
                 sourceNode.start();
@@ -48,6 +60,15 @@ export async function sayTTS(character:character,text:string) {
         }
     }
 
+}
+
+export function stopTTS(){
+    if(sourceNode){
+        sourceNode.stop()
+    }
+    if(speechSynthesis && SpeechSynthesisUtterance){
+        speechSynthesis.cancel()
+    }
 }
 
 

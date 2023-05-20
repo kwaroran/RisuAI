@@ -128,3 +128,52 @@
     <Check bind:check={$DataBase.instantRemove}/>
     <span>{language.instantRemove}</span>
 </div>
+
+
+{#if $DataBase.textScreenColor}
+    <div class="flex items-center mt-2">
+        <Check check={true} onChange={() => {
+            $DataBase.textScreenColor = null
+        }}/>
+        <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenColor} >
+        <span>{language.textBackgrounds}</span>
+    </div>
+{:else}
+    <div class="flex items-center mt-2">
+        <Check check={false} onChange={() => {
+            $DataBase.textScreenColor = "#121212"
+        }}/>
+        <span>{language.textBackgrounds}</span>
+    </div>
+
+
+{/if}
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.textBorder}/>
+    <span>{language.textBorder}</span>
+</div>
+
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.textScreenRounded}/>
+    <span>{language.textScreenRound}</span>
+</div>
+
+{#if $DataBase.textScreenBorder}
+    <div class="flex items-center mt-2">
+        <Check check={true} onChange={() => {
+            $DataBase.textScreenBorder = null
+        }}/>
+        <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenBorder} >
+        <span>{language.textScreenBorder}</span>
+    </div>
+{:else}
+    <div class="flex items-center mt-2">
+        <Check check={false} onChange={() => {
+            $DataBase.textScreenBorder = "#121212"
+        }}/>
+        <span>{language.textScreenBorder}</span>
+    </div>
+
+{/if}

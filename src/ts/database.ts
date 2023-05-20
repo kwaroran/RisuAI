@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.13.2'
+export let appVer = '1.14.0'
 
 
 export function setDatabase(data:Database){
@@ -284,6 +284,7 @@ export interface character{
     ttsSpeech?:string
     supaMemory?:boolean
     additionalAssets?:[string, string][]
+    ttsReadOnlyQuoted?:boolean
 }
 
 
@@ -315,6 +316,7 @@ export interface groupChat{
     firstMsgIndex?:number,
     loreSettings?:loreSettings
     supaMemory?:boolean
+    ttsMode?:string
 }
 
 export interface botPreset{
@@ -418,6 +420,10 @@ export interface Database{
     palmAPI:string,
     supaMemoryKey:string
     supaMemoryType:string
+    textScreenColor?:string
+    textBorder?:boolean
+    textScreenRounded?:boolean
+    textScreenBorder?:string
 }
 
 

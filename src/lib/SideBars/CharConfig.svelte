@@ -498,6 +498,12 @@
                 </select>
             {/await}
         {/if}
+        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab'}
+            <div class="flex items-center mt-2">
+                <Check bind:check={currentChar.data.ttsReadOnlyQuoted}/>
+                <span>{language.ttsReadOnlyQuoted}</span>
+            </div>
+        {/if}
     {/if}
 {:else if subMenu === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>

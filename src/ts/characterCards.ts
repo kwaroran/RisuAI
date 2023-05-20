@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./database"
-import { checkNullish, selectSingleFile, sleep } from "./util"
+import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
 import { v4 as uuidv4 } from 'uuid';
@@ -14,99 +14,109 @@ import { cloneDeep } from "lodash"
 
 export async function importCharacter() {
     try {
-        const f = await selectSingleFile(['png', 'json'])
-        if(!f){
+        const files = await selectMultipleFile(['png', 'json'])
+        if(!files){
             return
         }
-        if(f.name.endsWith('json')){
-            const da = JSON.parse(Buffer.from(f.data).toString('utf-8'))
-            if(await importSpecv2(da)){
-                let db = get(DataBase)
-                return db.characters.length - 1
-            }
-            if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
-                let db = get(DataBase)
-                db.characters.push(convertOldTavernAndJSON(da))
-                DataBase.set(db)
-                alertNormal(language.importedCharacter)
-                return
-            }
-            else{
-                alertError(language.errors.noData)
-                return
-            }
-        }
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Reading)'
-        })
-        await sleep(10)
-        const img = f.data
-        const readed = (await exifr.parse(img, true))
-        if(readed.chara){
-            // standard spec v2 imports
-            const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-            if(await importSpecv2(charaData, img)){
-                let db = get(DataBase)
-                return db.characters.length - 1
-            }
-        }
-        if(readed.risuai){
-            // old risu imports
-            await sleep(10)
-            const va = decodeMsgpack(Buffer.from(readed.risuai, 'base64')) as any
-            if(va.type !== 101){
-                alertError(language.errors.noData)
-                return
-            }
 
-            let char:character = va.data
-            let db = get(DataBase)
-            if(char.emotionImages && char.emotionImages.length > 0){
-                for(let i=0;i<char.emotionImages.length;i++){
-                    alertStore.set({
-                        type: 'wait',
-                        msg: `Loading... (Getting Emotions ${i} / ${char.emotionImages.length})`
-                    })
-                    await sleep(10)
-                    const imgp = await saveAsset(char.emotionImages[i][1] as any)
-                    char.emotionImages[i][1] = imgp
-                }
-            }
-            char.chats = [{
-                message: [],
-                note: '',
-                name: 'Chat 1',
-                localLore: []
-            }]
-
-            if(checkNullish(char.sdData)){
-                char.sdData = defaultSdDataFunc()
-            }
-
-            char.chatPage = 0
-            char.image = await saveAsset(PngMetadata.filter(img))
-            db.characters.push(characterFormatUpdate(char))
-            char.chaId = uuidv4()
-            setDatabase(db)
-            alertNormal(language.importedCharacter)
-            return db.characters.length - 1
-        }
-        else if(readed.chara){
-            const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-            const imgp = await saveAsset(PngMetadata.filter(img))
-            let db = get(DataBase)
-            db.characters.push(convertOldTavernAndJSON(charaData, imgp))
-            DataBase.set(db)
-            alertNormal(language.importedCharacter)
-            return db.characters.length - 1
-        }   
-        else{
-            alertError(language.errors.noData)
-            return null
+        for(const f of files){
+            await importCharacterProcess(f)
         }
     } catch (error) {
         alertError(`${error}`)
+        return null
+    }
+}
+
+async function importCharacterProcess(f:{
+    name: string;
+    data: Uint8Array;
+}) {
+    if(f.name.endsWith('json')){
+        const da = JSON.parse(Buffer.from(f.data).toString('utf-8'))
+        if(await importSpecv2(da)){
+            let db = get(DataBase)
+            return db.characters.length - 1
+        }
+        if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
+            let db = get(DataBase)
+            db.characters.push(convertOldTavernAndJSON(da))
+            DataBase.set(db)
+            alertNormal(language.importedCharacter)
+            return
+        }
+        else{
+            alertError(language.errors.noData)
+            return
+        }
+    }
+    alertStore.set({
+        type: 'wait',
+        msg: 'Loading... (Reading)'
+    })
+    await sleep(10)
+    const img = f.data
+    const readed = (await exifr.parse(img, true))
+    if(readed.chara){
+        // standard spec v2 imports
+        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
+        if(await importSpecv2(charaData, img)){
+            let db = get(DataBase)
+            return db.characters.length - 1
+        }
+    }
+    if(readed.risuai){
+        // old risu imports
+        await sleep(10)
+        const va = decodeMsgpack(Buffer.from(readed.risuai, 'base64')) as any
+        if(va.type !== 101){
+            alertError(language.errors.noData)
+            return
+        }
+
+        let char:character = va.data
+        let db = get(DataBase)
+        if(char.emotionImages && char.emotionImages.length > 0){
+            for(let i=0;i<char.emotionImages.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting Emotions ${i} / ${char.emotionImages.length})`
+                })
+                await sleep(10)
+                const imgp = await saveAsset(char.emotionImages[i][1] as any)
+                char.emotionImages[i][1] = imgp
+            }
+        }
+        char.chats = [{
+            message: [],
+            note: '',
+            name: 'Chat 1',
+            localLore: []
+        }]
+
+        if(checkNullish(char.sdData)){
+            char.sdData = defaultSdDataFunc()
+        }
+
+        char.chatPage = 0
+        char.image = await saveAsset(PngMetadata.filter(img))
+        db.characters.push(characterFormatUpdate(char))
+        char.chaId = uuidv4()
+        setDatabase(db)
+        alertNormal(language.importedCharacter)
+        return db.characters.length - 1
+    }
+    else if(readed.chara){
+        const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
+        const imgp = await saveAsset(PngMetadata.filter(img))
+        let db = get(DataBase)
+        db.characters.push(convertOldTavernAndJSON(charaData, imgp))
+        DataBase.set(db)
+        alertNormal(language.importedCharacter)
+        return db.characters.length - 1
+    }   
+    else{
+        alertError(language.errors.noData)
         return null
     }
 }
@@ -262,10 +272,10 @@ export async function exportChar(charaID:number) {
             create_date: `${Date.now()}`,
             description: char.desc,
             first_mes: char.firstMessage,
-            mes_example: "<START>",
+            mes_example: char.exampleMessage ?? "<START>",
             name: char.name,
-            personality: "",
-            scenario: "",
+            personality: char.personality ?? "",
+            scenario: char.scenario ?? "",
             talkativeness: "0.5"
         }
 
@@ -580,8 +590,8 @@ interface OldTavernChar{
     first_mes: string
     mes_example: string
     name: string
-    personality: ""
-    scenario: ""
+    personality: string
+    scenario: string
     talkativeness: "0.5"
 }
 type CharacterBook = {
