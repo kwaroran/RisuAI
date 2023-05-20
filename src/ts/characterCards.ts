@@ -262,10 +262,10 @@ export async function exportChar(charaID:number) {
             create_date: `${Date.now()}`,
             description: char.desc,
             first_mes: char.firstMessage,
-            mes_example: "<START>",
+            mes_example: char.exampleMessage ?? "<START>",
             name: char.name,
-            personality: "",
-            scenario: "",
+            personality: char.personality ?? "",
+            scenario: char.scenario ?? "",
             talkativeness: "0.5"
         }
 
@@ -580,8 +580,8 @@ interface OldTavernChar{
     first_mes: string
     mes_example: string
     name: string
-    personality: ""
-    scenario: ""
+    personality: string
+    scenario: string
     talkativeness: "0.5"
 }
 type CharacterBook = {
