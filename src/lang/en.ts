@@ -263,5 +263,6 @@ export const languageEnglish = {
     textBackgrounds: "Custom Text Screen Color",
     textBorder: "Text Outlines",
     textScreenRound: "Round Text Screen",
-    textScreenBorder: "Text Screen Borders"
+    textScreenBorder: "Text Screen Borders",
+    ttsReadOnlyQuoted: "Read Only Quoted"
 }

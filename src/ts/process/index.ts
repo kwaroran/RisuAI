@@ -350,13 +350,15 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         while(true){
             const readed = (await reader.read())
             if(readed.value){
-                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data =readed.value
+                result = readed.value
+                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result
                 setDatabase(db)
             }
             if(readed.done){
                 break
             }   
         }
+        await sayTTS(currentChar, result)
     }
     else{
         const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')

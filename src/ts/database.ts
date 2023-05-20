@@ -284,6 +284,7 @@ export interface character{
     ttsSpeech?:string
     supaMemory?:boolean
     additionalAssets?:[string, string][]
+    ttsReadOnlyQuoted?:boolean
 }
 
 

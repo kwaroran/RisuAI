@@ -7,6 +7,16 @@ export async function sayTTS(character:character,text:string) {
     let db = get(DataBase)
     text = text.replace(/\*/g,'')
 
+    if(character.ttsReadOnlyQuoted){
+        const matches = text.match(/"(.*?)"/g)
+        if(matches.length > 0){
+            text = matches.map(match => match.slice(1, -1)).join("");
+        }
+        else{
+            text = ''
+        }
+    }
+
     switch(character.ttsMode){
         case "webspeech":{
             if(speechSynthesis && SpeechSynthesisUtterance){
@@ -19,7 +29,7 @@ export async function sayTTS(character:character,text:string) {
                     }
                 }
                 utterThis.voice = voices[voiceIndex]
-                speechSynthesis.speak(utterThis)
+                const speak = speechSynthesis.speak(utterThis)
             }
             break
         }
