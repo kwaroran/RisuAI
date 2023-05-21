@@ -108,37 +108,20 @@
         <SidebarIndicator
           isActive={$selectedCharID === i && sideBarMode !== 1}
         />
-        {#if charimg !== ""}
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-          <div
-            on:click={() => {
+        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <div
+          on:click={() => {
+            changeChar(i);
+          }}
+          on:keydown={(e) => {
+            if (e.key === "Enter") {
               changeChar(i);
-            }}
-            on:keydown={(e) => {
-              if (e.key === "Enter") {
-                changeChar(i);
-              }
-            }}
-            tabindex="0"
-          >
-            <SidebarAvatar src={getCharImage($DataBase.characters[i].image, "plain")} size="56" rounded={IconRounded} />
-          </div>
-        {:else}
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-          <div
-            on:click={() => {
-              changeChar(i);
-            }}
-            on:keydown={(e) => {
-              if (e.key === "Enter") {
-                changeChar(i);
-              }
-            }}
-            tabindex="0"
-          >
-            <SidebarAvatar size="56" src="https://via.placeholder.com/150" rounded={IconRounded} />
-          </div>
-        {/if}
+            }
+          }}
+          tabindex="0"
+        >
+        <SidebarAvatar src={charImages[i] ? getCharImage(charImages[i], "plain") : "/none.webp"} size="56" rounded={IconRounded} />
+      </div>
         {#if editMode}
           <div class="mt-2 flex flex-col">
             <button
