@@ -73,6 +73,7 @@
   }
 
   let charImages: string[] = [];
+  let IconRounded = false
 
   const unsub = DataBase.subscribe((db) => {
     let newCharImages: string[] = [];
@@ -81,6 +82,9 @@
     }
     if (!isEqual(charImages, newCharImages)) {
       charImages = newCharImages;
+    }
+    if(IconRounded !== db.roundIcons){
+      IconRounded = db.roundIcons
     }
   });
 
@@ -117,7 +121,7 @@
             }}
             tabindex="0"
           >
-            <SidebarAvatar src={getCharImage($DataBase.characters[i].image, "plain")} size="56" />
+            <SidebarAvatar src={getCharImage($DataBase.characters[i].image, "plain")} size="56" rounded={IconRounded} />
           </div>
         {:else}
           <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -132,7 +136,7 @@
             }}
             tabindex="0"
           >
-            <SidebarAvatar size="56" src="https://via.placeholder.com/150" />
+            <SidebarAvatar size="56" src="https://via.placeholder.com/150" rounded={IconRounded} />
           </div>
         {/if}
         {#if editMode}

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { DataBase } from "src/ts/database";
-
+  export let rounded:boolean
   export let src:string|Promise<string>;
   export let size = "22";
 </script>
@@ -13,7 +12,7 @@
         style:width={size + "px"}
         style:height={size + "px"}
         style:minWidth={size + "px"}
-        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} 
+        class:rounded-md={!rounded} class:rounded-full={rounded} 
       />
     {:then img}
       <img
@@ -22,7 +21,7 @@
         style:width={size + "px"}
         style:height={size + "px"}
         style:minWidth={size + "px"}
-        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} 
+        class:rounded-md={!rounded} class:rounded-full={rounded} 
         alt="avatar"
       />
     {/await}
@@ -32,7 +31,7 @@
       style:width={size + "px"}
       style:height={size + "px"}
       style:minWidth={size + "px"}
-      class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} 
+      class:rounded-md={!rounded} class:rounded-full={rounded} 
     />
   {/if}
 </span>
