@@ -90,7 +90,7 @@
       "targets": "all"
     },
     "security": {
-      "csp": null
+      "csp": ""
     },
     "updater": {
       "active": false
@@ -103,7 +103,8 @@
         "width": 1024,
         "height": 768,
         "minWidth": 300,
-        "minHeight": 500
+        "minHeight": 500,
+        "fileDropEnabled": false
       }
     ]
   }

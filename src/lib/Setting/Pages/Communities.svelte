@@ -14,3 +14,8 @@
     class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
     Discord
 </button>
+<button
+    on:click={async () => {openURL("https://www.patreon.com/RisuAI")}}
+    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+    Support Project
+</button>

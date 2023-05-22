@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import exifr from 'exifr'
 import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
-import { downloadFile, readImage, saveAsset } from "./globalApi"
+import { checkCharOrder, downloadFile, readImage, saveAsset } from "./globalApi"
 import { cloneDeep } from "lodash"
 
 
@@ -21,6 +21,7 @@ export async function importCharacter() {
 
         for(const f of files){
             await importCharacterProcess(f)
+            checkCharOrder()
         }
     } catch (error) {
         alertError(`${error}`)
@@ -145,7 +146,7 @@ export async function characterHubImport() {
             {
                 const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
                 if(await importSpecv2(charaData, img)){
-                    
+                    checkCharOrder()
                     return
                 }
             }
@@ -156,6 +157,7 @@ export async function characterHubImport() {
                 db.characters.push(convertOldTavernAndJSON(charaData, imgp))
     
                 DataBase.set(db)
+                checkCharOrder()
                 alertNormal(language.importedCharacter)
                 return
             }
@@ -431,6 +433,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
 
     db.characters.push(char)
     
+
     setDatabase(db)
 
     alertNormal(language.importedCharacter)

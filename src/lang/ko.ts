@@ -239,6 +239,13 @@ export const languageKorean = {
     otherBots:'기타 봇',
     user:"유저",
     editDisplay: "디스플레이 수정",
-    community: "커뮤니티"
+    community: "커뮤니티",
+    textBackgrounds: "커스텀 채팅창 색깔",
+    textBorder: "텍스트 윤곽선",
+    textScreenRound: "둥근 채팅창",
+    textScreenBorder: "채팅창 윤곽선",
+    ttsReadOnlyQuoted: "따옴표 안 텍스트만 읽기",
+    ttsStop: "TTS 중지",
+    askRemoval:"삭제 확인"
 
 }

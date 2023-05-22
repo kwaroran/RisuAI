@@ -248,8 +248,8 @@ export const languageEnglish = {
     creator: "Creator",
     CharVersion: "Character Version",
     Speech: "Speech",
-    ToggleSuperMemory: "Toggle SuperMemory",
-    SuperMemory:"SuperMemory",
+    ToggleSuperMemory: "Toggle SupaMemory",
+    SuperMemory:"SupaMemory",
     useExperimental: "Able Experimental Features",
     showMemoryLimit: "Show Memory Limit",
     roundIcons: "Round Icons",
@@ -265,5 +265,6 @@ export const languageEnglish = {
     textScreenRound: "Round Text Screen",
     textScreenBorder: "Text Screen Borders",
     ttsReadOnlyQuoted: "Read Only Quoted",
-    ttsStop: "Stop TTS"
+    ttsStop: "Stop TTS",
+    askRemoval:"Ask Removal"
 }

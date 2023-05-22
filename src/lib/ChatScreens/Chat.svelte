@@ -24,7 +24,7 @@
     let msgDisplay = ''
 
     async function rm(){
-        const rm = await alertConfirm(language.removeChat)
+        const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
             if($DataBase.instantRemove){
                 const r = await alertConfirm(language.instantRemoveConfirm)

@@ -199,6 +199,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.supaMemoryType)){
         data.supaMemoryType = "none"
     }
+    if(checkNullish(data.askRemoval)){
+        data.askRemoval = true
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -219,6 +222,8 @@ export function setDatabase(data:Database){
             FontColorItalicBold: "#8C8D93"
         }
     }
+
+
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -351,6 +356,7 @@ export interface Database{
     jailbreak: string
     globalNote:string
     temperature: number
+    askRemoval:boolean
     maxContext: number
     maxResponse: number
     frequencyPenalty: number
@@ -424,6 +430,14 @@ export interface Database{
     textBorder?:boolean
     textScreenRounded?:boolean
     textScreenBorder?:string
+    characterOrder:(string|folder)[]
+}
+
+export interface folder{
+    name:string
+    data:string[]
+    color:string
+    id:string
 }
 
 
