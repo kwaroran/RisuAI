@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActivityIcon, BotIcon, BoxIcon, CodeIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { ActivityIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -11,6 +11,7 @@
     import { SizeStore, settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
   import Communities from "./Pages/Communities.svelte";
+  import { openURL } from "src/ts/globalApi";
     let selected = -1
     let openPresetList = false
     if(window.innerWidth >= 700){
