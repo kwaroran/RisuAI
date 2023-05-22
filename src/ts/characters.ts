@@ -8,12 +8,13 @@ import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpa
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
-import { downloadFile, getFileSrc, readImage } from "./globalApi";
+import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./globalApi";
 
 export function createNewCharacter() {
     let db = get(DataBase)
     db.characters.push(createBlankChar())
     setDatabase(db)
+    checkCharOrder()
     return db.characters.length - 1
 }
 

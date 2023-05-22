@@ -17,6 +17,7 @@ import { alertError, alertStore } from "./alert";
 import { checkDriverInit } from "./drive/drive";
 import { hasher } from "./parser";
 import { characterHubImport } from "./characterCards";
+import { cloneDeep } from "lodash";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -620,6 +621,65 @@ async function checkNewFormat() {
 
         db.formatversion = 3
     }
+    if(!db.characterOrder){
+        db.characterOrder = []
+    }
+
+
+    setDatabase(db)
+    checkCharOrder()
+}
+
+export function checkCharOrder() {
+    let db = get(DataBase)
+    let ordered = cloneDeep(db.characterOrder ?? [])
+    for(let i=0;i<db.characterOrder.length;i++){
+        const folder =db.characterOrder[i]
+        if(typeof(folder) !== 'string'){
+            console.log(folder)
+            for(const f of folder.data){
+                ordered.push(f)
+            }
+        }
+    }
+
+    let charIdList:string[] = []
+
+    for(let i=0;i<db.characters.length;i++){
+        const charId = db.characters[i].chaId
+        charIdList.push(charId)
+        if(!ordered.includes(charId)){
+            db.characterOrder.push(charId)
+        }
+    }
+
+
+    for(let i=0;i<db.characterOrder.length;i++){
+        const data =db.characterOrder[i]
+        if(typeof(data) !== 'string'){
+            if(data.data.length === 0){
+                db.characterOrder.splice(i,1)
+                i--;
+                continue
+            }
+            for(let i2=0;i2<data.data.length;i2++){
+                const data2 = data.data[i2]
+                if(!charIdList.includes(data2)){
+                    data.data.splice(i2,1)
+                    i2--;
+                }
+            }
+            db.characterOrder[i] = data
+        }
+        else{
+            if(!charIdList.includes(data)){
+                db.characterOrder.splice(i,1)
+                i--;
+            }
+        }
+    }
+
+
     setDatabase(db)
 }
 

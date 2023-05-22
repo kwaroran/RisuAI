@@ -188,6 +188,29 @@ export function findCharacterbyId(id:string) {
     return unknown
 }
 
+export function findCharacterIndexbyId(id:string) {
+    const db = get(DataBase)
+    let i=0;
+    for(const char of db.characters){
+        if(char.chaId === id){
+            return i
+        }
+        i += 1
+    }
+    return -1
+}
+
+export function getCharacterIndexObject() {
+    const db = get(DataBase)
+    let i=0;
+    let result:{[key:string]:number} = {}
+    for(const char of db.characters){
+        result[char.chaId] = i
+        i += 1
+    }
+    return result
+}
+
 export function defaultEmotion(em:[string,string][]){
     if(!em){
         return ''

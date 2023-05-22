@@ -16,6 +16,7 @@
     import RegexData from "./RegexData.svelte";
     import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices } from "src/ts/process/tts";
+  import { checkCharOrder } from "src/ts/globalApi";
 
     let subMenu = 0
     let subberMenu = 0
@@ -671,6 +672,7 @@
         }
         let chars = $DataBase.characters
         chars.splice($selectedCharID, 1)
+        checkCharOrder()
         $selectedCharID = -1
         $DataBase.characters = chars
 
