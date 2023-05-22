@@ -245,7 +245,7 @@ export const languageKorean = {
     textScreenRound: "둥근 채팅창",
     textScreenBorder: "채팅창 윤곽선",
     ttsReadOnlyQuoted: "따옴표 안 텍스트만 읽기",
-    ttsStop: "Stop TTS",
+    ttsStop: "TTS 중지",
     askRemoval:"삭제 확인"
 
 }
