@@ -199,6 +199,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.supaMemoryType)){
         data.supaMemoryType = "none"
     }
+    if(checkNullish(data.askRemoval)){
+        data.askRemoval = true
+    }
     if(checkNullish(data.sdConfig)){
         data.sdConfig = {
             width:512,
@@ -353,6 +356,7 @@ export interface Database{
     jailbreak: string
     globalNote:string
     temperature: number
+    askRemoval:boolean
     maxContext: number
     maxResponse: number
     frequencyPenalty: number

@@ -239,6 +239,7 @@ export const languageKorean = {
     otherBots:'기타 봇',
     user:"유저",
     editDisplay: "디스플레이 수정",
-    community: "커뮤니티"
+    community: "커뮤니티",
+    askRemoval:"삭제 확인"
 
 }
