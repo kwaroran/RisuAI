@@ -515,6 +515,9 @@
         <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.systemPrompt}></textarea>
 
+        <span class="text-neutral-200">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></textarea>
+
 
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
             <span class="text-neutral-200">{language.SuperMemory}</span>
