@@ -44,7 +44,7 @@
     <optgroup class="bg-darkbg appearance-none" label="Other Providers">
         <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
         {#if $DataBase.aiModel === 'novelai' || isTauri}
-            <option value="novelai" class="bg-darkbg appearance-none">NovelAI</option>
+            <option value="novelai" class="bg-darkbg appearance-none">NovelAI Clio</option>
         {/if}
         <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
         {#if $DataBase.plugins.length > 0}
