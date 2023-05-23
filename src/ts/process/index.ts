@@ -18,6 +18,7 @@ export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
     content: string
     memo?:string
+    name?:string
 }
 
 export const doingChat = writable(false)
@@ -200,14 +201,17 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     const ms = currentChat.message
     for(const msg of ms){
         let formedChat = processScript(currentChar,replacePlaceholders(msg.data, currentChar.name), 'editprocess')
-        if(nowChatroom.type === 'group'){
-            if(msg.saying && msg.role === 'char'){
-                formedChat = `${findCharacterbyIdwithCache(msg.saying).name}: ${formedChat}`
-
+        let name = ''
+        if(msg.role === 'char'){
+            if(msg.saying){
+                name = `${findCharacterbyIdwithCache(msg.saying).name}`
             }
-            else if(msg.role === 'user'){
-                formedChat = `${db.username}: ${formedChat}`
+            else{
+                name = `${currentChar.name}`
             }
+        }
+        else if(msg.role === 'user'){
+            name = `${db.username}`
         }
         if(!msg.chatId){
             msg.chatId = v4()
@@ -215,7 +219,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         chats.push({
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formedChat,
-            memo: msg.chatId
+            memo: msg.chatId,
+            name: name
         })
         currentTokens += (await tokenize(formedChat) + 1)
     }

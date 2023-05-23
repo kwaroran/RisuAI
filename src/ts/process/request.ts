@@ -53,6 +53,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     switch(aiModel){
         case 'gpt35':
         case 'gpt4':{
+
+            for(let i=0;i<formated.length;i++){
+                formated[i].name = undefined
+            }
+
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo' : 'gpt-4',
                 messages: formated,
