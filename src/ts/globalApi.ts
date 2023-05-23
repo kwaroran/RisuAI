@@ -632,6 +632,7 @@ async function checkNewFormat() {
 
 export function checkCharOrder() {
     let db = get(DataBase)
+    db.characterOrder = db.characterOrder ?? []
     let ordered = cloneDeep(db.characterOrder ?? [])
     for(let i=0;i<db.characterOrder.length;i++){
         const folder =db.characterOrder[i]
