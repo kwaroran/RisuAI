@@ -12,6 +12,7 @@ dragDropPolyfil({
   // use this to make use of the scroll behaviour
   dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
   forceApply: navigator.maxTouchPoints > 0,
+  holdToDrag: 400
 });
 
 //Polyfills
