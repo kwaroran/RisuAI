@@ -5,15 +5,8 @@ import { loadData } from "./ts/globalApi";
 import { ReadableStream, WritableStream, TransformStream } from "web-streams-polyfill/ponyfill/es2018";
 import { Buffer as BufferPolyfill } from 'buffer'
 import { initHotkey } from "./ts/hotkey";
-import {polyfill as dragDropPolyfil} from "mobile-drag-drop";
-import {scrollBehaviourDragImageTranslateOverride} from "mobile-drag-drop/scroll-behaviour";
+import './js/DragDropTouch'
 
-dragDropPolyfil({
-  // use this to make use of the scroll behaviour
-  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
-  forceApply: navigator.maxTouchPoints > 0,
-  holdToDrag: 400
-});
 //Polyfills
 declare var Buffer: typeof BufferPolyfill;
 globalThis.Buffer = BufferPolyfill

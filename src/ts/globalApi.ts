@@ -632,11 +632,11 @@ async function checkNewFormat() {
 
 export function checkCharOrder() {
     let db = get(DataBase)
+    db.characterOrder = db.characterOrder ?? []
     let ordered = cloneDeep(db.characterOrder ?? [])
     for(let i=0;i<db.characterOrder.length;i++){
         const folder =db.characterOrder[i]
-        if(typeof(folder) !== 'string'){
-            console.log(folder)
+        if(typeof(folder) !== 'string' && folder){
             for(const f of folder.data){
                 ordered.push(f)
             }
@@ -657,6 +657,11 @@ export function checkCharOrder() {
     for(let i=0;i<db.characterOrder.length;i++){
         const data =db.characterOrder[i]
         if(typeof(data) !== 'string'){
+            if(!data){
+                db.characterOrder.splice(i,1)
+                i--;
+                continue
+            }
             if(data.data.length === 0){
                 db.characterOrder.splice(i,1)
                 i--;
