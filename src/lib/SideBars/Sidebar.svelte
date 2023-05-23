@@ -281,7 +281,6 @@
   const preventAll = (e:Event) => {
     e.preventDefault()
     e.stopPropagation()
-    e.stopImmediatePropagation()
     return false
   }
 
@@ -431,8 +430,7 @@
           {/each}
         </div>
       {/if}
-      <div class="h-3 min-h-3 w-14" on:dragover={(e) => {
-        e.preventDefault()
+      <div class="h-3 min-h-3 w-14" on:dragover|preventDefault={(e) => {
         e.dataTransfer.dropEffect = 'move'
         e.currentTarget.classList.add('bg-green-500')
       }} on:dragleave={(e) => {
