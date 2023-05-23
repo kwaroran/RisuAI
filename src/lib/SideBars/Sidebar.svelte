@@ -46,6 +46,7 @@
   let sideBarMode = 0;
   let editMode = false;
   let menuMode = 0;
+  let dragable = navigator.maxTouchPoints <= 1
   export let openGrid = () => {};
 
   function createScratch() {
