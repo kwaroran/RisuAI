@@ -84,6 +84,7 @@
   let charImages: sortType[] = [];
   let IconRounded = false
   let openFolders:string[] = []
+  let currentDrag: DragData = null
 
   const unsub = DataBase.subscribe((db) => {
     let newCharImages: sortType[] = [];
@@ -271,9 +272,8 @@
   const avatarDrop = (ind:DragData, e:DragEv) => {
     e.preventDefault()
     try {
-      const da = JSON.parse(e.dataTransfer.getData("application/json"))
-      if(da.type === "risuDrag"){
-        createFolder(da.index,ind)
+      if(currentDrag){
+        createFolder(currentDrag,ind)
       }
     } catch (error) {}
   }
@@ -307,9 +307,9 @@
   }} on:drop={(e) => {
     e.preventDefault()
     e.currentTarget.classList.remove('bg-green-500')
-    const da = JSON.parse(e.dataTransfer.getData("application/json"))
-    if(da.type === "risuDrag"){
-      inserter(da.index,{index:0})
+    const da = currentDrag
+    if(da){
+      inserter(da,{index:0})
     }
   }} on:dragenter={preventAll} />
   {#if menuMode === 0}
@@ -377,9 +377,9 @@
           }} on:drop={(e) => {
             e.preventDefault()
             e.currentTarget.classList.remove('bg-green-500')
-            const da = JSON.parse(e.dataTransfer.getData("application/json"))
-            if(da.type === "risuDrag", char.type === 'folder'){
-              inserter(da.index,{index:0,folder:char.id})
+            const da = currentDrag
+            if(da && char.type === 'folder'){
+              inserter(da,{index:0,folder:char.id})
             }
           }} on:dragenter={preventAll}/>
           {#each char.folder as char2, ind}
@@ -422,9 +422,9 @@
             }} on:drop={(e) => {
               e.preventDefault()
               e.currentTarget.classList.remove('bg-green-500')
-              const da = JSON.parse(e.dataTransfer.getData("application/json"))
-              if(da.type === "risuDrag" && char.type === 'folder'){
-                inserter(da.index,{index:ind+1,folder:char.id})
+              const da = currentDrag
+              if(da && char.type === 'folder'){
+                inserter(da,{index:ind+1,folder:char.id})
               }
             }} on:dragenter={preventAll}/>
           {/each}
@@ -438,9 +438,9 @@
       }} on:drop={(e) => {
         e.preventDefault()
         e.currentTarget.classList.remove('bg-green-500')
-        const da = JSON.parse(e.dataTransfer.getData("application/json"))
-        if(da.type === "risuDrag"){
-          inserter(da.index,{index:ind+1})
+        const da = currentDrag
+        if(da){
+          inserter(da,{index:ind+1})
         }
       }} on:dragenter={preventAll} />
     {/each}
