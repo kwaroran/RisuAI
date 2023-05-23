@@ -105,7 +105,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     }
 
     if(!currentChar.utilityBot){
-        const mainp = currentChar.systemPrompt.length > 3 ? currentChar.systemPrompt : db.mainPrompt
+        const mainp = currentChar.systemPrompt || db.mainPrompt
 
         unformated.main.push({
             role: 'system',
@@ -121,14 +121,14 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     
         unformated.globalNote.push({
             role: 'system',
-            content: replacePlaceholders(db.globalNote, currentChar.name)
+            content: replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)
         })
     }
 
     if(currentChat.note !== ''){
         unformated.authorNote.push({
             role: 'system',
-            content: replacePlaceholders(currentChar.postHistoryInstructions, currentChat.note)
+            content: replacePlaceholders(currentChat.note, currentChar.name)
         })
     }
 

@@ -259,7 +259,9 @@ export interface loreBook{
     mode: 'multiple'|'constant'|'normal',
     alwaysActive: boolean
     selective:boolean
-    extentions?:{}
+    extentions?:{
+        risu_case_sensitive:boolean
+    }
 }
 
 export interface character{
@@ -303,6 +305,7 @@ export interface character{
     supaMemory?:boolean
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
+    replaceGlobalNote:string
 }
 
 

@@ -275,7 +275,6 @@ export function characterFormatUpdate(index:number|character){
         cha.exampleMessage = cha.exampleMessage ?? ''
         cha.creatorNotes = cha.creatorNotes ?? ''
         cha.systemPrompt = cha.systemPrompt ?? ''
-        cha.postHistoryInstructions = cha.postHistoryInstructions ?? ''
         cha.tags = cha.tags ?? []
         cha.creator = cha.creator ?? ''
         cha.characterVersion = cha.characterVersion ?? 0
@@ -286,6 +285,12 @@ export function characterFormatUpdate(index:number|character){
             tag: [],
             creator: '',
             character_version: 0
+        }
+
+        if(cha.postHistoryInstructions){
+            cha.chats[cha.chatPage].note += "\n" + cha.postHistoryInstructions
+            cha.chats[cha.chatPage].note = cha.chats[cha.chatPage].note.trim()
+            cha.postHistoryInstructions = null
         }
 
     }
@@ -332,7 +337,8 @@ export function createBlankChar():character{
         characterVersion: 0,
         personality:"",
         scenario:"",
-        firstMsgIndex: -1
+        firstMsgIndex: -1,
+        replaceGlobalNote: ""
     }
 }
 

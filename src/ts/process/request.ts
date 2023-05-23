@@ -5,6 +5,8 @@ import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isTauri } from "../globalApi";
+import { alertError } from "../alert";
+import { sleep } from "../util";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -34,7 +36,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
             return da
         }
         trys += 1
-        if(trys > db.requestRetrys){
+        if(trys > db.requestRetrys || model.startsWith('horde')){
             return da
         }
     }
@@ -411,7 +413,107 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
         }
-        default:{            
+        default:{     
+            if(aiModel.startsWith("horde:::")){
+                const realModel = aiModel.split(":::")[1].trim()
+
+                const workers = ((await (await fetch("https://stablehorde.net/api/v2/workers")).json()) as {id:string,models:string[]}[]).filter((a) => {
+                    
+                    if(a && a.models && a.id){
+                        console.log(a)
+                        return a.models.includes(realModel)
+                    }
+                    return false
+                }).map((a) => {
+                    return a.id
+                })
+
+                const argument = {
+                    "prompt": "string",
+                    "params": {
+                        "n": 1,
+                        "frmtadsnsp": false,
+                        "frmtrmblln": false,
+                        "frmtrmspch": false,
+                        "frmttriminc": false,
+                        "max_context_length": 200,
+                        "max_length": 20,
+                        "rep_pen": 3,
+                        "rep_pen_range": 0,
+                        "rep_pen_slope": 10,
+                        "singleline": false,
+                        "temperature": db.temperature / 25,
+                        "tfs": 1,
+                        "top_a": 1,
+                        "top_k": 100,
+                        "top_p": 1,
+                        "typical": 1,
+                        "sampler_order": [
+                            0
+                        ]
+                    },
+                    "trusted_workers": false,
+                    "slow_workers": true,
+                    "worker_blacklist": false,
+                    "dry_run": false
+                }
+
+                const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
+                    body: JSON.stringify(argument),
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        "apikey": db.hordeConfig.apiKey
+                    }
+                })
+
+                if(da.status !== 202){
+                    return {
+                        type: "fail",
+                        result: await da.text()
+                    }
+                }
+
+                const json:{
+                    id:string,
+                    kudos:number,
+                    message:string
+                } = await da.json()
+
+                let warnMessage = ""
+                if(json.message && json.message.startsWith("Warning:")){
+                    warnMessage = "with " + json.message
+                }
+
+                while(true){
+                    await sleep(1000)
+                    const data = await (await fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id)).json()
+                    if(!data.is_possible){
+                        fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id, {
+                            method: "DELETE"
+                        })
+                        return {
+                            type: 'fail',
+                            result: "Response not possible" + warnMessage
+                        }
+                    }
+                    if(data.done){
+                        const generations:{text:string}[] = data.generations
+                        if(generations && generations.length > 0){
+                            return {
+                                type: "success",
+                                result: generations[0].text
+                            }
+                        }
+                        return {
+                            type: 'fail',
+                            result: "No Generations when done"
+                        }
+                    }
+                }
+
+
+            }
             return {
                 type: 'fail',
                 result: (language.errors.unknownModel)

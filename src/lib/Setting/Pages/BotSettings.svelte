@@ -6,6 +6,7 @@
     import { customProviderStore, getCurrentPluginMax } from "src/ts/process/plugins";
     import { isTauri } from "src/ts/globalApi";
     import { tokenize } from "src/ts/tokenizer";
+    import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     let tokens = {
@@ -36,40 +37,10 @@
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
-<select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.aiModel}>
-    <optgroup class="bg-darkbg appearance-none" label="OpenAI">
-        <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
-        <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
-    </optgroup>    
-    <optgroup class="bg-darkbg appearance-none" label="Other Providers">
-        <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
-        {#if $DataBase.aiModel === 'novelai' || isTauri}
-            <option value="novelai" class="bg-darkbg appearance-none">NovelAI Clio</option>
-        {/if}
-        <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
-        {#if $DataBase.plugins.length > 0}
-            <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
-        {/if}
-    </optgroup>
-</select>
-
+<ModelList bind:value={$DataBase.aiModel}/>
 <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
-<select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.subModel}>
-    <optgroup class="bg-darkbg appearance-none" label="OpenAI">
-        <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
-        <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
-    </optgroup>    
-    <optgroup class="bg-darkbg appearance-none" label="Other Providers">
-        <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
-        {#if $DataBase.aiModel === 'novelai' || isTauri}
-            <option value="novelai" class="bg-darkbg appearance-none">NovelAI Clio</option>
-        {/if}
-        <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
-        {#if $DataBase.plugins.length > 0}
-            <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
-        {/if}
-    </optgroup>
-</select>
+<ModelList bind:value={$DataBase.subModel}/>
+
 
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
@@ -95,6 +66,12 @@
 {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai"}
     <span class="text-neutral-200">NovelAI Bearer Token</span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.novelai.token}>
+
+{/if}
+
+{#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
+    <span class="text-neutral-200">Horde {language.apiKey}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.hordeConfig.apiKey}>
 
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
