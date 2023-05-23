@@ -10,8 +10,8 @@
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
     import { SizeStore, settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
-  import Communities from "./Pages/Communities.svelte";
-  import { openURL } from "src/ts/globalApi";
+    import Communities from "./Pages/Communities.svelte";
+    import { openURL } from "src/ts/globalApi";
     let selected = -1
     let openPresetList = false
     if(window.innerWidth >= 700){

@@ -4,7 +4,7 @@ import { DataBase, setDatabase, type character } from "../database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
 import { stringlizeChat } from "./stringlize";
-import { globalFetch } from "../globalApi";
+import { globalFetch, isTauri } from "../globalApi";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -173,6 +173,52 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             break
         }
+        case 'novelai':{
+            if(!isTauri){
+                return{
+                    type: 'fail',
+                    result: "NovelAI doesn't work in web version."
+                }
+            }
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const params = {
+                "input": proompt,
+                "model":db.novelai.model,
+                "parameters":{
+                    "use_string":true,
+                    "temperature":1.7,
+                    "max_length":90,
+                    "min_length":1,
+                    "tail_free_sampling":0.6602,
+                    "repetition_penalty":1.0565,
+                    "repetition_penalty_range":340,
+                    "repetition_penalty_frequency":0,
+                    "repetition_penalty_presence":0,
+                    "use_cache":false,
+                    "return_full_text":false,
+                    "prefix":"vanilla",
+                "order":[3,0]}
+            }
+
+            const da = await globalFetch("https://api.novelai.net/ai/generate", {
+                body: params,
+                headers: {
+                    "Authorization": "Bearer " + db.novelai.token
+                }
+            })
+
+            if((!da.ok )|| (!da.data.output)){
+                return {
+                    type: 'fail',
+                    result: (language.errors.httpError + `${JSON.stringify(da.data)}`)
+                }
+            }
+            return {
+                type: "success",
+                result: da.data.output
+            }
+        }
+
         case "textgen_webui":{
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any

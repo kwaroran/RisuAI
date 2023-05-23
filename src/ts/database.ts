@@ -222,6 +222,19 @@ export function setDatabase(data:Database){
             FontColorItalicBold: "#8C8D93"
         }
     }
+    if(checkNullish(data.hordeConfig)){
+        data.hordeConfig = {
+            apiKey: "",
+            model: "",
+            softPrompt: ""
+        }
+    }
+    if(checkNullish(data.novelai)){
+        data.novelai = {
+            token: "",
+            model: "clio-v1",
+        }
+    }
 
 
     changeLanguage(data.language)
@@ -431,6 +444,17 @@ export interface Database{
     textScreenRounded?:boolean
     textScreenBorder?:string
     characterOrder:(string|folder)[]
+    hordeConfig:hordeConfig,
+    novelai:{
+        token:string,
+        model:string
+    }
+}
+
+interface hordeConfig{
+    apiKey:string
+    model:string
+    softPrompt:string
 }
 
 export interface folder{
