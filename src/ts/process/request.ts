@@ -3,7 +3,7 @@ import type { OpenAIChat } from ".";
 import { DataBase, setDatabase, type character } from "../database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
-import { stringlizeChat } from "./stringlize";
+import { stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isTauri } from "../globalApi";
 
 interface requestDataArgument{
@@ -215,7 +215,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             return {
                 type: "success",
-                result: da.data.output
+                result: unstringlizeChat(da.data.output, formated, currentChar?.name ?? '')
             }
         }
 
@@ -291,15 +291,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 try {
                     let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
 
-                    for(const stopStr of stopStrings){
-                        if(result.endsWith(stopStr)){
-                            result.substring(0,result.length - stopStr.length)
-                        }
-                    }
-
                     return {
                         type: 'success',
-                        result: result
+                        result: unstringlizeChat(result, formated, currentChar?.name ?? '')
                     }
                 } catch (error) {                    
                     return {
