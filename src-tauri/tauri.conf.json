@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "RisuAI",
-    "version": "1.15.2"
+    "version": "1.15.3"
   },
   "tauri": {
     "allowlist": {
@@ -90,7 +90,7 @@
       "targets": "all"
     },
     "security": {
-      "csp": ""
+      "csp": null
     },
     "updater": {
       "active": false

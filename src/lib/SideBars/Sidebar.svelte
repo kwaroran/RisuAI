@@ -277,6 +277,13 @@
     } catch (error) {}
   }
 
+  const preventAll = (e:Event) => {
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+    return false
+  }
+
   onDestroy(unsub);
 </script>
 
@@ -313,6 +320,7 @@
         on:dragover={avatarDragOver}
         on:drop={(e) => {avatarDrop({index:ind}, e)}}
         on:dragenter|preventDefault
+        on:contextmenu={preventAll}
       >
         <SidebarIndicator
           isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
@@ -381,6 +389,7 @@
               on:dragover={avatarDragOver}
               on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
               on:dragenter|preventDefault
+              on:contextmenu={preventAll}
             >
               <SidebarIndicator
                 isActive={$selectedCharID === char2.index && sideBarMode !== 1}
