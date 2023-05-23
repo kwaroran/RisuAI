@@ -3,12 +3,33 @@
 ![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe)
 
 > A AIChat Frontend like Tavern, with great accessibility. Run in web or with installer.
+***
 
-Web version
+## Installation
+
+**Web version**
  - Go to http://risuai.xyz/
 
-Installer version
+**Installer version**
  - Download at https://github.com/kwaroran/RisuAI-release/releases
+ 
+**Build from source**
+ - Install [Node.JS](https://nodejs.org/en/download/current) and [git](https://github.com/git-guides/install-git)
+ - Clone the repository:
+ ```sh
+ git clone https://github.com/kwaroran/RisuAI
+ cd RisuAI
+ ```
+ - Install NodeJS dependencies and build the app:
+ ```sh
+ npm i
+ npm run build
+ ```
+ - Run RisuAI:
+ ```sh
+ npm run preview
+ ```
+ ***
 
 ## Features
  - **Emotion Images**
