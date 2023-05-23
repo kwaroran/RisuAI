@@ -258,6 +258,7 @@
       type: "risuDrag",
       index: ind
     }))
+    currentDrag = ind
     const avatar = e.currentTarget.querySelector('.avatar')
       if(avatar){
         e.dataTransfer.setDragImage(avatar, 10, 10);
