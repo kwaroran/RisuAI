@@ -5,6 +5,7 @@ import { loadData } from "./ts/globalApi";
 import { ReadableStream, WritableStream, TransformStream } from "web-streams-polyfill/ponyfill/es2018";
 import { Buffer as BufferPolyfill } from 'buffer'
 import { initHotkey } from "./ts/hotkey";
+import {polyfill} from "mobile-drag-drop";
 
 //Polyfills
 declare var Buffer: typeof BufferPolyfill;
@@ -13,6 +14,7 @@ globalThis.Buffer = BufferPolyfill
 globalThis.WritableStream = globalThis.WritableStream ?? WritableStream
 globalThis.ReadableStream = globalThis.ReadableStream ?? ReadableStream
 globalThis.TransformStream = globalThis.TransformStream ?? TransformStream
+polyfill()
 
 const app = new App({
   target: document.getElementById("app"),
