@@ -26,6 +26,7 @@
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "lucide-svelte": "^0.130.0",
+    "mobile-drag-drop": "3.0.0-rc.0",
     "pako": "^2.1.0",
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",

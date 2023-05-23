@@ -304,7 +304,7 @@
     if(da.type === "risuDrag"){
       inserter(da.index,{index:0})
     }
-  }} />
+  }} on:dragenter|preventDefault />
   {#if menuMode === 0}
     {#each charImages as char, ind}
       <div class="group relative flex items-center px-2"
@@ -312,6 +312,7 @@
         on:dragstart={(e) => {avatarDragStart({index:ind}, e)}}
         on:dragover={avatarDragOver}
         on:drop={(e) => {avatarDrop({index:ind}, e)}}
+        on:dragenter|preventDefault
       >
         <SidebarIndicator
           isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
@@ -372,13 +373,14 @@
             if(da.type === "risuDrag", char.type === 'folder'){
               inserter(da.index,{index:0,folder:char.id})
             }
-          }} />
+          }} on:dragenter|preventDefault/>
           {#each char.folder as char2, ind}
               <div class="group relative flex items-center px-2 z-10"
               draggable="true"
               on:dragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
               on:dragover={avatarDragOver}
               on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
+              on:dragenter|preventDefault
             >
               <SidebarIndicator
                 isActive={$selectedCharID === char2.index && sideBarMode !== 1}
@@ -415,7 +417,7 @@
               if(da.type === "risuDrag" && char.type === 'folder'){
                 inserter(da.index,{index:ind+1,folder:char.id})
               }
-            }} />
+            }} on:dragenter|preventDefault/>
           {/each}
         </div>
       {/if}
@@ -432,7 +434,7 @@
         if(da.type === "risuDrag"){
           inserter(da.index,{index:ind+1})
         }
-      }} />
+      }} on:dragenter|preventDefault />
     {/each}
     <div class="flex flex-col items-center space-y-2 px-2">
       <BaseRoundedButton
