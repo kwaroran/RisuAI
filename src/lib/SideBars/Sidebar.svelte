@@ -291,7 +291,7 @@
     }}><ListIcon /></button
   >
   <div class="h-8 min-h-8 w-14 min-w-14 bg-transparent" />
-  <div class="h-3 w-14" on:dragover={(e) => {
+  <div class="h-3 min-h-3 w-14" on:dragover={(e) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
     e.currentTarget.classList.add('bg-green-500')
@@ -360,7 +360,7 @@
       {#if char.type === 'folder' && openFolders.includes(char.id)}
         <div class="w-full flex flex-col items-center py-1 mt-1 rounded-lg relative">
           <div class="absolute top-0 left-1 bg-darkbg w-full h-full rounded-lg z-0"></div>
-          <div class="h-3 w-14 relative z-10" on:dragover={(e) => {
+          <div class="h-3 min-h-3 w-14 relative z-10" on:dragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
             e.currentTarget.classList.add('bg-green-500')
@@ -404,7 +404,7 @@
                 <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
               </div>
             </div>
-            <div class="h-3 w-14 relative z-10" on:dragover={(e) => {
+            <div class="h-3 min-h-3 w-14 relative z-10" on:dragover={(e) => {
               e.preventDefault()
               e.dataTransfer.dropEffect = 'move'
               e.currentTarget.classList.add('bg-green-500')
@@ -421,7 +421,7 @@
           {/each}
         </div>
       {/if}
-      <div class="h-3 w-14" on:dragover={(e) => {
+      <div class="h-3 min-h-3 w-14" on:dragover={(e) => {
         e.preventDefault()
         e.dataTransfer.dropEffect = 'move'
         e.currentTarget.classList.add('bg-green-500')
