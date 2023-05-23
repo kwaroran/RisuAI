@@ -21,6 +21,7 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 }
 
 export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string = ''){
+    console.log(text)
     let minIndex = -1
     let chunks:string[] = ["system note:"]
     if(char){
@@ -47,7 +48,7 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
     }
 
     if(minIndex !== -1){
-        text.substring(0, minIndex)
+        text = text.substring(0, minIndex).trim()
     }
 
     return text
