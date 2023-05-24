@@ -67,8 +67,8 @@ export async function loadLoreBookPrompt(){
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
-    const globalLore = db.loreBook[db.loreBookPage].data ?? []
-    const fullLore = characterLore.concat(chatLore)
+    const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
+    const fullLore = characterLore.concat(chatLore.concat(globalLore))
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
