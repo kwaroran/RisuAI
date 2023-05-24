@@ -127,9 +127,11 @@ export async function loadLoreBookPrompt(){
     
             let firstKeyActivation = false
             for(const key of lore.keys){
-                if(formatedChat.includes(key)){
-                    firstKeyActivation = true
-                    break
+                if(key){
+                    if(formatedChat.includes(key)){
+                        firstKeyActivation = true
+                        break
+                    }
                 }
             }
     
