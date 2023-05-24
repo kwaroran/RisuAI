@@ -1,8 +1,8 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, changeToPreset, presetTemplate } from "../../ts/database";
-    import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { DataBase, changeToPreset, copyPreset, presetTemplate } from "../../ts/database";
+    import { CopyIcon, EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
 
     let editMode = false
     export let close = () => {}
@@ -10,7 +10,7 @@
 </script>
 
 <div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
-    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-96">
+    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-96 max-h-full overflow-y-auto">
         <div class="flex items-center text-neutral-200 mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
             <div class="flex-grow flex justify-end">
@@ -35,6 +35,12 @@
                     <span>{presets.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
+                    <button class="text-gray-500 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                        e.stopPropagation()
+                        copyPreset(i)
+                    }}>
+                        <CopyIcon size={18}/>
+                    </button>
                     <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($DataBase.botPresets.length === 1){

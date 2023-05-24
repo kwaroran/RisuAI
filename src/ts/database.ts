@@ -581,7 +581,7 @@ export function updateTextTheme(){
     }
 }
 
-export function changeToPreset(id =0){
+export function saveCurrentPreset(){
     let db = get(DataBase)
     let pres = db.botPresets
     pres[db.botPresetsId] = {
@@ -607,6 +607,23 @@ export function changeToPreset(id =0){
         bias: db.bias
     }
     db.botPresets = pres
+    DataBase.set(db)
+}
+
+export function copyPreset(id:number){
+    saveCurrentPreset()
+    let db = get(DataBase)
+    let pres = db.botPresets
+    const newPres = cloneDeep(pres[id])
+    newPres.name += " Copy"
+    db.botPresets.push(newPres)
+    DataBase.set(db)
+}
+
+export function changeToPreset(id =0){
+    saveCurrentPreset()
+    let db = get(DataBase)
+    let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
     db.apiType = newPres.apiType ?? db.apiType
