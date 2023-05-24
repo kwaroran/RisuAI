@@ -327,7 +327,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         formated: formated,
         bias: bias,
         currentChar: currentChar,
-        useStreaming: true
+        useStreaming: true,
+        isGroupChat: nowChatroom.type === 'group'
     }, 'model')
 
     let result = ''
