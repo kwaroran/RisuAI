@@ -203,7 +203,8 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         characterVersion: 0,
         personality: charaData.personality ?? '',
         scenario:charaData.scenario ?? '',
-        firstMsgIndex: -1
+        firstMsgIndex: -1,
+        replaceGlobalNote: ""
     }
 }
 
@@ -381,7 +382,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
                 mode: "normal",
                 alwaysActive: book.constant ?? false,
                 selective: book.selective ?? false,
-                extentions: book.extensions
+                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive}
             })
         }
 
@@ -412,7 +413,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         exampleMessage: data.mes_example ?? '',
         creatorNotes:data.creator_notes ?? '',
         systemPrompt:data.system_prompt ?? '',
-        postHistoryInstructions:data.post_history_instructions ?? '',
+        postHistoryInstructions:'',
         alternateGreetings:data.alternate_greetings ?? [],
         tags:data.tags ?? [],
         creator:data.creator ?? '',
@@ -428,7 +429,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
             creator: data.creator,
             character_version: data.character_version
         },
-        additionalAssets: extAssets
+        additionalAssets: extAssets,
+        replaceGlobalNote: data.post_history_instructions ?? ''
     }
 
     db.characters.push(char)
@@ -458,7 +460,8 @@ export async function exportSpecV2(char:character) {
                 constant: lore.alwaysActive,
                 selective:lore.selective,
                 name: lore.comment,
-                comment: lore.comment
+                comment: lore.comment,
+                case_sensitive: lore.extentions?.risu_case_sensitive
             })
         }
 
@@ -474,7 +477,7 @@ export async function exportSpecV2(char:character) {
                 mes_example: char.exampleMessage,
                 creator_notes: char.creatorNotes,
                 system_prompt: char.systemPrompt,
-                post_history_instructions: char.postHistoryInstructions,
+                post_history_instructions: char.replaceGlobalNote,
                 alternate_greetings: char.alternateGreetings,
                 character_book: {
                     scan_depth: char.loreSettings?.scanDepth,
@@ -625,5 +628,5 @@ interface charBookEntry{
     secondary_keys?: Array<string> // see field `selective`. ignored if selective == false
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
-    
+    case_sensitive?:boolean
 }

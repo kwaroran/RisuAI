@@ -67,7 +67,7 @@ export const languageEnglish = {
                 + "\n\n```<START>``` Marks the beginning of a new conversation.",
         creatorQuotes: "Note that appearances on top of first message. Used to inform users about this character. It doesn't go into prompt.",
         systemPrompt: "A prompt that replaces main prompt in settings if its not blank.",
-        chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory.",
+        chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory or ujb.",
         personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
@@ -76,7 +76,8 @@ export const languageEnglish = {
         superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
         + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
         + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
-        + "After it is all setup, you can able it in the setting of a character."
+        + "After it is all setup, you can able it in the setting of a character.",
+        replaceGlobalNote: "If its not blank, it replaces current global note to this."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -266,5 +267,8 @@ export const languageEnglish = {
     textScreenBorder: "Text Screen Borders",
     ttsReadOnlyQuoted: "Read Only Quoted",
     ttsStop: "Stop TTS",
-    askRemoval:"Ask Removal"
+    askRemoval:"Ask Removal",
+    replaceGlobalNote: "Global Note Replacement",
+    charLoreBook: 'Character Lorebook',
+    globalLoreBook: 'Global Lorebook',
 }

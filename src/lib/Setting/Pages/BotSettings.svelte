@@ -6,6 +6,7 @@
     import { customProviderStore, getCurrentPluginMax } from "src/ts/process/plugins";
     import { isTauri } from "src/ts/globalApi";
     import { tokenize } from "src/ts/tokenizer";
+    import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     let tokens = {
@@ -36,26 +37,10 @@
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
-<select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.aiModel}>
-    <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
-    <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
-    <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
-    <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
-    {#if $DataBase.plugins.length > 0}
-        <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
-    {/if}
-</select>
-
+<ModelList bind:value={$DataBase.aiModel}/>
 <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
-<select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.subModel}>
-    <option value="gpt35" class="bg-darkbg appearance-none">OpenAI GPT-3.5</option>
-    <option value="gpt4" class="bg-darkbg appearance-none">OpenAI GPT-4</option>
-    <option value="palm2" class="bg-darkbg appearance-none">Google Palm2</option>
-    <option value="textgen_webui" class="bg-darkbg appearance-none">Text Generation WebUI</option>
-    {#if $customProviderStore.length > 0}
-        <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
-    {/if}
-</select>
+<ModelList bind:value={$DataBase.subModel}/>
+
 
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
@@ -78,6 +63,17 @@
         {/each}
     </select>
 {/if}
+{#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai"}
+    <span class="text-neutral-200">NovelAI Bearer Token</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.novelai.token}>
+
+{/if}
+
+{#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
+    <span class="text-neutral-200">Horde {language.apiKey}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.hordeConfig.apiKey}>
+
+{/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
     <span class="text-neutral-200">TextGen {language.providerURL} <Help key="oogaboogaURL"/></span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" placeholder="https://..." bind:value={$DataBase.textgenWebUIURL}>
@@ -98,12 +94,15 @@
 
 <span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>
 <span class="text-neutral-200">{language.maxContextSize}</span>
+
 {#if $DataBase.aiModel === 'gpt35'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="4000" bind:value={$DataBase.maxContext}>
 {:else if $DataBase.aiModel === 'gpt4' || $DataBase.aiModel === 'textgen_webui'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="8000" bind:value={$DataBase.maxContext}>
 {:else if $DataBase.aiModel === 'custom'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max={getCurrentPluginMax($DataBase.currentPluginProvider)} bind:value={$DataBase.maxContext}>
+{:else}
+    <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} bind:value={$DataBase.maxContext}>
 {/if}
 <span class="text-neutral-200">{language.maxResponseSize}</span>
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="2048" bind:value={$DataBase.maxResponse}>

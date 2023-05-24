@@ -7,7 +7,7 @@
     import LoreBookData from "./LoreBookData.svelte";
     import Check from "../Others/Check.svelte";
     let submenu = 0
-    let globalMode = false
+    export let globalMode = false
 </script>
 
 {#if !globalMode}
@@ -30,9 +30,26 @@
     </div>
 {/if}
 {#if submenu !== 2}
-    <span class="text-gray-500 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
+    {#if !globalMode}
+        <span class="text-gray-500 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
+    {/if}
     <div class="border-solid border-borderc p-2 flex flex-col border-1">
-        {#if submenu === 0}
+        {#if globalMode}
+            {#if $DataBase.loreBook[$DataBase.loreBookPage].data.length === 0}
+                <span class="text-gray-500">No Lorebook</span>
+            {:else}
+                {#each $DataBase.loreBook[$DataBase.loreBookPage].data as book, i}
+                    {#if i !== 0}
+                        <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
+                    {/if}
+                    <LoreBookData bind:value={$DataBase.loreBook[$DataBase.loreBookPage].data[i]} onRemove={() => {
+                        let lore = $DataBase.loreBook[$DataBase.loreBookPage].data
+                        lore.splice(i, 1)
+                        $DataBase.loreBook[$DataBase.loreBookPage].data = lore
+                    }}/>
+                {/each}
+            {/if}
+        {:else if submenu === 0}
             {#if $DataBase.characters[$selectedCharID].globalLore.length === 0}
                 <span class="text-gray-500">No Lorebook</span>
             {:else}
@@ -96,16 +113,16 @@
 {#if submenu !== 2}
 
 <div class="text-gray-500 mt-2 flex">
-    <button on:click={() => {addLorebook(submenu)}} class="hover:text-neutral-200 cursor-pointer">
+    <button on:click={() => {addLorebook(globalMode ? -1 : submenu)}} class="hover:text-neutral-200 cursor-pointer">
         <PlusIcon />
     </button>
     <button on:click={() => {
-        exportLoreBook(submenu === 0 ? 'global' : 'local')
+        exportLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-neutral-200 ml-1  cursor-pointer">
         <DownloadIcon />
     </button>
     <button on:click={() => {
-        importLoreBook(submenu === 0 ? 'global' : 'local')
+        importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-neutral-200 ml-2  cursor-pointer">
         <FolderUpIcon />
     </button>

@@ -16,7 +16,7 @@
     import RegexData from "./RegexData.svelte";
     import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices } from "src/ts/process/tts";
-  import { checkCharOrder } from "src/ts/globalApi";
+    import { checkCharOrder } from "src/ts/globalApi";
 
     let subMenu = 0
     let subberMenu = 0
@@ -181,10 +181,10 @@
         <span class="text-neutral-200">{language.firstMessage} <Help key="charFirstMessage"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
         <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
-        <span class="text-neutral-200">{language.authorNote} <Help key="charNote"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.postHistoryInstructions}></textarea>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.charaNote} {language.tokens}</span>
-     
+        <span class="text-neutral-200">{language.authorNote} <Help key="chatNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
+        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
+        
     {:else}
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
         <span class="text-neutral-200">{language.character}</span>
@@ -212,11 +212,6 @@
                 <PlusIcon />
             </button>
         </div>
-
-        <span class="text-neutral-200">{language.chatNotes} <Help key="charNote"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-        
 
     {/if}
                       
@@ -520,10 +515,10 @@
         <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.systemPrompt}></textarea>
 
-        <span class="text-neutral-200">{language.chatNotes} <Help key="chatNote"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-        
+        <span class="text-neutral-200">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></textarea>
+
+
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
             <span class="text-neutral-200">{language.SuperMemory}</span>
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></textarea>

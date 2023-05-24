@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.15.6'
+export let appVer = '1.16.0'
 
 
 export function setDatabase(data:Database){
@@ -222,6 +222,26 @@ export function setDatabase(data:Database){
             FontColorItalicBold: "#8C8D93"
         }
     }
+    if(checkNullish(data.hordeConfig)){
+        data.hordeConfig = {
+            apiKey: "",
+            model: "",
+            softPrompt: ""
+        }
+    }
+    if(checkNullish(data.novelai)){
+        data.novelai = {
+            token: "",
+            model: "clio-v1",
+        }
+    }
+    if(checkNullish(data.loreBook)){
+        data.loreBookPage = 0
+        data.loreBook = [{
+            name: "My First LoreBook",
+            data: []
+        }]
+    }
 
 
     changeLanguage(data.language)
@@ -246,7 +266,9 @@ export interface loreBook{
     mode: 'multiple'|'constant'|'normal',
     alwaysActive: boolean
     selective:boolean
-    extentions?:{}
+    extentions?:{
+        risu_case_sensitive:boolean
+    }
 }
 
 export interface character{
@@ -290,6 +312,7 @@ export interface character{
     supaMemory?:boolean
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
+    replaceGlobalNote:string
 }
 
 
@@ -366,6 +389,11 @@ export interface Database{
     jailbreakToggle:boolean
     loreBookDepth: number
     loreBookToken: number,
+    loreBook: {
+        name:string
+        data:loreBook[]
+    }[]
+    loreBookPage: number
     supaMemoryPrompt: string
     username: string
     userIcon: string
@@ -431,6 +459,17 @@ export interface Database{
     textScreenRounded?:boolean
     textScreenBorder?:string
     characterOrder:(string|folder)[]
+    hordeConfig:hordeConfig,
+    novelai:{
+        token:string,
+        model:string
+    }
+}
+
+interface hordeConfig{
+    apiKey:string
+    model:string
+    softPrompt:string
 }
 
 export interface folder{
@@ -542,7 +581,7 @@ export function updateTextTheme(){
     }
 }
 
-export function changeToPreset(id =0){
+export function saveCurrentPreset(){
     let db = get(DataBase)
     let pres = db.botPresets
     pres[db.botPresetsId] = {
@@ -568,6 +607,23 @@ export function changeToPreset(id =0){
         bias: db.bias
     }
     db.botPresets = pres
+    DataBase.set(db)
+}
+
+export function copyPreset(id:number){
+    saveCurrentPreset()
+    let db = get(DataBase)
+    let pres = db.botPresets
+    const newPres = cloneDeep(pres[id])
+    newPres.name += " Copy"
+    db.botPresets.push(newPres)
+    DataBase.set(db)
+}
+
+export function changeToPreset(id =0){
+    saveCurrentPreset()
+    let db = get(DataBase)
+    let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
     db.apiType = newPres.apiType ?? db.apiType

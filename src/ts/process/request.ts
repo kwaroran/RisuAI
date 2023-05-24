@@ -3,8 +3,10 @@ import type { OpenAIChat } from ".";
 import { DataBase, setDatabase, type character } from "../database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
-import { stringlizeChat } from "./stringlize";
-import { globalFetch } from "../globalApi";
+import { stringlizeChat, unstringlizeChat } from "./stringlize";
+import { globalFetch, isTauri } from "../globalApi";
+import { alertError } from "../alert";
+import { sleep } from "../util";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -34,7 +36,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
             return da
         }
         trys += 1
-        if(trys > db.requestRetrys){
+        if(trys > db.requestRetrys || model.startsWith('horde')){
             return da
         }
     }
@@ -53,6 +55,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     switch(aiModel){
         case 'gpt35':
         case 'gpt4':{
+
+            for(let i=0;i<formated.length;i++){
+                formated[i].name = undefined
+            }
+
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo' : 'gpt-4',
                 messages: formated,
@@ -168,6 +175,52 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             break
         }
+        case 'novelai':{
+            if(!isTauri){
+                return{
+                    type: 'fail',
+                    result: "NovelAI doesn't work in web version."
+                }
+            }
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const params = {
+                "input": proompt,
+                "model":db.novelai.model,
+                "parameters":{
+                    "use_string":true,
+                    "temperature":1.7,
+                    "max_length":90,
+                    "min_length":1,
+                    "tail_free_sampling":0.6602,
+                    "repetition_penalty":1.0565,
+                    "repetition_penalty_range":340,
+                    "repetition_penalty_frequency":0,
+                    "repetition_penalty_presence":0,
+                    "use_cache":false,
+                    "return_full_text":false,
+                    "prefix":"vanilla",
+                "order":[3,0]}
+            }
+
+            const da = await globalFetch("https://api.novelai.net/ai/generate", {
+                body: params,
+                headers: {
+                    "Authorization": "Bearer " + db.novelai.token
+                }
+            })
+
+            if((!da.ok )|| (!da.data.output)){
+                return {
+                    type: 'fail',
+                    result: (language.errors.httpError + `${JSON.stringify(da.data)}`)
+                }
+            }
+            return {
+                type: "success",
+                result: unstringlizeChat(da.data.output, formated, currentChar?.name ?? '')
+            }
+        }
+
         case "textgen_webui":{
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
@@ -240,15 +293,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 try {
                     let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
 
-                    for(const stopStr of stopStrings){
-                        if(result.endsWith(stopStr)){
-                            result.substring(0,result.length - stopStr.length)
-                        }
-                    }
-
                     return {
                         type: 'success',
-                        result: result
+                        result: unstringlizeChat(result, formated, currentChar?.name ?? '')
                     }
                 } catch (error) {                    
                     return {
@@ -366,7 +413,107 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
         }
-        default:{            
+        default:{     
+            if(aiModel.startsWith("horde:::")){
+                const realModel = aiModel.split(":::")[1].trim()
+
+                const workers = ((await (await fetch("https://stablehorde.net/api/v2/workers")).json()) as {id:string,models:string[]}[]).filter((a) => {
+                    
+                    if(a && a.models && a.id){
+                        console.log(a)
+                        return a.models.includes(realModel)
+                    }
+                    return false
+                }).map((a) => {
+                    return a.id
+                })
+
+                const argument = {
+                    "prompt": "string",
+                    "params": {
+                        "n": 1,
+                        "frmtadsnsp": false,
+                        "frmtrmblln": false,
+                        "frmtrmspch": false,
+                        "frmttriminc": false,
+                        "max_context_length": 200,
+                        "max_length": 20,
+                        "rep_pen": 3,
+                        "rep_pen_range": 0,
+                        "rep_pen_slope": 10,
+                        "singleline": false,
+                        "temperature": db.temperature / 25,
+                        "tfs": 1,
+                        "top_a": 1,
+                        "top_k": 100,
+                        "top_p": 1,
+                        "typical": 1,
+                        "sampler_order": [
+                            0
+                        ]
+                    },
+                    "trusted_workers": false,
+                    "slow_workers": true,
+                    "worker_blacklist": false,
+                    "dry_run": false
+                }
+
+                const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
+                    body: JSON.stringify(argument),
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        "apikey": db.hordeConfig.apiKey
+                    }
+                })
+
+                if(da.status !== 202){
+                    return {
+                        type: "fail",
+                        result: await da.text()
+                    }
+                }
+
+                const json:{
+                    id:string,
+                    kudos:number,
+                    message:string
+                } = await da.json()
+
+                let warnMessage = ""
+                if(json.message && json.message.startsWith("Warning:")){
+                    warnMessage = "with " + json.message
+                }
+
+                while(true){
+                    await sleep(1000)
+                    const data = await (await fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id)).json()
+                    if(!data.is_possible){
+                        fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id, {
+                            method: "DELETE"
+                        })
+                        return {
+                            type: 'fail',
+                            result: "Response not possible" + warnMessage
+                        }
+                    }
+                    if(data.done){
+                        const generations:{text:string}[] = data.generations
+                        if(generations && generations.length > 0){
+                            return {
+                                type: "success",
+                                result: generations[0].text
+                            }
+                        }
+                        return {
+                            type: 'fail',
+                            result: "No Generations when done"
+                        }
+                    }
+                }
+
+
+            }
             return {
                 type: 'fail',
                 result: (language.errors.unknownModel)
