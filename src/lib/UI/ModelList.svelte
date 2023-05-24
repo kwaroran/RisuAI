@@ -26,10 +26,10 @@
                 <option value="custom" class="bg-darkbg appearance-none">Plugin</option>
             {/if}
         </optgroup>
-        <optgroup class="bg-darkbg appearance-none" label="Horde">
+        <!-- <optgroup class="bg-darkbg appearance-none" label="Horde">
             {#each models as model}
                 <option value={"horde:::" + model} class="bg-darkbg appearance-none">{model}</option>            
             {/each}
-        </optgroup>
+        </optgroup> -->
     </select>
 {/await}
