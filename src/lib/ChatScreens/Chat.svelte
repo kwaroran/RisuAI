@@ -99,7 +99,7 @@
                             }
                             if(msgDisplay === replacePlaceholders(message, name)){
                                 translating = true
-                                msgDisplay = (await translate(message, false))
+                                msgDisplay = (await translate(replacePlaceholders(message, name), false))
                                 translating = false
                             }
                             else{

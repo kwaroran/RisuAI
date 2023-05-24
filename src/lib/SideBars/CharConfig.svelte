@@ -105,25 +105,27 @@
 
     const unsub = DataBase.subscribe((v) => {
         database = v
-        const cha = v.characters[$selectedCharID]
+        const cha = (v.characters[$selectedCharID])
         if(!cha){
             return
         }
         if((!currentChar) || (!isEqual(currentChar.data, cha))){
+            console.log("updated")
             if(cha.type === 'character'){
                 currentChar = {
                     type: 'character',
-                    data: (cha)
+                    data: cloneDeep(cha)
                 }
             }
             else{
                 currentChar = {
                     type: 'group',
-                    data: (cha)
+                    data: cloneDeep(cha)
                 }
             }
         }
         emos = currentChar.data.emotionImages
+        currentChar = currentChar
     })
 
     
@@ -179,7 +181,6 @@
         <span class="text-neutral-200">{language.authorNote} <Help key="chatNote"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
         <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
-        
     {:else}
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
         <span class="text-neutral-200">{language.character}</span>
