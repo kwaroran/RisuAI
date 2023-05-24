@@ -68,7 +68,7 @@ export async function loadLoreBookPrompt(){
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
     const globalLore = db.loreBook[db.loreBookPage].data ?? []
-    const fullLore = [...characterLore, ...chatLore, ...globalLore]
+    const fullLore = characterLore.concat(chatLore)
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
@@ -78,13 +78,13 @@ export async function loadLoreBookPrompt(){
     let formatedLore:formatedLore[] = []
 
     for (const lore of fullLore){
-        if(lore && lore.key){
+        if(lore){
             if(lore.key.length > 1 || lore.alwaysActive){
                 formatedLore.push({
-                    keys: lore.alwaysActive ? 'always' : lore.key.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                    keys: lore.alwaysActive ? 'always' : (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                         return a.length > 1
                     }),
-                    secondKey: lore.selective ? lore.secondkey.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                    secondKey: lore.selective ? (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                         return a.length > 1
                     }) : [],
                     content: lore.content,
