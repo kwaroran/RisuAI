@@ -8,7 +8,7 @@
 </script>
 
 <div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
-    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-96">
+    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-96 max-h-full overflow-y-auto">
         <div class="flex items-center text-neutral-200 mb-4">
             <h2 class="mt-0 mb-0">{language.loreBook}</h2>
             <div class="flex-grow flex justify-end">
