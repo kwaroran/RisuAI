@@ -49,11 +49,6 @@
                 lasttokens.firstMsg = chara.firstMessage
                 tokens.firstMsg = await tokenize(chara.firstMessage)
             }
-            if(lasttokens.charaNote !== chara.postHistoryInstructions){
-            lasttokens.charaNote = chara.postHistoryInstructions
-            tokens.charaNote = await tokenize(chara.postHistoryInstructions)
-        
-        }
         }
         if(lasttokens.localNote !== currentChar.data.chats[currentChar.data.chatPage].note){
             lasttokens.localNote = currentChar.data.chats[currentChar.data.chatPage].note
