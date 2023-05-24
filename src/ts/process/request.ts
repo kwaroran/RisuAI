@@ -17,6 +17,7 @@ interface requestDataArgument{
     PresensePenalty?: number
     frequencyPenalty?: number,
     useStreaming?:boolean
+    isGroupChat?:boolean
 }
 
 type requestDataResponse = {
@@ -57,6 +58,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4':{
 
             for(let i=0;i<formated.length;i++){
+                if(arg.isGroupChat){
+                    formated[i].content = formated[i].name + ": " + formated[i].content
+                }
                 formated[i].name = undefined
             }
 

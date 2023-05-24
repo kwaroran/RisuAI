@@ -178,9 +178,7 @@
         <span class="text-neutral-200">{language.firstMessage} <Help key="charFirstMessage"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.firstMessage}></textarea>
         <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
-        <span class="text-neutral-200">{language.authorNote} <Help key="chatNote"/></span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
+
     {:else}
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
         <span class="text-neutral-200">{language.character}</span>
@@ -210,7 +208,9 @@
         </div>
 
     {/if}
-                      
+    <span class="text-neutral-200">{language.authorNote} <Help key="chatNote"/></span>
+    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
+    <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle}/>
         <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
