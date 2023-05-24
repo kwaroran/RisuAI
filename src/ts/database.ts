@@ -235,6 +235,13 @@ export function setDatabase(data:Database){
             model: "clio-v1",
         }
     }
+    if(checkNullish(data.loreBook)){
+        data.loreBookPage = 0
+        data.loreBook = [{
+            name: "My First LoreBook",
+            data: []
+        }]
+    }
 
 
     changeLanguage(data.language)
@@ -382,6 +389,11 @@ export interface Database{
     jailbreakToggle:boolean
     loreBookDepth: number
     loreBookToken: number,
+    loreBook: {
+        name:string
+        data:loreBook[]
+    }[]
+    loreBookPage: number
     supaMemoryPrompt: string
     username: string
     userIcon: string

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActivityIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { ActivityIcon, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -8,12 +8,14 @@
     import PluginSettings from "./Pages/PluginSettings.svelte";
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
-    import { SizeStore, settingsOpen } from "src/ts/stores";
+    import { settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
     import Communities from "./Pages/Communities.svelte";
-    import { openURL } from "src/ts/globalApi";
+    import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
+    import Lorepreset from "./lorepreset.svelte";
     let selected = -1
     let openPresetList = false
+    let openLoreList = false
     if(window.innerWidth >= 700){
         selected = 0
     }
@@ -47,6 +49,12 @@
                 }}>
                     <MonitorIcon />
                     <span>{language.display}</span>
+                </button>
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 8} on:click={() => {
+                    selected = 8
+                }}>
+                    <BookIcon />
+                    <span>{language.globalLoreBook}</span>
                 </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 4} on:click={() => {
                     selected = 4
@@ -97,6 +105,8 @@
                     <AdvancedSettings />
                 {:else if selected === 7}
                     <Communities />
+                {:else if selected === 8}
+                    <GlobalLoreBookSettings bind:openLoreList />
                 {/if}
                 <button class="absolute top-2 right-2 hover:text-green-500" on:click={() => {
                     if(window.innerWidth >= 700){
@@ -114,6 +124,9 @@
 </div>
 {#if openPresetList}
     <Botpreset close={() => {openPresetList = false}} />
+{/if}
+{#if openLoreList}
+    <Lorepreset close={() => {openLoreList = false}} />
 {/if}
 <style>
     .setting-bg{

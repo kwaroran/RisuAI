@@ -10,7 +10,19 @@ import { downloadFile } from "../globalApi";
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
     let db = get(DataBase)
-    if(type === 0){
+    if(type === -1){
+        db.loreBook[db.loreBookPage].data.push({
+            key: '',
+            comment: `New Lore ${db.loreBook[db.loreBookPage].data.length + 1}`,
+            content: '',
+            mode: 'normal',
+            insertorder: 100,
+            alwaysActive: false,
+            secondkey: "",
+            selective: false
+        })
+    }
+    else if(type === 0){
         db.characters[selectedID].globalLore.push({
             key: '',
             comment: `New Lore ${db.characters[selectedID].globalLore.length + 1}`,
@@ -53,9 +65,10 @@ export async function loadLoreBookPrompt(){
     const db = get(DataBase)
     const char = db.characters[selectedID]
     const page = char.chatPage
-    const globalLore = char.globalLore
-    const charLore = char.chats[page].localLore
-    const fullLore = globalLore.concat(charLore)
+    const characterLore = char.globalLore
+    const chatLore = char.chats[page].localLore
+    const globalLore = db.loreBook[db.loreBookPage].data
+    const fullLore = characterLore.concat(chatLore.concat(globalLore))
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
@@ -144,11 +157,14 @@ export async function loadLoreBookPrompt(){
 }
 
 
-export async function importLoreBook(mode:'global'|'local'){
+export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const selectedID = get(selectedCharID)
     let db = get(DataBase)
     const page = db.characters[selectedID].chatPage
-    let lore = mode === 'global' ? db.characters[selectedID].globalLore : db.characters[selectedID].chats[page].localLore
+    let lore = 
+        mode === 'global' ? db.characters[selectedID].globalLore : 
+        mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
+        db.characters[selectedID].chats[page].localLore
     const lorebook = (await selectSingleFile(['json'])).data
     if(!lorebook){
         return
@@ -189,6 +205,9 @@ export async function importLoreBook(mode:'global'|'local'){
         if(mode === 'global'){
             db.characters[selectedID].globalLore = lore
         }
+        if(mode === 'sglobal'){
+            db.loreBook[db.loreBookPage].data = lore
+        }
         else{
             db.characters[selectedID].chats[page].localLore = lore
         }
@@ -198,13 +217,15 @@ export async function importLoreBook(mode:'global'|'local'){
     }
 }
 
-export async function exportLoreBook(mode:'global'|'local'){
+export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
     try {
         const selectedID = get(selectedCharID)
         const db = get(DataBase)
         const page = db.characters[selectedID].chatPage
-        const lore = mode === 'global' ? db.characters[selectedID].globalLore : db.characters[selectedID].chats[page].localLore
-        
+        const lore = 
+            mode === 'global' ? db.characters[selectedID].globalLore : 
+            mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
+            db.characters[selectedID].chats[page].localLore        
         const stringl = Buffer.from(JSON.stringify({
             type: 'risu',
             ver: 1,

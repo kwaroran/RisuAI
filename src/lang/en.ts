@@ -268,5 +268,7 @@ export const languageEnglish = {
     ttsReadOnlyQuoted: "Read Only Quoted",
     ttsStop: "Stop TTS",
     askRemoval:"Ask Removal",
-    replaceGlobalNote: "Global Note Replacement"
+    replaceGlobalNote: "Global Note Replacement",
+    charLoreBook: 'Character Lorebook',
+    globalLoreBook: 'Global Lorebook',
 }
