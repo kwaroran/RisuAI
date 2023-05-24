@@ -65,10 +65,10 @@ export async function loadLoreBookPrompt(){
     const db = get(DataBase)
     const char = db.characters[selectedID]
     const page = char.chatPage
-    const characterLore = char.globalLore
-    const chatLore = char.chats[page].localLore
-    const globalLore = db.loreBook[db.loreBookPage].data
-    const fullLore = characterLore.concat(chatLore.concat(globalLore))
+    const characterLore = char.globalLore ?? []
+    const chatLore = char.chats[page].localLore ?? []
+    const globalLore = db.loreBook[db.loreBookPage].data ?? []
+    const fullLore = characterLore.concat(chatLore)
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
@@ -78,18 +78,20 @@ export async function loadLoreBookPrompt(){
     let formatedLore:formatedLore[] = []
 
     for (const lore of fullLore){
-        if(lore.key.length > 1 || lore.alwaysActive){
-            formatedLore.push({
-                keys: lore.alwaysActive ? 'always' : lore.key.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                    return a.length > 1
-                }),
-                secondKey: lore.selective ? lore.secondkey.replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                    return a.length > 1
-                }) : [],
-                content: lore.content,
-                order: lore.insertorder,
-                activatied: false
-            })
+        if(lore){
+            if(lore.key.length > 1 || lore.alwaysActive){
+                formatedLore.push({
+                    keys: lore.alwaysActive ? 'always' : (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                        return a.length > 1
+                    }),
+                    secondKey: lore.selective ? (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                        return a.length > 1
+                    }) : [],
+                    content: lore.content,
+                    order: lore.insertorder,
+                    activatied: false
+                })
+            }
         }
     }
 
