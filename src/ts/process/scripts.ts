@@ -14,7 +14,7 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
     let db = get(DataBase)
     let emoChanged = false
     const scripts = char.customscript.concat(db.globalscript ?? [])
-    for (const script of char.customscript){
+    for (const script of scripts){
         if(script.type === mode){
             const reg = new RegExp(script.in,'g')
             data = data.replace(reg, (v) => {

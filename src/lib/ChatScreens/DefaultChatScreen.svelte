@@ -199,8 +199,8 @@
                 loadPages += 30
             }
         }}>
-            <div class="flex items-end mt-2 mb-2">
-                <textarea class="text-neutral-200 p-2 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected maxw overflow-y-hidden overflow-x-hidden max-w-full"
+            <div class="flex items-end mt-2 mb-2 w-full">
+                <textarea class="text-neutral-200 p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {
@@ -374,9 +374,6 @@
     {/if}
 </div>
 <style>
-    .maxw{
-        max-width: calc(100vw - 10rem);
-    }
     .loadmove {
         animation: spin 1s linear infinite;
         border-radius: 50%;

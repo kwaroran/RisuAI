@@ -35,7 +35,7 @@
   import { language } from "../../lang";
   import Botpreset from "../Setting/botpreset.svelte";
   import { onDestroy } from "svelte";
-  import { isEqual } from "lodash";
+  import { cloneDeep, isEqual } from "lodash";
   import SidebarAvatar from "./SidebarAvatar.svelte";
   import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
   import { get } from "svelte/store";
@@ -138,6 +138,7 @@
     let mainFolderIndex = mainIndex.folder ? getFolderIndex(mainIndex.folder) : null
     let targetFolderIndex = targetIndex.folder ? getFolderIndex(targetIndex.folder) : null
     let mainFolderId = mainIndex.folder ? (db.characterOrder[mainFolderIndex] as folder).id : ''
+    let movingFolder:folder|false = false
     let mainId = ''
     if(mainIndex.folder){
       mainId = (db.characterOrder[mainFolderIndex] as folder).data[mainIndex.index]
@@ -145,14 +146,23 @@
     else{
       const da = db.characterOrder[mainIndex.index]
       if(typeof(da) !== 'string'){
-        return
+        mainId = da.id
+        movingFolder = cloneDeep(da)
+        if(targetIndex.folder){
+          return
+        }
       }
-      mainId = da
+      else{
+        mainId = da
+      }
     }
     if(targetIndex.folder){
         const folder = db.characterOrder[targetFolderIndex] as folder
         folder.data.splice(targetIndex.index,0,mainId)
         db.characterOrder[targetFolderIndex] = folder
+    }
+    else if(movingFolder){
+        db.characterOrder.splice(targetIndex.index,0,movingFolder)
     }
     else{
         db.characterOrder.splice(targetIndex.index,0,mainId)
@@ -178,6 +188,16 @@
       }
       else{
         console.log('folder not found')
+      }
+    }
+    else if(movingFolder){
+      let idList:string[] = []
+      for(const ord of db.characterOrder){
+        idList.push(typeof(ord) === 'string' ? ord : ord.id)
+      }
+      const ind = mainIndex.index > targetIndex.index ? idList.lastIndexOf(mainId) : idList.indexOf(mainId) 
+      if(ind !== -1){
+        db.characterOrder.splice(ind, 1)
       }
     }
     else{
