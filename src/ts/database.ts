@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.16.4'
+export let appVer = '1.17.0'
 
 
 export function setDatabase(data:Database){
@@ -187,6 +187,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.elevenLabKey)){
         data.elevenLabKey = ''
     }
+    if(checkNullish(data.voicevoxUrl)){
+        data.voicevoxUrl = ''
+    }
     if(checkNullish(data.supaMemoryPrompt)){
         data.supaMemoryPrompt = ''
     }
@@ -241,6 +244,12 @@ export function setDatabase(data:Database){
             name: "My First LoreBook",
             data: []
         }]
+    }
+    if(checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage){
+        data.loreBookPage = 0
+    }
+    if(checkNullish(data.globalscript)){
+        data.globalscript = []
     }
 
 
@@ -309,6 +318,12 @@ export interface character{
     }
     ttsMode?:string
     ttsSpeech?:string
+    voicevoxConfig?:{
+        SPEED_SCALE?: number
+        PITCH_SCALE?: number
+        INTONATION_SCALE?: number
+        VOLUME_SCALE?: number
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
@@ -447,6 +462,7 @@ export interface Database{
     requestproxy: string
     showUnrecommended:boolean
     elevenLabKey:string
+    voicevoxUrl:string
     useExperimental:boolean
     showMemoryLimit:boolean
     roundIcons:boolean
@@ -464,6 +480,8 @@ export interface Database{
         token:string,
         model:string
     }
+    globalscript: customscript[]
+
 }
 
 interface hordeConfig{

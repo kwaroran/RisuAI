@@ -14,7 +14,7 @@
     import { processScript } from "src/ts/process/scripts";
     import GithubStars from "../Others/GithubStars.svelte";
     import CreatorQuote from "./CreatorQuote.svelte";
-  import { stopTTS } from "src/ts/process/tts";
+    import { stopTTS } from "src/ts/process/tts";
 
     let messageInput = ''
     let openMenu = false
@@ -200,7 +200,7 @@
             }
         }}>
             <div class="flex items-end mt-2 mb-2">
-                <textarea class="text-neutral-200 p-2 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected maxw overflow-y-hidden overflow-x-hidden"
+                <textarea class="text-neutral-200 p-2 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected maxw overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {

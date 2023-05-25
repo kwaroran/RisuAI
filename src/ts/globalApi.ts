@@ -200,14 +200,53 @@ export async function saveDb(){
             )
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
+                await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
             }
             else{
                 await forageStorage.setItem('database/database.bin', dbData)
+                await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
             }
-            console.log('saved')
+            await getDbBackups()
         }
-
         await sleep(500)
+    }
+}
+
+
+async function getDbBackups() {
+    if(isTauri){
+        const keys = await readDir('database', {dir: BaseDirectory.AppData})
+        let backups:number[] = []
+        for(const key of keys){
+            if(key.name.startsWith("dbbackup-")){
+                let da = key.name.substring(9)
+                da = da.substring(0,da.length-4)
+                backups.push(parseInt(da))
+            }
+        }
+        backups.sort((a, b) => b - a)
+        while(backups.length > 20){
+            const last = backups.pop()
+            await removeFile(`database/dbbackup-${last}.bin`,{dir: BaseDirectory.AppData})
+        }
+        return backups
+    }
+    else{
+        const keys = await forageStorage.keys()
+        let backups:number[] = []
+        for(const key of keys){
+            if(key.startsWith("database/dbbackup-")){
+                let da = key.substring(18)
+                da = da.substring(0,da.length-4)
+                backups.push(parseInt(da))
+            }
+        }
+        console.log(backups)
+        while(backups.length > 20){
+            const last = backups.pop()
+            await forageStorage.removeItem(`database/dbbackup-${last}.bin`)
+        }
+        return backups
     }
 }
 
@@ -233,9 +272,26 @@ export async function loadData() {
                         pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
                     ,{dir: BaseDirectory.AppData})
                 }
-                setDatabase(
-                    JSON.parse(Buffer.from(pako.inflate(Buffer.from(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData})))).toString('utf-8'))
-                )
+                try {
+                    setDatabase(
+                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData})))).toString('utf-8'))
+                    )   
+                } catch (error) {
+                    const backups = await getDbBackups()
+                    let backupLoaded = false
+                    for(const backup of backups){
+                        try {
+                            const backupData = await readBinaryFile(`database/dbbackup-${backup}.bin`,{dir: BaseDirectory.AppData})
+                            setDatabase(
+                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                            )
+                            backupLoaded = true
+                        } catch (error) {}
+                    }
+                    if(!backupLoaded){
+                        throw "Your save file is corrupted"
+                    }
+                }
                 await checkUpdate()
                 await changeFullscreen()
     
@@ -246,9 +302,26 @@ export async function loadData() {
                     gotStorage = pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
-                setDatabase(
-                    JSON.parse(Buffer.from(pako.inflate(Buffer.from(gotStorage))).toString('utf-8'))
-                )
+                try {
+                    setDatabase(
+                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(gotStorage))).toString('utf-8'))
+                    )
+                } catch (error) {
+                    const backups = await getDbBackups()
+                    let backupLoaded = false
+                    for(const backup of backups){
+                        try {
+                            const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`)
+                            setDatabase(
+                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                            )
+                            backupLoaded = true
+                        } catch (error) {}
+                    }
+                    if(!backupLoaded){
+                        throw "Your save file is corrupted"
+                    }
+                }
                 const isDriverMode = await checkDriverInit()
                 if(isDriverMode){
                     return

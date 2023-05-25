@@ -21,7 +21,7 @@
 
 </script>
 
-<main class="flex bg-bg w-full h-full">
+<main class="flex bg-bg w-full h-full max-w-100vw">
     {#if !$loadedStore}
         <div class="w-full h-full flex justify-center items-center text-gray-200 text-xl">
             <span>Loading...</span>

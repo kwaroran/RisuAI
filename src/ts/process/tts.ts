@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../database";
+import { translateVox } from "../translator/translator";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -58,6 +59,44 @@ export async function sayTTS(character:character,text:string) {
                 alertError(await da.text())
             }
         }
+        case "VOICEVOX": {
+            const jpText = await translateVox(text)
+            console.log(jpText);
+            const audioContext = new AudioContext();
+            const query = await fetch(`${db.voicevoxUrl}/audio_query?text=${jpText}&speaker=${character.ttsSpeech}`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json"},
+            })
+            if (query.status == 200){
+                const queryJson = await query.json();
+                const bodyData = {
+                    accent_phrases: queryJson.accent_phrases,
+                    speedScale: character.voicevoxConfig.SPEED_SCALE,
+                    pitchScale: character.voicevoxConfig.PITCH_SCALE,
+                    volumeScale: character.voicevoxConfig.VOLUME_SCALE,
+                    intonationScale: character.voicevoxConfig.INTONATION_SCALE,
+                    prePhonemeLength: queryJson.prePhonemeLength,
+                    postPhonemeLength: queryJson.postPhonemeLength,
+                    outputSamplingRate: queryJson.outputSamplingRate,
+                    outputStereo: queryJson.outputStereo,
+                    kana: queryJson.kana,
+                }
+                console.log(JSON.stringify(bodyData))
+                console.log (bodyData)
+                const getVoice = await fetch(`${db.voicevoxUrl}/synthesis?speaker=${character.ttsSpeech}`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json"},
+                    body: JSON.stringify(bodyData),
+                })
+                if (getVoice.status == 200 && getVoice.headers.get('content-type') === 'audio/wav'){
+                    const audioBuffer = await audioContext.decodeAudioData(await getVoice.arrayBuffer())
+                    sourceNode = audioContext.createBufferSource();
+                    sourceNode.buffer = audioBuffer;
+                    sourceNode.connect(audioContext.destination);            
+                    sourceNode.start();
+                }
+            }
+        }
     }
 
 }
@@ -90,4 +129,16 @@ export async function getElevenTTSVoices() {
 
     console.log(res)
     return res.voices
+}
+
+export async function getVOICEVOXVoices() {
+    const db = get(DataBase);
+    const speakerData = await fetch(`${db.voicevoxUrl}/speakers`)
+    const speakerList = await speakerData.json()
+    const speakersInfo = speakerList.map((speaker) => {
+      const normalStyle = speaker.styles.find((style) => style.name === 'ノーマル' || 'ふつう' || '人間ver.')
+      return {'name': speaker.name, 'id': normalStyle.id}
+    })
+  
+    return speakersInfo;
 }

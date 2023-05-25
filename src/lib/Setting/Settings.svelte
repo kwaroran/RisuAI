@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActivityIcon, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -13,6 +13,7 @@
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
     import Lorepreset from "./lorepreset.svelte";
+  import GlobalRegex from "./Pages/GlobalRegex.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
@@ -55,6 +56,12 @@
                 }}>
                     <BookIcon />
                     <span>{language.globalLoreBook}</span>
+                </button>
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 9} on:click={() => {
+                    selected = 9
+                }}>
+                    <AlignLeft />
+                    <span>{language.globalRegexScript}</span>
                 </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 4} on:click={() => {
                     selected = 4
@@ -107,6 +114,8 @@
                     <Communities />
                 {:else if selected === 8}
                     <GlobalLoreBookSettings bind:openLoreList />
+                {:else if selected === 9}
+                    <GlobalRegex/>
                 {/if}
                 <button class="absolute top-2 right-2 hover:text-green-500" on:click={() => {
                     if(window.innerWidth >= 700){
