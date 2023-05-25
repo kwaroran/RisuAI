@@ -1,4 +1,6 @@
+import { get } from "svelte/store"
 import { translatorPlugin } from "../process/plugins"
+import { DataBase } from "../database"
 
 let cache={
     origin: [''],
@@ -8,7 +10,8 @@ let cache={
 let waitTrans = 0
 
 export async function translate(text:string, reverse:boolean) {
-    const plug = await translatorPlugin(text, reverse ? 'ko' : 'en', reverse ? 'en' : 'ko')
+    let db = get(DataBase)
+    const plug = await translatorPlugin(text, reverse ? db.translator: 'en', reverse ? 'en' : db.translator)
     if(plug){
         return plug.content
     }
@@ -29,12 +32,12 @@ export async function translate(text:string, reverse:boolean) {
 }
 
 async function googleTrans(text:string, reverse:boolean) {
-
+    let db = get(DataBase)
     const arg = {
 
-        from: reverse ? 'ko' : 'en',
+        from: reverse ? db.translator : 'en',
 
-        to: reverse ? 'en' : 'ko',
+        to: reverse ? 'en' : db.translator,
 
         host: 'translate.googleapis.com',
 
