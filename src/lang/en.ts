@@ -279,5 +279,6 @@ export const languageEnglish = {
     globalLoreBook: 'Global Lorebook',
     globalRegexScript: "Global Regex",
     accessibility: "Accessibility",
-    sendWithEnter: "Send with Enter Key"
+    sendWithEnter: "Send with Enter Key",
+    clickToEdit: "Click Text to Edit"
 }

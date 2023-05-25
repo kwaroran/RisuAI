@@ -485,6 +485,7 @@ export interface Database{
     }
     globalscript: customscript[]
     sendWithEnter:boolean
+    clickToEdit: boolean
 
 }
 

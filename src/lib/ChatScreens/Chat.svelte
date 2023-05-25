@@ -129,7 +129,12 @@
                 <AutoresizeArea bind:value={message} />
             {:else}
                 {#await ParseMarkdown(msgDisplay, character) then md} 
-                    <span class="text chat chattext prose prose-invert minw-0"
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                        if($DataBase.clickToEdit){
+                            editMode = true
+                        }
+                    }}
                         style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
                         style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
                     >{@html md}</span>
