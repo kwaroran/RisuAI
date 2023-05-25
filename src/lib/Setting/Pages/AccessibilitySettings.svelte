@@ -20,3 +20,8 @@
     <Check bind:check={$DataBase.instantRemove}/>
     <span>{language.instantRemove}</span>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.sendWithEnter}/>
+    <span>{language.sendWithEnter}</span>
+</div>

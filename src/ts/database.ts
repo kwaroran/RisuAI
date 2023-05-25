@@ -251,6 +251,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.globalscript)){
         data.globalscript = []
     }
+    if(checkNullish(data.sendWithEnter)){
+        data.sendWithEnter = true
+    }
 
 
     changeLanguage(data.language)
@@ -481,6 +484,7 @@ export interface Database{
         model:string
     }
     globalscript: customscript[]
+    sendWithEnter:boolean
 
 }
 
