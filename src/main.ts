@@ -18,7 +18,8 @@ if((!supports) || isIos){
   dragDrop.polyfill({
     // use this to make use of the scroll behaviour
     dragImageTranslateOverride: dragDropBehavior.scrollBehaviourDragImageTranslateOverride,
-    holdToDrag: 400
+    holdToDrag: 400,
+    forceApply: true
   });
 }
 
