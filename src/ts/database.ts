@@ -187,6 +187,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.elevenLabKey)){
         data.elevenLabKey = ''
     }
+    if(checkNullish(data.voicevoxUrl)){
+        data.voicevoxUrl = ''
+    }
     if(checkNullish(data.supaMemoryPrompt)){
         data.supaMemoryPrompt = ''
     }
@@ -309,6 +312,12 @@ export interface character{
     }
     ttsMode?:string
     ttsSpeech?:string
+    voicevoxConfig?:{
+        SPEED_SCALE?: number
+        PITCH_SCALE?: number
+        INTONATION_SCALE?: number
+        VOLUME_SCALE?: number
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
@@ -447,6 +456,7 @@ export interface Database{
     requestproxy: string
     showUnrecommended:boolean
     elevenLabKey:string
+    voicevoxUrl:string
     useExperimental:boolean
     showMemoryLimit:boolean
     roundIcons:boolean

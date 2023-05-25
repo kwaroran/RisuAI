@@ -286,7 +286,12 @@ export function characterFormatUpdate(index:number|character){
             creator: '',
             character_version: 0
         }
-
+        cha.voicevoxConfig = cha.voicevoxConfig ?? {
+            SPEED_SCALE: 1,
+            PITCH_SCALE: 0,
+            INTONATION_SCALE: 1,
+            VOLUME_SCALE: 1
+        }
         if(cha.postHistoryInstructions){
             cha.chats[cha.chatPage].note += "\n" + cha.postHistoryInstructions
             cha.chats[cha.chatPage].note = cha.chats[cha.chatPage].note.trim()

@@ -58,6 +58,8 @@
 <span class="text-neutral-200 mt-2">ElevenLabs API key</span>
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.elevenLabKey}>
 
+<span class="text-neutral-200 mt-2">VOICEVOX URL</span>
+<input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.voicevoxUrl}>
 
 <span class="text-neutral-200 mt-4 text-lg font-bold">{language.SuperMemory} <Help key="superMemory" /></span>
 <span class="text-neutral-200 mt-4">{language.SuperMemory} {language.model}</span>
