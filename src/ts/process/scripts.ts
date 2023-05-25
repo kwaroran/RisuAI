@@ -3,6 +3,7 @@ import { CharEmotion, selectedCharID } from "../stores";
 import { DataBase, type character } from "../database";
 
 const dreg = /{{data}}/g
+const randomness = /\|\|\|/g
 
 type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
 
@@ -17,15 +18,9 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
     for (const script of scripts){
         if(script.type === mode){
             const reg = new RegExp(script.in,'g')
-            data = data.replace(reg, (v) => {
-                const outScript = script.out.replace(dreg, v)
+            const outScript = script.out
+            if(outScript.startsWith('@@') && reg.test(data)){
                 if(outScript.startsWith('@@emo ')){
-                    if(char.viewScreen !== 'emotion'){
-                        return v
-                    }
-                    if(emoChanged){
-                        return v
-                    }
                     const emoName = script.out.substring(6).trim()
                     let charemotions = get(CharEmotion)
                     let tempEmotion = charemotions[char.chaId]
@@ -45,10 +40,15 @@ export function processScriptFull(char:character, data:string, mode:ScriptMode){
                             break
                         }
                     }
-                    return v
                 }
-                return outScript
-            })
+            }
+            else{
+                if(randomness.test(data)){
+                    const list = data.split('|||')
+                    data = list[Math.floor(Math.random()*list.length)];
+                }
+                data = data.replace(reg, outScript.replace(dreg, "$&"))
+            }
         }
     }
     return {data, emoChanged}

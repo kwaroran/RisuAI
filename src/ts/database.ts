@@ -7,7 +7,7 @@ import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.17.2'
+export let appVer = '1.18.0'
 
 
 export function setDatabase(data:Database){
@@ -251,6 +251,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.globalscript)){
         data.globalscript = []
     }
+    if(checkNullish(data.sendWithEnter)){
+        data.sendWithEnter = true
+    }
 
 
     changeLanguage(data.language)
@@ -481,6 +484,8 @@ export interface Database{
         model:string
     }
     globalscript: customscript[]
+    sendWithEnter:boolean
+    clickToEdit: boolean
 
 }
 

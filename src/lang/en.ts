@@ -51,13 +51,19 @@ export const languageEnglish = {
                 + "\n- if the key starts with **$**, the key's value will more likely to change."
                 + "\n\nwhen the image is first generated, you can only change it by modifying 'Current Image Generation Data' in below.",
 
-        regexScript: "Regex Script is a custom script that replaces string that matches IN to OUT.\n\nThere are three type options."
-                + "- **Modify Input** modifys user's input"
-                + "- **Modify Output** modifys character's output"
-                + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a normal string."
-                + "\n\n If OUT has {{data}} in string, it replaces to matched string."
-                + "\n\n If OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
-                + "\n\n- @@emo (emotion name)\n\n        if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
+        regexScript: "Regex Script is a custom script that replaces string that matches IN to OUT.\n\nThere four type options."
+                + "\n\n- **Modify Input** modifys user's input"
+                + "\n\n- **Modify Output** modifys character's output"
+                + "\n\n- **Modify Request Data** modifys current chat data when sent."
+                + "\n\n- **Modify Display** just modifies the text when shown without modifying chat data."
+                + "\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a string which can include replacement patterns. these are the patterns:"
+                + "\n\n- $$\n\n    - inserts $"
+                + "\n\n- $&\n\n    - inserts the matched substring."
+                + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
+                + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
+                + "\n\n- $(name)\n\n    - inserts the named group"
+                + "\n\nIf OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
+                + "\n\n- @@emo (emotion name)\n\n    - if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
         experimental: "This is a experimental setting. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
                 + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
@@ -224,9 +230,9 @@ export const languageEnglish = {
     sayNothing:"Input 'say nothing' when no string inputed",
     regexScript: "Regex Script",
     type: "Type",
-    editInput: "Modfiy Input",
-    editOutput: "Modfiy Output",
-    editProcess: "Modfiy Request Data",
+    editInput: "Modify Input",
+    editOutput: "Modify Output",
+    editProcess: "Modify Request Data",
     loadLatest: "Load Latest Backup",
     loadOthers: "Load Other Backups",
     exampleMessage: "Example Message",
@@ -271,6 +277,8 @@ export const languageEnglish = {
     replaceGlobalNote: "Global Note Replacement",
     charLoreBook: 'Character Lorebook',
     globalLoreBook: 'Global Lorebook',
-    globalRegexScript: "Regex Script",
-
+    globalRegexScript: "Global Regex",
+    accessibility: "Accessibility",
+    sendWithEnter: "Send with Enter Key",
+    clickToEdit: "Click Text to Edit"
 }

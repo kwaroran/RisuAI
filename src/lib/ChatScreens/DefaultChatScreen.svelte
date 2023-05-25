@@ -205,8 +205,10 @@
                     bind:this={inputEle}
                     on:keydown={(e) => {
                         if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
-                            send()
-                            e.preventDefault()
+                            if($DataBase.sendWithEnter){
+                                send()
+                                e.preventDefault()
+                            }
                         }
                         if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
                             reroll()
