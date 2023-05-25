@@ -180,7 +180,7 @@ export const languageKorean = {
                 + "\n- 키의 이름이 **$** 로 시작할 시, 값은 더 자주 변합니다."
                 + "\n\n이미지가 처음 생성된 이후부터는 '현재 이미지 생성 데이터'를 수정하여 변경할 수 있습니다.",
         experimental: "실험적 기능입니다. 불안정할 수 있습니다.",
-        regexScript: "정규식 스크립트는 캐릭터에 종속된 커스텀 스크립트입니다. IN의 조건에 맞는 문자열을 OUT으로 변경합니다.\n\n타입은 세가지가 있습니다."
+        regexScript: "정규식 스크립트는 IN의 조건에 맞는 문자열을 OUT으로 변경합니다.\n\n타입은 세가지가 있습니다."
             + "- **입력문 수정** 유저의 입력문을 수정합니다"
             + "- **출력문 수정** 캐릭터의 출력문을 수정합니다"
             + "- **리퀘스트 데이터 수정** 리퀘스트를 보낼 때 채팅 데이터를 수정합니다.\n\nIN은 flag가 없고, 양끝에 슬레시가 없는 Regex여야 합니다.\n\nOUT은 일반 문자열입니다."
@@ -250,5 +250,5 @@ export const languageKorean = {
     replaceGlobalNote: "글로벌 노트 덮어쓰기",
     charLoreBook: '캐릭터 로어북',
     globalLoreBook: '글로벌 로어북',
-
+    globalRegexScript: "글로별 정규식 스크립트",
 }

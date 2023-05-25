@@ -51,7 +51,7 @@ export const languageEnglish = {
                 + "\n- if the key starts with **$**, the key's value will more likely to change."
                 + "\n\nwhen the image is first generated, you can only change it by modifying 'Current Image Generation Data' in below.",
 
-        regexScript: "Regex Script is a custom script that is embbedded to the character. it replaces string that matches IN to OUT.\n\nThere are three type options."
+        regexScript: "Regex Script is a custom script that replaces string that matches IN to OUT.\n\nThere are three type options."
                 + "- **Modify Input** modifys user's input"
                 + "- **Modify Output** modifys character's output"
                 + "- **Modify Request Data** modifys current chat data when sent.\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a normal string."
@@ -271,4 +271,6 @@ export const languageEnglish = {
     replaceGlobalNote: "Global Note Replacement",
     charLoreBook: 'Character Lorebook',
     globalLoreBook: 'Global Lorebook',
+    globalRegexScript: "Regex Script",
+
 }

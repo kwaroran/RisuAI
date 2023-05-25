@@ -245,6 +245,12 @@ export function setDatabase(data:Database){
             data: []
         }]
     }
+    if(checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage){
+        data.loreBookPage = 0
+    }
+    if(checkNullish(data.globalscript)){
+        data.globalscript = []
+    }
 
 
     changeLanguage(data.language)
@@ -474,6 +480,8 @@ export interface Database{
         token:string,
         model:string
     }
+    globalscript: customscript[]
+
 }
 
 interface hordeConfig{
