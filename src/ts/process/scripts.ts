@@ -1,6 +1,10 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, type character } from "../database";
+import { DataBase, setDatabase, type character, type customscript } from "../database";
+import { downloadFile } from "../globalApi";
+import { alertError, alertNormal } from "../alert";
+import { language } from "src/lang";
+import { selectSingleFile } from "../util";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -11,10 +15,47 @@ export function processScript(char:character, data:string, mode:ScriptMode){
     return processScriptFull(char, data, mode).data
 }
 
+export function exportRegex(){
+    let db = get(DataBase)
+    const script = db.globalscript
+    const data = Buffer.from(JSON.stringify({
+        type: 'regex',
+        data: script
+    }), 'utf-8')
+    downloadFile(`regexscript_export.json`,data)
+    alertNormal(language.successExport)
+}
+
+export async function importRegex(){
+    const filedata = (await selectSingleFile(['json'])).data
+    if(!filedata){
+        return
+    }
+    let db = get(DataBase)
+    try {
+        const imported= JSON.parse(Buffer.from(filedata).toString('utf-8'))
+        if(imported.type === 'regex' && imported.data){
+            const datas:customscript[] = imported.data
+            const script = db.globalscript
+            for(const data of datas){
+                script.push(data)
+            }
+            db.globalscript = script
+            setDatabase(db)
+        }
+        else{
+            alertError("File invaid or corrupted")
+        }
+
+    } catch (error) {
+        alertError(`${error}`)
+    }
+}
+
 export function processScriptFull(char:character, data:string, mode:ScriptMode){
     let db = get(DataBase)
     let emoChanged = false
-    const scripts = char.customscript.concat(db.globalscript ?? [])
+    const scripts = (db.globalscript ?? []).concat(char.customscript)
     for (const script of scripts){
         if(script.type === mode){
             const reg = new RegExp(script.in,'g')

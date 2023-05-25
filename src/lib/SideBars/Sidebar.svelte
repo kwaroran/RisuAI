@@ -274,15 +274,12 @@
     folder?:string
   }
   const avatarDragStart = (ind:DragData, e:DragEv) => {
-    e.dataTransfer.setData("application/json", JSON.stringify({
-      type: "risuDrag",
-      index: ind
-    }))
+    e.dataTransfer.setData('text/plain', '');
     currentDrag = ind
     const avatar = e.currentTarget.querySelector('.avatar')
-      if(avatar){
-        e.dataTransfer.setDragImage(avatar, 10, 10);
-      }
+    if(avatar){
+      e.dataTransfer.setDragImage(avatar, 10, 10);
+    }
   }
 
   const avatarDragOver = (e:DragEv) => {
