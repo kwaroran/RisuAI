@@ -257,4 +257,5 @@ export const languageKorean = {
     charLoreBook: '캐릭터 로어북',
     globalLoreBook: '글로벌 로어북',
     globalRegexScript: "글로별 정규식",
+    accessibility: "접근성"
 }

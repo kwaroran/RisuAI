@@ -62,10 +62,6 @@
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.autoTranslate} />
-    <span>{language.autoTranslation}</span>
-</div>
-<div class="flex items-center mt-2">
     <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen}/>
     <span>{language.fullscreen}</span>
 </div>
@@ -100,25 +96,9 @@
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.swipe}/>
-    <span>{language.SwipeRegenerate}</span>
-</div>
-
-<div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.askRemoval}/>
-    <span>{language.askRemoval}</span>
-</div>
-
-<div class="flex items-center mt-2">
     <Check bind:check={$DataBase.roundIcons}/>
     <span>{language.roundIcons}</span>
 </div>
-
-<div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.instantRemove}/>
-    <span>{language.instantRemove}</span>
-</div>
-
 
 {#if $DataBase.textScreenColor}
     <div class="flex items-center mt-2">

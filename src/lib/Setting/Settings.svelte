@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -15,6 +15,7 @@
     import Lorepreset from "./lorepreset.svelte";
   import GlobalRegex from "./Pages/GlobalRegex.svelte";
   import LanguageSettings from "./Pages/LanguageSettings.svelte";
+  import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
@@ -57,6 +58,12 @@
                 }}>
                     <LanguagesIcon />
                     <span>{language.language}</span>
+                </button>
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 11} on:click={() => {
+                    selected = 11
+                }}>
+                    <AccessibilityIcon />
+                    <span>{language.accessibility}</span>
                 </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 8} on:click={() => {
                     selected = 8
@@ -125,6 +132,8 @@
                     <GlobalRegex/>
                 {:else if selected === 10}
                     <LanguageSettings/>
+                {:else if selected === 11}
+                    <AccessibilitySettings/>
                 {/if}
                 <button class="absolute top-2 right-2 hover:text-green-500" on:click={() => {
                     if(window.innerWidth >= 700){
