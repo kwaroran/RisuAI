@@ -200,15 +200,21 @@ export async function saveDb(){
             )
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
+                await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
             }
             else{
                 await forageStorage.setItem('database/database.bin', dbData)
+                await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
             }
-            console.log('saved')
         }
 
         await sleep(500)
     }
+}
+
+
+async function getDbBackups() {
+    
 }
 
 let usingSw = false

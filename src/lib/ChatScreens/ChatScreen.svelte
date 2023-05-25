@@ -26,7 +26,7 @@
     })()
 </script>
 {#if $DataBase.theme === ''}
-    <div class="flex-grow h-full" style={bgImg}>
+    <div class="flex-grow h-full min-w-0" style={bgImg}>
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
                 <ResizeBox />
