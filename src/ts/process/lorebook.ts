@@ -209,7 +209,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
         if(mode === 'global'){
             db.characters[selectedID].globalLore = lore
         }
-        if(mode === 'sglobal'){
+        else if(mode === 'sglobal'){
             db.loreBook[db.loreBookPage].data = lore
         }
         else{
