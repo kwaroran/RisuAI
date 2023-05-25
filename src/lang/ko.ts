@@ -180,13 +180,19 @@ export const languageKorean = {
                 + "\n- 키의 이름이 **$** 로 시작할 시, 값은 더 자주 변합니다."
                 + "\n\n이미지가 처음 생성된 이후부터는 '현재 이미지 생성 데이터'를 수정하여 변경할 수 있습니다.",
         experimental: "실험적 기능입니다. 불안정할 수 있습니다.",
-        regexScript: "정규식 스크립트는 IN의 조건에 맞는 문자열을 OUT으로 변경합니다.\n\n타입은 세가지가 있습니다."
-            + "- **입력문 수정** 유저의 입력문을 수정합니다"
-            + "- **출력문 수정** 캐릭터의 출력문을 수정합니다"
-            + "- **리퀘스트 데이터 수정** 리퀘스트를 보낼 때 채팅 데이터를 수정합니다.\n\nIN은 flag가 없고, 양끝에 슬레시가 없는 Regex여야 합니다.\n\nOUT은 일반 문자열입니다."
-            + "\n\n 만약 OUT 문자열에 {{data}}가 있으면, 매칭된 문자열로 바뀝니다."
-            + "\n\n 만약 OUT이 @@로 시작된다면, 특수한 효과를 냅니다"
-            + "\n\n- @@emo (emotion name)\n\n        감정 이미지 모드일 시 (emotion name)을 감정으로 정하고 감정 처리를 하지 않습니다.",
+        regexScript: "정규식 스크립트는 IN에 매칭되는 텍스트를 OUT으로 변경하는 스크립트입니다.\n\n네가지 옵션이 있습니다."
+                + "\n\n- **입력문 수정** 유저의 입력을 수정합니다"
+                + "\n\n- **출력문 수정** 캐릭터의 출력을 수정합니다"
+                + "\n\n- **리퀘스트 데이터 수정** 리퀘스트 시 데이터를 수정합니다"
+                + "\n\n- **디스플레이 수정** 실제 데이터를 건들지 않고, 표시되는 것만 수정합니다."
+                + "\n\nIN은 슬래시와 플레그가 없는 정규식이여야 합니다.\n\nOUT은 특수한 패턴이 포함될수 있는 문자열입니다. 패턴은 다음과 같습니다:"
+                + "\n\n- $$\n\n    - inserts $"
+                + "\n\n- $&\n\n    - inserts the matched substring."
+                + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
+                + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
+                + "\n\n- $(name)\n\n    - inserts the named group"
+                + "\n\nOUT이 **@@**로 시작 시, 문자열을 교체하지 않고, 특수한 효과를 냅니다. 효과는 다음과 같습니다:"
+                + "\n\n- @@emo (emotion name)\n\n    - 캐릭터가 감정 이미지 모드일시, 감정을 (emotion name)으로 정하고 감정을 더이상 교체하지 않습니다.",
     },
     setup: {
         chooseProvider: "AI 제공자를 선택해 주세요",
@@ -250,5 +256,5 @@ export const languageKorean = {
     replaceGlobalNote: "글로벌 노트 덮어쓰기",
     charLoreBook: '캐릭터 로어북',
     globalLoreBook: '글로벌 로어북',
-    globalRegexScript: "글로별 정규식 스크립트",
+    globalRegexScript: "글로별 정규식",
 }
