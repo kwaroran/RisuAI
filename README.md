@@ -27,3 +27,6 @@ Installer version
    - Choose it from 3 themes
  - **Customizable, Friendly UI**
    - Great Accessibility and mobile friendly
+
+## Discord
+ - https://discord.gg/JzP8tB9ZK8

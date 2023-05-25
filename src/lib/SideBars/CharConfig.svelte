@@ -15,7 +15,7 @@
     import Help from "../Others/Help.svelte";
     import RegexData from "./RegexData.svelte";
     import { exportChar } from "src/ts/characterCards";
-    import { getElevenTTSVoices, getWebSpeechTTSVoices } from "src/ts/process/tts";
+    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder } from "src/ts/globalApi";
 
     let subMenu = 0
@@ -460,6 +460,7 @@
             <option value="" class="bg-darkbg appearance-none">{language.disabled}</option>
             <option value="elevenlab" class="bg-darkbg appearance-none">ElevenLabs</option>
             <option value="webspeech" class="bg-darkbg appearance-none">Web Speech</option>
+            <option value="VOICEVOX" class="bg-darkbg appearance-none">VOICEVOX</option>
         </select>
         
 
@@ -489,8 +490,28 @@
                         {/each}
                 </select>
             {/await}
+         {:else if currentChar.data.ttsMode === 'VOICEVOX'}
+                <span class="text-neutral-200">Voice</span>
+                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
+                    {#await getVOICEVOXVoices() then voices}
+                        {#each voices as voice}
+                            <option value={voice.id} class="bg-darkbg appearance-none">{voice.name}</option>
+                        {/each}
+                    {/await}
+                </select>
+                <span class="text-neutral-200">Speed scale</span>
+                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.SPEED_SCALE}/>
+
+                <span class="text-neutral-200">Pitch scale</span>
+                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.PITCH_SCALE}/>
+
+                <span class="text-neutral-200">Volume scale</span>
+                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.VOLUME_SCALE}/>
+
+                <span class="text-neutral-200">Intonation scale</span>
+                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
         {/if}
-        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab'}
+        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
             <div class="flex items-center mt-2">
                 <Check bind:check={currentChar.data.ttsReadOnlyQuoted}/>
                 <span>{language.ttsReadOnlyQuoted}</span>

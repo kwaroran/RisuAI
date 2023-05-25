@@ -71,3 +71,44 @@ async function googleTrans(text:string, reverse:boolean) {
     return result
 
 }
+
+export async function translateVox(text:string) {
+    const plug = await translatorPlugin(text, 'en', 'jp')
+    if(plug){
+        return plug.content
+    }
+    
+    return jpTrans(text)
+}
+
+
+async function jpTrans(text:string) {
+
+    const host = 'translate.googleapis.com'
+
+    
+    const url = `https://${host}/translate_a/single?client=gtx&sl=auto&tl=ja&dt=t&q=` + encodeURIComponent(text)
+
+
+
+    const f = await fetch(url, {
+
+        method: "GET",
+
+    })
+
+    const res = await f.json()
+
+    
+
+    if(typeof(res) === 'string'){
+
+        return res as unknown as string
+
+    }
+
+    const result = res[0].map((s) => s[0]).filter(Boolean).join('');
+
+    return result
+
+}
