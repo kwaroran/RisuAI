@@ -164,7 +164,7 @@ export async function loadLoreBookPrompt(){
 export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const selectedID = get(selectedCharID)
     let db = get(DataBase)
-    const page = db.characters[selectedID].chatPage
+    const page = mode === 'sglobal' ? -1 : db.characters[selectedID].chatPage
     let lore = 
         mode === 'global' ? db.characters[selectedID].globalLore : 
         mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
@@ -225,7 +225,7 @@ export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
     try {
         const selectedID = get(selectedCharID)
         const db = get(DataBase)
-        const page = db.characters[selectedID].chatPage
+        const page = mode === 'sglobal' ? -1 :  db.characters[selectedID].chatPage
         const lore = 
             mode === 'global' ? db.characters[selectedID].globalLore : 
             mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
