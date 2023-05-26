@@ -61,7 +61,6 @@ export async function sayTTS(character:character,text:string) {
         }
         case "VOICEVOX": {
             const jpText = await translateVox(text)
-            console.log(jpText);
             const audioContext = new AudioContext();
             const query = await fetch(`${db.voicevoxUrl}/audio_query?text=${jpText}&speaker=${character.ttsSpeech}`, {
                 method: 'POST',
@@ -81,8 +80,6 @@ export async function sayTTS(character:character,text:string) {
                     outputStereo: queryJson.outputStereo,
                     kana: queryJson.kana,
                 }
-                console.log(JSON.stringify(bodyData))
-                console.log (bodyData)
                 const getVoice = await fetch(`${db.voicevoxUrl}/synthesis?speaker=${character.ttsSpeech}`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json"},
