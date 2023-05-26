@@ -56,7 +56,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
     switch(aiModel){
         case 'gpt35':
-        case 'gpt4':{
+        case 'gpt4':
+        case 'gpt4_32k':{
 
             for(let i=0;i<formated.length;i++){
                 if(arg.isGroupChat){
@@ -66,7 +67,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             const body = ({
-                model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo' : 'gpt-4',
+                model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                    : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
                 messages: formated,
                 temperature: arg.temperature ?? (db.temperature / 100),
                 max_tokens: arg.maxTokens ?? maxTokens,
