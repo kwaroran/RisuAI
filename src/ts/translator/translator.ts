@@ -65,7 +65,7 @@ async function googleTrans(text:string, reverse:boolean) {
 
     }
 
-    const result = res[0].map((s) => s[0]).filter(Boolean).join('');
+    const result = (res[0].map((s) => s[0]).filter(Boolean).join('') as string).replace(/\* ([^*]+)\*/g, '*$1*').replace(/\*([^*]+) \*/g, '*$1*');
 
     cache.origin.push(reverse ? result : text)
 

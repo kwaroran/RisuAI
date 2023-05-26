@@ -28,6 +28,9 @@ import { changeLanguage, language } from "src/lang";
     <option value="ja" class="bg-darkbg appearance-none">Japanese</option>
     <option value="fr" class="bg-darkbg appearance-none">French</option>
     <option value="es" class="bg-darkbg appearance-none">Spanish</option>
+    <option value="pt" class="bg-darkbg appearance-none">Portuguese</option>
+    <option value="de" class="bg-darkbg appearance-none">German</option>
+
 </select>
 
 {#if $DataBase.translator}
