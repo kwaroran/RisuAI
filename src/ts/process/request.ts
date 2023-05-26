@@ -37,6 +37,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
         if(da.type === 'success' || da.type === 'streaming' || da.noRetry){
             return da
         }
+        
         trys += 1
         if(trys > db.requestRetrys){
             return da
@@ -423,8 +424,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case "kobold":{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '')
             const url = new URL(db.koboldURL)
-            url.pathname = '/generate'
-
+            url.pathname = 'api/v1/generate'
+            
             const da = await fetch(url, {
                 method: "POST",
                 body: JSON.stringify({
@@ -446,7 +447,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             const data = await da.json()
-            return data.results[0].text
+            return {
+                type: 'success',
+                result: data.results[0].text
+            }
         }
         default:{     
             if(aiModel.startsWith("horde:::")){
