@@ -46,6 +46,7 @@
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
@@ -60,7 +61,7 @@
                 {/await}
             </Arcodion>
             {#if $DataBase.plugins.length > 0}
-                <button on:click={() => {changeModel('plugin')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
+                <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}
         </div>
     </div>
