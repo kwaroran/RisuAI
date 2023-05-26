@@ -241,7 +241,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     else{
         while(currentTokens > maxContextTokens){
             if(chats.length <= 1){
-                alertError(language.errors.toomuchtoken)
+                alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + currentTokens)
 
                 return false
             }

@@ -13,9 +13,9 @@
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
     import Lorepreset from "./lorepreset.svelte";
-  import GlobalRegex from "./Pages/GlobalRegex.svelte";
-  import LanguageSettings from "./Pages/LanguageSettings.svelte";
-  import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
+    import GlobalRegex from "./Pages/GlobalRegex.svelte";
+    import LanguageSettings from "./Pages/LanguageSettings.svelte";
+    import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
