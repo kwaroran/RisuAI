@@ -4,6 +4,7 @@ import { changeLanguage } from '../lang';
 import type { RisuPlugin } from './process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
+import type { S } from '@tauri-apps/api/dialog-20ff401c';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -386,6 +387,7 @@ export interface botPreset{
     forceReplaceUrl2:string
     promptPreprocess: boolean,
     bias: [string, number][]
+    koboldURL?: string
 }
 
 export interface Database{
@@ -486,6 +488,7 @@ export interface Database{
     globalscript: customscript[]
     sendWithEnter:boolean
     clickToEdit: boolean
+    koboldURL:string
 
 }
 
@@ -627,7 +630,9 @@ export function saveCurrentPreset(){
         forceReplaceUrl: db.forceReplaceUrl,
         forceReplaceUrl2: db.forceReplaceUrl2,
         promptPreprocess: db.promptPreprocess,
-        bias: db.bias
+        bias: db.bias,
+        koboldURL: db.koboldURL
+
     }
     db.botPresets = pres
     DataBase.set(db)
@@ -668,5 +673,6 @@ export function changeToPreset(id =0){
     db.promptPreprocess = newPres.promptPreprocess ?? db.promptPreprocess
     db.forceReplaceUrl2 = newPres.forceReplaceUrl2 ?? db.forceReplaceUrl2
     db.bias = newPres.bias ?? db.bias
+    db.koboldURL = newPres.koboldURL ?? db.koboldURL
     DataBase.set(db)
 }

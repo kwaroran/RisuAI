@@ -418,6 +418,34 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
         }
+        case "kobold":{
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const url = new URL(db.koboldURL)
+            url.pathname = '/generate'
+
+            const da = await fetch(url, {
+                method: "POST",
+                body: JSON.stringify({
+                    "prompt": proompt,
+                    "temperature": db.temperature,
+                    "top_p": 0.9
+                }),
+                headers: {
+                    "content-type": "application/json",
+                }
+            })
+
+            if(da.status !== 200){
+                return {
+                    type: "fail",
+                    result: await da.text(),
+                    noRetry: da.status >= 500
+                }
+            }
+
+            const data = await da.json()
+            return data.results[0].text
+        }
         default:{     
             if(aiModel.startsWith("horde:::")){
                 const proompt = stringlizeChat(formated, currentChar?.name ?? '')
@@ -432,8 +460,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "frmtrmblln": false,
                         "frmtrmspch": false,
                         "frmttriminc": false,
-                        "max_context_length": 200,
-                        "max_length": 20,
+                        "max_context_length": db.maxContext + 100,
+                        "max_length": db.maxResponse,
                         "rep_pen": 3,
                         "rep_pen_range": 0,
                         "rep_pen_slope": 10,

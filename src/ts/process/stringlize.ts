@@ -8,7 +8,7 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
     let resultString:string[] = []
     for(const form of formated){
         if(form.role === 'system'){
-            resultString.push("system note: " + form.content)
+            resultString.push("system: " + form.content)
         }
         else if(form.name){
             resultString.push(form.name + ": " + form.content)
@@ -23,7 +23,7 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string = ''){
     console.log(text)
     let minIndex = -1
-    let chunks:string[] = ["system note:"]
+    let chunks:string[] = ["system note:", "system:"]
     if(char){
         chunks.push(`${char}:`)
     }
