@@ -495,7 +495,7 @@
                 <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
                     {#await getVOICEVOXVoices() then voices}
                         {#each voices as voice}
-                            <option value={voice.id} class="bg-darkbg appearance-none">{voice.name}</option>
+                            <option value={voice.id} class="bg-darkbg appearance-none"  selected={currentChar.data.ttsSpeech === voice.id}>{voice.name}</option>
                         {/each}
                     {/await}
                 </select>
