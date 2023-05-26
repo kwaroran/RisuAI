@@ -4,11 +4,10 @@ import { changeLanguage } from '../lang';
 import type { RisuPlugin } from './process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
-import type { S } from '@tauri-apps/api/dialog-20ff401c';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.18.2'
+export let appVer = '1.19.0'
 
 
 export function setDatabase(data:Database){
