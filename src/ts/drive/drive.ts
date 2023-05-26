@@ -64,6 +64,12 @@ export async function checkDriverInit() {
                         msg: `Copy and paste this Auth Code: ${json.access_token}`
                     })
                 }
+                else if(da === 'accesstauri'){
+                    alertStore.set({
+                        type: 'wait2',
+                        msg: JSON.stringify(json)
+                    })
+                }
             }
             else{
                 alertError(await res.text())
