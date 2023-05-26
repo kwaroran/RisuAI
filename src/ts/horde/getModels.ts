@@ -3,7 +3,7 @@ import { sleep } from "../util"
 let modelList:string[]|'loading' = null
 
 //until horde is ready
-modelList = []
+// modelList = []
 
 export async function getHordeModels():Promise<string[]> {
     

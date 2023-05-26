@@ -23,6 +23,7 @@ interface requestDataArgument{
 type requestDataResponse = {
     type: 'success'|'fail'
     result: string
+    noRetry?: boolean
 }|{
     type: "streaming",
     result: ReadableStream<string>
@@ -33,11 +34,11 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     let trys = 0
     while(true){
         const da = await requestChatDataMain(arg, model)
-        if(da.type === 'success' || da.type === 'streaming'){
+        if(da.type === 'success' || da.type === 'streaming' || da.noRetry){
             return da
         }
         trys += 1
-        if(trys > db.requestRetrys || model.startsWith('horde')){
+        if(trys > db.requestRetrys){
             return da
         }
     }
@@ -419,21 +420,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
         default:{     
             if(aiModel.startsWith("horde:::")){
-                const realModel = aiModel.split(":::")[1].trim()
+                const proompt = stringlizeChat(formated, currentChar?.name ?? '')
 
-                const workers = ((await (await fetch("https://stablehorde.net/api/v2/workers")).json()) as {id:string,models:string[]}[]).filter((a) => {
-                    
-                    if(a && a.models && a.id){
-                        console.log(a)
-                        return a.models.includes(realModel)
-                    }
-                    return false
-                }).map((a) => {
-                    return a.id
-                })
+                const realModel = aiModel.split(":::")[1]
 
                 const argument = {
-                    "prompt": "string",
+                    "prompt": proompt,
                     "params": {
                         "n": 1,
                         "frmtadsnsp": false,
@@ -459,7 +451,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "trusted_workers": false,
                     "slow_workers": true,
                     "worker_blacklist": false,
-                    "dry_run": false
+                    "dry_run": false,
+                    "models": [realModel]
                 }
 
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
@@ -485,12 +478,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 } = await da.json()
 
                 let warnMessage = ""
-                if(json.message && json.message.startsWith("Warning:")){
+                if(json.message){
                     warnMessage = "with " + json.message
                 }
 
                 while(true){
-                    await sleep(1000)
+                    await sleep(2000)
                     const data = await (await fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id)).json()
                     if(!data.is_possible){
                         fetch("https://stablehorde.net/api/v2/generate/text/status/" + json.id, {
@@ -498,20 +491,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         })
                         return {
                             type: 'fail',
-                            result: "Response not possible" + warnMessage
+                            result: "Response not possible" + warnMessage,
+                            noRetry: true
                         }
                     }
-                    if(data.done){
+                    if(data.done && Array.isArray(data.generations) && data.generations.length > 0){
                         const generations:{text:string}[] = data.generations
                         if(generations && generations.length > 0){
                             return {
                                 type: "success",
-                                result: generations[0].text
+                                result: unstringlizeChat(generations[0].text, formated, currentChar?.name ?? '')
                             }
                         }
                         return {
                             type: 'fail',
-                            result: "No Generations when done"
+                            result: "No Generations when done",
+                            noRetry: true
                         }
                     }
                 }
