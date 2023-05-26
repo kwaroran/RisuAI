@@ -69,6 +69,12 @@
 
 {/if}
 
+{#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
+    <span class="text-neutral-200">Kobold URL</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.koboldURL}>
+{/if}
+
+
 {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
     <span class="text-neutral-200">Horde {language.apiKey}</span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm mb-2" bind:value={$DataBase.hordeConfig.apiKey}>
