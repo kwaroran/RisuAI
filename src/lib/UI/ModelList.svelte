@@ -13,6 +13,8 @@
                 return "GPT-3.5 Turbo"
             case "gpt4":
                 return "GPT-4"
+            case "gpt4_32k":
+                return "GPT-4 32k"
             case "palm2":
                 return "PaLM2"
             case "textgen_webui":
