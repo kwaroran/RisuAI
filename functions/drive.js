@@ -29,10 +29,7 @@ async function drive(request, env){
     const json = await resp.json()
 
     if(json.access_token && json.expires_in){
-        return new Response(JSON.stringify({
-            access_token: json.access_token,
-            expires_in: json.expires_in
-        }), {
+        return new Response(json, {
             status: 200,
             headers: headerE
         })
