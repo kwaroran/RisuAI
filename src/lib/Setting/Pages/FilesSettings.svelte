@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import { checkDriver } from "src/ts/drive/drive";
-    import { isTauri } from "src/ts/storage/globalApi";
+    import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
 
 </script>
 
@@ -11,7 +11,7 @@
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
-            if(isTauri){
+            if(isTauri || isNodeServer){
                 checkDriver('savetauri')
             }
             else{
@@ -27,7 +27,7 @@
     on:click={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
-            if(isTauri){
+            if(isTauri || isNodeServer){
                 checkDriver('loadtauri')
             }
             else{

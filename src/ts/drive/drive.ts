@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { DataBase, setDatabase, type Database } from "../storage/database";
-import { forageStorage, getUnpargeables, isTauri } from "../storage/globalApi";
+import { forageStorage, getUnpargeables, isNodeServer, isTauri, openURL } from "../storage/globalApi";
 import pako from "pako";
 import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { language } from "../../lang";
@@ -10,7 +10,7 @@ import { open } from '@tauri-apps/api/shell';
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
-    const REDIRECT_URI = isTauri ? "https://risuai.xyz/" : `https://${location.host}/`
+    const REDIRECT_URI = (isTauri || isNodeServer) ? "https://risuai.xyz/" : `https://${location.host}/`
     const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
     const encodedRedirectUri = encodeURIComponent(REDIRECT_URI);
     const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${type}`;
@@ -18,7 +18,7 @@ export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'re
 
     if(type === 'reftoken'){
         const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${"accesstauri"}&access_type=offline&prompt=consent`;
-        open(authorizationUrl)
+        openURL(authorizationUrl)
         return
     }
 
@@ -28,7 +28,12 @@ export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'re
     else{
         
         try {
-            open(authorizationUrl)
+            if(isTauri){
+                openURL(authorizationUrl)
+            }
+            else{
+                window.open(authorizationUrl)
+            }
             let code = await alertInput(language.pasteAuthCode)
             if(code.includes(' ')){
                 code = code.substring(code.lastIndexOf(' ')).trim()
