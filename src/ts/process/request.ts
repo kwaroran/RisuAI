@@ -430,7 +430,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 method: "POST",
                 body: JSON.stringify({
                     "prompt": proompt,
-                    "temperature": db.temperature,
+                    "temperature": (db.temperature / 100),
                     "top_p": 0.9
                 }),
                 headers: {
