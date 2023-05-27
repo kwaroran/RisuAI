@@ -1,5 +1,5 @@
 import { fetch } from "@tauri-apps/api/http";
-import { DataBase, appVer, setDatabase } from "./database";
+import { DataBase, appVer, setDatabase } from "./storage/database";
 import { alertConfirm, alertMd } from "./alert";
 import { language } from "../lang";
 import { get } from "svelte/store";

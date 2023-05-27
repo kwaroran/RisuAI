@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import { checkDriver } from "src/ts/drive/drive";
-    import { isTauri } from "src/ts/globalApi";
+    import { isTauri } from "src/ts/storage/globalApi";
 
 </script>
 

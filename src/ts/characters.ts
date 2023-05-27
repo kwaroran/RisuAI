@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc } from "./database";
+import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc } from "./storage/database";
 import exifr from 'exifr'
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
 import { language } from "../lang";
@@ -8,7 +8,7 @@ import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpa
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
-import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./globalApi";
+import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./storage/globalApi";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -41,6 +41,7 @@ export function createNewGroup(){
         firstMsgIndex: -1
     })
     setDatabase(db)
+    checkCharOrder()
     return db.characters.length - 1
 }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Check from "src/lib/Others/Check.svelte";
 import { changeLanguage, language } from "src/lang";
-    import { DataBase } from "src/ts/database";
+    import { DataBase } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
     let langChanged = false
 </script>

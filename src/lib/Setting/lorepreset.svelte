@@ -1,7 +1,7 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
     import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     let editMode = false
     export let close = () => {}

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import { DataBase, saveImage, updateTextTheme } from "src/ts/database";
+    import { DataBase, saveImage, updateTextTheme } from "src/ts/storage/database";
     import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
     import Check from "src/lib/Others/Check.svelte";
     import Help from "src/lib/Others/Help.svelte";

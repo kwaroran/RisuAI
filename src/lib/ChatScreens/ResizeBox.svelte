@@ -4,7 +4,7 @@
     import EmotionBox from './EmotionBox.svelte';
     import TransitionImage from './TransitionImage.svelte';
     import { getEmotion } from '../../ts/util';
-    import { DataBase } from '../../ts/database';
+    import { DataBase } from '../../ts/storage/database';
 
     let box;
     let isResizing = false;

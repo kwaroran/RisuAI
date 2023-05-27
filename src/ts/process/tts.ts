@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, type character } from "../database";
+import { DataBase, type character } from "../storage/database";
 import { translateVox } from "../translator/translator";
 
 let sourceNode:AudioBufferSourceNode = null
@@ -12,7 +12,7 @@ export async function sayTTS(character:character,text:string) {
 
     if(character.ttsReadOnlyQuoted){
         const matches = text.match(/"(.*?)"/g)
-        if(matches.length > 0){
+        if(matches && matches.length > 0){
             text = matches.map(match => match.slice(1, -1)).join("");
         }
         else{
@@ -89,7 +89,7 @@ export async function sayTTS(character:character,text:string) {
                     const audioBuffer = await audioContext.decodeAudioData(await getVoice.arrayBuffer())
                     sourceNode = audioContext.createBufferSource();
                     sourceNode.buffer = audioBuffer;
-                    sourceNode.connect(audioContext.destination);            
+                    sourceNode.connect(audioContext.destination);
                     sourceNode.start();
                 }
             }

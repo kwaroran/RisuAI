@@ -6,7 +6,7 @@
     settingsOpen,
     sideBarStore,
   } from "../../ts/stores";
-  import { DataBase, setDatabase, type folder } from "../../ts/database";
+  import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
   import BarIcon from "./BarIcon.svelte";
   import SidebarIndicator from "./SidebarIndicator.svelte";
   import {
@@ -41,7 +41,7 @@
   import { get } from "svelte/store";
   import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject } from "src/ts/util";
   import { v4 } from "uuid";
-  import { checkCharOrder } from "src/ts/globalApi";
+  import { checkCharOrder } from "src/ts/storage/globalApi";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;

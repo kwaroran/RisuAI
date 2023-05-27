@@ -1,7 +1,7 @@
 <script lang="ts">
     import { language } from "../../lang";
     import { tokenize } from "../../ts/tokenizer";
-    import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/database";
+    import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
@@ -16,7 +16,7 @@
     import RegexData from "./RegexData.svelte";
     import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
-    import { checkCharOrder } from "src/ts/globalApi";
+    import { checkCharOrder } from "src/ts/storage/globalApi";
 
     let subMenu = 0
     let subberMenu = 0

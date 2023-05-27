@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
-import { DataBase, setDatabase, type Database } from "../database";
-import { forageStorage, getUnpargeables, isTauri } from "../globalApi";
+import { DataBase, setDatabase, type Database } from "../storage/database";
+import { forageStorage, getUnpargeables, isTauri } from "../storage/globalApi";
 import pako from "pako";
 import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { language } from "../../lang";

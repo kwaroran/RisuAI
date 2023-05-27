@@ -1,7 +1,7 @@
 <script lang="ts">
     import Check from "src/lib/Others/Check.svelte";
     import { language } from "src/lang";
-    import { DataBase } from "src/ts/database";
+    import { DataBase } from "src/ts/storage/database";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.accessibility}</h2>

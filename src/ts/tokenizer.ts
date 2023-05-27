@@ -1,5 +1,5 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
-import type { character } from "./database";
+import type { character } from "./storage/database";
 
 async function encode(data:string):Promise<(number[]|Uint32Array)>{
     return await tikJS(data)

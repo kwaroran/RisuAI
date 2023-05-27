@@ -1,13 +1,13 @@
 import { get, writable } from 'svelte/store';
-import { checkNullish } from './util';
-import { changeLanguage } from '../lang';
-import type { RisuPlugin } from './process/plugins';
+import { checkNullish } from '../util';
+import { changeLanguage } from '../../lang';
+import type { RisuPlugin } from '../process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.19.1'
+export let appVer = '1.20.0'
 
 
 export function setDatabase(data:Database){

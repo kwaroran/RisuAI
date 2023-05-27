@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
     import { language } from "../../lang";
     import {selectedCharID} from '../../ts/stores'
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";

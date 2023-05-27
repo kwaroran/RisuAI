@@ -2,7 +2,7 @@
     import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, RefreshCcwIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
-    import { DataBase, appVer, type Message } from "../../ts/database";
+    import { DataBase, appVer, type Message } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
     import { doingChat, sendChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";

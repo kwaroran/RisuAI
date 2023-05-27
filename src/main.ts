@@ -1,7 +1,7 @@
 import "./styles.css";
 import "core-js/actual"
 import App from "./App.svelte";
-import { loadData } from "./ts/globalApi";
+import { loadData } from "./ts/storage/globalApi";
 import { initHotkey } from "./ts/hotkey";
 import { polyfill } from "./ts/polyfill";
 

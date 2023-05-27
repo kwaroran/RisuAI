@@ -2,9 +2,9 @@
     import Check from "src/lib/Others/Check.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
-    import { DataBase } from "src/ts/database";
+    import { DataBase } from "src/ts/storage/database";
     import { customProviderStore, getCurrentPluginMax } from "src/ts/process/plugins";
-    import { isTauri } from "src/ts/globalApi";
+    import { isTauri } from "src/ts/storage/globalApi";
     import { tokenize } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";

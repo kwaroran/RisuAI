@@ -2,8 +2,8 @@
     import Check from "src/lib/Others/Check.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
-    import { DataBase } from "src/ts/database";
-    import { isTauri } from "src/ts/globalApi";
+    import { DataBase } from "src/ts/storage/database";
+    import { isTauri } from "src/ts/storage/globalApi";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>

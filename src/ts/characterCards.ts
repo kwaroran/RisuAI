@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
 import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import exifr from 'exifr'
 import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
-import { checkCharOrder, downloadFile, readImage, saveAsset } from "./globalApi"
+import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 
 

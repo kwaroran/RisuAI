@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
     import { CharEmotion, SizeStore, selectedCharID, sideBarStore } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";

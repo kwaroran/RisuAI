@@ -2,7 +2,7 @@
   import { PlusIcon, TrashIcon } from "lucide-svelte";
   import { language } from "src/lang";
   import { alertConfirm } from "src/ts/alert";
-  import { DataBase } from "src/ts/database";
+  import { DataBase } from "src/ts/storage/database";
   import { importPlugin } from "src/ts/process/plugins";
 
 </script>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isTauri, openURL } from "src/ts/globalApi";
+  import { isTauri, openURL } from "src/ts/storage/globalApi";
 
 </script>
 <svelte:head>

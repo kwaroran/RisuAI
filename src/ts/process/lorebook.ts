@@ -1,11 +1,11 @@
 import { get } from "svelte/store";
 import {selectedCharID} from '../stores'
-import { DataBase, setDatabase, type loreBook } from "../database";
+import { DataBase, setDatabase, type loreBook } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
-import { downloadFile } from "../globalApi";
+import { downloadFile } from "../storage/globalApi";
 
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
