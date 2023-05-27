@@ -19,6 +19,9 @@ export function polyfill() {
             forceApply: true
           });
         }
+        else{
+          console.log("supports dragdrop")
+        }
     } catch (error) {
         
     }

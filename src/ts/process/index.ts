@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase, type character } from "../database";
+import { DataBase, setDatabase, type character } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
 import { tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";

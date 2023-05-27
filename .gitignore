@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist/
+save/
 dist-web/
 dist-ssr
 *.local
@@ -27,3 +28,4 @@ xplugin/
 /src-taurl/target/
 /src-taurl/gen/
 /build/
+pycache/

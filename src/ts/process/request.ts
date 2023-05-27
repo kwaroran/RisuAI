@@ -1,10 +1,10 @@
 import { get } from "svelte/store";
 import type { OpenAIChat } from ".";
-import { DataBase, setDatabase, type character } from "../database";
+import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
-import { globalFetch, isTauri } from "../globalApi";
+import { globalFetch, isTauri } from "../storage/globalApi";
 import { alertError } from "../alert";
 import { sleep } from "../util";
 

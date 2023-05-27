@@ -4,7 +4,7 @@
     import AutoresizeArea from "./AutoresizeArea.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, type character, type groupChat } from "../../ts/database";
+    import { DataBase, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "../../ts/translator/translator";
     import { replacePlaceholders } from "../../ts/util";

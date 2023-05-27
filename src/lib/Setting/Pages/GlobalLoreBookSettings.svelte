@@ -2,7 +2,7 @@
   import { language } from "src/lang";
   import Help from "src/lib/Others/Help.svelte";
   import LoreBookSetting from "src/lib/SideBars/LoreBookSetting.svelte";
-  import { DataBase } from "src/ts/database";
+  import { DataBase } from "src/ts/storage/database";
   export let openLoreList = false
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.globalLoreBook} <Help key="lorebook" /></h2>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { characterFormatUpdate, getCharImage } from "../../ts/characters";
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { User, Users } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";

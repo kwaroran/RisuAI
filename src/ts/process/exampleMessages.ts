@@ -1,5 +1,5 @@
 import type { OpenAIChat } from ".";
-import type { character } from "../database";
+import type { character } from "../storage/database";
 import { replacePlaceholders } from "../util";
 
 export function exampleMessage(char:character):OpenAIChat[]{

@@ -1,7 +1,7 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";

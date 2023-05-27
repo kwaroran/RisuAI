@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertToast, doingAlert } from "./alert"
-import { DataBase, changeToPreset as changeToPreset2  } from "./database"
+import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {

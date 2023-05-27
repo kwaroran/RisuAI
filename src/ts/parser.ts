@@ -1,7 +1,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
-import type { character, groupChat } from './database';
-import { getFileSrc } from './globalApi';
+import type { character, groupChat } from './storage/database';
+import { getFileSrc } from './storage/globalApi';
 import { processScript } from './process/scripts';
 
 const convertor = new showdown.Converter({

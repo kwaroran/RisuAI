@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import { openURL } from "src/ts/globalApi";
+    import { openURL } from "src/ts/storage/globalApi";
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.community}</h2>

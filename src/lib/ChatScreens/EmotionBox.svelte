@@ -1,5 +1,5 @@
 <script>
-    import { DataBase } from '../../ts/database';
+    import { DataBase } from '../../ts/storage/database';
     import { CharEmotion } from '../../ts/stores';
     import { getEmotion } from '../../ts/util';
 </script>

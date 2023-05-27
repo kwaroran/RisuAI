@@ -2,7 +2,7 @@
     import { XIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
-    import type { customscript } from "src/ts/database";
+    import type { customscript } from "src/ts/storage/database";
 
     export let value:customscript
     export let onRemove: () => void = () => {}

@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { DataBase } from "../../ts/database";
+    import { DataBase } from "../../ts/storage/database";
 
     let textarea;
     let previousScrollHeight = 0;

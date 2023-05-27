@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../process/plugins"
-import { DataBase } from "../database"
+import { DataBase } from "../storage/database"
 
 let cache={
     origin: [''],

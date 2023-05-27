@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, type character } from "../database";
+import { DataBase, type character } from "../storage/database";
 import { translateVox } from "../translator/translator";
 
 let sourceNode:AudioBufferSourceNode = null

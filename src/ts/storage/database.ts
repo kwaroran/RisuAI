@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
-import { checkNullish } from './util';
-import { changeLanguage } from '../lang';
-import type { RisuPlugin } from './process/plugins';
+import { checkNullish } from '../util';
+import { changeLanguage } from '../../lang';
+import type { RisuPlugin } from '../process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
 

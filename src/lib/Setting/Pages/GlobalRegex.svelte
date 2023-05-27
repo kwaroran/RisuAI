@@ -3,7 +3,7 @@
   import { language } from "src/lang";
   import Help from "src/lib/Others/Help.svelte";
   import RegexData from "src/lib/SideBars/RegexData.svelte";
-  import { DataBase } from "src/ts/database";
+  import { DataBase } from "src/ts/storage/database";
   import { exportRegex, importRegex } from "src/ts/process/scripts";
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.globalRegexScript} <Help key="regexScript" /></h2>

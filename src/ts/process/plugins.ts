@@ -1,10 +1,10 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { DataBase } from "../database";
+import { DataBase } from "../storage/database";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from ".";
-import { globalFetch } from "../globalApi";
+import { globalFetch } from "../storage/globalApi";
 import { selectedCharID } from "../stores";
 
 export const customProviderStore = writable([] as string[])

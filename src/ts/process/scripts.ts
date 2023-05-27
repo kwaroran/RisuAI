@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, setDatabase, type character, type customscript } from "../database";
-import { downloadFile } from "../globalApi";
+import { DataBase, setDatabase, type character, type customscript } from "../storage/database";
+import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";

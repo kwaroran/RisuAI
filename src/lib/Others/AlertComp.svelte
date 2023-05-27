@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { alertStore } from "../../ts/alert";
-    import { DataBase } from '../../ts/database';
+    import { DataBase } from '../../ts/storage/database';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';

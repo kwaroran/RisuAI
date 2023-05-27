@@ -1,8 +1,8 @@
 import { get } from "svelte/store"
-import { DataBase, type character } from "../database"
+import { DataBase, type character } from "../storage/database"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
-import { globalFetch } from "../globalApi"
+import { globalFetch } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
 import type { OpenAIChat } from "."
 

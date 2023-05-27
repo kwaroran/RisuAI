@@ -1,5 +1,5 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
-import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "./util"
+import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
 import localforage from 'localforage'
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4 } from 'uuid';
@@ -9,19 +9,22 @@ import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
-import { checkOldDomain, checkUpdate } from "./update";
-import { selectedCharID } from "./stores";
+import { checkOldDomain, checkUpdate } from "../update";
+import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
-import { loadPlugins } from "./process/plugins";
-import { alertError, alertStore } from "./alert";
-import { checkDriverInit } from "./drive/drive";
-import { hasher } from "./parser";
-import { characterHubImport } from "./characterCards";
+import { loadPlugins } from "../process/plugins";
+import { alertError, alertStore } from "../alert";
+import { checkDriverInit } from "../drive/drive";
+import { hasher } from "../parser";
+import { characterHubImport } from "../characterCards";
 import { cloneDeep } from "lodash";
+import { NodeStorage } from "./nodeStorage";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
-export const forageStorage = localforage.createInstance({
+//@ts-ignore
+export const isNodeServer = !!globalThis.__NODE__
+export const forageStorage = isNodeServer ? new NodeStorage() : localforage.createInstance({
     name: "risuai"
 })
 
@@ -554,7 +557,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     const da = await fetch(furl, {
                         body: JSON.stringify(arg.body),
                         headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers))
+                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                            "Content-Type": "application/json"
                         },
                         method: method
                     })
@@ -571,7 +575,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     const da = await fetch(furl, {
                         body: JSON.stringify(arg.body),
                         headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers))
+                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                            "Content-Type": "application/json"
                         },
                         method: method
                     })

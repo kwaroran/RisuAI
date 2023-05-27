@@ -3,7 +3,7 @@
     import { ArrowBigLeftIcon } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
     import { addDefaultCharacters } from "src/ts/characters";
-    import { DataBase } from "src/ts/database";
+    import { DataBase } from "src/ts/storage/database";
   import { sleep } from "src/ts/util";
 
     let step = 0

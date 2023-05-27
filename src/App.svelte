@@ -2,7 +2,7 @@
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import {ArrowRight} from 'lucide-svelte'
     import { SizeStore, settingsOpen, sideBarStore } from './ts/stores';
-    import { DataBase, loadedStore } from './ts/database';
+    import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import { alertStore } from './ts/alert';
