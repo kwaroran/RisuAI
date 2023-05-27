@@ -1,2 +1,4 @@
-npm build
-npm run runserver
+@echo off
+call npm install
+call npm run build
+call npm run runserver
