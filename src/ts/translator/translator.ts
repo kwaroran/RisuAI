@@ -92,8 +92,6 @@ async function jpTrans(text:string) {
     
     const url = `https://${host}/translate_a/single?client=gtx&sl=auto&tl=ja&dt=t&q=` + encodeURIComponent(text)
 
-
-
     const f = await fetch(url, {
 
         method: "GET",
@@ -102,16 +100,17 @@ async function jpTrans(text:string) {
 
     const res = await f.json()
 
-    
-
     if(typeof(res) === 'string'){
 
         return res as unknown as string
-
+    
     }
 
-    const result = res[0].map((s) => s[0]).filter(Boolean).join('');
+    let result = ''
+
+    if (res[0]) {
+    result = res[0].map((s) => s[0]).filter(Boolean).join('');
+    }
 
     return result
-
 }

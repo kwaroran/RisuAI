@@ -41,6 +41,7 @@ export function createNewGroup(){
         firstMsgIndex: -1
     })
     setDatabase(db)
+    checkCharOrder()
     return db.characters.length - 1
 }
 
