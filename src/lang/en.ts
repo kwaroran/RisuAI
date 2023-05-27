@@ -280,5 +280,7 @@ export const languageEnglish = {
     globalRegexScript: "Global Regex",
     accessibility: "Accessibility",
     sendWithEnter: "Send with Enter Key",
-    clickToEdit: "Click Text to Edit"
+    clickToEdit: "Click Text to Edit",
+    setNodePassword: "Set your password to security",
+    inputNodePassword: "Input your password. if you can't remember, remove save/__password.txt in your server files and restart the server."
 }

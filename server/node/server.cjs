@@ -2,16 +2,24 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const htmlparser = require('node-html-parser');
-const { existsSync, mkdirSync } = require('fs');
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const bodyParser = require('body-parser');
 const fs = require('fs/promises')
 
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(bodyParser.json({ limit: 100000000 }));
 
+
+let password = ''
+
 const savePath = path.join(process.cwd(), "save")
 if(!existsSync(savePath)){
     mkdirSync(savePath)
+}
+
+const passwordPath = path.join(process.cwd(), 'save', '__password')
+if(existsSync(passwordPath)){
+    password = readFileSync(passwordPath, 'utf-8')
 }
 
 app.get('/', async (req, res, next) => {
@@ -62,9 +70,38 @@ app.post('/proxy', async (req, res, next) => {
     res.send(originalBody);
 });
 
+app.get('/api/password', async(req, res)=> {
+    if(password === ''){
+        res.send({status: 'unset'})
+    }
+    else if(req.headers['risu-auth']  === password){
+        res.send({status:'correct'})
+    }
+    else{
+        res.send({status:'incorrect'})
+    }
+})
+
+
+app.post('/api/set_password', async (req, res) => {
+    if(password === ''){
+        password = req.body.password
+        writeFileSync(passwordPath, password, 'utf-8')
+    }
+    res.status(400).send("already set")
+})
+
 app.get('/api/read', async (req, res, next) => {
+    if(req.headers['risu-auth'].trim() !== password.trim()){
+        console.log('incorrect')
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
     const filePath = req.headers['file-path'];
     if (!filePath) {
+        console.log('no path')
         res.status(400).send({
             error:'File path required'
         });
@@ -91,6 +128,13 @@ app.get('/api/read', async (req, res, next) => {
 });
 
 app.get('/api/remove', async (req, res, next) => {
+    if(req.headers['risu-auth'].trim() !== password.trim()){
+        console.log('incorrect')
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
     const filePath = req.headers['file-path'];
     if (!filePath) {
         res.status(400).send({
@@ -110,6 +154,13 @@ app.get('/api/remove', async (req, res, next) => {
 });
 
 app.get('/api/list', async (req, res, next) => {
+    if(req.headers['risu-auth'].trim() !== password.trim()){
+        console.log('incorrect')
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
     try {
         const data = (await fs.readdir(path.join(savePath))).map((v) => {
             return Buffer.from(v, 'hex').toString('utf-8')
@@ -124,6 +175,13 @@ app.get('/api/list', async (req, res, next) => {
 });
 
 app.post('/api/write', async (req, res, next) => {
+    if(req.headers['risu-auth'].trim() !== password.trim()){
+        console.log('incorrect')
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
     const filePath = req.headers['file-path'];
     const fileContent = Buffer.from(req.body.content, 'base64');
     if (!filePath || !fileContent) {
