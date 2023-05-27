@@ -14,10 +14,15 @@
             btn.focus()
         }
         if($alertStore.type !== 'input'){
+            console.log('reset input')
             input = ''
         }
         
     })()
+
+    alertStore.subscribe(() => {
+        console.log('alup')
+    })
 </script>
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast'}
@@ -73,11 +78,12 @@
                     })
                 }}>OK</button>
             {:else if $alertStore.type === 'input'}
-                <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected" bind:value={input}>
+                <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected" value="" id="alert-input">
                 <button bind:this={btn} class="mt-4 border-borderc bg-transparent outline-none border-solid border-1 p-2 text-lg text-neutral-200 hover:bg-green-500 transition-colors focus:border-3" on:click={() => {
                     alertStore.set({
                         type: 'none',
-                        msg: input
+                        //@ts-ignore
+                        msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</button>
             {:else if $alertStore.type === 'selectChar'}
