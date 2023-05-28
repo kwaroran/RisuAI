@@ -54,7 +54,8 @@
 
     async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
-            msgDisplay = replacePlaceholders(message, name)
+            if(msgTranslated==='')
+                msgDisplay = replacePlaceholders(message, name)
             msgDisplay = await translate(replacePlaceholders(message, name), false)
             msgTranslated = msgDisplay
             translated = true;
