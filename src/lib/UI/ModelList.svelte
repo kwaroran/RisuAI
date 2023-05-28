@@ -1,10 +1,11 @@
 <script lang="ts">
     import { DataBase } from "src/ts/storage/database";
     import { getHordeModels } from "src/ts/horde/getModels";
-  import Arcodion from "./Arcodion.svelte";
-  import { language } from "src/lang";
+    import Arcodion from "./Arcodion.svelte";
+    import { language } from "src/lang";
 
     export let value = ""
+    export let onChange: (v:string) => void = (v) => {}
     let openOptions = false
 
     function getModelName(name:string){
@@ -34,6 +35,7 @@
     function changeModel(name:string){
         value = name
         openOptions = false
+        onChange(name)
     }
 </script>
 

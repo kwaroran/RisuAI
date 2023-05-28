@@ -488,7 +488,7 @@ export interface Database{
     sendWithEnter:boolean
     clickToEdit: boolean
     koboldURL:string
-
+    advancedBotSettings:boolean
 }
 
 interface hordeConfig{

@@ -238,7 +238,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(isNewAPI){
                 bodyTemplate = {
-                    'max_new_tokens': 80,
+                    'max_new_tokens': db.maxResponse,
                     'do_sample': true,
                     'temperature': (db.temperature / 100),
                     'top_p': 0.9,
@@ -458,6 +458,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const realModel = aiModel.split(":::")[1]
 
+                console.log(realModel)
                 const argument = {
                     "prompt": proompt,
                     "params": {
@@ -472,7 +473,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "rep_pen_range": 0,
                         "rep_pen_slope": 10,
                         "singleline": false,
-                        "temperature": db.temperature / 25,
+                        "temperature": db.temperature / 100,
                         "tfs": 1,
                         "top_a": 1,
                         "top_k": 100,
@@ -486,7 +487,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "slow_workers": true,
                     "worker_blacklist": false,
                     "dry_run": false,
-                    "models": [realModel]
+                    "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
                 }
 
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
