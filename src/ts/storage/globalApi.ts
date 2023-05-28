@@ -19,6 +19,7 @@ import { hasher } from "../parser";
 import { characterHubImport } from "../characterCards";
 import { cloneDeep } from "lodash";
 import { NodeStorage } from "./nodeStorage";
+import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -702,7 +703,12 @@ async function checkNewFormat() {
     if(!db.characterOrder){
         db.characterOrder = []
     }
-
+    if(db.mainPrompt === oldMainPrompt){
+        db.mainPrompt = defaultMainPrompt
+    }
+    if(db.mainPrompt === oldJailbreak){
+        db.mainPrompt = defaultJailbreak
+    }
 
     setDatabase(db)
     checkCharOrder()
