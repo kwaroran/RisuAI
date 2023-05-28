@@ -203,6 +203,8 @@ export const languageKorean = {
         apiKeyhelp: "이곳에서 API키를 얻을 수 있습니다: ",
         setupSelfHelp: "첫 셋업 화면이 끝난 뒤, 설정에서 직접 수정해 주세요",
         theme: "테마를 입력해 주세요",
+        themeDescWifulike: "모바일에 적합하지 않습니다",
+        themeDescWifuCut: "모바일 환경에 적합합니다",
         texttheme: "텍스트 색상을 선택해주세요",
         inputName: "마지막으로, 닉네임을 입력해 주세요"
     },
