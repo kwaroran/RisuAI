@@ -36,13 +36,13 @@ export function setDatabase(data:Database){
         data.maxContext = 4000
     }
     if(checkNullish(data.maxResponse)){
-        data.maxResponse = 300
+        data.maxResponse = 500
     }
     if(checkNullish(data.frequencyPenalty)){
-        data.frequencyPenalty = 30
+        data.frequencyPenalty = 70
     }
     if(checkNullish(data.PresensePenalty)){
-        data.PresensePenalty = 30
+        data.PresensePenalty = 70
     }
     if(checkNullish(data.aiModel)){
         data.aiModel = 'gpt35'
