@@ -366,7 +366,7 @@ export async function loadData() {
     }
 }
 
-const knownHostes = ["localhost","172.0.0.1","api.openai.com"]
+const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
 
 export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET"}) {
     try {
