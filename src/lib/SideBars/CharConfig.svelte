@@ -491,14 +491,22 @@
                 </select>
             {/await}
          {:else if currentChar.data.ttsMode === 'VOICEVOX'}
-                <span class="text-neutral-200">Voice</span>
-                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
+                <span class="text-neutral-200">Speaker</span>
+                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.voicevoxConfig.speaker}>
                     {#await getVOICEVOXVoices() then voices}
                         {#each voices as voice}
-                            <option value={voice.id} class="bg-darkbg appearance-none"  selected={currentChar.data.ttsSpeech === voice.id}>{voice.name}</option>
+                            <option value={voice.list} class="bg-darkbg appearance-none"  selected={currentChar.data.voicevoxConfig.speaker === voice.list}>{voice.name}</option>
                         {/each}
                     {/await}
                 </select>
+                {#if currentChar.data.voicevoxConfig.speaker}
+                <span class="text=neutral-200">Style</span>
+                <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={currentChar.data.ttsSpeech}>
+                {#each JSON.parse(currentChar.data.voicevoxConfig.speaker) as styles}
+                        <option value={styles.id} class="bg-darkbg appearance-none" selected={currentChar.data.ttsSpeech === styles.id}>{styles.name}</option>
+                {/each}
+                </select>
+                {/if}
                 <span class="text-neutral-200">Speed scale</span>
                 <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.SPEED_SCALE}/>
 
@@ -510,6 +518,7 @@
 
                 <span class="text-neutral-200">Intonation scale</span>
                 <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
+                <span class="text-sm mb-2 text-gray-400">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
         {/if}
         {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
             <div class="flex items-center mt-2">

@@ -322,6 +322,7 @@ export interface character{
     ttsMode?:string
     ttsSpeech?:string
     voicevoxConfig?:{
+        speaker?: string
         SPEED_SCALE?: number
         PITCH_SCALE?: number
         INTONATION_SCALE?: number
