@@ -94,6 +94,8 @@ export const languageEnglish = {
         apiKeyhelp: "You can get api key from: ",
         setupSelfHelp: "Setup yourself in settings, after Welcome screen ends.",
         theme: "Select your theme",
+        themeDescWifulike: "Not suitable for mobile",
+        themeDescWifuCut: "Suitable for mobile",
         texttheme: "Select your text color",
         inputName: "Lastly, Input your Nickname."
     },

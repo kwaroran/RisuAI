@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, ChevronLeftIcon, ChevronRightIcon, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon } from "lucide-svelte";
     import { ParseMarkdown } from "../../ts/parser";
     import AutoresizeArea from "./AutoresizeArea.svelte";
     import { alertConfirm } from "../../ts/alert";
@@ -22,7 +22,8 @@
     export let altGreeting = false
 
     let msgDisplay = ''
-
+    let msgTranslated = ''
+    let translated = false;
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
@@ -53,8 +54,11 @@
 
     async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
-            msgDisplay = replacePlaceholders(message, name)
+            if(msgTranslated==='')
+                msgDisplay = replacePlaceholders(message, name)
             msgDisplay = await translate(replacePlaceholders(message, name), false)
+            msgTranslated = msgDisplay
+            translated = true;
         }
         else{
             msgDisplay = replacePlaceholders(message, name)
@@ -77,7 +81,7 @@
                 <span class="chat text-xl unmargin">{name}</span>
                 <div class="flex-grow flex items-center justify-end text-gray-500">
                     {#if idx > -1}
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class={"hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
                                 editMode = true
                             }
@@ -93,17 +97,26 @@
                         </button>
                     {/if}
                     {#if $DataBase.translator !== ''}
-                        <button class="ml-2 cursor-pointer hover:text-green-500 transition-colors" class:translating={translating} on:click={async () => {
+                        <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} on:click={async () => {
                             if(translating){
                                 return
                             }
-                            if(msgDisplay === replacePlaceholders(message, name)){
+                            if(!translated){
                                 translating = true
+                                if(msgTranslated !== ''){
+                                    msgDisplay = msgTranslated
+                                    translating = false
+                                    translated = true
+                                    return
+                                }
                                 msgDisplay = (await translate(replacePlaceholders(message, name), false))
+                                msgTranslated = msgDisplay
                                 translating = false
+                                translated = true
                             }
                             else{
                                 msgDisplay = replacePlaceholders(message, name)
+                                translated = false
                             }
                         }}>
                             <LanguagesIcon />

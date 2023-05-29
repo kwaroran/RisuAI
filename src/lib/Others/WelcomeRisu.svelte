@@ -23,10 +23,12 @@
             <div class="flex flex-col items-start ml-2">
                 <button class="hover:text-green-500 transition-colors" on:click={() => {
                     changeLanguage('en')
+                    $DataBase.language='en'
                     step = 1
                 }}>• English</button>
                 <button class="hover:text-green-500 transition-colors" on:click={() => {
                     changeLanguage('ko')
+                    $DataBase.language='ko'
                     step = 1
                 }}>• 한국어</button>
             </div>
@@ -100,14 +102,19 @@
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
                     $DataBase.theme = 'waifu'
                     step += 1
-                }}><span>• Waifulike (Not suitable for mobile)</span>
+                }}><span>• Waifulike ({language.setup.themeDescWifulike})</span>
                 <img class="w-3/4 mt-2" src="/ss3.webp" alt="example"></button>
+                <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
+                    $DataBase.theme = 'waifuMobile'
+                    step += 1
+                }}><span>• WaifuCut ({language.setup.themeDescWifuCut})</span>
+                <img class="w-3/4 mt-2" src="/ss4.webp" alt="example"></button>
             </div>
         {:else if step === 4}
             <h2>{language.setup.texttheme}</h2>
             <div class="flex flex-col items-start ml-2">
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = ''
+                    $DataBase.textTheme = 'standard'
                     step += 1
                 }}><span>• {language.classicRisu}</span>
                     <div class="border-borderc py-2 px-8 not-prose">
@@ -120,7 +127,7 @@
             </div>
             <div class="flex flex-col items-start ml-2 mt-2 mb-2">
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
-                    $DataBase.theme = ''
+                    $DataBase.textTheme = 'highcontrast'
                     step += 1
                 }}><span>• {language.highcontrast}</span>
                     <div class="border-borderc p-2 py-2 px-8  not-prose">
