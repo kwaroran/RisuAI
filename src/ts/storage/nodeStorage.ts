@@ -25,7 +25,6 @@ export class NodeStorage{
         if(data.error){
             throw data.error
         }
-
     }
     async getItem(key:string):Promise<Buffer> {
         await this.checkAuth()
@@ -125,6 +124,9 @@ export class NodeStorage{
                     }
                 }
             }
+            else{
+                authChecked = true
+            }
         }
     }
 
@@ -133,8 +135,15 @@ export class NodeStorage{
 }
 
 async function digestPassword(message:string) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(message);
-    const hash = Buffer.from(await crypto.subtle.digest("SHA-256", data)).toString('hex');
-    return hash;
-  }
+    const crypt = await (await fetch('/api/crypto', {
+        body: JSON.stringify({
+            data: message
+        }),
+        headers: {
+            'content-type': 'application/json'
+        },
+        method: "POST"
+    })).text()
+    
+    return crypt;
+}
