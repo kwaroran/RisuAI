@@ -424,15 +424,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case "kobold":{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '')
             const url = new URL(db.koboldURL)
-            url.pathname = 'api/v1/generate'
+            if(url.pathname.length < 3){
+                url.pathname = 'api/v1/generate'
+            }
             
             const da = await globalFetch(url.toString(), {
                 method: "POST",
-                body: JSON.stringify({
+                body: {
                     "prompt": proompt,
                     "temperature": (db.temperature / 100),
                     "top_p": 0.9
-                }),
+                },
                 headers: {
                     "content-type": "application/json",
                 }
