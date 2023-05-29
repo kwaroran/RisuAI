@@ -9,7 +9,7 @@
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
-  import { onDestroy } from "svelte";
+    import { onDestroy } from "svelte";
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
