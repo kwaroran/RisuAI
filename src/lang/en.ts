@@ -94,6 +94,8 @@ export const languageEnglish = {
         apiKeyhelp: "You can get api key from: ",
         setupSelfHelp: "Setup yourself in settings, after Welcome screen ends.",
         theme: "Select your theme",
+        themeDescWifulike: "Not suitable for mobile",
+        themeDescWifuCut: "Suitable for mobile",
         texttheme: "Select your text color",
         inputName: "Lastly, Input your Nickname."
     },
@@ -282,5 +284,7 @@ export const languageEnglish = {
     sendWithEnter: "Send with Enter Key",
     clickToEdit: "Click Text to Edit",
     setNodePassword: "Set your password to security",
-    inputNodePassword: "Input your password. if you can't remember, remove save/__password.txt in your server files and restart the server."
+    inputNodePassword: "Input your password. if you can't remember, remove save/__password.txt in your server files and restart the server.",
+    simple:"Simple",
+    advanced: "Advanced"
 }

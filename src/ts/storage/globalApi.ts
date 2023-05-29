@@ -19,6 +19,7 @@ import { hasher } from "../parser";
 import { characterHubImport } from "../characterCards";
 import { cloneDeep } from "lodash";
 import { NodeStorage } from "./nodeStorage";
+import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -366,7 +367,7 @@ export async function loadData() {
     }
 }
 
-const knownHostes = ["localhost","172.0.0.1"]
+const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
 
 export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET"}) {
     try {
@@ -702,7 +703,12 @@ async function checkNewFormat() {
     if(!db.characterOrder){
         db.characterOrder = []
     }
-
+    if(db.mainPrompt === oldMainPrompt){
+        db.mainPrompt = defaultMainPrompt
+    }
+    if(db.mainPrompt === oldJailbreak){
+        db.mainPrompt = defaultJailbreak
+    }
 
     setDatabase(db)
     checkCharOrder()

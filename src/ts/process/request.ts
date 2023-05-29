@@ -238,7 +238,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(isNewAPI){
                 bodyTemplate = {
-                    'max_new_tokens': 80,
+                    'max_new_tokens': db.maxResponse,
                     'do_sample': true,
                     'temperature': (db.temperature / 100),
                     'top_p': 0.9,
@@ -426,7 +426,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const url = new URL(db.koboldURL)
             url.pathname = 'api/v1/generate'
             
-            const da = await fetch(url, {
+            const da = await globalFetch(url.toString(), {
                 method: "POST",
                 body: JSON.stringify({
                     "prompt": proompt,
@@ -438,15 +438,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             })
 
-            if(da.status !== 200){
+            if(!da.ok){
                 return {
                     type: "fail",
-                    result: await da.text(),
-                    noRetry: da.status >= 500
+                    result: da.data,
+                    noRetry: true
                 }
             }
 
-            const data = await da.json()
+            const data = da.data
             return {
                 type: 'success',
                 result: data.results[0].text
@@ -458,6 +458,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const realModel = aiModel.split(":::")[1]
 
+                console.log(realModel)
                 const argument = {
                     "prompt": proompt,
                     "params": {
@@ -472,7 +473,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "rep_pen_range": 0,
                         "rep_pen_slope": 10,
                         "singleline": false,
-                        "temperature": db.temperature / 25,
+                        "temperature": db.temperature / 100,
                         "tfs": 1,
                         "top_a": 1,
                         "top_k": 100,
@@ -486,7 +487,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "slow_workers": true,
                     "worker_blacklist": false,
                     "dry_run": false,
-                    "models": [realModel]
+                    "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
                 }
 
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {

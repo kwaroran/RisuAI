@@ -9,6 +9,7 @@
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
+    import { onDestroy } from "svelte";
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
@@ -31,16 +32,60 @@
         tokens.jailbreak = await tokenize($DataBase.jailbreak)
         tokens.globalNote = await tokenize($DataBase.globalNote)
     }
+
+    let advancedBotSettings = false
+    const unsub = DataBase.subscribe(db => {
+        if(db.advancedBotSettings !== advancedBotSettings){
+            advancedBotSettings = db.advancedBotSettings
+            
+        }
+    })
+
+    onDestroy(() => {
+        unsub()
+    })
     
     $: loadTokenize()
+
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
-<span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
-<ModelList bind:value={$DataBase.aiModel}/>
-<span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
-<ModelList bind:value={$DataBase.subModel}/>
+<div class="flex w-full mb-4">
+    <button on:click={() => {
+        $DataBase.advancedBotSettings = false
+    }} class="flex-1 border-solid  p-2 flex justify-center cursor-pointer rounded-l-lg bg-darkbg" class:bg-selected={!$DataBase.advancedBotSettings}>
+        <span>{language.simple}</span>
+    </button>
+    <button on:click={() => {
+        $DataBase.advancedBotSettings = true
+    }} class="flex-1 border-solid border-l-transparent p-2 flex justify-center cursor-pointer rounded-r-lg bg-darkbg" class:bg-selected={$DataBase.advancedBotSettings}>
+        <span>{language.advanced}</span>
+    </button>
+</div>
+{#if advancedBotSettings}
+    <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
+    <ModelList bind:value={$DataBase.aiModel}/>
 
+    <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
+    <ModelList bind:value={$DataBase.subModel}/>
+{:else}
+    <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
+    <ModelList bind:value={$DataBase.aiModel} onChange={(v) => {
+        $DataBase.subModel = v
+        if(v.startsWith('gpt') || v.startsWith('palm2')){
+            $DataBase.maxContext = 4000
+            $DataBase.maxResponse = 500
+        }
+        else{
+            $DataBase.maxContext = 1500
+            $DataBase.maxResponse = 200
+            if(v.startsWith('horde')){
+                $DataBase.maxResponse = 100
+            }
+        }
+    }}/>
+
+{/if}
 
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
@@ -89,18 +134,18 @@
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
 {/if}
-<span class="text-neutral-200">{language.mainPrompt} <Help key="mainprompt"/></span>
-<textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.mainPrompt}></textarea>
-<span class="text-gray-400 mb-6 text-sm">{tokens.mainPrompt} {language.tokens}</span>
-<span class="text-neutral-200">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
-<textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.jailbreak}></textarea>
-<span class="text-gray-400 mb-6 text-sm">{tokens.jailbreak} {language.tokens}</span>
-<span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
-<textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.globalNote}></textarea>
+{#if advancedBotSettings}
+    <span class="text-neutral-200">{language.mainPrompt} <Help key="mainprompt"/></span>
+    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.mainPrompt}></textarea>
+    <span class="text-gray-400 mb-6 text-sm">{tokens.mainPrompt} {language.tokens}</span>
+    <span class="text-neutral-200">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
+    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.jailbreak}></textarea>
+    <span class="text-gray-400 mb-6 text-sm">{tokens.jailbreak} {language.tokens}</span>
+    <span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
+    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.globalNote}></textarea>
 
-<span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>
-<span class="text-neutral-200">{language.maxContextSize}</span>
-
+    <span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>
+    <span class="text-neutral-200">{language.maxContextSize}</span>
 {#if $DataBase.aiModel === 'gpt35'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="4000" bind:value={$DataBase.maxContext}>
 {:else if $DataBase.aiModel === 'gpt4' || $DataBase.aiModel === 'textgen_webui'}
@@ -126,11 +171,11 @@
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl} placeholder="Leave blank to not replace url">
 <span class="text-neutral-200 mt-2">{language.submodel} {language.forceReplaceUrl} <Help key="forceUrl"/></span>
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl2} placeholder="Leave blank to not replace url">
+{/if}
 
 
 
-<details class="mt-4">
-    <summary class="mb-2">{language.advancedSettings}</summary>
+{#if advancedBotSettings}
     <span class="text-neutral-200 mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
     <DropList bind:list={$DataBase.formatingOrder} />
     <span class="text-neutral-200 mt-2">Bias <Help key="bias"/></span>
@@ -170,7 +215,7 @@
         <Check bind:check={$DataBase.promptPreprocess}/>
         <span>{language.promptPreprocess}</span>
     </div>
-</details>
 
 <button on:click={() => {openPresetList = true}} class="mt-4 drop-shadow-lg p-3 border-borderc border-solid flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected">{language.presets}</button>
 
+{/if}

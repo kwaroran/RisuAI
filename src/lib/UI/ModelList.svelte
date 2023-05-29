@@ -1,10 +1,12 @@
 <script lang="ts">
     import { DataBase } from "src/ts/storage/database";
     import { getHordeModels } from "src/ts/horde/getModels";
-  import Arcodion from "./Arcodion.svelte";
-  import { language } from "src/lang";
+    import Arcodion from "./Arcodion.svelte";
+    import { language } from "src/lang";
+  import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
 
     export let value = ""
+    export let onChange: (v:string) => void = (v) => {}
     let openOptions = false
 
     function getModelName(name:string){
@@ -23,6 +25,8 @@
                 return "Kobold"
             case "custom":
                 return "Plugin"
+            case "novelai":
+                return "NovelAI"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -34,6 +38,7 @@
     function changeModel(name:string){
         value = name
         openOptions = false
+        onChange(name)
     }
 </script>
 
@@ -53,6 +58,9 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
+            {#if isTauri ||isNodeServer}
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
+            {/if}
             <Arcodion name="Horde">
                 {#await getHordeModels()}
                     <button class="p-2">Loading...</button>
