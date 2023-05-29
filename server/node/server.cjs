@@ -5,7 +5,7 @@ const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const bodyParser = require('body-parser');
 const fs = require('fs/promises')
-
+const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(bodyParser.json({ limit: 100000000 }));
 
@@ -20,6 +20,10 @@ if(!existsSync(savePath)){
 const passwordPath = path.join(process.cwd(), 'save', '__password')
 if(existsSync(passwordPath)){
     password = readFileSync(passwordPath, 'utf-8')
+}
+const hexRegex = /^[0-9a-fA-F]+$/;
+function isHex(str) {
+    return hexRegex.test(str.toUpperCase().trim()) || str === '__password';
 }
 
 app.get('/', async (req, res, next) => {
@@ -82,6 +86,16 @@ app.get('/api/password', async(req, res)=> {
     }
 })
 
+app.post('/api/crypto', async (req, res) => {
+    try {
+        const hash = crypto.createHash('sha256')
+        hash.update(Buffer.from(req.body.data, 'utf-8'))
+        res.send(hash.digest('hex'))
+    } catch (error) {
+        next(error)
+    }
+})
+
 
 app.post('/api/set_password', async (req, res) => {
     if(password === ''){
@@ -108,6 +122,12 @@ app.get('/api/read', async (req, res, next) => {
         return;
     }
 
+    if(!isHex(filePath)){
+        res.status(400).send({
+            error:'Invaild Path'
+        });
+        return;
+    }
     try {
         if(!existsSync(path.join(savePath, filePath))){
             res.send({
@@ -139,6 +159,12 @@ app.get('/api/remove', async (req, res, next) => {
     if (!filePath) {
         res.status(400).send({
             error:'File path required'
+        });
+        return;
+    }
+    if(!isHex(filePath)){
+        res.status(400).send({
+            error:'Invaild Path'
         });
         return;
     }
@@ -187,6 +213,12 @@ app.post('/api/write', async (req, res, next) => {
     if (!filePath || !fileContent) {
         res.status(400).send({
             error:'File path required'
+        });
+        return;
+    }
+    if(!isHex(filePath)){
+        res.status(400).send({
+            error:'Invaild Path'
         });
         return;
     }
