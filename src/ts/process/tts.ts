@@ -133,9 +133,11 @@ export async function getVOICEVOXVoices() {
     const speakerData = await fetch(`${db.voicevoxUrl}/speakers`)
     const speakerList = await speakerData.json()
     const speakersInfo = speakerList.map((speaker) => {
-      const normalStyle = speaker.styles.find((style) => style.name === 'ノーマル' || 'ふつう' || '人間ver.')
-      return {'name': speaker.name, 'id': normalStyle.id}
+      const styles = speaker.styles.map((style) => {
+        return {name: style.name, id: `${style.id}`}
+      })
+      return {name: speaker.name, list: JSON.stringify(styles)}
     })
-  
+    speakersInfo.unshift({ name: "None", list: null})
     return speakersInfo;
 }
