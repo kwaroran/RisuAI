@@ -93,6 +93,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         }
     }
 
+
     let unformated = {
         'main':([] as OpenAIChat[]),
         'jailbreak':([] as OpenAIChat[]),
@@ -162,10 +163,11 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         }).join('\n\n')
     }).join('\n\n')) + db.maxResponse) + 150
 
+    
     const examples = exampleMessage(currentChar)
 
     for(const example of examples){
-        currentTokens += await tokenize(example.content)
+        currentTokens += await tokenize(example.content) + 5
     }
 
     let chats:OpenAIChat[] = examples
@@ -215,7 +217,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             memo: msg.chatId,
             name: name
         })
-        currentTokens += (await tokenize(formedChat) + 1)
+        currentTokens += (await tokenize(formedChat) + 5)
     }
 
     if(nowChatroom.type === 'group'){
@@ -224,7 +226,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             role: 'system',
             content: systemMsg
         })
-        currentTokens += (await tokenize(systemMsg) + 1)
+        currentTokens += (await tokenize(systemMsg) + 5)
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
@@ -246,7 +248,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
                 return false
             }
 
-            currentTokens -= (await tokenize(chats[0].content) + 1)
+            currentTokens -= (await tokenize(chats[0].content) + 5)
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo

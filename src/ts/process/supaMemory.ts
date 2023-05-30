@@ -171,7 +171,7 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                     }
                     continue
                 }
-                const tokens = await tokenize(cont.content) + 1
+                const tokens = await tokenize(cont.content) + 5
                 if((chunkSize + tokens) > maxChunkSize){
                     if(stringlizedChat === ''){
                         stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
