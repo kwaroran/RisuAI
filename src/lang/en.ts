@@ -291,4 +291,8 @@ export const languageEnglish = {
     advanced: "Advanced",
     askReRollAutoSuggestions: "Re-Roll Auto Suggestions",
     creatingSuggestions: "Creating Suggestions...",
+    orderByOrder: "Talk by Order",
+    removeFromGroup: "Do you really want to remove {{char}} from group?",
+    talkness: "Talkativeness",
+    active: "Active"
 }
