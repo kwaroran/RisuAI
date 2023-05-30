@@ -369,7 +369,7 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
 
-export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET"}) {
+export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}) {
     try {
         const db = get(DataBase)
         const method = arg.method ?? "POST"
@@ -411,7 +411,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
                     headers: arg.headers,
-                    method: method
+                    method: method,
+                    signal: arg.abortSignal
                 })
     
                 if(arg.rawResponse){
@@ -449,7 +450,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
                     headers: arg.headers,
-                    method: method
+                    method: method,
+                    signal: arg.abortSignal
                 })
     
                 if(arg.rawResponse){
@@ -562,6 +564,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                             "Content-Type": "application/json"
                         },
                         method: method
+                        ,signal: arg.abortSignal
                     })
     
                     addFetchLog("Uint8Array Response", da.ok)
