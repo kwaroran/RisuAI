@@ -5,9 +5,17 @@ import { tokenize } from "../tokenizer";
 import { findCharacterbyId } from "../util";
 import { requestChatData } from "./request";
 
-export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxContextTokens:number,room:Chat,char:character|groupChat): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
+export async function supaMemory(
+        chats:OpenAIChat[],
+        currentTokens:number,
+        maxContextTokens:number,
+        room:Chat,
+        char:character|groupChat,
+        chatAdditonalTokens:number
+    ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
     const db = get(DataBase)
-    console.log("Memory: " + currentTokens)
+
+    currentTokens += 10
 
     if(currentTokens > maxContextTokens){
         let coIndex = -1
@@ -19,7 +27,7 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
         }
         if(coIndex !== -1){
             for(let i=0;i<coIndex;i++){
-                currentTokens -= (await tokenize(chats[0].content) + 1)
+                currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
                 chats.splice(0, 1)
             }
         }
@@ -45,13 +53,13 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                     lastId = id
                     break
                 }
-                currentTokens -= (await tokenize(chats[0].content) + 1)
+                currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
                 chats.splice(0, 1)
                 i += 1
             }
 
             supaMemory = data
-            currentTokens += await tokenize(supaMemory) + 1
+            currentTokens += await tokenize(supaMemory) + chatAdditonalTokens
         }
 
 
@@ -171,7 +179,7 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                     }
                     continue
                 }
-                const tokens = await tokenize(cont.content) + 5
+                const tokens = await tokenize(cont.content) + chatAdditonalTokens
                 if((chunkSize + tokens) > maxChunkSize){
                     if(stringlizedChat === ''){
                         stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
@@ -193,7 +201,7 @@ export async function supaMemory(chats:OpenAIChat[],currentTokens:number,maxCont
                     return result
                 }
     
-                const tokenz = await tokenize(result + '\n\n') + 5
+                const tokenz = await tokenize(result + '\n\n') + chatAdditonalTokens
                 currentTokens += tokenz
                 supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
 

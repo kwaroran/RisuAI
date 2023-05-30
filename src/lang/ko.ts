@@ -27,6 +27,7 @@ export const languageKorean = {
     mainPrompt: "메인 프롬프트",
     jailbreakPrompt: "탈옥 프롬프트",
     globalNote: "글로벌 노트",
+    autoSuggest: "자동 제안",
     tokens: '토큰',
     maxContextSize: '최대 콘텍스트 크기',
     maxResponseSize: '최대 응답 크기',
@@ -150,11 +151,12 @@ export const languageKorean = {
     sayNothing:"어떤 문자열도 입력되지 않을 시 'say nothing' 입력",
     help:{
         model: "채팅에서 사용되는 모델입니다.",
-        submodel: "보조 모델은 감정 이미지등을 분석하는 데 사용되는 모델입니다. gpt3.5가 권장됩니다.",
+        submodel: "보조 모델은 감정 이미지, 자동 제안등을 분석하는 데 사용되는 모델입니다. gpt3.5가 권장됩니다.",
         oaiapikey: 'OpenAI용 API 키입니다. https://platform.openai.com/account/api-keys에서 구하실 수 있습니다.',
         mainprompt: '모델의 기본적인 방향성을 정하는 프롬프트입니다.',
         jailbreak: 'NSFW/jailbreak 프롬프트는 NSFW/jailbreak 토글이 켜져있을 때 작동되는 프롬프트입니다.',
         globalNote: '모델에 강력한 영향을 주는 프롬프트입니다. UJB라고도 합니다.',
+        autoSuggest: '자동으로 유저의 응답을 제안할 때 선택지를 생성하기 위해 사용되는 프롬프트입니다.',
         formatOrder: "프롬프트의 배치 순서입니다. 아래쪽에 있을 수록 더 큰 영향을 줍니다.",
         forceUrl: "공백이 아닐 경우. 리퀘스트가 다음 URL로 갑니다.",
         tempature:"값이 낮을수록 캐릭터가 프롬프트를 잘 따르지만 기계처럼 반응할 가능성이 높아집니다.\n값이 높을수록 창의적인 동작이 가능하지만 캐릭터의 반응이 이상해질 수 있습니다.",
@@ -261,5 +263,15 @@ export const languageKorean = {
     globalRegexScript: "글로별 정규식",
     accessibility: "접근성",
     sendWithEnter: "엔터키로 메세지 보내기",
-    clickToEdit: "클릭해서 수정하기"
+    clickToEdit: "클릭해서 수정하기",
+    askReRollAutoSuggestions: "자동 제안 다시 뽑기",
+    creatingSuggestions: "응답 제안 작성 중...",
+    setNodePassword: "보안을 위해 비밀번호를 정해주세요",
+    inputNodePassword: "비밀번호를 입력해주세요. 기억이 안나신다면, save/__password를 지우고 서버를 재시작해주세요.",
+    simple:"간단",
+    advanced: "고급",
+    orderByOrder: "순서대로 말하기",
+    removeFromGroup: "정말로 {{char}}을 그룹에서 삭제시키겠습니까?",
+    talkness: "대화량",
+    active: "활성화"
 }

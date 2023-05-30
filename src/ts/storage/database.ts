@@ -4,11 +4,11 @@ import { changeLanguage } from '../../lang';
 import type { RisuPlugin } from '../process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
-import { defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
+import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.21.2'
+export let appVer = '1.22.0'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -254,7 +254,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.sendWithEnter)){
         data.sendWithEnter = true
     }
-
+    if(checkNullish(data.autoSuggestPrompt)){
+        data.autoSuggestPrompt = defaultAutoSuggestPrompt
+    }
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -351,6 +353,8 @@ export interface groupChat{
     name:string
     viewScreen: 'single'|'multiple'|'none'|'emp',
     characters:string[]
+    characterTalks:number[]
+    characterActive:boolean[]
     globalLore: loreBook[]
     autoMode: boolean
     useCharacterLore :boolean
@@ -364,6 +368,8 @@ export interface groupChat{
     loreSettings?:loreSettings
     supaMemory?:boolean
     ttsMode?:string
+    suggestMessages?:string[]
+    orderByOrder?:boolean
 }
 
 export interface botPreset{
@@ -490,6 +496,8 @@ export interface Database{
     clickToEdit: boolean
     koboldURL:string
     advancedBotSettings:boolean
+    useAutoSuggestions:boolean
+    autoSuggestPrompt:string
 }
 
 interface hordeConfig{
@@ -517,7 +525,7 @@ interface sdConfig{
     hr_upscaler:string
 }
 
-export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'
+export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'
 
 export interface Chat{
     message: Message[]
@@ -527,6 +535,7 @@ export interface Chat{
     sdData?:string
     supaMemoryData?:string
     lastMemory?:string
+    suggestMessages?:string[]
 }
 
 export interface Message{

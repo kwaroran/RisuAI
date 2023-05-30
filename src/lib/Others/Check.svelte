@@ -3,9 +3,10 @@
 
     export let check = false
     export let onChange = (check) => {}
+    export let margin = true
 </script>
 
-<label class="mr-2">
+<label class:mr-2={margin}>
     <input type="checkbox" class="hidden" bind:checked={check} on:change={() => {
         onChange(check)
     }}>

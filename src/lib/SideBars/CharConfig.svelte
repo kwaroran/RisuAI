@@ -3,7 +3,7 @@
     import { tokenize } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon, XIcon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
@@ -17,6 +17,7 @@
     import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder } from "src/ts/storage/globalApi";
+  import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
 
     let subMenu = 0
     let subberMenu = 0
@@ -56,41 +57,6 @@
         
         }
 
-    }
-
-
-    async function addGroupChar(){
-        let group = currentChar.data
-        if(group.type === 'group'){
-            const res = await alertSelectChar()
-            if(res){
-                if(group.characters.includes(res)){
-                    alertError(language.errors.alreadyCharInGroup)
-                }
-                else{
-                    if(await alertConfirm(language.askLoadFirstMsg)){
-                        group.chats[group.chatPage].message.push({
-                            role:'char',
-                            data: findCharacterbyId(res).firstMessage,
-                            saying: res,
-                        })
-                    }
-
-                    group.characters.push(res)
-                    currentChar.data = group
-                }
-            }
-        }
-        currentChar = currentChar
-    }
-
-
-    function rmCharFromGroup(index:number){
-        let group = currentChar.data
-        if(group.type === 'group'){
-            group.characters.splice(index, 1)
-            currentChar.data = group
-        }
     }
 
     let database:Database
@@ -182,10 +148,13 @@
     {:else}
         <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
         <span class="text-neutral-200">{language.character}</span>
-        <div class="p-2 flex gap-2">
+        <div class="p-4 gap-2 bg-bgcolor rounded-lg char-grid">
             {#if currentChar.data.characters.length === 0}
                 <span class="text-gray-500">No Character</span>
             {:else}
+                <div></div>
+                <div class="text-center">{language.talkness}</div>
+                <div class="text-center">{language.active}</div>
                 {#each currentChar.data.characters as char, i}
                     {#await getCharImage(findCharacterbyId(char).image, 'css')}
                         <BarIcon onClick={() => {
@@ -198,6 +167,24 @@
                             rmCharFromGroup(i)
                         }} additionalStyle={im} />
                     {/await}
+                    <div class="flex items-center px-2 py-3">
+                        {#each [1,2,3,4,5,6] as barIndex}
+                            <button class="bg-selected h-full flex-1 border-r-bgcolor border-r" 
+                                class:bg-green-500={currentChar.data.characterTalks[i] >= (1 / 6 * barIndex)}
+                                class:bg-selected={currentChar.data.characterTalks[i] < (1 / 6 * barIndex)}
+                                class:rounded-l-lg={barIndex === 1}
+                                class:rounded-r-lg={barIndex === 6}
+                                on:click={() => {
+                                    if(currentChar.data.type === 'group'){
+                                        currentChar.data.characterTalks[i] = (1 / 6 * barIndex)
+                                    }
+                                }}
+                            ></button>
+                        {/each}
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <Check margin={false} bind:check={currentChar.data.characterActive[i]} />
+                    </div>
                 {/each}
             {/if}
         </div>
@@ -220,6 +207,13 @@
         <div class="flex mt-2 items-center">
             <Check bind:check={currentChar.data.supaMemory}/>
             <span class="text-neutral-200 ml-2">{language.ToggleSuperMemory}</span>
+        </div>
+    {/if}
+
+    {#if currentChar.type === 'group'}
+        <div class="flex mt-2 items-center">
+            <Check bind:check={currentChar.data.orderByOrder}/>
+            <span class="text-neutral-200 ml-2">{language.orderByOrder}</span>
         </div>
     {/if}
 {:else if subMenu === 1}
@@ -713,5 +707,10 @@
     .tabler td {
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .char-grid{
+        display: grid;
+        grid-template-columns: auto 1fr auto;
     }
 </style>
