@@ -15,6 +15,7 @@ import { supaMemory } from "./supaMemory";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
+import { getNameMaxTokens } from "./stringlize";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -25,7 +26,7 @@ export interface OpenAIChat{
 
 export const doingChat = writable(false)
 
-export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
+export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number} = {}):Promise<boolean> {
 
     let findCharCache:{[key:string]:character} = {}
     function findCharacterbyIdwithCache(id:string){
@@ -57,9 +58,19 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     let selectedChar = get(selectedCharID)
     const nowChatroom = db.characters[selectedChar]
     let currentChar:character
+    let caculatedChatTokens = 0
+    if(db.aiModel.startsWith('gpt')){
+        caculatedChatTokens += 5
+    }
+    else{
+        caculatedChatTokens += 3
+    }
 
     if(nowChatroom.type === 'group'){
         if(chatProcessIndex === -1){
+            const charNames =nowChatroom.characters.map((v) => findCharacterbyIdwithCache(v).name)
+            caculatedChatTokens += await getNameMaxTokens([...charNames, db.username])
+
             const messages = nowChatroom.chats[nowChatroom.chatPage].message
             const lastMessage = messages[messages.length-1]
             let order = nowChatroom.characters.map((v,i) => {
@@ -78,7 +89,9 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
                 })
             }
             for(let i=0;i<order.length;i++){
-                const r = await sendChat(order[i].index)
+                const r = await sendChat(order[i].index, {
+                    chatAdditonalTokens: caculatedChatTokens
+                })
                 if(!r){
                     return false
                 }
@@ -95,7 +108,13 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     }
     else{
         currentChar = nowChatroom
+        if(!db.aiModel.startsWith('gpt')){
+            caculatedChatTokens += await getNameMaxTokens([currentChar.name, db.username])
+        }
+
     }
+
+    let chatAdditonalTokens = arg.chatAdditonalTokens ?? caculatedChatTokens
     
     let selectedChat = nowChatroom.chatPage
     let currentChat = nowChatroom.chats[selectedChat]
@@ -188,13 +207,13 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         return (unformated[key] as OpenAIChat[]).map((d) => {
             return d.content
         }).join('\n\n')
-    }).join('\n\n')) + db.maxResponse) + 150
+    }).join('\n\n')) + db.maxResponse) + 100
 
     
     const examples = exampleMessage(currentChar)
 
     for(const example of examples){
-        currentTokens += await tokenize(example.content) + 5
+        currentTokens += await tokenize(example.content) + chatAdditonalTokens
     }
 
     let chats:OpenAIChat[] = examples
@@ -244,11 +263,11 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             memo: msg.chatId,
             name: name
         })
-        currentTokens += (await tokenize(formedChat) + 5)
+        currentTokens += (await tokenize(formedChat) + chatAdditonalTokens)
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
-        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom)
+        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, chatAdditonalTokens)
         if(sp.error){
             alertError(sp.error)
             return false
@@ -266,7 +285,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
                 return false
             }
 
-            currentTokens -= (await tokenize(chats[0].content) + 5)
+            currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo
