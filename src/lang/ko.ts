@@ -261,5 +261,13 @@ export const languageKorean = {
     globalRegexScript: "글로별 정규식",
     accessibility: "접근성",
     sendWithEnter: "엔터키로 메세지 보내기",
-    clickToEdit: "클릭해서 수정하기"
+    clickToEdit: "클릭해서 수정하기",
+    setNodePassword: "보안을 위해 비밀번호를 정해주세요",
+    inputNodePassword: "비밀번호를 입력해주세요. 기억이 안나신다면, save/__password를 지우고 서버를 재시작해주세요.",
+    simple:"간단",
+    advanced: "고급",
+    orderByOrder: "순서대로 말하기",
+    removeFromGroup: "정말로 {{char}}을 그룹에서 삭제시키겠습니까?",
+    talkness: "대화량",
+    active: "활성화를"
 }

@@ -61,7 +61,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_32k':{
 
             for(let i=0;i<formated.length;i++){
-                if(arg.isGroupChat){
+                if(arg.isGroupChat && formated[i].name){
                     formated[i].content = formated[i].name + ": " + formated[i].content
                 }
                 formated[i].name = undefined

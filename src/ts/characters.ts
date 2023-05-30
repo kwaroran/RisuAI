@@ -38,7 +38,9 @@ export function createNewGroup(){
         emotionImages: [],
         customscript: [],
         chaId: uuidv4(),
-        firstMsgIndex: -1
+        firstMsgIndex: -1,
+        characterTalks: [],
+        characterActive: []
     })
     setDatabase(db)
     checkCharOrder()
@@ -299,6 +301,20 @@ export function characterFormatUpdate(index:number|character){
             cha.postHistoryInstructions = null
         }
 
+    }
+    else{
+        if((!cha.characterTalks) || cha.characterTalks.length !== cha.characters.length){
+            cha.characterTalks = []
+            for(let i=0;i<cha.characters.length;i++){
+                cha.characterTalks.push(1 / 6 * 4)
+            }
+        }
+        if((!cha.characterActive) || cha.characterActive.length !== cha.characters.length){
+            cha.characterActive = []
+            for(let i=0;i<cha.characters.length;i++){
+                cha.characterActive.push(true)
+            }
+        }
     }
     if(checkNullish(cha.customscript)){
         cha.customscript = []

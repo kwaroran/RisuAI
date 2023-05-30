@@ -351,6 +351,8 @@ export interface groupChat{
     name:string
     viewScreen: 'single'|'multiple'|'none'|'emp',
     characters:string[]
+    characterTalks:number[]
+    characterActive:boolean[]
     globalLore: loreBook[]
     autoMode: boolean
     useCharacterLore :boolean
@@ -364,6 +366,7 @@ export interface groupChat{
     loreSettings?:loreSettings
     supaMemory?:boolean
     ttsMode?:string
+    orderByOrder?:boolean
 }
 
 export interface botPreset{
@@ -517,7 +520,7 @@ interface sdConfig{
     hr_upscaler:string
 }
 
-export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'
+export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'
 
 export interface Chat{
     message: Message[]

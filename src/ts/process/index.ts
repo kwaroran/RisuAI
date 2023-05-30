@@ -13,6 +13,8 @@ import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
 import { supaMemory } from "./supaMemory";
 import { v4 } from "uuid";
+import { cloneDeep } from "lodash";
+import { groupOrder } from "./group";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -58,8 +60,25 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
 
     if(nowChatroom.type === 'group'){
         if(chatProcessIndex === -1){
-            for(let i=0;i<nowChatroom.characters.length;i++){
-                const r = await sendChat(i)
+            const messages = nowChatroom.chats[nowChatroom.chatPage].message
+            const lastMessage = messages[messages.length-1]
+            let order = nowChatroom.characters.map((v,i) => {
+                return {
+                    id: v,
+                    talkness: nowChatroom.characterActive[i] ? nowChatroom.characterTalks[i] : -1,
+                    index: i
+                }
+            })
+            if(!nowChatroom.orderByOrder){
+                order = groupOrder(order, lastMessage?.data).filter((v) => {
+                    if(v.id === lastMessage?.saying){
+                        return false
+                    }
+                    return true
+                })
+            }
+            for(let i=0;i<order.length;i++){
+                const r = await sendChat(order[i].index)
                 if(!r){
                     return false
                 }
@@ -103,6 +122,7 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         'authorNote':([] as OpenAIChat[]),
         'lastChat':([] as OpenAIChat[]),
         'description':([] as OpenAIChat[]),
+        'postEverything':([] as OpenAIChat[]),
     }
 
     if(!currentChar.utilityBot){
@@ -149,6 +169,13 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             content: description
         })
 
+        if(nowChatroom.type === 'group'){
+            const systemMsg = `[Write the next reply only as ${currentChar.name}]`
+            unformated.postEverything.push({
+                role: 'system',
+                content: systemMsg
+            })
+        }
     }
 
     unformated.lorebook.push({
@@ -220,15 +247,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
         currentTokens += (await tokenize(formedChat) + 5)
     }
 
-    if(nowChatroom.type === 'group'){
-        const systemMsg = `[Write the next reply only as ${currentChar.name}]`
-        chats.push({
-            role: 'system',
-            content: systemMsg
-        })
-        currentTokens += (await tokenize(systemMsg) + 5)
-    }
-
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom)
         if(sp.error){
@@ -252,7 +270,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo
-        console.log(currentChat.lastMemory)
     }
     let bias:{[key:number]:number} = {}
 
@@ -283,7 +300,8 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
     //make into one
 
     let formated:OpenAIChat[] = []
-    const formatOrder = db.formatingOrder
+    const formatOrder = cloneDeep(db.formatingOrder)
+    formatOrder.push('postEverything')
     let sysPrompts:string[] = []
     for(let i=0;i<formatOrder.length;i++){
         const cha = unformated[formatOrder[i]]
@@ -443,7 +461,6 @@ export async function sendChat(chatProcessIndex = -1):Promise<boolean> {
             },
         ]
 
-        console.log('requesting chat')
         const rq = await requestChatData({
             formated: promptbody,
             bias: emobias,
