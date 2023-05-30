@@ -79,6 +79,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     talkness: nowChatroom.characterActive[i] ? nowChatroom.characterTalks[i] : -1,
                     index: i
                 }
+            }).filter((v) => {
+                return v.talkness > 0
             })
             if(!nowChatroom.orderByOrder){
                 order = groupOrder(order, lastMessage?.data).filter((v) => {

@@ -56,6 +56,7 @@ export type GroupOrder = {
 
 export function groupOrder(chars:GroupOrder[], input:string):GroupOrder[] {
     let order:GroupOrder[] = [];
+    let ids:string[] = []
     if (input) {
         const words = getWords(input)
 
@@ -66,6 +67,7 @@ export function groupOrder(chars:GroupOrder[], input:string):GroupOrder[] {
 
                 if (charNameChunks.includes(word)) {
                     order.push(char);
+                    ids.push(char.id)
                     break;
                 }
             }
@@ -74,15 +76,15 @@ export function groupOrder(chars:GroupOrder[], input:string):GroupOrder[] {
 
     const shuffled = shuffle(chars)
     for (const char of shuffled) {
-        if(order.includes(char)){
+        if(ids.includes(char.id)){
             continue
         }
 
-        //TODO
-        const chance = 0.5
+        const chance = char.talkness ?? 0.5
 
         if (chance >= Math.random()) {
             order.push(char);
+            ids.push(char.id)
         }
     }
 
