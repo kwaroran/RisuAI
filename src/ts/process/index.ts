@@ -207,7 +207,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         return (unformated[key] as OpenAIChat[]).map((d) => {
             return d.content
         }).join('\n\n')
-    }).join('\n\n')) + db.maxResponse) + 100
+    }).join('\n\n')) + db.maxResponse) + 130
 
     
     const examples = exampleMessage(currentChar)
