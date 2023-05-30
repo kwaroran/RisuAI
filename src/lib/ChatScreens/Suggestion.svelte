@@ -94,7 +94,7 @@
     {#if progress}
         <div class="flex bg-gray-500 p-2 rounded-lg items-center">
             <div class="loadmove mx-2"/>
-            <div>응답 제안 작성 중...</div>
+            <div>{language.creatingSuggestions}</div>
         </div>        
     {:else if !$doingChat}
         <div class="flex mr-2 mb-2">

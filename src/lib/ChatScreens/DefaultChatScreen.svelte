@@ -371,7 +371,7 @@
                         $DataBase.useAutoSuggestions = !$DataBase.useAutoSuggestions
                     }}>
                         <ReplyIcon />
-                        <span class="ml-2">자동 제안</span>
+                        <span class="ml-2">{language.autoSuggest}</span>
                     </div>
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
                         <RefreshCcwIcon />

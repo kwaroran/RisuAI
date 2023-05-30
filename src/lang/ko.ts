@@ -265,4 +265,5 @@ export const languageKorean = {
     sendWithEnter: "엔터키로 메세지 보내기",
     clickToEdit: "클릭해서 수정하기",
     askReRollAutoSuggestions: "자동 제안 다시 뽑기",
+    creatingSuggestions: "응답 제안 작성 중...",
 }

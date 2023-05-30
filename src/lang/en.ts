@@ -290,4 +290,5 @@ export const languageEnglish = {
     simple:"Simple",
     advanced: "Advanced",
     askReRollAutoSuggestions: "Re-Roll Auto Suggestions",
+    creatingSuggestions: "Creating Suggestions...",
 }
