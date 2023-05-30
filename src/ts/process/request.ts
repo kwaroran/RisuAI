@@ -5,7 +5,6 @@ import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isTauri } from "../storage/globalApi";
-import { alertError } from "../alert";
 import { sleep } from "../util";
 
 interface requestDataArgument{
@@ -29,11 +28,11 @@ type requestDataResponse = {
     result: ReadableStream<string>
 }
 
-export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel'):Promise<requestDataResponse> {
+export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let trys = 0
     while(true){
-        const da = await requestChatDataMain(arg, model)
+        const da = await requestChatDataMain(arg, model, abortSignal)
         if(da.type === 'success' || da.type === 'streaming' || da.noRetry){
             return da
         }
@@ -45,7 +44,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     }
 }
 
-export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel'):Promise<requestDataResponse> {
+export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let result = ''
     let formated = arg.formated
@@ -97,6 +96,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "Authorization": "Bearer " + db.openAIKey,
                         "Content-Type": "application/json"
                     },
+                    signal: abortSignal
                 })
 
                 if(da.status !== 200){
@@ -149,6 +149,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: {
                     "Authorization": "Bearer " + db.openAIKey
                 },
+                abortSignal
             })
 
             const dat = res.data as any
@@ -214,7 +215,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body: params,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
-                }
+                },
+                abortSignal
             })
 
             if((!da.ok )|| (!da.data.output)){
@@ -291,7 +293,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             const res = await globalFetch(DURL, {
                 body: bodyTemplate,
-                headers: {}
+                headers: {},
+                abortSignal
             })
             
             const dat = res.data as any
@@ -393,6 +396,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: {
                     "Content-Type": "application/json"
                 },
+                abortSignal
             })
 
             if(res.ok){
@@ -437,7 +441,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 },
                 headers: {
                     "content-type": "application/json",
-                }
+                },
+                abortSignal
             })
 
             if(!da.ok){
@@ -498,7 +503,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     headers: {
                         "content-type": "application/json",
                         "apikey": db.hordeConfig.apiKey
-                    }
+                    },
+                    signal: abortSignal
                 })
 
                 if(da.status !== 202){

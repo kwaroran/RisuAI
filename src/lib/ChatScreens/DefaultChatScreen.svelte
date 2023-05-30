@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, RefreshCcwIcon, Send } from "lucide-svelte";
+	import Suggestion from './Suggestion.svelte';
+    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, PowerIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
-    import { DataBase, appVer, type Message } from "../../ts/storage/database";
+    import { DataBase, appVer, type Message, type character } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
-    import { doingChat, sendChat } from "../../ts/process/index";
+    import { doingChat, sendChat, type OpenAIChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { translate } from "../../ts/translator/translator";
@@ -24,7 +25,7 @@
     let rerolls:Message[][] = []
     let rerollid = -1
     let lastCharId = -1
-
+    let doingChatInputTranslate = false
     async function send() {
         let selectedChar = $selectedCharID
         console.log('send')
@@ -179,7 +180,6 @@
     }
 
     $: updateInputSize()
-
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="w-full h-full" style={customStyle} on:click={() => {
@@ -220,7 +220,7 @@
                 />
 
                 
-                {#if $doingChat}
+                {#if $doingChat || doingChatInputTranslate}
                     <div
                         class="mr-2 bg-selected flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors">
                         <div class="loadmove" class:autoload={autoMode}>
@@ -231,13 +231,16 @@
                         class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
                     </div>
                 {/if}
-                <div on:click={(e) => {
-                    openMenu = !openMenu
-                    e.stopPropagation()
-                }}
-                class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
+                    <div on:click={(e) => {
+                        openMenu = !openMenu
+                        e.stopPropagation()
+                    }}
+                    class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
+                    </div>
             </div>
-            </div>
+            {#if $DataBase.useAutoSuggestions}
+                <Suggestion messageInput={(msg)=>messageInput=msg} {send}/>
+            {/if}
             {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
                     {#if $DataBase.characters[$selectedCharID].type !== 'group'}
@@ -356,14 +359,20 @@
                     </div>
                     {#if $DataBase.translator !== ''}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            $doingChat = true
+                            doingChatInputTranslate = true
                             messageInput = (await translate(messageInput, true))
-                            $doingChat = false
+                            doingChatInputTranslate = false
                         }}>
                             <LanguagesIcon />
                             <span class="ml-2">{language.translateInput}</span>
                         </div>
                     {/if}
+                    <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {
+                        $DataBase.useAutoSuggestions = !$DataBase.useAutoSuggestions
+                    }}>
+                        <ReplyIcon />
+                        <span class="ml-2">자동 제안</span>
+                    </div>
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
                         <RefreshCcwIcon />
                         <span class="ml-2">{language.reroll}</span>

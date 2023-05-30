@@ -4,7 +4,7 @@ import { changeLanguage } from '../../lang';
 import type { RisuPlugin } from '../process/plugins';
 import { saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
-import { defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
+import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -254,7 +254,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.sendWithEnter)){
         data.sendWithEnter = true
     }
-
+    if(checkNullish(data.autoSuggestPrompt)){
+        data.autoSuggestPrompt = defaultAutoSuggestPrompt
+    }
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -364,6 +366,7 @@ export interface groupChat{
     loreSettings?:loreSettings
     supaMemory?:boolean
     ttsMode?:string
+    suggestMessages?:string[]
 }
 
 export interface botPreset{
@@ -490,6 +493,8 @@ export interface Database{
     clickToEdit: boolean
     koboldURL:string
     advancedBotSettings:boolean
+    useAutoSuggestions:boolean
+    autoSuggestPrompt:string
 }
 
 interface hordeConfig{
@@ -527,6 +532,7 @@ export interface Chat{
     sdData?:string
     supaMemoryData?:string
     lastMemory?:string
+    suggestMessages?:string[]
 }
 
 export interface Message{

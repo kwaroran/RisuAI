@@ -21,11 +21,12 @@ export const languageEnglish = {
     },
     help:{
         model: "Model option is a main model used in chat.",
-        submodel: "Auxiliary Model is a model that used in analizing emotion images and etc. gpt3.5 is recommended.",
+        submodel: "Auxiliary Model is a model that used in analizing emotion images and auto suggestions and etc. gpt3.5 is recommended.",
         oaiapikey: 'Api key for OpenAI. you can get it in https://platform.openai.com/account/api-keys',
         mainprompt: 'The main prompt option sets the default model behavior.',
         jailbreak: 'The NSFW/jailbreak prompt option activates when NSFW/jailbreak toggle is on in character.',
         globalNote: 'a note that strongly effects model behavior, also known as UJB. works in all characters.',
+        autoSuggest: 'Prompts used to generate options when automatically suggesting user responses.',
         formatOrder: "formating order of prompt. lower blocks does more effect to the model.",
         forceUrl: "if it is not blank, the request will go to the url that you had inputed.",
         tempature:"lower values make character follow prompts closely, but it will more likely to response like a machine.\nHigher values will result in creative behavior, but the character's response can break down more easily.",
@@ -109,6 +110,7 @@ export const languageEnglish = {
     mainPrompt: "Main Prompt",
     jailbreakPrompt: "NSFW/Jailbreak Prompt",
     globalNote: "Global Note",
+    autoSuggest: "Auto Suggest",
     tokens: 'Tokens',
     maxContextSize: 'Max Context Size',
     maxResponseSize: 'Max Response Size',
@@ -286,5 +288,6 @@ export const languageEnglish = {
     setNodePassword: "Set your password to security",
     inputNodePassword: "Input your password. if you can't remember, remove save/__password.txt in your server files and restart the server.",
     simple:"Simple",
-    advanced: "Advanced"
+    advanced: "Advanced",
+    askReRollAutoSuggestions: "Re-Roll Auto Suggestions",
 }

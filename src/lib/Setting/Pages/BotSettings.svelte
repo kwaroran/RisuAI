@@ -13,13 +13,15 @@
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
-        globalNote: 0
+        globalNote: 0,
+        autoSuggest: 0
     }
 
     let lasttokens = {
         mainPrompt: '',
         jailbreak: '',
-        globalNote: ''
+        globalNote: '',
+        autoSuggest: ''
     }
     export let openPresetList =false
 
@@ -31,6 +33,7 @@
         tokens.mainPrompt = await tokenize($DataBase.mainPrompt)
         tokens.jailbreak = await tokenize($DataBase.jailbreak)
         tokens.globalNote = await tokenize($DataBase.globalNote)
+        tokens.autoSuggest = await tokenize($DataBase.autoSuggestPrompt)
     }
 
     let advancedBotSettings = false
@@ -143,8 +146,11 @@
     <span class="text-gray-400 mb-6 text-sm">{tokens.jailbreak} {language.tokens}</span>
     <span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
     <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.globalNote}></textarea>
-
     <span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>
+    <span class="text-neutral-200">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
+    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+
     <span class="text-neutral-200">{language.maxContextSize}</span>
 {#if $DataBase.aiModel === 'gpt35'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="4000" bind:value={$DataBase.maxContext}>
