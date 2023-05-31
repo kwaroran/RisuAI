@@ -10,15 +10,15 @@
     import { replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
 
-    export let send;
-    export let messageInput;
+    export let send: () => any;
+    export let messageInput:(string:string) => any;
     let suggestMessages = $DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages
-    let suggestMessagesTranslated
+    let suggestMessagesTranslated:string[]
     let toggleTranslate = $DataBase.autoTranslate
-    let progress;
+    let progress:boolean;
     let progressChatPage=-1;
-    let abortController;
-    let chatPage
+    let abortController:AbortController;
+    let chatPage:number
     $: {
         $selectedCharID
         //FIXME add selectedChatPage for optimize render
