@@ -37,7 +37,8 @@
         }
     }
     
-    const unsubscribe = doingChat.subscribe((v) => {
+
+    const unsub = doingChat.subscribe((v) => {
         if(v) {
             progress=false
             abortController?.abort()
@@ -89,8 +90,10 @@
             }
         }
     }
+
+    onDestroy(unsub)
+
     $: {translateSuggest(toggleTranslate, suggestMessages)}
-    onDestroy(unsubscribe)
 </script>
 
 <div class="ml-4 flex flex-wrap">
