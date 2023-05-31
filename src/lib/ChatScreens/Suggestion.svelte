@@ -7,6 +7,7 @@
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
+    import { replacePlaceholders } from "../../ts/util";
 
     export let send;
     export let messageInput;
@@ -50,7 +51,7 @@
             const promptbody:OpenAIChat[] = [
             {
                 role:'system',
-                content: $DataBase.autoSuggestPrompt
+                content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
             }
             ,
             {
