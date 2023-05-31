@@ -7,6 +7,7 @@
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
+  import { onDestroy } from "svelte";
 
     export let send;
     export let messageInput;
@@ -35,7 +36,7 @@
         }
     }
     
-    doingChat.subscribe((v) => {
+    const unsub = doingChat.subscribe((v) => {
         if(v) {
             progress=false
             abortController?.abort()
@@ -87,6 +88,9 @@
             }
         }
     }
+
+    onDestroy(unsub)
+
     $: {translateSuggest(toggleTranslate, suggestMessages)}
 </script>
 
