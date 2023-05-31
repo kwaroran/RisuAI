@@ -7,7 +7,8 @@
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
-  import { onDestroy } from "svelte";
+    import { replacePlaceholders } from "../../ts/util";
+    import { onDestroy } from 'svelte';
 
     export let send;
     export let messageInput;
@@ -36,6 +37,7 @@
         }
     }
     
+
     const unsub = doingChat.subscribe((v) => {
         if(v) {
             progress=false
@@ -51,7 +53,7 @@
             const promptbody:OpenAIChat[] = [
             {
                 role:'system',
-                content: $DataBase.autoSuggestPrompt
+                content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
             }
             ,
             {
