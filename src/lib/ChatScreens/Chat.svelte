@@ -84,9 +84,11 @@
                         <button class={"hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
                                 editMode = true
+                                msgTranslated = ""
                             }
                             else{
                                 editMode = false
+                                msgTranslated = ""
                                 edit()
                             }
                         }}>
@@ -144,8 +146,9 @@
                 {#await ParseMarkdown(msgDisplay, character) then md} 
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
-                        if($DataBase.clickToEdit){
+                        if($DataBase.clickToEdit && idx > -1){
                             editMode = true
+                            msgTranslated = ""
                         }
                     }}
                         style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
