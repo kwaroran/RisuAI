@@ -66,7 +66,7 @@ export class NodeStorage{
     }
     async removeItem(key:string){
         await this.checkAuth()
-        const da = await fetch('/api/list', {
+        const da = await fetch('/api/remove', {
             method: "GET",
             headers: {
                 'file-path': Buffer.from(key, 'utf-8').toString('hex'),
