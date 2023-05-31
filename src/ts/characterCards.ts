@@ -382,7 +382,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
                 mode: "normal",
                 alwaysActive: book.constant ?? false,
                 selective: book.selective ?? false,
-                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive}
+                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
+                activationPercent: book.extensions?.risu_activationPercent
             })
         }
 
@@ -450,18 +451,26 @@ export async function exportSpecV2(char:character) {
 
         let charBook:charBookEntry[] = []
         for(const lore of char.globalLore){
+            let ext:{
+                risu_case_sensitive?: boolean;
+                risu_activationPercent?: number
+            } = cloneDeep(lore.extentions ?? {})
+
+            let caseSensitive = ext.risu_case_sensitive ?? false
+            ext.risu_activationPercent = lore.activationPercent
+
             charBook.push({
                 keys: lore.key.split(',').map(r => r.trim()),
                 secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
                 content: lore.content,
-                extensions: lore.extentions ?? {},
+                extensions: ext,
                 enabled: true,
                 insertion_order: lore.insertorder,
                 constant: lore.alwaysActive,
                 selective:lore.selective,
                 name: lore.comment,
                 comment: lore.comment,
-                case_sensitive: lore.extentions?.risu_case_sensitive
+                case_sensitive: caseSensitive,
             })
         }
 

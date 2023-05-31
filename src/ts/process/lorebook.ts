@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 import {selectedCharID} from '../stores'
 import { DataBase, setDatabase, type loreBook } from "../storage/database";
 import { tokenize } from "../tokenizer";
-import { selectSingleFile } from "../util";
+import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../storage/globalApi";
@@ -80,6 +80,16 @@ export async function loadLoreBookPrompt(){
     for (const lore of fullLore){
         if(lore){
             if(lore.key.length > 1 || lore.alwaysActive){
+                if(!checkNullish(lore.activationPercent)){
+                    let activationPercent = lore.activationPercent
+                    if(isNaN(activationPercent) || !activationPercent || activationPercent < 0){
+                        activationPercent = 0
+                    }
+                    if(activationPercent < (Math.random() * 100)){
+                        continue
+                    }
+                }
+
                 formatedLore.push({
                     keys: lore.alwaysActive ? 'always' : (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                         return a.length > 1
