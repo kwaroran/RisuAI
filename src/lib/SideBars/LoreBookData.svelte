@@ -39,7 +39,7 @@
                 {#if value.selective}
                     <span class="text-neutral-200 mt-6">{language.SecondaryKeys}</span>
                     <span class="text-xs text-gray-500">{language.activationKeysInfo}</span>
-                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.activationPercent} min="0" max="100">
+                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.secondkey} min="0" max="100">
                 {/if}
             {/if}
             {#if !(value.activationPercent === undefined || value.activationPercent === null)}
