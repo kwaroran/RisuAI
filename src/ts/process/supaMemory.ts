@@ -204,28 +204,7 @@ export async function supaMemory(
                 const tokenz = await tokenize(result + '\n\n') + chatAdditonalTokens
                 currentTokens += tokenz
                 supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
-
-                let SupaMemoryList = supaMemory.split('\n\n')
-                if(SupaMemoryList.length >= 5){
-                    const oldSupaMemory = supaMemory
-                    let modifies = []
-                    for(let i=0;i<3;i++){
-                        modifies.push(SupaMemoryList.shift())
-                    }
-                    const result = await summarize(supaMemory)
-                    if(typeof(result) !== 'string'){
-                        return result
-                    }
-
-                    modifies.unshift(result.replace(/\n+/g,'\n'))
-                    supaMemory = modifies.join('\n\n') + '\n\n'
-
-                    currentTokens -= await tokenize(oldSupaMemory)
-                    currentTokens += await tokenize(supaMemory)
-                }
             }
-
-
         }
 
         chats.unshift({
