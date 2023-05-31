@@ -147,8 +147,6 @@
     <span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
     <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.globalNote}></textarea>
     <span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>
-    <span class="text-neutral-200">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
     <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 
     <span class="text-neutral-200">{language.maxContextSize}</span>
@@ -177,6 +175,9 @@
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl} placeholder="Leave blank to not replace url">
 <span class="text-neutral-200 mt-2">{language.submodel} {language.forceReplaceUrl} <Help key="forceUrl"/></span>
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl2} placeholder="Leave blank to not replace url">
+<span class="text-neutral-200">{language.autoSuggest} <Help key="autoSuggest"/></span>
+<textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
+
 {/if}
 
 
