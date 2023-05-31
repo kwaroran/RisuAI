@@ -8,6 +8,7 @@
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
     import { replacePlaceholders } from "../../ts/util";
+    import { onDestroy } from 'svelte';
 
     export let send;
     export let messageInput;
@@ -36,7 +37,7 @@
         }
     }
     
-    doingChat.subscribe((v) => {
+    const unsubscribe = doingChat.subscribe((v) => {
         if(v) {
             progress=false
             abortController?.abort()
@@ -89,6 +90,7 @@
         }
     }
     $: {translateSuggest(toggleTranslate, suggestMessages)}
+    onDestroy(unsubscribe)
 </script>
 
 <div class="ml-4 flex flex-wrap">
