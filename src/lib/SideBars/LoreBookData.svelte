@@ -39,8 +39,19 @@
                 {#if value.selective}
                     <span class="text-neutral-200 mt-6">{language.SecondaryKeys}</span>
                     <span class="text-xs text-gray-500">{language.activationKeysInfo}</span>
-                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.secondkey}>
+                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.activationPercent} min="0" max="100">
                 {/if}
+            {/if}
+            {#if !(value.activationPercent === undefined || value.activationPercent === null)}
+                <span class="text-neutral-200 mt-6">{language.activationProbability}</span>
+                <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.activationPercent} on:change={() => {
+                    if(isNaN(value.activationPercent) || !value.activationPercent || value.activationPercent < 0){
+                        value.activationPercent = 0
+                    }
+                    if(value.activationPercent > 100){
+                        value.activationPercent = 100
+                    }
+                }}>
             {/if}
             <span class="text-neutral-200 mt-4">{language.insertOrder} <Help key="loreorder"/></span>
             <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.insertorder} type="number" min={0} max={1000}>
@@ -50,9 +61,17 @@
                 <Check bind:check={value.alwaysActive}/>
                 <span>{language.alwaysActive}</span>
             </div>
-            <div class="flex items-center mt-2 mb-6">
+            <div class="flex items-center mt-2">
                 <Check bind:check={value.selective}/>
                 <span>{language.selective} <Help key="loreSelective"/></span>
+            </div>
+            <div class="flex items-center mt-2 mb-6">
+                {#if value.activationPercent === undefined || value.activationPercent === null}
+                    <Check check={false} onChange={() => {value.activationPercent = 50}}/>
+                {:else}
+                    <Check check={true} onChange={() => {value.activationPercent = null}}/>
+                {/if}
+                <span>{language.loreRandomActivation} <Help key="loreRandomActivation"/></span>
             </div>
         </div>
     {/if}

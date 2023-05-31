@@ -273,5 +273,7 @@ export const languageKorean = {
     orderByOrder: "순서대로 말하기",
     removeFromGroup: "정말로 {{char}}을 그룹에서 삭제시키겠습니까?",
     talkness: "대화량",
-    active: "활성화"
+    active: "활성화",
+    loreRandomActivation: "확률 조건 사용",
+    activationProbability: "발동 확률"
 }
