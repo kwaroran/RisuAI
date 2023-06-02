@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { requestChatData } from "src/ts/process/request";
+	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
-    import { DataBase, type character } from "../../ts/storage/database";
+    import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "src/ts/translator/translator";
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
@@ -9,12 +9,14 @@
     import { language } from "src/lang";
     import { replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
+    import { processScript } from "src/ts/process/scripts";
+    import { get } from "svelte/store";
 
     export let send: () => any;
     export let messageInput:(string:string) => any;
-    let suggestMessages = $DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages
+    let suggestMessages:string[] = $DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages
     let suggestMessagesTranslated:string[]
-    let toggleTranslate = $DataBase.autoTranslate
+    let toggleTranslate:boolean = $DataBase.autoTranslate
     let progress:boolean;
     let progressChatPage=-1;
     let abortController:AbortController;
@@ -45,9 +47,20 @@
             suggestMessages = []
         }
         if(!v && $selectedCharID > -1 && (!suggestMessages || suggestMessages.length === 0) && !progress){
-            let currentChar = $DataBase.characters[$selectedCharID] as character;
-            let messages = currentChar.chats[currentChar.chatPage].message;
-            let lastMessages = messages.slice(Math.max(messages.length - 10, 0));
+            let currentChar:character|groupChat = $DataBase.characters[$selectedCharID];
+            let messages:Message[] = []
+            
+            if(currentChar.type !== 'group'){
+                const firstMsg:string = currentChar.firstMsgIndex === -1 ? currentChar.firstMessage : currentChar.alternateGreetings[currentChar.firstMsgIndex]
+                messages.push({
+                    role: 'char',
+                    data: processScript(currentChar,
+                        replacePlaceholders(firstMsg, currentChar.name),
+                    'editprocess')
+                })
+            }
+            messages = [...messages, ...currentChar.chats[currentChar.chatPage].message];
+            let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)
                 return
             const promptbody:OpenAIChat[] = [
@@ -58,7 +71,7 @@
             ,
             {
                 role: 'user', 
-                content: lastMessages.map(b=>b.role+":"+b.data).reduce((a,b)=>a+','+b)
+                content: lastMessages.map(b=>(b.role==='char'? 'assistant' : 'user')+":"+b.data).reduce((a,b)=>a+','+b)
             }
             ]
 
@@ -68,11 +81,13 @@
             requestChatData({
                 formated: promptbody,
                 bias: {},
-                currentChar
+                currentChar : currentChar as character
             }, 'submodel', abortController.signal).then(rq2=>{
                 if(rq2.type !== 'fail' && rq2.type !== 'streaming' && progress){
                     var suggestMessagesNew = rq2.result.split('\n').filter(msg => msg.startsWith('-')).map(msg => msg.replace('-','').trim())
-                    currentChar.chats[currentChar.chatPage].suggestMessages = suggestMessagesNew
+                    const db:Database = get(DataBase);
+                    db.characters[$selectedCharID].chats[currentChar.chatPage].suggestMessages = suggestMessagesNew
+                    setDatabase(db)
                     suggestMessages = suggestMessagesNew
                 }
                 progress = false
