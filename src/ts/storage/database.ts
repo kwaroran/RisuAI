@@ -311,7 +311,7 @@ export interface character{
     alternateGreetings:string[]
     tags:string[]
     creator:string
-    characterVersion: number
+    characterVersion: string
     personality:string
     scenario:string
     firstMsgIndex:number
@@ -320,7 +320,7 @@ export interface character{
     additionalData?: {
         tag?:string[]
         creator?:string
-        character_version?:number
+        character_version?:string
     }
     ttsMode?:string
     ttsSpeech?:string

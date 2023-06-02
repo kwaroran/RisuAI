@@ -14,7 +14,7 @@
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
     import RegexData from "./RegexData.svelte";
-    import { exportChar } from "src/ts/characterCards";
+    import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder } from "src/ts/storage/globalApi";
   import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
@@ -663,7 +663,15 @@
         <button on:click={async () => {
             exportChar($selectedCharID)
         }} class="text-neutral-200 mt-6 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.exportCharacter}</button>
-    
+
+        {#if $DataBase.useExperimental}
+        <button on:click={async () => {
+            const cha = $DataBase.characters[$selectedCharID]
+            if(cha.type !== 'group'){
+                shareRisuHub(cha)
+            }
+        }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">Upload Hub (experimental)</button>
+        {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
             <span class="text-neutral-200">{language.SuperMemory}</span>

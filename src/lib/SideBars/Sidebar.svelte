@@ -51,18 +51,27 @@
 
   function createScratch() {
     reseter();
-    const cid = createNewCharacter();
-    selectedCharID.set(-1);
+    createNewCharacter();
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
   function createGroup() {
     reseter();
-    const cid = createNewGroup();
-    selectedCharID.set(-1);
+    createNewGroup();
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
   async function createImport() {
     reseter();
     await importCharacter();
-    selectedCharID.set(-1);
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
 
   function changeChar(index: number) {

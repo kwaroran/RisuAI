@@ -4,7 +4,9 @@
     alertMd(language.help[key])
 }}>
     {#if key === "experimental"}
-        <FlaskConicalIcon size={14} />
+        <div class="text-red-500 hover:text-green-500">
+            <FlaskConicalIcon size={16} />
+        </div>
     {:else if unrecommended}
         <div class="text-red-500 hover:text-green-500">
             <AlertTriangle size={14} />

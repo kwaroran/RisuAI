@@ -10,7 +10,9 @@ import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
 import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
+import { selectedCharID } from "./stores"
 
+export const hubURL = import.meta.env.DEV ? "http://127.0.0.1:8787" : "https://sv.risuai.xyz"
 
 export async function importCharacter() {
     try {
@@ -200,7 +202,7 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         alternateGreetings:[],
         tags:[],
         creator:"",
-        characterVersion: 0,
+        characterVersion: '',
         personality: charaData.personality ?? '',
         scenario:charaData.scenario ?? '',
         firstMsgIndex: -1,
@@ -307,9 +309,12 @@ export async function exportChar(charaID:number) {
 }
 
 
-async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boolean>{
+async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'normal'):Promise<boolean>{
     if(!card ||card.spec !== 'chara_card_v2'){
         return false
+    }
+    if(!mode){
+        mode = 'normal'
     }
 
     const data = card.data
@@ -333,7 +338,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
                     msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
                 })
                 await sleep(10)
-                const imgp = await saveAsset(Buffer.from(risuext.emotions[i][1], 'base64'))
+                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.emotions[i][1])) : Buffer.from(risuext.emotions[i][1], 'base64'))
                 emotions.push([risuext.emotions[i][0],imgp])
             }
         }
@@ -344,7 +349,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
                     msg: `Loading... (Getting Assets ${i} / ${risuext.additionalAssets.length})`
                 })
                 await sleep(10)
-                const imgp = await saveAsset(Buffer.from(risuext.additionalAssets[i][1], 'base64'))
+                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.additionalAssets[i][1])) :Buffer.from(risuext.additionalAssets[i][1], 'base64'))
                 extAssets.push([risuext.additionalAssets[i][0],imgp])
             }
         }
@@ -418,7 +423,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
         alternateGreetings:data.alternate_greetings ?? [],
         tags:data.tags ?? [],
         creator:data.creator ?? '',
-        characterVersion: data.character_version ?? 0,
+        characterVersion: `${data.character_version}` ?? '',
         personality:data.personality ?? '',
         scenario:data.scenario ?? '',
         firstMsgIndex: -1,
@@ -444,74 +449,81 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array):Promise<boole
 
 }
 
+
+async function createBaseV2(char:character) {
+    
+    let charBook:charBookEntry[] = []
+    for(const lore of char.globalLore){
+        let ext:{
+            risu_case_sensitive?: boolean;
+            risu_activationPercent?: number
+        } = cloneDeep(lore.extentions ?? {})
+
+        let caseSensitive = ext.risu_case_sensitive ?? false
+        ext.risu_activationPercent = lore.activationPercent
+
+        charBook.push({
+            keys: lore.key.split(',').map(r => r.trim()),
+            secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
+            content: lore.content,
+            extensions: ext,
+            enabled: true,
+            insertion_order: lore.insertorder,
+            constant: lore.alwaysActive,
+            selective:lore.selective,
+            name: lore.comment,
+            comment: lore.comment,
+            case_sensitive: caseSensitive,
+        })
+    }
+
+    const card:CharacterCardV2 = {
+        spec: "chara_card_v2",
+        spec_version: "2.0",
+        data: {
+            name: char.name,
+            description: char.desc,
+            personality: char.personality,
+            scenario: char.scenario,
+            first_mes: char.firstMessage,
+            mes_example: char.exampleMessage,
+            creator_notes: char.creatorNotes,
+            system_prompt: char.systemPrompt,
+            post_history_instructions: char.replaceGlobalNote,
+            alternate_greetings: char.alternateGreetings,
+            character_book: {
+                scan_depth: char.loreSettings?.scanDepth,
+                token_budget: char.loreSettings?.tokenBudget,
+                recursive_scanning: char.loreSettings?.recursiveScanning,
+                extensions: char.loreExt ?? {},
+                entries: charBook
+            },
+            tags: char.additionalData?.tag ?? [],
+            creator: char.additionalData?.creator ?? '',
+            character_version: `${char.additionalData?.character_version}` ?? '',
+            extensions: {
+                risuai: {
+                    emotions: char.emotionImages,
+                    bias: char.bias,
+                    viewScreen: char.viewScreen,
+                    customScripts: char.customscript,
+                    utilityBot: char.utilityBot,
+                    sdData: char.sdData,
+                    additionalAssets: char.additionalAssets
+                }
+            }
+        }
+    }
+    console.log(card)
+    return card
+}
+
+
 export async function exportSpecV2(char:character) {
     let img = await readImage(char.image)
 
     try{
-
-        let charBook:charBookEntry[] = []
-        for(const lore of char.globalLore){
-            let ext:{
-                risu_case_sensitive?: boolean;
-                risu_activationPercent?: number
-            } = cloneDeep(lore.extentions ?? {})
-
-            let caseSensitive = ext.risu_case_sensitive ?? false
-            ext.risu_activationPercent = lore.activationPercent
-
-            charBook.push({
-                keys: lore.key.split(',').map(r => r.trim()),
-                secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
-                content: lore.content,
-                extensions: ext,
-                enabled: true,
-                insertion_order: lore.insertorder,
-                constant: lore.alwaysActive,
-                selective:lore.selective,
-                name: lore.comment,
-                comment: lore.comment,
-                case_sensitive: caseSensitive,
-            })
-        }
-
-        const card:CharacterCardV2 = {
-            spec: "chara_card_v2",
-            spec_version: "2.0",
-            data: {
-                name: char.name,
-                description: char.desc,
-                personality: char.personality,
-                scenario: char.scenario,
-                first_mes: char.firstMessage,
-                mes_example: char.exampleMessage,
-                creator_notes: char.creatorNotes,
-                system_prompt: char.systemPrompt,
-                post_history_instructions: char.replaceGlobalNote,
-                alternate_greetings: char.alternateGreetings,
-                character_book: {
-                    scan_depth: char.loreSettings?.scanDepth,
-                    token_budget: char.loreSettings?.tokenBudget,
-                    recursive_scanning: char.loreSettings?.recursiveScanning,
-                    extensions: char.loreExt ?? {},
-                    entries: charBook
-                },
-                tags: char.additionalData?.tag ?? [],
-                creator: char.additionalData?.creator ?? '',
-                character_version: char.additionalData?.character_version ?? 0,
-                extensions: {
-                    risuai: {
-                        emotions: char.emotionImages,
-                        bias: char.bias,
-                        viewScreen: char.viewScreen,
-                        customScripts: char.customscript,
-                        utilityBot: char.utilityBot,
-                        sdData: char.sdData,
-                        additionalAssets: char.additionalAssets
-                    }
-                }
-            }
-        }
-
+        const card = await createBaseV2(char)
 
         if(card.data.extensions.risuai.emotions && card.data.extensions.risuai.emotions.length > 0){
             for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
@@ -563,6 +575,115 @@ export async function exportSpecV2(char:character) {
     }
 }
 
+export async function shareRisuHub(char:character) {
+    let img = await readImage(char.image)
+
+    try{
+        const card = await createBaseV2(char)
+        let resources:[string,string][] = []
+        if(card.data.extensions.risuai.emotions && card.data.extensions.risuai.emotions.length > 0){
+            for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
+                })
+                const data = card.data.extensions.risuai.emotions[i][1]
+                const rData = await readImage(data)
+                resources.push([data, Buffer.from(rData).toString('base64')])
+            }
+        }
+
+        
+        if(card.data.extensions.risuai.additionalAssets && card.data.extensions.risuai.additionalAssets.length > 0){
+            for(let i=0;i<card.data.extensions.risuai.additionalAssets.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
+                })
+                const data = card.data.extensions.risuai.additionalAssets[i][1]
+                const rData = await readImage(data)
+                resources.push([data, Buffer.from(rData).toString('base64')])
+            }
+        }
+
+        const da = await fetch(hubURL + '/hub/upload', {
+            method: "POST",
+            body: JSON.stringify({
+                card: card,
+                img: Buffer.from(img).toString('base64'),
+                resources: resources
+            })
+        })
+
+        if(da.status !== 200){
+            alertError(await da.text())
+        }
+        else{
+            alertNormal("Successfuly Uploaded")
+        }
+    }
+    catch(e){
+        alertError(`${e}`)
+    }
+
+}
+
+export async function getRisuHub():Promise<{
+    name:string
+    desc: string
+    download: number,
+    id: string,
+    img: string
+}[]> {
+    const da = await fetch(hubURL + '/hub/list', {
+        method: "POST",
+        body: JSON.stringify({
+
+        })
+    })
+    if(da.status !== 200){
+        return []
+    }
+    return da.json()
+}
+
+export async function downloadRisuHub(id:string, img:string) {
+    alertStore.set({
+        type: "wait",
+        msg: "Downloading..."
+    })
+    const res = await fetch(hubURL + '/hub/get', {
+        method: "POST",
+        body: JSON.stringify({
+            id: id
+        })
+    })
+    if(res.status !== 200){
+        alertError(await res.text())
+    }
+
+    const data:CharacterCardV2 = await res.json()
+
+    await importSpecv2(data, await getHubResources(img), 'hub')
+    checkCharOrder()
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        const index = db.characters.length-1
+        characterFormatUpdate(index);
+        selectedCharID.set(index);
+    }
+
+}
+
+export async function getHubResources(id:string) {
+    const res = await fetch(`${hubURL}/resource/${id}`)
+    if(res.status !== 200){
+        throw (await res.text())
+    }
+    return Buffer.from(await (res).arrayBuffer())
+}
+
+
 
 type CharacterCardV2 = {
     spec: 'chara_card_v2'
@@ -581,7 +702,7 @@ type CharacterCardV2 = {
         character_book?: CharacterBook
         tags: string[]
         creator: string
-        character_version: number
+        character_version: string
         extensions: {
             risuai?:{
                 emotions?:[string, string][]
