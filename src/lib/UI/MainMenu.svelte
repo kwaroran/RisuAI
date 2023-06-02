@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appVer } from "src/ts/storage/database";
+  import { DataBase, appVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Hub.svelte";
 
@@ -9,6 +9,8 @@
     <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
     <GithubStars />
   <div class="w-full flex p-4 flex-col text-2xl text-white">
-    <Hub />
+    {#if $DataBase.useExperimental}
+      <Hub />
+    {/if}
   </div>
 </div>
