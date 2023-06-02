@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { language } from "../../lang";
+	import { language } from "../../lang";
     import { tokenize } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon, XIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon, XIcon, DeleteIcon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
@@ -108,7 +108,6 @@
     }
 
     onDestroy(unsub);
-
 </script>
 
 <div class="flex gap-2 mb-2">
@@ -131,6 +130,9 @@
     {/if}
     <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
         <ActivityIcon />
+    </button>
+    <button class={subMenu === 6 ? 'text-red-500' : 'text-red-700'} on:click={() => {subMenu = 6}}>
+        <DeleteIcon />
     </button>
 </div>
 
@@ -676,6 +678,8 @@
             </div>
         {/if}
     {/if}
+{:else if subMenu === 6}
+    <h2 class="mb-2 text-2xl font-bold mt-2">{currentChar.type === 'group' ? language.removeGroup : language.removeCharacter}</h2>
     <button on:click={async () => {
         const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
         if(!conf){
@@ -690,7 +694,6 @@
         checkCharOrder()
         $selectedCharID = -1
         $DataBase.characters = chars
-
     }} class="text-neutral-200 mt-2 bg-transparent border-solid border-1 border-borderc p-2 hover:bg-draculared transition-colors cursor-pointer">{ currentChar.type === 'group' ? language.removeGroup : language.removeCharacter}</button>
 {/if}
 
