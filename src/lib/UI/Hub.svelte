@@ -12,7 +12,6 @@
     } = null
 
 </script>
-<h1 class="text-3xl font-bold mt-4">Shared Characters <Help key="experimental" /> </h1>
 <div class="w-full flex gap-4 p-2 flex-wrap">
     {#await getRisuHub() then charas}
         {#each charas as chara}

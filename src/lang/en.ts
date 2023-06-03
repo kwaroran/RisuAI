@@ -297,5 +297,7 @@ export const languageEnglish = {
     talkness: "Talkativeness",
     active: "Active",
     loreRandomActivation: "Use Probability Condition",
-    activationProbability: "Probability"
+    activationProbability: "Probability",
+    shareCloud: "Share to RisuRealm",
+    hub: "RisuRealm"
 }

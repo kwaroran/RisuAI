@@ -518,8 +518,8 @@
 </div>
 <div
   class="setting-area flex w-96 flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200"
-  class:flex-grow={$SizeStore.w <= 1000}
-  class:minw96={$SizeStore.w > 1000}
+  class:flex-grow={$SizeStore.w <= 1028}
+  class:minw96={$SizeStore.w > 1028}
 >
   <button
     class="flex w-full justify-end text-gray-200"
