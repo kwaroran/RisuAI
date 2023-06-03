@@ -431,7 +431,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         loreSettings: loresettings,
         loreExt: loreExt,
         additionalData: {
-            tag: data.tags,
+            tag: data.tags ?? [],
             creator: data.creator,
             character_version: data.character_version
         },
@@ -482,15 +482,15 @@ async function createBaseV2(char:character) {
         spec_version: "2.0",
         data: {
             name: char.name,
-            description: char.desc,
-            personality: char.personality,
-            scenario: char.scenario,
-            first_mes: char.firstMessage,
-            mes_example: char.exampleMessage,
-            creator_notes: char.creatorNotes,
-            system_prompt: char.systemPrompt,
-            post_history_instructions: char.replaceGlobalNote,
-            alternate_greetings: char.alternateGreetings,
+            description: char.desc ?? '',
+            personality: char.personality ?? '',
+            scenario: char.scenario ?? '',
+            first_mes: char.firstMessage ?? '',
+            mes_example: char.exampleMessage ?? '',
+            creator_notes: char.creatorNotes ?? '',
+            system_prompt: char.systemPrompt ?? '',
+            post_history_instructions: char.replaceGlobalNote ?? '',
+            alternate_greetings: char.alternateGreetings ?? [],
             character_book: {
                 scan_depth: char.loreSettings?.scanDepth,
                 token_budget: char.loreSettings?.tokenBudget,
@@ -498,7 +498,7 @@ async function createBaseV2(char:character) {
                 extensions: char.loreExt ?? {},
                 entries: charBook
             },
-            tags: char.additionalData?.tag ?? [],
+            tags: char.tags ?? [],
             creator: char.additionalData?.creator ?? '',
             character_version: `${char.additionalData?.character_version}` ?? '',
             extensions: {
@@ -575,7 +575,29 @@ export async function exportSpecV2(char:character) {
     }
 }
 
-export async function shareRisuHub(char:character) {
+export async function shareRisuHub(char:character, arg:{
+    nsfw: boolean,
+    privateMode:boolean
+    tag:string
+}) {
+    char = cloneDeep(char)
+
+    let tagList = arg.tag.split(',')
+    
+    if(arg.nsfw){
+        tagList.push("NSFW")
+    }
+    if(arg.privateMode){
+        tagList.push("private")
+    }
+    
+
+    let tags = tagList.filter((v, i) => {
+        return (!!v) && (tagList.indexOf(v) === i)
+    })
+    char.tags = tags
+
+
     let img = await readImage(char.image)
 
     try{
@@ -592,6 +614,8 @@ export async function shareRisuHub(char:character) {
                 resources.push([data, Buffer.from(rData).toString('base64')])
             }
         }
+
+        
 
         
         if(card.data.extensions.risuai.additionalAssets && card.data.extensions.risuai.additionalAssets.length > 0){
@@ -628,22 +652,24 @@ export async function shareRisuHub(char:character) {
 
 }
 
-export async function getRisuHub():Promise<{
+export async function getRisuHub(arg?:{
+    search?:string
+}):Promise<{
     name:string
     desc: string
     download: number,
     id: string,
     img: string
+    tags: string[]
 }[]> {
     const da = await fetch(hubURL + '/hub/list', {
         method: "POST",
-        body: JSON.stringify({
-
-        })
+        body: JSON.stringify(arg ?? {})
     })
     if(da.status !== 200){
         return []
     }
+    console.log(da)
     return da.json()
 }
 

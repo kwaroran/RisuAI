@@ -299,5 +299,6 @@ export const languageEnglish = {
     loreRandomActivation: "Use Probability Condition",
     activationProbability: "Probability",
     shareCloud: "Share to RisuRealm",
-    hub: "RisuRealm"
+    hub: "RisuRealm",
+    tags: "Tags"
 }

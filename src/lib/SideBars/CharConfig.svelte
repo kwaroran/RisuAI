@@ -17,10 +17,11 @@
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder } from "src/ts/storage/globalApi";
-  import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
+    import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
+  import HubUpload from "../UI/HubUpload.svelte";
 
     let subMenu = 0
-    let subberMenu = 0
+    let openHubUpload = false
     let emos:[string, string][] = []
     let tokens = {
         desc: 0,
@@ -118,7 +119,7 @@
     <button class={subMenu === 1 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 1}}>
         <SmileIcon />
     </button>
-    <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3;subberMenu = 0}}>
+    <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3}}>
         <BookIcon />
     </button>
     {#if currentChar.type === 'character'}
@@ -665,12 +666,12 @@
         }} class="text-neutral-200 mt-6 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.exportCharacter}</button>
 
         {#if $DataBase.useExperimental}
-        <button on:click={async () => {
-            const cha = $DataBase.characters[$selectedCharID]
-            if(cha.type !== 'group'){
-                shareRisuHub(cha)
-            }
-        }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.shareCloud} <Help key="experimental" /></button>
+            <button on:click={async () => {
+                openHubUpload = true
+            }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.shareCloud} <Help key="experimental" /></button>
+        {/if}
+        {#if openHubUpload}
+            <HubUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
