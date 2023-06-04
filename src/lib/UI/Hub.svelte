@@ -80,7 +80,7 @@
 </div>
 <div class="w-full flex justify-center">
     <div class="flex">
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             if(page > 0){
                 page -= 1
                 getHub()
