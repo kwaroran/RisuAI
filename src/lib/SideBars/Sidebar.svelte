@@ -23,6 +23,7 @@
     PlusIcon,
     FolderIcon,
     FolderOpenIcon,
+    HomeIcon,
   } from "lucide-svelte";
   import {
     characterFormatUpdate,
@@ -510,6 +511,12 @@
       <BarIcon
         onClick={() => {
           reseter();
+          selectedCharID.set(-1)
+        }}><HomeIcon /></BarIcon>
+      <div class="mt-2"></div>
+      <BarIcon
+        onClick={() => {
+          reseter();
           openGrid();
         }}><LayoutGridIcon /></BarIcon
       >
@@ -571,9 +578,6 @@
 <style>
   .minw96 {
     min-width: 24rem; /* 384px */
-  }
-  .title {
-    margin-bottom: 0.5rem;
   }
   .editMode {
     min-width: 6rem;
