@@ -53,31 +53,33 @@
     </div>
 </div>
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
-    {#each charas as chara}
-        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={() => {
-            openedData = chara
-        }}>
-            <div class="flex gap-2 w-full">
-                <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
-                <div class="flex flex-col flex-grow min-w-0">
-                    <span class="text-white text-lg min-w-0 max-w-full text-ellipsis whitespace-nowrap overflow-hidden text-start">{chara.name}</span>
-                    <span class="text-gray-400 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{chara.desc}</span>
-                    <div class="flex flex-wrap">
-                        {#each chara.tags as tag, i}
-                            {#if i < 4}
-                                <div class="text-xs p-1 text-blue-400">{tag}</div>
-                            {:else if i === 4}
-                                <div class="text-xs p-1 text-blue-400">...</div>
-                            {/if}
-                        {/each}
+    {#key charas}
+        {#each charas as chara}
+            <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={() => {
+                openedData = chara
+            }}>
+                <div class="flex gap-2 w-full">
+                    <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
+                    <div class="flex flex-col flex-grow min-w-0">
+                        <span class="text-white text-lg min-w-0 max-w-full text-ellipsis whitespace-nowrap overflow-hidden text-start">{chara.name}</span>
+                        <span class="text-gray-400 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{chara.desc}</span>
+                        <div class="flex flex-wrap">
+                            {#each chara.tags as tag, i}
+                                {#if i < 4}
+                                    <div class="text-xs p-1 text-blue-400">{tag}</div>
+                                {:else if i === 4}
+                                    <div class="text-xs p-1 text-blue-400">...</div>
+                                {/if}
+                            {/each}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </button>
-    {/each}
+            </button>
+        {/each}
+    {/key}
 </div>
 <div class="w-full flex justify-center">
-    <div>
+    <div class="flex">
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             if(page > 0){
                 page -= 1
