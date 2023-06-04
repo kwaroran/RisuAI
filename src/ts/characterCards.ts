@@ -585,7 +585,7 @@ export async function shareRisuHub(char:character, arg:{
     let tagList = arg.tag.split(',')
     
     if(arg.nsfw){
-        tagList.push("NSFW")
+        tagList.push("nsfw")
     }
     if(arg.privateMode){
         tagList.push("private")
