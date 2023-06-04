@@ -10,6 +10,12 @@ const convertor = new showdown.Converter({
     tables: true
 })
 
+const safeConvertor = new showdown.Converter({
+    simpleLineBreaks: true,
+    strikethrough: true,
+    tables: true,
+    backslashEscapesHTMLTags: true
+})
 
 DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     if (data.tagName === "iframe") {
@@ -35,6 +41,12 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
     return DOMPurify.sanitize(convertor.makeHtml(data), {
         ADD_TAGS: ["iframe"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
+    })
+}
+
+export function parseMarkdownSafe(data:string) {
+    return DOMPurify.sanitize(safeConvertor.makeHtml(data), {
+        FORBID_TAGS: ["a", "style"]
     })
 }
 

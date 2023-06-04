@@ -2,13 +2,15 @@
     import { downloadRisuHub, getRisuHub, hubURL } from "src/ts/characterCards";
     import { ArrowLeft, ArrowRight, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
+  import { parseMarkdownSafe } from "src/ts/parser";
 
     let openedData:null|{
         name:string
         desc: string
         download: number,
         id: string,
-        img: string
+        img: string,
+        tags: string[]
     } = null
 
     let charas:{
@@ -107,12 +109,21 @@
         openedData = null
     }}>
         <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">
-            <div class="w-full flex gap-4">
-                <div class="flex flex-col">
+            <div class="w-full flex gap-4 flex-col">
+                <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
+                <div class="flex justify-start gap-4">
                     <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
-                    <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis mt-4">{openedData.name}</h1>
+                    <span class="text-gray-400 break-words text-base chattext prose prose-invert">
+                        {#await parseMarkdownSafe(openedData.desc) then msg}
+                            {@html msg}                        
+                        {/await}
+                    </span>
                 </div>
-                <span class="text-gray-400 break-words text-base">{openedData.desc}</span>
+                <div class="flex justify-start gap-2">
+                    {#each openedData.tags as tag, i}
+                        <div class="text-xs p-1 text-blue-400">{tag}</div>
+                    {/each}
+                </div>
             </div>
             <div class="flex flex-row-reverse gap-2">
                 <button class="text-gray-400 hover:text-red-500" on:click|stopPropagation={async () => {
