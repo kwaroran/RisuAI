@@ -1,6 +1,6 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub, hubURL } from "src/ts/characterCards";
-    import { DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
   import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
 
     let openedData:null|{
@@ -20,12 +20,15 @@
         tags: string[]
     }[] = []
 
+    let page = 0
+
     let search = ''
     let menuOpen = false
 
     async function getHub(){
         charas = await getRisuHub({
-            search: search
+            search: search,
+            page: page
         })
     }
 
@@ -36,7 +39,10 @@
 <div class="w-full flex justify-center mt-4 mb-3">
     <div class="flex w-2xl max-w-full items-center">
         <input class="flex-grow text-xl pl-3 pr-3 rounded-lg bg-darkbg h-16 min-w-0" placeholder="Search" bind:value={search}>
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={getHub}>
+        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+            page = 0
+            getHub()
+        }}>
             <SearchIcon />
         </button>
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
@@ -69,6 +75,25 @@
             </div>
         </button>
     {/each}
+</div>
+<div class="w-full flex justify-center">
+    <div>
+        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+            if(page > 0){
+                page -= 1
+            }
+        }}>
+            <ArrowLeft />
+        </button>
+        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
+            <span>{page + 1}</span>
+        </button>
+        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+            page += 1
+        }}>
+            <ArrowRight />
+        </button>
+    </div>
 </div>
 
 
