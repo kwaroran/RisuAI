@@ -14,7 +14,8 @@ import { changeLanguage, language } from "src/lang";
     langChanged = true
 }}>
     <option value="en" class="bg-darkbg appearance-none">English</option>
-    <option value="ko" class="bg-darkbg appearance-none">Korean</option>
+    <option value="ko" class="bg-darkbg appearance-none">한국어</option>
+    <option value="cn" class="bg-darkbg appearance-none">中文</option>
 </select>
 {#if langChanged}
     <span class="bg-red-500 text-sm">Close the settings to take effect</span>
