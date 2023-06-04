@@ -1,7 +1,7 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub, hubURL } from "src/ts/characterCards";
     import { ArrowLeft, ArrowRight, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
-  import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
+    import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
 
     let openedData:null|{
         name:string
@@ -81,6 +81,7 @@
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             if(page > 0){
                 page -= 1
+                getHub()
             }
         }}>
             <ArrowLeft />
@@ -90,6 +91,7 @@
         </button>
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             page += 1
+            getHub()
         }}>
             <ArrowRight />
         </button>
