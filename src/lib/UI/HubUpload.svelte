@@ -28,7 +28,10 @@
             <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} on:click={() => {nsfwMode = true}}>🔞 NSFW</button>
         </div>
         {#if nsfwMode}
-        <span class="text-gray-400 text-sm">Grotesque Contents and Child poronography would be banned.</span>
+            <span class="text-gray-400 text-sm">Grotesque Contents and Child poronography would be banned.</span>
+        {/if}
+        {#if privateMode}
+            <span class="text-gray-400 text-sm">Private characters can be removed from the server if there is only a few downloads.</span>
         {/if}
         <button on:click={async () => {
             if(char.creatorNotes.length < 20){
