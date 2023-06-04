@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert"
+import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
 import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
@@ -643,7 +643,7 @@ export async function shareRisuHub(char:character, arg:{
             alertError(await da.text())
         }
         else{
-            alertNormal("Successfuly Uploaded")
+            alertMd(await da.text())
         }
     }
     catch(e){
@@ -673,7 +673,7 @@ export async function getRisuHub(arg?:{
     return da.json()
 }
 
-export async function downloadRisuHub(id:string, img:string) {
+export async function downloadRisuHub(id:string) {
     alertStore.set({
         type: "wait",
         msg: "Downloading..."
@@ -688,7 +688,9 @@ export async function downloadRisuHub(id:string, img:string) {
         alertError(await res.text())
     }
 
-    const data:CharacterCardV2 = await res.json()
+    const result = await res.json()
+    const data:CharacterCardV2 = result.card
+    const img:string = result.img
 
     await importSpecv2(data, await getHubResources(img), 'hub')
     checkCharOrder()
