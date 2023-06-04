@@ -23,6 +23,8 @@ export default {
         '80p': '80%',
         '80vw': '80vw',
         '14': '3.5rem',
+        '24': '6rem',
+        '36': '9rem',
         '100vw': '100vw'
       },
       borderWidth: {

@@ -3,9 +3,9 @@
     import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, PowerIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
-    import { DataBase, appVer, type Message, type character } from "../../ts/storage/database";
+    import { DataBase, type Message } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
-    import { doingChat, sendChat, type OpenAIChat } from "../../ts/process/index";
+    import { doingChat, sendChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { translate } from "../../ts/translator/translator";
@@ -13,9 +13,9 @@
     import sendSound from '../../etc/send.mp3'
     import {cloneDeep} from 'lodash'
     import { processScript } from "src/ts/process/scripts";
-    import GithubStars from "../Others/GithubStars.svelte";
     import CreatorQuote from "./CreatorQuote.svelte";
     import { stopTTS } from "src/ts/process/tts";
+    import MainMenu from '../UI/MainMenu.svelte';
 
     let messageInput = ''
     let openMenu = false
@@ -186,11 +186,7 @@
     openMenu = false
 }}>
     {#if $selectedCharID < 0}
-        <div class="h-full w-full flex flex-col overflow-y-auto items-center">
-            <h2 class="text-4xl text-white mb-0 mt-6 font-black">RisuAI</h2>
-            <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
-            <GithubStars />
-        </div>
+        <MainMenu />
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {
             //@ts-ignore

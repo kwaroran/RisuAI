@@ -65,7 +65,7 @@ export const languageEnglish = {
                 + "\n\n- $(name)\n\n    - inserts the named group"
                 + "\n\nIf OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
                 + "\n\n- @@emo (emotion name)\n\n    - if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
-        experimental: "This is a experimental setting. it might be unstable.",
+        experimental: "This is a experimental feature. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
                 + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
         exampleMessage: "Example conversations that effects output of the character. it dosen't uses tokens permanently."
@@ -297,5 +297,8 @@ export const languageEnglish = {
     talkness: "Talkativeness",
     active: "Active",
     loreRandomActivation: "Use Probability Condition",
-    activationProbability: "Probability"
+    activationProbability: "Probability",
+    shareCloud: "Share to RisuRealm",
+    hub: "RisuRealm",
+    tags: "Tags"
 }

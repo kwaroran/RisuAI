@@ -280,14 +280,14 @@ export function characterFormatUpdate(index:number|character){
         cha.systemPrompt = cha.systemPrompt ?? ''
         cha.tags = cha.tags ?? []
         cha.creator = cha.creator ?? ''
-        cha.characterVersion = cha.characterVersion ?? 0
+        cha.characterVersion = cha.characterVersion ?? ''
         cha.personality = cha.personality ?? ''
         cha.scenario = cha.scenario ?? ''
         cha.firstMsgIndex = cha.firstMsgIndex ?? -1
         cha.additionalData = cha.additionalData ?? {
             tag: [],
             creator: '',
-            character_version: 0
+            character_version: ''
         }
         cha.voicevoxConfig = cha.voicevoxConfig ?? {
             SPEED_SCALE: 1,
@@ -356,7 +356,7 @@ export function createBlankChar():character{
         alternateGreetings:[],
         tags:[],
         creator:"",
-        characterVersion: 0,
+        characterVersion: '',
         personality:"",
         scenario:"",
         firstMsgIndex: -1,

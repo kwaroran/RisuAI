@@ -23,6 +23,7 @@
     PlusIcon,
     FolderIcon,
     FolderOpenIcon,
+    HomeIcon,
   } from "lucide-svelte";
   import {
     characterFormatUpdate,
@@ -51,18 +52,27 @@
 
   function createScratch() {
     reseter();
-    const cid = createNewCharacter();
-    selectedCharID.set(-1);
+    createNewCharacter();
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
   function createGroup() {
     reseter();
-    const cid = createNewGroup();
-    selectedCharID.set(-1);
+    createNewGroup();
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
   async function createImport() {
     reseter();
     await importCharacter();
-    selectedCharID.set(-1);
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
   }
 
   function changeChar(index: number) {
@@ -501,6 +511,12 @@
       <BarIcon
         onClick={() => {
           reseter();
+          selectedCharID.set(-1)
+        }}><HomeIcon /></BarIcon>
+      <div class="mt-2"></div>
+      <BarIcon
+        onClick={() => {
+          reseter();
           openGrid();
         }}><LayoutGridIcon /></BarIcon
       >
@@ -509,8 +525,8 @@
 </div>
 <div
   class="setting-area flex w-96 flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200"
-  class:flex-grow={$SizeStore.w <= 1000}
-  class:minw96={$SizeStore.w > 1000}
+  class:flex-grow={$SizeStore.w <= 1028}
+  class:minw96={$SizeStore.w > 1028}
 >
   <button
     class="flex w-full justify-end text-gray-200"
@@ -530,7 +546,6 @@
       <CharConfig />
     {/if}
   {:else if sideBarMode === 1}
-    <h2 class="title mt-2 text-xl font-bold">Create</h2>
     <button
       on:click={createScratch}
       class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-5 text-lg drop-shadow-lg hover:bg-selected"
@@ -549,16 +564,6 @@
     >
       {language.createGroup}
     </button>
-    <h2 class="title mt-4 text-xl font-bold">Edit</h2>
-    <button
-      on:click={() => {
-        editMode = !editMode;
-        $selectedCharID = -1;
-      }}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
-    >
-      {language.editOrder}
-    </button>
   {/if}
 </div>
 
@@ -573,9 +578,6 @@
 <style>
   .minw96 {
     min-width: 24rem; /* 384px */
-  }
-  .title {
-    margin-bottom: 0.5rem;
   }
   .editMode {
     min-width: 6rem;

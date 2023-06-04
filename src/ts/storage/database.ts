@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.22.4'
+export let appVer = '1.23.0'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -311,7 +311,7 @@ export interface character{
     alternateGreetings:string[]
     tags:string[]
     creator:string
-    characterVersion: number
+    characterVersion: string
     personality:string
     scenario:string
     firstMsgIndex:number
@@ -320,7 +320,7 @@ export interface character{
     additionalData?: {
         tag?:string[]
         creator?:string
-        character_version?:number
+        character_version?:string
     }
     ttsMode?:string
     ttsSpeech?:string

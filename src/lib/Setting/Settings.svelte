@@ -25,7 +25,7 @@
 
 </script>
 <div class="h-full w-full flex justify-center setting-bg">
-    <div class="h-full max-w-screen-lg w-full flex">
+    <div class="h-full max-w-screen-lg w-full flex relative">
         {#if window.innerWidth >= 700 || selected === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
@@ -135,17 +135,17 @@
                 {:else if selected === 11}
                     <AccessibilitySettings/>
                 {/if}
-                <button class="absolute top-2 right-2 hover:text-green-500" on:click={() => {
-                    if(window.innerWidth >= 700){
-                        settingsOpen.set(false)
-                    }
-                    else{
-                        selected = -1
-                    }
-                }}>
-                    <XCircleIcon />
-                </button>
             </div>
+            <button class="absolute top-2 right-2 hover:text-green-500 text-white" on:click={() => {
+                if(window.innerWidth >= 700){
+                    settingsOpen.set(false)
+                }
+                else{
+                    selected = -1
+                }
+            }}>
+                <XCircleIcon />
+            </button>            
         {/if}
     </div>
 </div>
