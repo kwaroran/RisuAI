@@ -539,7 +539,6 @@
       <CharConfig />
     {/if}
   {:else if sideBarMode === 1}
-    <h2 class="title mt-2 text-xl font-bold">Create</h2>
     <button
       on:click={createScratch}
       class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-5 text-lg drop-shadow-lg hover:bg-selected"
@@ -557,16 +556,6 @@
       class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
     >
       {language.createGroup}
-    </button>
-    <h2 class="title mt-4 text-xl font-bold">Edit</h2>
-    <button
-      on:click={() => {
-        editMode = !editMode;
-        $selectedCharID = -1;
-      }}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
-    >
-      {language.editOrder}
     </button>
   {/if}
 </div>
