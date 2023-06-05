@@ -335,6 +335,7 @@ export interface character{
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
     replaceGlobalNote:string
+    backgroundHTML?:string
 }
 
 
@@ -371,6 +372,7 @@ export interface groupChat{
     ttsMode?:string
     suggestMessages?:string[]
     orderByOrder?:boolean
+    backgroundHTML?:string
 }
 
 export interface botPreset{

@@ -81,7 +81,7 @@ export const languageChinese = {
         utilityBot: "激活后，它会忽略主提示词。\n\n**不建议使用此选项。改为修改系统提示词。**",
         loreSelective: "如果已切换选择模式，则激活密钥和次级密钥都应有匹配项才能激活lorebook。",
         loreRandomActivation: "如果启用了使用概率条件，如果lorebook的其他条件都已满足，每次发送聊天时，lorebook将以“概率”设置的概率被激活。",
-        additionalAssets: "在你的聊天中显示的额外资源。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片",
+        additionalAssets: "在你的聊天中显示的额外资源。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio (recommended to put in Background HTML)",
         superMemory: "SuperMemory 通过给 AI 提供总结数据使你的角色记忆更多信息。\n\n"
             + "SuperMemory 模型是一个总结文本的模型。推荐使用Davinci，除非是具有超过2000个token数的高度总结能力的成人模型，否则不推荐使用辅助模型。\n\n"
             + "SuperMemory 提示词决定了应发送什么提示词进行总结。如果你留空，它将使用默认提示词。建议留空。\n\n"
