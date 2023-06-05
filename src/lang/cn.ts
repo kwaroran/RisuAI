@@ -81,7 +81,7 @@ export const languageChinese = {
         utilityBot: "激活后，它会忽略主提示词。\n\n**不建议使用此选项。改为修改系统提示词。**",
         loreSelective: "如果已切换选择模式，则激活密钥和次级密钥都应有匹配项才能激活lorebook。",
         loreRandomActivation: "如果启用了使用概率条件，如果lorebook的其他条件都已满足，每次发送聊天时，lorebook将以“概率”设置的概率被激活。",
-        additionalAssets: "在你的聊天中显示的额外资产。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片",
+        additionalAssets: "在你的聊天中显示的额外资源。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片",
         superMemory: "SuperMemory 通过给 AI 提供总结数据使你的角色记忆更多信息。\n\n"
             + "SuperMemory 模型是一个总结文本的模型。推荐使用Davinci，除非是具有超过2000个token数的高度总结能力的成人模型，否则不推荐使用辅助模型。\n\n"
             + "SuperMemory 提示词决定了应发送什么提示词进行总结。如果你留空，它将使用默认提示词。建议留空。\n\n"
@@ -125,7 +125,7 @@ export const languageChinese = {
     authorNote: "作者注释",
     firstMessage: '第一条消息',
     description: '描述',
-    jailbreakToggle: '切换NSFW(成人模式)/越狱',
+    jailbreakToggle: '开启NSFW(成人模式)/越狱',
     charIcon: "角色图标",
     characterDisplay: "角色展示",
     viewScreen: '额外角色屏幕',
@@ -260,7 +260,7 @@ export const languageChinese = {
     creator: "创作者",
     CharVersion: "角色版本",
     Speech: "语音",
-    ToggleSuperMemory: "切换超级记忆",
+    ToggleSuperMemory: "开启超级记忆",
     SuperMemory: "超级记忆",
     useExperimental: "启用实验性功能",
     showMemoryLimit: "显示记忆限制",
@@ -269,7 +269,7 @@ export const languageChinese = {
     chatBot: '聊天机器人',
     otherBots: '其他机器人',
     user: "用户",
-    additionalAssets: "额外资产",
+    additionalAssets: "额外资源",
     editDisplay: "修改显示",
     community: "社区",
     textBackgrounds: "自定义文本屏幕颜色",
