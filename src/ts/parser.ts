@@ -27,7 +27,7 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
 });
 
 DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-    if(data.attrName === 'src'){
+    if(data.attrName === 'style'){
         data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
     }
 })
