@@ -26,10 +26,9 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     }
 });
 
-DOMPurify.addHook("uponSanitizeAttribute", (node) => {
-    const style = node.getAttribute("style");
-    if(style){
-        node.setAttribute('style', style.replace(/(absolute)|(z-index)|(fixed)/g, ''))
+DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+    if(data.attrName === 'src'){
+        data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
     }
 })
 
