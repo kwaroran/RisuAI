@@ -83,7 +83,7 @@ export const languageChinese = {
         loreRandomActivation: "如果启用了使用概率条件，如果lorebook的其他条件都已满足，每次发送聊天时，lorebook将以“概率”设置的概率被激活。",
         additionalAssets: "在你的聊天中显示的额外资产。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片",
         superMemory: "SuperMemory 通过给 AI 提供总结数据使你的角色记忆更多信息。\n\n"
-            + "SuperMemory 模型是一个总结文本的模型。推荐使用达芬奇，除非是具有超过2000个token数的高度总结能力的未过滤模型，否则不推荐使用辅助模型。\n\n"
+            + "SuperMemory 模型是一个总结文本的模型。推荐使用Davinci，除非是具有超过2000个token数的高度总结能力的成人模型，否则不推荐使用辅助模型。\n\n"
             + "SuperMemory 提示词决定了应发送什么提示词进行总结。如果你留空，它将使用默认提示词。建议留空。\n\n"
             + "在所有设置都完成后，你可以在角色的设置中启用它。",
         replaceGlobalNote: "如果不为空，将当前的全局笔记替换为此。",
