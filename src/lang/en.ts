@@ -80,12 +80,15 @@ export const languageEnglish = {
         utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
         loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
         loreRandomActivation: "If Use Probability Condition is abled, if the lore's other conditions are all met, the lore will be activated with a set probability which is set by 'Probability' each time a chat is sent.",
-        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image",
+        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
         superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
         + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
         + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
         + "After it is all setup, you can able it in the setting of a character.",
-        replaceGlobalNote: "If its not blank, it replaces current global note to this."
+        replaceGlobalNote: "If its not blank, it replaces current global note to this.",
+        backgroundHTML: "A Markdown/HTML Data that would be injected to the background of chat screen.\n\n you can also use additional assets. for example, you can use `{{audio::<asset name}}` for background music."
+            + "\n\n Additionaly, you can use these with additional assets:"
+            + "\n - `{{bg::<asset name>}}`: inject the background as asset"
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -300,5 +303,6 @@ export const languageEnglish = {
     activationProbability: "Probability",
     shareCloud: "Share to RisuRealm",
     hub: "RisuRealm",
-    tags: "Tags"
+    tags: "Tags",
+    backgroundHTML: "Background Embedding"
 }

@@ -7,6 +7,7 @@
     import defaultWallpaper from '../../etc/bg.jpg'
     import ChatList from "../Others/ChatList.svelte";
     import TransitionImage from "./TransitionImage.svelte";
+  import BackgroundDom from "./BackgroundDom.svelte";
     let openChatList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
@@ -26,16 +27,19 @@
     })()
 </script>
 {#if $DataBase.theme === ''}
-    <div class="flex-grow h-full min-w-0" style={bgImg}>
+    <div class="flex-grow h-full min-w-0 relative" style={bgImg}>
+        
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
                 <ResizeBox />
             {/if}
         {/if}
+        <BackgroundDom />
         <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList/>
     </div>
 {:else if $DataBase.theme === 'waifu'}
-    <div class="flex-grow h-full flex justify-center" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
+    <div class="flex-grow h-full flex justify-center relative" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
+        <BackgroundDom />
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
                 <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * ($DataBase.waifuWidth2 / 100)}rem">
@@ -49,6 +53,7 @@
     </div>
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
+        <BackgroundDom />
         <div class="w-full h-1/3 absolute z-10 bottom-0 left-0">
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>

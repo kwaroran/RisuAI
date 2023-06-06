@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.23.3'
+export let appVer = '1.24.0'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -335,6 +335,7 @@ export interface character{
     additionalAssets?:[string, string][]
     ttsReadOnlyQuoted?:boolean
     replaceGlobalNote:string
+    backgroundHTML?:string
 }
 
 
@@ -371,6 +372,7 @@ export interface groupChat{
     ttsMode?:string
     suggestMessages?:string[]
     orderByOrder?:boolean
+    backgroundHTML?:string
 }
 
 export interface botPreset{
@@ -498,7 +500,8 @@ export interface Database{
     koboldURL:string
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
-    autoSuggestPrompt:string
+    autoSuggestPrompt:string,
+    claudeAPIKey:string
 }
 
 interface hordeConfig{

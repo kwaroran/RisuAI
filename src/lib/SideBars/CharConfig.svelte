@@ -553,6 +553,9 @@
             <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.scenario}></textarea>
         {/if}
 
+        <span class="text-neutral-200 mt-2">{language.backgroundHTML} <Help key="backgroundHTML" /></span>
+        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></textarea>
+
         <span class="text-neutral-200">{language.creator}</span>
         <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
 
