@@ -48,7 +48,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     const db = get(DataBase)
     let result = ''
     let formated = arg.formated
-    let maxTokens = db.maxResponse
+    let maxTokens = arg.maxTokens ??db.maxResponse
+    let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
     const replacer = model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2
@@ -70,7 +71,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
                 messages: formated,
-                temperature: arg.temperature ?? (db.temperature / 100),
+                temperature: temperature,
                 max_tokens: arg.maxTokens ?? maxTokens,
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
@@ -460,6 +461,65 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         default:{     
+            if(aiModel.startsWith('claude')){
+                for(let i=0;i<formated.length;i++){
+                    if(arg.isGroupChat && formated[i].name){
+                        formated[i].content = formated[i].name + ": " + formated[i].content
+                    }
+                    formated[i].name = undefined
+                }
+
+
+
+                let requestPrompt = formated.map((v) => {
+                    let prefix = ''
+                    switch (v.role){
+                        case "assistant":
+                            prefix = "\n\nAssistant: "
+                            break
+                        case "user":
+                            prefix = "\n\nHuman: "
+                            break
+                        case "system":
+                            prefix = "\n\nSystem: "
+                            break
+                    }
+                    return prefix + v.content
+                }).join('') + '\n\nAssistant: '
+
+                console.log(requestPrompt)
+
+                const da = await globalFetch('https://api.anthropic.com/v1/complete', {
+                    method: "POST",
+                    body: {
+                        prompt : "\n\nHuman: " + requestPrompt,
+                        model: aiModel,
+                        max_tokens_to_sample: maxTokens,
+                        stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
+                        temperature: temperature,
+                    },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-api-key": db.claudeAPIKey
+                    }
+                })
+
+                if((!da.ok) || (da.data.error)){
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(da.data)}`
+                    }
+                }
+
+                const res = da.data
+
+                console.log(res)
+                return {
+                    type: "success",
+                    result: res.completion,
+                }
+
+            }
             if(aiModel.startsWith("horde:::")){
                 const proompt = stringlizeChat(formated, currentChar?.name ?? '')
 

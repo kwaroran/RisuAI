@@ -500,7 +500,8 @@ export interface Database{
     koboldURL:string
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
-    autoSuggestPrompt:string
+    autoSuggestPrompt:string,
+    claudeAPIKey:string
 }
 
 interface hordeConfig{

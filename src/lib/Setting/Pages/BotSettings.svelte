@@ -79,6 +79,13 @@
             $DataBase.maxContext = 4000
             $DataBase.maxResponse = 500
         }
+        else if(v.startsWith('claude')){
+            $DataBase.maxContext = 7500
+            $DataBase.maxResponse = 500
+            if(v.endsWith('100k')){
+                $DataBase.maxContext = 99500
+            }
+        }
         else{
             $DataBase.maxContext = 1500
             $DataBase.maxResponse = 200
@@ -93,6 +100,11 @@
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.palmAPI}>
+{/if}
+
+{#if $DataBase.aiModel.startsWith('claude') || $DataBase.subModel.startsWith('claude')}
+    <span class="text-neutral-200">Claude {language.apiKey}</span>
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.claudeAPIKey}>
 {/if}
 {#if $DataBase.aiModel === 'gpt35' || $DataBase.aiModel === 'gpt4' || $DataBase.subModel === 'gpt4' || $DataBase.subModel === 'gpt35'|| $DataBase.aiModel === 'gpt4_32k' || $DataBase.subModel === 'gpt4_32k'}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
