@@ -279,4 +279,6 @@ export const languageKorean = {
     backgroundHTML: "백그라운드 임베딩",
     copied: "복사됨",
     useChatCopy: "채팅 메시지 복사 사용",
+    autoTranslateInput: "입력 자동 번역",
+    enterMessageForTranslateToEnglish: "영어로 번역할 메시지를 입력해주세요",
 }

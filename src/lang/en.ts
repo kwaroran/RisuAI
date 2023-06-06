@@ -307,4 +307,6 @@ export const languageEnglish = {
     backgroundHTML: "Background Embedding",
     copied: "Copied",
     useChatCopy: "Use Chat Message Copy",
+    autoTranslateInput: "Auto Translate Input",
+    enterMessageForTranslateToEnglish: "Enter Message for Translate to English",
 }
