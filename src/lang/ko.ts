@@ -276,5 +276,7 @@ export const languageKorean = {
     active: "활성화",
     loreRandomActivation: "확률 조건 사용",
     activationProbability: "발동 확률",
-    backgroundHTML: "백그라운드 임베딩"
+    backgroundHTML: "백그라운드 임베딩",
+    copied: "복사됨",
+    useChatCopy: "채팅 메시지 복사 사용",
 }

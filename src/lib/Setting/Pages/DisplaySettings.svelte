@@ -145,5 +145,9 @@
         }}/>
         <span>{language.textScreenBorder}</span>
     </div>
-
 {/if}
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.useChatCopy}/>
+    <span>{language.useChatCopy}</span>
+</div>
