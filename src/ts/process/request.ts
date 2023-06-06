@@ -72,7 +72,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
                 messages: formated,
                 temperature: temperature,
-                max_tokens: arg.maxTokens ?? maxTokens,
+                max_tokens: maxTokens,
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
                 logit_bias: bias,
@@ -458,6 +458,44 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             return {
                 type: 'success',
                 result: data.results[0].text
+            }
+        }
+        case "novellist":{
+            const auth_key = db.novellistAPI;
+            const api_server_url = 'https://api.tringpt.com/';
+
+            const headers = {
+                'Authorization': `Bearer ${auth_key}`,
+                'Content-Type': 'application/json'
+            };
+
+            const send_body = {
+                text: stringlizeChat(formated, currentChar?.name ?? ''),
+                length: maxTokens,
+                temperature: temperature,
+                top_p: 0.7,
+                tailfree: 1.0,
+                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+            };
+
+            const response = await globalFetch(api_server_url + '/api', {
+                method: 'POST',
+                headers: headers,
+                body: send_body,
+            });
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: response.data
+                }
+            }
+
+            const result = response.data.data[0];
+
+            return {
+                'type': 'success',
+                'result': result
             }
         }
         default:{     

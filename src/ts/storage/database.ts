@@ -501,7 +501,8 @@ export interface Database{
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
     autoSuggestPrompt:string,
-    claudeAPIKey:string
+    claudeAPIKey:string,
+    novellistAPI:string
 }
 
 interface hordeConfig{
