@@ -83,7 +83,7 @@
             $DataBase.maxContext = 7500
             $DataBase.maxResponse = 500
             if(v.endsWith('100k')){
-                $DataBase.maxContext = 99500
+                $DataBase.maxContext = 99000
             }
         }
         else{
