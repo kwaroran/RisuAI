@@ -11,7 +11,7 @@
 
     function checkUpdate(){
         if(selectedId > 0 && lastdb){
-            if(lastdb.characters[selectedId].backgroundHTML !== backgroundHTML){
+            if(lastdb.characters[selectedId] && lastdb.characters[selectedId].backgroundHTML !== backgroundHTML){
                 backgroundHTML = lastdb.characters[selectedId].backgroundHTML
                 currentChar = lastdb.characters[selectedId]
             }
