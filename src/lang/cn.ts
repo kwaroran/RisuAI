@@ -81,7 +81,7 @@ export const languageChinese = {
         utilityBot: "激活后，它会忽略主提示词。\n\n**不建议使用此选项。改为修改系统提示词。**",
         loreSelective: "如果已切换选择模式，则激活密钥和次级密钥都应有匹配项才能激活lorebook。",
         loreRandomActivation: "如果启用了使用概率条件，如果lorebook的其他条件都已满足，每次发送聊天时，lorebook将以“概率”设置的概率被激活。",
-        additionalAssets: "在你的聊天中显示的额外资源。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio (recommended to put in Background HTML)",
+        additionalAssets: "在你的聊天中显示的额外资源。 \n\n - 使用 `{{raw::<asset name>}}` 作为路径。\n - 使用 `{{img::<asset name>}}` 作为图片\n - 使用 `{{video::<asset name>}}` 作为视频\n - 使用 `{{audio::<asset name>}}` 作为音频 (建议放在Background HTML中)",
         superMemory: "SuperMemory 通过给 AI 提供总结数据使你的角色记忆更多信息。\n\n"
             + "SuperMemory 模型是一个总结文本的模型。推荐使用Davinci，除非是具有超过2000个token数的高度总结能力的成人模型，否则不推荐使用辅助模型。\n\n"
             + "SuperMemory 提示词决定了应发送什么提示词进行总结。如果你留空，它将使用默认提示词。建议留空。\n\n"
@@ -97,8 +97,8 @@ export const languageChinese = {
         apiKeyhelp: "你可以从以下链接获取api key：",
         setupSelfHelp: "在欢迎屏幕结束后，在设置中自行设置。",
         theme: "选择你的主题",
-        themeDescWifulike: "不适合手机",
-        themeDescWifuCut: "适合手机",
+        themeDescWifulike: "不适配手机",
+        themeDescWifuCut: "适配手机",
         texttheme: "选择你的文本颜色",
         inputName: "最后，输入你的昵称。"
     },
@@ -164,7 +164,7 @@ export const languageChinese = {
     userIcon: "你的图标",
     successExport: "成功导出并下载到你的下载目录",
     successImport: "成功导入",
-    importedCharacter: '导入角色',
+    importedCharacter: '已导入角色',
     alwaysActive: "始终活跃",
     additionalPrompt: "额外的提示词",
     descriptionPrefix: "描述前缀",
@@ -265,7 +265,7 @@ export const languageChinese = {
     useExperimental: "启用实验性功能",
     showMemoryLimit: "显示记忆限制",
     roundIcons: "圆形图标",
-    streaming: "流媒体",
+    streaming: "流式传输(打字机效果)",
     chatBot: '聊天机器人',
     otherBots: '其他机器人',
     user: "用户",
@@ -288,7 +288,7 @@ export const languageChinese = {
     clickToEdit: "点击文本以编辑",
     setNodePassword: "设置你的安全密码",
     inputNodePassword: "输入你的密码。如果你记不住，删除服务器文件中的save/__password.txt，并重启服务器。",
-    simple: "简单",
+    simple: "简易",
     advanced: "高级",
     askReRollAutoSuggestions: "重新生成自动建议",
     creatingSuggestions: "正在生成建议...",
