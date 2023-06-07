@@ -416,17 +416,17 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 })
     
                 if(arg.rawResponse){
-                    addFetchLog("Uint8Array Response", da.ok)
+                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: new Uint8Array(await da.arrayBuffer())
                     }   
                 }
                 else{
                     const dat = await da.json()
-                    addFetchLog(dat, da.ok)
+                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: dat
                     }
                 }
@@ -455,17 +455,17 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 })
     
                 if(arg.rawResponse){
-                    addFetchLog("Uint8Array Response", da.ok)
+                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: new Uint8Array(await da.arrayBuffer())
                     }   
                 }
                 else{
                     const dat = await da.json()
-                    addFetchLog(dat, da.ok)
+                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: dat
                     }
                 }
@@ -567,9 +567,9 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                         ,signal: arg.abortSignal
                     })
     
-                    addFetchLog("Uint8Array Response", da.ok)
+                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: new Uint8Array(await da.arrayBuffer())
                     }   
                 }
@@ -586,9 +586,9 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     })
     
                     const dat = await da.json()
-                    addFetchLog(dat, da.ok)
+                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
-                        ok: da.ok,
+                        ok: da.ok && da.status >= 200 && da.status < 300,
                         data: dat
                     }
                 }

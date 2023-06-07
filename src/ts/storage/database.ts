@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.24.0'
+export let appVer = '1.24.1'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -500,9 +500,10 @@ export interface Database{
     koboldURL:string
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
-    autoSuggestPrompt:string
-    claudeAPIKey:string
-    useChatCopy:boolean
+    autoSuggestPrompt:string,
+    claudeAPIKey:string,
+    useChatCopy:boolean,
+    novellistAPI:string,
     useAutoTranslateInput:boolean
 }
 
