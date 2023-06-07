@@ -78,7 +78,7 @@ export async function supaMemory(
         async function summarize(stringlizedChat:string){
 
             const supaPrompt = db.supaMemoryPrompt === '' ?
-            "[Summarize the ongoing role story, It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
+            "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
     
             let result = ''
