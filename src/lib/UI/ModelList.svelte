@@ -76,7 +76,6 @@
                     {/each}
                 {/await}
             </Arcodion>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novellist')}}>Novellist</button>
             {#if $DataBase.plugins.length > 0}
                 <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}
