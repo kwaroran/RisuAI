@@ -304,5 +304,7 @@ export const languageEnglish = {
     shareCloud: "Share to RisuRealm",
     hub: "RisuRealm",
     tags: "Tags",
-    backgroundHTML: "Background Embedding"
+    backgroundHTML: "Background Embedding",
+    copied: "Copied",
+    useChatCopy: "Use Chat Message Copy",
 }

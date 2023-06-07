@@ -503,6 +503,7 @@ export interface Database{
     autoSuggestPrompt:string,
     claudeAPIKey:string,
     novellistAPI:string
+    useChatCopy:boolean,
 }
 
 interface hordeConfig{
