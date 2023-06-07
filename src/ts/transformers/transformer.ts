@@ -3,13 +3,7 @@ type transformerLibType = typeof import("@xenova/transformers");
 let tokenizer:PreTrainedTokenizer = null
 let transformerLib:transformerLibType
 
-const tokenizerDict = {
-    'trin': 'naclbit/trin_tokenizer_v3',
-} as const
-
-type tokenizerTypes = keyof(typeof tokenizerDict)
-
-let tokenizerType:tokenizerTypes|'' = ''
+let tokenizerType:string = ''
 
 
 async function loadTransformers() {
@@ -18,11 +12,11 @@ async function loadTransformers() {
     }
 }
 
-export async function tokenizeTransformers(type:tokenizerTypes, text:string) {
+export async function tokenizeTransformers(type:string, text:string) {
     await loadTransformers()
     if(tokenizerType !== type){
         const AutoTokenizer = transformerLib.AutoTokenizer
-        tokenizer = await AutoTokenizer.from_pretrained(tokenizerDict[type])
+        tokenizer = await AutoTokenizer.from_pretrained(type)
         tokenizerType = type
     }
 
