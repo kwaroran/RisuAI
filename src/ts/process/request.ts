@@ -495,7 +495,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             return {
                 'type': 'success',
-                'result': result
+                'result': unstringlizeChat(result, formated, currentChar?.name ?? '')
             }
         }
         default:{     
