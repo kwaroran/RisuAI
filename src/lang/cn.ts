@@ -300,5 +300,7 @@ export const languageChinese = {
     activationProbability: "概率",
     shareCloud: "分享到RisuRealm",
     hub: "RisuRealm",
-    tags: "标签"
+    tags: "标签",
+    copied: "已复制",
+    useChatCopy: "使用聊天复制",
 }

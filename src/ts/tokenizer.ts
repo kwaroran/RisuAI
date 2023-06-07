@@ -1,7 +1,13 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
-import type { character } from "./storage/database";
+import { DataBase, type character } from "./storage/database";
+import { get } from "svelte/store";
+import { tokenizeTransformers } from "./transformers/transformer";
 
 async function encode(data:string):Promise<(number[]|Uint32Array)>{
+    let db = get(DataBase)
+    if(db.aiModel === 'novellist'){
+        return await tokenizeTransformers('naclbit/trin_tokenizer_v3',data)
+    }
     return await tikJS(data)
 }
 

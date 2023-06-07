@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
     import { ParseMarkdown } from "../../ts/parser";
     import AutoresizeArea from "./AutoresizeArea.svelte";
     import { alertConfirm } from "../../ts/alert";
@@ -19,6 +19,7 @@
     export let character:character|groupChat|null = null
     let translating = false
     let editMode = false
+    let statusMessage:string = ''
     export let altGreeting = false
 
     let msgDisplay = ''
@@ -65,6 +66,14 @@
         }
     }
 
+    const setStatusMessage = (message:string, timeout:number = 0)=>{
+        statusMessage = message
+        if(timeout === 0) return
+        setTimeout(() => {
+            statusMessage = ''
+        }, timeout)
+    }
+
     $: displaya(message)
 </script>
 <div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
@@ -80,8 +89,18 @@
             <div class="flexium items-center chat">
                 <span class="chat text-xl unmargin">{name}</span>
                 <div class="flex-grow flex items-center justify-end text-gray-500">
+                    <span class="text-xs">{statusMessage}</span>
+                    {#if $DataBase.useChatCopy}
+                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
+                            window.navigator.clipboard.writeText(msgDisplay).then(() => {
+                                setStatusMessage(language.copied)
+                            })
+                        }}>
+                            <CopyIcon size={20}/>
+                        </button>    
+                    {/if}
                     {#if idx > -1}
-                        <button class={"hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
+                        <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
                                 editMode = true
                                 msgTranslated = ""
