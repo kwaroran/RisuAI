@@ -309,4 +309,8 @@ export const languageEnglish = {
     useChatCopy: "Use Chat Message Copy",
     autoTranslateInput: "Auto Translate Input",
     enterMessageForTranslateToEnglish: "Enter Message for Translate to English",
+    recent: 'Recent',
+    downloads: 'Downloads',
+    trending: "Trending"
+
 }

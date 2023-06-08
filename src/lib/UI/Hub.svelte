@@ -3,6 +3,7 @@
     import { ArrowLeft, ArrowRight, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
   import { parseMarkdownSafe } from "src/ts/parser";
+  import { language } from "src/lang";
 
     let openedData:null|{
         name:string
@@ -23,14 +24,18 @@
     }[] = []
 
     let page = 0
+    let sort = ''
 
     let search = ''
     let menuOpen = false
+    let nsfw = false
 
     async function getHub(){
         charas = await getRisuHub({
             search: search,
-            page: page
+            page: page,
+            nsfw: nsfw,
+            sort: sort
         })
     }
 
@@ -38,7 +43,7 @@
 
 
 </script>
-<div class="w-full flex justify-center mt-4 mb-3">
+<div class="w-full flex justify-center mt-4">
     <div class="flex w-2xl max-w-full items-center">
         <input class="flex-grow text-xl pl-3 pr-3 rounded-lg bg-darkbg h-16 min-w-0" placeholder="Search" bind:value={search}>
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
@@ -53,6 +58,33 @@
             <MenuIcon />
         </button>
     </div>
+</div>
+<div class="w-full mt-2 flex justify-center mb-3 items-center">
+    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
+        nsfw = !nsfw
+        getHub()
+    }}>
+        {nsfw ? 'NSFW ON': 'NSFW OFF'}
+    </button>
+    <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
+    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
+        sort = ''
+        getHub()
+    }}>
+        {language.recent}
+    </button>
+    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} on:click={() => {
+        sort = 'trending'
+        getHub()
+    }}>
+        {language.trending}
+    </button>
+    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} on:click={() => {
+        sort = 'downloads'
+        getHub()
+    }}>
+        {language.downloads}
+    </button>
 </div>
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
     {#key charas}
