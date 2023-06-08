@@ -226,7 +226,7 @@
         <MainMenu />
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {
-            //@ts-ignore
+            //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length > loadPages){
                 loadPages += 30
@@ -237,7 +237,7 @@
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {
-                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
+                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                             if($DataBase.sendWithEnter){
                                 send()
                                 e.preventDefault()
