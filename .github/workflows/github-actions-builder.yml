@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest,macos-latest]
+        platform: [ubuntu-latest,macos-latest,windows-latest]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -17,7 +17,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+      - id: set_var_win
+        if: matrix.platform == 'windows-latest'
+        run: |
+          choco install jq -y
       - id: set_var
+        shell: bash
         run: |
           echo "VERSION_JSON=$(jq -c . < version.json)" >> $GITHUB_ENV
       - name: install pnpm
