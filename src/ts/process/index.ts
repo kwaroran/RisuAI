@@ -385,7 +385,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
-                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result
+                const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput')
+                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
+                emoChanged = result2.emoChanged
                 setDatabase(db)
             }
             if(readed.done){
@@ -395,7 +397,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         await sayTTS(currentChar, result)
     }
     else{
-        const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')
+        const result2 = processScriptFull(nowChatroom, reformatContent(req.result), 'editoutput')
         result = result2.data
         emoChanged = result2.emoChanged
         db.characters[selectedChar].chats[selectedChat].message.push({
