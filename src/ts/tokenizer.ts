@@ -49,6 +49,7 @@ export class ChatTokenizer {
         this.useName = useName
     }
     async tokenizeChat(data:OpenAIChat) {
+        console.log(data.content)
         let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
         if(data.name && this.useName ==='name'){
             encoded += (await encode(data.name)).length

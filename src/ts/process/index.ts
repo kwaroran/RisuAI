@@ -202,7 +202,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let currentTokens = 0
     
     for(const key in unformated){
-        currentTokens += await tokenizer.tokenizeChat(unformated[key])
+        const chats = unformated[key] as OpenAIChat[]
+        for(const chat of chats){
+            currentTokens += await tokenizer.tokenizeChat(chat)
+        }
     }
 
     
