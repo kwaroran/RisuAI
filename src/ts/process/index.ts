@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
-import { tokenize, tokenizeNum } from "../tokenizer";
+import { ChatTokenizer, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
@@ -15,7 +15,6 @@ import { supaMemory } from "./supaMemory";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
-import { getNameMaxTokens } from "./stringlize";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'
@@ -69,7 +68,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(nowChatroom.type === 'group'){
         if(chatProcessIndex === -1){
             const charNames =nowChatroom.characters.map((v) => findCharacterbyIdwithCache(v).name)
-            caculatedChatTokens += await getNameMaxTokens([...charNames, db.username])
 
             const messages = nowChatroom.chats[nowChatroom.chatPage].message
             const lastMessage = messages[messages.length-1]
@@ -110,14 +108,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
     else{
         currentChar = nowChatroom
-        if(!db.aiModel.startsWith('gpt')){
-            caculatedChatTokens += await getNameMaxTokens([currentChar.name, db.username])
-        }
-
     }
 
     let chatAdditonalTokens = arg.chatAdditonalTokens ?? caculatedChatTokens
-    
+    const tokenizer = new ChatTokenizer(chatAdditonalTokens, db.aiModel.startsWith('gpt') ? 'noName' : 'name')
     let selectedChat = nowChatroom.chatPage
     let currentChat = nowChatroom.chats[selectedChat]
     let maxContextTokens = db.maxContext
@@ -205,17 +199,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     })
 
     //await tokenize currernt
-    let currentTokens = (await tokenize(Object.keys(unformated).map((key) => {
-        return (unformated[key] as OpenAIChat[]).map((d) => {
-            return d.content
-        }).join('\n\n')
-    }).join('\n\n')) + db.maxResponse) + 130
+    let currentTokens = 0
+    
+    for(const key in unformated){
+        currentTokens += await tokenizer.tokenizeChat(unformated[key])
+    }
 
     
-    const examples = exampleMessage(currentChar)
+    const examples = exampleMessage(currentChar, db.username)
 
     for(const example of examples){
-        currentTokens += await tokenize(example.content) + chatAdditonalTokens
+        currentTokens += await tokenizer.tokenizeChat(example)
     }
 
     let chats:OpenAIChat[] = examples
@@ -230,15 +224,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(nowChatroom.type !== 'group'){
         const firstMsg = nowChatroom.firstMsgIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[nowChatroom.firstMsgIndex]
 
-        chats.push({
+        const chat:OpenAIChat = {
             role: 'assistant',
             content: processScript(currentChar,
                 replacePlaceholders(firstMsg, currentChar.name),
             'editprocess')
-        })
-        currentTokens += await tokenize(processScript(currentChar,
-            replacePlaceholders(firstMsg, currentChar.name),
-        'editprocess'))
+        }
+        chats.push(chat)
+        currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
     const ms = currentChat.message
@@ -259,17 +252,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(!msg.chatId){
             msg.chatId = v4()
         }
-        chats.push({
+        const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formedChat,
             memo: msg.chatId,
             name: name
-        })
-        currentTokens += (await tokenize(formedChat) + chatAdditonalTokens)
+        }
+        chats.push(chat)
+        currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
-        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, chatAdditonalTokens)
+        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
         if(sp.error){
             alertError(sp.error)
             return false
@@ -287,7 +281,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 return false
             }
 
-            currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
+            currentTokens -= await tokenizer.tokenizeChat(chats[0])
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo
