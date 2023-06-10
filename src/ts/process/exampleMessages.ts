@@ -35,7 +35,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             currentMessage = {
                 role: "assistant",
                 content: trimed.split(':', 2)[1],
-                name: 'example_' + char.name
+                name: 'example_assistant' 
             }
         }
         else if(lowered.startsWith('{{user}}:') || lowered.startsWith('<user>:')){
@@ -43,7 +43,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             currentMessage = {
                 role: "user",
                 content: trimed.split(':', 2)[1],
-                name: 'example_' + userName
+                name: 'example_user'
             }
         }
         else{
