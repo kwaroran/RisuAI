@@ -199,7 +199,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     })
 
     //await tokenize currernt
-    let currentTokens = 0
+    let currentTokens = db.maxResponse
     
     for(const key in unformated){
         const chats = unformated[key] as OpenAIChat[]
