@@ -46,16 +46,13 @@
 {/if}
 
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.useSayNothing}/>
-    <span>{language.sayNothing}</span>
+    <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.showUnrecommended}/>
-    <span>{language.showUnrecommended}</span>
+    <Check bind:check={$DataBase.showUnrecommended} name={language.showUnrecommended}/>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.useExperimental}/>
-    <span>{language.useExperimental}</span>
+    <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}/>
 </div>
 <button
     on:click={async () => {

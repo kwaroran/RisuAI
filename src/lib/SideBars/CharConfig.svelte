@@ -200,21 +200,18 @@
     <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></textarea>
     <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
     <div class="flex mt-6 items-center">
-        <Check bind:check={$DataBase.jailbreakToggle}/>
-        <span class="text-neutral-200 ml-2">{language.jailbreakToggle}</span>
+        <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
     </div>
     
     {#if $DataBase.supaMemoryType !== 'none'}
         <div class="flex mt-2 items-center">
-            <Check bind:check={currentChar.data.supaMemory}/>
-            <span class="text-neutral-200 ml-2">{language.ToggleSuperMemory}</span>
+            <Check bind:check={currentChar.data.supaMemory} name={language.ToggleSuperMemory}/>
         </div>
     {/if}
 
     {#if currentChar.type === 'group'}
         <div class="flex mt-2 items-center">
-            <Check bind:check={currentChar.data.orderByOrder}/>
-            <span class="text-neutral-200 ml-2">{language.orderByOrder}</span>
+            <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
         </div>
     {/if}
 {:else if subMenu === 1}
@@ -517,8 +514,7 @@
         {/if}
         {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
             <div class="flex items-center mt-2">
-                <Check bind:check={currentChar.data.ttsReadOnlyQuoted}/>
-                <span>{language.ttsReadOnlyQuoted}</span>
+                <Check bind:check={currentChar.data.ttsReadOnlyQuoted} name={language.ttsReadOnlyQuoted}/>
             </div>
         {/if}
     {/if}
@@ -659,8 +655,8 @@
 
         {#if $DataBase.showUnrecommended || currentChar.data.utilityBot}
             <div class="flex items-center mt-4">
-                <Check bind:check={currentChar.data.utilityBot}/>
-                <span>{language.utilityBot} <Help key="utilityBot" unrecommended/></span>
+                <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
+                <span> <Help key="utilityBot" unrecommended name={language.utilityBot}/></span>
             </div>
         {/if}
 
@@ -683,8 +679,8 @@
         {/if}
         {#if $DataBase.useExperimental}
             <div class="flex mb-2 items-center">
-                <Check bind:check={currentChar.data.useCharacterLore}/>
-                <span class="text-neutral-200 ml-2">{language.useCharLorebook} <Help key="experimental"/></span>
+                <Check bind:check={currentChar.data.useCharacterLore} name={language.useCharLorebook}/>
+                <Help key="experimental" name={language.useCharLorebook}/>
             </div>
         {/if}
     {/if}
