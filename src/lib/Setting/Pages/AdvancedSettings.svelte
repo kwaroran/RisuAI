@@ -54,6 +54,10 @@
     <span>{language.showUnrecommended}</span>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.imageCompression}/>
+    <span>{language.imageCompression}</span>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useExperimental}/>
     <span>{language.useExperimental}</span>
 </div>

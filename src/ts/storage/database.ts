@@ -257,6 +257,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.autoSuggestPrompt)){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
     }
+    if(checkNullish(data.imageCompression)){
+        data.imageCompression = true
+    }
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -505,6 +508,7 @@ export interface Database{
     useChatCopy:boolean,
     novellistAPI:string,
     useAutoTranslateInput:boolean
+    imageCompression:boolean
 }
 
 interface hordeConfig{

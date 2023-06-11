@@ -311,6 +311,7 @@ export const languageEnglish = {
     enterMessageForTranslateToEnglish: "Enter Message for Translate to English",
     recent: 'Recent',
     downloads: 'Downloads',
-    trending: "Trending"
+    trending: "Trending",
+    imageCompression: "Image Compression"
 
 }
