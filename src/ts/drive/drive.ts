@@ -183,7 +183,9 @@ export async function syncDrive() {
                 lastSaved = Math.floor(Date.now() / 1000)
                 localStorage.setItem('risu_lastsaved', `${lastSaved}`)
                 await createFileInFolder(ACCESS_TOKEN, `${lastSaved}-database.risudat2`, Buffer.from(dbjson, 'utf-8'))
-                alertNormal("First Setup Success")
+                if(hadNoSync){
+                    alertNormal("First Setup Success")
+                }
             }
         }
         await sleep(3000)
