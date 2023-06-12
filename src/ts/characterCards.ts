@@ -11,6 +11,7 @@ import { characterFormatUpdate } from "./characters"
 import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
+import { convertImage } from "./parser"
 
 export const hubURL = import.meta.env.DEV ? "http://127.0.0.1:8787" : "https://sv.risuai.xyz"
 
@@ -532,7 +533,7 @@ export async function exportSpecV2(char:character) {
                     msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
                 })
                 const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
-                char.emotionImages[i][1] = Buffer.from(rData).toString('base64')
+                char.emotionImages[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
 
@@ -544,7 +545,7 @@ export async function exportSpecV2(char:character) {
                     msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
                 })
                 const rData = await readImage(card.data.extensions.risuai.additionalAssets[i][1])
-                char.additionalAssets[i][1] = Buffer.from(rData).toString('base64')
+                char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
     
@@ -611,7 +612,7 @@ export async function shareRisuHub(char:character, arg:{
                 })
                 const data = card.data.extensions.risuai.emotions[i][1]
                 const rData = await readImage(data)
-                resources.push([data, Buffer.from(rData).toString('base64')])
+                resources.push([data, Buffer.from(await convertImage(rData)).toString('base64')])
             }
         }
 
@@ -626,7 +627,7 @@ export async function shareRisuHub(char:character, arg:{
                 })
                 const data = card.data.extensions.risuai.additionalAssets[i][1]
                 const rData = await readImage(data)
-                resources.push([data, Buffer.from(rData).toString('base64')])
+                resources.push([data, Buffer.from(await convertImage(rData)).toString('base64')])
             }
         }
 

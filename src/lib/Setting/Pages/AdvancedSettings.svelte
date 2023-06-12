@@ -52,6 +52,9 @@
     <Check bind:check={$DataBase.showUnrecommended} name={language.showUnrecommended}/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.imageCompression} name={language.imageCompression}/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}/>
 </div>
 <button

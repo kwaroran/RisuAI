@@ -312,6 +312,11 @@ export const languageEnglish = {
     enterMessageForTranslateToEnglish: "Enter Message for Translate to English",
     recent: 'Recent',
     downloads: 'Downloads',
-    trending: "Trending"
+    trending: "Trending",
+    imageCompression: "Image Compression",
+    notLoggedIn: "Not Logged in to Risu Account",
+    googleDriveInfo: "Connect to google drive to sync your data.",
+    googleDriveConnection: "Google Drive Connection",
+    googleDriveConnected: "Google Drive Connected"
 
 }

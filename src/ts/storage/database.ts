@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.24.4'
+export let appVer = '1.25.2'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -256,6 +256,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.autoSuggestPrompt)){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
+    }
+    if(checkNullish(data.imageCompression)){
+        data.imageCompression = true
     }
 
     changeLanguage(data.language)
@@ -505,6 +508,16 @@ export interface Database{
     useChatCopy:boolean,
     novellistAPI:string,
     useAutoTranslateInput:boolean
+    imageCompression:boolean
+    account?:{
+        token:string
+        id:string,
+        data: {
+            refresh_token?:string,
+            access_token?:string
+            expires_in?: number
+        }
+    }
 }
 
 interface hordeConfig{
