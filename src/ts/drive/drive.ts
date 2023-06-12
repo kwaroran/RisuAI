@@ -130,8 +130,9 @@ export async function syncDrive() {
                 maindb.account.data = await s.json()
             }
             const ACCESS_TOKEN = maindb.account.data.access_token
-            await loadDrive(ACCESS_TOKEN, 'sync')
-            if(!isEqual(maindb, BackupDb)){
+            const d = await loadDrive(ACCESS_TOKEN, 'sync')
+            const hadNoSync = d === 'noSync'
+            if((!isEqual(maindb, BackupDb)) || hadNoSync){
                 BackupDb = cloneDeep(maindb)
                 const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
                 const fileNames = files.map((d) => {
@@ -142,6 +143,12 @@ export async function syncDrive() {
                     let i = 0;
                     for(let asset of assets){
                         i += 1;
+                        if(hadNoSync){
+                            alertStore.set({
+                                type: "wait",
+                                msg: `Uploading Sync Files... (${i} / ${assets.length})`
+                            })
+                        }
                         const key = asset.name
                         if(!key || !key.endsWith('.png')){
                             continue
@@ -156,6 +163,12 @@ export async function syncDrive() {
                     const keys = await forageStorage.keys()
             
                     for(let i=0;i<keys.length;i++){
+                        if(hadNoSync){
+                            alertStore.set({
+                                type: "wait",
+                                msg: `Uploading Sync Files... (${i} / ${keys.length})`
+                            })
+                        }
                         const key = keys[i]
                         if(!key.endsWith('.png')){
                             continue
@@ -170,6 +183,7 @@ export async function syncDrive() {
                 lastSaved = Math.floor(Date.now() / 1000)
                 localStorage.setItem('risu_lastsaved', `${lastSaved}`)
                 await createFileInFolder(ACCESS_TOKEN, `${lastSaved}-database.risudat2`, Buffer.from(dbjson, 'utf-8'))
+                alertNormal("First Setup Success")
             }
         }
         await sleep(3000)
@@ -249,7 +263,7 @@ type DriveFile = {
     id: string
 }
 
-async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync') {
+async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<void|"noSync"> {
     if(mode === 'backup'){
         alertStore.set({
             type: "wait",
@@ -278,6 +292,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync') {
 
 
     let dbs:[DriveFile,number][] = []
+    let noSyncData = true
 
     if(mode === 'backup'){
         for(const f of files){
@@ -302,14 +317,21 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync') {
                 if(isNaN(tm)){
                     continue
                 }
-                else if(tm > lastSaved){
-                    dbs.push([f,tm])
+                else{
+                    if(tm > lastSaved){
+                        dbs.push([f,tm])
+                    }
+                    noSyncData = false
                 }
             }
         }
         dbs.sort((a,b) => {
             return b[1] - a[1]
         })
+    }
+
+    if(noSyncData && mode === 'sync'){
+        return 'noSync'
     }
 
     if(dbs.length !== 0){
