@@ -260,7 +260,7 @@ export const languageKorean = {
     replaceGlobalNote: "글로벌 노트 덮어쓰기",
     charLoreBook: '캐릭터 로어북',
     globalLoreBook: '글로벌 로어북',
-    globalRegexScript: "글로별 정규식",
+    globalRegexScript: "글로벌 정규식",
     accessibility: "접근성",
     sendWithEnter: "엔터키로 메세지 보내기",
     clickToEdit: "클릭해서 수정하기",
@@ -281,6 +281,9 @@ export const languageKorean = {
     useChatCopy: "채팅 메시지 복사 사용",
     autoTranslateInput: "입력 자동 번역",
     enterMessageForTranslateToEnglish: "영어로 번역할 메시지를 입력해주세요",
-    imageCompression: "이미지 압축"
-
+    imageCompression: "이미지 압축",
+    notLoggedIn: "Risu Account에 로그인되지 않음",
+    googleDriveInfo: "구글 드라이브에 연동해서 데이터를 동기화하세요.",
+    googleDriveConnection: "구글 드라이브 연동하기",
+    googleDriveConnected: "구글 드라이브 연동됨"
 }
