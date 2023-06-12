@@ -312,6 +312,10 @@ export const languageEnglish = {
     recent: 'Recent',
     downloads: 'Downloads',
     trending: "Trending",
-    imageCompression: "Image Compression"
+    imageCompression: "Image Compression",
+    notLoggedIn: "Not Logged in to Risu Account",
+    googleDriveInfo: "Connect to google drive to sync your data.",
+    googleDriveConnection: "Google Drive Connection",
+    googleDriveConnected: "Google Drive Connected"
 
 }

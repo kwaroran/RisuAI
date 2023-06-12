@@ -7,10 +7,13 @@ import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from 
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/api/process';
 import { open } from '@tauri-apps/api/shell';
+import { cloneDeep, isEqual, last } from "lodash";
+import { sleep } from "../util";
+import { hubURL } from "../characterCards";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
-    const REDIRECT_URI = (isTauri || isNodeServer) ? "https://risuai.xyz/" : `https://${location.host}/`
+    const REDIRECT_URI = 'reftoken' ? 'https://sv.risuai.xyz/drive' : ((isTauri || isNodeServer) ? "https://risuai.xyz/" : `https://${location.host}/`)
     const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
     const encodedRedirectUri = encodeURIComponent(REDIRECT_URI);
     const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${type}`;
@@ -18,8 +21,7 @@ export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'re
 
     if(type === 'reftoken'){
         const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${"accesstauri"}&access_type=offline&prompt=consent`;
-        openURL(authorizationUrl)
-        return
+        return authorizationUrl
     }
 
     if(type === 'save' || type === 'load'){
@@ -39,7 +41,7 @@ export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'re
                 code = code.substring(code.lastIndexOf(' ')).trim()
             }
             if(type === 'loadtauri'){
-                await loadDrive(code)
+                await loadDrive(code, 'backup')
             }
             else{
                 await backupDrive(code)
@@ -69,7 +71,7 @@ export async function checkDriverInit() {
                     await backupDrive(json.access_token)
                 }
                 else if(da === 'load'){
-                    await loadDrive(json.access_token)
+                    await loadDrive(json.access_token, 'backup')
                 }
                 else if(da === 'savetauri' || da === 'loadtauri'){
                     alertStore.set({
@@ -101,7 +103,78 @@ export async function checkDriverInit() {
     }
 }
 
+let lastSaved:number = parseInt(localStorage.getItem('risu_lastsaved') ?? '-1')
+let BackupDb:Database = null
 
+
+export async function syncDrive() {
+    BackupDb = cloneDeep(get(DataBase))
+    while(true){
+        const maindb = get(DataBase)
+        if(maindb?.account?.data?.access_token && maindb?.account?.data?.refresh_token && maindb?.account?.data?.expires_in){
+            if(maindb.account.data.expires_in < Date.now()){
+                if(!maindb.account){
+                    alertError("Not logged in error")
+                    return
+                }
+                const s = await fetch(hubURL + '/drive/refresh', {
+                    method: "POST",
+                    body: JSON.stringify({
+                        token: maindb.account.token
+                    })
+                })
+                if(s.status !== 200){
+                    alertError(await s.text())
+                    return
+                }
+                maindb.account.data = await s.json()
+            }
+            const ACCESS_TOKEN = maindb.account.data.access_token
+            await loadDrive(ACCESS_TOKEN, 'sync')
+            if(!isEqual(maindb, BackupDb)){
+                BackupDb = cloneDeep(maindb)
+                const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
+                const fileNames = files.map((d) => {
+                    return d.name
+                })
+                if(isTauri){
+                    const assets = await readDir('assets', {dir: BaseDirectory.AppData})
+                    let i = 0;
+                    for(let asset of assets){
+                        i += 1;
+                        const key = asset.name
+                        if(!key || !key.endsWith('.png')){
+                            continue
+                        }
+                        const formatedKey = formatKeys(key)
+                        if(!fileNames.includes(formatedKey)){
+                            await createFileInFolder(ACCESS_TOKEN, formatedKey, await readBinaryFile(asset.path))
+                        }
+                    }
+                }
+                else{
+                    const keys = await forageStorage.keys()
+            
+                    for(let i=0;i<keys.length;i++){
+                        const key = keys[i]
+                        if(!key.endsWith('.png')){
+                            continue
+                        }
+                        const formatedKey = formatKeys(key)
+                        if(!fileNames.includes(formatedKey)){
+                            await createFileInFolder(ACCESS_TOKEN, formatedKey, await forageStorage.getItem(key))
+                        }
+                    }
+                }
+                const dbjson = JSON.stringify(get(DataBase))
+                lastSaved = Math.floor(Date.now() / 1000)
+                localStorage.setItem('risu_lastsaved', `${lastSaved}`)
+                await createFileInFolder(ACCESS_TOKEN, `${lastSaved}-database.risudat2`, Buffer.from(dbjson, 'utf-8'))
+            }
+        }
+        await sleep(3000)
+    }
+}
 
 
 async function backupDrive(ACCESS_TOKEN:string) {
@@ -176,11 +249,13 @@ type DriveFile = {
     id: string
 }
 
-async function loadDrive(ACCESS_TOKEN:string) {
-    alertStore.set({
-        type: "wait",
-        msg: "Loading Backup..."
-    })
+async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync') {
+    if(mode === 'backup'){
+        alertStore.set({
+            type: "wait",
+            msg: "Loading Backup..."
+        })
+    }
     const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
     let foragekeys:string[] = []
     let loadedForageKeys = false
@@ -204,42 +279,80 @@ async function loadDrive(ACCESS_TOKEN:string) {
 
     let dbs:[DriveFile,number][] = []
 
-    for(const f of files){
-        if(f.name.endsWith("-database.risudat")){
-            const tm = parseInt(f.name.split('-')[0])
-            if(isNaN(tm)){
-                continue
-            }
-            else{
-                dbs.push([f,tm])
+    if(mode === 'backup'){
+        for(const f of files){
+            if(f.name.endsWith("-database.risudat")){
+                const tm = parseInt(f.name.split('-')[0])
+                if(isNaN(tm)){
+                    continue
+                }
+                else{
+                    dbs.push([f,tm])
+                }
             }
         }
+        dbs.sort((a,b) => {
+            return b[1] - a[1]
+        })
     }
-    dbs.sort((a,b) => {
-        return b[1] - a[1]
-    })
+    else if(mode === 'sync'){
+        for(const f of files){
+            if(f.name.endsWith("-database.risudat2")){
+                const tm = parseInt(f.name.split('-')[0])
+                if(isNaN(tm)){
+                    continue
+                }
+                else if(tm > lastSaved){
+                    dbs.push([f,tm])
+                }
+            }
+        }
+        dbs.sort((a,b) => {
+            return b[1] - a[1]
+        })
+    }
 
     if(dbs.length !== 0){
-        let selectables:string[] = []
-        for(let i=0;i<dbs.length;i++){
-            selectables.push(`Backup saved in ${(new Date(dbs[i][1] * 1000)).toLocaleString()}`)
-            if(selectables.length > 7){
-                break
-            }
+        if(mode === 'sync'){
+            alertStore.set({
+                type: "wait",
+                msg: "Sync Data..."
+            })
         }
-        const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
-        const selectedDb = dbs[selectedIndex][0]
-        
-        const db:Database = JSON.parse(Buffer.from(pako.inflate(await getFileData(ACCESS_TOKEN, selectedDb.id))).toString('utf-8'))
+        async function getDbFromList(){
+            let selectables:string[] = []
+            for(let i=0;i<dbs.length;i++){
+                selectables.push(`Backup saved in ${(new Date(dbs[i][1] * 1000)).toLocaleString()}`)
+                if(selectables.length > 7){
+                    break
+                }
+            }
+            const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
+            const selectedDb = dbs[selectedIndex][0]
+            const decompressedDb:Database = JSON.parse(Buffer.from(pako.inflate(await getFileData(ACCESS_TOKEN, selectedDb.id))).toString('utf-8'))
+            return decompressedDb
+        }
+    
+        const db:Database = mode === 'backup' ? await getDbFromList() : JSON.parse(Buffer.from(await getFileData(ACCESS_TOKEN, dbs[0][0].id)).toString('utf-8'))
+        lastSaved = Date.now()
+        localStorage.setItem('risu_lastsaved', `${lastSaved}`)
         const requiredImages = (getUnpargeables(db))
         let ind = 0;
         for(const images of requiredImages){
             ind += 1
             const formatedImage = formatKeys(images)
-            alertStore.set({
-                type: "wait",
-                msg: `Loading Backup... (${ind} / ${requiredImages.length})`
-            })
+            if(mode === 'sync'){
+                alertStore.set({
+                    type: "wait",
+                    msg: `Sync Files... (${ind} / ${requiredImages.length})`
+                })
+            }
+            else{
+                alertStore.set({
+                    type: "wait",
+                    msg: `Loading Backup... (${ind} / ${requiredImages.length})`
+                })
+            }
             if(await checkImageExists(images)){
                 //skip process
             }
@@ -276,7 +389,7 @@ async function loadDrive(ACCESS_TOKEN:string) {
             relaunch()
             alertStore.set({
                 type: "wait",
-                msg: "Success, Refresh your app."
+                msg: "Success, Refreshing your app."
             })
         }
         else{
@@ -284,11 +397,11 @@ async function loadDrive(ACCESS_TOKEN:string) {
             location.search = ''
             alertStore.set({
                 type: "wait",
-                msg: "Success, Refresh your app."
+                msg: "Success, Refreshing your app."
             })
         }
     }
-    else{
+    else if(mode === 'backup'){
         location.search = ''
     }
 }

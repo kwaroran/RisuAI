@@ -14,12 +14,13 @@ import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../process/plugins";
 import { alertError, alertStore } from "../alert";
-import { checkDriverInit } from "../drive/drive";
+import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterHubImport } from "../characterCards";
 import { cloneDeep } from "lodash";
 import { NodeStorage } from "./nodeStorage";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
+import { loadRisuAccountData } from "../drive/accounter";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -195,6 +196,7 @@ let lastSave = ''
 
 export async function saveDb(){
     lastSave =JSON.stringify(get(DataBase))
+    syncDrive()
     while(true){
         const dbjson = JSON.stringify(get(DataBase))
         if(dbjson !== lastSave){
@@ -358,6 +360,11 @@ export async function loadData() {
             } catch (error) {}
             await checkNewFormat()
             updateTextTheme()
+            if(get(DataBase).account){
+                try {
+                    await loadRisuAccountData()                    
+                } catch (error) {}
+            }
             loadedStore.set(true)
             selectedCharID.set(-1)
             saveDb()   

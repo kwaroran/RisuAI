@@ -509,6 +509,15 @@ export interface Database{
     novellistAPI:string,
     useAutoTranslateInput:boolean
     imageCompression:boolean
+    account?:{
+        token:string
+        id:string,
+        data: {
+            refresh_token?:string,
+            access_token?:string
+            expires_in?: number
+        }
+    }
 }
 
 interface hordeConfig{
