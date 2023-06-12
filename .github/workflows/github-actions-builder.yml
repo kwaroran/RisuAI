@@ -50,13 +50,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - uses: actions/cache@v3
-        name: Setup rust cache
-        with:
-          path: src-tauri/target/
-          key: ${{ runner.os }}-rust-cache
-          restore-keys: |
-            ${{ runner.os }}-rust-cache
       - name: install frontend dependencies
         run: pnpm install --no-frozen-lockfile # change this to npm or pnpm depending on which one you use
       - if: matrix.platform == 'ubuntu-latest'
