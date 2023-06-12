@@ -149,6 +149,7 @@ export const languageKorean = {
     ShowLog: "리퀘스트 로그 보기",
     waifuWidth2: "Waifu 캐릭터 크기",
     sayNothing:"어떤 문자열도 입력되지 않을 시 'say nothing' 입력",
+    showHelp: "도움말 보기",
     help:{
         model: "채팅에서 사용되는 모델입니다.",
         submodel: "보조 모델은 감정 이미지, 자동 제안등을 분석하는 데 사용되는 모델입니다. gpt3.5가 권장됩니다.",

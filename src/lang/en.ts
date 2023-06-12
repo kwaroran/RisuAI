@@ -19,6 +19,7 @@ export const languageEnglish = {
         onlyOneChat: 'There must be least one chat',
         alreadyCharInGroup: "There is already a character with the same name in the group."
     },
+    showHelp: "Show Help",
     help:{
         model: "Model option is a main model used in chat.",
         submodel: "Auxiliary Model is a model that used in analizing emotion images and auto suggestions and etc. gpt3.5 is recommended.",

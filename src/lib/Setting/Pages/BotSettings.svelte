@@ -114,8 +114,7 @@
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
     <div class="flex items-center mt-2 mb-4">
-        <Check bind:check={$DataBase.useStreaming}/>
-        <span>OpenAI {language.streaming}</span>
+        <Check bind:check={$DataBase.useStreaming} name={`OpenAI ${language.streaming}`}/>
     </div>
 {/if}
 {#if $DataBase.aiModel === 'custom'}
@@ -235,8 +234,7 @@
     </table>
 
     <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.promptPreprocess}/>
-        <span>{language.promptPreprocess}</span>
+        <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
     </div>
 
 <button on:click={() => {openPresetList = true}} class="mt-4 drop-shadow-lg p-3 border-borderc border-solid flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected">{language.presets}</button>

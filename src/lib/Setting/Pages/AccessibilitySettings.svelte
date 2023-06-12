@@ -7,26 +7,21 @@
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.accessibility}</h2>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.askRemoval}/>
-    <span>{language.askRemoval}</span>
+    <Check bind:check={$DataBase.askRemoval} name={language.askRemoval}/>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.swipe}/>
-    <span>{language.SwipeRegenerate}</span>
+    <Check bind:check={$DataBase.swipe} name={language.SwipeRegenerate}/>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.instantRemove}/>
-    <span>{language.instantRemove}</span>
+    <Check bind:check={$DataBase.instantRemove} name={language.instantRemove}/>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.sendWithEnter}/>
-    <span>{language.sendWithEnter}</span>
+    <Check bind:check={$DataBase.sendWithEnter} name={language.sendWithEnter}/>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.clickToEdit}/>
-    <span>{language.clickToEdit}</span>
+    <Check bind:check={$DataBase.clickToEdit} name={language.clickToEdit}/>
 </div>

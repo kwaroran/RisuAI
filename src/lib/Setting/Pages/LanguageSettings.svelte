@@ -37,14 +37,12 @@ import { changeLanguage, language } from "src/lang";
 
 {#if $DataBase.translator}
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.autoTranslate} />
-        <span>{language.autoTranslation}</span>
+        <Check bind:check={$DataBase.autoTranslate} name={language.autoTranslation}/>
     </div>
     {#if $DataBase.useExperimental}
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.useAutoTranslateInput} />
-            <span>{language.autoTranslateInput}</span>
-            <Help key="experimental" />
+            <Check bind:check={$DataBase.useAutoTranslateInput} name={language.autoTranslateInput}/>
+            <Help key="experimental" name={language.autoTranslateInput}/>
         </div>
     {/if}
 {/if}
