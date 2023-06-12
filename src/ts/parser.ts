@@ -35,9 +35,6 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 export async function ParseMarkdown(data:string, char:(character | groupChat) = null, mode:'normal'|'back' = 'normal') {
     if(char && char.type !== 'group'){
-        if(char.customscript){
-            data = processScript(char, data, 'editdisplay')
-        }
         if(char.additionalAssets){
             for(const asset of char.additionalAssets){
                 const assetPath = await getFileSrc(asset[1])
@@ -50,6 +47,9 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
                 }
             }
         }
+    }
+    if(char){
+        data = processScript(char, data, 'editdisplay')
     }
     return DOMPurify.sanitize(convertor.makeHtml(data), {
         ADD_TAGS: ["iframe"],

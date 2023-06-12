@@ -267,10 +267,12 @@ export function setDatabase(data:Database){
 
 
 export interface customscript{
-  comment: string;
-  in:string
-  out:string
-  type:string
+    comment: string;
+    in:string
+    out:string
+    type:string
+    flag?:string
+    ableFlag?:boolean
 
 }
 

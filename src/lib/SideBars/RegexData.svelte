@@ -3,6 +3,7 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import type { customscript } from "src/ts/storage/database";
+    import Check from "../Others/Check.svelte";
 
     export let value:customscript
     export let onRemove: () => void = () => {}
@@ -26,10 +27,10 @@
         </button>
     </div>
     {#if open}
-        <div class="seperator">
+        <div class="seperator p-2">
             <span class="text-neutral-200 mt-6">{language.name}</span>
             <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.comment}>
-            <span class="text-neutral-200 mt-4">Type</span>
+            <span class="text-neutral-200 mt-4">Modification Type</span>
             <select class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.type}>
                 <option value="editinput">{language.editInput}</option>
                 <option value="editoutput">{language.editOutput}</option>
@@ -40,6 +41,18 @@
             <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.in}>
             <span class="text-neutral-200 mt-6">OUT:</span>
             <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.out}>
+            {#if value.ableFlag}
+                <span class="text-neutral-200 mt-6">FLAG:</span>
+                <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.flag}>
+            {/if}
+            <div class="flex items-center mt-4">
+                <Check bind:check={value.ableFlag} onChange={() => {
+                    if(!value.flag){
+                        value.flag = 'g'
+                    }
+                }}/>
+                <span>Custom Flag</span>
+            </div>
        </div>
     {/if}
 </div>

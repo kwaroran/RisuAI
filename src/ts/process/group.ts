@@ -63,7 +63,6 @@ export function groupOrder(chars:GroupOrder[], input:string):GroupOrder[] {
         for (const word of words) {
             for (let char of chars) {
                 const charNameChunks = getWords(findCharacterbyId(char.id).name)
-                console.log(charNameChunks)
 
                 if (charNameChunks.includes(word)) {
                     order.push(char);
@@ -96,8 +95,11 @@ export function groupOrder(chars:GroupOrder[], input:string):GroupOrder[] {
 }
 
 function getWords(data:string){
-    const matches =  data.match(/\b\w+\b/gmi)
+    const matches =  data.split(/\n| /g)
     let words:string[] = []
+    if(!matches){
+        return [data]
+    }
     for(const match of matches){
         words.push(match.toLocaleLowerCase())
     }

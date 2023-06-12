@@ -58,7 +58,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
     const scripts = (db.globalscript ?? []).concat(char.customscript)
     for (const script of scripts){
         if(script.type === mode){
-            const reg = new RegExp(script.in,'g')
+            const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
             const outScript = script.out
             if(outScript.startsWith('@@') && reg.test(data)){
                 if(outScript.startsWith('@@emo ')){
