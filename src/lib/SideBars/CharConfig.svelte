@@ -611,7 +611,7 @@
                 <th class="font-medium cursor-pointer w-10">
                     <button class="hover:text-green-500" on:click={async () => {
                         if(currentChar.type === 'character'){
-                            const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3'])
+                            const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
                             currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
                             if(!da){
                                 return
