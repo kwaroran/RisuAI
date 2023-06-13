@@ -121,6 +121,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             maxContextTokens = 4000
         }
     }
+    if(db.aiModel === 'gpt35_16k' || db.aiModel === 'gpt35_16k_0613'){
+        if(maxContextTokens > 16000){
+            maxContextTokens = 16000
+        }
+    }
     if(db.aiModel === 'gpt4'){
         if(maxContextTokens > 8000){
             maxContextTokens = 8000
