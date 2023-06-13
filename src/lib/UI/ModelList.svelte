@@ -13,6 +13,8 @@
         switch(name){
             case "gpt35":
                 return "GPT-3.5 Turbo"
+            case "gpt35_16k":
+                return "GPT-3.5 Turbo 16k"
             case "gpt4":
                 return "GPT-4"
             case "gpt4_32k":
@@ -52,6 +54,7 @@
             <div class="border-t-1 border-y-selected mt-1 mb-1"></div>
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
             </Arcodion>
