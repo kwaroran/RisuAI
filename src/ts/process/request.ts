@@ -88,8 +88,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(replacerURL.endsWith('v1')){
                 replacerURL += '/chat/completions'
             }
-            if(replacerURL.endsWith('v1/')){
+            else if(replacerURL.endsWith('v1/')){
                 replacerURL += 'chat/completions'
+            }
+            else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
+                if(replacerURL.endsWith('/')){
+                    replacerURL += 'v1/chat/completions'
+                }
+                else{
+                    replacerURL += '/v1/chat/completions'
+                }
             }
 
             if(db.useStreaming && arg.useStreaming){
@@ -127,6 +135,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                             control.enqueue(readed)
                                             return
                                         }
+
+                                        console.log(rawChunk)
                                         const chunk = JSON.parse(rawChunk).choices[0].delta.content
                                         if(chunk){
                                             readed += chunk
