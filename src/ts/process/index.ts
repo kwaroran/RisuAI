@@ -156,22 +156,34 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(!currentChar.utilityBot){
         const mainp = currentChar.systemPrompt || db.mainPrompt
 
-        unformated.main.push({
-            role: 'system',
-            content: replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)
-        })
+
+        function formatPrompt(data:string){
+            if(!data.startsWith('@@@')){
+                data = "@@@system\n" + data
+            }
+            const parts = data.split(/@@@(user|assistant|system)\n/);
+  
+            // Initialize empty array for the chat objects
+            const chatObjects: OpenAIChat[] = [];
+            
+            // Loop through the parts array two elements at a time
+            for (let i = 1; i < parts.length; i += 2) {
+              const role = parts[i] as 'user' | 'assistant' | 'system';
+              const content = parts[i + 1]?.trim() || '';
+              chatObjects.push({ role, content });
+            }
+
+            console.log(chatObjects)
+            return chatObjects;
+        }
+
+        unformated.main.push(...formatPrompt(replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)))
     
         if(db.jailbreakToggle){
-            unformated.jailbreak.push({
-                role: 'system',
-                content: replacePlaceholders(db.jailbreak, currentChar.name)
-            })
+            unformated.jailbreak.push(...formatPrompt(replacePlaceholders(db.jailbreak, currentChar.name)))
         }
     
-        unformated.globalNote.push({
-            role: 'system',
-            content: replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)
-        })
+        unformated.globalNote.push(...formatPrompt(replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)))
     }
 
     if(currentChat.note){

@@ -140,9 +140,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
                 logit_bias: bias,
-                stream: false,
-                functions: oaiFunctions,
-                function_call: oaiFunctionCall
+                stream: false
             })
 
             let replacerURL = replacer === '' ? 'https://api.openai.com/v1/chat/completions' : replacer
@@ -232,21 +230,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
+                    console.log(dat)
                     const msg:OpenAIChatFull = (dat.choices[0].message)
-                    if(msg.function_call){
-                        console.log(msg.function_call)
-                        const functionarg = JSON.parse(msg.function_call.arguments)
-                        arg.formated.push({
-                            "role": "function",
-                            "name": 'set_emotion',
-                            "content": "successfuly set to " + functionarg.emotion,
-                        })
-                        arg.useEmotion = false
-                        const d = await requestChatDataMain(arg, model, abortSignal)
-                        d.special = d.special ?? {}
-                        d.special.emotion = functionarg.emotion
-                        return d
-                    }
                     return {
                         type: 'success',
                         result: msg.content
