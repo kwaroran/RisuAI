@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.25.3'
+export let appVer = '1.25.4'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){

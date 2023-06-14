@@ -18,6 +18,7 @@ const safeConvertor = new showdown.Converter({
     backslashEscapesHTMLTags: true
 })
 
+
 DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     if (data.tagName === "iframe") {
        const src = node.getAttribute("src") || "";
@@ -77,8 +78,6 @@ export async function convertImage(data:Uint8Array) {
         if(type === 'PNG' && isAPNG(data)){
             return data
         }
-
-        console.log('converting')
         return await resizeAndConvert(data)
     }
     return data
