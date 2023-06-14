@@ -83,10 +83,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
     switch(aiModel){
         case 'gpt35':
+        case 'gpt35_0613':
         case 'gpt35_16k':
         case 'gpt35_16k_0613':
         case 'gpt4':
-        case 'gpt4_32k':{
+        case 'gpt4_32k':
+        case 'gpt4_0613':
+        case 'gpt4_32k_0613':{
 
             for(let i=0;i<formated.length;i++){
                 if(formated[i].role !== 'function'){
@@ -131,9 +134,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                    : aiModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
                     : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
                     : aiModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
-                    : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
+                    : aiModel === 'gpt4' ? 'gpt-4'
+                    : aiModel === 'gpt4_32k' ? 'gpt-4-32k'
+                    : aiModel === "gpt4_0613" ? 'gpt-4-0613'
+                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613' : '',
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
@@ -195,8 +202,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                             control.enqueue(readed)
                                             return
                                         }
-
-                                        console.log(rawChunk)
                                         const chunk = JSON.parse(rawChunk).choices[0].delta.content
                                         if(chunk){
                                             readed += chunk
@@ -230,7 +235,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
-                    console.log(dat)
                     const msg:OpenAIChatFull = (dat.choices[0].message)
                     return {
                         type: 'success',
@@ -374,8 +378,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             })
             
             const dat = res.data as any
-            console.log(DURL)
-            console.log(res.data)
             if(res.ok){
                 try {
                     let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
@@ -600,8 +602,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
 
-                console.log(requestPrompt)
-
                 const da = await globalFetch('https://api.anthropic.com/v1/complete', {
                     method: "POST",
                     body: {
@@ -626,7 +626,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const res = da.data
 
-                console.log(res)
                 return {
                     type: "success",
                     result: res.completion,
@@ -638,7 +637,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const realModel = aiModel.split(":::")[1]
 
-                console.log(realModel)
                 const argument = {
                     "prompt": proompt,
                     "params": {
