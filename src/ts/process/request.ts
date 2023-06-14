@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import type { OpenAIChat } from ".";
+import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
@@ -17,15 +17,38 @@ interface requestDataArgument{
     frequencyPenalty?: number,
     useStreaming?:boolean
     isGroupChat?:boolean
+    useEmotion?:boolean
 }
 
 type requestDataResponse = {
     type: 'success'|'fail'
     result: string
-    noRetry?: boolean
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
 }|{
     type: "streaming",
-    result: ReadableStream<string>
+    result: ReadableStream<string>,
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
+}
+
+interface OaiFunctions {
+    name: string;
+    description: string;
+    parameters: {
+        type: string;
+        properties: {
+            [key:string]: {
+                type: string;
+                enum: string[]; // replace 'string[]' with 'Emotion[]' if 'Emotion' is an enum type
+            };
+        };
+        required: string[];
+    };
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
@@ -43,6 +66,9 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
         }
     }
 }
+
+
+
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
@@ -63,12 +89,46 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_32k':{
 
             for(let i=0;i<formated.length;i++){
-                if(arg.isGroupChat && formated[i].name){
-                    formated[i].content = formated[i].name + ": " + formated[i].content
+                if(formated[i].role !== 'function'){
+                    if(arg.isGroupChat && formated[i].name){
+                        formated[i].content = formated[i].name + ": " + formated[i].content
+                    }
+                    formated[i].name = undefined
                 }
-                formated[i].name = undefined
             }
 
+            let currentEmotion = currentChar.emotionImages
+            let emotionList = currentEmotion.map((a) => {
+                return a[0]
+            })
+
+            let oaiFunctions:OaiFunctions[] = []
+
+
+            if(arg.useEmotion){
+                oaiFunctions.push(
+                    {
+                        "name": "set_emotion",
+                        "description": "sets a role playing character's emotion display. must be called one time at the end of response.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "emotion": {
+                                    "type": "string", "enum": emotionList
+                                },
+                            },
+                            "required": ["emotion"],
+                        },
+                    }
+                )
+            }
+
+            if(oaiFunctions.length === 0){
+                oaiFunctions = undefined
+            }
+
+
+            const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
@@ -80,7 +140,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
                 logit_bias: bias,
-                stream: false
+                stream: false,
+                functions: oaiFunctions,
+                function_call: oaiFunctionCall
             })
 
             let replacerURL = replacer === '' ? 'https://api.openai.com/v1/chat/completions' : replacer
@@ -170,7 +232,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
-                    const msg:OpenAIChat = (dat.choices[0].message)
+                    const msg:OpenAIChatFull = (dat.choices[0].message)
+                    if(msg.function_call){
+                        console.log(msg.function_call)
+                        const functionarg = JSON.parse(msg.function_call.arguments)
+                        arg.formated.push({
+                            "role": "function",
+                            "name": 'set_emotion',
+                            "content": "successfuly set to " + functionarg.emotion,
+                        })
+                        arg.useEmotion = false
+                        const d = await requestChatDataMain(arg, model, abortSignal)
+                        d.special = d.special ?? {}
+                        d.special.emotion = functionarg.emotion
+                        return d
+                    }
                     return {
                         type: 'success',
                         result: msg.content

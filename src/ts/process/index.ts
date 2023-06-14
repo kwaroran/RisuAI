@@ -17,10 +17,18 @@ import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
 
 export interface OpenAIChat{
-    role: 'system'|'user'|'assistant'
+    role: 'system'|'user'|'assistant'|'function'
     content: string
     memo?:string
     name?:string
+}
+
+export interface OpenAIChatFull extends OpenAIChat{
+    function_call?: {
+        name: string
+        arguments:string
+    }
+
 }
 
 export const doingChat = writable(false)
@@ -417,6 +425,31 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         setDatabase(db)
     }
 
+    if(req.special){
+        if(req.special.emotion){
+            let charemotions = get(CharEmotion)
+            let currentEmotion = currentChar.emotionImages
+
+            let tempEmotion = charemotions[currentChar.chaId]
+            if(!tempEmotion){
+                tempEmotion = []
+            }
+            if(tempEmotion.length > 4){
+                tempEmotion.splice(0, 1)
+            }
+
+            for(const emo of currentEmotion){
+                if(emo[0] === req.special.emotion){
+                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                    tempEmotion.push(emos)
+                    charemotions[currentChar.chaId] = tempEmotion
+                    CharEmotion.set(charemotions)
+                    emoChanged = true
+                    break
+                }
+            }
+        }
+    }
 
     if(currentChar.viewScreen === 'emotion' && (!emoChanged)){
 
