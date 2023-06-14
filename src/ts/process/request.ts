@@ -57,6 +57,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
     switch(aiModel){
         case 'gpt35':
+        case 'gpt35_16k':
+        case 'gpt35_16k_0613':
         case 'gpt4':
         case 'gpt4_32k':{
 
@@ -69,6 +71,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                    : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
+                    : aiModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
                     : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
                 messages: formated,
                 temperature: temperature,
