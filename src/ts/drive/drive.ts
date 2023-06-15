@@ -13,7 +13,7 @@ import { hubURL } from "../characterCards";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
-    const REDIRECT_URI = type === 'reftoken' ? 'https://sv.risuai.xyz/drive' : ((isTauri || isNodeServer) ? "https://risuai.xyz/" : `https://${location.host}/`)
+    const REDIRECT_URI = type === 'reftoken' ? 'https://sv.risuai.xyz/drive' : "https://risuai.xyz/"
     const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
     const encodedRedirectUri = encodeURIComponent(REDIRECT_URI);
     const authorizationUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&scope=${SCOPE}&response_type=code&state=${type}`;
@@ -131,6 +131,8 @@ export async function syncDrive() {
             }
             const ACCESS_TOKEN = maindb.account.data.access_token
             const d = await loadDrive(ACCESS_TOKEN, 'sync')
+            lastSaved = Math.floor(Date.now() / 1000)
+            localStorage.setItem('risu_lastsaved', `${lastSaved}`)
             const hadNoSync = d === 'noSync'
             if((!isEqual(maindb, BackupDb)) || hadNoSync){
                 BackupDb = cloneDeep(maindb)
