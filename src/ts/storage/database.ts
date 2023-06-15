@@ -260,7 +260,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
     }
-
+    if(checkNullish(data.classicMaxWidth)){
+        data.classicMaxWidth = false
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -519,7 +521,8 @@ export interface Database{
             access_token?:string
             expires_in?: number
         }
-    }
+    },
+    classicMaxWidth: boolean
 }
 
 interface hordeConfig{
