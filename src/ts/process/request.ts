@@ -44,7 +44,7 @@ interface OaiFunctions {
         properties: {
             [key:string]: {
                 type: string;
-                enum: string[]; // replace 'string[]' with 'Emotion[]' if 'Emotion' is an enum type
+                enum: string[]
             };
         };
         required: string[];
@@ -100,10 +100,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
-            let currentEmotion = currentChar.emotionImages
-            let emotionList = currentEmotion.map((a) => {
-                return a[0]
-            })
+
 
             let oaiFunctions:OaiFunctions[] = []
 
@@ -117,7 +114,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             "type": "object",
                             "properties": {
                                 "emotion": {
-                                    "type": "string", "enum": emotionList
+                                    "type": "string", "enum": []
                                 },
                             },
                             "required": ["emotion"],
