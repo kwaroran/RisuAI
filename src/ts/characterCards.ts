@@ -653,58 +653,67 @@ export async function shareRisuHub(char:character, arg:{
 
 }
 
-export async function getRisuHub(arg?:{
-    search?:string,
-    page?:number,
-    nsfw?:boolean
-    sort?:string
-}):Promise<{
+export type hubType = {
     name:string
     desc: string
     download: number,
     id: string,
     img: string
-    tags: string[]
-}[]> {
-    const da = await fetch(hubURL + '/hub/list', {
-        method: "POST",
-        body: JSON.stringify(arg ?? {})
-    })
-    if(da.status !== 200){
-        return []
+    tags: string[],
+    viewScreen: "none" | "emotion" | "imggen"
+    hasLore:boolean
+}
+
+export async function getRisuHub(arg?:{
+    search?:string,
+    page?:number,
+    nsfw?:boolean
+    sort?:string
+}):Promise<hubType[]> {
+    try {
+        const da = await fetch(hubURL + '/hub/list', {
+            method: "POST",
+            body: JSON.stringify(arg ?? {})
+        })
+        if(da.status !== 200){
+            return []
+        }
+        console.log(da)
+        return da.json()   
+    } catch (error) {
+        return[]
     }
-    console.log(da)
-    return da.json()
 }
 
 export async function downloadRisuHub(id:string) {
-    alertStore.set({
-        type: "wait",
-        msg: "Downloading..."
-    })
-    const res = await fetch(hubURL + '/hub/get', {
-        method: "POST",
-        body: JSON.stringify({
-            id: id
+    try {
+        alertStore.set({
+            type: "wait",
+            msg: "Downloading..."
         })
-    })
-    if(res.status !== 200){
-        alertError(await res.text())
-    }
-
-    const result = await res.json()
-    const data:CharacterCardV2 = result.card
-    const img:string = result.img
-
-    await importSpecv2(data, await getHubResources(img), 'hub')
-    checkCharOrder()
-    let db = get(DataBase)
-    if(db.characters[db.characters.length-1]){
-        const index = db.characters.length-1
-        characterFormatUpdate(index);
-        selectedCharID.set(index);
-    }
-
+        const res = await fetch(hubURL + '/hub/get', {
+            method: "POST",
+            body: JSON.stringify({
+                id: id
+            })
+        })
+        if(res.status !== 200){
+            alertError(await res.text())
+        }
+    
+        const result = await res.json()
+        const data:CharacterCardV2 = result.card
+        const img:string = result.img
+    
+        await importSpecv2(data, await getHubResources(img), 'hub')
+        checkCharOrder()
+        let db = get(DataBase)
+        if(db.characters[db.characters.length-1]){
+            const index = db.characters.length-1
+            characterFormatUpdate(index);
+            selectedCharID.set(index);
+        }   
+    } catch (error) {alertError("Error while importing")}
 }
 
 export async function getHubResources(id:string) {

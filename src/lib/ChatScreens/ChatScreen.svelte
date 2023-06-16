@@ -55,7 +55,7 @@
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
         <BackgroundDom />
-        <div class="w-full h-1/3 absolute z-10 bottom-0 left-0">
+        <div class="w-full absolute z-10 bottom-0 left-0" class:pre33={$selectedCharID >= 0}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}
@@ -77,5 +77,8 @@
     }
     .halfwp{
         max-width: calc(50% - 5rem);
+    }
+    .per33{
+        height: 33.333333%;
     }
 </style>
