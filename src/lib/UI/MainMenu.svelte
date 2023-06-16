@@ -40,9 +40,9 @@
             <span class="mt-2 text-gray-400 text-start">Characters made and shared by the community</span>
           </button>
         {:else}
-          <button class="bg-darkbg rounded-md p-6 flex flex-col">
-            <h1 class="text-2xl font-bold text-start">Comming soon</h1>
-            <span class="mt-2 text-gray-400 text-start">More options comming soon</span>
+          <button class="bg-darkbg rounded-md p-6 flex flex-col" on:click={() => {openURL("https://discord.gg/JzP8tB9ZK8")}}>
+            <h1 class="text-2xl font-bold text-start">Official Discord</h1>
+            <span class="mt-2 text-gray-400 text-start">Offical Discord to talk about RisuAI</span>
           </button>
         {/if}
       </div>
