@@ -312,6 +312,14 @@
     return false
   }
 
+  const preventIfPolyfilled = (e:Event) => {
+    if(globalThis.polyfilledDragDrop){
+      e.preventDefault()
+      e.stopPropagation()
+      return false
+    }
+  }
+
   onDestroy(unsub);
 </script>
 
@@ -348,7 +356,7 @@
           on:dragover={avatarDragOver}
           on:drop={(e) => {avatarDrop({index:ind}, e)}}
           on:dragenter={preventAll}
-          on:contextmenu={preventAll}
+          on:contextmenu={preventIfPolyfilled}
         >
           <SidebarIndicator
             isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
@@ -417,7 +425,7 @@
                 on:dragover={avatarDragOver}
                 on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
                 on:dragenter={preventAll}
-                on:contextmenu={preventAll}
+                on:contextmenu={preventIfPolyfilled}
               >
                 <SidebarIndicator
                   isActive={$selectedCharID === char2.index && sideBarMode !== 1}
