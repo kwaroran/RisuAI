@@ -1,8 +1,9 @@
 
 # RisuAI
-![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe)
+|![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe) | ![image](https://github.com/kwaroran/RisuAI/assets/116663078/30d29f85-1380-4c73-9b82-1a40f2c5d2ea) |
+| --- | ----------- |
 
-> A AIChat Frontend like Tavern, with great accessibility. Run in web or with installer.
+> A AIChat Frontend, for both light and power users, with great accessibility. Run in web or with installer.
 
 Web version
  - Go to http://risuai.xyz/
