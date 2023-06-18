@@ -51,7 +51,7 @@ export function setDatabase(data:Database){
         data.jailbreakToggle = false
     }
     if(checkNullish(data.formatingOrder)){
-        data.formatingOrder = ['main','description', 'chats','jailbreak','lorebook', 'globalNote', 'authorNote', 'lastChat']
+        data.formatingOrder = ['main','description', 'chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
     }
     if(checkNullish(data.loreBookDepth)){
         data.loreBookDepth = 5
@@ -585,7 +585,7 @@ export const presetTemplate:botPreset = {
     maxResponse: 300,
     frequencyPenalty: 70,
     PresensePenalty: 70,
-    formatingOrder: ['main', 'description', 'chats', 'jailbreak', 'lorebook', 'globalNote', 'authorNote', 'lastChat'],
+    formatingOrder: ['main', 'description', 'chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
     aiModel: "gpt35",
     subModel: "gpt35",
     currentPluginProvider: "",
