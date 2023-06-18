@@ -437,7 +437,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
             character_version: data.character_version
         },
         additionalAssets: extAssets,
-        replaceGlobalNote: data.post_history_instructions ?? ''
+        replaceGlobalNote: data.post_history_instructions ?? '',
+        backgroundHTML: data?.extensions?.risuai?.backgroundHTML
     }
 
     db.characters.push(char)
@@ -510,7 +511,8 @@ async function createBaseV2(char:character) {
                     customScripts: char.customscript,
                     utilityBot: char.utilityBot,
                     sdData: char.sdData,
-                    additionalAssets: char.additionalAssets
+                    additionalAssets: char.additionalAssets,
+                    backgroundHTML: char.backgroundHTML
                 }
             }
         }
@@ -755,6 +757,7 @@ type CharacterCardV2 = {
                 utilityBot?: boolean,
                 sdData?:[string,string][],
                 additionalAssets?:[string,string][],
+                backgroundHTML?:string
             }
         }
     }
