@@ -10,17 +10,10 @@
   import BarIcon from "./BarIcon.svelte";
   import SidebarIndicator from "./SidebarIndicator.svelte";
   import {
-    Plus,
-    User,
     X,
     Settings,
-    Users,
-    Edit3Icon,
-    ArrowUp,
-    ArrowDown,
     ListIcon,
     LayoutGridIcon,
-    PlusIcon,
     FolderIcon,
     FolderOpenIcon,
     HomeIcon,
