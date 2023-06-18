@@ -66,7 +66,6 @@
           <button class="mr-2 text-gray-400 hover:text-green-500" on:click={() => (openHub = false)}>
             <ArrowLeft/>
           </button>
-          <h1 class="text-3xl font-bold">{language.hub} <Help key="experimental" /> </h1>
         </div>
         <Hub />
       {/if}

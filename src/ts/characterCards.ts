@@ -636,7 +636,8 @@ export async function shareRisuHub(char:character, arg:{
             body: JSON.stringify({
                 card: card,
                 img: Buffer.from(img).toString('base64'),
-                resources: resources
+                resources: resources,
+                token: get(DataBase)?.account?.token
             })
         })
 

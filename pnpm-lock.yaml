@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@adobe/css-tools':
+    specifier: 4.3.0-beta.2
+    version: 4.3.0-beta.2
   '@dqbd/tiktoken':
     specifier: ^1.0.4
     version: 1.0.4
@@ -170,6 +173,10 @@ devDependencies:
     version: 3.2.2(vite@4.2.1)
 
 packages:
+
+  /@adobe/css-tools@4.3.0-beta.2:
+    resolution: {integrity: sha512-VzekSqtYB+8XX8W1gNRIa1TbTXjVw64I5yLrbBP13JhwecixQzrpXWIszo7FghS9cm6FEFhzIivzwjns35DMlQ==}
+    dev: false
 
   /@dqbd/tiktoken@1.0.4:
     resolution: {integrity: sha512-C0HrJj2RNlsB3wslfNHGNH8xN7QQMki+y4JkUor/GE+oIfPvH7yVep9l1/2powam8AAH6+gdv5MggA5gsszweg==}

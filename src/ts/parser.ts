@@ -4,6 +4,7 @@ import { DataBase, type character, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScript } from './process/scripts';
 import { get } from 'svelte/store';
+import css from '@adobe/css-tools'
 
 const convertor = new showdown.Converter({
     simpleLineBreaks: true,
@@ -26,6 +27,28 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
        if (!src.startsWith("https://www.youtube.com/embed/")) {
           return node.parentNode.removeChild(node);
        }
+    }
+    if(data.tagName === 'style'){
+        try {
+            const ast = css.parse(node.innerHTML)
+            const rules = ast?.stylesheet?.rules
+            if(rules){
+                for(const rule of rules){
+                    if(rule.selectors){
+                        for(let i=0;i<rule.selectors.length;i++){
+                            rule.selectors[i] = ".chattext " + rule.selectors[i]
+                        }
+                    }
+                }
+            }
+            node.innerHTML = css.stringify(ast)
+       
+        } catch (error) {
+            const ErrorNode = document.createElement("div")
+            ErrorNode.innerText = `CSS ERROR: ${error}`
+            node.parentNode.appendChild(ErrorNode)
+            return node.parentNode.removeChild(node);
+        }
     }
 });
 
