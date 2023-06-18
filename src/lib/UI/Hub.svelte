@@ -1,10 +1,11 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub, hubURL, type hubType } from "src/ts/characterCards";
-    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, SmileIcon, XIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, SmileIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
-  import { parseMarkdownSafe } from "src/ts/parser";
-  import { language } from "src/lang";
-  import RisuHubIcon from "./RisuHubIcon.svelte";
+    import { parseMarkdownSafe } from "src/ts/parser";
+    import { language } from "src/lang";
+    import RisuHubIcon from "./RisuHubIcon.svelte";
+    import { DataBase } from "src/ts/storage/database";
 
     let openedData:null|hubType = null
 
@@ -125,6 +126,10 @@
                     {/each}
                 </div>
                 <div class="flex flex-wrap w-full flex-row gap-1 mt-2">
+                    <span class="text-gray-500">
+                        {openedData.download} {language.downloads}
+                    </span>
+                    <div class="border-l-selected border-l ml-1 mr-1"></div>
                     {#if openedData.viewScreen === 'emotion'}
                         <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
                     {/if}
@@ -150,6 +155,23 @@
                 }}>
                     <FlagIcon />
                 </button>
+                {#if ($DataBase.account?.token?.split('-') ?? [])[1] === openedData.creator}
+                    <button class="text-gray-400 hover:text-red-500" on:click|stopPropagation={async () => {
+                        const conf = await alertConfirm('Do you want to remove this character from Realm?')
+                        if(conf){
+                            const da = await fetch(hubURL + '/hub/remove', {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    id: openedData.id,
+                                    token: $DataBase.account?.token
+                                })
+                            })
+                            alertNormal(await da.text())
+                        }
+                    }}>
+                        <TrashIcon />
+                    </button>
+                {/if}
                 <button class="bg-selected hover:ring flex-grow p-2 font-bold rounded-md mr-2" on:click={() => {
                     downloadRisuHub(openedData.id)
                     openedData = null

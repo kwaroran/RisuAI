@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { DataBase, appVer } from "src/ts/storage/database";
+  import { appVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Hub.svelte";
   import { sideBarStore } from "src/ts/stores";
-  import Help from "../Others/Help.svelte";
-  import { ArrowLeft, HomeIcon } from "lucide-svelte";
+  import { ArrowLeft } from "lucide-svelte";
   import { openURL } from "src/ts/storage/globalApi";
   import { language } from "src/lang";
-  import { getRisuHub, hubURL } from "src/ts/characterCards";
+  import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./RisuHubIcon.svelte";
   let openHub = false
 </script>

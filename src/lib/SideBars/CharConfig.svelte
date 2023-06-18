@@ -663,12 +663,9 @@
         <button on:click={async () => {
             exportChar($selectedCharID)
         }} class="text-neutral-200 mt-6 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.exportCharacter}</button>
-
-        {#if $DataBase.useExperimental}
-            <button on:click={async () => {
-                openHubUpload = true
-            }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.shareCloud} <Help key="experimental" /></button>
-        {/if}
+        <button on:click={async () => {
+            openHubUpload = true
+        }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-500 transition-colors cursor-pointer">{language.shareCloud}</button>
         {#if openHubUpload}
             <HubUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
         {/if}

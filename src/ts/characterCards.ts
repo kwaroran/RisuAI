@@ -663,6 +663,7 @@ export type hubType = {
     tags: string[],
     viewScreen: "none" | "emotion" | "imggen"
     hasLore:boolean
+    creator?:string
 }
 
 export async function getRisuHub(arg?:{

@@ -49,10 +49,9 @@
 </button>
 <span class="text-neutral-200 mt-4">{language.username}</span>
 <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected" placeholder="User" bind:value={$DataBase.username}>
-{#if $DataBase.useExperimental}
     <div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start">
         <div class="w-full">
-            <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account} <Help key="experimental"/>
+            <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
                 <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
                     $DataBase.account = undefined
                 }}>Logout</button>
@@ -60,19 +59,23 @@
         </div>
         {#if $DataBase.account}
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
-            <h1 class="text-xl font-bold mt-2">{language.googleDriveConnection}</h1>
-            {#if !$DataBase.account.data.refresh_token}
-                <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveInfo}</span>
-                <button class="bg-selected p-2 rounded-md hover:bg-green-500 transition-colors" on:click={async () => {
-                    if((!popup) || popup.closed){
-                        popup = window.open(await checkDriver('reftoken'))                    
-                    }
-                }}>
-                    Connect to Google Drive
-                </button>
-            {:else}
-                <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveConnected}</span>
+            {#if $DataBase.useExperimental}
+
+                <h1 class="text-xl font-bold mt-2">{language.googleDriveConnection} <Help key="experimental"/></h1>
+                {#if !$DataBase.account.data.refresh_token}
+                    <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveInfo}</span>
+                    <button class="bg-selected p-2 rounded-md hover:bg-green-500 transition-colors" on:click={async () => {
+                        if((!popup) || popup.closed){
+                            popup = window.open(await checkDriver('reftoken'))                    
+                        }
+                    }}>
+                        Connect to Google Drive
+                    </button>
+                {:else}
+                    <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveConnected}</span>
+                {/if}
             {/if}
+
         {:else}
             <span>{language.notLoggedIn}</span>
             <button class="bg-selected p-2 rounded-md mt-2 hover:bg-green-500 transition-colors" on:click={() => {
@@ -83,7 +86,6 @@
             </button>
         {/if}
     </div>
-{/if}
 {#if openIframe}
     <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
         <iframe src={openIframeURL} title="login" class="w-full h-full">

@@ -1,6 +1,15 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" on:click={close}>
     <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" on:click|stopPropagation>
+        
+        {#if !$DataBase.account}
+            <span class="font-bold text-2xl w-full">You must login to Risu Account upload to RisuRealm</span>
+            <span class="text-gray-500">You can login in app settings 🡲 account</span>
+            <button on:click={async () => {
+                close()
+            }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-800 transition-colors cursor-pointer">OK</button>
+            
+        {:else}
         <h1 class="font-bold text-2xl w-full">
             <span>
                 Share {char.name} to {language.hub}
@@ -46,6 +55,8 @@
                 close()
             }
         }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-800 transition-colors cursor-pointer">{language.shareCloud}</button>
+        {/if}
+
     </div>
 </div>
 
@@ -55,7 +66,7 @@
     import { language } from "src/lang";
   import { alertError } from "src/ts/alert";
   import { shareRisuHub } from "src/ts/characterCards";
-    import type { character } from "src/ts/storage/database";
+    import { DataBase, type character } from "src/ts/storage/database";
     export let close = () => {}
     export let char:character
     let tags=""
