@@ -43,6 +43,7 @@
   import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject } from "src/ts/util";
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
+  import { doingChat } from "src/ts/process";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -76,6 +77,9 @@
   }
 
   function changeChar(index: number) {
+    if($doingChat){
+      return
+    }
     reseter();
     characterFormatUpdate(index);
     selectedCharID.set(index);
