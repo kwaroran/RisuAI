@@ -19,6 +19,7 @@ export const languageChinese = {
         onlyOneChat: '必须至少有一次聊天',
         alreadyCharInGroup: "群组中已存在同名的角色。"
     },
+    showHelp: "显示帮助",
     help:{
         model: "模型选项是用于聊天的主要模型。",
         submodel: "辅助模型是用于分析情绪图像，自动建议等的模型。推荐使用gpt3.5。",
@@ -308,4 +309,5 @@ export const languageChinese = {
     recent: '最新',
     downloads: '下载量',
     trending: "热度",
+    imageCompression: "图像压缩"
 }

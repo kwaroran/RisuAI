@@ -2,6 +2,7 @@ import type { Tiktoken } from "@dqbd/tiktoken";
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import { tokenizeTransformers } from "./transformers/transformer";
+import type { OpenAIChat } from "./process";
 
 async function encode(data:string):Promise<(number[]|Uint32Array)>{
     let db = get(DataBase)
@@ -35,6 +36,27 @@ export async function tokenizerChar(char:character) {
 export async function tokenize(data:string) {
     const encoded = await encode(data)
     return encoded.length
+}
+
+
+export class ChatTokenizer {
+
+    private chatAdditonalTokens:number
+    private useName:'name'|'noName'
+
+    constructor(chatAdditonalTokens:number, useName:'name'|'noName'){
+        this.chatAdditonalTokens = chatAdditonalTokens
+        this.useName = useName
+    }
+    async tokenizeChat(data:OpenAIChat) {
+        let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
+        if(data.name && this.useName ==='name'){
+            encoded += (await encode(data.name)).length
+        }
+        return encoded
+    }
+
+    
 }
 
 export async function tokenizeNum(data:string) {

@@ -149,6 +149,7 @@ export const languageKorean = {
     ShowLog: "리퀘스트 로그 보기",
     waifuWidth2: "Waifu 캐릭터 크기",
     sayNothing:"어떤 문자열도 입력되지 않을 시 'say nothing' 입력",
+    showHelp: "도움말 보기",
     help:{
         model: "채팅에서 사용되는 모델입니다.",
         submodel: "보조 모델은 감정 이미지, 자동 제안등을 분석하는 데 사용되는 모델입니다. gpt3.5가 권장됩니다.",
@@ -260,7 +261,7 @@ export const languageKorean = {
     replaceGlobalNote: "글로벌 노트 덮어쓰기",
     charLoreBook: '캐릭터 로어북',
     globalLoreBook: '글로벌 로어북',
-    globalRegexScript: "글로별 정규식",
+    globalRegexScript: "글로벌 정규식",
     accessibility: "접근성",
     sendWithEnter: "엔터키로 메세지 보내기",
     clickToEdit: "클릭해서 수정하기",
@@ -281,4 +282,9 @@ export const languageKorean = {
     useChatCopy: "채팅 메시지 복사 사용",
     autoTranslateInput: "입력 자동 번역",
     enterMessageForTranslateToEnglish: "영어로 번역할 메시지를 입력해주세요",
+    imageCompression: "이미지 압축",
+    notLoggedIn: "Risu Account에 로그인되지 않음",
+    googleDriveInfo: "구글 드라이브에 연동해서 데이터를 동기화하세요.",
+    googleDriveConnection: "구글 드라이브 연동하기",
+    googleDriveConnected: "구글 드라이브 연동됨"
 }

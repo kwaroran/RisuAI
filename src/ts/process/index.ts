@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
-import { tokenize, tokenizeNum } from "../tokenizer";
+import { ChatTokenizer, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
@@ -15,13 +15,20 @@ import { supaMemory } from "./supaMemory";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
-import { getNameMaxTokens } from "./stringlize";
 
 export interface OpenAIChat{
-    role: 'system'|'user'|'assistant'
+    role: 'system'|'user'|'assistant'|'function'
     content: string
     memo?:string
     name?:string
+}
+
+export interface OpenAIChatFull extends OpenAIChat{
+    function_call?: {
+        name: string
+        arguments:string
+    }
+
 }
 
 export const doingChat = writable(false)
@@ -69,7 +76,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(nowChatroom.type === 'group'){
         if(chatProcessIndex === -1){
             const charNames =nowChatroom.characters.map((v) => findCharacterbyIdwithCache(v).name)
-            caculatedChatTokens += await getNameMaxTokens([...charNames, db.username])
 
             const messages = nowChatroom.chats[nowChatroom.chatPage].message
             const lastMessage = messages[messages.length-1]
@@ -110,14 +116,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
     else{
         currentChar = nowChatroom
-        if(!db.aiModel.startsWith('gpt')){
-            caculatedChatTokens += await getNameMaxTokens([currentChar.name, db.username])
-        }
-
     }
 
     let chatAdditonalTokens = arg.chatAdditonalTokens ?? caculatedChatTokens
-    
+    const tokenizer = new ChatTokenizer(chatAdditonalTokens, db.aiModel.startsWith('gpt') ? 'noName' : 'name')
     let selectedChat = nowChatroom.chatPage
     let currentChat = nowChatroom.chats[selectedChat]
     let maxContextTokens = db.maxContext
@@ -125,6 +127,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(db.aiModel === 'gpt35'){
         if(maxContextTokens > 4000){
             maxContextTokens = 4000
+        }
+    }
+    if(db.aiModel === 'gpt35_16k' || db.aiModel === 'gpt35_16k_0613'){
+        if(maxContextTokens > 16000){
+            maxContextTokens = 16000
         }
     }
     if(db.aiModel === 'gpt4'){
@@ -149,22 +156,34 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(!currentChar.utilityBot){
         const mainp = currentChar.systemPrompt || db.mainPrompt
 
-        unformated.main.push({
-            role: 'system',
-            content: replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)
-        })
+
+        function formatPrompt(data:string){
+            if(!data.startsWith('@@@')){
+                data = "@@@system\n" + data
+            }
+            const parts = data.split(/@@@(user|assistant|system)\n/);
+  
+            // Initialize empty array for the chat objects
+            const chatObjects: OpenAIChat[] = [];
+            
+            // Loop through the parts array two elements at a time
+            for (let i = 1; i < parts.length; i += 2) {
+              const role = parts[i] as 'user' | 'assistant' | 'system';
+              const content = parts[i + 1]?.trim() || '';
+              chatObjects.push({ role, content });
+            }
+
+            console.log(chatObjects)
+            return chatObjects;
+        }
+
+        unformated.main.push(...formatPrompt(replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)))
     
         if(db.jailbreakToggle){
-            unformated.jailbreak.push({
-                role: 'system',
-                content: replacePlaceholders(db.jailbreak, currentChar.name)
-            })
+            unformated.jailbreak.push(...formatPrompt(replacePlaceholders(db.jailbreak, currentChar.name)))
         }
     
-        unformated.globalNote.push({
-            role: 'system',
-            content: replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)
-        })
+        unformated.globalNote.push(...formatPrompt(replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)))
     }
 
     if(currentChat.note){
@@ -205,17 +224,20 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     })
 
     //await tokenize currernt
-    let currentTokens = (await tokenize(Object.keys(unformated).map((key) => {
-        return (unformated[key] as OpenAIChat[]).map((d) => {
-            return d.content
-        }).join('\n\n')
-    }).join('\n\n')) + db.maxResponse) + 130
+    let currentTokens = db.maxResponse
+    
+    for(const key in unformated){
+        const chats = unformated[key] as OpenAIChat[]
+        for(const chat of chats){
+            currentTokens += await tokenizer.tokenizeChat(chat)
+        }
+    }
 
     
-    const examples = exampleMessage(currentChar)
+    const examples = exampleMessage(currentChar, db.username)
 
     for(const example of examples){
-        currentTokens += await tokenize(example.content) + chatAdditonalTokens
+        currentTokens += await tokenizer.tokenizeChat(example)
     }
 
     let chats:OpenAIChat[] = examples
@@ -230,20 +252,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(nowChatroom.type !== 'group'){
         const firstMsg = nowChatroom.firstMsgIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[nowChatroom.firstMsgIndex]
 
-        chats.push({
+        const chat:OpenAIChat = {
             role: 'assistant',
-            content: processScript(currentChar,
+            content: processScript(nowChatroom,
                 replacePlaceholders(firstMsg, currentChar.name),
             'editprocess')
-        })
-        currentTokens += await tokenize(processScript(currentChar,
-            replacePlaceholders(firstMsg, currentChar.name),
-        'editprocess'))
+        }
+        chats.push(chat)
+        currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
     const ms = currentChat.message
     for(const msg of ms){
-        let formedChat = processScript(currentChar,replacePlaceholders(msg.data, currentChar.name), 'editprocess')
+        let formedChat = processScript(nowChatroom,replacePlaceholders(msg.data, currentChar.name), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
@@ -259,17 +280,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(!msg.chatId){
             msg.chatId = v4()
         }
-        chats.push({
+        const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formedChat,
             memo: msg.chatId,
             name: name
-        })
-        currentTokens += (await tokenize(formedChat) + chatAdditonalTokens)
+        }
+        chats.push(chat)
+        currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
-        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, chatAdditonalTokens)
+        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
         if(sp.error){
             alertError(sp.error)
             return false
@@ -287,7 +309,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 return false
             }
 
-            currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
+            currentTokens -= await tokenizer.tokenizeChat(chats[0])
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo
@@ -391,7 +413,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
-                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result
+                const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput')
+                db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
+                emoChanged = result2.emoChanged
                 setDatabase(db)
             }
             if(readed.done){
@@ -401,7 +425,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         await sayTTS(currentChar, result)
     }
     else{
-        const result2 = processScriptFull(currentChar, reformatContent(req.result), 'editoutput')
+        const result2 = processScriptFull(nowChatroom, reformatContent(req.result), 'editoutput')
         result = result2.data
         emoChanged = result2.emoChanged
         db.characters[selectedChar].chats[selectedChat].message.push({
@@ -413,6 +437,31 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         setDatabase(db)
     }
 
+    if(req.special){
+        if(req.special.emotion){
+            let charemotions = get(CharEmotion)
+            let currentEmotion = currentChar.emotionImages
+
+            let tempEmotion = charemotions[currentChar.chaId]
+            if(!tempEmotion){
+                tempEmotion = []
+            }
+            if(tempEmotion.length > 4){
+                tempEmotion.splice(0, 1)
+            }
+
+            for(const emo of currentEmotion){
+                if(emo[0] === req.special.emotion){
+                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                    tempEmotion.push(emos)
+                    charemotions[currentChar.chaId] = tempEmotion
+                    CharEmotion.set(charemotions)
+                    emoChanged = true
+                    break
+                }
+            }
+        }
+    }
 
     if(currentChar.viewScreen === 'emotion' && (!emoChanged)){
 

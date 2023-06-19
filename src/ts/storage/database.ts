@@ -8,7 +8,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.24.2'
+export let appVer = '1.26.0'
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -51,7 +51,7 @@ export function setDatabase(data:Database){
         data.jailbreakToggle = false
     }
     if(checkNullish(data.formatingOrder)){
-        data.formatingOrder = ['main','description', 'chats','jailbreak','lorebook', 'globalNote', 'authorNote', 'lastChat']
+        data.formatingOrder = ['main','description', 'chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
     }
     if(checkNullish(data.loreBookDepth)){
         data.loreBookDepth = 5
@@ -257,17 +257,24 @@ export function setDatabase(data:Database){
     if(checkNullish(data.autoSuggestPrompt)){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
     }
-
+    if(checkNullish(data.imageCompression)){
+        data.imageCompression = true
+    }
+    if(checkNullish(data.classicMaxWidth)){
+        data.classicMaxWidth = false
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
 
 
 export interface customscript{
-  comment: string;
-  in:string
-  out:string
-  type:string
+    comment: string;
+    in:string
+    out:string
+    type:string
+    flag?:string
+    ableFlag?:boolean
 
 }
 
@@ -505,6 +512,17 @@ export interface Database{
     useChatCopy:boolean,
     novellistAPI:string,
     useAutoTranslateInput:boolean
+    imageCompression:boolean
+    account?:{
+        token:string
+        id:string,
+        data: {
+            refresh_token?:string,
+            access_token?:string
+            expires_in?: number
+        }
+    },
+    classicMaxWidth: boolean
 }
 
 interface hordeConfig{
@@ -567,7 +585,7 @@ export const presetTemplate:botPreset = {
     maxResponse: 300,
     frequencyPenalty: 70,
     PresensePenalty: 70,
-    formatingOrder: ['main', 'description', 'chats', 'jailbreak', 'lorebook', 'globalNote', 'authorNote', 'lastChat'],
+    formatingOrder: ['main', 'description', 'chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
     aiModel: "gpt35",
     subModel: "gpt35",
     currentPluginProvider: "",

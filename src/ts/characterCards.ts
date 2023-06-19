@@ -11,6 +11,7 @@ import { characterFormatUpdate } from "./characters"
 import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
+import { convertImage } from "./parser"
 
 export const hubURL = import.meta.env.DEV ? "http://127.0.0.1:8787" : "https://sv.risuai.xyz"
 
@@ -436,7 +437,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
             character_version: data.character_version
         },
         additionalAssets: extAssets,
-        replaceGlobalNote: data.post_history_instructions ?? ''
+        replaceGlobalNote: data.post_history_instructions ?? '',
+        backgroundHTML: data?.extensions?.risuai?.backgroundHTML
     }
 
     db.characters.push(char)
@@ -509,7 +511,8 @@ async function createBaseV2(char:character) {
                     customScripts: char.customscript,
                     utilityBot: char.utilityBot,
                     sdData: char.sdData,
-                    additionalAssets: char.additionalAssets
+                    additionalAssets: char.additionalAssets,
+                    backgroundHTML: char.backgroundHTML
                 }
             }
         }
@@ -532,7 +535,7 @@ export async function exportSpecV2(char:character) {
                     msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
                 })
                 const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
-                char.emotionImages[i][1] = Buffer.from(rData).toString('base64')
+                char.emotionImages[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
 
@@ -544,7 +547,7 @@ export async function exportSpecV2(char:character) {
                     msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
                 })
                 const rData = await readImage(card.data.extensions.risuai.additionalAssets[i][1])
-                char.additionalAssets[i][1] = Buffer.from(rData).toString('base64')
+                char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
     
@@ -611,7 +614,7 @@ export async function shareRisuHub(char:character, arg:{
                 })
                 const data = card.data.extensions.risuai.emotions[i][1]
                 const rData = await readImage(data)
-                resources.push([data, Buffer.from(rData).toString('base64')])
+                resources.push([data, Buffer.from(await convertImage(rData)).toString('base64')])
             }
         }
 
@@ -626,7 +629,7 @@ export async function shareRisuHub(char:character, arg:{
                 })
                 const data = card.data.extensions.risuai.additionalAssets[i][1]
                 const rData = await readImage(data)
-                resources.push([data, Buffer.from(rData).toString('base64')])
+                resources.push([data, Buffer.from(await convertImage(rData)).toString('base64')])
             }
         }
 
@@ -635,7 +638,8 @@ export async function shareRisuHub(char:character, arg:{
             body: JSON.stringify({
                 card: card,
                 img: Buffer.from(img).toString('base64'),
-                resources: resources
+                resources: resources,
+                token: get(DataBase)?.account?.token
             })
         })
 
@@ -652,58 +656,68 @@ export async function shareRisuHub(char:character, arg:{
 
 }
 
-export async function getRisuHub(arg?:{
-    search?:string,
-    page?:number,
-    nsfw?:boolean
-    sort?:string
-}):Promise<{
+export type hubType = {
     name:string
     desc: string
     download: number,
     id: string,
     img: string
-    tags: string[]
-}[]> {
-    const da = await fetch(hubURL + '/hub/list', {
-        method: "POST",
-        body: JSON.stringify(arg ?? {})
-    })
-    if(da.status !== 200){
-        return []
+    tags: string[],
+    viewScreen: "none" | "emotion" | "imggen"
+    hasLore:boolean
+    creator?:string
+}
+
+export async function getRisuHub(arg?:{
+    search?:string,
+    page?:number,
+    nsfw?:boolean
+    sort?:string
+}):Promise<hubType[]> {
+    try {
+        const da = await fetch(hubURL + '/hub/list', {
+            method: "POST",
+            body: JSON.stringify(arg ?? {})
+        })
+        if(da.status !== 200){
+            return []
+        }
+        console.log(da)
+        return da.json()   
+    } catch (error) {
+        return[]
     }
-    console.log(da)
-    return da.json()
 }
 
 export async function downloadRisuHub(id:string) {
-    alertStore.set({
-        type: "wait",
-        msg: "Downloading..."
-    })
-    const res = await fetch(hubURL + '/hub/get', {
-        method: "POST",
-        body: JSON.stringify({
-            id: id
+    try {
+        alertStore.set({
+            type: "wait",
+            msg: "Downloading..."
         })
-    })
-    if(res.status !== 200){
-        alertError(await res.text())
-    }
-
-    const result = await res.json()
-    const data:CharacterCardV2 = result.card
-    const img:string = result.img
-
-    await importSpecv2(data, await getHubResources(img), 'hub')
-    checkCharOrder()
-    let db = get(DataBase)
-    if(db.characters[db.characters.length-1]){
-        const index = db.characters.length-1
-        characterFormatUpdate(index);
-        selectedCharID.set(index);
-    }
-
+        const res = await fetch(hubURL + '/hub/get', {
+            method: "POST",
+            body: JSON.stringify({
+                id: id
+            })
+        })
+        if(res.status !== 200){
+            alertError(await res.text())
+        }
+    
+        const result = await res.json()
+        const data:CharacterCardV2 = result.card
+        const img:string = result.img
+    
+        await importSpecv2(data, await getHubResources(img), 'hub')
+        checkCharOrder()
+        let db = get(DataBase)
+        if(db.characters[db.characters.length-1]){
+            const index = db.characters.length-1
+            characterFormatUpdate(index);
+            selectedCharID.set(index);
+        }   
+    } catch (error) {alertError("Error while importing")}
 }
 
 export async function getHubResources(id:string) {
@@ -743,6 +757,7 @@ type CharacterCardV2 = {
                 utilityBot?: boolean,
                 sdData?:[string,string][],
                 additionalAssets?:[string,string][],
+                backgroundHTML?:string
             }
         }
     }

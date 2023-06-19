@@ -1,27 +1,15 @@
 <script lang="ts">
-    import { downloadRisuHub, getRisuHub, hubURL } from "src/ts/characterCards";
-    import { ArrowLeft, ArrowRight, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
+    import { downloadRisuHub, getRisuHub, hubURL, type hubType } from "src/ts/characterCards";
+    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, SmileIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
-  import { parseMarkdownSafe } from "src/ts/parser";
-  import { language } from "src/lang";
+    import { parseMarkdownSafe } from "src/ts/parser";
+    import { language } from "src/lang";
+    import RisuHubIcon from "./RisuHubIcon.svelte";
+    import { DataBase } from "src/ts/storage/database";
 
-    let openedData:null|{
-        name:string
-        desc: string
-        download: number,
-        id: string,
-        img: string,
-        tags: string[]
-    } = null
+    let openedData:null|hubType = null
 
-    let charas:{
-        name:string
-        desc: string
-        download: number,
-        id: string,
-        img: string
-        tags: string[]
-    }[] = []
+    let charas:hubType[] = []
 
     let page = 0
     let sort = ''
@@ -89,26 +77,7 @@
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
     {#key charas}
         {#each charas as chara}
-            <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={() => {
-                openedData = chara
-            }}>
-                <div class="flex gap-2 w-full">
-                    <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
-                    <div class="flex flex-col flex-grow min-w-0">
-                        <span class="text-white text-lg min-w-0 max-w-full text-ellipsis whitespace-nowrap overflow-hidden text-start">{chara.name}</span>
-                        <span class="text-gray-400 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{chara.desc}</span>
-                        <div class="flex flex-wrap">
-                            {#each chara.tags as tag, i}
-                                {#if i < 4}
-                                    <div class="text-xs p-1 text-blue-400">{tag}</div>
-                                {:else if i === 4}
-                                    <div class="text-xs p-1 text-blue-400">...</div>
-                                {/if}
-                            {/each}
-                        </div>
-                    </div>
-                </div>
-            </button>
+            <RisuHubIcon onClick={() =>{openedData = chara}} chara={chara} />
         {/each}
     {/key}
 </div>
@@ -141,9 +110,9 @@
         openedData = null
     }}>
         <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">
-            <div class="w-full flex gap-4 flex-col">
+            <div class="w-full flex flex-col">
                 <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
-                <div class="flex justify-start gap-4">
+                <div class="flex justify-start gap-4 mt-4">
                     <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
                     <span class="text-gray-400 break-words text-base chattext prose prose-invert">
                         {#await parseMarkdownSafe(openedData.desc) then msg}
@@ -151,10 +120,22 @@
                         {/await}
                     </span>
                 </div>
-                <div class="flex justify-start gap-2">
+                <div class="flex justify-start gap-2  mt-4">
                     {#each openedData.tags as tag, i}
                         <div class="text-xs p-1 text-blue-400">{tag}</div>
                     {/each}
+                </div>
+                <div class="flex flex-wrap w-full flex-row gap-1 mt-2">
+                    <span class="text-gray-500">
+                        {openedData.download} {language.downloads}
+                    </span>
+                    <div class="border-l-selected border-l ml-1 mr-1"></div>
+                    {#if openedData.viewScreen === 'emotion'}
+                        <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
+                    {/if}
+                    {#if openedData.hasLore}
+                        <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>
+                    {/if}
                 </div>
             </div>
             <div class="flex flex-row-reverse gap-2">
@@ -174,11 +155,28 @@
                 }}>
                     <FlagIcon />
                 </button>
-                <button class="text-gray-400 hover:text-green-500" on:click={() => {
+                {#if ($DataBase.account?.token?.split('-') ?? [])[1] === openedData.creator}
+                    <button class="text-gray-400 hover:text-red-500" on:click|stopPropagation={async () => {
+                        const conf = await alertConfirm('Do you want to remove this character from Realm?')
+                        if(conf){
+                            const da = await fetch(hubURL + '/hub/remove', {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    id: openedData.id,
+                                    token: $DataBase.account?.token
+                                })
+                            })
+                            alertNormal(await da.text())
+                        }
+                    }}>
+                        <TrashIcon />
+                    </button>
+                {/if}
+                <button class="bg-selected hover:ring flex-grow p-2 font-bold rounded-md mr-2" on:click={() => {
                     downloadRisuHub(openedData.id)
                     openedData = null
                 }}>
-                    <DownloadIcon />
+                    Download
                 </button>
             </div>
         </div>
@@ -203,10 +201,10 @@
             <div class=" mt-2 w-full border-t-2 border-t-bgcolor"></div>
             <button class="w-full hover:bg-selected p-4" on:click|stopPropagation={async () => {
                 menuOpen = false
-                const id = await alertInput('Import ID')
+                const id = await alertInput('Input URL or ID')
                 downloadRisuHub(id)
 
-            }}>Import Character from ID</button>
+            }}>Import Character from URL or ID</button>
         </div>
     </div>
 {/if}

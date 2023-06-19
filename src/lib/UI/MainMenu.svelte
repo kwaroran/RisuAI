@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { DataBase, appVer } from "src/ts/storage/database";
+  import { appVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Hub.svelte";
   import { sideBarStore } from "src/ts/stores";
-  import Help from "../Others/Help.svelte";
-  import { ArrowLeft, HomeIcon } from "lucide-svelte";
+  import { ArrowLeft } from "lucide-svelte";
   import { openURL } from "src/ts/storage/globalApi";
   import { language } from "src/lang";
+  import { getRisuHub } from "src/ts/characterCards";
+  import RisuHubIcon from "./RisuHubIcon.svelte";
   let openHub = false
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
@@ -34,24 +35,36 @@
           <h1 class="text-2xl font-bold text-start">Your Characters</h1>
           <span class="mt-2 text-gray-400 text-start">Opens your character list. you can open with pressing arrow button in top left corner too.</span>
         </button>
-        {#if $DataBase.useExperimental}
-          <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => (openHub = true)}>
-            <h1 class="text-2xl font-bold text-start">{language.hub} <Help key="experimental" /></h1>
-            <span class="mt-2 text-gray-400 text-start">Characters made and shared by the community</span>
-          </button>
-        {:else}
-          <button class="bg-darkbg rounded-md p-6 flex flex-col">
-            <h1 class="text-2xl font-bold text-start">Comming soon</h1>
-            <span class="mt-2 text-gray-400 text-start">More options comming soon</span>
-          </button>
-        {/if}
+        <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {openURL("https://discord.gg/JzP8tB9ZK8")}}>
+          <h1 class="text-2xl font-bold text-start">Official Discord</h1>
+          <span class="mt-2 text-gray-400 text-start">Official Discord to talk about RisuAI</span>
+        </button>
       </div>
+      {#await getRisuHub({
+          search: '',
+          page: -10,
+          nsfw: false,
+          sort: ''
+      }) then charas}
+          <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
+          <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
+            openHub = true
+          }}>Get More</button></h1>
+          {#if charas.length > 0}
+          <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
+              {#each charas as chara}
+                  <RisuHubIcon onClick={() => {openHub = true}} chara={chara} />
+              {/each}
+          </div>
+          {:else}
+          <div class="text-gray-500">Failed to load {language.hub}...</div>
+          {/if}
+      {/await}
       {:else}
         <div class="flex items-center mt-4">
           <button class="mr-2 text-gray-400 hover:text-green-500" on:click={() => (openHub = false)}>
             <ArrowLeft/>
           </button>
-          <h1 class="text-3xl font-bold">{language.hub} <Help key="experimental" /> </h1>
         </div>
         <Hub />
       {/if}

@@ -12,6 +12,7 @@ export function polyfill() {
         
         if((!supports) || isIos){
           console.log('polyfiled dragdrop')
+          globalThis.polyfilledDragDrop = true
           dragPolyfill({
             // use this to make use of the scroll behaviour
             dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,

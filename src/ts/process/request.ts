@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import type { OpenAIChat } from ".";
+import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
@@ -17,15 +17,38 @@ interface requestDataArgument{
     frequencyPenalty?: number,
     useStreaming?:boolean
     isGroupChat?:boolean
+    useEmotion?:boolean
 }
 
 type requestDataResponse = {
     type: 'success'|'fail'
     result: string
-    noRetry?: boolean
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
 }|{
     type: "streaming",
-    result: ReadableStream<string>
+    result: ReadableStream<string>,
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
+}
+
+interface OaiFunctions {
+    name: string;
+    description: string;
+    parameters: {
+        type: string;
+        properties: {
+            [key:string]: {
+                type: string;
+                enum: string[]
+            };
+        };
+        required: string[];
+    };
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
@@ -44,6 +67,9 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     }
 }
 
+
+
+
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let result = ''
@@ -57,19 +83,61 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
     switch(aiModel){
         case 'gpt35':
+        case 'gpt35_0613':
+        case 'gpt35_16k':
+        case 'gpt35_16k_0613':
         case 'gpt4':
-        case 'gpt4_32k':{
+        case 'gpt4_32k':
+        case 'gpt4_0613':
+        case 'gpt4_32k_0613':{
 
             for(let i=0;i<formated.length;i++){
-                if(arg.isGroupChat && formated[i].name){
-                    formated[i].content = formated[i].name + ": " + formated[i].content
+                if(formated[i].role !== 'function'){
+                    if(arg.isGroupChat && formated[i].name){
+                        formated[i].content = formated[i].name + ": " + formated[i].content
+                    }
+                    formated[i].name = undefined
                 }
-                formated[i].name = undefined
             }
 
+
+
+            let oaiFunctions:OaiFunctions[] = []
+
+
+            if(arg.useEmotion){
+                oaiFunctions.push(
+                    {
+                        "name": "set_emotion",
+                        "description": "sets a role playing character's emotion display. must be called one time at the end of response.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "emotion": {
+                                    "type": "string", "enum": []
+                                },
+                            },
+                            "required": ["emotion"],
+                        },
+                    }
+                )
+            }
+
+            if(oaiFunctions.length === 0){
+                oaiFunctions = undefined
+            }
+
+
+            const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
             const body = ({
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
-                    : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
+                    : aiModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
+                    : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
+                    : aiModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
+                    : aiModel === 'gpt4' ? 'gpt-4'
+                    : aiModel === 'gpt4_32k' ? 'gpt-4-32k'
+                    : aiModel === "gpt4_0613" ? 'gpt-4-0613'
+                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613' : '',
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
@@ -84,8 +152,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(replacerURL.endsWith('v1')){
                 replacerURL += '/chat/completions'
             }
-            if(replacerURL.endsWith('v1/')){
+            else if(replacerURL.endsWith('v1/')){
                 replacerURL += 'chat/completions'
+            }
+            else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
+                if(replacerURL.endsWith('/')){
+                    replacerURL += 'v1/chat/completions'
+                }
+                else{
+                    replacerURL += '/v1/chat/completions'
+                }
             }
 
             if(db.useStreaming && arg.useStreaming){
@@ -156,7 +232,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
-                    const msg:OpenAIChat = (dat.choices[0].message)
+                    const msg:OpenAIChatFull = (dat.choices[0].message)
                     return {
                         type: 'success',
                         result: msg.content
@@ -299,8 +375,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             })
             
             const dat = res.data as any
-            console.log(DURL)
-            console.log(res.data)
             if(res.ok){
                 try {
                     let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
@@ -525,8 +599,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
 
-                console.log(requestPrompt)
-
                 const da = await globalFetch('https://api.anthropic.com/v1/complete', {
                     method: "POST",
                     body: {
@@ -551,7 +623,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const res = da.data
 
-                console.log(res)
                 return {
                     type: "success",
                     result: res.completion,
@@ -563,7 +634,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const realModel = aiModel.split(":::")[1]
 
-                console.log(realModel)
                 const argument = {
                     "prompt": proompt,
                     "params": {

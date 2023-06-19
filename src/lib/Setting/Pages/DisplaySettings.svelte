@@ -62,13 +62,11 @@
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen}/>
-    <span>{language.fullscreen}</span>
+    <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.showMemoryLimit}/>
-    <span>{language.showMemoryLimit}</span>
+    <Check bind:check={$DataBase.showMemoryLimit} name={language.showMemoryLimit}/>
 </div>
 
 <div class="flex items-center mt-2">
@@ -86,25 +84,23 @@
         else{
             $DataBase.customBackground = ''
         }
-    }}></Check>
-    <span>{language.useCustomBackground}</span>
+    }} name={language.useCustomBackground}></Check>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.playMessage}/>
-    <span>{language.playMessage} <Help key="msgSound"/></span>
+    <Check bind:check={$DataBase.playMessage} name={language.playMessage}/>
+    <span> <Help key="msgSound" name={language.playMessage}/></span>
 </div>
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.roundIcons}/>
-    <span>{language.roundIcons}</span>
+    <Check bind:check={$DataBase.roundIcons} name={language.roundIcons}/>
 </div>
 
 {#if $DataBase.textScreenColor}
     <div class="flex items-center mt-2">
         <Check check={true} onChange={() => {
             $DataBase.textScreenColor = null
-        }}/>
+        }} name={language.textBackgrounds} hiddenName/>
         <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenColor} >
         <span>{language.textBackgrounds}</span>
     </div>
@@ -112,29 +108,26 @@
     <div class="flex items-center mt-2">
         <Check check={false} onChange={() => {
             $DataBase.textScreenColor = "#121212"
-        }}/>
-        <span>{language.textBackgrounds}</span>
+        }} name={language.textBackgrounds}/>
     </div>
 
 
 {/if}
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.textBorder}/>
-    <span>{language.textBorder}</span>
+    <Check bind:check={$DataBase.textBorder} name={language.textBorder}/>
 </div>
 
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.textScreenRounded}/>
-    <span>{language.textScreenRound}</span>
+    <Check bind:check={$DataBase.textScreenRounded} name={language.textScreenRound}/>
 </div>
 
 {#if $DataBase.textScreenBorder}
     <div class="flex items-center mt-2">
         <Check check={true} onChange={() => {
             $DataBase.textScreenBorder = null
-        }}/>
+        }} name={language.textScreenBorder} hiddenName/>
         <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenBorder} >
         <span>{language.textScreenBorder}</span>
     </div>
@@ -142,12 +135,10 @@
     <div class="flex items-center mt-2">
         <Check check={false} onChange={() => {
             $DataBase.textScreenBorder = "#121212"
-        }}/>
-        <span>{language.textScreenBorder}</span>
+        }} name={language.textScreenBorder}/>
     </div>
 {/if}
 
 <div class="flex items-center mt-2">
-    <Check bind:check={$DataBase.useChatCopy}/>
-    <span>{language.useChatCopy}</span>
+    <Check bind:check={$DataBase.useChatCopy} name={language.useChatCopy}/>
 </div>

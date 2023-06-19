@@ -1,8 +1,7 @@
 import { get } from "svelte/store";
 import type { OpenAIChat } from ".";
 import { DataBase, type Chat, type character, type groupChat } from "../storage/database";
-import { tokenize } from "../tokenizer";
-import { findCharacterbyId } from "../util";
+import { tokenize, type ChatTokenizer } from "../tokenizer";
 import { requestChatData } from "./request";
 
 export async function supaMemory(
@@ -11,7 +10,7 @@ export async function supaMemory(
         maxContextTokens:number,
         room:Chat,
         char:character|groupChat,
-        chatAdditonalTokens:number
+        tokenizer:ChatTokenizer
     ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
     const db = get(DataBase)
 
@@ -27,7 +26,7 @@ export async function supaMemory(
         }
         if(coIndex !== -1){
             for(let i=0;i<coIndex;i++){
-                currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
+                currentTokens -= await tokenizer.tokenizeChat(chats[0])
                 chats.splice(0, 1)
             }
         }
@@ -53,13 +52,13 @@ export async function supaMemory(
                     lastId = id
                     break
                 }
-                currentTokens -= (await tokenize(chats[0].content) + chatAdditonalTokens)
+                currentTokens -= await tokenizer.tokenizeChat(chats[0])
                 chats.splice(0, 1)
                 i += 1
             }
 
             supaMemory = data
-            currentTokens += await tokenize(supaMemory) + chatAdditonalTokens
+            currentTokens += await tokenize(supaMemory)
         }
 
 
@@ -179,7 +178,7 @@ export async function supaMemory(
                     }
                     continue
                 }
-                const tokens = await tokenize(cont.content) + chatAdditonalTokens
+                const tokens = await tokenizer.tokenizeChat(cont)
                 if((chunkSize + tokens) > maxChunkSize){
                     if(stringlizedChat === ''){
                         stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
@@ -201,7 +200,7 @@ export async function supaMemory(
                     return result
                 }
     
-                const tokenz = await tokenize(result + '\n\n') + chatAdditonalTokens
+                const tokenz = await tokenize(result + '\n\n')
                 currentTokens += tokenz
                 supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
             }

@@ -58,7 +58,8 @@ export default defineConfig(async () => {
 
     resolve:{
       alias:{
-        'src':'/src'
+        'src':'/src',
+        'modules': '/modules'
       }
     }
 }});

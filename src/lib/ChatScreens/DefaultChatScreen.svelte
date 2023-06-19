@@ -144,6 +144,7 @@
         try {
             await sendChat()            
         } catch (error) {
+            console.error(error)
             alertError(`${error}`)
         }
         rerolls.push(cloneDeep($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message))

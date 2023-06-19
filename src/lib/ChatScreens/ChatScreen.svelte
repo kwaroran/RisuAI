@@ -27,15 +27,16 @@
     })()
 </script>
 {#if $DataBase.theme === ''}
-    <div class="flex-grow h-full min-w-0 relative" style={bgImg}>
-        
-        {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
-                <ResizeBox />
-            {/if}
-        {/if}
+    <div class="flex-grow h-full min-w-0 relative justify-center flex">
         <BackgroundDom />
-        <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList/>
+        <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
+            {#if $selectedCharID >= 0}
+                {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+                    <ResizeBox />
+                {/if}
+            {/if}
+            <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList/>
+        </div>
     </div>
 {:else if $DataBase.theme === 'waifu'}
     <div class="flex-grow h-full flex justify-center relative" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
@@ -54,7 +55,7 @@
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
         <BackgroundDom />
-        <div class="w-full h-1/3 absolute z-10 bottom-0 left-0">
+        <div class="w-full absolute z-10 bottom-0 left-0" class:per33={$selectedCharID >= 0}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}
@@ -76,5 +77,8 @@
     }
     .halfwp{
         max-width: calc(50% - 5rem);
+    }
+    .per33{
+        height: 33.333333%;
     }
 </style>

@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, setDatabase, type character, type customscript } from "../storage/database";
+import { DataBase, setDatabase, type character, type customscript, type groupChat } from "../storage/database";
 import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
@@ -11,7 +11,7 @@ const randomness = /\|\|\|/g
 
 type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
 
-export function processScript(char:character, data:string, mode:ScriptMode){
+export function processScript(char:character|groupChat, data:string, mode:ScriptMode){
     return processScriptFull(char, data, mode).data
 }
 
@@ -52,13 +52,13 @@ export async function importRegex(){
     }
 }
 
-export function processScriptFull(char:character, data:string, mode:ScriptMode){
+export function processScriptFull(char:character|groupChat, data:string, mode:ScriptMode){
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript)
     for (const script of scripts){
         if(script.type === mode){
-            const reg = new RegExp(script.in,'g')
+            const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
             const outScript = script.out
             if(outScript.startsWith('@@') && reg.test(data)){
                 if(outScript.startsWith('@@emo ')){

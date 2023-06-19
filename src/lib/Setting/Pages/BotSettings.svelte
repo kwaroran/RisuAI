@@ -110,12 +110,11 @@
     <span class="text-neutral-200">Claude {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.claudeAPIKey}>
 {/if}
-{#if $DataBase.aiModel === 'gpt35' || $DataBase.aiModel === 'gpt4' || $DataBase.subModel === 'gpt4' || $DataBase.subModel === 'gpt35'|| $DataBase.aiModel === 'gpt4_32k' || $DataBase.subModel === 'gpt4_32k'}
+{#if $DataBase.aiModel.startsWith('gpt')}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
     <div class="flex items-center mt-2 mb-4">
-        <Check bind:check={$DataBase.useStreaming}/>
-        <span>OpenAI {language.streaming}</span>
+        <Check bind:check={$DataBase.useStreaming} name={`OpenAI ${language.streaming}`}/>
     </div>
 {/if}
 {#if $DataBase.aiModel === 'custom'}
@@ -167,6 +166,8 @@
     <span class="text-neutral-200">{language.maxContextSize}</span>
 {#if $DataBase.aiModel === 'gpt35'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="4000" bind:value={$DataBase.maxContext}>
+{:else if $DataBase.aiModel === 'gpt35_16k' || $DataBase.aiModel === 'gpt35_16k_0613'}
+    <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="16000" bind:value={$DataBase.maxContext}>
 {:else if $DataBase.aiModel === 'gpt4' || $DataBase.aiModel === 'textgen_webui'}
     <input class="text-neutral-200 mb-4 text-sm p-2 bg-transparent input-text focus:bg-selected" type="number" min={0} max="8000" bind:value={$DataBase.maxContext}>
 {:else if $DataBase.aiModel === 'custom'}
@@ -235,8 +236,7 @@
     </table>
 
     <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.promptPreprocess}/>
-        <span>{language.promptPreprocess}</span>
+        <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
     </div>
 
 <button on:click={() => {openPresetList = true}} class="mt-4 drop-shadow-lg p-3 border-borderc border-solid flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected">{language.presets}</button>

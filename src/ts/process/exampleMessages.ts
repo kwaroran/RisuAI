@@ -2,7 +2,7 @@ import type { OpenAIChat } from ".";
 import type { character } from "../storage/database";
 import { replacePlaceholders } from "../util";
 
-export function exampleMessage(char:character):OpenAIChat[]{
+export function exampleMessage(char:character, userName:string):OpenAIChat[]{
     if(char.exampleMessage === ''){
         return []
     }
@@ -34,14 +34,16 @@ export function exampleMessage(char:character):OpenAIChat[]{
             add()
             currentMessage = {
                 role: "assistant",
-                content: trimed.split(':', 2)[1]
+                content: trimed.split(':', 2)[1],
+                name: 'example_assistant' 
             }
         }
         else if(lowered.startsWith('{{user}}:') || lowered.startsWith('<user>:')){
             add()
             currentMessage = {
                 role: "user",
-                content: trimed.split(':', 2)[1]
+                content: trimed.split(':', 2)[1],
+                name: 'example_user'
             }
         }
         else{

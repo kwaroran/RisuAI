@@ -10,17 +10,10 @@
   import BarIcon from "./BarIcon.svelte";
   import SidebarIndicator from "./SidebarIndicator.svelte";
   import {
-    Plus,
-    User,
     X,
     Settings,
-    Users,
-    Edit3Icon,
-    ArrowUp,
-    ArrowDown,
     ListIcon,
     LayoutGridIcon,
-    PlusIcon,
     FolderIcon,
     FolderOpenIcon,
     HomeIcon,
@@ -43,6 +36,7 @@
   import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject } from "src/ts/util";
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
+  import { doingChat } from "src/ts/process";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -76,6 +70,9 @@
   }
 
   function changeChar(index: number) {
+    if($doingChat){
+      return
+    }
     reseter();
     characterFormatUpdate(index);
     selectedCharID.set(index);
@@ -312,6 +309,14 @@
     return false
   }
 
+  const preventIfPolyfilled = (e:Event) => {
+    if(globalThis.polyfilledDragDrop){
+      e.preventDefault()
+      e.stopPropagation()
+      return false
+    }
+  }
+
   onDestroy(unsub);
 </script>
 
@@ -348,7 +353,7 @@
           on:dragover={avatarDragOver}
           on:drop={(e) => {avatarDrop({index:ind}, e)}}
           on:dragenter={preventAll}
-          on:contextmenu={preventAll}
+          on:contextmenu={preventIfPolyfilled}
         >
           <SidebarIndicator
             isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
@@ -417,7 +422,7 @@
                 on:dragover={avatarDragOver}
                 on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
                 on:dragenter={preventAll}
-                on:contextmenu={preventAll}
+                on:contextmenu={preventIfPolyfilled}
               >
                 <SidebarIndicator
                   isActive={$selectedCharID === char2.index && sideBarMode !== 1}

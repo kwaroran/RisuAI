@@ -86,12 +86,12 @@
         <div class="flex items-center mt-4">
             <Check check={false} onChange={() => {
                 $DataBase.characters[$selectedCharID].loreSettings = undefined
-            }}/>
-            <span>{language.useGlobalSettings}</span>
+            }}
+            name={language.useGlobalSettings}
+            />
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.recursiveScanning}/>
-            <span>{language.recursiveScanning}</span>
+            <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
         </div>
         <span class="text-neutral-200 mt-4 mb-2">{language.loreBookDepth}</span>
         <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.characters[$selectedCharID].loreSettings.scanDepth}>
@@ -105,8 +105,9 @@
                     scanDepth:$DataBase.loreBookDepth,
                     recursiveScanning: false
                 }
-            }}/>
-            <span>{language.useGlobalSettings}</span>
+            }}
+            name={language.useGlobalSettings}
+            />
         </div>
     {/if}
 {/if}

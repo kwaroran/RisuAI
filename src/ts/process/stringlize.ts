@@ -54,14 +54,3 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
 
     return text
 }
-
-export async function getNameMaxTokens(names:string[]){
-    let maxCharNameTokens = 0
-    for(const name of names){
-        const tokens = await tokenize(name + ': ') + 1
-        if(maxCharNameTokens < tokens){
-            maxCharNameTokens = tokens
-        }
-    }
-    return maxCharNameTokens
-}

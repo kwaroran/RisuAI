@@ -58,20 +58,19 @@
             <span class="text-neutral-200 mt-4">{language.prompt}</span>
             <textarea class="bg-transparent input-text mt-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={value.content}></textarea>
             <div class="flex items-center mt-4">
-                <Check bind:check={value.alwaysActive}/>
-                <span>{language.alwaysActive}</span>
+                <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>
             <div class="flex items-center mt-2">
-                <Check bind:check={value.selective}/>
-                <span>{language.selective} <Help key="loreSelective"/></span>
+                <Check bind:check={value.selective} name={language.selective}/>
+                <Help key="loreSelective" name={language.selective}/>
             </div>
             <div class="flex items-center mt-2 mb-6">
                 {#if value.activationPercent === undefined || value.activationPercent === null}
-                    <Check check={false} onChange={() => {value.activationPercent = 50}}/>
+                    <Check name={language.loreRandomActivation} check={false} onChange={() => {value.activationPercent = 50}}/>
                 {:else}
-                    <Check check={true} onChange={() => {value.activationPercent = null}}/>
+                    <Check name={language.loreRandomActivation} check={true} onChange={() => {value.activationPercent = null}}/>
                 {/if}
-                <span>{language.loreRandomActivation} <Help key="loreRandomActivation"/></span>
+                <span><Help name={language.loreRandomActivation} key="loreRandomActivation"/></span>
             </div>
         </div>
     {/if}

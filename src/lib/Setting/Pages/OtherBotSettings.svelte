@@ -40,8 +40,7 @@
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.sdConfig.sampler_name}>
     
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.sdConfig.enable_hr}/>
-        <span>Enable Hires</span>
+        <Check bind:check={$DataBase.sdConfig.enable_hr} name='Enable Hires'/>
     </div>
     {#if $DataBase.sdConfig.enable_hr === true}
         <span class="text-neutral-200">denoising_strength</span>
