@@ -3,6 +3,7 @@
 import { changeLanguage, language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
+    import Help from "src/lib/Others/Help.svelte";
     let langChanged = false
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
@@ -14,7 +15,8 @@ import { changeLanguage, language } from "src/lang";
     langChanged = true
 }}>
     <option value="en" class="bg-darkbg appearance-none">English</option>
-    <option value="ko" class="bg-darkbg appearance-none">Korean</option>
+    <option value="ko" class="bg-darkbg appearance-none">한국어</option>
+    <option value="cn" class="bg-darkbg appearance-none">中文</option>
 </select>
 {#if langChanged}
     <span class="bg-red-500 text-sm">Close the settings to take effect</span>
@@ -38,4 +40,11 @@ import { changeLanguage, language } from "src/lang";
         <Check bind:check={$DataBase.autoTranslate} />
         <span>{language.autoTranslation}</span>
     </div>
+    {#if $DataBase.useExperimental}
+        <div class="flex items-center mt-2">
+            <Check bind:check={$DataBase.useAutoTranslateInput} />
+            <span>{language.autoTranslateInput}</span>
+            <Help key="experimental" />
+        </div>
+    {/if}
 {/if}

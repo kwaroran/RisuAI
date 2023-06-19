@@ -11,6 +11,7 @@
     import { onDestroy } from 'svelte';
     import { processScript } from "src/ts/process/scripts";
     import { get } from "svelte/store";
+    import { ParseMarkdown } from "src/ts/parser";
 
     export let send: () => any;
     export let messageInput:(string:string) => any;
@@ -68,10 +69,9 @@
                 role:'system',
                 content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
             }
-            ,
-            {
+            ,{
                 role: 'user', 
-                content: lastMessages.map(b=>(b.role==='char'? 'assistant' : 'user')+":"+b.data).reduce((a,b)=>a+','+b)
+                content: lastMessages.map(b=>(b.role==='char'? currentChar.name : $DataBase.username)+":"+b.data).reduce((a,b)=>a+','+b)
             }
             ]
 
@@ -118,16 +118,18 @@
             <div>{language.creatingSuggestions}</div>
         </div>        
     {:else if !$doingChat}
-        <div class="flex mr-2 mb-2">
-            <button class={"bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-white')}
-                on:click={() => {
-                    toggleTranslate = !toggleTranslate
-                    // translateSuggest(toggleTranslate, suggestMessages)
-                }}
-            >
-                <LanguagesIcon/>
-            </button>
-        </div>
+        {#if $DataBase.translator !== ''}
+            <div class="flex mr-2 mb-2">
+                <button class={"bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-white')}
+                    on:click={() => {
+                        toggleTranslate = !toggleTranslate
+                    }}
+                >
+                    <LanguagesIcon/>
+                </button>
+            </div>    
+        {/if}
+        
 
         <div class="flex mr-2 mb-2">
             <button class="bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded text-white"
@@ -151,11 +153,9 @@
                     messageInput(suggest)
                     send()
                 }}>
-                {#if toggleTranslate && suggestMessagesTranslated && suggestMessagesTranslated.length > 0}
-                    {suggestMessagesTranslated[i]??suggest}
-                {:else}
-                    {suggest}
-                {/if}
+                {#await ParseMarkdown(($DataBase.translator !== '' && toggleTranslate && suggestMessagesTranslated && suggestMessagesTranslated.length > 0) ? suggestMessagesTranslated[i]??suggest : suggest) then md}
+                    {@html md}
+                {/await}
                 </button>
                 <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded ml-1" on:click={() => {
                     messageInput(suggest)

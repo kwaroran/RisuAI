@@ -78,7 +78,7 @@ export async function supaMemory(
         async function summarize(stringlizedChat:string){
 
             const supaPrompt = db.supaMemoryPrompt === '' ?
-            "[Summarize the ongoing role story, including as many events from the past as possible, using assistant as a narrative helper;do not analyze. include all of the characters' names, statuses, thoughts, relationships, and attire. Be sure to include dialogue exchanges and context by referencing previous statements and reactions. assistant's summary should provide an objective overview of the story while also considering relevant past conversations and events. It must also remove redundancy and unnecessary content from the prompt so that gpt3 and other sublanguage models]\n"
+            "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
     
             let result = ''

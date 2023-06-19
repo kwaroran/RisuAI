@@ -16,8 +16,10 @@
     import CreatorQuote from "./CreatorQuote.svelte";
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
+    import Help from '../Others/Help.svelte';
 
-    let messageInput = ''
+    let messageInput:string = ''
+    let messageInputTranslate:string = ''
     let openMenu = false
     export let openChatList = false
     let loadPages = 30
@@ -26,6 +28,7 @@
     let rerollid = -1
     let lastCharId = -1
     let doingChatInputTranslate = false
+
     async function send() {
         let selectedChar = $selectedCharID
         console.log('send')
@@ -67,10 +70,11 @@
             }
         }
         messageInput = ''
+        messageInputTranslate = ''
         $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message = cha
         rerolls = []
         await sleep(10)
-        updateInputSize()
+        updateInputSizeAll()
         await sendChatMain()
 
     }
@@ -170,7 +174,21 @@
     export let customStyle = ''
     let inputHeight = "44px"
     let inputEle:HTMLTextAreaElement
+    let inputTranslateHeight = "44px"
+    let inputTranslateEle:HTMLTextAreaElement
 
+    function updateInputSizeAll() {
+        updateInputSize()
+        updateInputTranslateSize()
+    }
+
+    function updateInputTranslateSize() {
+        if(inputTranslateEle) {
+            inputTranslateEle.style.height = "0";
+            inputTranslateHeight = (inputTranslateEle.scrollHeight) + "px";
+            inputTranslateEle.style.height = inputTranslateHeight
+        }
+    }
     function updateInputSize() {
         if(inputEle){
             inputEle.style.height = "0";
@@ -179,7 +197,26 @@
         }
     }
 
-    $: updateInputSize()
+    $: updateInputSizeAll()
+
+    function updateInputTransateMessage(reverse: boolean) {
+        if(reverse && messageInputTranslate === '') {
+            messageInput = ''
+            return
+        }
+        if(!reverse && messageInput === '') {
+            messageInputTranslate = ''
+            return
+        }
+        translate(reverse ? messageInputTranslate : messageInput, reverse).then((translatedMessage) => {
+            if(translatedMessage){
+                if(reverse)
+                    messageInput = translatedMessage
+                else
+                    messageInputTranslate = translatedMessage
+            }
+        })
+    }
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="w-full h-full" style={customStyle} on:click={() => {
@@ -189,7 +226,7 @@
         <MainMenu />
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {
-            //@ts-ignore
+            //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length > loadPages){
                 loadPages += 30
@@ -200,7 +237,7 @@
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {
-                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
+                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                             if($DataBase.sendWithEnter){
                                 send()
                                 e.preventDefault()
@@ -211,7 +248,7 @@
                             e.preventDefault()
                         }
                     }}
-                    on:input={updateInputSize}
+                    on:input={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
                     style:height={inputHeight}
                 />
 
@@ -234,6 +271,33 @@
                     class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
                     </div>
             </div>
+            {#if $DataBase.useAutoTranslateInput && $DataBase.useExperimental}
+                <div class="flex items-center mt-2 mb-2 w-full">
+                    <label for='messageInputTranslate' class="text-neutral-200 ml-4">
+                        <LanguagesIcon />
+                    </label>
+                    <textarea id = 'messageInputTranslate' class="text-neutral-200 p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                        bind:value={messageInputTranslate}
+                        bind:this={inputTranslateEle}
+                        on:keydown={(e) => {
+                            if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
+                                if($DataBase.sendWithEnter){
+                                    send()
+                                    e.preventDefault()
+                                }
+                            }
+                            if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
+                                reroll()
+                                e.preventDefault()
+                            }
+                        }}
+                        on:input={()=>{updateInputSizeAll();updateInputTransateMessage(true)}}
+                        placeholder={language.enterMessageForTranslateToEnglish}
+                        style:height={inputTranslateHeight}
+                    />
+                </div>
+            {/if}
+            
             {#if $DataBase.useAutoSuggestions}
                 <Suggestion messageInput={(msg)=>messageInput=msg} {send}/>
             {/if}
@@ -362,7 +426,18 @@
                             <LanguagesIcon />
                             <span class="ml-2">{language.translateInput}</span>
                         </div>
+                        {#if $DataBase.useExperimental}
+                            <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} on:click={() => {
+                                $DataBase.useAutoTranslateInput = !$DataBase.useAutoTranslateInput
+                            }}>
+                                <LanguagesIcon />
+                                <span class="ml-2">{language.autoTranslateInput}</span>
+                                <Help key="experimental" />
+                            </div>
+                        {/if}
+                        
                     {/if}
+                    
                     <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {
                         $DataBase.useAutoSuggestions = !$DataBase.useAutoSuggestions
                     }}>

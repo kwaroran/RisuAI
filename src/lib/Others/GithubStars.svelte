@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MailIcon, WalletIcon } from "lucide-svelte";
   import { isTauri, openURL } from "src/ts/storage/globalApi";
 
 </script>
@@ -16,9 +17,14 @@
       <img src="/icon/github-mark-white.svg" width="24" alt="github" />
     </button>
   {/if}
-  <button on:click={() => {
+  <button class="text-white" on:click={() => {
     openURL("https://www.patreon.com/RisuAI")
   }}>
-    <img src="/icon/patreon.png" width="24" alt="github" />
+    <WalletIcon size={24} />
+  </button>
+  <button class="text-white" on:click={() => {
+    openURL("mailto:amasio1234@proton.me")
+  }}>
+    <MailIcon size={24} />
   </button>
 </div>

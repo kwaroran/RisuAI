@@ -653,7 +653,10 @@ export async function shareRisuHub(char:character, arg:{
 }
 
 export async function getRisuHub(arg?:{
-    search?:string
+    search?:string,
+    page?:number,
+    nsfw?:boolean
+    sort?:string
 }):Promise<{
     name:string
     desc: string

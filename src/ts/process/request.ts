@@ -48,7 +48,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     const db = get(DataBase)
     let result = ''
     let formated = arg.formated
-    let maxTokens = db.maxResponse
+    let maxTokens = arg.maxTokens ??db.maxResponse
+    let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
     const replacer = model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2
@@ -70,8 +71,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : aiModel === 'gpt4' ? 'gpt-4' : 'gpt-4-32k',
                 messages: formated,
-                temperature: arg.temperature ?? (db.temperature / 100),
-                max_tokens: arg.maxTokens ?? maxTokens,
+                temperature: temperature,
+                max_tokens: maxTokens,
                 presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
                 logit_bias: bias,
@@ -459,7 +460,104 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 result: data.results[0].text
             }
         }
+        case "novellist":{
+            const auth_key = db.novellistAPI;
+            const api_server_url = 'https://api.tringpt.com/';
+
+            const headers = {
+                'Authorization': `Bearer ${auth_key}`,
+                'Content-Type': 'application/json'
+            };
+
+            const send_body = {
+                text: stringlizeChat(formated, currentChar?.name ?? ''),
+                length: maxTokens,
+                temperature: temperature,
+                top_p: 0.7,
+                tailfree: 1.0,
+                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+            };
+
+            const response = await globalFetch(api_server_url + '/api', {
+                method: 'POST',
+                headers: headers,
+                body: send_body,
+            });
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: response.data
+                }
+            }
+
+            const result = response.data.data[0];
+
+            return {
+                'type': 'success',
+                'result': unstringlizeChat(result, formated, currentChar?.name ?? '')
+            }
+        }
         default:{     
+            if(aiModel.startsWith('claude')){
+                for(let i=0;i<formated.length;i++){
+                    if(arg.isGroupChat && formated[i].name){
+                        formated[i].content = formated[i].name + ": " + formated[i].content
+                    }
+                    formated[i].name = undefined
+                }
+
+
+
+                let requestPrompt = formated.map((v) => {
+                    let prefix = ''
+                    switch (v.role){
+                        case "assistant":
+                            prefix = "\n\nAssistant: "
+                            break
+                        case "user":
+                            prefix = "\n\nHuman: "
+                            break
+                        case "system":
+                            prefix = "\n\nSystem: "
+                            break
+                    }
+                    return prefix + v.content
+                }).join('') + '\n\nAssistant: '
+
+                console.log(requestPrompt)
+
+                const da = await globalFetch('https://api.anthropic.com/v1/complete', {
+                    method: "POST",
+                    body: {
+                        prompt : "\n\nHuman: " + requestPrompt,
+                        model: aiModel,
+                        max_tokens_to_sample: maxTokens,
+                        stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
+                        temperature: temperature,
+                    },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-api-key": db.claudeAPIKey
+                    }
+                })
+
+                if((!da.ok) || (da.data.error)){
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(da.data)}`
+                    }
+                }
+
+                const res = da.data
+
+                console.log(res)
+                return {
+                    type: "success",
+                    result: res.completion,
+                }
+
+            }
             if(aiModel.startsWith("horde:::")){
                 const proompt = stringlizeChat(formated, currentChar?.name ?? '')
 
