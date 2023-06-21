@@ -376,7 +376,11 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
 
-export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}) {
+export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
+    ok: boolean;
+    data: any;
+    headers:{[key:string]:string}
+}> {
     try {
         const db = get(DataBase)
         const method = arg.method ?? "POST"
@@ -426,7 +430,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
@@ -434,7 +439,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                        data: dat,
+                        headers: Object.fromEntries(da.headers)
                     }
                 }
     
@@ -442,6 +448,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: false,
                     data: `${error}`,
+                    headers: {}
                 }
             }
         }
@@ -465,7 +472,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
@@ -473,7 +481,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                        data: dat,
+                        headers: Object.fromEntries(da.headers)
                     }
                 }
     
@@ -481,6 +490,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: false,
                     data: `${error}`,
+                    headers: {}
                 }
             }
         }
@@ -494,14 +504,18 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
                     const d:{
                         success: boolean
-                        body:string
+                        body:string,
+                        headers: {[key:string]:string}
                     } = JSON.parse(res)
-                    
+
+                    const resHeader = d.headers ?? {}
+                     
                     if(!d.success){
                         addFetchLog(Buffer.from(d.body, 'base64').toString('utf-8'), false)
                         return {
                             ok:false,
-                            data: Buffer.from(d.body, 'base64').toString('utf-8')
+                            data: Buffer.from(d.body, 'base64').toString('utf-8'),
+                            headers: resHeader
                         }
                     }
                     else{
@@ -509,14 +523,16 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                             addFetchLog("Uint8Array Response", true)
                             return {
                                 ok:true,
-                                data: new Uint8Array(Buffer.from(d.body, 'base64'))
+                                data: new Uint8Array(Buffer.from(d.body, 'base64')),
+                                headers: resHeader
                             }
                         }
                         else{
                             addFetchLog(JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')), true)
                             return {
                                 ok:true,
-                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8'))
+                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')),
+                                headers: resHeader
                             }
                         }
                     }   
@@ -524,6 +540,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     return {
                         ok: false,
                         data: `${error}`,
+                        headers: {}
                     }
                 }
             }
@@ -545,6 +562,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: d.ok,
                     data: new Uint8Array(d.data as number[]),
+                    headers: d.headers
                 }
             }
             else{
@@ -552,6 +570,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: d.ok,
                     data: d.data,
+                    headers: d.headers
                 }
             }
         }
@@ -577,7 +596,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
@@ -596,21 +616,24 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                        data: dat,
+                        headers: Object.fromEntries(da.headers)
                     }
                 }
             } catch (error) {
                 console.log(error)
                 return {
                     ok:false,
-                    data: `${error}`
+                    data: `${error}`,
+                    headers: {}
                 }
             }
         }   
     } catch (error) {
         return {
             ok:false,
-            data: `${error}`
+            data: `${error}`,
+            headers: {}
         }
     }
 }
