@@ -183,6 +183,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
+                if(da.headers.get('Content-Type') !== 'text/event-stream'){
+                    return {
+                        type: "fail",
+                        result: await da.text()
+                    }
+                }
+
                 let dataUint = new Uint8Array([])
 
                 const transtream = new TransformStream<Uint8Array, string>(  {
