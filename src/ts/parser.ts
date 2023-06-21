@@ -58,23 +58,34 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     }
 })
 
+async function parseAdditionalAssets(data:string, char:character, mode:'normal'|'back'){
+    if(char.additionalAssets){
+        for(const asset of char.additionalAssets){
+            const assetPath = await getFileSrc(asset[1])
+            data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).
+                    replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" />`)
+                    .replaceAll(`{{video::${asset[0]}}}`,`<video autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
+                    .replaceAll(`{{audio::${asset[0]}}}`,`<audio autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
+            if(mode === 'back'){
+                data = data.replaceAll(`{{bg::${asset[0]}}}`, `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${assetPath}); background-size: cover;"></div>`)
+            }
+        }
+    }
+
+    return data
+}
+
 export async function ParseMarkdown(data:string, char:(character | groupChat) = null, mode:'normal'|'back' = 'normal') {
+    let firstParsed = ''
+    if(char && char.type !== 'group'){
+        data = await parseAdditionalAssets(data, char, mode)
+        firstParsed = data
+    }
     if(char){
         data = processScript(char, data, 'editdisplay')
     }
-    if(char && char.type !== 'group'){
-        if(char.additionalAssets){
-            for(const asset of char.additionalAssets){
-                const assetPath = await getFileSrc(asset[1])
-                data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).
-                        replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" />`)
-                        .replaceAll(`{{video::${asset[0]}}}`,`<video autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
-                        .replaceAll(`{{audio::${asset[0]}}}`,`<audio autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
-                if(mode === 'back'){
-                    data = data.replaceAll(`{{bg::${asset[0]}}}`, `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${assetPath}); background-size: cover;"></div>`)
-                }
-            }
-        }
+    if(firstParsed !== data && char && char.type !== 'group'){
+        data = await parseAdditionalAssets(data, char, mode)
     }
     return DOMPurify.sanitize(convertor.makeHtml(data), {
         ADD_TAGS: ["iframe"],
