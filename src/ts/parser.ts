@@ -64,9 +64,9 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
             for(const asset of char.additionalAssets){
                 const assetPath = await getFileSrc(asset[1])
                 data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).
-                        replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" />`)
-                        .replaceAll(`{{video::${asset[0]}}}`,`<video autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
-                        .replaceAll(`{{audio::${asset[0]}}}`,`<audio autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
+                        replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" alt="${asset[0]}"/>`)
+                        .replaceAll(`{{video::${asset[0]}}}`,`<video controls autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
+                        .replaceAll(`{{audio::${asset[0]}}}`,`<audio controls autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
                 if(mode === 'back'){
                     data = data.replaceAll(`{{bg::${asset[0]}}}`, `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${assetPath}); background-size: cover;"></div>`)
                 }

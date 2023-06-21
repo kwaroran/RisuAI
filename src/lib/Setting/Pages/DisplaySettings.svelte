@@ -142,3 +142,11 @@
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.useChatCopy} name={language.useChatCopy}/>
 </div>
+
+
+{#if $DataBase.useExperimental}
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
+        <Help key="experimental" name={language.useChatSticker}/>
+    </div>
+{/if}

@@ -16,7 +16,7 @@
     import RegexData from "./RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
-    import { checkCharOrder } from "src/ts/storage/globalApi";
+    import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
   import HubUpload from "../UI/HubUpload.svelte";
 
@@ -95,7 +95,9 @@
         currentChar = currentChar
     })
 
-    
+    let assetFileExtensions:string[] = []
+    let assetFilePath:string[] = []
+
     $: {
         if(database.characters[$selectedCharID].chaId === currentChar.data.chaId){
             database.characters[$selectedCharID] = currentChar.data
@@ -106,6 +108,20 @@
         emos = currentChar.data.emotionImages
         DataBase.set(database)
         loadTokenize(currentChar.data)
+
+        if(currentChar.type ==='character'){
+            if(currentChar.data.additionalAssets){
+                for(let i = 0; i < currentChar.data.additionalAssets.length; i++){
+                    if(currentChar.data.additionalAssets[i].length > 2 && currentChar.data.additionalAssets[i][2]) {
+                        assetFileExtensions[i] = currentChar.data.additionalAssets[i][2]
+                    } else 
+                        assetFileExtensions[i] = currentChar.data.additionalAssets[i][1].split('.').pop()
+                    getFileSrc(currentChar.data.additionalAssets[i][1]).then((filePath) => {
+                        assetFilePath[i] = filePath
+                    })
+                }
+            }
+        }
     }
 
     onDestroy(unsub);
@@ -615,9 +631,10 @@
                             for(const f of da){
                                 console.log(f)
                                 const img = f.data
-                                const imgp = await saveAsset(img)
                                 const name = f.name
-                                currentChar.data.additionalAssets.push([name, imgp])
+                                const extension = name.split('.').pop().toLowerCase()
+                                const imgp = await saveAsset(img,'', extension)
+                                currentChar.data.additionalAssets.push([name, imgp, extension])
                                 currentChar.data.additionalAssets = currentChar.data.additionalAssets
                             }
                         }
@@ -634,6 +651,16 @@
                 {#each currentChar.data.additionalAssets as assets, i}
                     <tr>
                         <td class="font-medium truncate">
+                            {#if assetFilePath[i]}
+                                {#if assetFileExtensions[i] === 'mp4'}
+                                <!-- svelte-ignore a11y-media-has-caption -->
+                                    <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
+                                {:else if assetFileExtensions[i] === 'mp3'}
+                                    <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
+                                {:else}
+                                    <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
+                                {/if}
+                            {/if}
                             <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-full resize-none" bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
                         </td>
                         <th class="font-medium cursor-pointer w-10">

@@ -329,7 +329,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
     let customScripts:customscript[] = []
     let utilityBot = false
     let sdData = defaultSdDataFunc()
-    let extAssets:[string,string][] = []
+    let extAssets:[string,string,string][] = []
 
     if(risuext){
         if(risuext.emotions){
@@ -350,8 +350,11 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                     msg: `Loading... (Getting Assets ${i} / ${risuext.additionalAssets.length})`
                 })
                 await sleep(10)
-                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.additionalAssets[i][1])) :Buffer.from(risuext.additionalAssets[i][1], 'base64'))
-                extAssets.push([risuext.additionalAssets[i][0],imgp])
+                let fileName = ''
+                if(risuext.additionalAssets[i].length >= 3)
+                    fileName = risuext.additionalAssets[i][2]
+                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.additionalAssets[i][1])) :Buffer.from(risuext.additionalAssets[i][1], 'base64'), '', fileName)
+                extAssets.push([risuext.additionalAssets[i][0],imgp,fileName])
             }
         }
         bias = risuext.bias ?? bias
@@ -756,7 +759,7 @@ type CharacterCardV2 = {
                 customScripts?:customscript[]
                 utilityBot?: boolean,
                 sdData?:[string,string][],
-                additionalAssets?:[string,string][],
+                additionalAssets?:[string,string,string][],
                 backgroundHTML?:string
             }
         }

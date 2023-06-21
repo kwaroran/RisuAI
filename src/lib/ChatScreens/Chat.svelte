@@ -8,6 +8,7 @@
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "../../ts/translator/translator";
     import { replacePlaceholders } from "../../ts/util";
+    
     export let message = ''
     export let name = ''
     export let isLastMemory:boolean
@@ -17,6 +18,7 @@
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:character|groupChat|null = null
+    let md:string
     let translating = false
     let editMode = false
     let statusMessage:string = ''
@@ -24,7 +26,8 @@
 
     let msgDisplay = ''
     let msgTranslated = ''
-    let translated = false;
+    let translated = false
+
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
@@ -53,7 +56,7 @@
         $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
     }
 
-    async function displaya(message:string){
+    async function displaya(message:string, isStreaming:boolean = false){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
             if(msgTranslated==='')
                 msgDisplay = replacePlaceholders(message, name)
@@ -63,6 +66,12 @@
         }
         else{
             msgDisplay = replacePlaceholders(message, name)
+        }
+
+        if(!md || !isStreaming || isStreaming && idx === $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length - 1) {
+            ParseMarkdown(msgDisplay, character, 'normal').then(mdNew=>{
+                md = mdNew
+            })
         }
     }
 
@@ -74,7 +83,7 @@
         }, timeout)
     }
 
-    $: displaya(message)
+    $: displaya(message, $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].isStreaming)
 </script>
 <div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
     <div class="text-neutral-200 mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
@@ -161,19 +170,17 @@
             </div>
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
-            {:else}
-                {#await ParseMarkdown(msgDisplay, character) then md} 
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
-                        if($DataBase.clickToEdit && idx > -1){
-                            editMode = true
-                            msgTranslated = ""
-                        }
-                    }}
-                        style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                        style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
-                    >{@html md}</span>
-                {/await}
+            {:else if md}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                    if($DataBase.clickToEdit && idx > -1){
+                        editMode = true
+                        msgTranslated = ""
+                    }
+                }}
+                    style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
+                    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                >{@html md}</span>
             {/if}
         </span>
 

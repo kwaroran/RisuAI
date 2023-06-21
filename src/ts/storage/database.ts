@@ -339,7 +339,7 @@ export interface character{
         VOLUME_SCALE?: number
     }
     supaMemory?:boolean
-    additionalAssets?:[string, string][]
+    additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean
     replaceGlobalNote:string
     backgroundHTML?:string
@@ -522,7 +522,8 @@ export interface Database{
             expires_in?: number
         }
     },
-    classicMaxWidth: boolean
+    classicMaxWidth: boolean,
+    useChatSticker:boolean,
 }
 
 interface hordeConfig{
@@ -561,6 +562,7 @@ export interface Chat{
     supaMemoryData?:string
     lastMemory?:string
     suggestMessages?:string[]
+    isStreaming?:boolean
 }
 
 export interface Message{

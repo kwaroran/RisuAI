@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { DatabaseIcon, DicesIcon, LanguagesIcon, MenuIcon, MicOffIcon, PowerIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
+    import { DatabaseIcon, DicesIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
-    import { DataBase, type Message } from "../../ts/storage/database";
+    import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
     import { doingChat, sendChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
@@ -17,6 +17,7 @@
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
     import Help from '../Others/Help.svelte';
+    import AssetInput from './AssetInput.svelte';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -28,6 +29,8 @@
     let rerollid = -1
     let lastCharId = -1
     let doingChatInputTranslate = false
+    let currentCharacter:character|groupChat = $DataBase.characters[$selectedCharID]
+    let toggleStickers:boolean = false
 
     async function send() {
         let selectedChar = $selectedCharID
@@ -218,6 +221,10 @@
             }
         })
     }
+
+    $: {
+        currentCharacter = $DataBase.characters[$selectedCharID]
+    }
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="w-full h-full" style={customStyle} on:click={() => {
@@ -234,6 +241,12 @@
             }
         }}>
             <div class="flex items-end mt-2 mb-2 w-full">
+                {#if $DataBase.useChatSticker && currentCharacter.type !== 'group'}
+                    <div on:click={()=>{toggleStickers = !toggleStickers}}
+                            class={"ml-4 bg-gray-500 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-white')}>
+                            <Laugh/>
+                    </div>    
+                {/if}
                 <textarea class="text-neutral-200 p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
@@ -299,9 +312,27 @@
                 </div>
             {/if}
             
+            {#if toggleStickers}
+                <div class="ml-4 flex flex-wrap">
+                    <AssetInput bind:currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
+                        let fileType = 'img'
+                        if(additionalAsset.length > 2 && additionalAsset[2]) {
+                            const fileExtension = additionalAsset[2]
+                            if(fileExtension === 'mp4' || fileExtension === 'webm')
+                                fileType = 'video'
+                            else if(fileExtension === 'mp3' || fileExtension === 'wav')
+                                fileType = 'audio'
+                        }
+                        messageInput += `<span class='notranslate' translate='no'>{{${fileType}::${additionalAsset[0]}}}</span> *${additionalAsset[0]} added*`
+                        updateInputSizeAll()
+                    }}/>
+                </div>    
+            {/if}
+
             {#if $DataBase.useAutoSuggestions}
                 <Suggestion messageInput={(msg)=>messageInput=msg} {send}/>
             {/if}
+            
             {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
                     {#if $DataBase.characters[$selectedCharID].type !== 'group'}

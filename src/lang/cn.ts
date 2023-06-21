@@ -304,6 +304,7 @@ export const languageChinese = {
     tags: "标签",
     copied: "已复制",
     useChatCopy: "使用聊天复制",
+    useChatSticker: "使用聊天贴纸",
     autoTranslateInput: "使用自动翻译输入",
     enterMessageForTranslateToEnglish: "输入要翻译为英语的消息",
     recent: '最新',
