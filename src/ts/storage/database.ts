@@ -524,6 +524,7 @@ export interface Database{
     },
     classicMaxWidth: boolean,
     useChatSticker:boolean,
+    useAdditionalAssetsPreview:boolean,
 }
 
 interface hordeConfig{

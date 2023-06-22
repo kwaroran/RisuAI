@@ -309,6 +309,7 @@ export const languageEnglish = {
     copied: "Copied",
     useChatCopy: "Use Chat Message Copy",
     useChatSticker: "Use Chat Sticker",
+    useAdditionalAssetsPreview: "Use Additional Assets Preview",
     autoTranslateInput: "Auto Translate Input",
     enterMessageForTranslateToEnglish: "Enter Message for Translate to English",
     recent: 'Recent',

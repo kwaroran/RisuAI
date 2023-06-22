@@ -281,6 +281,7 @@ export const languageKorean = {
     copied: "복사됨",
     useChatCopy: "채팅 메시지 복사 사용",
     useChatSticker: "채팅 스티커 사용",
+    useAdditionalAssetsPreview: "추가 에셋 미리보기 사용",
     autoTranslateInput: "입력 자동 번역",
     enterMessageForTranslateToEnglish: "영어로 번역할 메시지를 입력해주세요",
     imageCompression: "이미지 압축",

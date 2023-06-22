@@ -109,7 +109,7 @@
         DataBase.set(database)
         loadTokenize(currentChar.data)
 
-        if(currentChar.type ==='character'){
+        if(currentChar.type ==='character' && database.useAdditionalAssetsPreview){
             if(currentChar.data.additionalAssets){
                 for(let i = 0; i < currentChar.data.additionalAssets.length; i++){
                     if(currentChar.data.additionalAssets[i].length > 2 && currentChar.data.additionalAssets[i][2]) {
@@ -651,7 +651,7 @@
                 {#each currentChar.data.additionalAssets as assets, i}
                     <tr>
                         <td class="font-medium truncate">
-                            {#if assetFilePath[i]}
+                            {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
                                 {#if assetFileExtensions[i] === 'mp4'}
                                 <!-- svelte-ignore a11y-media-has-caption -->
                                     <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
@@ -663,6 +663,7 @@
                             {/if}
                             <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-full resize-none" bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
                         </td>
+                        
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={() => {
                                 if(currentChar.type === 'character'){
