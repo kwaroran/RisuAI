@@ -2,7 +2,6 @@ import { get } from "svelte/store";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { DataBase, setDatabase, type Database } from "../storage/database";
 import { forageStorage, getUnpargeables, isNodeServer, isTauri, openURL } from "../storage/globalApi";
-import pako from "pako";
 import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/api/process';
@@ -10,6 +9,7 @@ import { open } from '@tauri-apps/api/shell';
 import { cloneDeep, isEqual, last } from "lodash";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
+import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
@@ -245,10 +245,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         }
     }
 
-    const dbjson = JSON.stringify(get(DataBase))
-    const dbData = pako.deflate(
-        Buffer.from(dbjson, 'utf-8')
-    )
+    const dbData = encodeRisuSave(get(DataBase))
 
     alertStore.set({
         type: "wait",
@@ -355,7 +352,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
             const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
             const selectedDb = dbs[selectedIndex][0]
-            const decompressedDb:Database = JSON.parse(Buffer.from(pako.inflate(await getFileData(ACCESS_TOKEN, selectedDb.id))).toString('utf-8'))
+            const decompressedDb:Database = decodeRisuSave(await getFileData(ACCESS_TOKEN, selectedDb.id))
             return decompressedDb
         }
     
@@ -405,10 +402,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
         }
         db.didFirstSetup = true
-        const dbjson = JSON.stringify(db)
-        const dbData = pako.deflate(
-            Buffer.from(dbjson, 'utf-8')
-        )
+        const dbData = encodeRisuSave(db)
 
         if(isTauri){
             await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})

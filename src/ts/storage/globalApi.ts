@@ -7,7 +7,6 @@ import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
-import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
@@ -21,6 +20,7 @@ import { cloneDeep } from "lodash";
 import { NodeStorage } from "./nodeStorage";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
+import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -196,14 +196,14 @@ let lastSave = ''
 
 export async function saveDb(){
     lastSave =JSON.stringify(get(DataBase))
+    let changed = false
     syncDrive()
+    DataBase.subscribe(() => {
+        changed = true
+    })
     while(true){
-        const dbjson = JSON.stringify(get(DataBase))
-        if(dbjson !== lastSave){
-            lastSave = dbjson
-            const dbData = pako.deflate(
-                Buffer.from(dbjson, 'utf-8')
-            )
+        if(changed){
+            const dbData = encodeRisuSave(get(DataBase))
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
                 await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
@@ -275,13 +275,13 @@ export async function loadData() {
                 }
                 if(!await exists('database/database.bin', {dir: BaseDirectory.AppData})){
                     await writeBinaryFile('database/database.bin',
-                        pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
+                        encodeRisuSave({})
                     ,{dir: BaseDirectory.AppData})
                 }
                 try {
                     setDatabase(
-                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData})))).toString('utf-8'))
-                    )   
+                        decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
+                    )
                 } catch (error) {
                     const backups = await getDbBackups()
                     let backupLoaded = false
@@ -289,7 +289,7 @@ export async function loadData() {
                         try {
                             const backupData = await readBinaryFile(`database/dbbackup-${backup}.bin`,{dir: BaseDirectory.AppData})
                             setDatabase(
-                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                                decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {}
@@ -305,12 +305,11 @@ export async function loadData() {
             else{
                 let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin')
                 if(checkNullish(gotStorage)){
-                    gotStorage = pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
-                    await forageStorage.setItem('database/database.bin', gotStorage)
+                    await forageStorage.setItem('database/database.bin', encodeRisuSave({}))
                 }
                 try {
                     setDatabase(
-                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(gotStorage))).toString('utf-8'))
+                        decodeRisuSave(gotStorage)
                     )
                 } catch (error) {
                     const backups = await getDbBackups()
@@ -319,7 +318,7 @@ export async function loadData() {
                         try {
                             const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`)
                             setDatabase(
-                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                                decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {}
