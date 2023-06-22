@@ -6,6 +6,7 @@ import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
+import { createDeep } from "./deepai";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -577,6 +578,40 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             return {
                 'type': 'success',
                 'result': unstringlizeChat(result, formated, currentChar?.name ?? '')
+            }
+        }
+        case "deepai":{
+
+            for(let i=0;i<formated.length;i++){
+                delete formated[i].memo
+                delete formated[i].name
+                if(arg.isGroupChat && formated[i].name && formated[i].role === 'assistant'){
+                    formated[i].content = formated[i].name + ": " + formated[i].content
+                }
+                if(formated[i].role !== 'assistant' && formated[i].role !== 'user'){
+                    formated[i].content = formated[i].role + ": " + formated[i].content
+                    formated[i].role = 'assistant'
+                }
+                formated[i].name = undefined
+            }
+
+            const response = await createDeep([{
+                role: 'user',
+                content: stringlizeChat(formated, currentChar?.name ?? '')
+            }])
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: response.data
+                }
+            }
+
+            const result = Buffer.from(response.data).toString('utf-8')
+
+            return {
+                'type': 'success',
+                'result': result
             }
         }
         default:{     

@@ -498,8 +498,17 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
             if(db.requester === 'new'){
                 try {
                     let preHeader = arg.headers ?? {}
-                    preHeader["Content-Type"] = `application/json`
-                    const body = JSON.stringify(arg.body)
+                    let body:any
+                    if(arg.body instanceof URLSearchParams){
+                        const argBody = arg.body as URLSearchParams
+                        body = argBody.toString()
+                        preHeader["Content-Type"] =  `application/x-www-form-urlencoded`
+                    }
+                    else{
+                        body = JSON.stringify(arg.body)
+                        preHeader["Content-Type"] = `application/json`
+                    }
+                    console.log(body)
                     const header = JSON.stringify(preHeader)
                     const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
                     const d:{
@@ -576,15 +585,27 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
         else{
             try {
-                let headers = arg.headers ?? {}
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
+                let body:any
+                if(arg.body instanceof URLSearchParams){
+                    const argBody = arg.body as URLSearchParams
+                    body = argBody.toString()
+                    let headers = arg.headers ?? {}
+                    if(!headers["Content-Type"]){
+                        headers["Content-Type"] =  `application/x-www-form-urlencoded`
+                    }
+                }
+                else{
+                    body = JSON.stringify(arg.body)
+                    let headers = arg.headers ?? {}
+                    if(!headers["Content-Type"]){
+                        headers["Content-Type"] =  `application/json`
+                    }
                 }
                 if(arg.rawResponse){
                     const furl = `/proxy?url=${encodeURIComponent(url)}`
                 
                     const da = await fetch(furl, {
-                        body: JSON.stringify(arg.body),
+                        body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
@@ -604,20 +625,29 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     const furl = `/proxy?url=${encodeURIComponent(url)}`
     
                     const da = await fetch(furl, {
-                        body: JSON.stringify(arg.body),
+                        body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
                         },
                         method: method
                     })
-    
-                    const dat = await da.json()
-                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat,
-                        headers: Object.fromEntries(da.headers)
+                    const daText = await da.text()
+                    try {
+                        const dat = JSON.parse(daText)
+                        addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
+                        return {
+                            ok: da.ok && da.status >= 200 && da.status < 300,
+                            data: dat,
+                            headers: Object.fromEntries(da.headers)
+                        }   
+                    } catch (error) {
+                        addFetchLog(daText, false)
+                        return {
+                            ok:false,
+                            data: daText,
+                            headers: Object.fromEntries(da.headers)
+                        }
                     }
                 }
             } catch (error) {
@@ -854,3 +884,13 @@ export function openURL(url:string){
         window.open(url, "_blank")
     }
 }
+
+function formDataToString(formData: FormData): string {
+    const params: string[] = [];
+  
+    for (const [name, value] of formData.entries()) {
+      params.push(`${encodeURIComponent(name)}=${encodeURIComponent(value.toString())}`);
+    }
+  
+    return params.join('&');
+  }
