@@ -3,7 +3,7 @@
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
-  import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
+    import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
 
     export let value = ""
     export let onChange: (v:string) => void = (v) => {}

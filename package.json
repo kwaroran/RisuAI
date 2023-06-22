@@ -44,6 +44,7 @@
     "showdown": "^2.1.0",
     "sweetalert2": "^11.7.3",
     "uuid": "^9.0.0",
+    "wasmoon": "^1.15.0",
     "web-streams-polyfill": "^3.2.1"
   },
   "devDependencies": {
