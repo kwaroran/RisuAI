@@ -3,12 +3,12 @@ import pako from "pako";
 import { isTauri } from "./globalApi";
 
 const packr = new Packr({
-    useRecords:true
+    useRecords:false
 });
 
 const unpackr = new Unpackr({
     int64AsType: 'number',
-    useRecords:true
+    useRecords:false
 })
 
 const magicHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 7]); 
@@ -45,6 +45,7 @@ export function decodeRisuSave(data:Uint8Array){
     }
     catch (error) {
         try {
+            console.log('risudecode')
             const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU",'utf-8'))
             const realData = data.subarray(risuSaveHeader.length)
             const dec = unpackr.decode(realData)

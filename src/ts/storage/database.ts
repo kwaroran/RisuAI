@@ -12,6 +12,7 @@ export let appVer = '1.27.2'
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
+    console.log(data)
     if(checkNullish(data.characters)){
         data.characters = []
     }
