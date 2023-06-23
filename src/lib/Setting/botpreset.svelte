@@ -3,6 +3,7 @@
     import { language } from "../../lang";
     import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset, presetTemplate } from "../../ts/storage/database";
     import { CopyIcon, DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+  import { cloneDeep } from "lodash";
 
     let editMode = false
     export let close = () => {}
@@ -70,7 +71,7 @@
         <div class="flex mt-2 items-center">
             <button class="text-gray-500 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
                 let botPresets = $DataBase.botPresets
-                let newPreset = JSON.parse(JSON.stringify(presetTemplate))
+                let newPreset = cloneDeep(presetTemplate)
                 newPreset.name = `New Preset`
                 botPresets.push(newPreset)
 
