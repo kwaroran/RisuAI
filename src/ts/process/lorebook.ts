@@ -213,7 +213,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
                 lore.push({
                     key: currentLore.key ? currentLore.key.join(', ') :
                         currentLore.keywords ? currentLore.keywords.join(', ') : '',
-                    insertorder: currentLore.order || currentLore.priority || 0,
+                    insertorder: currentLore.order ?? currentLore.priority ?? 0,
                     comment: currentLore.comment || currentLore.name || '',
                     content: currentLore.content || currentLore.entry || '',
                     mode: "normal",
