@@ -3,7 +3,7 @@
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
-  import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
+    import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
 
     export let value = ""
     export let onChange: (v:string) => void = (v) => {}
@@ -63,10 +63,11 @@
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k_0613')}}>GPT-4 32K 0613</button>
             </Arcodion>
             <Arcodion name="Anthropic Claude">
@@ -80,6 +81,7 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {#if isTauri ||isNodeServer}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('deepai')}}>DeepAI</button>
             {/if}
             <Arcodion name="Horde">
                 {#await getHordeModels()}

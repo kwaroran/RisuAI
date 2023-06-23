@@ -139,6 +139,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             maxContextTokens = 8000
         }
     }
+    if(db.aiModel === 'deepai'){
+        if(maxContextTokens > 3000){
+            maxContextTokens = 3000
+        }
+    }
 
 
     let unformated = {
@@ -154,7 +159,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     if(!currentChar.utilityBot){
-        const mainp = currentChar.systemPrompt || db.mainPrompt
+        const mainp = currentChar.systemPrompt?.replaceAll('{{original}}', db.mainPrompt) || db.mainPrompt
 
 
         function formatPrompt(data:string){
@@ -183,7 +188,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             unformated.jailbreak.push(...formatPrompt(replacePlaceholders(db.jailbreak, currentChar.name)))
         }
     
-        unformated.globalNote.push(...formatPrompt(replacePlaceholders(currentChar.replaceGlobalNote || db.globalNote, currentChar.name)))
+        unformated.globalNote.push(...formatPrompt(replacePlaceholders(currentChar.replaceGlobalNote?.replaceAll('{{original}}', db.globalNote) || db.globalNote, currentChar.name)))
     }
 
     if(currentChat.note){

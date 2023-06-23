@@ -7,7 +7,6 @@ import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
-import pako from "pako";
 import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
@@ -21,6 +20,7 @@ import { cloneDeep } from "lodash";
 import { NodeStorage } from "./nodeStorage";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
+import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -196,14 +196,14 @@ let lastSave = ''
 
 export async function saveDb(){
     lastSave =JSON.stringify(get(DataBase))
+    let changed = false
     syncDrive()
+    DataBase.subscribe(() => {
+        changed = true
+    })
     while(true){
-        const dbjson = JSON.stringify(get(DataBase))
-        if(dbjson !== lastSave){
-            lastSave = dbjson
-            const dbData = pako.deflate(
-                Buffer.from(dbjson, 'utf-8')
-            )
+        if(changed){
+            const dbData = encodeRisuSave(get(DataBase))
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
                 await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
@@ -275,13 +275,13 @@ export async function loadData() {
                 }
                 if(!await exists('database/database.bin', {dir: BaseDirectory.AppData})){
                     await writeBinaryFile('database/database.bin',
-                        pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
+                        encodeRisuSave({})
                     ,{dir: BaseDirectory.AppData})
                 }
                 try {
                     setDatabase(
-                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData})))).toString('utf-8'))
-                    )   
+                        decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
+                    )
                 } catch (error) {
                     const backups = await getDbBackups()
                     let backupLoaded = false
@@ -289,7 +289,7 @@ export async function loadData() {
                         try {
                             const backupData = await readBinaryFile(`database/dbbackup-${backup}.bin`,{dir: BaseDirectory.AppData})
                             setDatabase(
-                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                                decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {}
@@ -305,12 +305,11 @@ export async function loadData() {
             else{
                 let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin')
                 if(checkNullish(gotStorage)){
-                    gotStorage = pako.deflate(Buffer.from(JSON.stringify({}), 'utf-8'))
-                    await forageStorage.setItem('database/database.bin', gotStorage)
+                    await forageStorage.setItem('database/database.bin', encodeRisuSave({}))
                 }
                 try {
                     setDatabase(
-                        JSON.parse(Buffer.from(pako.inflate(Buffer.from(gotStorage))).toString('utf-8'))
+                        decodeRisuSave(gotStorage)
                     )
                 } catch (error) {
                     const backups = await getDbBackups()
@@ -319,7 +318,7 @@ export async function loadData() {
                         try {
                             const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`)
                             setDatabase(
-                                JSON.parse(Buffer.from(pako.inflate(Buffer.from(backupData))).toString('utf-8'))
+                                decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {}
@@ -376,7 +375,11 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
 
-export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}) {
+export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
+    ok: boolean;
+    data: any;
+    headers:{[key:string]:string}
+}> {
     try {
         const db = get(DataBase)
         const method = arg.method ?? "POST"
@@ -426,7 +429,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
@@ -434,7 +438,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                        data: dat,
+                        headers: Object.fromEntries(da.headers)
                     }
                 }
     
@@ -442,6 +447,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: false,
                     data: `${error}`,
+                    headers: {}
                 }
             }
         }
@@ -465,7 +471,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
@@ -473,7 +480,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                        data: dat,
+                        headers: Object.fromEntries(da.headers)
                     }
                 }
     
@@ -481,6 +489,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: false,
                     data: `${error}`,
+                    headers: {}
                 }
             }
         }
@@ -488,20 +497,33 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
             if(db.requester === 'new'){
                 try {
                     let preHeader = arg.headers ?? {}
-                    preHeader["Content-Type"] = `application/json`
-                    const body = JSON.stringify(arg.body)
+                    let body:any
+                    if(arg.body instanceof URLSearchParams){
+                        const argBody = arg.body as URLSearchParams
+                        body = argBody.toString()
+                        preHeader["Content-Type"] =  `application/x-www-form-urlencoded`
+                    }
+                    else{
+                        body = JSON.stringify(arg.body)
+                        preHeader["Content-Type"] = `application/json`
+                    }
+                    console.log(body)
                     const header = JSON.stringify(preHeader)
                     const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
                     const d:{
                         success: boolean
-                        body:string
+                        body:string,
+                        headers: {[key:string]:string}
                     } = JSON.parse(res)
-                    
+
+                    const resHeader = d.headers ?? {}
+                     
                     if(!d.success){
                         addFetchLog(Buffer.from(d.body, 'base64').toString('utf-8'), false)
                         return {
                             ok:false,
-                            data: Buffer.from(d.body, 'base64').toString('utf-8')
+                            data: Buffer.from(d.body, 'base64').toString('utf-8'),
+                            headers: resHeader
                         }
                     }
                     else{
@@ -509,14 +531,16 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                             addFetchLog("Uint8Array Response", true)
                             return {
                                 ok:true,
-                                data: new Uint8Array(Buffer.from(d.body, 'base64'))
+                                data: new Uint8Array(Buffer.from(d.body, 'base64')),
+                                headers: resHeader
                             }
                         }
                         else{
                             addFetchLog(JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')), true)
                             return {
                                 ok:true,
-                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8'))
+                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')),
+                                headers: resHeader
                             }
                         }
                     }   
@@ -524,6 +548,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     return {
                         ok: false,
                         data: `${error}`,
+                        headers: {}
                     }
                 }
             }
@@ -545,6 +570,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: d.ok,
                     data: new Uint8Array(d.data as number[]),
+                    headers: d.headers
                 }
             }
             else{
@@ -552,20 +578,33 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                 return {
                     ok: d.ok,
                     data: d.data,
+                    headers: d.headers
                 }
             }
         }
         else{
             try {
-                let headers = arg.headers ?? {}
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
+                let body:any
+                if(arg.body instanceof URLSearchParams){
+                    const argBody = arg.body as URLSearchParams
+                    body = argBody.toString()
+                    let headers = arg.headers ?? {}
+                    if(!headers["Content-Type"]){
+                        headers["Content-Type"] =  `application/x-www-form-urlencoded`
+                    }
+                }
+                else{
+                    body = JSON.stringify(arg.body)
+                    let headers = arg.headers ?? {}
+                    if(!headers["Content-Type"]){
+                        headers["Content-Type"] =  `application/json`
+                    }
                 }
                 if(arg.rawResponse){
                     const furl = `/proxy?url=${encodeURIComponent(url)}`
                 
                     const da = await fetch(furl, {
-                        body: JSON.stringify(arg.body),
+                        body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
@@ -577,40 +616,53 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
                     return {
                         ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer())
+                        data: new Uint8Array(await da.arrayBuffer()),
+                        headers: Object.fromEntries(da.headers)
                     }   
                 }
                 else{
                     const furl = `/proxy?url=${encodeURIComponent(url)}`
     
                     const da = await fetch(furl, {
-                        body: JSON.stringify(arg.body),
+                        body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
                         },
                         method: method
                     })
-    
-                    const dat = await da.json()
-                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat
+                    const daText = await da.text()
+                    try {
+                        const dat = JSON.parse(daText)
+                        addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
+                        return {
+                            ok: da.ok && da.status >= 200 && da.status < 300,
+                            data: dat,
+                            headers: Object.fromEntries(da.headers)
+                        }   
+                    } catch (error) {
+                        addFetchLog(daText, false)
+                        return {
+                            ok:false,
+                            data: daText,
+                            headers: Object.fromEntries(da.headers)
+                        }
                     }
                 }
             } catch (error) {
                 console.log(error)
                 return {
                     ok:false,
-                    data: `${error}`
+                    data: `${error}`,
+                    headers: {}
                 }
             }
         }   
     } catch (error) {
         return {
             ok:false,
-            data: `${error}`
+            data: `${error}`,
+            headers: {}
         }
     }
 }
@@ -831,3 +883,13 @@ export function openURL(url:string){
         window.open(url, "_blank")
     }
 }
+
+function formDataToString(formData: FormData): string {
+    const params: string[] = [];
+  
+    for (const [name, value] of formData.entries()) {
+      params.push(`${encodeURIComponent(name)}=${encodeURIComponent(value.toString())}`);
+    }
+  
+    return params.join('&');
+  }
