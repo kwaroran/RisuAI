@@ -199,7 +199,7 @@ export async function saveDb(){
     let changed = false
     syncDrive()
     DataBase.subscribe(() => {
-        changed = false
+        changed = true
     })
     while(true){
         if(changed){
