@@ -200,19 +200,26 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
                 comment:string
                 content:string
                 order:number
-                constant:boolean
+                constant:boolean,
+                name:string,
+                keywords:string[],
+                priority:number
+                entry:string
+                secondary_keys:string[]
+                selective:boolean
             }} = importedlore.entries
             for(const key in entries){
                 const currentLore = entries[key]
                 lore.push({
-                    key: currentLore.key.join(', '),
-                    insertorder: currentLore.order,
-                    comment: currentLore.comment.length < 1 ? 'Unnamed Imported Lore' : currentLore.comment,
-                    content: currentLore.content,
+                    key: currentLore.key ? currentLore.key.join(', ') :
+                        currentLore.keywords ? currentLore.keywords.join(', ') : '',
+                    insertorder: currentLore.order || currentLore.priority || 0,
+                    comment: currentLore.comment || currentLore.name || '',
+                    content: currentLore.content || currentLore.entry || '',
                     mode: "normal",
-                    alwaysActive: currentLore.constant,
-                    secondkey: "",
-                    selective: false
+                    alwaysActive: currentLore.constant ?? false,
+                    secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
+                    selective: currentLore.selective ?? false
                 })
             }
         }
