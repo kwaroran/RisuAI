@@ -383,6 +383,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
     try {
         const db = get(DataBase)
         const method = arg.method ?? "POST"
+        db.requestmet = "normal"
     
         function addFetchLog(response:any, success:boolean){
             try{
@@ -410,55 +411,13 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         const urlHost = (new URL(url)).hostname
         let forcePlainFetch = knownHostes.includes(urlHost) && (!isTauri)
     
-        if(db.requestmet === 'plain' || forcePlainFetch){
+        if(forcePlainFetch){
             try {
                 let headers = arg.headers ?? {}
                 if(!headers["Content-Type"]){
                     headers["Content-Type"] =  `application/json`
                 }
                 const furl = new URL(url)
-    
-                const da = await fetch(furl, {
-                    body: JSON.stringify(arg.body),
-                    headers: arg.headers,
-                    method: method,
-                    signal: arg.abortSignal
-                })
-    
-                if(arg.rawResponse){
-                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer()),
-                        headers: Object.fromEntries(da.headers)
-                    }   
-                }
-                else{
-                    const dat = await da.json()
-                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat,
-                        headers: Object.fromEntries(da.headers)
-                    }
-                }
-    
-            } catch (error) {
-                return {
-                    ok: false,
-                    data: `${error}`,
-                    headers: {}
-                }
-            }
-        }
-        if(db.requestmet === 'proxy'){
-            try {
-                let headers = arg.headers ?? {}
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
-                }
-                const furl = new URL(db.requestproxy)
-                furl.pathname = url
     
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
@@ -609,8 +568,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
                         },
-                        method: method
-                        ,signal: arg.abortSignal
+                        method: method,
+                        signal: arg.abortSignal
                     })
     
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
