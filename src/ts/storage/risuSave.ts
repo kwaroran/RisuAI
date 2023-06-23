@@ -16,16 +16,17 @@ export function decodeRisuSave(data:Uint8Array){
     const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU",'utf-8'))
     const sub = data.subarray(0, risuSaveHeader.length)
     if(isEqual(sub, risuSaveHeader)){
+        const realData = data.subarray(risuSaveHeader.length)
+        const dec = decode(realData)
+        return dec
+    }
+    else{
         try {
+            return JSON.parse(Buffer.from(pako.inflate(Buffer.from(data))).toString('utf-8'))            
+        } catch (error) {
             const realData = data.subarray(risuSaveHeader.length)
             const dec = decode(realData)
             return dec
-        } catch (error) {
-            console.error(error)
-            throw error
         }
-    }
-    else{
-        return JSON.parse(Buffer.from(pako.inflate(Buffer.from(data))).toString('utf-8'))
     }
 }

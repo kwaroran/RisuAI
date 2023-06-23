@@ -31,6 +31,7 @@
     <option value="new" class="bg-darkbg appearance-none">Reqwest</option>
     <option value="old" class="bg-darkbg appearance-none">Tauri</option>
 </select>
+
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>
 </div>
