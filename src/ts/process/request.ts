@@ -4,7 +4,7 @@ import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "./plugins";
 import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
-import { globalFetch, isTauri } from "../storage/globalApi";
+import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
 
@@ -167,15 +167,28 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
-                const da = await fetch(replacerURL, {
-                    body: JSON.stringify(body),
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + db.openAIKey,
-                        "Content-Type": "application/json"
-                    },
-                    signal: abortSignal
-                })
+                const da =  ((!isTauri) && (!isNodeServer))
+                    ? await fetch(`/proxy?url=${encodeURIComponent(replacerURL)}`, {
+                        body: JSON.stringify(body),
+                        headers: {
+                            "risu-header": encodeURIComponent(JSON.stringify({
+                                "Authorization": "Bearer " + db.openAIKey,
+                                "Content-Type": "application/json"
+                            })),
+                            "Content-Type": "application/json"
+                        },
+                        method: "POST",
+                        signal: abortSignal
+                    })
+                    : await fetch(replacerURL, {
+                        body: JSON.stringify(body),
+                        method: "POST",
+                        headers: {
+                            "Authorization": "Bearer " + db.openAIKey,
+                            "Content-Type": "application/json"
+                        },
+                        signal: abortSignal
+                    })  
 
                 if(da.status !== 200){
                     return {
