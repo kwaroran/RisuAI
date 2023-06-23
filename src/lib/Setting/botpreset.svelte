@@ -1,8 +1,8 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, changeToPreset, copyPreset, presetTemplate } from "../../ts/storage/database";
-    import { CopyIcon, EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset, presetTemplate } from "../../ts/storage/database";
+    import { CopyIcon, DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
 
     let editMode = false
     export let close = () => {}
@@ -41,6 +41,13 @@
                     }}>
                         <CopyIcon size={18}/>
                     </button>
+                    <button class="text-gray-500 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                        e.stopPropagation()
+                        downloadPreset(i)
+                    }}>
+
+                        <DownloadIcon size={18} />
+                    </button>
                     <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($DataBase.botPresets.length === 1){
@@ -70,6 +77,11 @@
                 $DataBase.botPresets = botPresets
             }}>
                 <PlusIcon/>
+            </button>
+            <button class="text-gray-500 hover:text-green-500 mr-2 cursor-pointer" on:click={() => {
+                importPreset()
+            }}>
+                <FolderUpIcon size={18}/>
             </button>
             <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={() => {
                 editMode = !editMode

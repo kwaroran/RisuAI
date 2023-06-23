@@ -1,10 +1,11 @@
 import { get, writable } from 'svelte/store';
-import { checkNullish } from '../util';
-import { changeLanguage } from '../../lang';
+import { checkNullish, selectSingleFile } from '../util';
+import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../process/plugins';
-import { saveAsset as saveImageGlobal } from './globalApi';
+import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
+import { alertNormal } from '../alert';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -710,5 +711,28 @@ export function changeToPreset(id =0){
     db.forceReplaceUrl2 = newPres.forceReplaceUrl2 ?? db.forceReplaceUrl2
     db.bias = newPres.bias ?? db.bias
     db.koboldURL = newPres.koboldURL ?? db.koboldURL
+    DataBase.set(db)
+}
+
+export function downloadPreset(id:number){
+    saveCurrentPreset()
+    let db = get(DataBase)
+    let pres = cloneDeep(db.botPresets[id])
+    pres.openAIKey = ''
+    pres.forceReplaceUrl = ''
+    pres.forceReplaceUrl2 = ''
+    downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
+    alertNormal(language.successExport)
+}
+
+export async function importPreset(){
+    const f = await selectSingleFile(["json"])
+    if(!f){
+        return
+    }
+    let db = get(DataBase)
+    const pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
+    pre.name ??= "Imported"
+    db.botPresets.push(pre)
     DataBase.set(db)
 }
