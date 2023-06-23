@@ -4,7 +4,7 @@ import exifr from 'exifr'
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
 import { language } from "../lang";
 import { PngMetadata } from "./exif";
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";

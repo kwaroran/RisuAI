@@ -3,7 +3,7 @@ import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
 import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "@msgpack/msgpack";
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import { v4 as uuidv4 } from 'uuid';
 import exifr from 'exifr'
 import { PngMetadata } from "./exif"
