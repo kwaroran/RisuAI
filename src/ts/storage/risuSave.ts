@@ -1,11 +1,13 @@
-import { decode, encode } from "msgpackr";
+import { Packr, decode } from "msgpackr";
 import pako from "pako";
 import { isTauri } from "./globalApi";
 
-
+const packr = new Packr({
+    useRecords:true
+});
 
 export function encodeRisuSave(data:any){
-    const encoded = encode(data)
+    const encoded = packr.encode(data)
     if(isTauri){
         return pako.deflate(encoded)
     }
