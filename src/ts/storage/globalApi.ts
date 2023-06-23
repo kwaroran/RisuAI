@@ -203,6 +203,7 @@ export async function saveDb(){
     })
     while(true){
         if(changed){
+            changed = false
             const dbData = encodeRisuSave(get(DataBase))
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})

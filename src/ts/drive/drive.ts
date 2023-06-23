@@ -245,7 +245,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         }
     }
 
-    const dbData = encodeRisuSave(get(DataBase))
+    const dbData = encodeRisuSave(get(DataBase), 'compression')
 
     alertStore.set({
         type: "wait",
@@ -402,7 +402,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
         }
         db.didFirstSetup = true
-        const dbData = encodeRisuSave(db)
+        const dbData = encodeRisuSave(db, 'compression')
 
         if(isTauri){
             await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
