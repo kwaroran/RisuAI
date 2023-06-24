@@ -87,4 +87,4 @@ function checkHeader(data: Uint8Array) {
     }  
     // All bytes matched
     return header;
-}
+  }
