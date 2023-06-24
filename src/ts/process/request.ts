@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
-import { pluginProcess } from "./plugins";
+import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";

@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { checkNullish, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
-import type { RisuPlugin } from '../process/plugins';
+import type { RisuPlugin } from '../plugins/plugins';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
 import { cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';

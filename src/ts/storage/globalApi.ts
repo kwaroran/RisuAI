@@ -11,7 +11,7 @@ import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
-import { loadPlugins } from "../process/plugins";
+import { loadPlugins } from "../plugins/plugins";
 import { alertError, alertStore } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
