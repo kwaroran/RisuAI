@@ -37,6 +37,9 @@ dependencies:
   express:
     specifier: ^4.18.2
     version: 4.18.2
+  fflate:
+    specifier: ^0.8.0
+    version: 0.8.0
   gpt-3-encoder:
     specifier: ^1.1.4
     version: 1.1.4
@@ -64,9 +67,6 @@ dependencies:
   node-html-parser:
     specifier: ^6.1.5
     version: 6.1.5
-  pako:
-    specifier: ^2.1.0
-    version: 2.1.0
   png-chunk-text:
     specifier: ^1.0.0
     version: 1.0.0
@@ -129,9 +129,6 @@ devDependencies:
   '@types/node':
     specifier: ^18.7.10
     version: 18.15.11
-  '@types/pako':
-    specifier: ^2.0.0
-    version: 2.0.0
   '@types/pngjs':
     specifier: ^6.0.1
     version: 6.0.1
@@ -826,10 +823,6 @@ packages:
 
   /@types/node@18.15.11:
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
-
-  /@types/pako@2.0.0:
-    resolution: {integrity: sha512-10+iaz93qR5WYxTo+PMifD5TSxiOtdRaxBf7INGGXMQgTCu8Z/7GYWYFUOS3q/G0nE5boj1r4FEB+WSy7s5gbA==}
-    dev: true
 
   /@types/pngjs@6.0.1:
     resolution: {integrity: sha512-J39njbdW1U/6YyVXvC9+1iflZghP8jgRf2ndYghdJb5xL49LYDB+1EuAxfbuJ2IBbWIL3AjHPQhgaTxT3YaYeg==}
@@ -1547,6 +1540,10 @@ packages:
     dependencies:
       reusify: 1.0.4
     dev: true
+
+  /fflate@0.8.0:
+    resolution: {integrity: sha512-FAdS4qMuFjsJj6XHbBaZeXOgaypXp8iw/Tpyuq/w3XA41jjLHT8NPA+n7czH/DDhdncq0nAyDZmPeWXh2qmdIg==}
+    dev: false
 
   /fill-range@7.0.1:
     resolution: {integrity: sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==}
@@ -2314,10 +2311,6 @@ packages:
     dependencies:
       p-finally: 1.0.0
     dev: true
-
-  /pako@2.1.0:
-    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
-    dev: false
 
   /parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}

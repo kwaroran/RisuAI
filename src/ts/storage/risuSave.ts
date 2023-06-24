@@ -1,5 +1,5 @@
 import { Packr, Unpackr, decode } from "msgpackr";
-import pako from "pako";
+import * as fflate from "fflate";
 import { isTauri } from "./globalApi";
 
 const packr = new Packr({
@@ -17,7 +17,7 @@ const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69,
 export function encodeRisuSave(data:any, compression:'noCompression'|'compression' = 'noCompression'){
     let encoded:Uint8Array = packr.encode(data)
     if(isTauri || compression === 'compression'){
-        encoded = pako.deflate(encoded)
+        encoded = fflate.compressSync(encoded)
         const result = new Uint8Array(encoded.length + magicCompressedHeader.length);
         result.set(magicCompressedHeader, 0)
         result.set(encoded, magicCompressedHeader.length)
@@ -36,7 +36,7 @@ export function decodeRisuSave(data:Uint8Array){
         switch(checkHeader(data)){
             case "compressed":
                 data = data.slice(magicCompressedHeader.length)
-                return decode(pako.inflate(data))
+                return decode(fflate.decompressSync(data))
             case "raw":
                 data = data.slice(magicHeader.length)
                 return unpackr.decode(data)
@@ -51,7 +51,7 @@ export function decodeRisuSave(data:Uint8Array){
             const dec = unpackr.decode(realData)
             return dec   
         } catch (error) {
-            const buf = Buffer.from(pako.inflate(Buffer.from(data)))
+            const buf = Buffer.from(fflate.decompressSync(Buffer.from(data)))
             try {
                 return JSON.parse(buf.toString('utf-8'))                            
             } catch (error) {
@@ -87,4 +87,4 @@ function checkHeader(data: Uint8Array) {
     }  
     // All bytes matched
     return header;
-  }
+}
