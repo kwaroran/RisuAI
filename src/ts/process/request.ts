@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeChat, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -565,12 +565,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             };
 
             const send_body = {
-                text: stringlizeChat(formated, currentChar?.name ?? ''),
+                text: stringlizeAINChat(formated, currentChar?.name ?? ''),
                 length: maxTokens,
                 temperature: temperature,
                 top_p: 0.7,
                 tailfree: 1.0,
-                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
             };
 
             const response = await globalFetch(api_server_url + '/api', {

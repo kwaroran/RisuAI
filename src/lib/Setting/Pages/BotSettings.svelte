@@ -94,7 +94,7 @@
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.palmAPI}>
 {/if}
-{#if $DataBase.aiModel === 'novellist' || $DataBase.subModel === 'novellist'}
+{#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
     <span class="text-neutral-200">NovelList {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.novellistAPI}>
 {/if}

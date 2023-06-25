@@ -24,17 +24,16 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string = ''){
     console.log(text)
     let minIndex = -1
-    let chunks:string[] = ["system note:", "system:"]
+    let chunks:string[] = ["system note:", "system:","system note：", "system："]
     if(char){
         chunks.push(`${char}:`)
     }
 
     for(const form of formated){
         if(form.name){
-            const chunk = `${form.name}:`
-            if(!chunks.includes(chunk)){
-                chunks.push(chunk)
-            }
+            chunks.push(`${form.name}:`)
+            chunks.push(`${form.name}：`)
+            
         }
     }
 
@@ -53,4 +52,20 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
     }
 
     return text
+}
+
+export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
+    let resultString:string[] = []
+    for(const form of formated){
+        if(form.role === 'system'){
+            resultString.push(form.content)
+        }
+        else if(form.name){
+            resultString.push(form.name + "： " + form.content)
+        }
+        else{
+            resultString.push(form.content)
+        }
+    }
+    return resultString.join('\n\n') + `\n\n${char}:`
 }

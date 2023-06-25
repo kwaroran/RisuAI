@@ -7,9 +7,8 @@ import type { OpenAIChat } from "./process";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
-    if(db.aiModel === 'novellist'){
+    if(db.aiModel.startsWith('novellist')){
         const nv= await tokenizeWebTokenizers(data, 'novellist')
-        console.log(nv)
         return nv
     }
     if(db.aiModel.startsWith('claude')){
