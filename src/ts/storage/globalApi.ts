@@ -170,7 +170,7 @@ export async function readImage(data:string) {
     }
 }
 
-export async function saveAsset(data:Uint8Array, customId:string = ''){
+export async function saveAsset(data:Uint8Array, customId:string = '', fileName:string = ''){
     let id = ''
     if(customId !== ''){
         id = customId
@@ -182,13 +182,17 @@ export async function saveAsset(data:Uint8Array, customId:string = ''){
             id = uuidv4()
         }
     }
+    let fileExtension:string = 'png'
+    if(fileName && fileName.split('.').length > 0){
+        fileExtension = fileName.split('.').pop()
+    }
     if(isTauri){
-        await writeBinaryFile(`assets/${id}.png`, data ,{dir: BaseDirectory.AppData})
-        return `assets/${id}.png`
+        await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
+        return `assets/${id}.${fileExtension}`
     }
     else{
-        await forageStorage.setItem(`assets/${id}.png`, data)
-        return `assets/${id}.png`
+        await forageStorage.setItem(`assets/${id}.${fileExtension}`, data)
+        return `assets/${id}.${fileExtension}`
     }
 }
 

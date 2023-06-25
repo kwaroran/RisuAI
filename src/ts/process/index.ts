@@ -409,6 +409,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     else if(req.type === 'streaming'){
         const reader = req.result.getReader()
         const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+        db.characters[selectedChar].chats[selectedChat].isStreaming = true
         db.characters[selectedChar].chats[selectedChat].message.push({
             role: 'char',
             data: "",
@@ -424,6 +425,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 setDatabase(db)
             }
             if(readed.done){
+                db.characters[selectedChar].chats[selectedChat].isStreaming = false
+                setDatabase(db)
                 break
             }   
         }
