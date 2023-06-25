@@ -57,7 +57,7 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
 export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
     let resultString:string[] = []
     for(const form of formated){
-        if(form.memo.startsWith("newChat")){
+        if(form.memo && form.memo.startsWith("newChat")){
             resultString.push("[新しいチャットの始まり]")
             continue
         }
