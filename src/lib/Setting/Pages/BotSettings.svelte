@@ -26,10 +26,6 @@
     export let openPresetList =false
 
     async function loadTokenize(){
-        if(lasttokens.mainPrompt !== $DataBase.mainPrompt){
-            lasttokens.mainPrompt = $DataBase.mainPrompt
-            tokens.mainPrompt = await tokenize($DataBase.mainPrompt)
-        }
         tokens.mainPrompt = await tokenize($DataBase.mainPrompt)
         tokens.jailbreak = await tokenize($DataBase.jailbreak)
         tokens.globalNote = await tokenize($DataBase.globalNote)
@@ -40,16 +36,13 @@
     const unsub = DataBase.subscribe(db => {
         if(db.advancedBotSettings !== advancedBotSettings){
             advancedBotSettings = db.advancedBotSettings
-            
         }
+        loadTokenize()
     })
 
     onDestroy(() => {
         unsub()
     })
-    
-    $: loadTokenize()
-
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>

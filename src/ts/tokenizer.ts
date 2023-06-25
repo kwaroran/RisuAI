@@ -8,7 +8,9 @@ import type { OpenAIChat } from "./process";
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
     if(db.aiModel === 'novellist'){
-        return await tokenizeWebTokenizers(data, 'novellist')
+        const nv= await tokenizeWebTokenizers(data, 'novellist')
+        console.log(nv)
+        return nv
     }
     if(db.aiModel.startsWith('claude')){
         return await tokenizeWebTokenizers(data, 'claude')
@@ -44,10 +46,12 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
                     await (await fetch("/token/trin/spiece.model")
                 ).arrayBuffer())
+                break
             case "claude":
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromJSON(
                     await (await fetch("/token/claude/claude.json")
                 ).arrayBuffer())
+                break
         }
         tokenizersType = type
     }
