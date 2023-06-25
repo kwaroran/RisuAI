@@ -1,11 +1,9 @@
 <script lang="ts">
     import Check from "src/lib/Others/Check.svelte";
     import { language } from "src/lang";
-    import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
     import { alertMd } from "src/ts/alert";
     import { getRequestLog, isTauri } from "src/ts/storage/globalApi";
-
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
 <span class="text-draculared text-xs mb-2">{language.advancedSettingsWarn}</span>
@@ -43,6 +41,9 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}/>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
 </div>
 <button
     on:click={async () => {

@@ -414,8 +414,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
     
         const urlHost = (new URL(url)).hostname
-        let forcePlainFetch = knownHostes.includes(urlHost) && (!isTauri)
-    
+        let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch 
         if(forcePlainFetch){
             try {
                 let headers = arg.headers ?? {}
