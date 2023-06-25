@@ -556,7 +556,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 result: data.results[0].text
             }
         }
-        case "novellist":{
+        case "novellist":
+        case "novellist_damsel":{
             const auth_key = db.novellistAPI;
             const api_server_url = 'https://api.tringpt.com/';
 
@@ -572,6 +573,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 top_p: 0.7,
                 tailfree: 1.0,
                 rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
+                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin'
             };
 
             const response = await globalFetch(api_server_url + '/api', {

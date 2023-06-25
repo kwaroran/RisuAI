@@ -37,6 +37,10 @@
                 return "Plugin"
             case "novelai":
                 return "NovelAI"
+            case "novellist":
+                return "NovelList SuperTrin"
+            case "novellist damsel":
+                return "NovelList Damsel"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -79,8 +83,10 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novellist')}}>Novellist</button>
-
+            <Arcodion name="Novellist">
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist')}}>SuperTrin</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist_damsel')}}>Damsel</button>
+            </Arcodion>
             {#if isTauri ||isNodeServer}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('deepai')}}>DeepAI</button>
