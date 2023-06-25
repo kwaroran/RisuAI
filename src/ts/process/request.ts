@@ -142,8 +142,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
-                presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false
             })
