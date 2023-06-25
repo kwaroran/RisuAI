@@ -586,6 +586,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
+            if(response.data.error){
+                return {
+                    'type': 'fail',
+                    'result': `${response.data.error.replace("token", "api key")}`
+                }
+            }
+
             const result = response.data.data[0];
 
             return {
