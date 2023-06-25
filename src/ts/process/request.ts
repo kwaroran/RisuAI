@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, unstringlizeChat } from "./stringlize";
+import { getUnstringlizerChunks, stringlizeAINChat, stringlizeChat, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -573,7 +573,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 top_p: 0.7,
                 tailfree: 1.0,
                 rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
-                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin'
+                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
+                userbadwords: [":","：",": ","： "].join("<<|>>")
             };
 
             const response = await globalFetch(api_server_url + '/api', {

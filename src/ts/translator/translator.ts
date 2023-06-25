@@ -28,16 +28,16 @@ export async function translate(text:string, reverse:boolean) {
         }
     }
 
-    return googleTrans(text, reverse, db.aiModel.startsWith('novellist') ? 'jp' : 'en')
+    return googleTrans(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'jp' : 'en')
 }
 
-async function googleTrans(text:string, reverse:boolean, target:'en'|'jp') {
+async function googleTrans(text:string, reverse:boolean, from:string,target:'en'|'jp') {
     let db = get(DataBase)
     const arg = {
 
-        from: reverse ? db.translator : target,
+        from: reverse ? from : target,
 
-        to: reverse ? target : db.translator,
+        to: reverse ? target : from,
 
         host: 'translate.googleapis.com',
 
@@ -89,5 +89,5 @@ async function jpTrans(text:string) {
     if(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(text)){
         return text
     }
-    return await googleTrans(text,false, 'jp')
+    return await googleTrans(text,false, 'en','jp')
 }
