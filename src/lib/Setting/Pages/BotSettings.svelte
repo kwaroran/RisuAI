@@ -3,7 +3,7 @@
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
-    import { customProviderStore, getCurrentPluginMax } from "src/ts/process/plugins";
+    import { customProviderStore, getCurrentPluginMax } from "src/ts/plugins/plugins";
     import { isTauri } from "src/ts/storage/globalApi";
     import { tokenize } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";

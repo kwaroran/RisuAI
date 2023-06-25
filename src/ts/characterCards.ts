@@ -132,7 +132,7 @@ export async function characterHubImport() {
             const url = new URL(location.href);
             url.searchParams.delete('charahub');
             window.history.pushState(null, '', url.toString());
-            const chara = await fetch("https://api.characterhub.org/api/characters/download", {
+            const chara = await fetch("https://api.chub.ai/api/characters/download", {
                 method: "POST",
                 body: JSON.stringify({
                     "format": "tavern",
