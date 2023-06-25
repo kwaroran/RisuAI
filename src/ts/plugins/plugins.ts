@@ -197,6 +197,7 @@ export async function loadPlugins() {
                 }
                 case "useTranslator": {
                     pluginTranslator = true
+                    break
                 }
                 case "fetch": {
                     postMsgPluginWorker('fetchData',{
@@ -238,11 +239,13 @@ export async function loadPlugins() {
                         id: data.body.id,
                         data: char
                     })
+                    break
                 }
                 case "setChar":{
                     const db = get(DataBase)
                     const charid = get(selectedCharID)
                     db.characters[charid] = data.body
+                    break
                 }
                 case "log":{
                     console.log(data.body)
