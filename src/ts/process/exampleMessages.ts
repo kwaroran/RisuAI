@@ -26,7 +26,8 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             add()
             result.push({
                 role: "system",
-                content: '[Start a new chat]'
+                content: '[Start a new chat]',
+                memo: "NewChatExample"
             })
             currentMessage = null
         }

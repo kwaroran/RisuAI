@@ -98,6 +98,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         formated[i].content = formated[i].name + ": " + formated[i].content
                     }
                     formated[i].name = undefined
+                    delete formated[i].memo
                 }
             }
 
