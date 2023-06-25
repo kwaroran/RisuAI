@@ -28,16 +28,16 @@ export async function translate(text:string, reverse:boolean) {
         }
     }
 
-    return googleTrans(text, reverse)
+    return googleTrans(text, reverse, db.aiModel.startsWith('novellist') ? 'jp' : 'en')
 }
 
-async function googleTrans(text:string, reverse:boolean) {
+async function googleTrans(text:string, reverse:boolean, target:'en'|'jp') {
     let db = get(DataBase)
     const arg = {
 
-        from: reverse ? db.translator : 'en',
+        from: reverse ? db.translator : target,
 
-        to: reverse ? 'en' : db.translator,
+        to: reverse ? target : db.translator,
 
         host: 'translate.googleapis.com',
 
@@ -86,31 +86,8 @@ export async function translateVox(text:string) {
 
 
 async function jpTrans(text:string) {
-
-    const host = 'translate.googleapis.com'
-
-    
-    const url = `https://${host}/translate_a/single?client=gtx&sl=auto&tl=ja&dt=t&q=` + encodeURIComponent(text)
-
-    const f = await fetch(url, {
-
-        method: "GET",
-
-    })
-
-    const res = await f.json()
-
-    if(typeof(res) === 'string'){
-
-        return res as unknown as string
-    
+    if(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(text)){
+        return text
     }
-
-    let result = ''
-
-    if (res[0]) {
-    result = res[0].map((s) => s[0]).filter(Boolean).join('');
-    }
-
-    return result
+    return await googleTrans(text,false, 'jp')
 }
