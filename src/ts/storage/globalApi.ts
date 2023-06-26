@@ -380,7 +380,7 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1"]
 
-export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
+export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
     ok: boolean;
     data: any;
     headers:{[key:string]:string}
@@ -414,7 +414,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         }
     
         const urlHost = (new URL(url)).hostname
-        let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch 
+        let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch || arg.plainFetchForce
         if(forcePlainFetch){
             try {
                 let headers = arg.headers ?? {}

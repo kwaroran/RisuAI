@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { getUnstringlizerChunks, stringlizeAINChat, stringlizeChat, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -35,6 +35,13 @@ type requestDataResponse = {
     special?: {
         emotion?: string
     }
+}|{
+    type: "multiline",
+    result: ['user'|'char',string][],
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
 }
 
 interface OaiFunctions {
@@ -57,7 +64,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     let trys = 0
     while(true){
         const da = await requestChatDataMain(arg, model, abortSignal)
-        if(da.type === 'success' || da.type === 'streaming' || da.noRetry){
+        if(da.type !== 'fail' || da.noRetry){
             return da
         }
         
@@ -574,13 +581,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 tailfree: 1.0,
                 rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
                 model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
-                userbadwords: [":","：",": ","： "].join("<<|>>")
+                userbadwords: ["【質問】"].join("<<|>>")
             };
 
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
                 body: send_body,
+                plainFetchForce: true
             });
 
             if(!response.ok){
@@ -598,10 +606,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             const result = response.data.data[0];
-
+            const unstr = unstringlizeAIN(result, formated, currentChar?.name ?? '')
             return {
-                'type': 'success',
-                'result': unstringlizeChat(result, formated, currentChar?.name ?? '')
+                'type': 'multiline',
+                'result': unstr
             }
         }
         case "deepai":{

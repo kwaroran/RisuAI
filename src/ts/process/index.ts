@@ -433,16 +433,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         await sayTTS(currentChar, result)
     }
     else{
-        const result2 = processScriptFull(nowChatroom, reformatContent(req.result), 'editoutput')
-        result = result2.data
-        emoChanged = result2.emoChanged
-        db.characters[selectedChar].chats[selectedChat].message.push({
-            role: 'char',
-            data: result,
-            saying: currentChar.chaId
-        })
-        await sayTTS(currentChar, result)
-        setDatabase(db)
+        const msgs = req.type === 'success' ? [['char',req.result]] as const : req.type === 'multiline' ? req.result : []
+        for(const msg of msgs){
+            const result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput')
+            result = result2.data
+            emoChanged = result2.emoChanged
+            db.characters[selectedChar].chats[selectedChat].message.push({
+                role: msg[0],
+                data: result,
+                saying: currentChar.chaId
+            })
+            await sayTTS(currentChar, result)
+            setDatabase(db)
+        }
     }
 
     if(req.special){
@@ -547,7 +550,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             maxTokens: 30,
         }, 'submodel')
 
-        if(rq.type === 'fail' || rq.type === 'streaming'){
+        if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
             alertError(`${rq.result}`)
             return true
         }

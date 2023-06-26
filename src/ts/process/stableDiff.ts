@@ -80,7 +80,7 @@ export async function stableDiff(currentChar:character,prompt:string){
     }, 'submodel')
 
 
-    if(rq.type === 'fail' || rq.type === 'streaming'){
+    if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
         alertError(`${rq.result}`)
         return false
     }

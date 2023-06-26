@@ -123,7 +123,7 @@ export async function supaMemory(
                     formated: promptbody,
                     bias: {}
                 }, 'submodel')
-                if(da.type === 'fail' || da.type === 'streaming'){
+                if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
                     return {
                         currentTokens: currentTokens,
                         chats: chats,
