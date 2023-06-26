@@ -310,7 +310,8 @@ export async function loadData() {
             else{
                 let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin')
                 if(checkNullish(gotStorage)){
-                    await forageStorage.setItem('database/database.bin', encodeRisuSave({}))
+                    gotStorage = encodeRisuSave({})
+                    await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
                     setDatabase(
