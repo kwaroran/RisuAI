@@ -199,4 +199,42 @@ function isAPNG(pngData: Uint8Array): boolean {
       }
     }
     return false;
-}  
+}
+
+function wppParser(data:string){
+    const lines = data.split('\n');
+    let characterDetails:{[key:string]:string[]} = {};
+
+    lines.forEach(line => {
+
+        // Check for "{" and "}" indicator of object start and end
+        if(line.includes('{')) return;
+        if(line.includes('}')) return;
+
+        // Extract key and value within brackets
+        let keyBracketStartIndex = line.indexOf('(');
+        let keyBracketEndIndex = line.indexOf(')');
+        
+       if(keyBracketStartIndex === -1 || keyBracketEndIndex === -1) 
+            throw new Error(`Invalid syntax ${line}`);
+        
+       let key = line.substring(0, keyBracketStartIndex).trim();
+
+         // Validate Key    
+         if(!key) throw new Error(`Missing Key in ${line}`);
+
+      const valueArray=line.substring(keyBracketStartIndex + 1, keyBracketEndIndex)
+          .split(',')
+          .map(str => str.trim());
+      
+      // Validate Values
+      for(let i=0;i<valueArray.length ;i++){
+           if(!valueArray[i])
+               throw new Error(`Empty Value in ${line}`);
+              
+     }
+      characterDetails[key] = valueArray;
+   });
+
+   return characterDetails;
+}
