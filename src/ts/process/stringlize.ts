@@ -26,7 +26,7 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string = ''){
     let minIndex = -1
 
-    const chunks = getUnstringlizerChunks(formated, char)
+    const chunks = getUnstringlizerChunks(formated, char).chunks
 
 
     for(const chunk of chunks){
@@ -48,7 +48,10 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
 
 export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:'ain'|'normal' = 'normal'){
     let chunks:string[] = ["system note:", "system:","system note：", "system："]
+    let charNames:string[] = []
+    const db = get(DataBase)
     if(char){
+        charNames.push(char)
         if(mode === 'ain'){
             chunks.push(`${char} `)
             chunks.push(`${char}　`)
@@ -60,9 +63,23 @@ export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:
             chunks.push(`${char}： `) 
         }
     }
+    if(db.username){
+        charNames.push(db.username)
+        if(mode === 'ain'){
+            chunks.push(`${db.username} `)
+            chunks.push(`${db.username}　`)
+        }
+        else{
+            chunks.push(`${db.username}:`)
+            chunks.push(`${db.username}：`)
+            chunks.push(`${db.username}: `)
+            chunks.push(`${db.username}： `) 
+        }
+    }
 
     for(const form of formated){
         if(form.name){
+            charNames.push(form.name)
             if(mode === 'ain'){
                 if(!chunks.includes(`${form.name} `)){
                     chunks.push(`${form.name} `)
@@ -79,7 +96,7 @@ export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:
             }
         }
     }
-    return chunks
+    return {chunks,extChunk:charNames.concat(chunks)}
 }
 
 export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
@@ -159,9 +176,17 @@ function extractAINOutputStrings(inputString:string, characters:string[]) {
 export function unstringlizeAIN(data:string,formated:OpenAIChat[], char:string = ''){
 
     const db = get(DataBase)
-    const chunks = getUnstringlizerChunks(formated, char ,'ain')
+    const chunksResult = getUnstringlizerChunks(formated, char ,'ain')
+    const chunks = chunksResult.chunks
     let result:['char'|'user',string][] = []
     data = `${char} 「` + data
+
+    for(const n of chunksResult.extChunk){
+        if(data.endsWith(n)){
+            data = data.substring(0, data.length - n.length)
+            console.log('trimed')
+        }
+    }
 
     const contents = extractAINOutputStrings(data, chunks)
     for(const cont of contents){

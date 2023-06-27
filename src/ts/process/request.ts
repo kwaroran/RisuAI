@@ -573,22 +573,33 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'Content-Type': 'application/json'
             };
 
+            // const send_body = {
+            //     text: stringlizeAINChat(formated, currentChar?.name ?? ''),
+            //     length: maxTokens,
+            //     temperature: temperature,
+            //     top_p: 0.7,
+            //     tailfree: 1.0,
+            //     rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
+            //     model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
+            //     userbadwords: ["【質問】"].join("<<|>>"),
+            // };
+            
             const send_body = {
                 text: stringlizeAINChat(formated, currentChar?.name ?? ''),
                 length: maxTokens,
-                temperature: temperature,
+                temperature: 0.925,
                 top_p: 0.7,
-                tailfree: 1.0,
-                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
-                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
-                userbadwords: ["【質問】"].join("<<|>>")
-            };
+                rep_pen: 1.0625,
+                top_a: 0.08,
+                rep_pen_slope: 1.7,
 
+                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
+                stoptokens: ["「"].join("<<|>>"),
+            };
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
-                body: send_body,
-                plainFetchForce: true
+                body: send_body
             });
 
             if(!response.ok){

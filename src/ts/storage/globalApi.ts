@@ -458,7 +458,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
             }
         }
         if(isTauri){
-            if(db.requester === 'new'){
+            if(db.requester === 'pure_reqwest'){
                 try {
                     let preHeader = arg.headers ?? {}
                     let body:any
