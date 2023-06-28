@@ -1,8 +1,11 @@
 import { get } from "svelte/store";
-import type { OpenAIChat } from ".";
-import { DataBase, type Chat, type character, type groupChat } from "../storage/database";
-import { tokenize, type ChatTokenizer } from "../tokenizer";
-import { requestChatData } from "./request";
+import type { OpenAIChat } from "..";
+import { DataBase, type Chat, type character, type groupChat } from "../../storage/database";
+import { tokenize, type ChatTokenizer } from "../../tokenizer";
+import { requestChatData } from "../request";
+import { cloneDeep } from "lodash";
+import { HypaProcesser } from "./hypamemory";
+import { stringlizeChat } from "../stringlize";
 
 export async function supaMemory(
         chats:OpenAIChat[],
@@ -10,7 +13,8 @@ export async function supaMemory(
         maxContextTokens:number,
         room:Chat,
         char:character|groupChat,
-        tokenizer:ChatTokenizer
+        tokenizer:ChatTokenizer,
+        arg:{asHyper?:boolean} = {}
     ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
     const db = get(DataBase)
 
@@ -32,33 +36,98 @@ export async function supaMemory(
         }
 
         let supaMemory = ''
+        let hypaChunks:string[] = []
         let lastId = ''
+        let HypaData:HypaData[] = []
 
         if(room.supaMemoryData && room.supaMemoryData.length > 4){
             const splited = room.supaMemoryData.split('\n')
-            const id = splited.splice(0,1)[0]
+            let id = splited.splice(0,1)[0]
             const data = splited.join('\n')
 
-            let i =0;
-            while(true){
-                if(chats.length === 0){
-                    return {
-                        currentTokens: currentTokens,
-                        chats: chats,
-                        error: "SupaMemory: chat ID not found"
-                    }
-                }
-                if(chats[0].memo === id){
-                    lastId = id
-                    break
-                }
-                currentTokens -= await tokenizer.tokenizeChat(chats[0])
-                chats.splice(0, 1)
-                i += 1
-            }
+            if(arg.asHyper && (!id.startsWith("hypa:"))){
+                supaMemory = ""
 
-            supaMemory = data
-            currentTokens += await tokenize(supaMemory)
+            }
+            else{
+                if(id.startsWith("hypa:")){
+                
+                    if((!arg.asHyper)){
+                        return {
+                            currentTokens: currentTokens,
+                            chats: chats,
+                            error: "SupaMemory: Data saved in hypaMemory, loaded as SupaMemory."
+                        }
+                    }
+
+                    HypaData = JSON.parse(data.substring(0,5).trim())
+                    if(!Array.isArray(HypaData)){
+                        return {
+                            currentTokens: currentTokens,
+                            chats: chats,
+                            error: "hypaMemory: hypaMemory isn't Array"
+                        }
+                    }
+
+                    let indexSelected = -1
+                    for(let i=0;i<HypaData.length;i++){
+                        let i =0;
+                        let countTokens  = currentTokens
+                        let countChats = cloneDeep(chats)
+                        while(true){
+                            if(countChats.length === 0){
+                                break
+                            }
+                            if(countChats[0].memo === HypaData[i].id){
+                                lastId = HypaData[i].id
+                                currentTokens = countTokens
+                                chats = countChats
+                                indexSelected = i
+                                break
+                            }
+                            countTokens -= await tokenizer.tokenizeChat(countChats[0])
+                            countChats.splice(0, 1)
+                            i += 1
+                        }
+                        if(indexSelected !== -1){
+                            break
+                        }
+                    }
+                    if(indexSelected === -1){
+                        return {
+                            currentTokens: currentTokens,
+                            chats: chats,
+                            error: "hypaMemory: chat ID not found"
+                        }
+                    }
+
+                    supaMemory = HypaData[indexSelected].supa
+                    hypaChunks = HypaData[indexSelected].hypa
+
+                }
+                else{
+                    let i =0;
+                    while(true){
+                        if(chats.length === 0){
+                            return {
+                                currentTokens: currentTokens,
+                                chats: chats,
+                                error: "SupaMemory: chat ID not found"
+                            }
+                        }
+                        if(chats[0].memo === id){
+                            lastId = id
+                            break
+                        }
+                        currentTokens -= await tokenizer.tokenizeChat(chats[0])
+                        chats.splice(0, 1)
+                        i += 1
+                    }
+        
+                    supaMemory = data
+                    currentTokens += await tokenize(supaMemory)
+                }
+            }
         }
 
 
@@ -135,6 +204,20 @@ export async function supaMemory(
             return result
         }
 
+        let hypaResult = ""
+
+        if(arg.asHyper){
+            const hypa = new HypaProcesser()
+            await hypa.addText(hypaChunks)
+            const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
+            const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
+            hypaResult = s.slice(0,4).join("\n\n")
+            currentTokens += await tokenizer.tokenizeChat({
+                role: "assistant",
+                content: hypaResult
+            })
+        }
+
         while(currentTokens > maxContextTokens){
             const beforeToken = currentTokens
             let maxChunkSize = maxContextTokens > 3500 ? 1200 : Math.floor(maxContextTokens / 3)
@@ -181,7 +264,11 @@ export async function supaMemory(
                 const tokens = await tokenizer.tokenizeChat(cont)
                 if((chunkSize + tokens) > maxChunkSize){
                     if(stringlizedChat === ''){
-                        stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
+                        
+
+                        if(cont.role !== 'function' && cont.role !== 'system'){
+                            stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : db.username}: ${cont.content}\n\n`
+                        }
                     }
                     lastId = cont.memo
                     break
@@ -203,13 +290,67 @@ export async function supaMemory(
                 const tokenz = await tokenize(result + '\n\n')
                 currentTokens += tokenz
                 supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
+
+                let SupaMemoryList = supaMemory.split('\n\n')
+                if(SupaMemoryList.length >= 5){
+                    const oldSupaMemory = supaMemory
+                    let modifies:string[] = []
+                    for(let i=0;i<3;i++){
+                        modifies.push(SupaMemoryList.shift())
+                    }
+                    hypaChunks.push(...modifies)
+
+                    const result = await summarize(supaMemory)
+                    if(typeof(result) !== 'string'){
+                        return result
+                    }
+
+                    modifies.unshift(result.replace(/\n+/g,'\n'))
+                    supaMemory = modifies.join('\n\n') + '\n\n'
+
+                    currentTokens -= await tokenize(oldSupaMemory)
+                    currentTokens += await tokenize(supaMemory)
+                }
             }
         }
 
         chats.unshift({
             role: "system",
-            content: supaMemory
+            content: supaMemory,
+            name: "supaMemory"
         })
+
+        
+
+        if(arg.asHyper){
+            if(hypaResult !== ''){
+                chats.unshift({
+                    role: "assistant",
+                    content: hypaResult
+                })
+            }
+            
+            if(HypaData[0] && HypaData[0].id === lastId){
+                HypaData[0].hypa = hypaChunks
+                HypaData[0].supa = supaMemory
+            }
+            else{
+                HypaData.push({
+                    id: lastId,
+                    hypa: hypaChunks,
+                    supa: supaMemory
+                })
+            }
+
+            return {
+                currentTokens: currentTokens,
+                chats: chats,
+                memory: JSON.stringify(HypaData, null, 2),
+                lastId: lastId
+            }
+
+        }
+
         return {
             currentTokens: currentTokens,
             chats: chats,
@@ -223,4 +364,6 @@ export async function supaMemory(
         chats: chats
     }
 }
+
+type HypaData = {id:string,supa:string,hypa:string[]}
 

@@ -11,7 +11,7 @@ import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull } from "./scripts";
 import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
-import { supaMemory } from "./supaMemory";
+import { supaMemory } from "./memory/supaMemory";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
