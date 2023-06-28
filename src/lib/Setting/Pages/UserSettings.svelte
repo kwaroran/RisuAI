@@ -59,7 +59,7 @@
         </div>
         {#if $DataBase.account}
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
-            {#if $DataBase.useExperimental}
+            <!-- {#if $DataBase.useExperimental}
 
                 <h1 class="text-xl font-bold mt-2">{language.googleDriveConnection} <Help key="experimental"/></h1>
                 {#if !$DataBase.account.data.refresh_token}
@@ -74,7 +74,7 @@
                 {:else}
                     <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveConnected}</span>
                 {/if}
-            {/if}
+            {/if} -->
 
         {:else}
             <span>{language.notLoggedIn}</span>
