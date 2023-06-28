@@ -34,7 +34,7 @@ export class AutoStorage{
                 this.realStorage = new NodeStorage()
                 return
             }
-            else if(window.navigator?.storage?.getDirectory && localStorage.getItem('flag_opfs')){
+            else if(window.navigator?.storage?.getDirectory && localStorage.getItem('opfs_flag!') === "able"){
                 console.log("using opfs storage")
 
                 const forage = localforage.createInstance({
@@ -53,9 +53,8 @@ export class AutoStorage{
                     let i = 0;
                     const opfs = new OpfsStorage()
                     for(const key of keys){
-                        console.log(i)
                         alertStore.set({
-                            type: "none",
+                            type: "wait",
                             msg: `Migrating your data...(${i}/${keys.length})`
                         })
                         await opfs.setItem(key,await forage.getItem(key))

@@ -45,6 +45,15 @@
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
 </div>
+<div class="flex items-center mt-4">
+    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="experimental flags" on:input={(e) => {
+        const v = e.currentTarget.value
+        if(v.endsWith("_flag!")){
+            localStorage.setItem(v, "able")
+            e.currentTarget.value = ""
+        }
+    }}>
+</div>
 <button
     on:click={async () => {
         alertMd(getRequestLog())
