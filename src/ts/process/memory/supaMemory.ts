@@ -202,6 +202,7 @@ export async function supaMemory(
 
         if(arg.asHyper){
             const hypa = new HypaProcesser()
+            hypa.oaikey = db.supaMemoryKey
             await hypa.addText(hypaChunks)
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
             const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
