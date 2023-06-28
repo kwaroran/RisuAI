@@ -109,6 +109,7 @@ let BackupDb:Database = null
 
 export async function syncDrive() {
     BackupDb = cloneDeep(get(DataBase))
+    return
     while(true){
         const maindb = get(DataBase)
         if(maindb?.account?.data?.access_token && maindb?.account?.data?.refresh_token && maindb?.account?.data?.expires_in){
