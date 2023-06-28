@@ -332,7 +332,7 @@ export async function supaMemory(
                 HypaData[0].supa = supaMemory
             }
             else{
-                HypaData.push({
+                HypaData.unshift({
                     id: lastId,
                     hypa: hypaChunks,
                     supa: supaMemory

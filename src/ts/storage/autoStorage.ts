@@ -34,7 +34,9 @@ export class AutoStorage{
                 this.realStorage = new NodeStorage()
                 return
             }
-            else if(window.navigator?.storage?.getDirectory && localStorage.getItem('opfs_flag!') === "able"){
+            else if(window.navigator?.storage?.getDirectory &&
+                    FileSystemFileHandle?.prototype?.createWritable &&
+                    localStorage.getItem('opfs_flag!') === "able"){
                 console.log("using opfs storage")
 
                 const forage = localforage.createInstance({
