@@ -60,8 +60,7 @@ export async function supaMemory(
                             error: "SupaMemory: Data saved in hypaMemory, loaded as SupaMemory."
                         }
                     }
-
-                    HypaData = JSON.parse(data.substring(0,5).trim())
+                    HypaData = JSON.parse(data.trim())
                     if(!Array.isArray(HypaData)){
                         return {
                             currentTokens: currentTokens,
@@ -71,7 +70,7 @@ export async function supaMemory(
                     }
 
                     let indexSelected = -1
-                    for(let i=0;i<HypaData.length;i++){
+                    for(let j=0;j<HypaData.length;j++){
                         let i =0;
                         let countTokens  = currentTokens
                         let countChats = cloneDeep(chats)
@@ -79,11 +78,11 @@ export async function supaMemory(
                             if(countChats.length === 0){
                                 break
                             }
-                            if(countChats[0].memo === HypaData[i].id){
-                                lastId = HypaData[i].id
+                            if(countChats[0].memo === HypaData[j].id){
+                                lastId = HypaData[j].id
                                 currentTokens = countTokens
                                 chats = countChats
-                                indexSelected = i
+                                indexSelected = j
                                 break
                             }
                             countTokens -= await tokenizer.tokenizeChat(countChats[0])
@@ -168,6 +167,8 @@ export async function supaMemory(
                         "temperature": 0
                     }
                 })
+
+                console.log(da)
     
                 result = (await da.data).choices[0].text.trim()
             }
@@ -203,6 +204,7 @@ export async function supaMemory(
         if(arg.asHyper){
             const hypa = new HypaProcesser()
             hypa.oaikey = db.supaMemoryKey
+            hypa.vectors = []
             await hypa.addText(hypaChunks)
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
             const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
@@ -340,7 +342,7 @@ export async function supaMemory(
             return {
                 currentTokens: currentTokens,
                 chats: chats,
-                memory: JSON.stringify(HypaData, null, 2),
+                memory: "hypa:\n" + JSON.stringify(HypaData, null, 2),
                 lastId: lastId
             }
 
