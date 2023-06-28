@@ -55,6 +55,12 @@ export default defineConfig(async () => {
       sourcemap: !!process.env.TAURI_DEBUG,
       chunkSizeWarningLimit: 2000
     },
+    
+    optimizeDeps:{
+      needsInterop:[
+        "@mlc-ai/web-tokenizers"
+      ]
+    },
 
     resolve:{
       alias:{

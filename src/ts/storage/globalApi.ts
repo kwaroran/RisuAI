@@ -1,6 +1,5 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
 import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
-import localforage from 'localforage'
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
@@ -12,23 +11,21 @@ import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertError, alertStore } from "../alert";
+import { alertError } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterHubImport } from "../characterCards";
 import { cloneDeep } from "lodash";
-import { NodeStorage } from "./nodeStorage";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
+import { AutoStorage } from "./autoStorage";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
 //@ts-ignore
 export const isNodeServer = !!globalThis.__NODE__
-export const forageStorage = isNodeServer ? new NodeStorage() : localforage.createInstance({
-    name: "risuai"
-})
+export const forageStorage = new AutoStorage()
 
 interface fetchLog{
     body:string
