@@ -97,7 +97,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4':
         case 'gpt4_32k':
         case 'gpt4_0613':
-        case 'gpt4_32k_0613':{
+        case 'gpt4_32k_0613':
+        case 'gpt35_0301':
+        case 'gpt4_0301':{
 
             for(let i=0;i<formated.length;i++){
                 if(formated[i].role !== 'function'){
@@ -146,7 +148,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : aiModel === 'gpt4' ? 'gpt-4'
                     : aiModel === 'gpt4_32k' ? 'gpt-4-32k'
                     : aiModel === "gpt4_0613" ? 'gpt-4-0613'
-                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613' : '',
+                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
+                    : aiModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
+                    : aiModel === 'gpt4_0301' ? 'gpt-4-0301' : '',
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
