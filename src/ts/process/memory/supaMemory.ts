@@ -208,7 +208,7 @@ export async function supaMemory(
             await hypa.addText(hypaChunks)
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
             const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
-            hypaResult = s.slice(0,4).join("\n\n")
+            hypaResult = s.slice(0,3).join("\n\n")
             currentTokens += await tokenizer.tokenizeChat({
                 role: "assistant",
                 content: hypaResult
@@ -289,7 +289,7 @@ export async function supaMemory(
                 supaMemory += result.replace(/\n+/g,'\n') + '\n\n'
 
                 let SupaMemoryList = supaMemory.split('\n\n')
-                if(SupaMemoryList.length >= 5){
+                if(SupaMemoryList.length >= (arg.asHyper ? 3 : 4)){
                     const oldSupaMemory = supaMemory
                     let modifies:string[] = []
                     for(let i=0;i<3;i++){
