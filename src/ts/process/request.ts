@@ -699,7 +699,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     },
                     headers: {
                         "Content-Type": "application/json",
-                        "x-api-key": db.claudeAPIKey
+                        "x-api-key": db.claudeAPIKey,
+                        "anthropic-version": "2023-06-01",
+                        "accept": "application/json"
                     }
                 })
 

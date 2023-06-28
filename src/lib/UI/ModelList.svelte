@@ -4,6 +4,7 @@
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
+    let openAdv = true
 
     export let value = ""
     export let onChange: (v:string) => void = (v) => {}
@@ -15,12 +16,16 @@
                 return "GPT-3.5 Turbo"
             case "gpt35_0613":
                 return "GPT-3.5 Turbo 0613"
+            case "gpt35_0301":
+                return "GPT-3.5 Turbo 0301"
             case "gpt35_16k":
                 return "GPT-3.5 Turbo 16k"
             case "gpt35_16k_0613":
                 return "GPT-3.5 Turbo 16k 0613"
             case "gpt4":
                 return "GPT-4"
+            case "gpt4_0301":
+                return "GPT-4 0301"
             case "gpt4_32k":
                 return "GPT-4 32k"
             case "gpt4_0613":
@@ -62,25 +67,38 @@
         openOptions = false
     }}>
         <div class="w-96 max-w-full max-h-full overflow-y-auto overflow-x-hidden bg-bgcolor p-4 flex flex-col" on:click|stopPropagation>
-            <h1 class="font-bold text-xl">{language.model}</h1>
+            <h1 class="font-bold text-xl">{language.model}
+                <!-- <button class="float-right text-sm font-light text-gray-500 hover:text-green-300"
+                class:text-green-500={openAdv} on:click={() => {
+                    openAdv = !openAdv
+                }}>
+                    {language.advanced}
+                </button> -->
+            </h1>
             <div class="border-t-1 border-y-selected mt-1 mb-1"></div>
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k_0613')}}>GPT-4 32K 0613</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0301')}}>GPT-3.5 Turbo 0301</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0301')}}>GPT-4 0301</button>
+                {#if openAdv}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k_0613')}}>GPT-4 32K 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0301')}}>GPT-3.5 Turbo 0301</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0301')}}>GPT-4 0301</button>
+                {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1')}}>claude-v1</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1-100k')}}>claude-v1-100k</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1')}}>claude-instant-v1</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1-100k')}}>claude-instant-v1-100k</button>
+                {#if openAdv}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.2')}}>claude-v1.2</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.0')}}>claude-v1.0</button>
+                {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
