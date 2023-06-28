@@ -690,8 +690,10 @@ export function copyPreset(id:number){
     DataBase.set(db)
 }
 
-export function changeToPreset(id =0){
-    saveCurrentPreset()
+export function changeToPreset(id =0, savecurrent = true){
+    if(savecurrent){
+        saveCurrentPreset()
+    }
     let db = get(DataBase)
     let pres = db.botPresets
     const newPres = pres[id]
