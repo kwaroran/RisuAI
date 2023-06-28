@@ -61,6 +61,10 @@ export class AutoStorage{
                         i += 1
                     }
                     this.realStorage = opfs
+                    alertStore.set({
+                        type: "none",
+                        msg: ""
+                    })
                     await forage.setItem("migrated", true)
                     return
                 }
