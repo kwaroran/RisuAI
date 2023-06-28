@@ -6,6 +6,7 @@ import { requestChatData } from "../request";
 import { cloneDeep } from "lodash";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
+import { globalFetch } from "src/ts/storage/globalApi";
 
 export async function supaMemory(
         chats:OpenAIChat[],
@@ -154,28 +155,21 @@ export async function supaMemory(
             if(db.supaMemoryType !== 'subModel'){
                 const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:"
 
-                const da = await fetch("https://api.openai.com/v1/completions",{
+                const da = await globalFetch("https://api.openai.com/v1/completions",{
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + db.supaMemoryKey
                     },
                     method: "POST",
-                    body: JSON.stringify({
+                    body: {
                         "model": db.supaMemoryType === 'curie' ? "text-curie-001" : "text-davinci-003",
                         "prompt": promptbody,
                         "max_tokens": 600,
                         "temperature": 0
-                    })
+                    }
                 })
     
-                if(da.status < 200 || da.status >= 300){
-                    return {
-                        currentTokens: currentTokens,
-                        chats: chats,
-                        error: "SupaMemory: HTTP: " + await da.text()
-                    }
-                }
-                result = (await da.json()).choices[0].text.trim()
+                result = (await da.data).choices[0].text.trim()
             }
             else {
                 const promptbody:OpenAIChat[] = [

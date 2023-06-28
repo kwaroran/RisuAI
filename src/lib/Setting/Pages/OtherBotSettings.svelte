@@ -76,3 +76,8 @@
     <span class="text-neutral-200">{language.SuperMemory} Prompt</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default">
 {/if}
+{#if ($DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie') && $DataBase.useExperimental}
+    <div class="flex">
+        <Check bind:check={$DataBase.hypaMemory} name='Able HypaMemory'/> <Help key="experimental" />
+    </div>
+{/if}

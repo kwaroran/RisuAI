@@ -529,6 +529,7 @@ export interface Database{
     useChatSticker:boolean,
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
+    hypaMemory:boolean
 }
 
 interface hordeConfig{
