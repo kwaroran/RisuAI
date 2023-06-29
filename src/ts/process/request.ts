@@ -750,8 +750,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         ]
                     },
                     "trusted_workers": false,
-                    "slow_workers": true,
-                    "worker_blacklist": false,
+                    "workerslow_workers": true,
+                    "_blacklist": false,
                     "dry_run": false,
                     "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
                 }
