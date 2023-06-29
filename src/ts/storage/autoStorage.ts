@@ -1,11 +1,12 @@
 import localforage from "localforage"
-import { isNodeServer } from "./globalApi"
+import { getUnpargeables, isNodeServer, replaceDbResources } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertConfirm, alertStore } from "../alert"
 import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { AccountStorage } from "./accountStorage"
+import { encodeRisuSave } from "./risuSave";
 
 export class AutoStorage{
     isAccount:boolean = false
@@ -35,20 +36,53 @@ export class AutoStorage{
         return await this.realStorage.removeItem(key)
     }
 
-    checkAccountSync(){
+    async checkAccountSync(){
         let db = get(DataBase)
-        if(db.account?.useSync){
-            console.log("using account storage")
+        if(db.account?.useSync && (localStorage.getItem('accountst') !== 'able')){
+            getUnpargeables(db)
+            console.log("migrating")
+            const keys = await this.realStorage.keys()
+            let i = 0;
+            const accountStorage = new AccountStorage()
+            let replaced:{[key:string]:string} = {}
+            
+            for(const key of keys){
+                alertStore.set({
+                    type: "wait",
+                    msg: `Migrating your data...(${i}/${keys.length})`
+                })
+                const rkey = await accountStorage.setItem(key,await this.realStorage.getItem(key))
+                if(rkey !== key){
+                    replaced[key] = rkey
+                }
+                i += 1
+            }
+
+            const dba = replaceDbResources(db, replaced)
+            await accountStorage.setItem('database/database.bin', encodeRisuSave(dba))
+
+            this.realStorage = accountStorage
+            alertStore.set({
+                type: "none",
+                msg: ""
+            })
+
+            localStorage.setItem('accountst', 'able')
             sessionStorage.setItem('fallbackRisuToken',db.account?.token)
-            this.realStorage = new AccountStorage()
-            this.isAccount = true
             return true
+        }
+        else if(localStorage.getItem('accountst') === 'able'){
+            this.realStorage = new AccountStorage()
         }
         return false
     }
 
     private async Init(){
         if(!this.realStorage){
+            if(localStorage.getItem('accountst') === 'able'){
+                this.realStorage = new AccountStorage()
+                return
+            }
             if(isNodeServer){
                 console.log("using node storage")
                 this.realStorage = new NodeStorage()

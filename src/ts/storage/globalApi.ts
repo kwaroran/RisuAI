@@ -341,7 +341,7 @@ export async function loadData() {
                         throw "Your save file is corrupted"
                     }
                 }
-                if(forageStorage.checkAccountSync()){
+                if(await forageStorage.checkAccountSync()){
                     let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin')
                     if(checkNullish(gotStorage)){
                         gotStorage = encodeRisuSave({})
@@ -710,6 +710,40 @@ export function getUnpargeables(db:Database) {
         }
     }
     return unpargeable
+}
+
+
+export function replaceDbResources(db:Database,replacer:{[key:string]:string}) {
+    let unpargeable:string[] = []
+
+    function replaceData(data:string){
+        if(!data){
+            return data
+        }
+        return replacer[data] ?? data
+    }
+
+    db.customBackground = replaceData(db.customBackground)
+    db.userIcon = replaceData(db.userIcon)
+
+    for(const cha of db.characters){
+        if(cha.image){
+            cha.image = replaceData(cha.image)
+        }
+        if(cha.emotionImages){
+            for(let i=0;i<cha.emotionImages.length;i++){
+                cha.emotionImages[i][1] = replaceData(cha.emotionImages[i][1])
+            }
+        }
+        if(cha.type !== 'group'){
+            if(cha.additionalAssets){
+                for(let i=0;i<cha.additionalAssets.length;i++){
+                    cha.additionalAssets[i][1] = replaceData(cha.additionalAssets[i][1])
+                }
+            }
+        }
+    }
+    return db
 }
 
 async function checkNewFormat() {
