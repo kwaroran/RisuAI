@@ -1,93 +1,73 @@
 import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
+import localforage from "localforage"
 
 export class AccountStorage{
     auth:string
+    usingSync:boolean
 
     async setItem(key:string, value:Uint8Array) {
         await this.checkAuth()
         const da = await fetch(hubURL + '/api/account/write', {
             method: "POST",
-            body: JSON.stringify({
-                content: Buffer.from(value).toString('base64')
-            }),
+            body: value,
             headers: {
                 'content-type': 'application/json',
-                'file-path': Buffer.from(key, 'utf-8').toString('hex'),
-                'risu-auth': this.auth
+                'x-risu-key': key,
+                'x-risu-auth': this.auth ?? sessionStorage.getItem("fallbackRisuToken")
             }
         })
         if(da.status < 200 || da.status >= 300){
-            throw "setItem Error"
+            throw await da.text()
         }
-        const data = await da.json()
-        if(data.error){
-            throw data.error
-        }
+        return await da.text()
     }
     async getItem(key:string):Promise<Buffer> {
-        if(key.startsWith('assets/')){
-            return Buffer.from(await (await fetch(`${hubURL}/resource/` + key)).arrayBuffer())
-        }
         await this.checkAuth()
+        if(key.startsWith('assets/')){
+            const k:ArrayBuffer = await localforage.getItem(key)
+            if(k){
+                return Buffer.from(k)
+            }
+        }
         const da = await fetch(hubURL + '/api/account/read', {
             method: "GET",
             headers: {
-                'file-path': Buffer.from(key, 'utf-8').toString('hex'),
-                'risu-auth': this.auth
+                'x-risu-key': key,
+                'x-risu-auth': this.auth ?? sessionStorage.getItem("fallbackRisuToken")
             }
         })
-        const data = await da.json()
         if(da.status < 200 || da.status >= 300){
-            throw "getItem Error"
+            throw await da.text()
         }
-        if(data.error){
-            throw data.error
-        }
-        if(data.content === null){
+        if(da.status === 204){
             return null
         }
-        return Buffer.from(data.content, 'base64')
+        const ab = await da.arrayBuffer()
+        if(key.startsWith('assets/')){
+            await localforage.setItem(key, ab)
+        }
+        return Buffer.from(ab)
     }
     async keys():Promise<string[]>{
-        await this.checkAuth()
-        const da = await fetch(hubURL + '/api/account/list', {
-            method: "GET",
-            headers:{
-                'risu-auth': this.auth
-            }
-        })
-        const data = await da.json()
-        if(da.status < 200 || da.status >= 300){
-            throw "listItem Error"
-        }
-        if(data.error){
-            throw data.error
-        }
-        return data.content
+        throw "Error: You cannot list in account. report this to dev if you found this."
     }
     async removeItem(key:string){
-        await this.checkAuth()
-        const da = await fetch(hubURL + '/api/account/remove', {
-            method: "GET",
-            headers: {
-                'file-path': Buffer.from(key, 'utf-8').toString('hex'),
-                'risu-auth': this.auth
-            }
-        })
-        if(da.status < 200 || da.status >= 300){
-            throw "removeItem Error"
-        }
-        const data = await da.json()
-        if(data.error){
-            throw data.error
-        }
+        throw "Error: You remove data in account. report this to dev if you found this."
     }
 
     private async checkAuth(){
-        this.auth = get(DataBase)?.account?.token
-
+        const db = get(DataBase)
+        this.auth = db?.account?.token
+        if(!this.auth){
+            db.account = {
+                id: "",
+                token: sessionStorage.getItem("fallbackRisuToken"),
+                useSync: true,
+                data: {}
+            }
+        }
     }
 
 

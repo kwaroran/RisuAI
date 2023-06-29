@@ -275,8 +275,12 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
     const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
     let foragekeys:string[] = []
     let loadedForageKeys = false
+    let db = get(DataBase)
 
     async function checkImageExists(images:string) {
+        if(db?.account?.useSync){
+            return false
+        }
         if(isTauri){
             return await exists(`assets/` + images, {dir: BaseDirectory.AppData})
         }

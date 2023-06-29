@@ -3,14 +3,22 @@ import { isNodeServer } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertConfirm, alertStore } from "../alert"
+import { get } from "svelte/store"
+import { DataBase } from "./database"
+import { AccountStorage } from "./accountStorage"
 
 export class AutoStorage{
+    isAccount:boolean = false
 
-    realStorage:LocalForage|NodeStorage|OpfsStorage
+    realStorage:LocalForage|NodeStorage|OpfsStorage|AccountStorage
 
-    async setItem(key:string, value:Uint8Array) {
+    async setItem(key:string, value:Uint8Array):Promise<string|null> {
         await this.Init()
-        return await this.realStorage.setItem(key, value)
+        if(this.isAccount){
+            return await (this.realStorage as AccountStorage).setItem(key, value)
+        }
+        await this.realStorage.setItem(key, value)
+        return null
     }
     async getItem(key:string):Promise<Buffer> {
         await this.Init()
@@ -25,6 +33,18 @@ export class AutoStorage{
     async removeItem(key:string){
         await this.Init()
         return await this.realStorage.removeItem(key)
+    }
+
+    checkAccountSync(){
+        let db = get(DataBase)
+        if(db.account?.useSync){
+            console.log("using account storage")
+            sessionStorage.setItem('fallbackRisuToken',db.account?.token)
+            this.realStorage = new AccountStorage()
+            this.isAccount = true
+            return true
+        }
+        return false
     }
 
     private async Init(){

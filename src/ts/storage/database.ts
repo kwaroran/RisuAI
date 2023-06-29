@@ -523,6 +523,7 @@ export interface Database{
             access_token?:string
             expires_in?: number
         }
+        useSync?:boolean
     },
     classicMaxWidth: boolean,
     useChatSticker:boolean,

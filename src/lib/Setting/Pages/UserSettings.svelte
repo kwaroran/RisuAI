@@ -1,11 +1,10 @@
 <script lang="ts">
     import { language } from "src/lang";
-  import Help from "src/lib/Others/Help.svelte";
     import { hubURL } from "src/ts/characterCards";
     import { getCharImage, selectUserImg } from "src/ts/characters";
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
-    import { checkDriver } from "src/ts/drive/drive";
     import { DataBase } from "src/ts/storage/database";
+    import Check from "src/lib/Others/Check.svelte";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -59,22 +58,11 @@
         </div>
         {#if $DataBase.account}
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
-            <!-- {#if $DataBase.useExperimental}
-
-                <h1 class="text-xl font-bold mt-2">{language.googleDriveConnection} <Help key="experimental"/></h1>
-                {#if !$DataBase.account.data.refresh_token}
-                    <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveInfo}</span>
-                    <button class="bg-selected p-2 rounded-md hover:bg-green-500 transition-colors" on:click={async () => {
-                        if((!popup) || popup.closed){
-                            popup = window.open(await checkDriver('reftoken'))                    
-                        }
-                    }}>
-                        Connect to Google Drive
-                    </button>
-                {:else}
-                    <span class="text-sm font-light mb-2 text-gray-400">{language.googleDriveConnected}</span>
-                {/if}
-            {/if} -->
+            {#if $DataBase.useExperimental && localStorage.getItem('ac_flag!') === "able"}
+                <div class="flex items-center mt-2">
+                    <Check bind:check={$DataBase.account.useSync} name='Sync Data between Devices'/>
+                </div>
+            {/if}
 
         {:else}
             <span>{language.notLoggedIn}</span>

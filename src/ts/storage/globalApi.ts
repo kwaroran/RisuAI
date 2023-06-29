@@ -14,7 +14,7 @@ import { loadPlugins } from "../plugins/plugins";
 import { alertError } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
-import { characterHubImport } from "../characterCards";
+import { characterHubImport, hubURL } from "../characterCards";
 import { cloneDeep } from "lodash";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
@@ -188,8 +188,13 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
         return `assets/${id}.${fileExtension}`
     }
     else{
-        await forageStorage.setItem(`assets/${id}.${fileExtension}`, data)
-        return `assets/${id}.${fileExtension}`
+        let form = `assets/${id}.${fileExtension}`
+        const replacer = await forageStorage.setItem(form, data)
+        if(replacer){
+            console.log(replacer)
+            return replacer
+        }
+        return form
     }
 }
 
@@ -212,7 +217,9 @@ export async function saveDb(){
             }
             else{
                 await forageStorage.setItem('database/database.bin', dbData)
-                await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                if(!forageStorage.isAccount){
+                    await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                }
             }
             await getDbBackups()
         }
@@ -222,6 +229,10 @@ export async function saveDb(){
 
 
 async function getDbBackups() {
+    let db = get(DataBase)
+    if(db?.account?.useSync){
+        return
+    }
     if(isTauri){
         const keys = await readDir('database', {dir: BaseDirectory.AppData})
         let backups:number[] = []
@@ -328,6 +339,33 @@ export async function loadData() {
                     }
                     if(!backupLoaded){
                         throw "Your save file is corrupted"
+                    }
+                }
+                if(forageStorage.checkAccountSync()){
+                    let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin')
+                    if(checkNullish(gotStorage)){
+                        gotStorage = encodeRisuSave({})
+                        await forageStorage.setItem('database/database.bin', gotStorage)
+                    }
+                    try {
+                        setDatabase(
+                            decodeRisuSave(gotStorage)
+                        )
+                    } catch (error) {
+                        const backups = await getDbBackups()
+                        let backupLoaded = false
+                        for(const backup of backups){
+                            try {
+                                const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`)
+                                setDatabase(
+                                    decodeRisuSave(backupData)
+                                )
+                                backupLoaded = true
+                            } catch (error) {}
+                        }
+                        if(!backupLoaded){
+                            throw "Your save file is corrupted"
+                        }
                     }
                 }
                 const isDriverMode = await checkDriverInit()
@@ -797,6 +835,9 @@ export function checkCharOrder() {
 
 async function pargeChunks(){
     const db = get(DataBase)
+    if(db.account?.useSync){
+        return
+    }
 
     const unpargeable = getUnpargeables(db)
     if(isTauri){
