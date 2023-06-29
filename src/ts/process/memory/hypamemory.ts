@@ -12,6 +12,7 @@ export class HypaProcesser{
         this.forage = localforage.createInstance({
             name: "hypaVector"
         })
+        this.vectors = []
     }
 
     async embedDocuments(texts: string[]): Promise<number[][]> {
@@ -69,7 +70,7 @@ export class HypaProcesser{
         }
 
         texts = texts.filter((v) => {
-            for(let i=0;i<vectors.length;i++){
+            for(let i=0;i<this.vectors.length;i++){
                 if(this.vectors[i].content === v){
                     return false
                 }
@@ -100,6 +101,7 @@ export class HypaProcesser{
     async similaritySearch(query: string) {
         const results = await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
     
+        console.log(results)
         return results.map((result) => result[0]);
     }
 

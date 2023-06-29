@@ -38,7 +38,6 @@
     }
 
     async function loadTokenize(chara){
-        console.log('tokenize')
         const cha = chara
         if(cha.type !== 'group'){
             if(lasttokens.desc !== cha.desc){

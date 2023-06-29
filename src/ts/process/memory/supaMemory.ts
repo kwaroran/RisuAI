@@ -205,10 +205,12 @@ export async function supaMemory(
             const hypa = new HypaProcesser()
             hypa.oaikey = db.supaMemoryKey
             hypa.vectors = []
-            await hypa.addText(hypaChunks)
+            await hypa.addText(hypaChunks.filter((value, index, self) => {
+                return self.indexOf(value) === index;
+            }))
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
             const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
-            hypaResult = s.slice(0,3).join("\n\n")
+            hypaResult = "past events: " + s.slice(0,3).join("\n")
             currentTokens += await tokenizer.tokenizeChat({
                 role: "assistant",
                 content: hypaResult
