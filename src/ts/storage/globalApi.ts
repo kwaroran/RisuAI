@@ -87,7 +87,7 @@ export async function getFileSrc(loc:string) {
     }
     try {
 
-        if(forageStorage.isAccount){
+        if(forageStorage.isAccount && loc.startsWith('assets')){
             return hubURL + `/rs/` + loc
         }
         if(usingSw){
