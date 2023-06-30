@@ -2,42 +2,53 @@ import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
+import { alertLogin } from "../alert"
 
 export class AccountStorage{
     auth:string
     usingSync:boolean
 
     async setItem(key:string, value:Uint8Array) {
-        await this.checkAuth()
-        const da = await fetch(hubURL + '/api/account/write', {
-            method: "POST",
-            body: value,
-            headers: {
-                'content-type': 'application/json',
-                'x-risu-key': key,
-                'x-risu-auth': this.auth ?? sessionStorage.getItem("fallbackRisuToken")
-            }
-        })
+        this.checkAuth()
+        let da:Response
+        while((!da) || da.status === 403){
+            da = await fetch(hubURL + '/api/account/write', {
+                method: "POST",
+                body: value,
+                headers: {
+                    'content-type': 'application/json',
+                    'x-risu-key': key,
+                    'x-risu-auth': this.auth
+                }
+            })
+            localStorage.setItem("fallbackRisuToken",await alertLogin())
+            this.checkAuth()
+        }
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
         }
         return await da.text()
     }
     async getItem(key:string):Promise<Buffer> {
-        await this.checkAuth()
+        this.checkAuth()
         if(key.startsWith('assets/')){
             const k:ArrayBuffer = await localforage.getItem(key)
             if(k){
                 return Buffer.from(k)
             }
         }
-        const da = await fetch(hubURL + '/api/account/read', {
-            method: "GET",
-            headers: {
-                'x-risu-key': key,
-                'x-risu-auth': this.auth ?? sessionStorage.getItem("fallbackRisuToken")
-            }
-        })
+        let da:Response
+        while((!da) || da.status === 403){
+            da = await fetch(hubURL + '/api/account/read', {
+                method: "GET",
+                headers: {
+                    'x-risu-key': key,
+                    'x-risu-auth': this.auth
+                }
+            })
+            localStorage.setItem("fallbackRisuToken",await alertLogin())
+            this.checkAuth()
+        }
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
         }
@@ -57,16 +68,12 @@ export class AccountStorage{
         throw "Error: You remove data in account. report this to dev if you found this."
     }
 
-    private async checkAuth(){
+    private checkAuth(){
         const db = get(DataBase)
         this.auth = db?.account?.token
         if(!this.auth){
-            db.account = {
-                id: "",
-                token: sessionStorage.getItem("fallbackRisuToken"),
-                useSync: true,
-                data: {}
-            }
+            db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
+            this.auth = db?.account?.token
         }
     }
 

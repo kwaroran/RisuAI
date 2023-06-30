@@ -86,6 +86,10 @@ export async function getFileSrc(loc:string) {
         return convertFileSrc(loc)
     }
     try {
+
+        if(forageStorage.isAccount){
+            return hubURL + `/rs/` + loc
+        }
         if(usingSw){
             const encoded = Buffer.from(loc,'utf-8').toString('hex')
             let ind = fileCache.origin.indexOf(loc)

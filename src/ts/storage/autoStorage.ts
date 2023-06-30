@@ -38,6 +38,9 @@ export class AutoStorage{
 
     async checkAccountSync(){
         let db = get(DataBase)
+        if(this.isAccount){
+            return true
+        }
         if(db.account?.useSync && (localStorage.getItem('accountst') !== 'able')){
             getUnpargeables(db)
             console.log("migrating")
@@ -68,11 +71,13 @@ export class AutoStorage{
             })
 
             localStorage.setItem('accountst', 'able')
-            sessionStorage.setItem('fallbackRisuToken',db.account?.token)
+            localStorage.setItem('fallbackRisuToken',JSON.stringify(db.account))
+            this.isAccount = true
             return true
         }
         else if(localStorage.getItem('accountst') === 'able'){
             this.realStorage = new AccountStorage()
+            this.isAccount = true
         }
         return false
     }
@@ -81,6 +86,7 @@ export class AutoStorage{
         if(!this.realStorage){
             if(localStorage.getItem('accountst') === 'able'){
                 this.realStorage = new AccountStorage()
+                this.isAccount = true
                 return
             }
             if(isNodeServer){

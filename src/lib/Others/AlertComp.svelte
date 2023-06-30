@@ -6,6 +6,7 @@
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
     import { User } from 'lucide-svelte';
+  import { hubURL } from 'src/ts/characterCards';
     let btn
     let input = ''
 
@@ -24,6 +25,17 @@
         console.log('alup')
     })
 </script>
+
+<svelte:window on:message={async (e) => {
+    if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1")){
+        if(e.data.msg.data.vaild && $alertStore.type === 'login'){
+            $alertStore = {
+                type: 'none',
+                msg: JSON.stringify(e.data.msg)
+            }
+        }
+    }
+}}></svelte:window>
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast'}
     <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
@@ -86,6 +98,11 @@
                         msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</button>
+            {:else if $alertStore.type === 'login'}
+                <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
+                    <iframe src={hubURL + '/hub/login'} title="login" class="w-full h-full">
+                    </iframe>
+                </div>
             {:else if $alertStore.type === 'selectChar'}
                 <div class="flex w-full items-start flex-wrap gap-2 justify-start">
                     {#each $DataBase.characters as char, i}

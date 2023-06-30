@@ -3,7 +3,7 @@ import { sleep } from "./util"
 import { language } from "../lang"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'
     msg: string
 }
 
@@ -27,6 +27,21 @@ export function alertNormal(msg:string){
         'type': 'normal',
         'msg': msg
     })
+}
+
+export async function alertLogin(){
+    alertStore.set({
+        'type': 'login',
+        'msg': 'login'
+    })
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+
+    return get(alertStore).msg
 }
 
 export async function alertSelect(msg:string[]){
