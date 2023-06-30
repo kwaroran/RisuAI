@@ -179,7 +179,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
         mode === 'global' ? db.characters[selectedID].globalLore : 
         mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
         db.characters[selectedID].chats[page].localLore
-    const lorebook = (await selectSingleFile(['json'])).data
+    const lorebook = (await selectSingleFile(['json', 'lorebook'])).data
     if(!lorebook){
         return
     }
@@ -207,17 +207,27 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
                 entry:string
                 secondary_keys:string[]
                 selective:boolean
+                forceActivation:boolean
+                keys:string[]
+                displayName:string
+                text:string
+                contextConfig?: {
+                    budgetPriority:number
+                    prefix:string
+                    suffix:string
+                }
             }} = importedlore.entries
             for(const key in entries){
                 const currentLore = entries[key]
                 lore.push({
                     key: currentLore.key ? currentLore.key.join(', ') :
+                        currentLore.keys ? currentLore.keys.join(', ') :
                         currentLore.keywords ? currentLore.keywords.join(', ') : '',
-                    insertorder: currentLore.order ?? currentLore.priority ?? 0,
-                    comment: currentLore.comment || currentLore.name || '',
-                    content: currentLore.content || currentLore.entry || '',
+                    insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
+                    comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
+                    content: currentLore.content || currentLore.entry || currentLore.text || '',
                     mode: "normal",
-                    alwaysActive: currentLore.constant ?? false,
+                    alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
                     secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
                     selective: currentLore.selective ?? false
                 })
