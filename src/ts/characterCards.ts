@@ -228,85 +228,9 @@ export async function exportChar(charaID:number) {
         return
     }
 
-    const sel = await alertSelect(['Export as Spec V2','Export as Old RisuCard'])
-    if(sel === '0'){
-        exportSpecV2(char)
-        return
-    }
-
-    alertStore.set({
-        type: 'wait',
-        msg: 'Loading...'
-    })
-
-    let img = await readImage(char.image)
-
-    try{
-        if(char.emotionImages && char.emotionImages.length > 0){
-            for(let i=0;i<char.emotionImages.length;i++){
-                alertStore.set({
-                    type: 'wait',
-                    msg: `Loading... (Getting Emotions ${i} / ${char.emotionImages.length})`
-                })
-                const rData = await readImage(char.emotionImages[i][1])
-                char.emotionImages[i][1] = rData as any
-            }
-        }
-    
-        char.chats = []
-
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Compressing)'
-        })
-
-        await sleep(10)
-
-        const data = Buffer.from(encodeMsgpack({
-            data: char,
-            type: 101
-        })).toString('base64')
-
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Writing Exif)'
-        })
-
-        const tavernData:OldTavernChar = {
-            avatar: "none",
-            chat: "",
-            create_date: `${Date.now()}`,
-            description: char.desc,
-            first_mes: char.firstMessage,
-            mes_example: char.exampleMessage ?? "<START>",
-            name: char.name,
-            personality: char.personality ?? "",
-            scenario: char.scenario ?? "",
-            talkativeness: "0.5"
-        }
-
-        await sleep(10)
-        img = PngMetadata.write(img, {
-            'chara': Buffer.from(JSON.stringify(tavernData)).toString('base64'),
-            'risuai': data
-        })
-
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Writing)'
-        })
-        
-        char.image = ''
-        await sleep(10)
-        await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.png`, img)
-
-        alertNormal(language.successExport)
-
-    }
-    catch(e){
-        alertError(`${e}`)
-    }
-
+    const sel = await alertSelect(['Export as PNG', 'Export as JSON'])
+    exportSpecV2(char, sel === '1' ? 'json' : 'png')
+    return
 }
 
 
@@ -525,7 +449,7 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportSpecV2(char:character) {
+export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
     let img = await readImage(char.image)
 
     try{
@@ -553,7 +477,13 @@ export async function exportSpecV2(char:character) {
                 char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
-    
+        
+        if(type === 'json'){
+            await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.json`, Buffer.from(JSON.stringify(card, null, 4), 'utf-8'))
+            alertNormal(language.successExport)
+            return
+        }
+
         alertStore.set({
             type: 'wait',
             msg: 'Loading... (Writing Exif)'
