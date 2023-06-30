@@ -46,8 +46,10 @@ export class AccountStorage{
                     'x-risu-auth': this.auth
                 }
             })
-            localStorage.setItem("fallbackRisuToken",await alertLogin())
-            this.checkAuth()
+            if(da.status === 403){
+                localStorage.setItem("fallbackRisuToken",await alertLogin())
+                this.checkAuth()
+            }
         }
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
