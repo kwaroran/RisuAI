@@ -14,7 +14,6 @@ use std::time::Duration;
 use serde_json::json;
 use std::collections::HashMap;
 
-
 #[tauri::command]
 async fn native_request(url: String, body: String, header: String, method:String) -> String {
     let headers_json: Value = match serde_json::from_str(&header) {

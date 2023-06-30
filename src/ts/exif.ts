@@ -38,16 +38,20 @@ export const PngMetadata = {
         return encoded
     },
     filter: (pngBuffer: Uint8Array) => {
-        let chunks:{
-            name:string
-            data:Uint8Array
-        }[] = extract(Buffer.from(pngBuffer));
-
-        chunks = chunks.filter((v) => {
-            return v.name.toLocaleLowerCase() !== 'text'
-        })
-
-        const encoded = encode(chunks);
-        return encoded
+        try {
+            let chunks:{
+                name:string
+                data:Uint8Array
+            }[] = extract(Buffer.from(pngBuffer));
+    
+            chunks = chunks.filter((v) => {
+                return v.name.toLocaleLowerCase() !== 'text'
+            })
+    
+            const encoded = encode(chunks);
+            return encoded   
+        } catch (error) {
+            return pngBuffer
+        }
     }
 }

@@ -13,7 +13,7 @@ import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage } from "./parser"
 
-export const hubURL = import.meta.env.DEV ? "http://127.0.0.1:8787" : "https://sv.risuai.xyz"
+export const hubURL = "https://sv.risuai.xyz"
 
 export async function importCharacter() {
     try {
@@ -720,7 +720,10 @@ export async function downloadRisuHub(id:string) {
             characterFormatUpdate(index);
             selectedCharID.set(index);
         }   
-    } catch (error) {alertError("Error while importing")}
+    } catch (error) {
+        console.error(error)
+        alertError("Error while importing")
+    }
 }
 
 export async function getHubResources(id:string) {
