@@ -210,7 +210,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
-                if(da.headers.get('Content-Type') !== 'text/event-stream'){
+                if (!da.headers.get('Content-Type').includes('text/event-stream')){
                     return {
                         type: "fail",
                         result: await da.text()
