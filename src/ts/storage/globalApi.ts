@@ -624,7 +624,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }   
                 }
                 else{
-                    const furl = `/proxy?url=${encodeURIComponent(url)}`
+                    const furl = (((!isNodeServer) && (!isTauri)) ? hubURL : '') +  `/proxy?url=${encodeURIComponent(url)}`
     
                     const da = await fetch(furl, {
                         body: body,
