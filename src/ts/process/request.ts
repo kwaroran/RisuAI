@@ -7,6 +7,7 @@ import { stringlizeAINChat, stringlizeChat, unstringlizeAIN, unstringlizeChat } 
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
+import { hubURL } from "../characterCards";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -180,7 +181,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 const da =  ((!isTauri) && (!isNodeServer))
-                    ? await fetch(`/proxy?url=${encodeURIComponent(replacerURL)}`, {
+                    ? await fetch(hubURL + `/proxy?url=${encodeURIComponent(replacerURL)}`, {
                         body: JSON.stringify(body),
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify({
