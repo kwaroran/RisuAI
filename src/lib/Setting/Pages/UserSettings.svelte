@@ -60,7 +60,7 @@
         </div>
         {#if $DataBase.account}
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
-            {#if $DataBase.useExperimental && (!isTauri)}
+            {#if !isTauri}
                 <div class="flex items-center mt-2">
                     {#if $DataBase.account.useSync}
                         <span>{language.dataSavingInAccount}</span>
