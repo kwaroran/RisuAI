@@ -45,7 +45,7 @@ export class AccountStorage{
         }
         let da:Response
         while((!da) || da.status === 403){
-            da = await fetch(hubURL + '/api/account/read/' + Buffer.from(key ,'utf-8').toString('base64url'), {
+            da = await fetch(hubURL + '/api/account/read/' + Buffer.from(key ,'utf-8').toString('hex'), {
                 method: "GET",
                 headers: {
                     'x-risu-key': key,
