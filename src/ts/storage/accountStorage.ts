@@ -3,6 +3,7 @@ import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
 import { alertLogin } from "../alert"
+import { getUnpargeables } from "./globalApi"
 
 export class AccountStorage{
     auth:string
@@ -21,6 +22,9 @@ export class AccountStorage{
                     'x-risu-auth': this.auth
                 }
             })
+            if(da.status === 304){
+                return key
+            }
             if(da.status === 403){
                 localStorage.setItem("fallbackRisuToken",await alertLogin())
                 this.checkAuth()
@@ -66,10 +70,11 @@ export class AccountStorage{
         return Buffer.from(ab)
     }
     async keys():Promise<string[]>{
-        throw "Error: You cannot list in account. report this to dev if you found this."
+        let db = get(DataBase)
+        return getUnpargeables(db, 'pure')
     }
     async removeItem(key:string){
-        throw "Error: You remove data in account. report this to dev if you found this."
+        throw "Error: You cannot remove data in account. report this to dev if you found this."
     }
 
     private checkAuth(){
@@ -78,6 +83,7 @@ export class AccountStorage{
         if(!this.auth){
             db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
             this.auth = db?.account?.token
+            db.account.useSync = true
         }
     }
 

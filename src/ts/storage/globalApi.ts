@@ -677,7 +677,7 @@ function getBasename(data:string){
     return lasts
 }
 
-export function getUnpargeables(db:Database) {
+export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basename') {
     let unpargeable:string[] = []
 
     function addUnparge(data:string){
@@ -687,9 +687,9 @@ export function getUnpargeables(db:Database) {
         if(data === ''){
             return
         }
-        const bn = getBasename(data)
+        const bn = uptype === 'basename' ? getBasename(data) : data
         if(!unpargeable.includes(bn)){
-            unpargeable.push(getBasename(data))
+            unpargeable.push(bn)
         }
     }
 

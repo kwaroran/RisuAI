@@ -319,6 +319,10 @@ export const languageEnglish = {
     notLoggedIn: "Not Logged in to Risu Account",
     googleDriveInfo: "Connect to google drive to sync your data.",
     googleDriveConnection: "Google Drive Connection",
-    googleDriveConnected: "Google Drive Connected"
-
+    googleDriveConnected: "Google Drive Connected",
+    SaveDataInAccount: "Save Data in Account",
+    dataSavingInAccount: "Saving Data in Account",
+    logout: "Logout",
+    loadDataFromAccount: "Load Data from Account",
+    saveCurrentDataToAccount: "Save Current Data to Account"
 }

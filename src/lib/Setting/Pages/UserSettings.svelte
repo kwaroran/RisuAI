@@ -5,6 +5,8 @@
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/Others/Check.svelte";
+  import { alertSelect } from "src/ts/alert";
+  import { isTauri } from "src/ts/storage/globalApi";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -53,14 +55,23 @@
             <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
                 <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
                     $DataBase.account = undefined
-                }}>Logout</button>
+                }}>{language.logout}</button>
             {/if}</h1>
         </div>
         {#if $DataBase.account}
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
-            {#if $DataBase.useExperimental && localStorage.getItem('ac_flag!') === "able"}
+            {#if $DataBase.useExperimental && (!isTauri)}
                 <div class="flex items-center mt-2">
-                    <Check bind:check={$DataBase.account.useSync} name='Sync Data between Devices'/>
+                    {#if $DataBase.account.useSync}
+                        <span>{language.dataSavingInAccount}</span>
+                    {:else}
+                        <Check check={false} name={language.SaveDataInAccount} onChange={(v) => {
+                            if(v){
+                                localStorage.setItem('dosync', 'sync')
+                                location.reload()
+                            }
+                        }}/>
+                    {/if}
                 </div>
             {/if}
 

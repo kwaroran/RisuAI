@@ -2,11 +2,12 @@ import localforage from "localforage"
 import { getUnpargeables, isNodeServer, replaceDbResources } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
-import { alertConfirm, alertStore } from "../alert"
+import { alertConfirm, alertSelect, alertStore } from "../alert"
 import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { AccountStorage } from "./accountStorage"
 import { encodeRisuSave } from "./risuSave";
+import { language } from "src/lang"
 
 export class AutoStorage{
     isAccount:boolean = false
@@ -41,12 +42,28 @@ export class AutoStorage{
         if(this.isAccount){
             return true
         }
-        if(db.account?.useSync && (localStorage.getItem('accountst') !== 'able')){
+        if((localStorage.getItem('dosync') === 'sync' || db.account?.useSync) && (localStorage.getItem('accountst') !== 'able')){
             getUnpargeables(db)
             console.log("migrating")
             const keys = await this.realStorage.keys()
             let i = 0;
             const accountStorage = new AccountStorage()
+
+            const a = accountStorage.getItem('database/database.bin')
+            if(a){
+                const sel = await alertSelect([language.loadDataFromAccount, language.saveCurrentDataToAccount])
+                if(sel === "0"){
+                    this.realStorage = accountStorage
+                    alertStore.set({
+                        type: "none",
+                        msg: ""
+                    })
+                    localStorage.setItem('accountst', 'able')
+                    localStorage.setItem('fallbackRisuToken',JSON.stringify(db.account))
+                    this.isAccount = true
+                    return true
+                }
+            }
             let replaced:{[key:string]:string} = {}
             
             for(const key of keys){
