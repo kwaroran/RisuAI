@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { appVer } from "src/ts/storage/database";
+  import { appVer, webAppSubVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Hub.svelte";
   import { sideBarStore } from "src/ts/stores";
   import { ArrowLeft } from "lucide-svelte";
-  import { openURL } from "src/ts/storage/globalApi";
+  import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
   import { language } from "src/lang";
   import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./RisuHubIcon.svelte";
@@ -13,7 +13,11 @@
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !openHub}
       <h2 class="text-4xl text-white mb-0 mt-6 font-black">RisuAI</h2>
-      <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
+      {#if (!isTauri) && (!isNodeServer)}
+        <h3 class="text-gray-500 mt-1">Version {appVer}{webAppSubVer}</h3>
+      {:else}
+        <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
+      {/if}
       <GithubStars />
     {/if}
     <div class="w-full flex p-4 flex-col text-white max-w-4xl">

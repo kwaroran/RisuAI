@@ -3,7 +3,7 @@ import { language } from "../../lang";
 import { alertError } from "../alert";
 import { DataBase } from "../storage/database";
 import { checkNullish, selectSingleFile, sleep } from "../util";
-import type { OpenAIChat } from ".";
+import type { OpenAIChat } from "../process";
 import { globalFetch } from "../storage/globalApi";
 import { selectedCharID } from "../stores";
 

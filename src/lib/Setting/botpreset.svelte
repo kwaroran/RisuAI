@@ -1,8 +1,9 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, changeToPreset, copyPreset, presetTemplate } from "../../ts/storage/database";
-    import { CopyIcon, EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset, presetTemplate } from "../../ts/storage/database";
+    import { CopyIcon, DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+  import { cloneDeep } from "lodash";
 
     let editMode = false
     export let close = () => {}
@@ -41,6 +42,13 @@
                     }}>
                         <CopyIcon size={18}/>
                     </button>
+                    <button class="text-gray-500 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                        e.stopPropagation()
+                        downloadPreset(i)
+                    }}>
+
+                        <DownloadIcon size={18} />
+                    </button>
                     <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($DataBase.botPresets.length === 1){
@@ -63,13 +71,18 @@
         <div class="flex mt-2 items-center">
             <button class="text-gray-500 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
                 let botPresets = $DataBase.botPresets
-                let newPreset = JSON.parse(JSON.stringify(presetTemplate))
+                let newPreset = cloneDeep(presetTemplate)
                 newPreset.name = `New Preset`
                 botPresets.push(newPreset)
 
                 $DataBase.botPresets = botPresets
             }}>
                 <PlusIcon/>
+            </button>
+            <button class="text-gray-500 hover:text-green-500 mr-2 cursor-pointer" on:click={() => {
+                importPreset()
+            }}>
+                <FolderUpIcon size={18}/>
             </button>
             <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={() => {
                 editMode = !editMode

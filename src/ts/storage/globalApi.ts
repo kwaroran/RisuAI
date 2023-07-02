@@ -11,7 +11,7 @@ import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
-import { loadPlugins } from "../process/plugins";
+import { loadPlugins } from "../plugins/plugins";
 import { alertError, alertStore } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
@@ -170,7 +170,7 @@ export async function readImage(data:string) {
     }
 }
 
-export async function saveAsset(data:Uint8Array, customId:string = ''){
+export async function saveAsset(data:Uint8Array, customId:string = '', fileName:string = ''){
     let id = ''
     if(customId !== ''){
         id = customId
@@ -182,13 +182,17 @@ export async function saveAsset(data:Uint8Array, customId:string = ''){
             id = uuidv4()
         }
     }
+    let fileExtension:string = 'png'
+    if(fileName && fileName.split('.').length > 0){
+        fileExtension = fileName.split('.').pop()
+    }
     if(isTauri){
-        await writeBinaryFile(`assets/${id}.png`, data ,{dir: BaseDirectory.AppData})
-        return `assets/${id}.png`
+        await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
+        return `assets/${id}.${fileExtension}`
     }
     else{
-        await forageStorage.setItem(`assets/${id}.png`, data)
-        return `assets/${id}.png`
+        await forageStorage.setItem(`assets/${id}.${fileExtension}`, data)
+        return `assets/${id}.${fileExtension}`
     }
 }
 
@@ -203,6 +207,7 @@ export async function saveDb(){
     })
     while(true){
         if(changed){
+            changed = false
             const dbData = encodeRisuSave(get(DataBase))
             if(isTauri){
                 await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
@@ -373,7 +378,7 @@ export async function loadData() {
     }
 }
 
-const knownHostes = ["localhost","127.0.0.1","api.openai.com"]
+const knownHostes = ["localhost","127.0.0.1"]
 
 export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
     ok: boolean;
@@ -383,6 +388,7 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
     try {
         const db = get(DataBase)
         const method = arg.method ?? "POST"
+        db.requestmet = "normal"
     
         function addFetchLog(response:any, success:boolean){
             try{
@@ -410,55 +416,13 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
         const urlHost = (new URL(url)).hostname
         let forcePlainFetch = knownHostes.includes(urlHost) && (!isTauri)
     
-        if(db.requestmet === 'plain' || forcePlainFetch){
+        if(forcePlainFetch){
             try {
                 let headers = arg.headers ?? {}
                 if(!headers["Content-Type"]){
                     headers["Content-Type"] =  `application/json`
                 }
                 const furl = new URL(url)
-    
-                const da = await fetch(furl, {
-                    body: JSON.stringify(arg.body),
-                    headers: arg.headers,
-                    method: method,
-                    signal: arg.abortSignal
-                })
-    
-                if(arg.rawResponse){
-                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer()),
-                        headers: Object.fromEntries(da.headers)
-                    }   
-                }
-                else{
-                    const dat = await da.json()
-                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat,
-                        headers: Object.fromEntries(da.headers)
-                    }
-                }
-    
-            } catch (error) {
-                return {
-                    ok: false,
-                    data: `${error}`,
-                    headers: {}
-                }
-            }
-        }
-        if(db.requestmet === 'proxy'){
-            try {
-                let headers = arg.headers ?? {}
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
-                }
-                const furl = new URL(db.requestproxy)
-                furl.pathname = url
     
                 const da = await fetch(furl, {
                     body: JSON.stringify(arg.body),
@@ -609,8 +573,8 @@ export async function globalFetch(url:string, arg:{body?:any,headers?:{[key:stri
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
                             "Content-Type": "application/json"
                         },
-                        method: method
-                        ,signal: arg.abortSignal
+                        method: method,
+                        signal: arg.abortSignal
                     })
     
                     addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)

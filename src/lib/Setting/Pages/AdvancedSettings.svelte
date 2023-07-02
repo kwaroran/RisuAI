@@ -26,24 +26,11 @@
 <span class="text-neutral-200">{language.requestretrys}</span>
 <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.requestRetrys}>
 
-<span class="text-neutral-200">Request Type</span>
-<select class="bg-transparent input-text text-gray-200 appearance-none text-sm mb-4" bind:value={$DataBase.requestmet}>
-    <option value="normal" class="bg-darkbg appearance-none">Normal</option>
-    <option value="proxy" class="bg-darkbg appearance-none">Proxy</option>
-    <option value="plain" class="bg-darkbg appearance-none">Plain Fetch</option>
+<span class="text-neutral-200">Request Lib</span>
+<select class="bg-transparent input-text text-gray-200 appearance-none text-sm" bind:value={$DataBase.requester}>
+    <option value="new" class="bg-darkbg appearance-none">Reqwest</option>
+    <option value="old" class="bg-darkbg appearance-none">Tauri</option>
 </select>
-
-{#if $DataBase.requestmet === 'proxy'}
-    <span class="text-neutral-200">Request Proxy URL</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.requestproxy}>
-{/if}
-{#if isTauri && $DataBase.requestmet === 'normal'}
-    <span class="text-neutral-200">Request Lib</span>
-    <select class="bg-transparent input-text text-gray-200 appearance-none text-sm" bind:value={$DataBase.requester}>
-        <option value="new" class="bg-darkbg appearance-none">Reqwest</option>
-        <option value="old" class="bg-darkbg appearance-none">Tauri</option>
-    </select>
-{/if}
 
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>
