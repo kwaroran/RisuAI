@@ -44,7 +44,6 @@ export class AutoStorage{
         }
         if((localStorage.getItem('dosync') === 'sync' || db.account?.useSync) && (localStorage.getItem('accountst') !== 'able')){
             getUnpargeables(db)
-            console.log("migrating")
             const keys = await this.realStorage.keys()
             let i = 0;
             const accountStorage = new AccountStorage()
@@ -90,9 +89,11 @@ export class AutoStorage{
             localStorage.setItem('accountst', 'able')
             localStorage.setItem('fallbackRisuToken',JSON.stringify(db.account))
             this.isAccount = true
+            await localforage.clear()
             return true
         }
         else if(localStorage.getItem('accountst') === 'able'){
+            localStorage.setItem('accountst', 'able')
             this.realStorage = new AccountStorage()
             this.isAccount = true
         }
