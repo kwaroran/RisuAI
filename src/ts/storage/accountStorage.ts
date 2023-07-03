@@ -2,8 +2,9 @@ import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertLogin } from "../alert"
-import { getUnpargeables } from "./globalApi"
+import { alertLogin, alertStore } from "../alert"
+import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
+import { encodeRisuSave } from "./risuSave"
 
 export class AccountStorage{
     auth:string
@@ -89,4 +90,34 @@ export class AccountStorage{
 
 
     listItem = this.keys
+}
+
+export async function unMigrationAccount() {
+    const keys = await forageStorage.keys()
+    let db = get(DataBase)
+    db.account = null
+    let i = 0;
+    const MigrationStorage = localforage.createInstance({name: "risuai"})
+    
+    for(const key of keys){
+        alertStore.set({
+            type: "wait",
+            msg: `Migrating your data...(${i}/${keys.length})`
+        })
+        await MigrationStorage.setItem(key,await forageStorage.getItem(key))
+        i += 1
+    }
+
+    await MigrationStorage.setItem('database/database.bin', encodeRisuSave(db))
+
+    this.realStorage = MigrationStorage
+    alertStore.set({
+        type: "none",
+        msg: ""
+    })
+
+    localStorage.removeItem('dosync')
+    localStorage.removeItem('accountst')
+    localStorage.removeItem('fallbackRisuToken')
+    location.reload()
 }

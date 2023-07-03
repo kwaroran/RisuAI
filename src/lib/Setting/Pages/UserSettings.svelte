@@ -7,6 +7,7 @@
     import Check from "src/lib/Others/Check.svelte";
   import { alertSelect } from "src/ts/alert";
   import { isTauri } from "src/ts/storage/globalApi";
+  import { unMigrationAccount } from "src/ts/storage/accountStorage";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -54,6 +55,10 @@
         <div class="w-full">
             <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
                 <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
+                    if($DataBase.account.useSync){
+                        unMigrationAccount()
+                    }
+                    
                     $DataBase.account = undefined
                 }}>{language.logout}</button>
             {/if}</h1>

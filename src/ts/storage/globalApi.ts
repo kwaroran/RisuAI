@@ -11,7 +11,7 @@ import { checkOldDomain, checkUpdate } from "../update";
 import { selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertError } from "../alert";
+import { alertConfirm, alertError } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterHubImport, hubURL } from "../characterCards";
@@ -211,23 +211,36 @@ export async function saveDb(){
     DataBase.subscribe(() => {
         changed = true
     })
+    let savetrys = 0
     while(true){
-        if(changed){
-            changed = false
-            const dbData = encodeRisuSave(get(DataBase))
-            if(isTauri){
-                await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
-                await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
+        try {
+            if(changed){
+                changed = false
+                const dbData = encodeRisuSave(get(DataBase))
+                if(isTauri){
+                    await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
+                    await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
+                }
+                else{
+                    await forageStorage.setItem('database/database.bin', dbData)
+                    if(!forageStorage.isAccount){
+                        await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                    }
+                }
+                if(!forageStorage.isAccount){
+                    await getDbBackups()
+                }
+                savetrys = 0
+            }
+            await sleep(500)
+        } catch (error) {
+            if(savetrys > 4){
+                await alertConfirm(`DBSaveError: ${error.message ?? error}. report to the developer.`)
             }
             else{
-                await forageStorage.setItem('database/database.bin', dbData)
-                if(!forageStorage.isAccount){
-                    await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
-                }
+                
             }
-            await getDbBackups()
         }
-        await sleep(500)
     }
 }
 

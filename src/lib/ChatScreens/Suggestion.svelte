@@ -83,7 +83,7 @@
                 bias: {},
                 currentChar : currentChar as character
             }, 'submodel', abortController.signal).then(rq2=>{
-                if(rq2.type !== 'fail' && rq2.type !== 'streaming' && progress){
+                if(rq2.type !== 'fail' && rq2.type !== 'streaming' && rq2.type !== 'multiline' && progress){
                     var suggestMessagesNew = rq2.result.split('\n').filter(msg => msg.startsWith('-')).map(msg => msg.replace('-','').trim())
                     const db:Database = get(DataBase);
                     db.characters[$selectedCharID].chats[currentChar.chatPage].suggestMessages = suggestMessagesNew
