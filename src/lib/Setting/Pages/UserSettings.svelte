@@ -6,7 +6,7 @@
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/Others/Check.svelte";
   import { alertSelect } from "src/ts/alert";
-  import { isTauri } from "src/ts/storage/globalApi";
+  import { forageStorage, isTauri } from "src/ts/storage/globalApi";
   import { unMigrationAccount } from "src/ts/storage/accountStorage";
     let openIframe = false
     let openIframeURL = ''
@@ -55,7 +55,7 @@
         <div class="w-full">
             <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
                 <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
-                    if($DataBase.account.useSync){
+                    if($DataBase.account.useSync || forageStorage.isAccount){
                         unMigrationAccount()
                     }
                     
@@ -67,7 +67,7 @@
             <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
             {#if !isTauri}
                 <div class="flex items-center mt-2">
-                    {#if $DataBase.account.useSync}
+                    {#if $DataBase.account.useSync || forageStorage.isAccount}
                         <span>{language.dataSavingInAccount}</span>
                     {:else}
                         <Check check={false} name={language.SaveDataInAccount} onChange={(v) => {
