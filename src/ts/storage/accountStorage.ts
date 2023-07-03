@@ -112,7 +112,6 @@ export async function unMigrationAccount() {
 
     await MigrationStorage.setItem('database/database.bin', encodeRisuSave(db))
 
-    this.realStorage = MigrationStorage
     alertStore.set({
         type: "none",
         msg: ""
