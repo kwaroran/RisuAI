@@ -324,5 +324,6 @@ export const languageEnglish = {
     dataSavingInAccount: "Saving Data in Account",
     logout: "Logout",
     loadDataFromAccount: "Load Data from Account",
-    saveCurrentDataToAccount: "Save Current Data to Account"
+    saveCurrentDataToAccount: "Save Current Data to Account",
+    chatAssumed: "Approximately {} Chats",
 }

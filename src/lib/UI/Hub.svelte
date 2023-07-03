@@ -127,7 +127,7 @@
                 </div>
                 <div class="flex flex-wrap w-full flex-row gap-1 mt-2">
                     <span class="text-gray-500">
-                        {openedData.download} {language.downloads}
+                        {openedData.download} {language.chatAssumed}
                     </span>
                     <div class="border-l-selected border-l ml-1 mr-1"></div>
                     {#if openedData.viewScreen === 'emotion'}
