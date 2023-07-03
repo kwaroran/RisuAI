@@ -325,5 +325,5 @@ export const languageEnglish = {
     logout: "Logout",
     loadDataFromAccount: "Load Data from Account",
     saveCurrentDataToAccount: "Save Current Data to Account",
-    chatAssumed: "Approximately {} Chats",
+    chatAssumed: "Approximately {} Chats Played",
 }
