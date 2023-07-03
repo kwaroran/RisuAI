@@ -97,7 +97,6 @@ export class AccountStorage{
 export async function unMigrationAccount() {
     const keys = await forageStorage.keys()
     let db = get(DataBase)
-    db.account = null
     let i = 0;
     const MigrationStorage = localforage.createInstance({name: "risuai"})
     
@@ -110,6 +109,7 @@ export async function unMigrationAccount() {
         i += 1
     }
 
+    db.account = null
     await MigrationStorage.setItem('database/database.bin', encodeRisuSave(db))
 
     alertStore.set({
@@ -117,7 +117,7 @@ export async function unMigrationAccount() {
         msg: ""
     })
 
-    localStorage.removeItem('dosync')
+    localStorage.setItem('dosync', 'avoid')
     localStorage.removeItem('accountst')
     localStorage.removeItem('fallbackRisuToken')
     location.reload()

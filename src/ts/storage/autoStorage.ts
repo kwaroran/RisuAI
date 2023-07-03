@@ -42,9 +42,10 @@ export class AutoStorage{
         if(this.isAccount){
             return true
         }
+        if(localStorage.getItem('dosync') === 'avoid'){
+            return false
+        }
         if((localStorage.getItem('dosync') === 'sync' || db.account?.useSync) && (localStorage.getItem('accountst') !== 'able')){
-            console.log(localStorage.getItem('dosync'))
-            console.log(db.account)
             const keys = await this.realStorage.keys()
             let i = 0;
             const accountStorage = new AccountStorage()
