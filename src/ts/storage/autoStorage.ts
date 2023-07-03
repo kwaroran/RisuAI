@@ -43,7 +43,8 @@ export class AutoStorage{
             return true
         }
         if((localStorage.getItem('dosync') === 'sync' || db.account?.useSync) && (localStorage.getItem('accountst') !== 'able')){
-            getUnpargeables(db)
+            console.log(localStorage.getItem('dosync'))
+            console.log(db.account)
             const keys = await this.realStorage.keys()
             let i = 0;
             const accountStorage = new AccountStorage()
