@@ -326,4 +326,6 @@ export const languageEnglish = {
     loadDataFromAccount: "Load Data from Account",
     saveCurrentDataToAccount: "Save Current Data to Account",
     chatAssumed: "Approximately {} Chats Played",
+    proxyAPIKey: "Proxy Key/Password",
+    proxyRequestModel: "Rroxy Request Model"
 }

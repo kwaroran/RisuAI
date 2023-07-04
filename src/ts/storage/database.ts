@@ -139,6 +139,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.requester)){
         data.requester = "new"
     }
+    if(checkNullish(data.proxyKey)){
+        data.proxyKey = ""
+    }
     if(checkNullish(data.botPresets)){
         let defaultPreset = presetTemplate
         defaultPreset.name = "Default"
@@ -413,6 +416,7 @@ export interface Database{
     apiType: string
     forceReplaceUrl2:string
     openAIKey: string
+    proxyKey:string
     mainPrompt: string
     jailbreak: string
     globalNote:string
@@ -530,6 +534,7 @@ export interface Database{
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
     hypaMemory:boolean
+    proxyRequestModel:string
 }
 
 interface hordeConfig{

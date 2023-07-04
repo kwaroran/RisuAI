@@ -87,9 +87,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
-    const replacer = model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2
     const aiModel = model === 'model' ? db.aiModel : db.subModel
-
+    const replacer = aiModel === 'reverse_proxy' ?  model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2 : ''
     switch(aiModel){
         case 'gpt35':
         case 'gpt35_0613':
@@ -100,8 +99,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_0613':
         case 'gpt4_32k_0613':
         case 'gpt35_0301':
-        case 'gpt4_0301':{
-
+        case 'gpt4_0301':
+        case 'reverse_proxy':{
             for(let i=0;i<formated.length;i++){
                 if(formated[i].role !== 'function'){
                     if(arg.isGroupChat && formated[i].name){
@@ -141,17 +140,18 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
+            const requestModel = aiModel === 'reverse_proxy' ? db.proxyRequestModel : aiModel
             const body = ({
-                model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
-                    : aiModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
-                    : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
-                    : aiModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
-                    : aiModel === 'gpt4' ? 'gpt-4'
-                    : aiModel === 'gpt4_32k' ? 'gpt-4-32k'
-                    : aiModel === "gpt4_0613" ? 'gpt-4-0613'
-                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
-                    : aiModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
-                    : aiModel === 'gpt4_0301' ? 'gpt-4-0301' : '',
+                model: requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                    : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
+                    : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
+                    : requestModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
+                    : requestModel === 'gpt4' ? 'gpt-4'
+                    : requestModel === 'gpt4_32k' ? 'gpt-4-32k'
+                    : requestModel === "gpt4_0613" ? 'gpt-4-0613'
+                    : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
+                    : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
+                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301' : 'gpt-3.5-turbo',
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
@@ -197,7 +197,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body: JSON.stringify(body),
                         method: "POST",
                         headers: {
-                            "Authorization": "Bearer " + db.openAIKey,
+                            "Authorization": "Bearer " + aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey,
                             "Content-Type": "application/json"
                         },
                         signal: abortSignal

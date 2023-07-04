@@ -6,7 +6,7 @@
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
     import { User } from 'lucide-svelte';
-  import { hubURL } from 'src/ts/characterCards';
+    import { hubURL } from 'src/ts/characterCards';
     let btn
     let input = ''
 

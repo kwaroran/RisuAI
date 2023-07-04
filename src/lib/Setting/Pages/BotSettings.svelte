@@ -103,13 +103,32 @@
     <span class="text-neutral-200">Claude {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.claudeAPIKey}>
 {/if}
-{#if $DataBase.aiModel.startsWith('gpt')}
+{#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
+    <span class="text-neutral-200 mt-2">{language.forceReplaceUrl} URL <Help key="forceUrl"/></span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl} placeholder="https//...">
+    <span class="text-neutral-200 mt-4"> {language.proxyAPIKey}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey}>
+    <span class="text-neutral-200 mt-4"> {language.proxyRequestModel}</span>
+    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.proxyRequestModel}>
+        <option value="" class="bg-darkbg appearance-none">None</option>
+        <option value="gpt35" class="bg-darkbg appearance-none">GPT 3.5</option>
+        <option value="gpt35_16k" class="bg-darkbg appearance-none">GPT 3.5-Turbo</option>
+        <option value="gpt4" class="bg-darkbg appearance-none">GPT-4</option>
+        <option value="gpt4_32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
+        <option value="gpt35_0301" class="bg-darkbg appearance-none">GPT-3.5 0301</option>
+        <option value="gpt4_0301" class="bg-darkbg appearance-none">GPT-4 0301</option>
+    </select>
+{/if}
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
+{/if}
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy'}
     <div class="flex items-center mt-2 mb-4">
-        <Check bind:check={$DataBase.useStreaming} name={`OpenAI ${language.streaming}`}/>
+        <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
     </div>
 {/if}
+
 {#if $DataBase.aiModel === 'custom'}
     <span class="text-neutral-200 mt-2">{language.plugin}</span>
     <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.currentPluginProvider}>
@@ -180,10 +199,6 @@
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.PresensePenalty}>
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
-<span class="text-neutral-200 mt-2">{language.forceReplaceUrl} <Help key="forceUrl"/></span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl} placeholder="Leave blank to not replace url">
-<span class="text-neutral-200 mt-2">{language.submodel} {language.forceReplaceUrl} <Help key="forceUrl"/></span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.forceReplaceUrl2} placeholder="Leave blank to not replace url">
 <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
 <textarea class="bg-transparent input-text mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
 <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>

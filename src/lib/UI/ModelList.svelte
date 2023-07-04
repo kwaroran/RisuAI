@@ -46,6 +46,8 @@
                 return "NovelList SuperTrin"
             case "novellist damsel":
                 return "NovelList Damsel"
+            case 'reverse_proxy':
+                return "Reverse Proxy"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -100,6 +102,7 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.0')}}>claude-v1.0</button>
                 {/if}
             </Arcodion>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
