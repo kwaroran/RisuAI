@@ -297,7 +297,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
-            asHyper: db.hypaMemory
+            asHyper: db.supaMemoryType !== 'subModel' && db.hypaMemory
         })
         if(sp.error){
             alertError(sp.error)
