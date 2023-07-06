@@ -617,7 +617,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }
                 }
                 if(arg.rawResponse){
-                    const furl = `/proxy?url=${encodeURIComponent(url)}`
+                    const furl = `/proxy2?url=${encodeURIComponent(url)}`
                 
                     const da = await fetch(furl, {
                         body: body,
@@ -637,8 +637,8 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }   
                 }
                 else{
-                    const furl = hubURL + `/proxy?url=${encodeURIComponent(url)}`
-    
+                    const furl = `/proxy2?url=${encodeURIComponent(url)}`
+
                     const da = await fetch(furl, {
                         body: body,
                         headers: {
