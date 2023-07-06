@@ -41,7 +41,8 @@ app.get('/', async (req, res, next) => {
 })
 
 const proxyFunc = async (req, res, next) => {
-    const urlParam = req.query.url;
+
+    const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
 
     if (!urlParam) {
         res.status(400).send({
