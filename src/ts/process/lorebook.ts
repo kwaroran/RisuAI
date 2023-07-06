@@ -167,7 +167,20 @@ export async function loadLoreBookPrompt(){
         }
     }
 
-    return activatiedPrompt.reverse().join('\n\n')
+
+    let sactivated:string[] = []
+    activatiedPrompt = activatiedPrompt.filter((v) => {
+        if(v.startsWith("@@@end")){
+            sactivated.push(v.replace('@@@end','').trim())
+            return false
+        }
+        return true
+    })
+
+    return {
+        act: activatiedPrompt.reverse().join('\n\n'),
+        special_act: sactivated.reverse().join('\n\n')
+    }
 }
 
 

@@ -223,10 +223,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
+    const lorepmt = await loadLoreBookPrompt()
     unformated.lorebook.push({
         role: 'system',
-        content: replacePlaceholders(await loadLoreBookPrompt(), currentChar.name)
+        content: replacePlaceholders(lorepmt.act, currentChar.name)
     })
+
+
+    if(lorepmt.special_act){
+        unformated.postEverything.push({
+            role: 'system',
+            content: replacePlaceholders(lorepmt.special_act, currentChar.name)
+        })
+    }
 
     //await tokenize currernt
     let currentTokens = db.maxResponse
