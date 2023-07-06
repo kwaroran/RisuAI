@@ -181,13 +181,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 const da =  ((!isTauri) && (!isNodeServer))
-                    ? await fetch(`/proxy2?url=${encodeURIComponent(replacerURL)}`, {
+                    ? await fetch(`/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify({
                                 "Authorization": "Bearer " + db.openAIKey,
                                 "Content-Type": "application/json"
                             })),
+                            "risu-url": encodeURIComponent(replacerURL),
                             "Content-Type": "application/json"
                         },
                         method: "POST",

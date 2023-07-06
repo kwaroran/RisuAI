@@ -12,7 +12,9 @@ async function fetchProxy(request) {
     let response = null;
     let rurl = new URL(request.url);
 
-	const urlParam = rurl.searchParams.get('url')
+    const nheader = request.headers.get('risu-url') ? decodeURIComponent(request.headers.get('risu-url')) : null
+
+	const urlParam = nheader ?? rurl.searchParams.get('url')
 
 	if(!urlParam){
 		return new Response('Access denied', {

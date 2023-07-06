@@ -617,12 +617,13 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }
                 }
                 if(arg.rawResponse){
-                    const furl = `/proxy2?url=${encodeURIComponent(url)}`
+                    const furl = `/proxy2`
                 
                     const da = await fetch(furl, {
                         body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                            "risu-url": encodeURIComponent(url),
                             "Content-Type": "application/json"
                         },
                         method: method,
@@ -637,12 +638,13 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }   
                 }
                 else{
-                    const furl = `/proxy2?url=${encodeURIComponent(url)}`
+                    const furl = `/proxy2`
 
                     const da = await fetch(furl, {
                         body: body,
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                            "risu-url": encodeURIComponent(url),
                             "Content-Type": "application/json"
                         },
                         method: method
