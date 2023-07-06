@@ -198,7 +198,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body: JSON.stringify(body),
                         method: "POST",
                         headers: {
-                            "Authorization": "Bearer " + aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey,
+                            "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey),
                             "Content-Type": "application/json"
                         },
                         signal: abortSignal
@@ -259,7 +259,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const res = await globalFetch(replacerURL, {
                 body: body,
                 headers: {
-                    "Authorization": "Bearer " + db.openAIKey
+                    "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey),
                 },
                 abortSignal
             })
