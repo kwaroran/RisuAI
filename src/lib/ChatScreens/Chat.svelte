@@ -162,7 +162,7 @@
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
             {:else}
-                {#await ParseMarkdown(msgDisplay, character) then md} 
+                {#await ParseMarkdown(msgDisplay, character, 'normal', idx) then md} 
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
                         if($DataBase.clickToEdit && idx > -1){

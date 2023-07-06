@@ -430,7 +430,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
-                const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput')
+                const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput', msgIndex)
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
                 emoChanged = result2.emoChanged
                 setDatabase(db)
@@ -446,7 +446,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     else{
         const msgs = req.type === 'success' ? [['char',req.result]] as const : req.type === 'multiline' ? req.result : []
         for(const msg of msgs){
-            const result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput')
+            const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+            const result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput', msgIndex)
             result = result2.data
             emoChanged = result2.emoChanged
             db.characters[selectedChar].chats[selectedChat].message.push({

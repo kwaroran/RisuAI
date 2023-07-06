@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 import { DataBase, type character, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
-import { processScript } from './process/scripts';
+import { processScript, processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
 
@@ -75,14 +75,15 @@ async function parseAdditionalAssets(data:string, char:character, mode:'normal'|
     return data
 }
 
-export async function ParseMarkdown(data:string, char:(character | groupChat) = null, mode:'normal'|'back' = 'normal') {
+export async function ParseMarkdown(data:string, char:(character | groupChat) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
     let firstParsed = ''
+    const orgDat = data
     if(char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)
         firstParsed = data
     }
     if(char){
-        data = processScript(char, data, 'editdisplay')
+        data = processScriptFull(char, data, 'editdisplay', chatID).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)
