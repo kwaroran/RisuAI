@@ -92,6 +92,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
                 else{
                     if(outScript.startsWith('@@repeat_back')  && chatID !== -1){
+                        const v = outScript.split(' ', 2)[1]
                         const selchar = db.characters[get(selectedCharID)]
                         const chat = selchar.chats[selchar.chatPage]
                         let lastChat = selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
@@ -105,8 +106,26 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                         }
 
                         const r = lastChat.match(reg)
-                        data = data + r[0]
-                        
+                        if(!v){
+                            data = data + r[0]
+                        }
+                        else if(r[0]){
+                            switch(v){
+                                case 'end':
+                                    data = data + r[0]
+                                    break
+                                case 'start':
+                                    data = r[0] + data
+                                    break
+                                case 'end nl':
+                                    data = data + "\n" + r[0]
+                                    break
+                                case 'start nl':
+                                    data = r[0] + "\n" + data
+                                    break
+                            }
+
+                        }                        
                     }
                 }
             }
