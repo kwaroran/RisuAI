@@ -88,7 +88,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let bias = arg.bias
     let currentChar = arg.currentChar
     const aiModel = model === 'model' ? db.aiModel : db.subModel
-    const replacer = aiModel === 'reverse_proxy' ?  model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2 : ''
+    const replacer = aiModel === 'reverse_proxy' ? db.forceReplaceUrl : ''
     switch(aiModel){
         case 'gpt35':
         case 'gpt35_0613':

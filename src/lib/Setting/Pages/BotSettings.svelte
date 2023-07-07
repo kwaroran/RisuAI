@@ -112,7 +112,7 @@
     <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.proxyRequestModel}>
         <option value="" class="bg-darkbg appearance-none">None</option>
         <option value="gpt35" class="bg-darkbg appearance-none">GPT 3.5</option>
-        <option value="gpt35_16k" class="bg-darkbg appearance-none">GPT 3.5-Turbo</option>
+        <option value="gpt35_16k" class="bg-darkbg appearance-none">GPT 3.5 16k</option>
         <option value="gpt4" class="bg-darkbg appearance-none">GPT-4</option>
         <option value="gpt4_32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
         <option value="gpt35_0301" class="bg-darkbg appearance-none">GPT-3.5 0301</option>
