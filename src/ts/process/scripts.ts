@@ -115,7 +115,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
-                    outScript = outScript.replace(/{{(.+?)}}/g, (v, p1:string) => {
+                    mOut = mOut.replace(/{{(.+?)}}/g, (v, p1:string) => {
                         if(p1 === 'previous_char_chat'){
                             let pointer = chatID - 1
                             while(pointer >= 0){
