@@ -409,6 +409,7 @@ export interface botPreset{
     promptPreprocess: boolean,
     bias: [string, number][]
     koboldURL?: string
+    proxyKey:string
 }
 
 export interface Database{
@@ -606,6 +607,7 @@ export const presetTemplate:botPreset = {
     forceReplaceUrl: '',
     forceReplaceUrl2: '',
     promptPreprocess: false,
+    proxyKey: '',
     bias: []
 }
 
@@ -678,8 +680,8 @@ export function saveCurrentPreset(){
         forceReplaceUrl2: db.forceReplaceUrl2,
         promptPreprocess: db.promptPreprocess,
         bias: db.bias,
-        koboldURL: db.koboldURL
-
+        koboldURL: db.koboldURL,
+        proxyKey: db.proxyKey
     }
     db.botPresets = pres
     DataBase.set(db)
@@ -723,6 +725,7 @@ export function changeToPreset(id =0, savecurrent = true){
     db.forceReplaceUrl2 = newPres.forceReplaceUrl2 ?? db.forceReplaceUrl2
     db.bias = newPres.bias ?? db.bias
     db.koboldURL = newPres.koboldURL ?? db.koboldURL
+    db.proxyKey = newPres.proxyKey ?? db.proxyKey
     DataBase.set(db)
 }
 
