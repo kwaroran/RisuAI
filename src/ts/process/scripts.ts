@@ -5,6 +5,7 @@ import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { findCharacterbyId, selectSingleFile } from "../util";
+import { calcString } from "./infunctions";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -110,6 +111,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
             }
             else{
+                let mOut = outScript.replace(dreg, "$&")
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
@@ -134,6 +136,10 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                             }
                             return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                         }
+                        if(p1.startsWith('calc')){
+                            const v = p1.split("::")[1]
+                            return calcString(v).toString()
+                        }
                         return v
                     })
                 }
@@ -141,7 +147,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                     const list = data.split('|||')
                     data = list[Math.floor(Math.random()*list.length)];
                 }
-                data = data.replace(reg, outScript.replace(dreg, "$&"))
+                data = data.replace(reg, mOut)
             }
         }
     }

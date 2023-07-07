@@ -36,7 +36,7 @@ function toRPN(expression:string) {
 }
 
 function calculateRPN(expression:string) {
-    let stack = [];
+    let stack:number[] = [];
 
     expression.split(' ').forEach(token => {
         if (parseFloat(token) || token === '0') {
@@ -54,30 +54,8 @@ function calculateRPN(expression:string) {
 
     return stack.pop();
 }
-function parseAndExecuteFunctions(s: string): string {
-    const functionRegex = /\$(\w+)\((.*?)\)/g;
 
-    let match;
-    while ((match = functionRegex.exec(s)) !== null) {
-        let [fullMatch, funcName, args] = match;
-
-        let result = '';
-        switch (funcName) {
-            case 'calc':
-                result = calc(parseAndExecuteFunctions(args));
-                break;
-            default:
-                break;
-        }
-
-        s = s.replace(fullMatch, result.toString());
-        functionRegex.lastIndex = 0; // Reset the regex
-    }
-
-    return s;
-}
-
-function calc(args:string) {
+export function calcString(args:string) {
     const expression = toRPN(args);
     const evaluated = calculateRPN(expression);
     return evaluated
