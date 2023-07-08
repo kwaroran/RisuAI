@@ -117,6 +117,7 @@
         <option value="gpt4_32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
         <option value="gpt35_0301" class="bg-darkbg appearance-none">GPT-3.5 0301</option>
         <option value="gpt4_0301" class="bg-darkbg appearance-none">GPT-4 0301</option>
+        <option value="gpt4_0613" class="bg-darkbg appearance-none">GPT-4 0613</option>
     </select>
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
