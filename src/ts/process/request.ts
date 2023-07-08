@@ -162,18 +162,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')
 
-            if(replacerURL.endsWith('v1')){
-                replacerURL += '/chat/completions'
-            }
-            else if(replacerURL.endsWith('v1/')){
-                replacerURL += 'chat/completions'
-            }
-            else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
-                if(replacerURL.endsWith('/')){
-                    replacerURL += 'v1/chat/completions'
+            if(aiModel === 'reverse_proxy'){
+                if(replacerURL.endsWith('v1')){
+                    replacerURL += '/chat/completions'
                 }
-                else{
-                    replacerURL += '/v1/chat/completions'
+                else if(replacerURL.endsWith('v1/')){
+                    replacerURL += 'chat/completions'
+                }
+                else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
+                    if(replacerURL.endsWith('/')){
+                        replacerURL += 'v1/chat/completions'
+                    }
+                    else{
+                        replacerURL += '/v1/chat/completions'
+                    }
                 }
             }
 
