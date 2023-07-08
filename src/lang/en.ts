@@ -325,7 +325,11 @@ export const languageEnglish = {
     logout: "Logout",
     loadDataFromAccount: "Load Data from Account",
     saveCurrentDataToAccount: "Save Current Data to Account",
-    chatAssumed: "Approximately {} Chats Played",
+    chatAssumed: "",
     proxyAPIKey: "Proxy Key/Password",
-    proxyRequestModel: "Rroxy Request Model"
+    proxyRequestModel: "Proxy Request Model",
+    officialWiki: "Official Wiki",
+    officialWikiDesc: "Official Wiki for RisuAI. feel free to see.",
+    officialDiscord: "Official Discord",
+    officialDiscordDesc: "Official Discord to talk about RisuAI"
 }

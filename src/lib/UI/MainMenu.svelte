@@ -24,24 +24,14 @@
       {#if !openHub}
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-          openURL("https://github.com/kwaroran/RisuAI/wiki/RisuAI-Quick-Start")
-        }}>
-          <h1 class="text-2xl font-bold text-start">Quick Start</h1>
-          <span class="mt-2 text-gray-400 text-start">Simple Guide to start RisuAI</span>
-        </button>
-        <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
           openURL("https://github.com/kwaroran/RisuAI/wiki")
         }}>
-          <h1 class="text-2xl font-bold text-start">Official Wiki</h1>
-          <span class="mt-2 text-gray-400 text-start">Official Wiki for RisuAI. anyone can see and anyone who has github account can edit.</span>
-        </button>
-        <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {sideBarStore.set(true)}}>
-          <h1 class="text-2xl font-bold text-start">Your Characters</h1>
-          <span class="mt-2 text-gray-400 text-start">Opens your character list. you can open with pressing arrow button in top left corner too.</span>
+          <h1 class="text-2xl font-bold text-start">{language.officialWiki}</h1>
+          <span class="mt-2 text-gray-400 text-start">{language.officialWikiDesc}</span>
         </button>
         <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {openURL("https://discord.gg/JzP8tB9ZK8")}}>
-          <h1 class="text-2xl font-bold text-start">Official Discord</h1>
-          <span class="mt-2 text-gray-400 text-start">Official Discord to talk about RisuAI</span>
+          <h1 class="text-2xl font-bold text-start">{language.officialDiscord}</h1>
+          <span class="mt-2 text-gray-400 text-start">{language.officialDiscordDesc}</span>
         </button>
       </div>
       {#await getRisuHub({

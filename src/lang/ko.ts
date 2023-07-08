@@ -288,5 +288,17 @@ export const languageKorean = {
     notLoggedIn: "Risu Account에 로그인되지 않음",
     googleDriveInfo: "구글 드라이브에 연동해서 데이터를 동기화하세요.",
     googleDriveConnection: "구글 드라이브 연동하기",
-    googleDriveConnected: "구글 드라이브 연동됨"
+    googleDriveConnected: "구글 드라이브 연동됨",
+    SaveDataInAccount: "계정에 데이터 저장",
+    dataSavingInAccount: "계정에 데이터 저장 중",
+    logout: "로그아웃",
+    loadDataFromAccount: "계정에서 데이터 불러오기",
+    saveCurrentDataToAccount: "계정에 데이터 현재 덮어쓰기",
+    chatAssumed: "",
+    proxyAPIKey: "프록시 키/패스워드",
+    proxyRequestModel: "프록시 요청 모델",
+    officialWiki: "공식 위키",
+    officialWikiDesc: "리스AI의 공식 위키. 자유롭게 보세요.",
+    officialDiscord: "공식 디스코드",
+    officialDiscordDesc: "리스AI에 대해 자유롭게 대화하세요."
 }
