@@ -13,7 +13,7 @@
 <div class="w-full h-full bg-bgcolor flex justify-center">
     <article class="max-w-screen-md w-full prose prose-invert bg-darkbg p-5 overflow-y-auto overflow-x-hidden">
         <div class="w-full justify-center flex">
-            <img src="/logo.png" alt="logo">
+            <img src="/logo2.png" alt="logo">
         </div>
         <div class="w-full justify-center flex">
             <h1>Welcome to RisuAI!</h1>
