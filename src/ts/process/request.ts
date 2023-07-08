@@ -88,7 +88,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let bias = arg.bias
     let currentChar = arg.currentChar
     const aiModel = model === 'model' ? db.aiModel : db.subModel
-    const replacer = aiModel === 'reverse_proxy' ? db.forceReplaceUrl : ''
     switch(aiModel){
         case 'gpt35':
         case 'gpt35_0613':
@@ -161,7 +160,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 stream: false
             })
 
-            let replacerURL = replacer === '' ? 'https://api.openai.com/v1/chat/completions' : replacer
+            let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')
 
             if(replacerURL.endsWith('v1')){
                 replacerURL += '/chat/completions'
@@ -198,7 +197,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body: JSON.stringify(body),
                         method: "POST",
                         headers: {
-                            "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey),
+                            "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
                             "Content-Type": "application/json"
                         },
                         signal: abortSignal
@@ -259,7 +258,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const res = await globalFetch(replacerURL, {
                 body: body,
                 headers: {
-                    "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : db.openAIKey),
+                    "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
+                    "Content-Type": "application/json"
                 },
                 abortSignal
             })
