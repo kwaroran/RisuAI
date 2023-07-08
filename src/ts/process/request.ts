@@ -186,7 +186,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body: JSON.stringify(body),
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify({
-                                "Authorization": "Bearer " + db.openAIKey,
+                                "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
                                 "Content-Type": "application/json"
                             })),
                             "risu-url": encodeURIComponent(replacerURL),
