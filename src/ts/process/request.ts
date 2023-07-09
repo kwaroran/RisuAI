@@ -183,8 +183,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             let headers = {
-                "Authorization": "Bearer " + aiModel === 'reverse_proxy' ?  db.proxyKey :
-                                            aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey,
+                "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey)),
                 "Content-Type": "application/json"
             }
 
