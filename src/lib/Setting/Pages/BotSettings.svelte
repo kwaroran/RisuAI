@@ -139,7 +139,7 @@
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
 {/if}
-{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy'}
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter'}
     <div class="flex items-center mt-2 mb-4">
         <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
     </div>
