@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -348,62 +348,31 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case "textgen_webui":{
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
             const isNewAPI = DURL.includes('api')
             const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
-
-            if(isNewAPI){
-                bodyTemplate = {
-                    'max_new_tokens': db.maxResponse,
-                    'do_sample': true,
-                    'temperature': (db.temperature / 100),
-                    'top_p': 0.9,
-                    'typical_p': 1,
-                    'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
-                    'encoder_repetition_penalty': 1,
-                    'top_k': 100,
-                    'min_length': 0,
-                    'no_repeat_ngram_size': 0,
-                    'num_beams': 1,
-                    'penalty_alpha': 0,
-                    'length_penalty': 1,
-                    'early_stopping': false,
-                    'truncation_length': maxTokens,
-                    'ban_eos_token': false,
-                    'stopping_strings': stopStrings,
-                    'seed': -1,
-                    add_bos_token: true,
-                    prompt: proompt
-                }
-            }
-            else{
-                const payload = [
-                    proompt,
-                    {
-                        'max_new_tokens': 80,
-                        'do_sample': true,
-                        'temperature': (db.temperature / 100),
-                        'top_p': 0.9,
-                        'typical_p': 1,
-                        'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
-                        'encoder_repetition_penalty': 1,
-                        'top_k': 100,
-                        'min_length': 0,
-                        'no_repeat_ngram_size': 0,
-                        'num_beams': 1,
-                        'penalty_alpha': 0,
-                        'length_penalty': 1,
-                        'early_stopping': false,
-                        'truncation_length': maxTokens,
-                        'ban_eos_token': false,
-                        'custom_stopping_strings': stopStrings,
-                        'seed': -1,
-                        add_bos_token: true,
-                    }
-                ];
-    
-                bodyTemplate = { "data": [JSON.stringify(payload)] };
-    
+            console.log(proompt)
+            bodyTemplate = {
+                'max_new_tokens': db.maxResponse,
+                'do_sample': true,
+                'temperature': (db.temperature / 100),
+                'top_p': 0.9,
+                'typical_p': 1,
+                'repetition_penalty': db.PresensePenalty,
+                'encoder_repetition_penalty': 1,
+                'top_k': 100,
+                'min_length': 0,
+                'no_repeat_ngram_size': 0,
+                'num_beams': 1,
+                'penalty_alpha': 0,
+                'length_penalty': 1,
+                'early_stopping': false,
+                'truncation_length': maxTokens,
+                'ban_eos_token': false,
+                'stopping_strings': stopStrings,
+                'seed': -1,
+                add_bos_token: true,
+                prompt: proompt
             }
             const res = await globalFetch(DURL, {
                 body: bodyTemplate,

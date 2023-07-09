@@ -15,7 +15,7 @@ dist-ssr
 *.local
 xplugin/
 src-others/
-
+/memo.txt
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
