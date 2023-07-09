@@ -349,7 +349,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
             const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
-            const isNewAPI = DURL.includes('api')
             if(!DURL.endsWith('generate')){
                 DURL = DURL + "/v1/generate"
             }
@@ -386,7 +385,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
-                    let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
+                    let result:string = dat.results[0].text
 
                     return {
                         type: 'success',
