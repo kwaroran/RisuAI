@@ -3,7 +3,7 @@ import { checkNullish, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
-import { cloneDeep } from 'lodash';
+import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal } from '../alert';
 
@@ -265,9 +265,8 @@ export function setDatabase(data:Database){
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
     }
-    if(checkNullish(data.classicMaxWidth)){
-        data.classicMaxWidth = false
-    }
+    data.classicMaxWidth ??= false
+    data.ooba ??= cloneDeep(defaultOoba)
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -410,6 +409,7 @@ export interface botPreset{
     bias: [string, number][]
     koboldURL?: string
     proxyKey:string
+    ooba: OobaSettings
 }
 
 export interface Database{
@@ -536,6 +536,7 @@ export interface Database{
     usePlainFetch:boolean
     hypaMemory:boolean
     proxyRequestModel:string
+    ooba:OobaSettings
 }
 
 interface hordeConfig{
@@ -584,8 +585,74 @@ export interface Message{
     chatId?:string
 }
 
+interface OobaSettings{
+    max_new_tokens: number,
+    do_sample: boolean,
+    temperature: number,
+    top_p: number,
+    typical_p: number,
+    repetition_penalty: number,
+    encoder_repetition_penalty: number,
+    top_k: number,
+    min_length: number,
+    no_repeat_ngram_size: number,
+    num_beams: number,
+    penalty_alpha: number,
+    length_penalty: number,
+    early_stopping: boolean,
+    seed: number,
+    add_bos_token: boolean,
+    truncation_length: number,
+    ban_eos_token: boolean,
+    skip_special_tokens: boolean,
+    top_a: number,
+    tfs: number,
+    epsilon_cutoff: number,
+    eta_cutoff: number,
+    formating:{
+        custom:boolean,
+        userPrefix:string,
+        assistantPrefix:string
+        seperator:string
+        useName:boolean
+    }
+}
+
 
 export const saveImage = saveImageGlobal
+
+export const defaultOoba:OobaSettings = {
+    max_new_tokens: 180,
+    do_sample: true,
+    temperature: 0.5,
+    top_p: 0.9,
+    typical_p: 1,
+    repetition_penalty: 1.1,
+    encoder_repetition_penalty: 1,
+    top_k: 0,
+    min_length: 0,
+    no_repeat_ngram_size: 0,
+    num_beams: 1,
+    penalty_alpha: 0,
+    length_penalty: 1,
+    early_stopping: false,
+    seed: -1,
+    add_bos_token: true,
+    truncation_length: 2048,
+    ban_eos_token: false,
+    skip_special_tokens: true,
+    top_a: 0,
+    tfs: 1,
+    epsilon_cutoff: 0,
+    eta_cutoff: 0,
+    formating:{
+        custom:false,
+        userPrefix:'user:',
+        assistantPrefix:'assistant:',
+        seperator:'',
+        useName:false,
+    }
+}
 
 export const presetTemplate:botPreset = {
     name: "New Preset",
@@ -608,7 +675,8 @@ export const presetTemplate:botPreset = {
     forceReplaceUrl2: '',
     promptPreprocess: false,
     proxyKey: '',
-    bias: []
+    bias: [],
+    ooba: cloneDeep(defaultOoba)
 }
 
 const defaultSdData:[string,string][] = [
@@ -681,7 +749,8 @@ export function saveCurrentPreset(){
         promptPreprocess: db.promptPreprocess,
         bias: db.bias,
         koboldURL: db.koboldURL,
-        proxyKey: db.proxyKey
+        proxyKey: db.proxyKey,
+        ooba: db.ooba
     }
     db.botPresets = pres
     DataBase.set(db)
@@ -726,6 +795,7 @@ export function changeToPreset(id =0, savecurrent = true){
     db.bias = newPres.bias ?? db.bias
     db.koboldURL = newPres.koboldURL ?? db.koboldURL
     db.proxyKey = newPres.proxyKey ?? db.proxyKey
+    db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
     DataBase.set(db)
 }
 

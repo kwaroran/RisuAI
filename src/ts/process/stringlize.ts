@@ -24,7 +24,26 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 }
 
 export function stringlizeChatOba(formated:OpenAIChat[], char:string = ''){
+    const db = get(DataBase)
     let resultString:string[] = []
+    if(db.ooba.formating.custom){
+        for(const form of formated){
+            if(form.role === 'system'){
+                resultString.push(form.content)
+            }
+            else if(form.name){
+                resultString.push(db.ooba.formating.userPrefix + form.content + db.ooba.formating.seperator)
+            }
+            else if(form.role === 'assistant' && char){
+                resultString.push(db.ooba.formating.assistantPrefix + form.content + db.ooba.formating.seperator)
+    
+            }
+            else{
+                resultString.push(form.content)
+            }
+        }
+        return resultString.join('\n\n') + `\n\n${db.ooba.formating.assistantPrefix}:`
+    }
     for(const form of formated){
         if(form.role === 'system'){
             resultString.push(form.content)
