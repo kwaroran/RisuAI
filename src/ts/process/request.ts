@@ -350,6 +350,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let bodyTemplate:any
             const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
             const isNewAPI = DURL.includes('api')
+            if(!DURL.endsWith('generate')){
+                DURL = DURL + "/v1/generate"
+            }
             const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
             console.log(proompt)
             bodyTemplate = {
