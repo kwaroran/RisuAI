@@ -551,29 +551,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'Authorization': `Bearer ${auth_key}`,
                 'Content-Type': 'application/json'
             };
-
-            // const send_body = {
-            //     text: stringlizeAINChat(formated, currentChar?.name ?? ''),
-            //     length: maxTokens,
-            //     temperature: temperature,
-            //     top_p: 0.7,
-            //     tailfree: 1.0,
-            //     rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100) + 1,
-            //     model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
-            //     userbadwords: ["【質問】"].join("<<|>>"),
-            // };
             
             const send_body = {
                 text: stringlizeAINChat(formated, currentChar?.name ?? ''),
                 length: maxTokens,
-                temperature: 0.925,
-                top_p: 0.7,
-                rep_pen: 1.0625,
-                top_a: 0.08,
-                rep_pen_slope: 1.7,
-
+                temperature: temperature,
+                top_p: db.ainconfig.top_p,
+                top_k: db.ainconfig.top_k,
+                rep_pen: db.ainconfig.rep_pen,
+                top_a: db.ainconfig.top_a,
+                rep_pen_slope: db.ainconfig.rep_pen_slope,
+                rep_pen_range: db.ainconfig.rep_pen_range,
+                typical_p: db.ainconfig.typical_p,
+                badwords: db.ainconfig.badwords,
                 model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
-                stoptokens: ["「"].join("<<|>>"),
+                stoptokens: ["「"].join("<<|>>") + db.ainconfig.stoptokens,
             };
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',

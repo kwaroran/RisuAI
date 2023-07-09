@@ -410,6 +410,7 @@ export interface botPreset{
     koboldURL?: string
     proxyKey:string
     ooba: OobaSettings
+    ainconfig: AINsettings
 }
 
 export interface Database{
@@ -537,6 +538,7 @@ export interface Database{
     hypaMemory:boolean
     proxyRequestModel:string
     ooba:OobaSettings
+    ainconfig: AINsettings
 }
 
 interface hordeConfig{
@@ -585,6 +587,18 @@ export interface Message{
     chatId?:string
 }
 
+interface AINsettings{
+    top_p: number,
+    rep_pen: number,
+    top_a: number,
+    rep_pen_slope:number,
+    rep_pen_range: number,
+    typical_p:number
+    badwords:string
+    stoptokens:string
+    top_k:number
+}
+
 interface OobaSettings{
     max_new_tokens: number,
     do_sample: boolean,
@@ -621,6 +635,18 @@ interface OobaSettings{
 
 export const saveImage = saveImageGlobal
 
+export const defaultAIN:AINsettings = {
+    top_p: 0.7,
+    rep_pen: 1.0625,
+    top_a: 0.08,
+    rep_pen_slope: 1.7,
+    rep_pen_range: 1024,
+    typical_p: 1.0,
+    badwords: '',
+    stoptokens: '',
+    top_k: 140
+}
+
 export const defaultOoba:OobaSettings = {
     max_new_tokens: 180,
     do_sample: true,
@@ -654,6 +680,7 @@ export const defaultOoba:OobaSettings = {
     }
 }
 
+
 export const presetTemplate:botPreset = {
     name: "New Preset",
     apiType: "gpt35",
@@ -676,7 +703,8 @@ export const presetTemplate:botPreset = {
     promptPreprocess: false,
     proxyKey: '',
     bias: [],
-    ooba: cloneDeep(defaultOoba)
+    ooba: cloneDeep(defaultOoba),
+    ainconfig: cloneDeep(defaultAIN)
 }
 
 const defaultSdData:[string,string][] = [
@@ -750,7 +778,8 @@ export function saveCurrentPreset(){
         bias: db.bias,
         koboldURL: db.koboldURL,
         proxyKey: db.proxyKey,
-        ooba: db.ooba
+        ooba: cloneDeep(db.ooba),
+        ainconfig: cloneDeep(db.ainconfig)
     }
     db.botPresets = pres
     DataBase.set(db)
@@ -796,6 +825,7 @@ export function changeToPreset(id =0, savecurrent = true){
     db.koboldURL = newPres.koboldURL ?? db.koboldURL
     db.proxyKey = newPres.proxyKey ?? db.proxyKey
     db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
+    db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
     DataBase.set(db)
 }
 

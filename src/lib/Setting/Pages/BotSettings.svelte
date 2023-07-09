@@ -195,72 +195,94 @@
 <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="200" bind:value={$DataBase.temperature}>
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 {#if $DataBase.aiModel === 'textgen_webui'}
-<span class="text-neutral-200">Top K</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ooba.top_k}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(2)}</span>
-<span class="text-neutral-200">Top P</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ooba.top_p}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
-<span class="text-neutral-200">Typical P</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.typical_p}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
-<span class="text-neutral-200">Top A</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.top_a}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
-<span class="text-neutral-200">Tail Free Sampling</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.tfs}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.tfs).toFixed(2)}</span>
-<span class="text-neutral-200">Epsilon Cutoff</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="9" step="0.01" bind:value={$DataBase.ooba.epsilon_cutoff}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.epsilon_cutoff).toFixed(2)}</span>
-<span class="text-neutral-200">Eta Cutoff</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="20" step="0.01" bind:value={$DataBase.ooba.eta_cutoff}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.eta_cutoff).toFixed(2)}</span>
-<span class="text-neutral-200">Number of Beams</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="1" max="20" step="1" bind:value={$DataBase.ooba.num_beams}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.num_beams).toFixed(2)}</span>
-<span class="text-neutral-200">Length Penalty</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min={-5} max="5" step="0.1" bind:value={$DataBase.ooba.length_penalty}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
-<span class="text-neutral-200">Penalty Alpha</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min={0} max="5" step="0.05" bind:value={$DataBase.ooba.penalty_alpha}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.penalty_alpha).toFixed(2)}</span>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.ooba.add_bos_token} name={'Add BOS Token'}/>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.ooba.ban_eos_token} name={'Ban EOS Token'}/>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.ooba.formating.custom} name={'Instruct Format'}/>
-</div>
-{#if $DataBase.ooba.formating.custom}
-    <div class="flex flex-col p-3 bg-darkbg mt-4">
-        <span class="text-neutral-200">User Prefix</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.userPrefix}>
-        <span class="text-neutral-200">Assistant Prefix</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.assistantPrefix}>
-        <span class="text-neutral-200">Seperator</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.seperator}>
+    <span class="text-neutral-200">Top K</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ooba.top_k}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(2)}</span>
+    <span class="text-neutral-200">Top P</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ooba.top_p}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
+    <span class="text-neutral-200">Typical P</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.typical_p}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
+    <span class="text-neutral-200">Top A</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.top_a}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
+    <span class="text-neutral-200">Tail Free Sampling</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.tfs}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.tfs).toFixed(2)}</span>
+    <span class="text-neutral-200">Epsilon Cutoff</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="9" step="0.01" bind:value={$DataBase.ooba.epsilon_cutoff}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.epsilon_cutoff).toFixed(2)}</span>
+    <span class="text-neutral-200">Eta Cutoff</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="20" step="0.01" bind:value={$DataBase.ooba.eta_cutoff}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.eta_cutoff).toFixed(2)}</span>
+    <span class="text-neutral-200">Number of Beams</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="1" max="20" step="1" bind:value={$DataBase.ooba.num_beams}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.num_beams).toFixed(2)}</span>
+    <span class="text-neutral-200">Length Penalty</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min={-5} max="5" step="0.1" bind:value={$DataBase.ooba.length_penalty}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
+    <span class="text-neutral-200">Penalty Alpha</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min={0} max="5" step="0.05" bind:value={$DataBase.ooba.penalty_alpha}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.penalty_alpha).toFixed(2)}</span>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
     </div>
-{/if}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.ooba.add_bos_token} name={'Add BOS Token'}/>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.ooba.ban_eos_token} name={'Ban EOS Token'}/>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.ooba.formating.custom} name={'Instruct Format'}/>
+    </div>
+    {#if $DataBase.ooba.formating.custom}
+        <div class="flex flex-col p-3 bg-darkbg mt-4">
+            <span class="text-neutral-200">User Prefix</span>
+            <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.userPrefix}>
+            <span class="text-neutral-200">Assistant Prefix</span>
+            <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.assistantPrefix}>
+            <span class="text-neutral-200">Seperator</span>
+            <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.ooba.formating.seperator}>
+        </div>
+    {/if}
+{:else if $DataBase.aiModel.startsWith('novellist')}
+    <span class="text-neutral-200">Top P</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ainconfig.top_p}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span>
+    <span class="text-neutral-200">Reputation Penalty</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ainconfig.rep_pen}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <span class="text-neutral-200">Reputation Penalty Range</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="2048" bind:value={$DataBase.ainconfig.rep_pen_range}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <span class="text-neutral-200">Reputation Penalty Slope</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="10" step="0.1" bind:value={$DataBase.ainconfig.rep_pen_slope}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <span class="text-neutral-200">Top K</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="1" max="500" step="1" bind:value={$DataBase.ainconfig.top_k}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span><span class="text-neutral-200">Typical P</span>
+    <span class="text-neutral-200">Top A</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.top_a}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
+    <span class="text-neutral-200">Typical P</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.typical_p}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
 {:else}
-<span class="text-neutral-200">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.frequencyPenalty}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
-<span class="text-neutral-200">{language.presensePenalty} <Help key="presensePenalty"/></span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.PresensePenalty}>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
+    <span class="text-neutral-200">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.frequencyPenalty}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
+    <span class="text-neutral-200">{language.presensePenalty} <Help key="presensePenalty"/></span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.PresensePenalty}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
-<span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-<textarea class="bg-transparent input-text mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
-<span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+    <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <textarea class="bg-transparent input-text mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
+    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {/if}
 {/if}
 
