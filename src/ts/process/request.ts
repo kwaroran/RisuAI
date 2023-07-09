@@ -99,6 +99,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_32k_0613':
         case 'gpt35_0301':
         case 'gpt4_0301':
+        case 'openrouter':
         case 'reverse_proxy':{
             for(let i=0;i<formated.length;i++){
                 if(formated[i].role !== 'function'){
@@ -139,9 +140,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
-            const requestModel = aiModel === 'reverse_proxy' ? db.proxyRequestModel : aiModel
+            const requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
             const body = ({
-                model: requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                model: aiModel === 'openrouter' ? db.openrouterRequestModel :
+                    requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
                     : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
                     : requestModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
@@ -179,16 +181,23 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
+            let headers = {
+                "Authorization": "Bearer " + aiModel === 'reverse_proxy' ?  db.proxyKey :
+                                            aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey,
+                "Content-Type": "application/json"
+            }
+
+            if(aiModel === 'openrouter'){
+                headers["X-Title"] = 'RisuAI'
+                headers["HTTP-Referer"] = 'https://risuai.xyz'
+            }
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 const da =  ((!isTauri) && (!isNodeServer))
                     ? await fetch(`/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify({
-                                "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
-                                "Content-Type": "application/json"
-                            })),
+                            "risu-header": encodeURIComponent(JSON.stringify(headers)),
                             "risu-url": encodeURIComponent(replacerURL),
                             "Content-Type": "application/json"
                         },
@@ -198,10 +207,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : await fetch(replacerURL, {
                         body: JSON.stringify(body),
                         method: "POST",
-                        headers: {
-                            "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
-                            "Content-Type": "application/json"
-                        },
+                        headers: headers,
                         signal: abortSignal
                     })  
 
@@ -259,10 +265,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const res = await globalFetch(replacerURL, {
                 body: body,
-                headers: {
-                    "Authorization": "Bearer " + ((aiModel === 'reverse_proxy') ?  db.proxyKey : db.openAIKey),
-                    "Content-Type": "application/json"
-                },
+                headers: headers,
                 abortSignal
             })
 

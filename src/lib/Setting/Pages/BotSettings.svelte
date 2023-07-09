@@ -120,6 +120,21 @@
         <option value="gpt4_0613" class="bg-darkbg appearance-none">GPT-4 0613</option>
     </select>
 {/if}
+{#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
+    <span class="text-neutral-200 mt-4">Openrouter Key</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="leave it blank if it hasn't password" bind:value={$DataBase.openrouterKey}>
+    <span class="text-neutral-200 mt-4">Openrouter Model</span>
+    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.openrouterRequestModel}>
+        <option value="openai/gpt-3.5-turbo" class="bg-darkbg appearance-none">GPT 3.5</option>
+        <option value="openai/gpt-3.5-turbo-16k" class="bg-darkbg appearance-none">GPT 3.5 16k</option>
+        <option value="openai/gpt-4" class="bg-darkbg appearance-none">GPT-4</option>
+        <option value="openai/gpt-4-32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
+        <option value="anthropic/claude-instant-v1" class="bg-darkbg appearance-none">Claude Instant v1</option>
+        <option value="anthropic/claude-instant-v1-100k" class="bg-darkbg appearance-none">Claude Instant v1 100k</option>
+        <option value="anthropic/claude-v1" class="bg-darkbg appearance-none">Claude v1</option>
+        <option value="anthropic/claude-v1-100k" class="bg-darkbg appearance-none">Claude v1 100k</option>
+    </select>
+{/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="sk-XXXXXXXXXXXXXXXXXXXX" bind:value={$DataBase.openAIKey}>
@@ -258,20 +273,20 @@
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="0.01" bind:value={$DataBase.ainconfig.rep_pen}>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
     <span class="text-neutral-200">Reputation Penalty Range</span>
-    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2" step="2048" bind:value={$DataBase.ainconfig.rep_pen_range}>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="2048" step="1" bind:value={$DataBase.ainconfig.rep_pen_range}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range).toFixed(2)}</span>
     <span class="text-neutral-200">Reputation Penalty Slope</span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="10" step="0.1" bind:value={$DataBase.ainconfig.rep_pen_slope}>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope).toFixed(2)}</span>
     <span class="text-neutral-200">Top K</span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="1" max="500" step="1" bind:value={$DataBase.ainconfig.top_k}>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span><span class="text-neutral-200">Typical P</span>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_k).toFixed(2)}</span>
     <span class="text-neutral-200">Top A</span>
-    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.top_a}>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ainconfig.top_a}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_a).toFixed(2)}</span>
     <span class="text-neutral-200">Typical P</span>
-    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ooba.typical_p}>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
+    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="1" step="0.01" bind:value={$DataBase.ainconfig.typical_p}>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
 {:else}
     <span class="text-neutral-200">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
     <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="0" max="100" bind:value={$DataBase.frequencyPenalty}>

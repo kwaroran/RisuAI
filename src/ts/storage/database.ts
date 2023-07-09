@@ -267,6 +267,9 @@ export function setDatabase(data:Database){
     }
     data.classicMaxWidth ??= false
     data.ooba ??= cloneDeep(defaultOoba)
+    data.ainconfig ??= cloneDeep(defaultAIN)
+    data.openrouterKey ??= ''
+    data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -539,6 +542,9 @@ export interface Database{
     proxyRequestModel:string
     ooba:OobaSettings
     ainconfig: AINsettings
+
+    openrouterRequestModel:string
+    openrouterKey:string
 }
 
 interface hordeConfig{
