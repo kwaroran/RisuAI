@@ -104,7 +104,7 @@ export function setDatabase(data:Database){
         data.customBackground = ''
     }
     if(checkNullish(data.textgenWebUIURL)){
-        data.textgenWebUIURL = 'http://127.0.0.1:7860/run/textgen'
+        data.textgenWebUIURL = 'http://127.0.0.1:7860/api/'
     }
     if(checkNullish(data.autoTranslate)){
         data.autoTranslate = false
@@ -411,10 +411,12 @@ export interface botPreset{
     forceReplaceUrl2?:string
     promptPreprocess: boolean,
     bias: [string, number][]
-    koboldURL?: string
+    proxyRequestModel?:string
+    openrouterRequestModel?:string
     proxyKey?:string
     ooba: OobaSettings
     ainconfig: AINsettings
+    koboldURL?: string
 }
 
 export interface Database{
@@ -787,7 +789,9 @@ export function saveCurrentPreset(){
         koboldURL: db.koboldURL,
         proxyKey: db.proxyKey,
         ooba: cloneDeep(db.ooba),
-        ainconfig: cloneDeep(db.ainconfig)
+        ainconfig: cloneDeep(db.ainconfig),
+        proxyRequestModel: db.proxyRequestModel,
+        openrouterRequestModel: db.openrouterRequestModel
     }
     db.botPresets = pres
     DataBase.set(db)
@@ -839,6 +843,8 @@ export function setPreset(db:Database, newPres: botPreset){
     db.proxyKey = newPres.proxyKey ?? db.proxyKey
     db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
     db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
+    db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
+    db.proxyRequestModel = newPres.proxyRequestModel
     return db
 }
 
