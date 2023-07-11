@@ -193,7 +193,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
-                const da =  ((!isTauri) && (!isNodeServer))
+                const da =  ((!isTauri) && (!isNodeServer) && (!db.usePlainFetch))
                     ? await fetch(`/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
