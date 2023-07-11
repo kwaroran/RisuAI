@@ -25,3 +25,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.clickToEdit} name={language.clickToEdit}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.toggleConfirmRecommendedPreset} name={language.toggleConfirmRecommendedPreset}/>
+</div>

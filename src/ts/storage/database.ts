@@ -270,6 +270,7 @@ export function setDatabase(data:Database){
     data.ainconfig ??= cloneDeep(defaultAIN)
     data.openrouterKey ??= ''
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
+    data.toggleConfirmRecommendedPreset ??= true
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -386,13 +387,13 @@ export interface groupChat{
     ttsMode?:string
     suggestMessages?:string[]
     orderByOrder?:boolean
-    backgroundHTML?:string
+    backgroundHTML?:string,
 }
 
 export interface botPreset{
-    name:string
-    apiType: string
-    openAIKey: string
+    name?:string
+    apiType?: string
+    openAIKey?: string
     mainPrompt: string
     jailbreak: string
     globalNote:string
@@ -402,16 +403,16 @@ export interface botPreset{
     frequencyPenalty: number
     PresensePenalty: number
     formatingOrder: FormatingOrderItem[]
-    aiModel: string
-    subModel:string
-    currentPluginProvider:string
-    textgenWebUIURL:string
-    forceReplaceUrl:string
-    forceReplaceUrl2:string
+    aiModel?: string
+    subModel?:string
+    currentPluginProvider?:string
+    textgenWebUIURL?:string
+    forceReplaceUrl?:string
+    forceReplaceUrl2?:string
     promptPreprocess: boolean,
     bias: [string, number][]
     koboldURL?: string
-    proxyKey:string
+    proxyKey?:string
     ooba: OobaSettings
     ainconfig: AINsettings
 }
@@ -508,6 +509,7 @@ export interface Database{
     textScreenBorder?:string
     characterOrder:(string|folder)[]
     hordeConfig:hordeConfig,
+    toggleConfirmRecommendedPreset:boolean,
     novelai:{
         token:string,
         model:string
@@ -809,6 +811,11 @@ export function changeToPreset(id =0, savecurrent = true){
     let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
+    db = setPreset(db, newPres)
+    DataBase.set(db)
+}
+
+export function setPreset(db:Database, newPres: botPreset){
     db.apiType = newPres.apiType ?? db.apiType
     db.openAIKey = newPres.openAIKey ?? db.openAIKey
     db.mainPrompt = newPres.mainPrompt ?? db.mainPrompt
@@ -832,7 +839,7 @@ export function changeToPreset(id =0, savecurrent = true){
     db.proxyKey = newPres.proxyKey ?? db.proxyKey
     db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
     db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
-    DataBase.set(db)
+    return db
 }
 
 export function downloadPreset(id:number){

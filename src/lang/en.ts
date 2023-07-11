@@ -331,5 +331,7 @@ export const languageEnglish = {
     officialWiki: "Official Wiki",
     officialWikiDesc: "Official Wiki for RisuAI. feel free to see.",
     officialDiscord: "Official Discord",
-    officialDiscordDesc: "Official Discord to talk about RisuAI"
+    officialDiscordDesc: "Official Discord to talk about RisuAI",
+    confirmRecommendedPreset: "There is a recommended settings for this model. do you want to change the settings to that? (you can turn off asking in the settings)",
+    toggleConfirmRecommendedPreset: "Ask for recommended setting when model change"
 }

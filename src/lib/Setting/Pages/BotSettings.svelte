@@ -10,6 +10,7 @@
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     import { onDestroy } from "svelte";
+  import { setRecommended } from "src/ts/process/templates/getRecomended";
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
@@ -60,7 +61,9 @@
 </div>
 {#if advancedBotSettings}
     <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
-    <ModelList bind:value={$DataBase.aiModel}/>
+    <ModelList bind:value={$DataBase.aiModel} onChange={(v) => {
+        setRecommended(v, 'ask')
+    }}/>
 
     <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
     <ModelList bind:value={$DataBase.subModel}/>
@@ -86,6 +89,7 @@
                 $DataBase.maxResponse = 100
             }
         }
+        setRecommended(v, 'force')
     }}/>
 
 {/if}
