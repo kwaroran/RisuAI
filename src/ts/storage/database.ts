@@ -844,7 +844,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
     db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
     db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
-    db.proxyRequestModel = newPres.proxyRequestModel
+    db.proxyRequestModel = newPres.proxyRequestModel ?? db.proxyRequestModel
     return db
 }
 
