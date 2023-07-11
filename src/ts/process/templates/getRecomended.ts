@@ -6,7 +6,7 @@ import { language } from "src/lang";
 
 export async function setRecommended(model: string, ask:'ask'|'force') {
     const db = get(DataBase)
-    if(!(model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui')){
+    if(!(recommendedPresetExist(model))){
         return
     }
     if(ask === 'ask' && db.toggleConfirmRecommendedPreset){
@@ -28,28 +28,37 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
                 pr.mainPrompt = "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\nWrite {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}."
                 pr.ooba.formating.userPrefix = "### Instruction: "
                 pr.ooba.formating.assistantPrefix = "### Response: "
+                break
             }
             case 1:{ //Koala
                 pr.mainPrompt = "BEGINNING OF CONVERSATION: Write {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}."
                 pr.ooba.formating.userPrefix = "USER: "
                 pr.ooba.formating.assistantPrefix = "GPT: "
+                break
             }
             case 2:{ //Vicuna
                 pr.mainPrompt = "BEGINNING OF CONVERSATION: A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\nWrite {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}."
                 pr.ooba.formating.userPrefix = "USER: "
                 pr.ooba.formating.assistantPrefix = "ASSISTANT: "
                 pr.ooba.formating.seperator = '</s>'
+                break
             }
             case 3:{ //WizardLM
                 pr.mainPrompt = "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\nWrite {{char}}'s next detailed reply in a fictional roleplay chat between {{user}} and {{char}}."
                 pr.ooba.formating.userPrefix = "USER: "
                 pr.ooba.formating.assistantPrefix = "ASSISTANT: "
+                break
             }
             default:{
                 pr.mainPrompt = "Write {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}."
+                break
             }
         }
         setDatabase(setPreset(db, pr))
     }
 
+}
+
+export function recommendedPresetExist(model:string){
+    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui'
 }

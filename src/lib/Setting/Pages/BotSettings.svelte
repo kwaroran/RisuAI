@@ -10,7 +10,7 @@
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     import { onDestroy } from "svelte";
-  import { setRecommended } from "src/ts/process/templates/getRecomended";
+  import { recommendedPresetExist, setRecommended } from "src/ts/process/templates/getRecomended";
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
@@ -61,9 +61,7 @@
 </div>
 {#if advancedBotSettings}
     <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
-    <ModelList bind:value={$DataBase.aiModel} onChange={(v) => {
-        setRecommended(v, 'ask')
-    }}/>
+    <ModelList bind:value={$DataBase.aiModel}/>
 
     <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
     <ModelList bind:value={$DataBase.subModel}/>
@@ -94,6 +92,11 @@
 
 {/if}
 
+{#if advancedBotSettings && recommendedPresetExist($DataBase.aiModel)}
+    <div>
+        <button class="bg-darkbg hover:ring p-1 text-sm mb-2 rounded-md" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</button>
+    </div>
+{/if}
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
     <span class="text-neutral-200">Palm2 {language.apiKey}</span>
     <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="..." bind:value={$DataBase.palmAPI}>
