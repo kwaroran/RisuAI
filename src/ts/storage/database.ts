@@ -855,6 +855,8 @@ export function downloadPreset(id:number){
     pres.openAIKey = ''
     pres.forceReplaceUrl = ''
     pres.forceReplaceUrl2 = ''
+    pres.proxyKey = ''
+    pres.textgenWebUIURL=  ''
     downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
     alertNormal(language.successExport)
 }
