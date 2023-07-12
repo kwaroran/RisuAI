@@ -136,6 +136,7 @@
         <option value="openai/gpt-3.5-turbo-16k" class="bg-darkbg appearance-none">GPT 3.5 16k</option>
         <option value="openai/gpt-4" class="bg-darkbg appearance-none">GPT-4</option>
         <option value="openai/gpt-4-32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
+        <option value="anthropic/claude-2" class="bg-darkbg appearance-none">Claude 2</option>
         <option value="anthropic/claude-instant-v1" class="bg-darkbg appearance-none">Claude Instant v1</option>
         <option value="anthropic/claude-instant-v1-100k" class="bg-darkbg appearance-none">Claude Instant v1 100k</option>
         <option value="anthropic/claude-v1" class="bg-darkbg appearance-none">Claude v1</option>
