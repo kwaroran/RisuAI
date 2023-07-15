@@ -156,6 +156,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         'lastChat':([] as OpenAIChat[]),
         'description':([] as OpenAIChat[]),
         'postEverything':([] as OpenAIChat[]),
+        'personaPrompt':([] as OpenAIChat[])
     }
 
     if(!currentChar.utilityBot){
@@ -228,7 +229,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         role: 'system',
         content: replacePlaceholders(lorepmt.act, currentChar.name)
     })
-
+    unformated.personaPrompt.push({
+        role: 'system',
+        content: replacePlaceholders(db.personaPrompt, currentChar.name)
+    })
 
     if(lorepmt.special_act){
         unformated.postEverything.push({
@@ -364,7 +368,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let sysPrompts:string[] = []
     for(let i=0;i<formatOrder.length;i++){
         const cha = unformated[formatOrder[i]]
-        if(cha.length === 1 && cha[0].role === 'system'){
+        if(cha.length === 1 && cha[0].content.length === 0){
+            continue
+        }
+        else if(cha.length === 1 && cha[0].role === 'system'){
             sysPrompts.push(cha[0].content)
         }
         else if(sysPrompts.length > 0){
