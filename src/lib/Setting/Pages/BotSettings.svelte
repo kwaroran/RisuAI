@@ -141,6 +141,7 @@
         <option value="anthropic/claude-instant-v1-100k" class="bg-darkbg appearance-none">Claude Instant v1 100k</option>
         <option value="anthropic/claude-v1" class="bg-darkbg appearance-none">Claude v1</option>
         <option value="anthropic/claude-v1-100k" class="bg-darkbg appearance-none">Claude v1 100k</option>
+        <option value="anthropic/claude-1.2" class="bg-darkbg appearance-none">Claude v1.2</option>
     </select>
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}

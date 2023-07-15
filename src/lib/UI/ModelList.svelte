@@ -95,7 +95,8 @@
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-v2</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2-100k')}}>claude-2-100k</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1')}}>claude-v1</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1-100k')}}>claude-v1-100k</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1')}}>claude-instant-v1</button>

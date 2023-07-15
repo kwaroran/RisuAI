@@ -310,6 +310,7 @@ export async function supaMemory(
                     currentTokens -= await tokenize(oldSupaMemory)
                     currentTokens += await tokenize(supaMemory)
                 }
+                console.log(supaMemory)
             }
         }
 
