@@ -81,7 +81,6 @@
                 }
                 const d = await alertConfirm(`${language.removeConfirm}${$DataBase.personas[$DataBase.selectedPersona].name}`)
                 if(d){
-                    changeUserPersona(0)
                     let personas = $DataBase.personas
                     personas.splice($DataBase.selectedPersona, 1)
                     $DataBase.personas = personas

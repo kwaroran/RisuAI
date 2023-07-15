@@ -303,6 +303,10 @@ export const languageKorean = {
     officialDiscordDesc: "리스AI에 대해 자유롭게 대화하세요.",
     confirmRecommendedPreset: "이 모델에 대한 추천 설정이 있습니다. 그걸로 변경하시겠습니까? (접근성 설정에서 물어보는 것을 끌 수 있습니다.)",
     toggleConfirmRecommendedPreset: "추천 설정 적용 물어보기",
-    recommendedPreset: "권장 설정으로 변경"
+    recommendedPreset: "권장 설정으로 변경",
+    persona: "페르소나",
+    icon:"아이콘",
+    account: "계정",
+    remove: "삭제"
 
 }
