@@ -98,8 +98,9 @@ export const replacePlaceholders = (msg:string, name:string) => {
     let db = get(DataBase)
     let selectedChar = get(selectedCharID)
     let currentChar = db.characters[selectedChar]
-    return msg.replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
-              .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, db.username)
+    return msg  .replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
+                .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, db.username)
+                .replace(/(\{\{((set)|(get))var::.+?\}\})/gu,'')
 }
 
 function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single' = 'single') {
