@@ -269,6 +269,7 @@ export function setDatabase(data:Database){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
     data.selectedPersona ??= 0
+    data.personaPrompt ??= ''
     data.personas ??= [{
         name: data.username,
         personaPrompt: "",
