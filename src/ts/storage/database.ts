@@ -281,7 +281,7 @@ export function setDatabase(data:Database){
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     data.toggleConfirmRecommendedPreset ??= true
     changeLanguage(data.language)
-    setDatabase(data)
+    DataBase.set(data)
 }
 
 

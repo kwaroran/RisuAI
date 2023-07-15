@@ -322,7 +322,9 @@ export async function loadData() {
                                 decodeRisuSave(backupData)
                             )
                             backupLoaded = true
-                        } catch (error) {}
+                        } catch (error) {
+                            console.error(error)
+                        }
                     }
                     if(!backupLoaded){
                         throw "Your save file is corrupted"
