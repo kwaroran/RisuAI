@@ -728,6 +728,10 @@ export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basenam
             }
         }
     }
+
+    db.personas.map((v) => {
+        addUnparge(v.icon)
+    })
     return unpargeable
 }
 

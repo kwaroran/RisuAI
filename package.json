@@ -32,7 +32,7 @@
     "isomorphic-dompurify": "^1.2.0",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "lucide-svelte": "^0.130.0",
+    "lucide-svelte": "^0.260.0",
     "ml-distance": "^4.0.1",
     "mobile-drag-drop": "3.0.0-rc.0",
     "msgpackr": "^1.9.5",

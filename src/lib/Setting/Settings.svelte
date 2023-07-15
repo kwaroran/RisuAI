@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -16,11 +16,12 @@
     import GlobalRegex from "./Pages/GlobalRegex.svelte";
     import LanguageSettings from "./Pages/LanguageSettings.svelte";
     import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
+    import PersonaSettings from "./Pages/PersonaSettings.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
     if(window.innerWidth >= 700){
-        selected = 0
+        selected = 1
     }
 
 </script>
@@ -29,17 +30,17 @@
         {#if window.innerWidth >= 700 || selected === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 0} on:click={() => {
-                    selected = 0
-                }}>
-                    <UserIcon />
-                    <span>{language.user}</span>
-                </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 1} on:click={() => {
                     selected = 1
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
+                </button>
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 12} on:click={() => {
+                    selected = 12
+                }}>
+                    <ContactIcon />
+                    <span>{language.persona}</span>
                 </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 2} on:click={() => {
                     selected = 2
@@ -83,11 +84,11 @@
                     <CodeIcon />
                     <span>{language.plugin}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 5} on:click={() => {
-                    selected = 5
+                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 0} on:click={() => {
+                    selected = 0
                 }}>
-                    <FolderIcon />
-                    <span>{language.files}</span>
+                    <UserIcon />
+                    <span>{language.account} & {language.files}</span>
                 </button>
                 <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 6} on:click={() => {
                     selected = 6
@@ -134,6 +135,8 @@
                     <LanguageSettings/>
                 {:else if selected === 11}
                     <AccessibilitySettings/>
+                {:else if selected === 12}
+                    <PersonaSettings/>
                 {/if}
             </div>
             <button class="absolute top-2 right-2 hover:text-green-500 text-white" on:click={() => {

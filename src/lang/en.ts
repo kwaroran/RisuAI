@@ -334,5 +334,9 @@ export const languageEnglish = {
     officialDiscordDesc: "Official Discord to talk about RisuAI",
     confirmRecommendedPreset: "There is a recommended settings for this model. do you want to change the settings to that? (you can turn off asking in the accessiblity settings)",
     toggleConfirmRecommendedPreset: "Ask for recommended setting when model change",
-    recommendedPreset: "Set to Recommended Settings"
+    recommendedPreset: "Set to Recommended Settings",
+    persona: "Persona",
+    icon:"Icon",
+    account: "Account",
+    remove: "Remove"
 }

@@ -265,6 +265,12 @@ export function setDatabase(data:Database){
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
     }
+    data.selectedPersona ??= 0
+    data.personas ??= [{
+        name: data.username,
+        personaPrompt: "",
+        icon: data.userIcon
+    }]
     data.classicMaxWidth ??= false
     data.ooba ??= cloneDeep(defaultOoba)
     data.ainconfig ??= cloneDeep(defaultAIN)
@@ -546,9 +552,15 @@ export interface Database{
     proxyRequestModel:string
     ooba:OobaSettings
     ainconfig: AINsettings
-
+    personaPrompt:string
     openrouterRequestModel:string
     openrouterKey:string
+    selectedPersona:number
+    personas:{
+        personaPrompt:string
+        name:string
+        icon:string
+    }[]
 }
 
 interface hordeConfig{
