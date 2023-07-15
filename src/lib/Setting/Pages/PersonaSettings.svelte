@@ -2,7 +2,7 @@
     import { language } from "src/lang";
   import BaseRoundedButton from "src/lib/UI/BaseRoundedButton.svelte";
   import { alertConfirm, alertError } from "src/ts/alert";
-    import { changeUserPersona, getCharImage, selectUserImg } from "src/ts/characters";
+    import { changeUserPersona, getCharImage, saveUserPersona, selectUserImg } from "src/ts/characters";
     import { DataBase, setDatabase } from "src/ts/storage/database";
   import { get } from "svelte/store";
 
@@ -81,6 +81,7 @@
                 }
                 const d = await alertConfirm(`${language.removeConfirm}${$DataBase.personas[$DataBase.selectedPersona].name}`)
                 if(d){
+                    saveUserPersona()
                     let personas = $DataBase.personas
                     personas.splice($DataBase.selectedPersona, 1)
                     $DataBase.personas = personas
