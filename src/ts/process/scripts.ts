@@ -130,30 +130,37 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
             }
             else{
-                let mOut = outScript.replace(dreg, "$&")
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    mOut = mOut.replace(/{{(.+?)}}/g, (v, p1:string) => {
+
+                function skr(da:string){
+                    return da.replace(/{{(.+?)}}/g, (v, p1:string) => {
                         if(p1 === 'previous_char_chat'){
-                            let pointer = chatID - 1
-                            while(pointer >= 0){
-                                if(chat.message[pointer].role === 'char'){
-                                    return chat.message[pointer].data
+                            if(chatID !== -1){
+                                const selchar = db.characters[get(selectedCharID)]
+                                const chat = selchar.chats[selchar.chatPage]
+                                let pointer = chatID - 1
+                                while(pointer >= 0){
+                                    if(chat.message[pointer].role === 'char'){
+                                        return chat.message[pointer].data
+                                    }
+                                    pointer--
                                 }
-                                pointer--
+                                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                             }
-                            return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                            return
                         }
                         if(p1 === 'previous_user_chat'){
-                            let pointer = chatID - 1
-                            while(pointer >= 0){
-                                if(chat.message[pointer].role === 'user'){
-                                    return chat.message[pointer].data
+                            if(chatID !== -1){
+                                const selchar = db.characters[get(selectedCharID)]
+                                const chat = selchar.chats[selchar.chatPage]
+                                let pointer = chatID - 1
+                                while(pointer >= 0){
+                                    if(chat.message[pointer].role === 'user'){
+                                        return chat.message[pointer].data
+                                    }
+                                    pointer--
                                 }
-                                pointer--
+                                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                             }
-                            return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                         }
                         if(p1.startsWith('calc')){
                             const v = p1.split("::")[1]
@@ -162,11 +169,12 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                         return v
                     })
                 }
+                let mOut = skr(outScript.replace(dreg, "$&"))
                 if(randomness.test(data)){
                     const list = data.split('|||')
                     data = list[Math.floor(Math.random()*list.length)];
                 }
-                data = data.replace(reg, mOut)
+                data = skr(data.replace(reg, mOut))
             }
         }
     }
