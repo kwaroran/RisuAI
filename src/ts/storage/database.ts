@@ -281,7 +281,7 @@ export function setDatabase(data:Database){
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     data.toggleConfirmRecommendedPreset ??= true
     changeLanguage(data.language)
-    DataBase.set(data)
+    setDatabase(data)
 }
 
 
@@ -718,7 +718,7 @@ export const presetTemplate:botPreset = {
     maxResponse: 300,
     frequencyPenalty: 70,
     PresensePenalty: 70,
-    formatingOrder: ['main', 'description', 'chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
+    formatingOrder: ['main', 'description', 'personaPrompt','chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
     aiModel: "gpt35",
     subModel: "gpt35",
     currentPluginProvider: "",
@@ -809,7 +809,7 @@ export function saveCurrentPreset(){
         openrouterRequestModel: db.openrouterRequestModel
     }
     db.botPresets = pres
-    DataBase.set(db)
+    setDatabase(db)
 }
 
 export function copyPreset(id:number){
@@ -819,7 +819,7 @@ export function copyPreset(id:number){
     const newPres = cloneDeep(pres[id])
     newPres.name += " Copy"
     db.botPresets.push(newPres)
-    DataBase.set(db)
+    setDatabase(db)
 }
 
 export function changeToPreset(id =0, savecurrent = true){
@@ -831,7 +831,7 @@ export function changeToPreset(id =0, savecurrent = true){
     const newPres = pres[id]
     db.botPresetsId = id
     db = setPreset(db, newPres)
-    DataBase.set(db)
+    setDatabase(db)
 }
 
 export function setPreset(db:Database, newPres: botPreset){
@@ -885,5 +885,5 @@ export async function importPreset(){
     const pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
     pre.name ??= "Imported"
     db.botPresets.push(pre)
-    DataBase.set(db)
+    setDatabase(db)
 }
