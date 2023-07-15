@@ -53,7 +53,7 @@ export function setDatabase(data:Database){
         data.jailbreakToggle = false
     }
     if(checkNullish(data.formatingOrder)){
-        data.formatingOrder = ['main','description', 'chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
+        data.formatingOrder = ['main','description', 'personaPrompt','chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
     }
     if(checkNullish(data.loreBookDepth)){
         data.loreBookDepth = 5
@@ -264,6 +264,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
+    }
+    if(!data.formatingOrder.includes('personaPrompt')){
+        data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
     data.selectedPersona ??= 0
     data.personas ??= [{
@@ -588,7 +591,7 @@ interface sdConfig{
     hr_upscaler:string
 }
 
-export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'
+export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{
     message: Message[]

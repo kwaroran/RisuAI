@@ -9,7 +9,8 @@ export const languageEnglish = {
         'globalNote': "Global Note",
         'authorNote': "Author's Note",
         'lastChat': "Last Chat",
-        "description": "Character Description"
+        "description": "Character Description",
+        'personaPrompt':'Persona Prompt'
     },
     errors:{
         toomuchtoken: 'Error: The minimum required token is greater than the Max Context Size.',

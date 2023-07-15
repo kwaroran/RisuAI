@@ -13,6 +13,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
     "PresensePenalty": 70,
     "formatingOrder": [
       "main",
+      "personaPrompt",
       "description",
       "chats",
       "lastChat",
@@ -80,6 +81,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
       "jailbreak",
       "main",
       "description",
+      "personaPrompt",
       "lorebook",
       "chats",
       "lastChat",

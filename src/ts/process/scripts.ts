@@ -117,10 +117,10 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                                 case 'start':
                                     data = r[0] + data
                                     break
-                                case 'end nl':
+                                case 'end_nl':
                                     data = data + "\n" + r[0]
                                     break
-                                case 'start nl':
+                                case 'start_nl':
                                     data = r[0] + "\n" + data
                                     break
                             }
@@ -162,6 +162,14 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                                 return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                             }
                         }
+                        if(p1.startsWith('getvar')){
+                            const v = p1.split("::")[1]
+                            if(chatID !== -1){
+                                const d =getVarChat(chatID)
+                                console.log(d)
+                                return d[v] ?? "[Null]"
+                            }
+                        }
                         if(p1.startsWith('calc')){
                             const v = p1.split("::")[1]
                             return calcString(v).toString()
@@ -179,4 +187,40 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
         }
     }
     return {data, emoChanged}
+}
+
+
+export function getVarChat(targetIndex = -1){
+    const db = get(DataBase)
+    const selchar = db.characters[get(selectedCharID)]
+    const chat = selchar.chats[selchar.chatPage]
+    let i =0;
+    if(targetIndex === -1 || targetIndex >= chat.message.length){
+        targetIndex = chat.message.length - 1
+    }
+    let vars:{[key:string]:string} = {}
+    const fm = selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+    const rg = /(\{\{setvar::(.+?)::(.+?)\}\})/gu
+    const rg2 = /(\{\{addvar::(.+?)::(.+?)\}\})/gu
+    const m = fm.matchAll(rg)
+    function process(text:string){
+        const m = text.matchAll(rg)
+        for(const a of m){
+            if(a.length === 4){
+                vars[a[2]] = a[3]
+            }
+        }
+        const m2 = text.matchAll(rg2)
+        for(const a of m2){
+            if(a.length === 4){
+                vars[a[2]] = (parseInt(vars[a[2]]) + parseInt(a[3])).toString()
+            }
+        }
+    }
+    process(fm)
+    while( i <= targetIndex ){
+        process(chat.message[i].data)
+        i += 1
+    }
+    return vars
 }
