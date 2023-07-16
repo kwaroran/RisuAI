@@ -143,7 +143,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
 }
 
 
-const rgx = /{{(.+?)}}/gm
+const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
 export function risuChatParser(da:string, arg:{
     chatID?:number
     db?:Database
