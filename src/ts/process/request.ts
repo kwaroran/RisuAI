@@ -194,7 +194,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 const da =  ((!isTauri) && (!isNodeServer) && (!db.usePlainFetch))
-                    ? await fetch(`/proxy2`, {
+                    ? await fetch(hubURL + `/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(headers)),

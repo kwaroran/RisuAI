@@ -164,11 +164,8 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                         }
                         if(p1.startsWith('getvar')){
                             const v = p1.split("::")[1]
-                            if(chatID !== -1){
-                                const d =getVarChat(chatID)
-                                console.log(d)
-                                return d[v] ?? "[Null]"
-                            }
+                            const d =getVarChat(chatID)
+                            return d[v] ?? "[Null]"
                         }
                         if(p1.startsWith('calc')){
                             const v = p1.split("::")[1]

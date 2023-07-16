@@ -619,7 +619,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }
                 }
                 if(arg.rawResponse){
-                    const furl = `/proxy2`
+                    const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
                 
                     const da = await fetch(furl, {
                         body: body,
@@ -640,7 +640,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     }   
                 }
                 else{
-                    const furl = `/proxy2`
+                    const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
 
                     const da = await fetch(furl, {
                         body: body,
@@ -731,9 +731,11 @@ export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basenam
         }
     }
 
-    db.personas.map((v) => {
-        addUnparge(v.icon)
-    })
+    if(db.personas){
+        db.personas.map((v) => {
+            addUnparge(v.icon)
+        })
+    }
     return unpargeable
 }
 
