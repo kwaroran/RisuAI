@@ -7,7 +7,7 @@
     import { DataBase, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "../../ts/translator/translator";
-    import { replacePlaceholders } from "../../ts/util";
+  import { risuChatParser } from "src/ts/process/scripts";
     export let message = ''
     export let name = ''
     export let isLastMemory:boolean
@@ -56,13 +56,13 @@
     async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
             if(msgTranslated==='')
-                msgDisplay = replacePlaceholders(message, name)
-            msgDisplay = await translate(replacePlaceholders(message, name), false)
+                msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
+            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx}), false)
             msgTranslated = msgDisplay
             translated = true;
         }
         else{
-            msgDisplay = replacePlaceholders(message, name)
+            msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
         }
     }
 
@@ -130,13 +130,13 @@
                                     translated = true
                                     return
                                 }
-                                msgDisplay = (await translate(replacePlaceholders(message, name), false))
+                                msgDisplay = (await translate(risuChatParser(message, {chara: name, chatID: idx}), false))
                                 msgTranslated = msgDisplay
                                 translating = false
                                 translated = true
                             }
                             else{
-                                msgDisplay = replacePlaceholders(message, name)
+                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
                                 translated = false
                             }
                         }}>

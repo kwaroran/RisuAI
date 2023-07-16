@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, setDatabase, type character, type customscript, type groupChat } from "../storage/database";
+import { DataBase, setDatabase, type character, type customscript, type groupChat, type Database } from "../storage/database";
 import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
@@ -130,60 +130,144 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
             }
             else{
-
-                function skr(da:string){
-                    return da.replace(/{{(.+?)}}/g, (v, p1:string) => {
-                        if(p1 === 'previous_char_chat'){
-                            if(chatID !== -1){
-                                const selchar = db.characters[get(selectedCharID)]
-                                const chat = selchar.chats[selchar.chatPage]
-                                let pointer = chatID - 1
-                                while(pointer >= 0){
-                                    if(chat.message[pointer].role === 'char'){
-                                        return chat.message[pointer].data
-                                    }
-                                    pointer--
-                                }
-                                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
-                            }
-                            return
-                        }
-                        if(p1 === 'previous_user_chat'){
-                            if(chatID !== -1){
-                                const selchar = db.characters[get(selectedCharID)]
-                                const chat = selchar.chats[selchar.chatPage]
-                                let pointer = chatID - 1
-                                while(pointer >= 0){
-                                    if(chat.message[pointer].role === 'user'){
-                                        return chat.message[pointer].data
-                                    }
-                                    pointer--
-                                }
-                                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
-                            }
-                        }
-                        if(p1.startsWith('getvar')){
-                            const v = p1.split("::")[1]
-                            const d =getVarChat(chatID)
-                            return d[v] ?? "[Null]"
-                        }
-                        if(p1.startsWith('calc')){
-                            const v = p1.split("::")[1]
-                            return calcString(v).toString()
-                        }
-                        return v
-                    })
-                }
-                let mOut = skr(outScript.replace(dreg, "$&"))
+                let mOut = risuChatParser(outScript.replace(dreg, "$&"), {chatID: chatID, db:db})
                 if(randomness.test(data)){
                     const list = data.split('|||')
                     data = list[Math.floor(Math.random()*list.length)];
                 }
-                data = skr(data.replace(reg, mOut))
+                data = risuChatParser(data.replace(reg, mOut), {chatID: chatID, db:db})
             }
         }
     }
     return {data, emoChanged}
+}
+
+
+const rgx = /{{(.+?)}}/gm
+export function risuChatParser(da:string, arg:{
+    chatID?:number
+    db?:Database
+    chara?:string|character
+} = {}):string{
+    const chatID = arg.chatID ?? -1
+    const db = arg.db ?? get(DataBase)
+    return da.replace(rgx, (v, p1:string) => {
+        const lowerCased = p1.toLocaleLowerCase()
+        switch(lowerCased){
+            case 'previous_char_chat':{
+                if(chatID !== -1){
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar.chats[selchar.chatPage]
+                    let pointer = chatID - 1
+                    while(pointer >= 0){
+                        if(chat.message[pointer].role === 'char'){
+                            return chat.message[pointer].data
+                        }
+                        pointer--
+                    }
+                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                }
+                return ''
+            }
+            case 'previous_user_chat':{
+                if(chatID !== -1){
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar.chats[selchar.chatPage]
+                    let pointer = chatID - 1
+                    while(pointer >= 0){
+                        if(chat.message[pointer].role === 'user'){
+                            return chat.message[pointer].data
+                        }
+                        pointer--
+                    }
+                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                }
+                return ''
+            }
+            case 'char':
+            case 'bot':{
+                const chara = arg.chara
+                if(chara){
+                    if(typeof(chara) === 'string'){
+                        return chara
+                    }
+                    else{
+                        return chara.name
+                    }
+                }
+                let selectedChar = get(selectedCharID)
+                let currentChar = db.characters[selectedChar]
+                return currentChar.name
+            }
+            case 'user':{
+                return db.username
+            }
+            case 'personality':
+            case 'char_persona':{
+                const argChara = arg.chara
+                const chara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(chara.type === 'group'){
+                    return ""
+                }
+                return chara.personality
+            }
+            case 'persona':
+            case 'user_persona':{
+                const argChara = arg.chara
+                const chara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(chara.type === 'group'){
+                    return ""
+                }
+                return chara.personality
+            }
+            case 'ujb':
+            case 'global_note':{
+                return db.globalNote
+            }
+            case 'chat_index':{
+                return chatID.toString() 
+            }
+            case 'blank':
+            case 'none':{
+                return ''
+            }
+        }
+        const arra = p1.split("::")
+        if(arra.length > 1){
+            const v = arra[1]
+            switch(arra[0]){
+                case 'getvar':{
+                    const d =getVarChat(chatID)
+                    return d[v] ?? "[Null]" 
+                }
+                case 'calc':{
+                    return calcString(v).toString()
+                }
+                case 'addvar':
+                case 'setvar':{
+                    return ''
+                }
+                case 'button':{
+                    return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
+                }
+                case 'risu':{
+                    return `<img src="/logo2.png" />`
+                }
+            }
+        }
+        if(p1.startsWith('random')){
+            if(p1.startsWith('random::')){
+                const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
+                return arra[randomIndex]
+            }
+            else{
+                const arr = p1.split(/\:|\,/g)
+                const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+                return arr[randomIndex]
+            }
+        }
+        return v
+    })
 }
 
 
@@ -196,10 +280,15 @@ export function getVarChat(targetIndex = -1){
         targetIndex = chat.message.length - 1
     }
     let vars:{[key:string]:string} = {}
+    let rules:{
+        key:string
+        rule:string
+        arg:string
+    }[] = []
     const fm = selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
     const rg = /(\{\{setvar::(.+?)::(.+?)\}\})/gu
     const rg2 = /(\{\{addvar::(.+?)::(.+?)\}\})/gu
-    const m = fm.matchAll(rg)
+    const rg3 = /(\{\{varrule_(.+?)::(.+?)::(.+?)\}\})/gu
     function process(text:string){
         const m = text.matchAll(rg)
         for(const a of m){
@@ -213,11 +302,54 @@ export function getVarChat(targetIndex = -1){
                 vars[a[2]] = (parseInt(vars[a[2]]) + parseInt(a[3])).toString()
             }
         }
+        const m3 = text.matchAll(rg3)
+        for(const a of m3){
+            if(a.length === 5){
+                rules.push({
+                    key: a[3],
+                    rule: a[2],
+                    arg: a[4]
+                })
+            }
+        }
     }
     process(fm)
     while( i <= targetIndex ){
         process(chat.message[i].data)
         i += 1
+    }
+
+    for(const rule of rules){
+        if(vars[rule.key] === undefined){
+            continue
+        }
+        switch(rule.rule){
+            case "max":{
+                if(parseInt(vars[rule.key]) > parseInt(rule.arg)){
+                    vars[rule.key] = rule.arg
+                }
+                break
+            }
+            case "min":{
+                if(parseInt(vars[rule.key]) > parseInt(rule.arg)){
+                    vars[rule.key] = rule.arg
+                }
+                break
+            }
+            case 'overflow':{
+                const exArg = rule.arg.split("::")
+                let rv = parseInt(vars[rule.key])
+                const val = parseInt(exArg[0])
+                const tg = exArg[1]
+
+                if(isNaN(val) || isNaN(rv)){
+                    break
+                }
+
+                vars[tg] = (Math.floor(rv / val)).toString()
+                vars[rule.key] = (Math.floor(rv % val)).toString()
+            }
+        }
     }
     return vars
 }

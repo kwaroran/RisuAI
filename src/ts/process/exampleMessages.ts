@@ -1,6 +1,6 @@
 import type { OpenAIChat } from ".";
 import type { character } from "../storage/database";
-import { replacePlaceholders } from "../util";
+import { risuChatParser } from "./scripts";
 
 export function exampleMessage(char:character, userName:string):OpenAIChat[]{
     if(char.exampleMessage === ''){
@@ -58,7 +58,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
     result = result.map((r) => {
         return {
             role: r.role,
-            content: replacePlaceholders(r.content, char.name)
+            content: risuChatParser(r.content, {chara: char})
         }
     })
 

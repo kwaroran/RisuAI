@@ -5,10 +5,10 @@ import { ChatTokenizer, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
-import { findCharacterbyId, replacePlaceholders } from "../util";
+import { findCharacterbyId } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
-import { processScript, processScriptFull } from "./scripts";
+import { processScript, processScriptFull, risuChatParser } from "./scripts";
 import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
 import { supaMemory } from "./memory/supaMemory";
@@ -183,31 +183,31 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             return chatObjects;
         }
 
-        unformated.main.push(...formatPrompt(replacePlaceholders(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), currentChar.name)))
+        unformated.main.push(...formatPrompt(risuChatParser(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), {chara: currentChar})))
     
         if(db.jailbreakToggle){
-            unformated.jailbreak.push(...formatPrompt(replacePlaceholders(db.jailbreak, currentChar.name)))
+            unformated.jailbreak.push(...formatPrompt(risuChatParser(db.jailbreak, {chara: currentChar})))
         }
     
-        unformated.globalNote.push(...formatPrompt(replacePlaceholders(currentChar.replaceGlobalNote?.replaceAll('{{original}}', db.globalNote) || db.globalNote, currentChar.name)))
+        unformated.globalNote.push(...formatPrompt(risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', db.globalNote) || db.globalNote, {chara:currentChar})))
     }
 
     if(currentChat.note){
         unformated.authorNote.push({
             role: 'system',
-            content: replacePlaceholders(currentChat.note, currentChar.name)
+            content: risuChatParser(currentChat.note, {chara: currentChar})
         })
     }
 
     {
-        let description = replacePlaceholders((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, currentChar.name)
+        let description = risuChatParser((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, {chara: currentChar})
 
         if(currentChar.personality){
-            description += replacePlaceholders("\n\nDescription of {{char}}: " + currentChar.personality,currentChar.name)
+            description += risuChatParser("\n\nDescription of {{char}}: " + currentChar.personality, {chara: currentChar})
         }
 
         if(currentChar.scenario){
-            description += replacePlaceholders("\n\nCircumstances and context of the dialogue: " + currentChar.scenario,currentChar.name)
+            description += risuChatParser("\n\nCircumstances and context of the dialogue: " + currentChar.scenario, {chara: currentChar})
         }
 
         unformated.description.push({
@@ -227,19 +227,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     const lorepmt = await loadLoreBookPrompt()
     unformated.lorebook.push({
         role: 'system',
-        content: replacePlaceholders(lorepmt.act, currentChar.name)
+        content: risuChatParser(lorepmt.act, {chara: currentChar})
     })
     if(db.personaPrompt){
         unformated.personaPrompt.push({
             role: 'system',
-            content: replacePlaceholders(db.personaPrompt, currentChar.name)
+            content: risuChatParser(db.personaPrompt, {chara: currentChar})
         })
     }
 
     if(lorepmt.special_act){
         unformated.postEverything.push({
             role: 'system',
-            content: replacePlaceholders(lorepmt.special_act, currentChar.name)
+            content: risuChatParser(lorepmt.special_act, {chara: currentChar})
         })
     }
 
@@ -275,7 +275,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const chat:OpenAIChat = {
             role: 'assistant',
             content: processScript(nowChatroom,
-                replacePlaceholders(firstMsg, currentChar.name),
+                risuChatParser(firstMsg, {chara: currentChar}),
             'editprocess')
         }
         chats.push(chat)
@@ -284,7 +284,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     const ms = currentChat.message
     for(const msg of ms){
-        let formedChat = processScript(nowChatroom,replacePlaceholders(msg.data, currentChar.name), 'editprocess')
+        let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
