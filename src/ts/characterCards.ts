@@ -125,7 +125,19 @@ async function importCharacterProcess(f:{
     }
 }
 
-export async function characterHubImport() {
+export async function characterURLImport() {
+    const realmPath = (new URLSearchParams(location.search)).get('realm')
+    try {
+        if(realmPath){
+            const url = new URL(location.href);
+            url.searchParams.delete('realm');
+            window.history.pushState(null, '', url.toString());
+            downloadRisuHub(realmPath)
+        }
+    } catch (error) {
+        
+    }
+
     const charPath = (new URLSearchParams(location.search)).get('charahub')
     try {
         if(charPath){

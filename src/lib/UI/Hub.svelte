@@ -201,7 +201,8 @@
             <div class=" mt-2 w-full border-t-2 border-t-bgcolor"></div>
             <button class="w-full hover:bg-selected p-4" on:click|stopPropagation={async () => {
                 menuOpen = false
-                const id = await alertInput('Input URL or ID')
+                const input = await alertInput('Input URL or ID')
+                const id = input.split("?").at(-1)
                 downloadRisuHub(id)
 
             }}>Import Character from URL or ID</button>

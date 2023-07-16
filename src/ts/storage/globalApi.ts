@@ -14,7 +14,7 @@ import { loadPlugins } from "../plugins/plugins";
 import { alertConfirm, alertError } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
-import { characterHubImport, hubURL } from "../characterCards";
+import { characterURLImport, hubURL } from "../characterCards";
 import { cloneDeep } from "lodash";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
@@ -408,7 +408,7 @@ export async function loadData() {
                 }
                 checkOldDomain()
                 if(get(DataBase).didFirstSetup){
-                    characterHubImport()
+                    characterURLImport()
                 }
             }
             try {
