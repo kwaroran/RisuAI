@@ -337,7 +337,7 @@ export function getVarChat(targetIndex = -1){
                 break
             }
             case 'overflow':{
-                const exArg = rule.arg.split("::")
+                const exArg = rule.arg.split(":")
                 let rv = parseInt(vars[rule.key])
                 const val = parseInt(exArg[0])
                 const tg = exArg[1]
