@@ -229,10 +229,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         role: 'system',
         content: replacePlaceholders(lorepmt.act, currentChar.name)
     })
-    unformated.personaPrompt.push({
-        role: 'system',
-        content: replacePlaceholders(db.personaPrompt, currentChar.name)
-    })
+    if(db.personaPrompt){
+        unformated.personaPrompt.push({
+            role: 'system',
+            content: replacePlaceholders(db.personaPrompt, currentChar.name)
+        })
+    }
 
     if(lorepmt.special_act){
         unformated.postEverything.push({
