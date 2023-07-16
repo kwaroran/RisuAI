@@ -1,6 +1,6 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub, hubURL, type hubType } from "src/ts/characterCards";
-    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, SearchIcon, SmileIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, PaperclipIcon, SearchIcon, SmileIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { parseMarkdownSafe } from "src/ts/parser";
     import { language } from "src/lang";
@@ -172,6 +172,12 @@
                         <TrashIcon />
                     </button>
                 {/if}
+                <button class="text-gray-400 hover:text-green-500" on:click|stopPropagation={async () => {
+                    await navigator.clipboard.writeText(`https://risuai.xyz/?realm=${openedData.id}`)
+                    alertNormal("Copied to clipboard")
+                }}>
+                    <PaperclipIcon />
+                </button>
                 <button class="bg-selected hover:ring flex-grow p-2 font-bold rounded-md mr-2" on:click={() => {
                     downloadRisuHub(openedData.id)
                     openedData = null
