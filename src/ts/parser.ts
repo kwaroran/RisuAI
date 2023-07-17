@@ -284,6 +284,7 @@ export function risuChatParser(da:string, arg:{
     chatID?:number
     db?:Database
     chara?:string|character|groupChat
+    rmVar?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -394,7 +395,10 @@ export function risuChatParser(da:string, arg:{
                 }
                 case 'addvar':
                 case 'setvar':{
-                    return ''
+                    if(arg.rmVar){
+                        return ''
+                    }
+                    break
                 }
                 case 'button':{
                     return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`

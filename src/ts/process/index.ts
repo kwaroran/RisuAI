@@ -275,7 +275,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const chat:OpenAIChat = {
             role: 'assistant',
             content: processScript(nowChatroom,
-                risuChatParser(firstMsg, {chara: currentChar}),
+                risuChatParser(firstMsg, {chara: currentChar, rmVar: true}),
             'editprocess')
         }
         chats.push(chat)
@@ -284,7 +284,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     const ms = currentChat.message
     for(const msg of ms){
-        let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar}), 'editprocess')
+        let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){

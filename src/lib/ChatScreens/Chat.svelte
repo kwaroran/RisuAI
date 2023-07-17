@@ -56,13 +56,13 @@
     async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
             if(msgTranslated==='')
-                msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
-            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx}), false)
+                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
+            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar:true}), false)
             msgTranslated = msgDisplay
             translated = true;
         }
         else{
-            msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
+            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
         }
     }
 
@@ -130,13 +130,13 @@
                                     translated = true
                                     return
                                 }
-                                msgDisplay = (await translate(risuChatParser(message, {chara: name, chatID: idx}), false))
+                                msgDisplay = (await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false))
                                 msgTranslated = msgDisplay
                                 translating = false
                                 translated = true
                             }
                             else{
-                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx})
+                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar:true})
                                 translated = false
                             }
                         }}>
