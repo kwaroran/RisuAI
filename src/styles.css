@@ -45,6 +45,10 @@ html, body{
   color: var(--FontColorItalicBold);
 }
 
+.chattext em strong{
+  color: var(--FontColorItalicBold);
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

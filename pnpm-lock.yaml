@@ -17,6 +17,9 @@ dependencies:
   '@tauri-apps/api':
     specifier: 1.4.0
     version: 1.4.0
+  '@types/marked':
+    specifier: ^5.0.1
+    version: 5.0.1
   blueimp-md5:
     specifier: ^2.19.0
     version: 2.19.0
@@ -62,6 +65,9 @@ dependencies:
   lucide-svelte:
     specifier: ^0.260.0
     version: 0.260.0(svelte@3.58.0)
+  marked:
+    specifier: ^5.1.1
+    version: 5.1.1
   ml-distance:
     specifier: ^4.0.1
     version: 4.0.1
@@ -804,6 +810,10 @@ packages:
   /@types/lodash@4.14.194:
     resolution: {integrity: sha512-r22s9tAS7imvBt2lyHC9B8AGwWnXaYb1tY09oyLkXDs4vArpYJzw09nj8MLx5VfciBPGIb+ZwG0ssYnEPJxn/g==}
     dev: true
+
+  /@types/marked@5.0.1:
+    resolution: {integrity: sha512-Y3pAUzHKh605fN6fvASsz5FDSWbZcs/65Q6xYRmnIP9ZIYz27T4IOmXfH9gWJV1dpi7f1e7z7nBGUTx/a0ptpA==}
+    dev: false
 
   /@types/node@18.15.11:
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
@@ -1921,6 +1931,12 @@ packages:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
+
+  /marked@5.1.1:
+    resolution: {integrity: sha512-bTmmGdEINWmOMDjnPWDxGPQ4qkDLeYorpYbEtFOXzOruTwUE671q4Guiuchn4N8h/v6NGd7916kXsm3Iz4iUSg==}
+    engines: {node: '>= 18'}
+    hasBin: true
+    dev: false
 
   /media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}

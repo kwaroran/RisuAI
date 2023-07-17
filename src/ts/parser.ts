@@ -1,5 +1,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
+import { Marked } from 'marked';
+
 import { DataBase, type Database, type character, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScript, processScriptFull } from './process/scripts';
@@ -7,11 +9,21 @@ import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
+import { findCharacterbyId } from './util';
 
-const convertor = new showdown.Converter({
+const convertora = new showdown.Converter({
     simpleLineBreaks: true,
     strikethrough: true,
     tables: true
+})
+
+const mconverted = new Marked({
+    gfm: true,
+    breaks: true,
+    silent: true,
+    tokenizer: {
+
+    }
 })
 
 const safeConvertor = new showdown.Converter({
@@ -90,7 +102,7 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)
     }
-    return DOMPurify.sanitize(convertor.makeHtml(data), {
+    return DOMPurify.sanitize(mconverted.parse(data), {
         ADD_TAGS: ["iframe"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
     })
@@ -242,15 +254,30 @@ function wppParser(data:string){
    return characterDetails;
 }
 
+
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
 export function risuChatParser(da:string, arg:{
     chatID?:number
     db?:Database
-    chara?:string|character
+    chara?:string|character|groupChat
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
-    return da.replace(rgx, (v, p1:string) => {
+    const aChara = arg.chara
+    let chara:character|string = null
+
+    if(aChara){
+        if(typeof(aChara) !== 'string' && aChara.type === 'group'){
+            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
+            if(gc.name !== 'Unknown Character'){
+                chara = gc
+            }
+        }
+        else{
+            chara = aChara
+        }
+    }
+    const matcher = (p1:string) => {
         const lowerCased = p1.toLocaleLowerCase()
         switch(lowerCased){
             case 'previous_char_chat':{
@@ -285,7 +312,6 @@ export function risuChatParser(da:string, arg:{
             }
             case 'char':
             case 'bot':{
-                const chara = arg.chara
                 if(chara){
                     if(typeof(chara) === 'string'){
                         return chara
@@ -303,21 +329,21 @@ export function risuChatParser(da:string, arg:{
             }
             case 'personality':
             case 'char_persona':{
-                const argChara = arg.chara
-                const chara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(chara.type === 'group'){
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
                     return ""
                 }
-                return chara.personality
+                return achara.personality
             }
             case 'persona':
             case 'user_persona':{
-                const argChara = arg.chara
-                const chara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(chara.type === 'group'){
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
                     return ""
                 }
-                return chara.personality
+                return achara.personality
             }
             case 'ujb':
             case 'global_note':{
@@ -350,7 +376,7 @@ export function risuChatParser(da:string, arg:{
                     return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
                 }
                 case 'risu':{
-                    return `<img src="/logo2.png" />`
+                    return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
                 }
             }
         }
@@ -365,10 +391,68 @@ export function risuChatParser(da:string, arg:{
                 return arr[randomIndex]
             }
         }
-        return v
-    })
+        return null
+    }
+    
+    let pointer = 0;
+    let nested:string[] = [""]
+    let pf = performance.now()
+    let v = new Uint8Array(255)
+    while(pointer < da.length){
+        switch(da[pointer]){
+            case '{':{
+                if(da[pointer + 1] !== '{'){
+                    nested[0] += da[pointer]
+                    break
+                }
+                pointer++
+                nested.unshift('')
+                v[nested.length] = 1
+                break
+            }
+            case '<':{
+                nested.unshift('')
+                v[nested.length] = 2
+                break
+            }
+            case '}':{
+                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                    nested[0] += da[pointer]
+                    break
+                }
+                pointer++
+                const dat = nested.shift()
+                const mc = matcher(dat)
+                nested[0] += mc ?? `{{${dat}}}`
+                break
+            }
+            case '>':{
+                if(nested.length === 1 || v[nested.length] !== 2){
+                    break
+                }
+                const dat = nested.shift()
+                const mc = matcher(dat)
+                nested[0] += mc ?? `<${dat}>`
+                break
+            }
+            default:{
+                nested[0] += da[pointer]
+                break
+            }
+        }
+        pointer++
+    }
+    if(nested.length === 1){
+        return nested[0]
+    }
+    let result = ''
+    while(nested.length > 1){
+        let dat = (v[nested.length] === 1) ? '{{' : "<"
+        dat += nested.shift()
+        result = dat + result
+    }
+    return nested[0] + result
 }
-
 
 function getVarChat(targetIndex = -1){
     const db = get(DataBase)
@@ -430,7 +514,7 @@ function getVarChat(targetIndex = -1){
                 break
             }
             case "min":{
-                if(parseInt(vars[rule.key]) > parseInt(rule.arg)){
+                if(parseInt(vars[rule.key]) < parseInt(rule.arg)){
                     vars[rule.key] = rule.arg
                 }
                 break
