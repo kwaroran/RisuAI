@@ -9,7 +9,7 @@ import { alertNormal } from '../alert';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.35.0'
+export let appVer = '1.36.0'
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
