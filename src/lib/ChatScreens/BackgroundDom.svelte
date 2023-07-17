@@ -42,9 +42,11 @@
 
 
 {#if backgroundHTML}
-    <div class="absolute top-0 left-0 w-full h-full">
-        {#await ParseMarkdown(risuChatParser(backgroundHTML, {chara:currentChar}), currentChar, 'back') then md} 
-            {@html md}
-        {/await}
-    </div>
+    {#key currentChar.reloadKeys}
+        <div class="absolute top-0 left-0 w-full h-full">
+            {#await ParseMarkdown(risuChatParser(backgroundHTML, {chara:currentChar}), currentChar, 'back') then md} 
+                {@html md}
+            {/await}
+        </div>
+    {/key}
 {/if}

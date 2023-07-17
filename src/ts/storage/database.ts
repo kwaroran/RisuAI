@@ -361,6 +361,7 @@ export interface character{
     ttsReadOnlyQuoted?:boolean
     replaceGlobalNote:string
     backgroundHTML?:string
+    reloadKeys?:number
 }
 
 
@@ -398,6 +399,7 @@ export interface groupChat{
     suggestMessages?:string[]
     orderByOrder?:boolean
     backgroundHTML?:string,
+    reloadKeys?:number
 }
 
 export interface botPreset{
