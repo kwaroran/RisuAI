@@ -90,7 +90,7 @@
                     })
                 }}>OK</button>
             {:else if $alertStore.type === 'input'}
-                <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected" value="" id="alert-input">
+                <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected" value="" id="alert-input" autocomplete="off">
                 <button bind:this={btn} class="mt-4 border-borderc bg-transparent outline-none border-solid border-1 p-2 text-lg text-neutral-200 hover:bg-green-500 transition-colors focus:border-3" on:click={() => {
                     alertStore.set({
                         type: 'none',

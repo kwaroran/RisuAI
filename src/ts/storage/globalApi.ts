@@ -571,7 +571,8 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                 }
             }
     
-            const body = Body.json(arg.body)
+            const body = (!arg.body) ? null :
+                (arg.body instanceof URLSearchParams) ? (Body.text(arg.body.toString())) : (Body.json(arg.body))
             const headers = arg.headers ?? {}
             const d = await TauriFetch(url, {
                 body: body,
@@ -581,7 +582,8 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                     secs: db.timeOut,
                     nanos: 0
                 },
-                responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON
+                responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON,
+                
             })
             if(arg.rawResponse){
                 addFetchLog("Uint8Array Response", d.ok)
@@ -680,6 +682,7 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
             }
         }   
     } catch (error) {
+        console.error(error)
         return {
             ok:false,
             data: `${error}`,

@@ -37,6 +37,7 @@
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
+  import { BotCreator } from "src/ts/creator/creator";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -568,6 +569,12 @@
       class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
     >
       {language.createGroup}
+    </button>
+    <button
+      on:click={BotCreator.createBotFromWeb}
+      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
+    >
+      {language.createBotInternet}
     </button>
   {/if}
 </div>

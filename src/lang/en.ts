@@ -339,5 +339,9 @@ export const languageEnglish = {
     persona: "Persona",
     icon:"Icon",
     account: "Account",
-    remove: "Remove"
+    remove: "Remove",
+    creationSuccess: "Creation Success",
+    noweb: "This feature cannot be used on web version.",
+    createBotInternet: "Create Bot from Internet with AI",
+    createBotInternetAlert: "Please provide the character's name and the corresponding series/game."
 }

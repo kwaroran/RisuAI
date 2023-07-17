@@ -105,13 +105,14 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
     return DOMPurify.sanitize(mconverted.parse(data), {
         ADD_TAGS: ["iframe"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
+        FORBID_ATTR: ["href"]
     })
 }
 
 export function parseMarkdownSafe(data:string) {
     return DOMPurify.sanitize(safeConvertor.makeHtml(data), {
         FORBID_TAGS: ["a", "style"],
-        FORBID_ATTR: ["style"]
+        FORBID_ATTR: ["style", "href"]
     })
 }
 
