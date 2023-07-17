@@ -6,6 +6,7 @@ import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { risuChatParser as risuChatParserOrg } from "../parser";
+import { autoMarkPlugin } from "../plugins/automark";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -138,6 +139,9 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 data = risuChatParser(data.replace(reg, mOut), {chatID: chatID, db:db})
             }
         }
+    }
+    if(db.officialplugins.automark){
+        data = autoMarkPlugin(data)
     }
     return {data, emoChanged}
 }

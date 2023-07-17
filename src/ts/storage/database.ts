@@ -281,6 +281,7 @@ export function setDatabase(data:Database){
     data.openrouterKey ??= ''
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     data.toggleConfirmRecommendedPreset ??= true
+    data.officialplugins ??= {}
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -465,6 +466,9 @@ export interface Database{
     language: string
     translator: string
     plugins: RisuPlugin[]
+    officialplugins: {
+        automark?: boolean
+    }
     currentPluginProvider: string
     zoomsize:number
     lastup:string
