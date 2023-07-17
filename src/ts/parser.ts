@@ -42,33 +42,16 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
           return node.parentNode.removeChild(node);
        }
     }
-    if(data.tagName === 'style'){
-        try {
-            const ast = css.parse(node.innerHTML)
-            const rules = ast?.stylesheet?.rules
-            if(rules){
-                for(const rule of rules){
-                    if(rule.selectors){
-                        for(let i=0;i<rule.selectors.length;i++){
-                            rule.selectors[i] = ".chattext " + rule.selectors[i]
-                        }
-                    }
-                }
-            }
-            node.innerHTML = css.stringify(ast)
-       
-        } catch (error) {
-            const ErrorNode = document.createElement("div")
-            ErrorNode.innerText = `CSS ERROR: ${error}`
-            node.parentNode.appendChild(ErrorNode)
-            return node.parentNode.removeChild(node);
-        }
-    }
 });
 
 DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     if(data.attrName === 'style'){
         data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
+    }
+    if(data.attrName === 'class'){
+        data.attrValue = data.attrValue.split(' ').map((v) => {
+            return "x-risu-" + v
+        }).join(' ')
     }
 })
 
@@ -102,17 +85,57 @@ export async function ParseMarkdown(data:string, char:(character | groupChat) = 
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)
     }
-    return DOMPurify.sanitize(mconverted.parse(data), {
-        ADD_TAGS: ["iframe"],
+    return decodeStyle(DOMPurify.sanitize(mconverted.parse(encodeStyle(data)), {
+        ADD_TAGS: ["iframe", "style", "risu-style"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
         FORBID_ATTR: ["href"]
-    })
+    }))
 }
 
 export function parseMarkdownSafe(data:string) {
     return DOMPurify.sanitize(safeConvertor.makeHtml(data), {
         FORBID_TAGS: ["a", "style"],
-        FORBID_ATTR: ["style", "href"]
+        FORBID_ATTR: ["style", "href", "class"]
+    })
+}
+
+
+const styleRegex = /\<style\>(.+?)\<\/style\>/gms
+function encodeStyle(txt:string){
+    return txt.replaceAll(styleRegex, (f, c1) => {
+        return "<risu-style>" + Buffer.from(c1).toString('hex') + "</risu-style>"
+    })
+}
+const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
+
+function decodeStyle(text:string){
+
+    return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
+        try {
+            const ast = css.parse(Buffer.from(txt, 'hex').toString('utf-8'))
+            const rules = ast?.stylesheet?.rules
+            if(rules){
+                for(const rule of rules){
+                    if(rule.selectors){
+                        for(let i=0;i<rule.selectors.length;i++){
+                            let slt:string = rule.selectors[i]
+                            let selectors = slt.split(' ').map((v) => {
+                                if(v.startsWith('.')){
+                                    return ".x-risu-" + v.substring(1)
+                                }
+                                return v
+                            }).join(' ')
+
+                            rule.selectors[i] = ".chattext " + selectors
+                        }
+                    }
+                }
+            }
+            return `<style>${css.stringify(ast)}</style>`
+
+        } catch (error) {
+            return `CSS ERROR: ${error}`;
+        }
     })
 }
 

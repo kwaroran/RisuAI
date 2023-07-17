@@ -363,6 +363,7 @@ export interface character{
     replaceGlobalNote:string
     backgroundHTML?:string
     reloadKeys?:number
+    backgroundCSS?:string
 }
 
 
@@ -401,6 +402,7 @@ export interface groupChat{
     orderByOrder?:boolean
     backgroundHTML?:string,
     reloadKeys?:number
+    backgroundCSS?:string
 }
 
 export interface botPreset{
