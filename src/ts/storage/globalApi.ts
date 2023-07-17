@@ -662,9 +662,10 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                         }   
                     } catch (error) {
                         addFetchLog(daText, false)
+                        let errorMsg = (daText.startsWith('<!DOCTYPE')) ? ("Responded HTML. is your url, api key and password correct?") : (daText)
                         return {
                             ok:false,
-                            data: daText,
+                            data: errorMsg,
                             headers: Object.fromEntries(da.headers)
                         }
                     }
