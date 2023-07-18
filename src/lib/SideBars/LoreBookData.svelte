@@ -5,8 +5,9 @@
     import { alertConfirm } from "../../ts/alert";
     import Check from "../UI/GUI/Check.svelte";
     import Help from "../Others/Help.svelte";
-  import TextInput from "../UI/GUI/TextInput.svelte";
-  import NumberInput from "../UI/GUI/NumberInput.svelte";
+    import TextInput from "../UI/GUI/TextInput.svelte";
+    import NumberInput from "../UI/GUI/NumberInput.svelte";
+  import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     export let value:loreBook
     export let onRemove: () => void = () => {}
     let open = false
@@ -58,7 +59,7 @@
             <span class="text-neutral-200 mt-4">{language.insertOrder} <Help key="loreorder"/></span>
             <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
             <span class="text-neutral-200 mt-4 mb-2">{language.prompt}</span>
-            <TextInput autocomplete="off" bind:value={value.content} />
+            <TextAreaInput autocomplete="off" bind:value={value.content} />
             <div class="flex items-center mt-4">
                 <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>

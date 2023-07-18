@@ -16,7 +16,8 @@ export default {
       minWidth: {
         '20': '5rem',
         '14': '3.5rem',
-        'half': '50%'
+        'half': '50%',
+        '5': '1.25rem'
       },
       maxWidth:{
         'half': '50%',
@@ -36,6 +37,7 @@ export default {
       },
       minHeight:{
         '8': '2rem',
+        '5': '1.25rem',
         '14': '3.5rem',
         '20': '5rem',
         '32': '9rem',
