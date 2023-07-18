@@ -361,17 +361,65 @@ export function risuChatParser(da:string, arg:{
                 }
                 return achara.personality
             }
-            case 'persona':
-            case 'user_persona':{
+            case 'description':
+            case 'char_desc':{
                 const argChara = chara
                 const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
                 if(achara.type === 'group'){
                     return ""
                 }
-                return achara.personality
+                return achara.desc
+            }
+            case 'scenario':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
+                }
+                return achara.scenario
+            }
+            case 'example_dialogue':
+            case 'example_message':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
+                }
+                return achara.exampleMessage
+            }
+            case 'persona':
+            case 'user_persona':{
+                return db.personaPrompt
+            }
+            case 'main_prompt':
+            case 'system_prompt':{
+                return db.mainPrompt
+            }
+            case 'lorebook':
+            case 'world_info':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
+                const chatLore = chat.localLore ?? []
+                const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
+                const fullLore = characterLore.concat(chatLore.concat(globalLore))
+                return fullLore.map((f) => {
+                    return JSON.stringify(f)
+                }).join("§\n")
+            }
+            case 'history':
+            case 'messages':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.map((f) => {
+                    return JSON.stringify(f)
+                }).join("§\n")
             }
             case 'ujb':
-            case 'global_note':{
+            case 'global_note':
+            case 'system_note':{
                 return db.globalNote
             }
             case 'chat_index':{
