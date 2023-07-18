@@ -1,6 +1,7 @@
 <script lang="ts">
     import { language } from "src/lang";
   import BaseRoundedButton from "src/lib/UI/BaseRoundedButton.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
   import { alertConfirm, alertError } from "src/ts/alert";
     import { changeUserPersona, getCharImage, saveUserPersona, selectUserImg } from "src/ts/characters";
@@ -74,7 +75,7 @@
         <span class="text-sm text-gray-500">{language.name}</span>
         <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username} />
         <span class="text-sm text-gray-500">{language.description}</span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-32 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`}></textarea>
+        <TextAreaInput height="32" autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div>
             <button class="float-right rounded-md border border-red-700 p-2 hover:bg-red-700 transition-colors mt-4 text-sm" on:click={async () => {
                 if($DataBase.personas.length === 1){

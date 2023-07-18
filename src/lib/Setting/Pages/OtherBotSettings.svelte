@@ -1,11 +1,13 @@
 <script lang="ts">
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/Check.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
     import { isTauri } from "src/ts/storage/globalApi";
-  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -13,12 +15,12 @@
 <span class="text-neutral-200 mt-4 text-lg font-bold">{language.imageGeneration}</span>
 
 <span class="text-neutral-200 mt-2">{language.provider} <Help key="sdProvider"/></span>
-<select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.sdProvider}>
-    <option value="" class="bg-darkbg appearance-none">None</option>
-    <option value="webui" class="bg-darkbg appearance-none">Stable Diffusion WebUI</option>
+<SelectInput className="mt-2 mb-4" bind:value={$DataBase.sdProvider}>
+    <OptionInput value="" >None</OptionInput>
+    <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
     <!-- TODO -->
-    <!-- <option value="runpod" class="bg-darkbg appearance-none">Runpod Serverless</option> -->
-</select>
+    <!-- <OptionInput value="runpod" >Runpod Serverless</OptionInput> -->
+</SelectInput>
 
 {#if $DataBase.sdProvider === 'webui'}
 <span class="text-draculared text-xs mb-2">You must use WebUI with --api flag</span>
@@ -64,12 +66,12 @@
 
 <span class="text-neutral-200 mt-4 text-lg font-bold">{language.SuperMemory} <Help key="superMemory" /></span>
 <span class="text-neutral-200 mt-4">{language.SuperMemory} {language.model}</span>
-<select class="bg-transparent input-text mt-2 mb-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.supaMemoryType}>
-    <option value="none" class="bg-darkbg appearance-none">None</option>
-    <option value="davinci" class="bg-darkbg appearance-none">OpenAI Davinci</option>
-    <option value="curie" class="bg-darkbg appearance-none">OpenAI Curie</option>
-    <option value="subModel" class="bg-darkbg appearance-none">{language.submodel} ({language.unrecommended})</option>
-</select>
+<SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+    <OptionInput value="none" >None</OptionInput>
+    <OptionInput value="davinci" >OpenAI Davinci</OptionInput>
+    <OptionInput value="curie" >OpenAI Curie</OptionInput>
+    <OptionInput value="subModel" >{language.submodel} ({language.unrecommended})</OptionInput>
+</SelectInput>
 {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie'}
     <span class="text-neutral-200">{language.SuperMemory} OpenAI Key</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>

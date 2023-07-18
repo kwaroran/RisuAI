@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/Check.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
@@ -10,10 +10,15 @@
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     import { onDestroy } from "svelte";
-  import { recommendedPresetExist, setRecommended } from "src/ts/process/templates/getRecomended";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
+    import { recommendedPresetExist, setRecommended } from "src/ts/process/templates/getRecomended";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+  import Button from "src/lib/UI/GUI/Button.svelte";
+  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
@@ -97,7 +102,7 @@
 
 {#if advancedBotSettings && recommendedPresetExist($DataBase.aiModel)}
     <div>
-        <button class="bg-darkbg hover:ring p-1 text-sm mb-2 rounded-md" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</button>
+        <Button size="sm" className="mb-2" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</Button>
     </div>
 {/if}
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
@@ -119,34 +124,34 @@
     <span class="text-neutral-200 mt-4"> {language.proxyAPIKey}</span>
     <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
     <span class="text-neutral-200 mt-4"> {language.proxyRequestModel}</span>
-    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.proxyRequestModel}>
-        <option value="" class="bg-darkbg appearance-none">None</option>
-        <option value="gpt35" class="bg-darkbg appearance-none">GPT 3.5</option>
-        <option value="gpt35_16k" class="bg-darkbg appearance-none">GPT 3.5 16k</option>
-        <option value="gpt4" class="bg-darkbg appearance-none">GPT-4</option>
-        <option value="gpt4_32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
-        <option value="gpt35_0301" class="bg-darkbg appearance-none">GPT-3.5 0301</option>
-        <option value="gpt4_0301" class="bg-darkbg appearance-none">GPT-4 0301</option>
-        <option value="gpt4_0613" class="bg-darkbg appearance-none">GPT-4 0613</option>
-    </select>
+    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.proxyRequestModel}>
+        <OptionInput value="">None</OptionInput>
+        <OptionInput value="gpt35">GPT 3.5</OptionInput>
+        <OptionInput value="gpt35_16k">GPT 3.5 16k</OptionInput>
+        <OptionInput value="gpt4">GPT-4</OptionInput>
+        <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
+        <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
+        <OptionInput value="gpt4_0301">GPT-4 0301</OptionInput>
+        <OptionInput value="gpt4_0613">GPT-4 0613</OptionInput>
+    </SelectInput>
 {/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
     <span class="text-neutral-200 mt-4">Openrouter Key</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
 
     <span class="text-neutral-200 mt-4">Openrouter Model</span>
-    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.openrouterRequestModel}>
-        <option value="openai/gpt-3.5-turbo" class="bg-darkbg appearance-none">GPT 3.5</option>
-        <option value="openai/gpt-3.5-turbo-16k" class="bg-darkbg appearance-none">GPT 3.5 16k</option>
-        <option value="openai/gpt-4" class="bg-darkbg appearance-none">GPT-4</option>
-        <option value="openai/gpt-4-32k" class="bg-darkbg appearance-none">GPT-4 32k</option>
-        <option value="anthropic/claude-2" class="bg-darkbg appearance-none">Claude 2</option>
-        <option value="anthropic/claude-instant-v1" class="bg-darkbg appearance-none">Claude Instant v1</option>
-        <option value="anthropic/claude-instant-v1-100k" class="bg-darkbg appearance-none">Claude Instant v1 100k</option>
-        <option value="anthropic/claude-v1" class="bg-darkbg appearance-none">Claude v1</option>
-        <option value="anthropic/claude-v1-100k" class="bg-darkbg appearance-none">Claude v1 100k</option>
-        <option value="anthropic/claude-1.2" class="bg-darkbg appearance-none">Claude v1.2</option>
-    </select>
+    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.openrouterRequestModel}>
+        <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
+        <OptionInput value="openai/gpt-3.5-turbo-16k">GPT 3.5 16k</OptionInput>
+        <OptionInput value="openai/gpt-4">GPT-4</OptionInput>
+        <OptionInput value="openai/gpt-4-32k">GPT-4 32k</OptionInput>
+        <OptionInput value="anthropic/claude-2">Claude 2</OptionInput>
+        <OptionInput value="anthropic/claude-instant-v1">Claude Instant v1</OptionInput>
+        <OptionInput value="anthropic/claude-instant-v1-100k">Claude Instant v1 100k</OptionInput>
+        <OptionInput value="anthropic/claude-v1">Claude v1</OptionInput>
+        <OptionInput value="anthropic/claude-v1-100k">Claude v1 100k</OptionInput>
+        <OptionInput value="anthropic/claude-1.2">Claude v1.2</OptionInput>
+    </SelectInput>
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
@@ -161,12 +166,12 @@
 
 {#if $DataBase.aiModel === 'custom'}
     <span class="text-neutral-200 mt-2">{language.plugin}</span>
-    <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none text-sm" bind:value={$DataBase.currentPluginProvider}>
-        <option value="" class="bg-darkbg appearance-none">None</option>
+    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.currentPluginProvider}>
+        <OptionInput value="">None</OptionInput>
         {#each $customProviderStore as plugin}
-            <option value={plugin} class="bg-darkbg appearance-none">{plugin}</option>
+            <OptionInput value={plugin}>{plugin}</OptionInput>
         {/each}
-    </select>
+    </SelectInput>
 {/if}
 {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai"}
     <span class="text-neutral-200">NovelAI Bearer Token</span>
@@ -196,14 +201,14 @@
 {/if}
 {#if advancedBotSettings}
     <span class="text-neutral-200">{language.mainPrompt} <Help key="mainprompt"/></span>
-    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.mainPrompt}></textarea>
-    <span class="text-gray-400 mb-6 text-sm">{tokens.mainPrompt} {language.tokens}</span>
+    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
+    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
     <span class="text-neutral-200">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
-    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.jailbreak}></textarea>
-    <span class="text-gray-400 mb-6 text-sm">{tokens.jailbreak} {language.tokens}</span>
+    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
+    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
     <span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
-    <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.globalNote}></textarea>
-    <span class="text-gray-400 mb-6 text-sm">{tokens.globalNote} {language.tokens}</span>    
+    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
+    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>    
 
     <span class="text-neutral-200">{language.maxContextSize}</span>
     <NumberInput min={0} max={getModelMaxContext($DataBase.aiModel)} marginBottom={true} bind:value={$DataBase.maxContext}/>
@@ -303,7 +308,7 @@
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
     <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <textarea class="bg-transparent input-text mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt}></textarea>
+    <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
     <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {/if}
 {/if}
@@ -354,6 +359,6 @@
         <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
     </div>
 
-<button on:click={() => {openPresetList = true}} class="mt-4 drop-shadow-lg p-3 border-borderc border-solid flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected">{language.presets}</button>
+<Button onClick={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 
 {/if}

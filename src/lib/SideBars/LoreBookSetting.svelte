@@ -5,27 +5,27 @@
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../ts/process/lorebook";
     import LoreBookData from "./LoreBookData.svelte";
-    import Check from "../Others/Check.svelte";
+    import Check from "../UI/GUI/Check.svelte";
   import NumberInput from "../UI/GUI/NumberInput.svelte";
     let submenu = 0
     export let globalMode = false
 </script>
 
 {#if !globalMode}
-    <div class="flex w-full">
+    <div class="flex w-full rounded-md border border-selected">
         <button on:click={() => {
             submenu = 0
-        }} class="flex-1 border-solid border-borderc border-1 p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 0}>
+        }} class="p-2 flex-1" class:bg-selected={submenu === 0}>
             <span>{$DataBase.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
         </button>
         <button on:click={() => {
             submenu = 1
-        }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 1}>
+        }} class="p2 flex-1 border-r border-l border-selected" class:bg-selected={submenu === 1}>
             <span>{language.Chat}</span>
         </button>
         <button on:click={() => {
             submenu = 2
-        }} class="flex-1 border-solid border-borderc border-1 border-l-transparent p-2 flex justify-center cursor-pointer" class:bg-selected={submenu === 2}>
+        }} class="p-2 flex-1" class:bg-selected={submenu === 2}>
             <span>{language.settings}</span>
         </button>
     </div>
@@ -34,14 +34,14 @@
     {#if !globalMode}
         <span class="text-gray-500 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     {/if}
-    <div class="border-solid border-borderc p-2 flex flex-col border-1">
+    <div class="border-solid border-selected p-2 flex flex-col border-1 rounded-md">
         {#if globalMode}
             {#if $DataBase.loreBook[$DataBase.loreBookPage].data.length === 0}
                 <span class="text-gray-500">No Lorebook</span>
             {:else}
                 {#each $DataBase.loreBook[$DataBase.loreBookPage].data as book, i}
                     {#if i !== 0}
-                        <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
+                        <div class="border-selected mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
                     {/if}
                     <LoreBookData bind:value={$DataBase.loreBook[$DataBase.loreBookPage].data[i]} onRemove={() => {
                         let lore = $DataBase.loreBook[$DataBase.loreBookPage].data
@@ -56,7 +56,7 @@
             {:else}
                 {#each $DataBase.characters[$selectedCharID].globalLore as book, i}
                     {#if i !== 0}
-                        <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
+                        <div class="border-selected mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
                     {/if}
                     <LoreBookData bind:value={$DataBase.characters[$selectedCharID].globalLore[i]} onRemove={() => {
                         let lore  = $DataBase.characters[$selectedCharID].globalLore
@@ -71,7 +71,7 @@
             {:else}
                 {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore as book, i}
                     {#if i !== 0}
-                        <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
+                        <div class="border-selected mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
                     {/if}
                     <LoreBookData bind:value={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore[i]} onRemove={() => {
                         let lore  = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore

@@ -4,9 +4,11 @@
   import { alertConfirm } from "src/ts/alert";
   import { DataBase } from "src/ts/storage/database";
   import { importPlugin } from "src/ts/plugins/plugins";
-  import Check from "src/lib/Others/Check.svelte";
+  import Check from "src/lib/UI/GUI/Check.svelte";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
@@ -44,11 +46,11 @@
                 {#each Object.keys(plugin.arguments) as arg}
                     <span>{arg}</span>
                     {#if Array.isArray(plugin.arguments[arg])}
-                        <select class="bg-transparent input-text mt-2 mb-4 text-gray-200 appearance-none" bind:value={$DataBase.plugins[i].realArg[arg]}>
+                        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.plugins[i].realArg[arg]}>
                             {#each plugin.arguments[arg] as a}
-                                <option value={a} class="bg-darkbg appearance-none">a</option>
+                                <OptionInput value={a}>a</OptionInput>
                             {/each}
-                        </select>
+                        </SelectInput>
                     {:else if plugin.arguments[arg] === 'string'}
                         <TextInput  bind:value={$DataBase.plugins[i].realArg[arg]} />
                     {:else if plugin.arguments[arg] === 'int'}

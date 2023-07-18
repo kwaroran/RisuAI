@@ -38,6 +38,7 @@
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
   import { BotCreator } from "src/ts/creator/creator";
+  import Button from "../UI/GUI/Button.svelte";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -552,30 +553,30 @@
       <CharConfig />
     {/if}
   {:else if sideBarMode === 1}
-    <button
-      on:click={createScratch}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-5 text-lg drop-shadow-lg hover:bg-selected"
+    <Button
+      onClick={createScratch}
+      className="mt-2"
     >
       {language.createfromScratch}
-    </button>
-    <button
-      on:click={createImport}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-5 text-lg drop-shadow-lg hover:bg-selected"
+    </Button>
+    <Button
+      onClick={createImport}
+      className="mt-2"
     >
       {language.importCharacter}
-    </button>
-    <button
-      on:click={createGroup}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
+    </Button>
+    <Button
+      onClick={createGroup}
+      className="mt-2"
     >
       {language.createGroup}
-    </button>
-    <button
-      on:click={BotCreator.createBotFromWeb}
-      class="ml-2 mr-2 mt-2 flex items-center justify-center border-1 border-solid border-borderc p-3 drop-shadow-lg hover:bg-selected"
+    </Button>
+    <Button
+      onClick={BotCreator.createBotFromWeb}
+      className="mt-2"
     >
       {language.createBotInternet}
-    </button>
+    </Button>
   {/if}
 </div>
 

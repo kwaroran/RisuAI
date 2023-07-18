@@ -2,20 +2,21 @@
     import { language } from "src/lang";
     import { DataBase, saveImage, updateTextTheme } from "src/ts/storage/database";
     import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/Check.svelte";
     import Help from "src/lib/Others/Help.svelte";
   import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
+  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
 
 <span class="text-neutral-200 mt-4">{language.theme}</span>
-<select class="bg-transparent input-text mt-2 text-gray-200 appearance-none text-sm" bind:value={$DataBase.theme}>
-    <option value="" class="bg-darkbg appearance-none">Standard Risu</option>
-    <option value="waifu" class="bg-darkbg appearance-none">Waifulike</option>
-    <option value="waifuMobile" class="bg-darkbg appearance-none">WaifuCut</option>
-    <!-- <option value="free" class="bg-darkbg appearance-none">Freestyle</option> -->
-</select>
+<SelectInput className="mt-2" bind:value={$DataBase.theme}>
+    <OptionInput value="" >Standard Risu</OptionInput>
+    <OptionInput value="waifu" >Waifulike</OptionInput>
+    <OptionInput value="waifuMobile" >WaifuCut</OptionInput>
+</SelectInput>
 
 
 {#if $DataBase.theme === "waifu"}
@@ -29,11 +30,11 @@
 {/if}
 
 <span class="text-neutral-200 mt-4">{language.textColor}</span>
-<select class="bg-transparent input-text mt-2 text-gray-200 appearance-none" bind:value={$DataBase.textTheme} on:change={updateTextTheme}>
-    <option value="standard" class="bg-darkbg appearance-none">{language.classicRisu}</option>
-    <option value="highcontrast" class="bg-darkbg appearance-none">{language.highcontrast}</option>
-    <option value="custom" class="bg-darkbg appearance-none">Custom</option>
-</select>
+<SelectInput className="mt-2" bind:value={$DataBase.textTheme} on:change={updateTextTheme}>
+    <OptionInput value="standard" >{language.classicRisu}</OptionInput>
+    <OptionInput value="highcontrast" >{language.highcontrast}</OptionInput>
+    <OptionInput value="custom" >Custom</OptionInput>
+</SelectInput>
 
 {#if $DataBase.textTheme === "custom"}
     <div class="flex items-center mt-2">

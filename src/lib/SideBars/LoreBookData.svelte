@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     import type { loreBook } from "../../ts/storage/database";
     import { alertConfirm } from "../../ts/alert";
-    import Check from "../Others/Check.svelte";
+    import Check from "../UI/GUI/Check.svelte";
     import Help from "../Others/Help.svelte";
   import TextInput from "../UI/GUI/TextInput.svelte";
   import NumberInput from "../UI/GUI/NumberInput.svelte";
@@ -30,7 +30,7 @@
         </button>
     </div>
     {#if open}
-        <div class="seperator">
+        <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
             <span class="text-neutral-200 mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
             {#if !value.alwaysActive}
@@ -57,8 +57,8 @@
             {/if}
             <span class="text-neutral-200 mt-4">{language.insertOrder} <Help key="loreorder"/></span>
             <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
-            <span class="text-neutral-200 mt-4">{language.prompt}</span>
-            <textarea class="bg-transparent input-text mt-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={value.content}></textarea>
+            <span class="text-neutral-200 mt-4 mb-2">{language.prompt}</span>
+            <TextInput autocomplete="off" bind:value={value.content} />
             <div class="flex items-center mt-4">
                 <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>
@@ -90,17 +90,6 @@
         display: flex;
         flex-grow: 1;
         cursor: pointer;
-    }
-
-    .seperator{
-        border: none;
-        outline: 0;
-        width: 100%;
-        margin-top: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 0.5rem;
-        background-color: #282a36;
     }
     
 </style>

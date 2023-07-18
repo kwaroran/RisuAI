@@ -22,7 +22,7 @@
         <span class="text-neutral-200">{language.creatorNotes}</span>
         <span class="text-gray-400 text-sm">A description that displays when you search and when you first open a bot.</span>
         <span class="text-gray-400 text-sm">More than 20 characters.</span>
-        <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={char.creatorNotes}></textarea>
+        <TextAreaInput autocomplete="off" bind:value={char.creatorNotes} height={"20"} />
         <span class="text-neutral-200">{language.tags}</span>
         <span class="text-gray-400 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
         <TextInput marginBottom placeholder="" bind:value={tags} on:input={() => {
@@ -42,7 +42,7 @@
         {#if privateMode}
             <span class="text-gray-400 text-sm">Private characters can be removed from the server if there is only a few downloads.</span>
         {/if}
-        <button on:click={async () => {
+        <Button onClick={async () => {
             if(char.creatorNotes.length < 20){
                 alertError("Creator Notes must be longer than 20 characters")
             }
@@ -54,7 +54,7 @@
                 })
                 close()
             }
-        }} class="text-neutral-200 mt-2 text-lg bg-transparent border-solid border-1 border-borderc p-4 hover:bg-green-800 transition-colors cursor-pointer">{language.shareCloud}</button>
+        }} className="mt-2" size="lg">{language.shareCloud}</Button>
         {/if}
 
     </div>
@@ -68,6 +68,8 @@
   import { shareRisuHub } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
   import TextInput from "./GUI/TextInput.svelte";
+  import TextAreaInput from "./GUI/TextAreaInput.svelte";
+  import Button from "./GUI/Button.svelte";
     export let close = () => {}
     export let char:character
     let tags=""

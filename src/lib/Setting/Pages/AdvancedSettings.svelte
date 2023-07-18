@@ -1,11 +1,14 @@
 <script lang="ts">
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/Check.svelte";
     import { language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
     import { alertMd } from "src/ts/alert";
     import { getRequestLog, isTauri } from "src/ts/storage/globalApi";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
 <span class="text-draculared text-xs mb-2">{language.advancedSettingsWarn}</span>
@@ -27,10 +30,10 @@
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
 <span class="text-neutral-200">Request Lib</span>
-<select class="bg-transparent input-text text-gray-200 appearance-none text-sm" bind:value={$DataBase.requester}>
-    <option value="new" class="bg-darkbg appearance-none">Reqwest</option>
-    <option value="old" class="bg-darkbg appearance-none">Tauri</option>
-</select>
+<SelectInput bind:value={$DataBase.requester}>
+    <OptionInput value="new">Reqwest</OptionInput>
+    <OptionInput value="old">Tauri</OptionInput>
+</SelectInput>
 
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>

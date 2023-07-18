@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
     import { ParseMarkdown } from "../../ts/parser";
-    import AutoresizeArea from "./AutoresizeArea.svelte";
+    import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type character, type groupChat } from "../../ts/storage/database";

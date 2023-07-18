@@ -4,7 +4,7 @@
     import { getCharImage, selectUserImg } from "src/ts/characters";
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/Check.svelte";
   import { alertConfirm, alertSelect } from "src/ts/alert";
   import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
   import { unMigrationAccount } from "src/ts/storage/accountStorage";
