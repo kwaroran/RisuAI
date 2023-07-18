@@ -42,7 +42,7 @@
         {#if privateMode}
             <span class="text-gray-400 text-sm">Private characters can be removed from the server if there is only a few downloads.</span>
         {/if}
-        <Button onClick={async () => {
+        <Button on:click={async () => {
             if(char.creatorNotes.length < 20){
                 alertError("Creator Notes must be longer than 20 characters")
             }

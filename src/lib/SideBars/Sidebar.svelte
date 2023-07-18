@@ -554,25 +554,25 @@
     {/if}
   {:else if sideBarMode === 1}
     <Button
-      onClick={createScratch}
+      on:click={createScratch}
       className="mt-2"
     >
       {language.createfromScratch}
     </Button>
     <Button
-      onClick={createImport}
+      on:click={createImport}
       className="mt-2"
     >
       {language.importCharacter}
     </Button>
     <Button
-      onClick={createGroup}
+      on:click={createGroup}
       className="mt-2"
     >
       {language.createGroup}
     </Button>
     <Button
-      onClick={BotCreator.createBotFromWeb}
+      on:click={BotCreator.createBotFromWeb}
       className="mt-2"
     >
       {language.createBotInternet}

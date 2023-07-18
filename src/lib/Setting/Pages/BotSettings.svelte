@@ -359,6 +359,6 @@
         <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
     </div>
 
-<Button onClick={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+<Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 
 {/if}

@@ -711,10 +711,10 @@
             </div>
         {/if}
 
-        <Button size="lg" onClick={async () => {
+        <Button size="lg" on:click={async () => {
             exportChar($selectedCharID)
         }} className="mt-2">{language.exportCharacter}</Button>
-        <Button size="lg" onClick={async () => {
+        <Button size="lg" on:click={async () => {
             openHubUpload = true
         }} className="mt-2">{language.shareCloud}</Button>
         {#if openHubUpload}
@@ -732,7 +732,7 @@
             </div>
         {/if}
     {/if}
-    <Button onClick={async () => {
+    <Button on:click={async () => {
         const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
         if(!conf){
             return

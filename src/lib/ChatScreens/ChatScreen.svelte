@@ -55,7 +55,10 @@
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
         <BackgroundDom />
-        <div class="w-full absolute z-10 bottom-0 left-0" class:per33={$selectedCharID >= 0}>
+        <div class="w-full absolute z-10 bottom-0 left-0"
+            class:per33={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            class:h-full={!($selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none')}
+        >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}

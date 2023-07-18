@@ -11,6 +11,7 @@
     class:px-6={size === 'lg'}
     class:py-3={size === 'lg'}
     bind:value
+    on:change
 >
     <slot></slot>
 </select>
