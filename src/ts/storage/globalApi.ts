@@ -959,4 +959,21 @@ function formDataToString(formData: FormData): string {
     }
   
     return params.join('&');
-  }
+}
+
+export function getModelMaxContext(model:string):number|undefined{
+    if(model.startsWith('gpt35')){
+        if(model.includes('16k')){
+            return 16000
+        }
+        return 4000
+    }
+    if(model.startsWith('gpt4')){
+        if(model.includes('32k')){
+            return 32000
+        }
+        return 8000
+    }
+
+    return undefined
+}

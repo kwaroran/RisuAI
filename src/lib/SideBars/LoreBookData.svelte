@@ -5,6 +5,8 @@
     import { alertConfirm } from "../../ts/alert";
     import Check from "../Others/Check.svelte";
     import Help from "../Others/Help.svelte";
+  import TextInput from "../UI/GUI/TextInput.svelte";
+  import NumberInput from "../UI/GUI/NumberInput.svelte";
     export let value:loreBook
     export let onRemove: () => void = () => {}
     let open = false
@@ -30,31 +32,31 @@
     {#if open}
         <div class="seperator">
             <span class="text-neutral-200 mt-6">{language.name} <Help key="loreName"/></span>
-            <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.comment}>
+            <TextInput size="sm" bind:value={value.comment}/>
             {#if !value.alwaysActive}
                 <span class="text-neutral-200 mt-6">{language.activationKeys} <Help key="loreActivationKey"/></span>
                 <span class="text-xs text-gray-500">{language.activationKeysInfo}</span>
-                <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.key}>
+                <TextInput size="sm" bind:value={value.key}/>
 
                 {#if value.selective}
                     <span class="text-neutral-200 mt-6">{language.SecondaryKeys}</span>
                     <span class="text-xs text-gray-500">{language.activationKeysInfo}</span>
-                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.secondkey} min="0" max="100">
+                    <TextInput size="sm" bind:value={value.secondkey}/>
                 {/if}
             {/if}
             {#if !(value.activationPercent === undefined || value.activationPercent === null)}
                 <span class="text-neutral-200 mt-6">{language.activationProbability}</span>
-                <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.activationPercent} on:change={() => {
+                <NumberInput size="sm" bind:value={value.activationPercent} onChange={() => {
                     if(isNaN(value.activationPercent) || !value.activationPercent || value.activationPercent < 0){
                         value.activationPercent = 0
                     }
                     if(value.activationPercent > 100){
                         value.activationPercent = 100
                     }
-                }}>
+                }} />
             {/if}
             <span class="text-neutral-200 mt-4">{language.insertOrder} <Help key="loreorder"/></span>
-            <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={value.insertorder} type="number" min={0} max={1000}>
+            <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
             <span class="text-neutral-200 mt-4">{language.prompt}</span>
             <textarea class="bg-transparent input-text mt-2 text-gray-200 resize-none h-20 focus:bg-selected text-xs" autocomplete="off" bind:value={value.content}></textarea>
             <div class="flex items-center mt-4">

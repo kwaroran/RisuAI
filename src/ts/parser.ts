@@ -337,6 +337,11 @@ export function risuChatParser(da:string, arg:{
             }
             case 'char':
             case 'bot':{
+                let selectedChar = get(selectedCharID)
+                let currentChar = db.characters[selectedChar]
+                if(currentChar.type !== 'group'){
+                    return currentChar.name
+                }
                 if(chara){
                     if(typeof(chara) === 'string'){
                         return chara
@@ -345,8 +350,6 @@ export function risuChatParser(da:string, arg:{
                         return chara.name
                     }
                 }
-                let selectedChar = get(selectedCharID)
-                let currentChar = db.characters[selectedChar]
                 return currentChar.name
             }
             case 'user':{

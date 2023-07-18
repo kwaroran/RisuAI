@@ -140,7 +140,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
             }
         }
     }
-    if(db.officialplugins.automark){
+    if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
     }
     return {data, emoChanged}

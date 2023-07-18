@@ -6,6 +6,7 @@
     import { addLorebook, exportLoreBook, importLoreBook } from "../../ts/process/lorebook";
     import LoreBookData from "./LoreBookData.svelte";
     import Check from "../Others/Check.svelte";
+  import NumberInput from "../UI/GUI/NumberInput.svelte";
     let submenu = 0
     export let globalMode = false
 </script>
@@ -94,9 +95,9 @@
             <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
         </div>
         <span class="text-neutral-200 mt-4 mb-2">{language.loreBookDepth}</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.characters[$selectedCharID].loreSettings.scanDepth}>
+        <NumberInput size="sm" min={0} max={20} bind:value={$DataBase.characters[$selectedCharID].loreSettings.scanDepth} />
         <span class="text-neutral-200">{language.loreBookToken}</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="4096" bind:value={$DataBase.characters[$selectedCharID].loreSettings.tokenBudget}>
+        <NumberInput size="sm" min={0} max={4096} bind:value={$DataBase.characters[$selectedCharID].loreSettings.tokenBudget} />
     {:else}
         <div class="flex items-center mt-4">
             <Check check={true} onChange={() => {

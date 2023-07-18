@@ -4,6 +4,8 @@
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
     import { isTauri } from "src/ts/storage/globalApi";
+  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -25,40 +27,40 @@
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
     <span class="text-neutral-200 mt-2">WebUI {language.providerURL}</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" placeholder="https://..." bind:value={$DataBase.webUiUrl}>
+    <TextInput size="sm" marginBottom placeholder="https://..." bind:value={$DataBase.webUiUrl}/>
     <span class="text-neutral-200">Steps</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="100" bind:value={$DataBase.sdSteps}>
+    <NumberInput size="sm" marginBottom min={0} max={100} bind:value={$DataBase.sdSteps}/>
     
     <span class="text-neutral-200">CFG Scale</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="20" bind:value={$DataBase.sdCFG}>
+    <NumberInput size="sm" marginBottom min={0} max={20} bind:value={$DataBase.sdCFG}/>
 
     <span class="text-neutral-200">Width</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="2048" bind:value={$DataBase.sdConfig.width}>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.sdConfig.width}/>
     <span class="text-neutral-200">Height</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="2048" bind:value={$DataBase.sdConfig.height}>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.sdConfig.height}/>
     <span class="text-neutral-200">Sampler</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.sdConfig.sampler_name}>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.sdConfig.sampler_name}/>
     
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.sdConfig.enable_hr} name='Enable Hires'/>
     </div>
     {#if $DataBase.sdConfig.enable_hr === true}
         <span class="text-neutral-200">denoising_strength</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="10" bind:value={$DataBase.sdConfig.denoising_strength}>
+        <NumberInput size="sm" marginBottom  min={0} max={10} bind:value={$DataBase.sdConfig.denoising_strength}/>
         <span class="text-neutral-200">hr_scale</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" type="number" min={0} max="10" bind:value={$DataBase.sdConfig.hr_scale}>
+        <NumberInput size="sm" marginBottom  min={0} max={10} bind:value={$DataBase.sdConfig.hr_scale}/>
         <span class="text-neutral-200">Upscaler</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.sdConfig.hr_upscaler}>
+        <TextInput size="sm" marginBottom bind:value={$DataBase.sdConfig.hr_upscaler}/>
     {/if}
 {/if}
 
 
 <span class="text-neutral-200 mt-4 text-lg font-bold">TTS</span>
 <span class="text-neutral-200 mt-2">ElevenLabs API key</span>
-<input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.elevenLabKey}>
+<TextInput size="sm" marginBottom bind:value={$DataBase.elevenLabKey}/>
 
 <span class="text-neutral-200 mt-2">VOICEVOX URL</span>
-<input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.voicevoxUrl}>
+<TextInput size="sm" marginBottom bind:value={$DataBase.voicevoxUrl}/>
 
 <span class="text-neutral-200 mt-4 text-lg font-bold">{language.SuperMemory} <Help key="superMemory" /></span>
 <span class="text-neutral-200 mt-4">{language.SuperMemory} {language.model}</span>
@@ -70,11 +72,11 @@
 </select>
 {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie'}
     <span class="text-neutral-200">{language.SuperMemory} OpenAI Key</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={$DataBase.supaMemoryKey}>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
 {/if}
 {#if $DataBase.supaMemoryType !== 'none'}
     <span class="text-neutral-200">{language.SuperMemory} Prompt</span>
-    <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm"bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default">
+    <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default"/>
 {/if}
 {#if ($DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie') && $DataBase.useExperimental}
     <div class="flex">

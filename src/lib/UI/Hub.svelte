@@ -6,6 +6,7 @@
     import { language } from "src/lang";
     import RisuHubIcon from "./RisuHubIcon.svelte";
     import { DataBase } from "src/ts/storage/database";
+  import TextInput from "./GUI/TextInput.svelte";
 
     let openedData:null|hubType = null
 
@@ -33,7 +34,7 @@
 </script>
 <div class="w-full flex justify-center mt-4">
     <div class="flex w-2xl max-w-full items-center">
-        <input class="flex-grow text-xl pl-3 pr-3 rounded-lg bg-darkbg h-16 min-w-0" placeholder="Search" bind:value={search}>
+        <TextInput size="xl" additionalClass="flex-grow" placeholder="Search" bind:value={search} />
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             page = 0
             getHub()

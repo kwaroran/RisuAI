@@ -6,6 +6,7 @@
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
+  import TextInput from "../UI/GUI/TextInput.svelte";
 
     let editMode = false
     export let close = () => {}
@@ -29,7 +30,7 @@
                 }
             }} class="flex items-center text-neutral-200 border-t-1 border-solid border-0 border-gray-600 p-2 cursor-pointer" class:bg-selected={i === $DataBase.characters[$selectedCharID].chatPage}>
                 {#if editMode}
-                    <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.characters[$selectedCharID].chats[i].name} placeholder="string">
+                    <TextInput bind:value={$DataBase.characters[$selectedCharID].chats[i].name} padding={false}/>
                 {:else}
                     <span>{chat.name}</span>
                 {/if}

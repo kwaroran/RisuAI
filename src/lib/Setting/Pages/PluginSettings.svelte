@@ -5,6 +5,8 @@
   import { DataBase } from "src/ts/storage/database";
   import { importPlugin } from "src/ts/plugins/plugins";
   import Check from "src/lib/Others/Check.svelte";
+  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
@@ -48,9 +50,9 @@
                             {/each}
                         </select>
                     {:else if plugin.arguments[arg] === 'string'}
-                        <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" bind:value={$DataBase.plugins[i].realArg[arg]}>
+                        <TextInput  bind:value={$DataBase.plugins[i].realArg[arg]} />
                     {:else if plugin.arguments[arg] === 'int'}
-                        <input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="number" bind:value={$DataBase.plugins[i].realArg[arg]}>
+                        <NumberInput bind:value={$DataBase.plugins[i].realArg[arg]} />
                     {/if}
                 {/each}
             </div>

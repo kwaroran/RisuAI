@@ -3,7 +3,7 @@
     import { tokenize } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBracesIcon, Volume2Icon, XIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBraces, Volume2Icon, XIcon } from 'lucide-svelte'
     import Check from "../Others/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
@@ -19,6 +19,8 @@
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
   import HubUpload from "../UI/HubUpload.svelte";
+  import TextInput from "../UI/GUI/TextInput.svelte";
+  import NumberInput from "../UI/GUI/NumberInput.svelte";
 
     let subMenu = 0
     let openHubUpload = false
@@ -142,7 +144,7 @@
             <Volume2Icon />
         </button>
         <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
-            <CurlyBracesIcon />
+            <CurlyBraces />
         </button>
     {/if}
     <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
@@ -153,7 +155,7 @@
 
 {#if subMenu === 0}
     {#if currentChar.type !== 'group'}
-        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Character Name" bind:value={currentChar.data.name}>
+        <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
         <span class="text-neutral-200">{language.description} <Help key="charDesc"/></span>
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.desc}></textarea>
         <span class="text-gray-400 mb-6 text-sm">{tokens.desc} {language.tokens}</span>
@@ -162,7 +164,7 @@
         <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
 
     {:else}
-        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" placeholder="Group Name" bind:value={currentChar.data.name}>
+        <TextInput size="xl" marginBottom placeholder="Group Name" bind:value={currentChar.data.name} />
         <span class="text-neutral-200">{language.character}</span>
         <div class="p-4 gap-2 bg-bgcolor rounded-lg char-grid">
             {#if currentChar.data.characters.length === 0}
@@ -295,7 +297,7 @@
                             <td class="font-medium truncate w-1/3"><img src={im} alt="img" class="w-full"></td>                        
                         {/await}
                         <td class="font-medium truncate w-1/2">
-                            <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text text-xl focus:bg-selected" bind:value={currentChar.data.emotionImages[i][0]}>
+                            <TextInput marginBottom size='lg' bind:value={currentChar.data.emotionImages[i][0]} />
                         </td>
                         <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
                             rmCharEmotion($selectedCharID,i)
@@ -334,10 +336,10 @@
             {#each currentChar.data.sdData as emo, i}
                 <tr>
                     <td class="font-medium truncate w-1/3">
-                        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={currentChar.data.sdData[i][0]}>
+                        <TextInput size="sm" marginBottom bind:value={currentChar.data.sdData[i][0]} />
                     </td>
                     <td class="font-medium truncate w-1/2">
-                        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected text-sm" bind:value={currentChar.data.sdData[i][1]}>
+                        <TextInput size="sm" marginBottom bind:value={currentChar.data.sdData[i][1]} />
                     </td>
                     {#if (!['always','negative'].includes(currentChar.data.sdData[i][0]))}
                     <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500" on:click={() => {
@@ -394,13 +396,15 @@
             <tr>
                 <th class="font-medium w-1/2">Bias</th>
                 <th class="font-medium w-1/3">{language.value}</th>
-                <th class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
-                    if(currentChar.type === 'character'){
-                        let bia = currentChar.data.bias
-                        bia.push(['', 0])
-                        currentChar.data.bias = bia
-                    }
-                }}><PlusIcon /></th>
+                <th>
+                    <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                        if(currentChar.type === 'character'){
+                            let bia = currentChar.data.bias
+                            bia.push(['', 0])
+                            currentChar.data.bias = bia
+                        }
+                    }}><PlusIcon /></button>
+                </th>
             </tr>
             {#if currentChar.data.bias.length === 0}
                 <tr>
@@ -408,20 +412,22 @@
                 </tr>
             {/if}
             {#each currentChar.data.bias as bias, i}
-                <tr>
+                <tr class="align-middle text-center">
                     <td class="font-medium truncate w-1/2">
-                        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected" bind:value={currentChar.data.bias[i][0]} placeholder="string">
-                    </td>
+                        <TextInput fullh fullwidth bind:value={currentChar.data.bias[i][0]} placeholder="string" />
+                    </td> 
                     <td class="font-medium truncate w-1/3">
-                        <input class="text-neutral-200 mt-2 mb-4 w-full p-2 bg-transparent input-text focus:bg-selected" bind:value={currentChar.data.bias[i][1]} type="number" max="100" min="-100">
+                        <NumberInput fullh fullwidth bind:value={currentChar.data.bias[i][1]} max={100} min={-100} />
                     </td>
-                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500" on:click={() => {
-                        if(currentChar.type === 'character'){
-                            let bia = currentChar.data.bias
-                            bia.splice(i, 1)
-                            currentChar.data.bias = bia
-                        }
-                    }}><TrashIcon /></button>
+                    <td>
+                        <button class="font-medium flex justify-center items-center w-full h-full cursor-pointer hover:text-green-500" on:click={() => {
+                            if(currentChar.type === 'character'){
+                                let bia = currentChar.data.bias
+                                bia.splice(i, 1)
+                                currentChar.data.bias = bia
+                            }
+                        }}><TrashIcon /></button>
+                    </td>
                 </tr>
             {/each}
             
@@ -515,16 +521,16 @@
                 </select>
                 {/if}
                 <span class="text-neutral-200">Speed scale</span>
-                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.SPEED_SCALE}/>
+                <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.SPEED_SCALE}/>
 
                 <span class="text-neutral-200">Pitch scale</span>
-                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.PITCH_SCALE}/>
+                <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.PITCH_SCALE}/>
 
                 <span class="text-neutral-200">Volume scale</span>
-                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.VOLUME_SCALE}/>
+                <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.VOLUME_SCALE}/>
 
                 <span class="text-neutral-200">Intonation scale</span>
-                <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-5 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
+                <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
                 <span class="text-sm mb-2 text-gray-400">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
         {/if}
         {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
@@ -568,10 +574,10 @@
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></textarea>
 
         <span class="text-neutral-200">{language.creator}</span>
-        <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
+        <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
 
         <span class="text-neutral-200">{language.CharVersion}</span>
-        <input class="bg-transparent input-text mt-2 mb-2 text-gray-200 text-xs resize-none h-20 focus:bg-selected" autocomplete="off" bind:value={currentChar.data.additionalData.character_version} type="number" />
+        <TextInput size="sm" bind:value={currentChar.data.additionalData.character_version}/>
 
         <span class="text-neutral-200 mt-2">{language.altGreet}</span>
         <table class="contain w-full max-w-full tabler mt-2">
@@ -660,7 +666,7 @@
                                     <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
                                 {/if}
                             {/if}
-                            <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-full resize-none" bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
+                            <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
                         </td>
                         
                         <th class="font-medium cursor-pointer w-10">

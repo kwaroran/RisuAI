@@ -5,6 +5,7 @@
     import { addDefaultCharacters } from "src/ts/characters";
     import { DataBase } from "src/ts/storage/database";
   import { sleep } from "src/ts/util";
+  import TextInput from "../UI/GUI/TextInput.svelte";
 
     let step = 0
     let provider = 0
@@ -58,8 +59,8 @@
             {#if provider === 1}
                 <h2>{language.setup.openaikey}</h2>
                 <div class="w-full ml-2">
-                    <span>API key</span>
-                    <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected m-0" bind:value={$DataBase.openAIKey}>
+                    <span class="mb-2">API key</span>
+                    <TextInput bind:value={$DataBase.openAIKey} placeholder="API Key" autocomplete="off"/>
                 </div>
                 <span class="text-gray-400">{language.setup.apiKeyhelp} <a href="https://platform.openai.com/account/api-keys" target="_blank">https://platform.openai.com/account/api-keys</a></span>
                 <div class="flex flex-col items-start ml-2 mt-6">
@@ -71,12 +72,12 @@
             {:else if provider === 2}
                 <h2>{language.setup.openaiProxy}</h2>
                 <div class="w-full ml-2">
-                    <span>OpenAI Reverse Proxy URL</span>
-                    <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected m-0" bind:value={$DataBase.forceReplaceUrl} placeholder="https://...">
+                    <span class="mb-2">OpenAI Reverse Proxy URL</span>
+                    <TextInput bind:value={$DataBase.forceReplaceUrl} placeholder="https://..." autocomplete="off"/>
                 </div>
                 <div class="w-full ml-2 mt-4">
-                    <span>API key (Used for passwords)</span>
-                    <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected m-0" bind:value={$DataBase.openAIKey} placeholder="Optional">
+                    <span class="mb-2">API key (Used for passwords)</span>
+                    <TextInput bind:value={$DataBase.proxyKey} placeholder="Optional" autocomplete="off"/>
                 </div>
                 <div class="flex flex-col items-start ml-2 mt-6">
                     <button class="hover:text-green-500 transition-colors" on:click={() => {
@@ -144,9 +145,9 @@
                 </button>
             </div>
         {:else if step === 5}
-            <h2>{language.setup.inputName}</h2>
+            <h2 class="mb-2">{language.setup.inputName}</h2>
             <div class="w-full ml-2">
-                <input class="text-neutral-200 mt-2 p-2 bg-transparent input-text focus:bg-selected m-0" bind:value={$DataBase.username}>
+                <TextInput bind:value={$DataBase.username} />
             </div>
             <div class="flex flex-col items-start ml-2 mt-6">
                 <button class="hover:text-green-500 transition-colors" on:click={async () => {

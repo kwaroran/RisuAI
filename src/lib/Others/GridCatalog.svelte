@@ -4,6 +4,7 @@
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { User, Users } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
+  import TextInput from "../UI/GUI/TextInput.svelte";
     export let endGrid = () => {}
     let search = ''
 
@@ -38,7 +39,7 @@
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-2 bg-darkbg max-w-full w-2xl flex items-center flex-col ">
         <h1 class="text-neutral-200 text-2xl font-bold mt-2">Catalog</h1>
-        <input class="text-neutral-200 mt-2 mb-4 p-2 bg-transparent input-text focus:bg-selected w-4/5 text-xl" placeholder="Search" bind:value={search}>
+        <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off" marginBottom={true}/>
         <div class="w-full flex justify-center">
             <div class="flex flex-wrap gap-2 mx-auto container">
                 {#each formatChars(search) as char}

@@ -25,9 +25,9 @@
         <textarea class="bg-transparent input-text mt-2 mb-2 text-gray-200 resize-none h-20 min-h-20 focus:bg-selected text-xs w-full" autocomplete="off" bind:value={char.creatorNotes}></textarea>
         <span class="text-neutral-200">{language.tags}</span>
         <span class="text-gray-400 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
-        <input class="text-neutral-200 mb-4 p-2 bg-transparent input-text focus:bg-selected" placeholder="" bind:value={tags} on:input={() => {
+        <TextInput marginBottom placeholder="" bind:value={tags} on:input={() => {
             tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase()
-        }}>
+        }} />
         <div class="flex items-center flex-wrap">
             <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Public</button>
             <!-- <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Private</button> -->
@@ -67,6 +67,7 @@
   import { alertError } from "src/ts/alert";
   import { shareRisuHub } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
+  import TextInput from "./GUI/TextInput.svelte";
     export let close = () => {}
     export let char:character
     let tags=""

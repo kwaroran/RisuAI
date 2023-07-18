@@ -4,6 +4,7 @@
     import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
     import Check from "src/lib/Others/Check.svelte";
     import Help from "src/lib/Others/Help.svelte";
+  import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
@@ -19,12 +20,12 @@
 
 {#if $DataBase.theme === "waifu"}
     <span class="text-neutral-200 mt-4">{language.waifuWidth}</span>
-    <input class="text-neutral-200 text-sm p-2 bg-transparent input-text focus:bg-selected" type="range" min="50" max="200" bind:value={$DataBase.waifuWidth}>
-    <span class="text-gray-400text-sm">{($DataBase.waifuWidth)}%</span>
+    <SliderInput min={50} max={200} bind:value={$DataBase.waifuWidth} />
+    <span class="text-gray-400 text-sm">{($DataBase.waifuWidth)}%</span>
 
     <span class="text-neutral-200 mt-4">{language.waifuWidth2}</span>
-    <input class="text-neutral-200 text-sm p-2 bg-transparent input-text focus:bg-selected" type="range" min="20" max="150" bind:value={$DataBase.waifuWidth2}>
-    <span class="text-gray-400text-sm">{($DataBase.waifuWidth2)}%</span>
+    <SliderInput min={20} max={150} bind:value={$DataBase.waifuWidth2} />
+    <span class="text-gray-400 text-sm">{($DataBase.waifuWidth2)}%</span>
 {/if}
 
 <span class="text-neutral-200 mt-4">{language.textColor}</span>
@@ -54,11 +55,11 @@
 {/if}
 
 <span class="text-neutral-200">{language.UISize}</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="50" max="200" bind:value={$DataBase.zoomsize}>
+<SliderInput  min={50} max={200} bind:value={$DataBase.zoomsize} />
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.zoomsize)}%</span>
 
 <span class="text-neutral-200">{language.iconSize}</span>
-<input class="text-neutral-200 p-2 bg-transparent input-text focus:bg-selected" type="range" min="50" max="200" bind:value={$DataBase.iconsize}>
+<SliderInput min={50} max={200} bind:value={$DataBase.iconsize} />
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
 <div class="flex items-center mt-2">
