@@ -600,6 +600,7 @@ export async function shareRisuHub(char:character, arg:{
                 img: Buffer.from(img).toString('base64'),
                 resources: resources,
                 token: get(DataBase)?.account?.token,
+                apiver: 2
             })
         })
 
@@ -662,7 +663,8 @@ export async function downloadRisuHub(id:string) {
         const res = await fetch(hubURL + '/hub/get', {
             method: "POST",
             body: JSON.stringify({
-                id: id
+                id: id,
+                apiver: 2
             })
         })
         if(res.status !== 200){
