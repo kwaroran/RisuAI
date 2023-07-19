@@ -13,7 +13,7 @@
 
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" on:click={() => {
+<div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center text-white" on:click={() => {
     openedData = null
 }}>
     <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">

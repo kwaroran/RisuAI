@@ -7,7 +7,7 @@
     import Check from "../UI/GUI/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBookSetting.svelte";
-    import { alertConfirm, alertError, alertSelectChar } from "../../ts/alert";
+    import { alertConfirm, alertError, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
@@ -725,7 +725,13 @@
             && currentChar.data.license !== 'CC BY-SA 4.0'
         }
             <Button size="lg" on:click={async () => {
-                openHubUpload = true
+                if(!$DataBase.account){
+                    alertNormal(language.notLoggedIn)
+                    return
+                }
+                if(await alertTOS()){
+                    openHubUpload = true                    
+                }
             }} className="mt-2">{language.shareCloud}</Button>
         {/if}
 

@@ -1,4 +1,4 @@
-import { get } from "svelte/store"
+import { get, writable, type Writable } from "svelte/store"
 import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
 import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
@@ -125,6 +125,8 @@ async function importCharacterProcess(f:{
     }
 }
 
+export const showRealmInfoStore:Writable<null|hubType> = writable(null)
+
 export async function characterURLImport() {
     const realmPath = (new URLSearchParams(location.search)).get('realm')
     try {
@@ -132,7 +134,18 @@ export async function characterURLImport() {
             const url = new URL(location.href);
             url.searchParams.delete('realm');
             window.history.pushState(null, '', url.toString());
-            downloadRisuHub(realmPath)
+
+            const res = await fetch(`${hubURL}/hub/info`,{
+                method: "POST",
+                body: JSON.stringify({
+                    id: realmPath
+                })
+            })
+            if(res.status !== 200){
+                alertError(await res.text())
+                return
+            }
+            showRealmInfoStore.set(await res.json())
         }
     } catch (error) {
         
