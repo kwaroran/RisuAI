@@ -4,9 +4,9 @@
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { parseMarkdownSafe } from "src/ts/parser";
     import { language } from "src/lang";
-    import RisuHubIcon from "./RisuHubIcon.svelte";
+    import RisuHubIcon from "./RealmHubIcon.svelte";
     import { DataBase } from "src/ts/storage/database";
-  import TextInput from "./GUI/TextInput.svelte";
+    import TextInput from "../GUI/TextInput.svelte";
 
     let openedData:null|hubType = null
 

@@ -1,13 +1,13 @@
 <script lang="ts">
   import { appVer, webAppSubVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
-  import Hub from "./Hub.svelte";
+  import Hub from "./Realm/RealmMain.svelte";
   import { sideBarStore } from "src/ts/stores";
   import { ArrowLeft } from "lucide-svelte";
   import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
   import { language } from "src/lang";
   import { getRisuHub } from "src/ts/characterCards";
-  import RisuHubIcon from "./RisuHubIcon.svelte";
+  import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
   let openHub = false
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">

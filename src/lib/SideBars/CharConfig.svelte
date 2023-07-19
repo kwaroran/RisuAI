@@ -18,7 +18,7 @@
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
-    import HubUpload from "../UI/HubUpload.svelte";
+    import HubUpload from "../UI/Realm/RealmUpload.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";

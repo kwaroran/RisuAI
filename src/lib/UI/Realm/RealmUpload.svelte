@@ -67,9 +67,9 @@
   import { alertError } from "src/ts/alert";
   import { shareRisuHub } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
-  import TextInput from "./GUI/TextInput.svelte";
-  import TextAreaInput from "./GUI/TextAreaInput.svelte";
-  import Button from "./GUI/Button.svelte";
+  import TextInput from "../GUI/TextInput.svelte";
+  import TextAreaInput from "../GUI/TextAreaInput.svelte";
+  import Button from "../GUI/Button.svelte";
     export let close = () => {}
     export let char:character
     let tags=""
