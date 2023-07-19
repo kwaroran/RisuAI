@@ -364,6 +364,7 @@ export interface character{
     backgroundHTML?:string
     reloadKeys?:number
     backgroundCSS?:string
+    license?:string
 }
 
 

@@ -1,4 +1,4 @@
-<button 
+<button
     on:click
     class="{selected ? 'bg-borderc' : 'bg-gray-700'} border border-gray-600 text-white rounded-md shadow-sm hover:bg-borderc focus:outline-none focus:ring-2 focus:ring-borderc transition-colors duration-200{className ? (" " + className) : ""}"
     class:px-4 = {size == "md"}

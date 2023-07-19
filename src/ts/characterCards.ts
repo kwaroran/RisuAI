@@ -451,7 +451,8 @@ async function createBaseV2(char:character) {
                     utilityBot: char.utilityBot,
                     sdData: char.sdData,
                     additionalAssets: char.additionalAssets,
-                    backgroundHTML: char.backgroundHTML
+                    backgroundHTML: char.backgroundHTML,
+                    license: char.license
                 }
             }
         }
@@ -527,9 +528,10 @@ export async function shareRisuHub(char:character, arg:{
     nsfw: boolean,
     privateMode:boolean
     tag:string
+    license: string
 }) {
     char = cloneDeep(char)
-
+    char.license = arg.license
     let tagList = arg.tag.split(',')
     
     if(arg.nsfw){
@@ -584,7 +586,7 @@ export async function shareRisuHub(char:character, arg:{
                 card: card,
                 img: Buffer.from(img).toString('base64'),
                 resources: resources,
-                token: get(DataBase)?.account?.token
+                token: get(DataBase)?.account?.token,
             })
         })
 
@@ -709,7 +711,8 @@ type CharacterCardV2 = {
                 utilityBot?: boolean,
                 sdData?:[string,string][],
                 additionalAssets?:[string,string,string][],
-                backgroundHTML?:string
+                backgroundHTML?:string,
+                license?:string
             }
         }
     }

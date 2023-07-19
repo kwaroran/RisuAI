@@ -107,7 +107,7 @@
                     }}>{n}</Button>
                 {/each}
             {:else if $alertStore.type === 'error' || $alertStore.type === 'normal' || $alertStore.type === 'markdown'}
-               <Button bind:this={btn} className="mt-4" on:click={() => {
+               <Button className="mt-4" on:click={() => {
                     alertStore.set({
                         type: 'none',
                         msg: ''

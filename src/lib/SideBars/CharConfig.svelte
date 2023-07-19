@@ -18,7 +18,7 @@
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
-    import HubUpload from "../UI/Realm/RealmUpload.svelte";
+    import RealmUpload from "../UI/Realm/RealmUpload.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
@@ -711,14 +711,26 @@
             </div>
         {/if}
 
-        <Button size="lg" on:click={async () => {
-            exportChar($selectedCharID)
-        }} className="mt-2">{language.exportCharacter}</Button>
-        <Button size="lg" on:click={async () => {
-            openHubUpload = true
-        }} className="mt-2">{language.shareCloud}</Button>
+        {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
+            && currentChar.data.license !== 'CC BY-SA 4.0'
+            && currentChar.data.license !== 'CC BY-ND 4.0'
+            && currentChar.data.license !== 'CC BY-NC-ND 4.0'
+        }
+            <Button size="lg" on:click={async () => {
+                exportChar($selectedCharID)
+            }} className="mt-2">{language.exportCharacter}</Button>
+        {/if}
+
+        {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
+            && currentChar.data.license !== 'CC BY-SA 4.0'
+        }
+            <Button size="lg" on:click={async () => {
+                openHubUpload = true
+            }} className="mt-2">{language.shareCloud}</Button>
+        {/if}
+
         {#if openHubUpload}
-            <HubUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
+            <RealmUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}

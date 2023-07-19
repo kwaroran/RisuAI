@@ -29,6 +29,8 @@
             tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase()
         }} />
 
+        {#if char.license !== 'CC BY-NC-SA 4.0' && char.license !== 'CC BY-SA 4.0'}
+
         <span class="text-neutral-200 mt-4">License</span>
         <span class="text-gray-400 text-sm">You can choose license for the downloaders to limit the usages of your card.</span>
         <SelectInput bind:value={license}>
@@ -37,6 +39,8 @@
                 <OptionInput value={ccl}>{ccl} ({CCLicenseData[ccl][1]})</OptionInput>
             {/each}
         </SelectInput>
+
+        {/if}
         <div class="flex items-center flex-wrap mt-4">
             <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Public</button>
             <!-- <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Private</button> -->
@@ -59,7 +63,8 @@
                 shareRisuHub(char, {
                     privateMode: privateMode,
                     nsfw: nsfwMode,
-                    tag: tags
+                    tag: tags,
+                    license: license
                 })
                 close()
             }
@@ -80,9 +85,8 @@
     import TextAreaInput from "../GUI/TextAreaInput.svelte";
     import Button from "../GUI/Button.svelte";
     import SelectInput from "../GUI/SelectInput.svelte";
-  import { CCLicenseData } from "src/ts/copyright/license";
-  import { key } from "localforage";
-  import OptionInput from "../GUI/OptionInput.svelte";
+    import { CCLicenseData } from "src/ts/copyright/license";
+    import OptionInput from "../GUI/OptionInput.svelte";
     export let close = () => {}
     export let char:character
     let tags=""
