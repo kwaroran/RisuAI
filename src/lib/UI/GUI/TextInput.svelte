@@ -7,6 +7,7 @@
     class:px-4={padding}
     class:py-2={padding}
     class:mb-4={marginBottom}
+    class:mt-4={marginTop}
     class:w-full={fullwidth}
     class:h-full={fullh}
     {autocomplete}
@@ -26,6 +27,7 @@
     export let id:string = undefined
     export let padding = true
     export let marginBottom = false
+    export let marginTop = false
     export let onInput = () => {}
     export let fullwidth = false
     export let fullh = false

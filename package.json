@@ -46,6 +46,7 @@
     "rollup": "^3.21.3",
     "showdown": "^2.1.0",
     "three": "^0.154.0",
+    "tippy.js": "^6.3.7",
     "uuid": "^9.0.0",
     "wasmoon": "^1.15.0",
     "web-streams-polyfill": "^3.2.1"

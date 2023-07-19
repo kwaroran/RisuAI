@@ -37,7 +37,7 @@
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
-  import { BotCreator } from "src/ts/creator/creator";
+  import { BotCreator } from "src/ts/copyright/creator";
   import Button from "../UI/GUI/Button.svelte";
   let openPresetList = false;
   let sideBarMode = 0;

@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore } from "./alert"
+import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
 import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
 import { language } from "src/lang"
@@ -604,13 +604,14 @@ export async function shareRisuHub(char:character, arg:{
 export type hubType = {
     name:string
     desc: string
-    download: number,
+    download: string,
     id: string,
     img: string
     tags: string[],
     viewScreen: "none" | "emotion" | "imggen"
     hasLore:boolean
     creator?:string
+    license:string
 }
 
 export async function getRisuHub(arg?:{
@@ -636,6 +637,9 @@ export async function getRisuHub(arg?:{
 
 export async function downloadRisuHub(id:string) {
     try {
+        if(!(await alertTOS())){
+            return
+        }
         alertStore.set({
             type: "wait",
             msg: "Downloading..."

@@ -25,10 +25,19 @@
         <TextAreaInput autocomplete="off" bind:value={char.creatorNotes} height={"20"} />
         <span class="text-neutral-200">{language.tags}</span>
         <span class="text-gray-400 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
-        <TextInput marginBottom placeholder="" bind:value={tags} on:input={() => {
+        <TextInput placeholder="" bind:value={tags} on:input={() => {
             tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase()
         }} />
-        <div class="flex items-center flex-wrap">
+
+        <span class="text-neutral-200 mt-4">License</span>
+        <span class="text-gray-400 text-sm">You can choose license for the downloaders to limit the usages of your card.</span>
+        <SelectInput bind:value={license}>
+            <OptionInput value="">None</OptionInput>
+            {#each Object.keys(CCLicenseData) as ccl}
+                <OptionInput value={ccl}>{ccl} ({CCLicenseData[ccl][1]})</OptionInput>
+            {/each}
+        </SelectInput>
+        <div class="flex items-center flex-wrap mt-4">
             <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Public</button>
             <!-- <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Private</button> -->
         </div>
@@ -64,16 +73,21 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
     import { language } from "src/lang";
-  import { alertError } from "src/ts/alert";
-  import { shareRisuHub } from "src/ts/characterCards";
+    import { alertError } from "src/ts/alert";
+    import { shareRisuHub } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
-  import TextInput from "../GUI/TextInput.svelte";
-  import TextAreaInput from "../GUI/TextAreaInput.svelte";
-  import Button from "../GUI/Button.svelte";
+    import TextInput from "../GUI/TextInput.svelte";
+    import TextAreaInput from "../GUI/TextAreaInput.svelte";
+    import Button from "../GUI/Button.svelte";
+    import SelectInput from "../GUI/SelectInput.svelte";
+  import { CCLicenseData } from "src/ts/copyright/license";
+  import { key } from "localforage";
+  import OptionInput from "../GUI/OptionInput.svelte";
     export let close = () => {}
     export let char:character
     let tags=""
     let privateMode = false
     let nsfwMode = false
+    let license = ""
 
 </script>
