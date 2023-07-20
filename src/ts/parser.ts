@@ -56,11 +56,14 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 })
 
 async function parseAdditionalAssets(data:string, char:character, mode:'normal'|'back'){
+    const db = get(DataBase)
+    const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
+
     if(char.additionalAssets){
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
             data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).
-                    replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" alt="${asset[0]}"/>`)
+                    replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" alt="${asset[0]}" style="${assetWidthString} "/>`)
                     .replaceAll(`{{video::${asset[0]}}}`,`<video controls autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
                     .replaceAll(`{{audio::${asset[0]}}}`,`<audio controls autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
             if(mode === 'back'){

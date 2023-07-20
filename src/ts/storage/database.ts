@@ -282,6 +282,7 @@ export function setDatabase(data:Database){
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     data.toggleConfirmRecommendedPreset ??= true
     data.officialplugins ??= {}
+    data.assetWidth ??= -1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -574,6 +575,7 @@ export interface Database{
         name:string
         icon:string
     }[]
+    assetWidth:number
 }
 
 interface hordeConfig{

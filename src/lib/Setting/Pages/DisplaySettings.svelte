@@ -63,6 +63,13 @@
 <SliderInput min={50} max={200} bind:value={$DataBase.iconsize} />
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
+
+<span class="text-neutral-200">{language.assetWidth}</span>
+<SliderInput min={-1} max={40} step={1} bind:value={$DataBase.assetWidth} />
+<span class="text-gray-400 mb-6 text-sm">{
+    ($DataBase.assetWidth === -1) ? "Unlimited" : 
+    ($DataBase.assetWidth === 0) ? "Hidden" : (`${($DataBase.assetWidth).toFixed(1)} rem`)}</span>
+
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
 </div>

@@ -344,5 +344,6 @@ export const languageEnglish = {
     noweb: "This feature cannot be used on web version.",
     createBotInternet: "Create Bot from Internet with AI",
     createBotInternetAlert: "Please provide the character's name and the corresponding series/game.",
-    able:"Able"
+    able:"Able",
+    assetWidth: "Asset Max Width",
 }
