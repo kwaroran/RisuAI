@@ -16,13 +16,6 @@ async function createBotFromWebMain(prompt:string):Promise<{ ok: false; data:str
     const usp = new URLSearchParams()
     usp.append("q","fandom " + prompt)
 
-    
-    if(prompt.toLocaleLowerCase().includes('risu') && (!prompt.toLocaleLowerCase().includes('arisu'))){
-        return {
-            ok: false,
-            data: "You are playing Risu now"
-        }
-    }
 
     const bd = await globalFetch("https://lite.duckduckgo.com/lite/", {
         body: usp,
