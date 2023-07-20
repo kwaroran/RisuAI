@@ -1,6 +1,6 @@
 import { fetch } from "@tauri-apps/api/http";
 import { DataBase, appVer, setDatabase } from "./storage/database";
-import { alertConfirm, alertMd } from "./alert";
+import { alertConfirm, alertError, alertMd } from "./alert";
 import { language } from "../lang";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
@@ -38,7 +38,8 @@ export async function checkUpdate(){
         }
         
     } catch (error) {
-        
+        alertError(error)
+        return
     }
 }
 
