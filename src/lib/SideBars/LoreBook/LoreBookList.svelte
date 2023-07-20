@@ -48,6 +48,21 @@
     }
     onMount(createStb)
 
+    let opened = 0
+    
+    const onOpen = () => {
+        opened += 1
+        if(stb){
+            stb.destroy()
+        }
+    }
+    const onClose = () => {
+        opened -= 1
+        if(opened === 0){
+            createStb()
+        }
+    }
+
     onDestroy(() => {
         if(stb){
             stb.destroy()
@@ -67,7 +82,7 @@
                         let lore = $DataBase.loreBook[$DataBase.loreBookPage].data
                         lore.splice(i, 1)
                         $DataBase.loreBook[$DataBase.loreBookPage].data = lore
-                    }}/>
+                    }} onOpen={onOpen} onClose={onClose}/>
                 {/each}
             {/if}
         {:else if submenu === 0}
@@ -79,7 +94,7 @@
                         let lore  = $DataBase.characters[$selectedCharID].globalLore
                         lore.splice(i, 1)
                         $DataBase.characters[$selectedCharID].globalLore = lore
-                    }}/>
+                    }} onOpen={onOpen} onClose={onClose}/>
                 {/each}
             {/if}
         {:else if submenu === 1}
@@ -91,7 +106,7 @@
                         let lore  = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore
                         lore.splice(i, 1)
                         $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore = lore
-                    }}/>
+                    }} onOpen={onOpen} onClose={onClose}/>
                 {/each}
             {/if}
         {/if}

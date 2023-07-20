@@ -10,6 +10,9 @@
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     export let value:loreBook
     export let onRemove: () => void = () => {}
+    export let onClose: () => void = () => {}
+    export let onOpen: () => void = () => {}
+
     export let idx:number
     let open = false
 </script>
@@ -19,12 +22,21 @@
         <button class="endflex valuer border-borderc" on:click={() => {
             value.secondkey = value.secondkey ?? ''
             open = !open
+            if(open){
+                onOpen()
+            }
+            else{
+                onClose()
+            }
         }}>
             <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
         <button class="valuer" on:click={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
+                if(!open){
+                    onClose()
+                }
                 onRemove()
             }
         }}>

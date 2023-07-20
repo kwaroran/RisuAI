@@ -8,6 +8,7 @@
     let stb: Sortable = null
     let ele: HTMLDivElement
     let sorted = 0
+    let opened = 0
     const createStb = () => {
         stb = Sortable.create(ele, {
             onEnd: async () => {
@@ -27,6 +28,20 @@
             }
         })
     }
+
+    const onOpen = () => {
+        opened += 1
+        if(stb){
+            stb.destroy()
+        }
+    }
+    const onClose = () => {
+        opened -= 1
+        if(opened === 0){
+            createStb()
+        }
+    }
+
     onMount(createStb)
 
     onDestroy(() => {
@@ -42,7 +57,7 @@
     {/if}
     {#key sorted}
         {#each value as customscript, i}
-            <RegexData idx={i} bind:value={value[i]}  onRemove={() => {
+            <RegexData idx={i} bind:value={value[i]} onOpen={onOpen} onClose={onClose} onRemove={() => {
                 let customscript = value
                 customscript.splice(i, 1)
                 value = customscript

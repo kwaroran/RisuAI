@@ -10,6 +10,9 @@
 
     export let value:customscript
     export let onRemove: () => void = () => {}
+    export let onClose: () => void = () => {}
+    export let onOpen: () => void = () => {}
+
     export let idx:number
     let open = false
 </script>
@@ -18,12 +21,21 @@
     <div class="flex items-center transition-colors w-full ">
         <button class="endflex valuer border-borderc" on:click={() => {
             open = !open
+            if(open){
+                onOpen()
+            }
+            else{
+                onClose()
+            }
         }}>
             <span>{value.comment.length === 0 ? 'Unnamed Script' : value.comment}</span>
         </button>
         <button class="valuer" on:click={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
+                if(!open){
+                    onClose()
+                }
                 onRemove()
             }
         }}>
