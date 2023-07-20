@@ -128,6 +128,14 @@
             <button class="w-full hover:bg-selected p-4" on:click|stopPropagation={async () => {
                 menuOpen = false
                 const input = await alertInput('Input URL or ID')
+                if(input.startsWith("http")){
+                    const url = new URL(input)
+                    const id = url.searchParams.get("realm")
+                    if(id){
+                        downloadRisuHub(id)
+                        return
+                    }
+                }
                 const id = input.split("?").at(-1)
                 downloadRisuHub(id)
 
