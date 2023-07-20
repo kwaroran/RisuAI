@@ -670,6 +670,7 @@ export async function downloadRisuHub(id:string) {
         })
         if(res.status !== 200){
             alertError(await res.text())
+            return
         }
     
         const result = await res.json()
