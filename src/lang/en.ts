@@ -345,5 +345,5 @@ export const languageEnglish = {
     createBotInternet: "Create Bot from Internet with AI",
     createBotInternetAlert: "Please provide the character's name and the corresponding series/game.",
     able:"Able",
-    assetWidth: "Asset Max Width",
+    assetWidth: "Asset Images Max Width",
 }

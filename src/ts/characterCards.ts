@@ -390,7 +390,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         },
         additionalAssets: extAssets,
         replaceGlobalNote: data.post_history_instructions ?? '',
-        backgroundHTML: data?.extensions?.risuai?.backgroundHTML
+        backgroundHTML: data?.extensions?.risuai?.backgroundHTML,
+        license: data?.extensions?.risuai?.license
     }
 
     db.characters.push(char)
