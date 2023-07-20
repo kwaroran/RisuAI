@@ -32,7 +32,7 @@
         {#if char.license !== 'CC BY-NC-SA 4.0' && char.license !== 'CC BY-SA 4.0'}
 
         <span class="text-neutral-200 mt-4">License</span>
-        <span class="text-gray-400 text-sm">You can choose license for the downloaders to limit the usages of your card.</span>
+        <span class="text-gray-400 text-sm">You can choose license for the downloaders to limit the usages of your card's prompt.</span>
         <SelectInput bind:value={license}>
             <OptionInput value="">None</OptionInput>
             {#each Object.keys(CCLicenseData) as ccl}
