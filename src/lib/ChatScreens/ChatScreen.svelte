@@ -39,7 +39,7 @@
         </div>
     </div>
 {:else if $DataBase.theme === 'waifu'}
-    <div class="flex-grow h-full flex justify-center relative" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
+    <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
         <BackgroundDom />
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
