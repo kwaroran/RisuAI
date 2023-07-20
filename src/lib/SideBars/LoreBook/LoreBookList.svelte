@@ -46,7 +46,7 @@
             }
         })
     }
-    onMount(createStb)
+    // onMount(createStb)
 
     let opened = 0
     
@@ -58,9 +58,9 @@
     }
     const onClose = () => {
         opened -= 1
-        if(opened === 0){
-            createStb()
-        }
+        // if(opened === 0){
+        //     createStb()
+        // }
     }
 
     onDestroy(() => {
