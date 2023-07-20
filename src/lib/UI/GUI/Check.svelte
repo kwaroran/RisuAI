@@ -27,6 +27,7 @@
 <label 
     class="flex items-center space-x-2 cursor-pointer text-white"
     class:mr-2={margin}
+    aria-describedby="{name}"
 >
     <input 
         class="hidden" 
@@ -39,7 +40,7 @@
     />
     <span 
         class="w-5 h-5 min-w-5 min-h-5 rounded-md border-2 border-gray-600 flex justify-center items-center {check ? 'bg-borderc' : 'bg-gray-700'} transition-colors duration-200"
-        aria-describedby="{name}"
+        aria-hidden="true"
     >
         {#if check}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" class="w-3 h-3" aria-hidden="true">
