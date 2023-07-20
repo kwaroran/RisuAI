@@ -13,7 +13,7 @@
     import { onDestroy } from "svelte";
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import RegexData from "./RegexData.svelte";
+    import RegexData from "./Regex/RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
@@ -25,6 +25,7 @@
   import Button from "../UI/GUI/Button.svelte";
   import SelectInput from "../UI/GUI/SelectInput.svelte";
   import OptionInput from "../UI/GUI/OptionInput.svelte";
+  import RegexList from "./Regex/RegexList.svelte";
 
     let subMenu = 0
     let openHubUpload = false
@@ -446,22 +447,7 @@
         </div>
 
         <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
-        <div class="w-full max-w-full border border-selected rounded-md p-2">
-            <table class="w-full max-w-full tabler mt-2 flex flex-col p-2 gap-2">
-                {#if currentChar.data.customscript.length === 0}
-                        <div class="text-gray-500">No Scripts</div>
-                {/if}
-                {#each currentChar.data.customscript as customscript, i}
-                    <RegexData bind:value={currentChar.data.customscript[i]}  onRemove={() => {
-                        if(currentChar.type === 'character'){
-                            let customscript = currentChar.data.customscript
-                            customscript.splice(i, 1)
-                            currentChar.data.customscript = customscript
-                        }
-                    }}/>
-                {/each}
-            </table>
-        </div>
+        <RegexList bind:value={currentChar.data.customscript} />
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
                 let script = currentChar.data.customscript

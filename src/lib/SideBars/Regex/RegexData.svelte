@@ -3,17 +3,18 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import type { customscript } from "src/ts/storage/database";
-    import Check from "../UI/GUI/Check.svelte";
-  import TextInput from "../UI/GUI/TextInput.svelte";
-  import SelectInput from "../UI/GUI/SelectInput.svelte";
-  import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import Check from "../../UI/GUI/Check.svelte";
+    import TextInput from "../../UI/GUI/TextInput.svelte";
+    import SelectInput from "../../UI/GUI/SelectInput.svelte";
+    import OptionInput from "../../UI/GUI/OptionInput.svelte";
 
     export let value:customscript
     export let onRemove: () => void = () => {}
+    export let idx:number
     let open = false
 </script>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full ">
         <button class="endflex valuer border-borderc" on:click={() => {
             open = !open
@@ -76,11 +77,9 @@
         border: none;
         outline: 0;
         width: 100%;
-        margin-top: 0.5rem;
         display: flex;
         flex-direction: column;
         margin-bottom: 0.5rem;
-        background-color: #282a36;
     }
     
 </style>
