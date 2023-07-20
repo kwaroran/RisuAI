@@ -314,11 +314,9 @@
   }
 
   const preventIfPolyfilled = (e:Event) => {
-    if(globalThis.polyfilledDragDrop){
-      e.preventDefault()
-      e.stopPropagation()
-      return false
-    }
+    e.preventDefault()
+    e.stopPropagation()
+    return false
   }
 
   onDestroy(unsub);
