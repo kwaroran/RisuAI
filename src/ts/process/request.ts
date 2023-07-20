@@ -152,7 +152,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === "gpt4_0613" ? 'gpt-4-0613'
                     : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
-                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301' : requestModel,
+                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
+                    : (!requestModel) ? 'gpt-3.5-turbo'
+                    : requestModel,
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
