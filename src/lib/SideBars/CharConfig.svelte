@@ -6,7 +6,7 @@
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBraces, Volume2Icon, XIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/Check.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
-    import LoreBook from "./LoreBookSetting.svelte";
+    import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertError, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, selectMultipleFile } from "../../ts/util";

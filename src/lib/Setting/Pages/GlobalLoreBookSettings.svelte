@@ -1,7 +1,7 @@
 <script lang="ts">
   import { language } from "src/lang";
   import Help from "src/lib/Others/Help.svelte";
-  import LoreBookSetting from "src/lib/SideBars/LoreBookSetting.svelte";
+  import LoreBookSetting from "src/lib/SideBars/LoreBook/LoreBookSetting.svelte";
   import { DataBase } from "src/ts/storage/database";
   export let openLoreList = false
 </script>

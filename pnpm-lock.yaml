@@ -98,6 +98,9 @@ dependencies:
   showdown:
     specifier: ^2.1.0
     version: 2.1.0
+  sortablejs:
+    specifier: ^1.15.0
+    version: 1.15.0
   three:
     specifier: ^0.154.0
     version: 0.154.0
@@ -151,6 +154,9 @@ devDependencies:
   '@types/showdown':
     specifier: ^2.0.0
     version: 2.0.0
+  '@types/sortablejs':
+    specifier: ^1.15.1
+    version: 1.15.1
   '@types/three':
     specifier: ^0.154.0
     version: 0.154.0
@@ -834,6 +840,10 @@ packages:
 
   /@types/showdown@2.0.0:
     resolution: {integrity: sha512-70xBJoLv+oXjB5PhtA8vo7erjLDp9/qqI63SRHm4REKrwuPOLs8HhXwlZJBJaB4kC18cCZ1UUZ6Fb/PLFW4TCA==}
+    dev: true
+
+  /@types/sortablejs@1.15.1:
+    resolution: {integrity: sha512-g/JwBNToh6oCTAwNS8UGVmjO7NLDKsejVhvE4x1eWiPTC3uCuNsa/TD4ssvX3du+MLiM+SHPNDuijp8y76JzLQ==}
     dev: true
 
   /@types/stats.js@0.17.0:
@@ -2620,6 +2630,10 @@ packages:
       minimist: 1.2.8
       sander: 0.5.1
     dev: true
+
+  /sortablejs@1.15.0:
+    resolution: {integrity: sha512-bv9qgVMjUMf89wAvM6AxVvS/4MX3sPeN0+agqShejLU5z5GX4C75ow1O2e5k4L6XItUyAK3gH6AxSbXrOM5e8w==}
+    dev: false
 
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}

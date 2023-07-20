@@ -1,19 +1,20 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
-    import { language } from "../../lang";
-    import type { loreBook } from "../../ts/storage/database";
-    import { alertConfirm } from "../../ts/alert";
-    import Check from "../UI/GUI/Check.svelte";
-    import Help from "../Others/Help.svelte";
-    import TextInput from "../UI/GUI/TextInput.svelte";
-    import NumberInput from "../UI/GUI/NumberInput.svelte";
-  import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
+    import { language } from "../../../lang";
+    import type { loreBook } from "../../../ts/storage/database";
+    import { alertConfirm } from "../../../ts/alert";
+    import Check from "../../UI/GUI/Check.svelte";
+    import Help from "../../Others/Help.svelte";
+    import TextInput from "../../UI/GUI/TextInput.svelte";
+    import NumberInput from "../../UI/GUI/NumberInput.svelte";
+    import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     export let value:loreBook
     export let onRemove: () => void = () => {}
+    export let idx:number
     let open = false
 </script>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full ">
         <button class="endflex valuer border-borderc" on:click={() => {
             value.secondkey = value.secondkey ?? ''
