@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { CCLicenseData, tooltip } from "src/ts/copyright/license";
+    import { CCLicenseData } from "src/ts/copyright/license";
+    import { tooltip } from "src/ts/gui/tooltip";
     import { openURL } from "src/ts/storage/globalApi";
 
     export let license = ""

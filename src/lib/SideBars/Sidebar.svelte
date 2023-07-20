@@ -33,12 +33,13 @@
   import SidebarAvatar from "./SidebarAvatar.svelte";
   import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
   import { get } from "svelte/store";
-  import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject } from "src/ts/util";
+  import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject, sleep } from "src/ts/util";
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
   import { BotCreator } from "src/ts/copyright/creator";
   import Button from "../UI/GUI/Button.svelte";
+  import { fly } from "svelte/transition";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -94,6 +95,7 @@
   let IconRounded = false
   let openFolders:string[] = []
   let currentDrag: DragData = null
+  let closing = false
 
   const unsub = DataBase.subscribe((db) => {
     let newCharImages: sortType[] = [];
@@ -323,187 +325,22 @@
 </script>
 
 <div
-  class="flex h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg"
+  class="flex h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg relative"
   class:editMode
+  class:risu-sub-sidebar={!closing}
+  class:risu-sub-sidebar-close={closing}
+
 >
   <button
-    class="flex h-8 w-14 min-w-14 cursor-pointer items-center justify-center rounded-b-md bg-gray-500 transition-colors hover:bg-green-500"
+    class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer mt-2 items-center justify-center rounded-md bg-gray-500 transition-colors hover:bg-green-500"
     on:click={() => {
       menuMode = 1 - menuMode;
     }}><ListIcon />
   </button>
-  <div class="flex flex-grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
-    <div class="h-4 min-h-4 w-14" on:dragover={(e) => {
-      e.preventDefault()
-      e.dataTransfer.dropEffect = 'move'
-      e.currentTarget.classList.add('bg-green-500')
-    }} on:dragleave={(e) => {
-      e.currentTarget.classList.remove('bg-green-500')
-    }} on:drop={(e) => {
-      e.preventDefault()
-      e.currentTarget.classList.remove('bg-green-500')
-      const da = currentDrag
-      if(da){
-        inserter(da,{index:0})
-      }
-    }} on:dragenter={preventAll} />
-    {#if menuMode === 0}
-      {#each charImages as char, ind}
-        <div class="group relative flex items-center px-2"
-          draggable="true"
-          on:dragstart={(e) => {avatarDragStart({index:ind}, e)}}
-          on:dragover={avatarDragOver}
-          on:drop={(e) => {avatarDrop({index:ind}, e)}}
-          on:dragenter={preventAll}
-          on:contextmenu={preventIfPolyfilled}
-        >
-          <SidebarIndicator
-            isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
-          />
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-          <div
-              on:click={() => {
-                if(char.type === "normal"){
-                  changeChar(char.index);
-                }
-              }}
-              on:keydown={(e) => {
-                if (e.key === "Enter") {
-                  if(char.type === "normal"){
-                    changeChar(char.index);
-                  }
-                }
-              }}
-              tabindex="0"
-            >
-            {#if char.type === 'normal'}
-              <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
-            {:else if char.type === "folder"}
-              <SidebarAvatar src="slot" size="56" rounded={IconRounded} onClick={() => {
-                if(char.type !== 'folder'){
-                  return
-                }
-                if(openFolders.includes(char.id)){
-                  openFolders.splice(openFolders.indexOf(char.id), 1)
-                }
-                else{
-                  openFolders.push(char.id)
-                }
-                openFolders = openFolders
-              }}>
-                {#if openFolders.includes(char.id)}
-                  <FolderOpenIcon />
-                {:else}
-                  <FolderIcon />
-                {/if}
-              </SidebarAvatar>
-            {/if}
-          </div>
-        </div>
-        {#if char.type === 'folder' && openFolders.includes(char.id)}
-          <div class="w-full flex flex-col items-center py-1 mt-1 rounded-lg relative">
-            <div class="absolute top-0 left-1 bg-darkbg w-full h-full rounded-lg z-0"></div>
-            <div class="h-4 min-h-4 w-14 relative z-10" on:dragover={(e) => {
-              e.preventDefault()
-              e.dataTransfer.dropEffect = 'move'
-              e.currentTarget.classList.add('bg-green-500')
-            }} on:dragleave={(e) => {
-              e.currentTarget.classList.remove('bg-green-500')
-            }} on:drop={(e) => {
-              e.preventDefault()
-              e.currentTarget.classList.remove('bg-green-500')
-              const da = currentDrag
-              if(da && char.type === 'folder'){
-                inserter(da,{index:0,folder:char.id})
-              }
-            }} on:dragenter={preventAll}/>
-            {#each char.folder as char2, ind}
-                <div class="group relative flex items-center px-2 z-10"
-                draggable="true"
-                on:dragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
-                on:dragover={avatarDragOver}
-                on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
-                on:dragenter={preventAll}
-                on:contextmenu={preventIfPolyfilled}
-              >
-                <SidebarIndicator
-                  isActive={$selectedCharID === char2.index && sideBarMode !== 1}
-                />
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <div
-                    on:click={() => {
-                      if(char2.type === "normal"){
-                        changeChar(char2.index);
-                      }
-                    }}
-                    on:keydown={(e) => {
-                      if (e.key === "Enter") {
-                        if(char2.type === "normal"){
-                          changeChar(char2.index);
-                        }
-                      }
-                    }}
-                    tabindex="0"
-                  >
-                  <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
-                </div>
-              </div>
-              <div class="h-4 min-h-4 w-14 relative z-20" on:dragover={(e) => {
-                e.preventDefault()
-                e.dataTransfer.dropEffect = 'move'
-                e.currentTarget.classList.add('bg-green-500')
-              }} on:dragleave={(e) => {
-                e.currentTarget.classList.remove('bg-green-500')
-              }} on:drop={(e) => {
-                e.preventDefault()
-                e.currentTarget.classList.remove('bg-green-500')
-                const da = currentDrag
-                if(da && char.type === 'folder'){
-                  inserter(da,{index:ind+1,folder:char.id})
-                }
-              }} on:dragenter={preventAll}/>
-            {/each}
-          </div>
-        {/if}
-        <div class="h-4 min-h-4 w-14" on:dragover|preventDefault={(e) => {
-          e.dataTransfer.dropEffect = 'move'
-          e.currentTarget.classList.add('bg-green-500')
-        }} on:dragleave={(e) => {
-          e.currentTarget.classList.remove('bg-green-500')
-        }} on:drop={(e) => {
-          e.preventDefault()
-          e.currentTarget.classList.remove('bg-green-500')
-          const da = currentDrag
-          if(da){
-            inserter(da,{index:ind+1})
-          }
-        }} on:dragenter={preventAll} />
-      {/each}
-      <div class="flex flex-col items-center space-y-2 px-2">
-        <BaseRoundedButton
-          onClick={() => {
-            if (sideBarMode === 1) {
-              reseter();
-              sideBarMode = 0;
-            } else {
-              reseter();
-              sideBarMode = 1;
-            }
-          }}
-          ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
-            ><path
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            /></svg
-          ></BaseRoundedButton
-        >
-      </div>
-    {:else}
-      <BarIcon
+  <div class="mt-2 border-b border-b-selected w-full relative">
+    {#if menuMode === 1}
+      <div class="absolute w-20 min-w-20 flex border-b-selected border-b bg-bgcolor flex-col items-center pt-2 rounded-b-md z-20 pb-2">
+        <BarIcon
         onClick={() => {
           if ($settingsOpen) {
             reseter();
@@ -527,18 +364,199 @@
           openGrid();
         }}><LayoutGridIcon /></BarIcon
       >
+    </div>
     {/if}
+  </div>
+  <div class="flex flex-grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
+    <div class="h-4 min-h-4 w-14" on:dragover={(e) => {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'move'
+      e.currentTarget.classList.add('bg-green-500')
+    }} on:dragleave={(e) => {
+      e.currentTarget.classList.remove('bg-green-500')
+    }} on:drop={(e) => {
+      e.preventDefault()
+      e.currentTarget.classList.remove('bg-green-500')
+      const da = currentDrag
+      if(da){
+        inserter(da,{index:0})
+      }
+    }} on:dragenter={preventAll} />
+    {#each charImages as char, ind}
+      <div class="group relative flex items-center px-2"
+        draggable="true"
+        on:dragstart={(e) => {avatarDragStart({index:ind}, e)}}
+        on:dragover={avatarDragOver}
+        on:drop={(e) => {avatarDrop({index:ind}, e)}}
+        on:dragenter={preventAll}
+        on:contextmenu={preventIfPolyfilled}
+      >
+        <SidebarIndicator
+          isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
+        />
+        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <div
+            on:click={() => {
+              if(char.type === "normal"){
+                changeChar(char.index);
+              }
+            }}
+            on:keydown={(e) => {
+              if (e.key === "Enter") {
+                if(char.type === "normal"){
+                  changeChar(char.index);
+                }
+              }
+            }}
+            tabindex="0"
+          >
+          {#if char.type === 'normal'}
+            <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
+          {:else if char.type === "folder"}
+            <SidebarAvatar src="slot" size="56" rounded={IconRounded} onClick={() => {
+              if(char.type !== 'folder'){
+                return
+              }
+              if(openFolders.includes(char.id)){
+                openFolders.splice(openFolders.indexOf(char.id), 1)
+              }
+              else{
+                openFolders.push(char.id)
+              }
+              openFolders = openFolders
+            }}>
+              {#if openFolders.includes(char.id)}
+                <FolderOpenIcon />
+              {:else}
+                <FolderIcon />
+              {/if}
+            </SidebarAvatar>
+          {/if}
+        </div>
+      </div>
+      {#if char.type === 'folder' && openFolders.includes(char.id)}
+        <div class="w-full flex flex-col items-center py-1 mt-1 rounded-lg relative">
+          <div class="absolute top-0 left-1 bg-darkbg w-full h-full rounded-lg z-0"></div>
+          <div class="h-4 min-h-4 w-14 relative z-10" on:dragover={(e) => {
+            e.preventDefault()
+            e.dataTransfer.dropEffect = 'move'
+            e.currentTarget.classList.add('bg-green-500')
+          }} on:dragleave={(e) => {
+            e.currentTarget.classList.remove('bg-green-500')
+          }} on:drop={(e) => {
+            e.preventDefault()
+            e.currentTarget.classList.remove('bg-green-500')
+            const da = currentDrag
+            if(da && char.type === 'folder'){
+              inserter(da,{index:0,folder:char.id})
+            }
+          }} on:dragenter={preventAll}/>
+          {#each char.folder as char2, ind}
+              <div class="group relative flex items-center px-2 z-10"
+              draggable="true"
+              on:dragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
+              on:dragover={avatarDragOver}
+              on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
+              on:dragenter={preventAll}
+              on:contextmenu={preventIfPolyfilled}
+            >
+              <SidebarIndicator
+                isActive={$selectedCharID === char2.index && sideBarMode !== 1}
+              />
+              <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+              <div
+                  on:click={() => {
+                    if(char2.type === "normal"){
+                      changeChar(char2.index);
+                    }
+                  }}
+                  on:keydown={(e) => {
+                    if (e.key === "Enter") {
+                      if(char2.type === "normal"){
+                        changeChar(char2.index);
+                      }
+                    }
+                  }}
+                  tabindex="0"
+                >
+                <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
+              </div>
+            </div>
+            <div class="h-4 min-h-4 w-14 relative z-20" on:dragover={(e) => {
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+              e.currentTarget.classList.add('bg-green-500')
+            }} on:dragleave={(e) => {
+              e.currentTarget.classList.remove('bg-green-500')
+            }} on:drop={(e) => {
+              e.preventDefault()
+              e.currentTarget.classList.remove('bg-green-500')
+              const da = currentDrag
+              if(da && char.type === 'folder'){
+                inserter(da,{index:ind+1,folder:char.id})
+              }
+            }} on:dragenter={preventAll}/>
+          {/each}
+        </div>
+      {/if}
+      <div class="h-4 min-h-4 w-14" on:dragover|preventDefault={(e) => {
+        e.dataTransfer.dropEffect = 'move'
+        e.currentTarget.classList.add('bg-green-500')
+      }} on:dragleave={(e) => {
+        e.currentTarget.classList.remove('bg-green-500')
+      }} on:drop={(e) => {
+        e.preventDefault()
+        e.currentTarget.classList.remove('bg-green-500')
+        const da = currentDrag
+        if(da){
+          inserter(da,{index:ind+1})
+        }
+      }} on:dragenter={preventAll} />
+    {/each}
+    <div class="flex flex-col items-center space-y-2 px-2">
+      <BaseRoundedButton
+        onClick={() => {
+          if (sideBarMode === 1) {
+            reseter();
+            sideBarMode = 0;
+          } else {
+            reseter();
+            sideBarMode = 1;
+          }
+        }}
+        ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          /></svg
+        ></BaseRoundedButton
+      >
+    </div>
   </div>
 </div>
 <div
-  class="setting-area flex w-96 flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200"
-  class:flex-grow={$SizeStore.w <= 1028}
+  class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200 max-h-full"
+  class:risu-sidebar={!closing}
+  class:risu-sidebar-close={closing}
   class:minw96={$SizeStore.w > 1028}
+  on:animationend={() => {
+    if(closing){
+      closing = false
+      sideBarStore.set(false)
+    }
+  }}
 >
   <button
     class="flex w-full justify-end text-gray-200"
-    on:click={() => {
-      sideBarStore.set(false);
+    on:click={async () => {
+      if(closing){
+        return
+      }
+      closing = true;
     }}
   >
     <button class="border-none bg-transparent p-0 text-gray-200"><X /></button>
@@ -588,11 +606,114 @@
   />
 {/if}
 
+{#if $SizeStore.w <= 1028}
+    <div class="flex-grow h-full"
+      class:sidebar-dark-animation={!closing}
+      class:sidebar-dark-close-animation={closing}>
+
+    </div>
+
+{/if}
+
 <style>
   .minw96 {
     min-width: 24rem; /* 384px */
   }
   .editMode {
     min-width: 6rem;
+  }
+  @keyframes sidebar-transition {
+    from {
+      width: 0rem;
+      min-width: 0rem;
+    }
+    to {
+      width: 24rem;
+      min-width: 24rem;
+    }
+  }
+  @keyframes sidebar-transition-close {
+    from {
+      width: 24rem;
+      min-width: 24rem;
+      max-width: 24rem;
+      right:0rem;
+    }
+    to {
+      width: 0rem;
+      min-width: 0rem;
+      max-width: 0rem;
+      right: 10rem;
+    }
+  }
+  @keyframes sub-sidebar-transition {
+    from {
+      width: 0rem;
+      min-width: 0rem;
+    }
+    to {
+      width: 5rem;
+      min-width: 5rem;
+    }
+  }
+  @keyframes sub-sidebar-transition-close {
+    from {
+      width: 5rem;
+      min-width: 5rem;
+      max-width: 5rem;
+      right:0rem;
+
+    }
+    to {
+      width: 0rem;
+      min-width: 0rem;
+      max-width: 0rem;
+      right: 10rem;
+    }
+  }
+  @keyframes sidebar-dark-animation{
+    from {
+      background-color: rgba(0,0,0,0) !important;
+    }
+    to {
+      background-color: rgba(0,0,0,0.5) !important;
+    }
+  }
+  @keyframes sidebar-dark-closing-animation{
+    from {
+      background-color: rgba(0,0,0,0.5) !important;
+    }
+    to {
+      background-color: rgba(0,0,0,0) !important;
+    }
+  }
+
+  .risu-sidebar {
+    animation-name: sidebar-transition;
+    animation-duration: var(--risu-animation-speed);
+  }
+  .risu-sidebar-close {
+    animation-name: sidebar-transition-close;
+    animation-duration: var(--risu-animation-speed);
+    position: relative;
+  }
+  .risu-sub-sidebar {
+    animation-name: sub-sidebar-transition;
+    animation-duration: var(--risu-animation-speed);
+  }
+  .risu-sub-sidebar-close {
+    animation-name: sub-sidebar-transition-close;
+    animation-duration: var(--risu-animation-speed);
+    position: relative;
+  }
+  .sidebar-dark-animation{
+    animation-name: sidebar-dark-transition;
+    animation-duration: var(--risu-animation-speed);
+    background-color: rgba(0,0,0,0.5)
+  }
+  .sidebar-dark-close-animation{
+    animation-name: sidebar-dark-closing-transition;
+    animation-duration: var(--risu-animation-speed);
+    background-color: rgba(0,0,0,0)
   }
 </style>

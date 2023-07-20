@@ -16,7 +16,7 @@ body{
   --FontColorBold : #fafafa;
   --FontColorItalic : #8C8D93;
   --FontColorItalicBold : #8C8D93;
-
+  --risu-animation-speed: 0.2s
 }
 
 html, body{

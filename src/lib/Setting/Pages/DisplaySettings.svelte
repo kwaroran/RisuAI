@@ -7,6 +7,7 @@
   import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+  import { updateAnimationSpeed } from "src/ts/gui/animation";
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
@@ -69,6 +70,11 @@
 <span class="text-gray-400 mb-6 text-sm">{
     ($DataBase.assetWidth === -1) ? "Unlimited" : 
     ($DataBase.assetWidth === 0) ? "Hidden" : (`${($DataBase.assetWidth).toFixed(1)} rem`)}</span>
+
+
+<span class="text-neutral-200">{language.animationSpeed}</span>
+<SliderInput min={0} max={1} step={0.05} bind:value={$DataBase.animationSpeed} on:change={updateAnimationSpeed} />
+<span class="text-gray-400 mb-6 text-sm">{(`${($DataBase.animationSpeed).toFixed(2)}s`)}</span>
 
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>

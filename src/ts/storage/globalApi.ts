@@ -20,6 +20,7 @@ import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from
 import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
+import { updateAnimationSpeed } from "../gui/animation";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -419,6 +420,7 @@ export async function loadData() {
             } catch (error) {}
             await checkNewFormat()
             updateTextTheme()
+            updateAnimationSpeed()
             if(get(DataBase).account){
                 try {
                     await loadRisuAccountData()                    

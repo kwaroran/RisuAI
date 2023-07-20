@@ -6,6 +6,7 @@
     max={max}
     step={step}
     bind:value
+    on:change
 >
 
 <!-- <div class="p-6 max-w-sm mx-auto bg-gray-800 rounded-xl shadow-md flex items-center space-x-4 w-full" class:mb-4={marginBottom}>

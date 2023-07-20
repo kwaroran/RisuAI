@@ -37,15 +37,23 @@
             <GridChars endGrid={() => {gridOpen = false}} />
         {:else}
             {#if $sideBarStore}
-                <Sidebar openGrid={() => {gridOpen = true}} />
+                {#if ($SizeStore.w > 1028)}
+                    <Sidebar openGrid={() => {gridOpen = true}} />
+                {:else}
+                    <div class="fixed top-0 w-full h-full left-0 z-30 flex flex-row items-center">
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <Sidebar openGrid={() => {gridOpen = true}} />
+
+
+
+                    </div>
+                {/if}
             {:else}
                 <button on:click={() => {sideBarStore.set(true)}} class="fixed top-3 left-0 h-12 w-12 border-none rounded-r-md bg-borderc hover:bg-green-500 transition-colors flex items-center justify-center text-neutral-200 opacity-30 hover:opacity-70 z-20">
                     <ArrowRight />
                 </button>
             {/if}
-            {#if (($SizeStore.w > 1028) || (!$sideBarStore))}
-                <ChatScreen />
-            {/if}
+            <ChatScreen />
         {/if}
     {/if}
     {#if $alertStore.type !== 'none'}

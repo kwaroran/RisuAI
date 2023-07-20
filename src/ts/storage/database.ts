@@ -283,6 +283,8 @@ export function setDatabase(data:Database){
     data.toggleConfirmRecommendedPreset ??= true
     data.officialplugins ??= {}
     data.assetWidth ??= -1
+    data.animationSpeed ??= 0.2
+    
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -576,6 +578,7 @@ export interface Database{
         icon:string
     }[]
     assetWidth:number
+    animationSpeed:number
 }
 
 interface hordeConfig{
