@@ -76,7 +76,7 @@
 
     $: displaya(message)
 </script>
-<div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
+<div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
     <div class="text-neutral-200 mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#await img}
             <div class="shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}

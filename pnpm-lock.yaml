@@ -53,6 +53,9 @@ dependencies:
   gpt3-tokenizer:
     specifier: ^1.1.5
     version: 1.1.5
+  html-to-image:
+    specifier: ^1.11.11
+    version: 1.11.11
   isomorphic-dompurify:
     specifier: ^1.2.0
     version: 1.2.0
@@ -1653,6 +1656,10 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       whatwg-encoding: 2.0.0
+    dev: false
+
+  /html-to-image@1.11.11:
+    resolution: {integrity: sha512-9gux8QhvjRO/erSnDPv28noDZcPZmYE7e1vFsBLKLlRlKDSqNJYebj6Qz1TGd5lsRV+X+xYyjCKjuZdABinWjA==}
     dev: false
 
   /http-errors@2.0.0:

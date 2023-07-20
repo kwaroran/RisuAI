@@ -346,5 +346,7 @@ export const languageEnglish = {
     createBotInternetAlert: "Please provide the character's name and the corresponding series/game.",
     able:"Able",
     assetWidth: "Asset Images Max Width",
-    animationSpeed: "Animation Speed"
+    animationSpeed: "Animation Speed",
+    screenshot: "Screenshot",
+    screenshotSaved: "Screenshot Saved",
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { DatabaseIcon, DicesIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -9,7 +9,7 @@
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { translate } from "../../ts/translator/translator";
-    import { alertError } from "../../ts/alert";
+    import { alertError, alertNormal, alertWait } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import {cloneDeep} from 'lodash'
     import { processScript } from "src/ts/process/scripts";
@@ -18,6 +18,7 @@
     import MainMenu from '../UI/MainMenu.svelte';
     import Help from '../Others/Help.svelte';
     import AssetInput from './AssetInput.svelte';
+  import { downloadFile } from 'src/ts/storage/globalApi';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -222,6 +223,59 @@
         })
     }
 
+    async function screenShot(){
+        try {
+            loadPages = Infinity
+            const html2canvas = await import('html-to-image');
+            const chats = document.querySelectorAll('.default-chat-screen .risu-chat')
+            alertWait("Taking screenShot...")
+            let canvases:HTMLCanvasElement[] = []
+
+            for(const chat of chats){
+                const cnv = await html2canvas.toCanvas(chat as HTMLElement)
+                canvases.push(cnv)
+            }
+
+            canvases.reverse()
+
+            let mergedCanvas = document.createElement('canvas');
+            mergedCanvas.width = 0;
+            mergedCanvas.height = 0;
+            let mergedCtx = mergedCanvas.getContext('2d');
+
+            let totalHeight = 0;
+            let maxWidth = 0;
+            for(let i = 0; i < canvases.length; i++) {
+                let canvas = canvases[i];
+                totalHeight += canvas.height;
+                maxWidth = Math.max(maxWidth, canvas.width);
+
+                mergedCanvas.width = maxWidth;
+                mergedCanvas.height = totalHeight;
+            }
+
+            mergedCtx.fillStyle = '#282a36'
+            mergedCtx.fillRect(0, 0, maxWidth, totalHeight);
+            let indh = 0
+            for(let i = 0; i < canvases.length; i++) {
+                let canvas = canvases[i];
+                indh += canvas.height
+                mergedCtx.drawImage(canvas, 0, indh - canvas.height);
+                canvases[i].remove();
+            }
+
+            if(mergedCanvas){
+                await downloadFile("chat.png", Buffer.from(mergedCanvas.toDataURL('png').split(',').at(-1), 'base64'))
+                mergedCanvas.remove();
+            }
+            alertNormal(language.screenshotSaved)
+            loadPages = 30   
+        } catch (error) {
+            console.error(error)
+            alertError("Error while taking screenshot")
+        }
+    }
+
     $: {
         currentCharacter = $DataBase.characters[$selectedCharID]
     }
@@ -233,7 +287,7 @@
     {#if $selectedCharID < 0}
         <MainMenu />
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative"  on:scroll={(e) => {
+        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  on:scroll={(e) => {
             //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length > loadPages){
@@ -469,7 +523,17 @@
                         {/if}
                         
                     {/if}
-                    
+            
+                    {#if $DataBase.useExperimental}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                            screenShot()
+                        }}>
+                            <CameraIcon />
+                            <span class="ml-2">{language.screenshot} <Help key="experimental"/></span>
+                        </div>
+                    {/if}
+
+
                     <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {
                         $DataBase.useAutoSuggestions = !$DataBase.useAutoSuggestions
                     }}>

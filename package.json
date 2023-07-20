@@ -30,6 +30,7 @@
     "fflate": "^0.8.0",
     "gpt-3-encoder": "^1.1.4",
     "gpt3-tokenizer": "^1.1.5",
+    "html-to-image": "^1.11.11",
     "isomorphic-dompurify": "^1.2.0",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
