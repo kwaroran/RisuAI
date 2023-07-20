@@ -314,9 +314,9 @@
   }
 
   const preventIfPolyfilled = (e:Event) => {
-    e.preventDefault()
-    e.stopPropagation()
-    return false
+    // e.preventDefault()
+    // e.stopPropagation()
+    // return false
   }
 
   onDestroy(unsub);
