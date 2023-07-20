@@ -103,6 +103,7 @@ export const languageEnglish = {
         theme: "Select your theme",
         themeDescWifulike: "Not suitable for mobile",
         themeDescWifuCut: "Suitable for mobile",
+        themeDescClassic: "Suitable for All devices",
         texttheme: "Select your text color",
         inputName: "Lastly, Input your Nickname."
     },

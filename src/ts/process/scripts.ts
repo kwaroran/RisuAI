@@ -61,7 +61,9 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
     for (const script of scripts){
         if(script.type === mode){
             const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
-            let outScript = script.out.replaceAll("$n", "\n")
+            let outScript2 = script.out.replaceAll("$n", "\n")
+            let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})
+
             if(outScript.startsWith('@@')){
                 if(reg.test(data)){
                     if(outScript.startsWith('@@emo ')){
@@ -131,12 +133,11 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
             }
             else{
-                let mOut = risuChatParser(outScript.replace(dreg, "$&"), {chatID: chatID, db:db})
                 if(randomness.test(data)){
                     const list = data.split('|||')
                     data = list[Math.floor(Math.random()*list.length)];
                 }
-                data = risuChatParser(data.replace(reg, mOut), {chatID: chatID, db:db})
+                data = risuChatParser(data.replace(reg, outScript), {chatID: chatID, db:db})
             }
         }
     }

@@ -103,7 +103,7 @@
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
                     $DataBase.theme = ''
                     step += 1
-                }}><span>• Standard Risu</span>
+                }}><span>• Standard Risu ({language.setup.themeDescClassic})</span>
                 <img class="w-3/4 mt-2" src="/ss2.webp" alt="example"></button>
                 <button class="hover:text-green-500 transition-colors flex flex-col items-start" on:click={() => {
                     $DataBase.theme = 'waifu'
