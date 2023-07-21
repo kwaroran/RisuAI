@@ -504,14 +504,14 @@
                         <span class="ml-2">{language.chatList}</span>
                     </div>
                     {#if $DataBase.translator !== ''}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
+                        <!-- <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
                             doingChatInputTranslate = true
                             messageInput = (await translate(messageInput, true))
                             doingChatInputTranslate = false
                         }}>
                             <LanguagesIcon />
                             <span class="ml-2">{language.translateInput}</span>
-                        </div>
+                        </div> -->
                         <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} on:click={() => {
                             $DataBase.useAutoTranslateInput = !$DataBase.useAutoTranslateInput
                         }}>
