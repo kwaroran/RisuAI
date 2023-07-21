@@ -34,6 +34,8 @@ import { changeLanguage, language } from "src/lang";
     <OptionInput value="es" >Spanish</OptionInput>
     <OptionInput value="pt" >Portuguese</OptionInput>
     <OptionInput value="de" >German</OptionInput>
+    <OptionInput value="ms" >Indonesian</OptionInput>
+    <OptionInput value="uk" >Ukranian</OptionInput>
 
 </SelectInput>
 
