@@ -87,7 +87,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
-    const aiModel = model === 'model' ? db.aiModel : db.subModel
+    const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
     switch(aiModel){
         case 'gpt35':
         case 'gpt35_0613':
