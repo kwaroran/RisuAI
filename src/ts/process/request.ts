@@ -201,7 +201,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         headers: {
                             "risu-header": encodeURIComponent(JSON.stringify(headers)),
                             "risu-url": encodeURIComponent(replacerURL),
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "x-risu-tk": "use"
                         },
                         method: "POST",
                         signal: abortSignal
@@ -268,7 +269,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const res = await globalFetch(replacerURL, {
                 body: body,
                 headers: headers,
-                abortSignal
+                abortSignal,
             })
 
             const dat = res.data as any

@@ -437,10 +437,18 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1"]
 
-export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body?:any,headers?:{[key:string]:string}, rawResponse?:boolean, method?:"POST"|"GET", abortSignal?:AbortSignal} = {}): Promise<{
+export async function globalFetch(url:string, arg:{
+    plainFetchForce?:boolean,
+    body?:any,
+    headers?:{[key:string]:string},
+    rawResponse?:boolean,
+    method?:"POST"|"GET",
+    abortSignal?:AbortSignal,
+    useRisuToken?:boolean
+} = {}): Promise<{
     ok: boolean;
     data: any;
-    headers:{[key:string]:string}
+    headers:{[key:string]:string},
 }> {
     try {
         const db = get(DataBase)
@@ -625,13 +633,18 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                 if(arg.rawResponse){
                     const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
                 
+                    let headers = {
+                        "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                        "risu-url": encodeURIComponent(url),
+                        "Content-Type": "application/json",
+                    }
+                    if(arg.useRisuToken){
+                        headers["x-risu-tk"] = "use"
+                    }
+
                     const da = await fetch(furl, {
                         body: body,
-                        headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
-                            "risu-url": encodeURIComponent(url),
-                            "Content-Type": "application/json"
-                        },
+                        headers: headers,
                         method: method,
                         signal: arg.abortSignal
                     })
@@ -646,13 +659,17 @@ export async function globalFetch(url:string, arg:{plainFetchForce?:boolean,body
                 else{
                     const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
 
+                    let headers = {
+                        "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+                        "risu-url": encodeURIComponent(url),
+                        "Content-Type": "application/json"
+                    }
+                    if(arg.useRisuToken){
+                        headers["x-risu-tk"] = "use"
+                    }
                     const da = await fetch(furl, {
                         body: body,
-                        headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
-                            "risu-url": encodeURIComponent(url),
-                            "Content-Type": "application/json"
-                        },
+                        headers: headers,
                         method: method
                     })
                     const daText = await da.text()
