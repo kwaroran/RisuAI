@@ -27,7 +27,7 @@
 <label 
     class="flex items-center space-x-2 cursor-pointer text-white"
     class:mr-2={margin}
-    aria-describedby="{name}"
+    aria-describedby="{name} {check ? 'abled' : 'disabled'}"
 >
     <input 
         class="hidden" 

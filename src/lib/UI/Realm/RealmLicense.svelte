@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CCLicenseData } from "src/ts/copyright/license";
+    import { CCLicenseData } from "src/ts/creation/license";
     import { tooltip } from "src/ts/gui/tooltip";
     import { openURL } from "src/ts/storage/globalApi";
 

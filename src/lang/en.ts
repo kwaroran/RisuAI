@@ -350,4 +350,5 @@ export const languageEnglish = {
     animationSpeed: "Animation Speed",
     screenshot: "Screenshot",
     screenshotSaved: "Screenshot Saved",
+    inputBotGenerationPrompt: "Input Bot Generation Prompt",
 }

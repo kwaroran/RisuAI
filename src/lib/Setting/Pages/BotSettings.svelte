@@ -18,6 +18,7 @@
   import Button from "src/lib/UI/GUI/Button.svelte";
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+  import { openRouterModels } from "src/ts/model/openrouter";
 
     let tokens = {
         mainPrompt: 0,
@@ -145,18 +146,30 @@
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
 
     <span class="text-neutral-200 mt-4">Openrouter Model</span>
-    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.openrouterRequestModel}>
-        <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
-        <OptionInput value="openai/gpt-3.5-turbo-16k">GPT 3.5 16k</OptionInput>
-        <OptionInput value="openai/gpt-4">GPT-4</OptionInput>
-        <OptionInput value="openai/gpt-4-32k">GPT-4 32k</OptionInput>
-        <OptionInput value="anthropic/claude-2">Claude 2</OptionInput>
-        <OptionInput value="anthropic/claude-instant-v1">Claude Instant v1</OptionInput>
-        <OptionInput value="anthropic/claude-instant-v1-100k">Claude Instant v1 100k</OptionInput>
-        <OptionInput value="anthropic/claude-v1">Claude v1</OptionInput>
-        <OptionInput value="anthropic/claude-v1-100k">Claude v1 100k</OptionInput>
-        <OptionInput value="anthropic/claude-1.2">Claude v1.2</OptionInput>
-    </SelectInput>
+    {#await openRouterModels()}
+        <SelectInput className="mt-2 mb-4" value="">
+            <OptionInput value="">Loading..</OptionInput>
+        </SelectInput>
+    {:then m}
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.openrouterRequestModel}>
+            {#if (!m) || (m.length === 0)}
+                <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
+                <OptionInput value="openai/gpt-3.5-turbo-16k">GPT 3.5 16k</OptionInput>
+                <OptionInput value="openai/gpt-4">GPT-4</OptionInput>
+                <OptionInput value="openai/gpt-4-32k">GPT-4 32k</OptionInput>
+                <OptionInput value="anthropic/claude-2">Claude 2</OptionInput>
+                <OptionInput value="anthropic/claude-instant-v1">Claude Instant v1</OptionInput>
+                <OptionInput value="anthropic/claude-instant-v1-100k">Claude Instant v1 100k</OptionInput>
+                <OptionInput value="anthropic/claude-v1">Claude v1</OptionInput>
+                <OptionInput value="anthropic/claude-v1-100k">Claude v1 100k</OptionInput>
+                <OptionInput value="anthropic/claude-1.2">Claude v1.2</OptionInput>
+            {:else}
+                {#each m as model}
+                    <OptionInput value={model}>{model}</OptionInput>
+                {/each}
+            {/if}
+        </SelectInput>
+    {/await}
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
     <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>

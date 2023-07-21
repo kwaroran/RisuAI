@@ -85,7 +85,7 @@
     import TextAreaInput from "../GUI/TextAreaInput.svelte";
     import Button from "../GUI/Button.svelte";
     import SelectInput from "../GUI/SelectInput.svelte";
-    import { CCLicenseData } from "src/ts/copyright/license";
+    import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
     export let close = () => {}
     export let char:character

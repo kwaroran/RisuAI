@@ -339,7 +339,7 @@
                     class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
                     </div>
             </div>
-            {#if $DataBase.useAutoTranslateInput && $DataBase.useExperimental}
+            {#if $DataBase.useAutoTranslateInput}
                 <div class="flex items-center mt-2 mb-2 w-full">
                     <label for='messageInputTranslate' class="text-neutral-200 ml-4">
                         <LanguagesIcon />

@@ -37,7 +37,7 @@
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
-  import { BotCreator } from "src/ts/copyright/creator";
+  import { BotCreator } from "src/ts/creation/creator";
   import Button from "../UI/GUI/Button.svelte";
   import { fly } from "svelte/transition";
   let openPresetList = false;

@@ -200,7 +200,7 @@ async function createBotFromWebMain(prompt:string):Promise<{ ok: false; data:str
             content: rqv
         },{
             role: 'system',
-            content: "\n\n*Name*:\n*Age*:\n*gender*: \n*race*:\n*Hair style, color*:\n*color, shape of eye*:\n*Personality*:\n*Dress*:\n*Height (cm)*:\n*weight(kg)*:\n*Job*:\n*Specialty*:\n*Features*: \n*Likes*:\n*Dislikes*:\n*Character's background*: \n\n[[This is a format that you must convert to. output the latest information If there is older information. If it is unknown, output as unknown. only output the converted result. now, output the converted result.]]"
+            content: "\n\n*Name*:\n*Age*:\n*gender*: \n*race*:\n*Hair style, color*:\n*color, shape of eye*:\n*Personality*:\n*Dress*:\n*Height (cm)*:\n*weight(kg)*:\n*Job*:\n*Specialty*:\n*Features*: \n*Likes*:\n*Dislikes*:\n*Character's background*: \n*Other informations*: \n\n[[This is a format that you must convert to. output the latest information If there is older information. If it is unknown, output as unknown. only output the converted result. now, output the converted result.]]"
         }],
         maxTokens: 600,
         temperature: 0,
@@ -229,6 +229,14 @@ async function createBotFromWebMain(prompt:string):Promise<{ ok: false; data:str
 
     
 }
+
+async function createBotByAI() {
+    let search = await alertInput(language.inputBotGenerationPrompt)
+    if(search.length < 3){
+        return
+    }
+}
+
 
 async function createFirstMsg(charDesc:string) {
     const v = await requestChatData({
