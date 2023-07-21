@@ -43,7 +43,8 @@
     <OptionInput value="es" >Spanish</OptionInput>
     <OptionInput value="pt" >Portuguese</OptionInput>
     <OptionInput value="de" >German</OptionInput>
-    <OptionInput value="ms" >Indonesian</OptionInput>
+    <OptionInput value="id" >Indonesian</OptionInput>
+    <OptionInput value="ms" >Malaysian</OptionInput>
     <OptionInput value="uk" >Ukranian</OptionInput>
 
 </SelectInput>
