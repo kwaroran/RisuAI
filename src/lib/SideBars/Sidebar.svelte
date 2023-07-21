@@ -591,7 +591,7 @@
       on:click={BotCreator.createBotFromWeb}
       className="mt-2"
     >
-      {language.createBotInternet}
+      {language.createBotwithAI}
     </Button>
   {/if}
 </div>

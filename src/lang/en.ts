@@ -351,4 +351,6 @@ export const languageEnglish = {
     screenshot: "Screenshot",
     screenshotSaved: "Screenshot Saved",
     inputBotGenerationPrompt: "Input Bot Generation Prompt",
+    createBotAI: "Create OC Bot from AI",
+    createBotwithAI: "Create Bot from AI",
 }
