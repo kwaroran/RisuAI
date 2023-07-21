@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -512,15 +512,12 @@
                             <LanguagesIcon />
                             <span class="ml-2">{language.translateInput}</span>
                         </div>
-                        {#if $DataBase.useExperimental}
-                            <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} on:click={() => {
-                                $DataBase.useAutoTranslateInput = !$DataBase.useAutoTranslateInput
-                            }}>
-                                <LanguagesIcon />
-                                <span class="ml-2">{language.autoTranslateInput}</span>
-                                <Help key="experimental" />
-                            </div>
-                        {/if}
+                        <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} on:click={() => {
+                            $DataBase.useAutoTranslateInput = !$DataBase.useAutoTranslateInput
+                        }}>
+                            <GlobeIcon />
+                            <span class="ml-2">{language.autoTranslateInput}</span>
+                        </div>
                         
                     {/if}
             
