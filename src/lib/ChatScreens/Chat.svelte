@@ -55,11 +55,9 @@
 
     async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
-            if(msgTranslated==='')
-                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
-            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar:true}), false)
-            msgTranslated = msgDisplay
-            translated = true;
+            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
+            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false)
+
         }
         else{
             msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
@@ -122,22 +120,13 @@
                             if(translating){
                                 return
                             }
-                            if(!translated){
+                            if(msgDisplay === risuChatParser(message, {chara: name, chatID: idx, rmVar: true})){
                                 translating = true
-                                if(msgTranslated !== ''){
-                                    msgDisplay = msgTranslated
-                                    translating = false
-                                    translated = true
-                                    return
-                                }
-                                msgDisplay = (await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false))
-                                msgTranslated = msgDisplay
+                                msgDisplay = (await translate(message, false))
                                 translating = false
-                                translated = true
                             }
                             else{
-                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar:true})
-                                translated = false
+                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
                             }
                         }}>
                             <LanguagesIcon />
