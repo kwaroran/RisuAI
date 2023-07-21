@@ -270,6 +270,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body: body,
                 headers: headers,
                 abortSignal,
+                useRisuToken:true
             })
 
             const dat = res.data as any
