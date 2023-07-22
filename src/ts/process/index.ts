@@ -451,14 +451,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput', msgIndex)
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
                 emoChanged = result2.emoChanged
+                db.characters[selectedChar].reloadKeys += 1
                 setDatabase(db)
             }
             if(readed.done){
                 db.characters[selectedChar].chats[selectedChat].isStreaming = false
+                db.characters[selectedChar].reloadKeys += 1
                 setDatabase(db)
                 break
             }   
         }
+        
         await sayTTS(currentChar, result)
     }
     else{
@@ -473,6 +476,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 data: result,
                 saying: currentChar.chaId
             })
+            db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)
             setDatabase(db)
         }
