@@ -455,6 +455,14 @@ export async function globalFetch(url:string, arg:{
         const method = arg.method ?? "POST"
         db.requestmet = "normal"
     
+        if(arg.abortSignal && arg.abortSignal.aborted){
+            return {
+                ok: false,
+                data: 'aborted',
+                headers: {}
+            }
+        }
+        
         function addFetchLog(response:any, success:boolean){
             try{
                 fetchLog.unshift({
@@ -522,69 +530,10 @@ export async function globalFetch(url:string, arg:{
             }
         }
         if(isTauri){
-            if(db.requester === 'pure_reqwest'){
-                try {
-                    let preHeader = arg.headers ?? {}
-                    let body:any
-                    if(arg.body instanceof URLSearchParams){
-                        const argBody = arg.body as URLSearchParams
-                        body = argBody.toString()
-                        preHeader["Content-Type"] =  `application/x-www-form-urlencoded`
-                    }
-                    else{
-                        body = JSON.stringify(arg.body)
-                        preHeader["Content-Type"] = `application/json`
-                    }
-                    console.log(body)
-                    const header = JSON.stringify(preHeader)
-                    const res:string = await invoke('native_request', {url:url, body:body, header:header, method: method})
-                    const d:{
-                        success: boolean
-                        body:string,
-                        headers: {[key:string]:string}
-                    } = JSON.parse(res)
-
-                    const resHeader = d.headers ?? {}
-                     
-                    if(!d.success){
-                        addFetchLog(Buffer.from(d.body, 'base64').toString('utf-8'), false)
-                        return {
-                            ok:false,
-                            data: Buffer.from(d.body, 'base64').toString('utf-8'),
-                            headers: resHeader
-                        }
-                    }
-                    else{
-                        if(arg.rawResponse){
-                            addFetchLog("Uint8Array Response", true)
-                            return {
-                                ok:true,
-                                data: new Uint8Array(Buffer.from(d.body, 'base64')),
-                                headers: resHeader
-                            }
-                        }
-                        else{
-                            addFetchLog(JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')), true)
-                            return {
-                                ok:true,
-                                data: JSON.parse(Buffer.from(d.body, 'base64').toString('utf-8')),
-                                headers: resHeader
-                            }
-                        }
-                    }   
-                } catch (error) {
-                    return {
-                        ok: false,
-                        data: `${error}`,
-                        headers: {}
-                    }
-                }
-            }
-    
             const body = (!arg.body) ? null :
                 (arg.body instanceof URLSearchParams) ? (Body.text(arg.body.toString())) : (Body.json(arg.body))
             const headers = arg.headers ?? {}
-            const d = await TauriFetch(url, {
+            const fetchPromise = TauriFetch(url, {
                 body: body,
                 method: method,
                 headers: headers,
@@ -595,20 +544,43 @@ export async function globalFetch(url:string, arg:{
                 responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON,
                 
             })
-            if(arg.rawResponse){
-                addFetchLog("Uint8Array Response", d.ok)
+
+            //abort the promise when abort signal is triggered
+            let abortFn:() => void = () => {}
+
+            const abortPromise = (new Promise<"aborted">((res,rej) => {
+                abortFn = () => {
+                    res("aborted")
+                }
+                arg.abortSignal?.addEventListener('abort', abortFn)
+            }))
+
+            const result = await Promise.any([fetchPromise,abortPromise])
+
+            arg.abortSignal.removeEventListener('abort', abortFn)
+
+            if(result === 'aborted'){
                 return {
-                    ok: d.ok,
-                    data: new Uint8Array(d.data as number[]),
-                    headers: d.headers
+                    ok: false,
+                    data: 'aborted',
+                    headers: {}
+                }
+            }
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", result.ok)
+                return {
+                    ok: result.ok,
+                    data: new Uint8Array(result.data as number[]),
+                    headers: result.headers
                 }
             }
             else{
-                addFetchLog(d.data, d.ok)
+                addFetchLog(result.data, result.ok)
                 return {
-                    ok: d.ok,
-                    data: d.data,
-                    headers: d.headers
+                    ok: result.ok,
+                    data: result.data,
+                    headers: result.headers
                 }
             }
         }

@@ -143,10 +143,13 @@
         }
     }
 
+    let abortController:null|AbortController = null
+
     async function sendChatMain(saveReroll = false) {
         messageInput = ''
+        abortController = new AbortController()
         try {
-            await sendChat()            
+            await sendChat(-1, {signal:abortController.signal})            
         } catch (error) {
             console.error(error)
             alertError(`${error}`)
@@ -158,6 +161,13 @@
         if($DataBase.playMessage){
             const audio = new Audio(sendSound);
             audio.play();
+        }
+    }
+
+    function abortChat(){
+        if(abortController){
+            console.log('abort')
+            abortController.abort()
         }
     }
 
@@ -323,7 +333,7 @@
                 
                 {#if $doingChat || doingChatInputTranslate}
                     <div
-                        class="mr-2 bg-selected flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors">
+                        class="mr-2 bg-selected flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
                         <div class="loadmove" class:autoload={autoMode}>
                         </div>
                     </div>

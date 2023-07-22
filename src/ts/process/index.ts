@@ -32,9 +32,14 @@ export interface OpenAIChatFull extends OpenAIChat{
 }
 
 export const doingChat = writable(false)
+export const abortChat = writable(false)
 
-export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number} = {}):Promise<boolean> {
+export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal} = {}):Promise<boolean> {
 
+
+    const abortSignal = arg.signal ?? (new AbortController()).signal
+
+    let isAborted = false
     let findCharCache:{[key:string]:character} = {}
     function findCharacterbyIdwithCache(id:string){
         const d = findCharCache[id]
@@ -98,7 +103,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
             for(let i=0;i<order.length;i++){
                 const r = await sendChat(order[i].index, {
-                    chatAdditonalTokens: caculatedChatTokens
+                    chatAdditonalTokens: caculatedChatTokens,
+                    signal: abortSignal
                 })
                 if(!r){
                     return false
@@ -416,12 +422,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         bias: bias,
         currentChar: currentChar,
         useStreaming: true,
-        isGroupChat: nowChatroom.type === 'group'
-    }, 'model')
+        isGroupChat: nowChatroom.type === 'group',
+    }, 'model', abortSignal)
 
     let result = ''
     let emoChanged = false
-
+    
+    if(abortSignal.aborted === true){
+        return false
+    }
     if(req.type === 'fail'){
         alertError(req.result)
         return false
@@ -435,7 +444,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             data: "",
             saying: currentChar.chaId
         })
-        while(true){
+        while(abortSignal.aborted === false){
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
@@ -495,7 +504,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    if(currentChar.viewScreen === 'emotion' && (!emoChanged)){
+    if(currentChar.viewScreen === 'emotion' && (!emoChanged) && (abortSignal.aborted === false)){
 
         let currentEmotion = currentChar.emotionImages
 
@@ -569,9 +578,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             currentChar: currentChar,
             temperature: 0.4,
             maxTokens: 30,
-        }, 'submodel')
+        }, 'submodel', abortSignal)
 
         if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
+            if(abortSignal.aborted){
+                return true
+            }
             alertError(`${rq.result}`)
             return true
         }
