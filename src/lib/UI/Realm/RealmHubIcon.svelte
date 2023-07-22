@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { BookIcon, SmileIcon } from "lucide-svelte";
-  import { alertNormal } from "src/ts/alert";
+    import { BookIcon, ImageIcon, SmileIcon } from "lucide-svelte";
+    import { alertNormal } from "src/ts/alert";
     import { hubURL, type hubType } from "src/ts/characterCards";
 
     export let onClick = () => {}
@@ -25,8 +25,11 @@
         </div>
         <div class="flex-grow"></div>
         <div class="flex flex-wrap w-full flex-row-reverse gap-1">
-            {#if chara.viewScreen === 'emotion'}
+            {#if chara.hasEmotion}
                 <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
+            {/if}
+            {#if chara.hasAsset}
+                <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes additional assets")}}><ImageIcon /></button>
             {/if}
             {#if chara.hasLore}
                 <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>

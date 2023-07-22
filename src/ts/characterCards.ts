@@ -627,6 +627,8 @@ export type hubType = {
     tags: string[],
     viewScreen: "none" | "emotion" | "imggen"
     hasLore:boolean
+    hasEmotion:boolean
+    hasAsset:boolean
     creator?:string
     license:string
 }

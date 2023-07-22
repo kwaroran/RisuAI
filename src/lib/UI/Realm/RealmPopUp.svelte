@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BookIcon, FlagIcon, PaperclipIcon, SmileIcon, TrashIcon } from "lucide-svelte";
+    import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub } from "src/ts/characterCards";
@@ -37,8 +37,11 @@
                     {language.chatAssumed.replace('{}', openedData.download.toString())}
                 </span>
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
-                {#if openedData.viewScreen === 'emotion'}
+                {#if openedData.hasEmotion}
                     <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
+                {/if}
+                {#if openedData.hasAsset}
+                    <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes additional Assets")}}><ImageIcon /></button>
                 {/if}
                 {#if openedData.hasLore}
                     <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>
