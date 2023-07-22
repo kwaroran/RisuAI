@@ -89,8 +89,8 @@
     CharEmotion.set({});
   }
 
-  type sortTypeNormal = { type:'normal',img: string; index: number; }
-  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string}
+  type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
+  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string}
   let charImages: sortType[] = [];
   let IconRounded = false
   let openFolders:string[] = []
@@ -108,7 +108,8 @@
           newCharImages.push({
             img:cha.image ?? "",
             index:index,
-            type: "normal"
+            type: "normal",
+            name: cha.name
           });
         }
       }
@@ -122,14 +123,16 @@
             folderCharImages.push({
               img:cha.image ?? "",
               index:index,
-              type: "normal"
+              type: "normal",
+              name: cha.name
             });
           }
         }
         newCharImages.push({
           folder: folderCharImages,
           type: "folder",
-          id: folder.id
+          id: folder.id,
+          name: folder.name
         });
       }
     }
@@ -313,12 +316,6 @@
     return false
   }
 
-  const preventIfPolyfilled = (e:Event) => {
-    // e.preventDefault()
-    // e.stopPropagation()
-    // return false
-  }
-
   onDestroy(unsub);
 </script>
 
@@ -387,7 +384,6 @@
         on:dragover={avatarDragOver}
         on:drop={(e) => {avatarDrop({index:ind}, e)}}
         on:dragenter={preventAll}
-        on:contextmenu={preventIfPolyfilled}
       >
         <SidebarIndicator
           isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
@@ -409,9 +405,9 @@
             tabindex="0"
           >
           {#if char.type === 'normal'}
-            <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
+            <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char.name} />
           {:else if char.type === "folder"}
-            <SidebarAvatar src="slot" size="56" rounded={IconRounded} onClick={() => {
+            <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} onClick={() => {
               if(char.type !== 'folder'){
                 return
               }
@@ -433,8 +429,8 @@
         </div>
       </div>
       {#if char.type === 'folder' && openFolders.includes(char.id)}
-        <div class="w-full flex flex-col items-center py-1 mt-1 rounded-lg relative">
-          <div class="absolute top-0 left-1 bg-darkbg w-full h-full rounded-lg z-0"></div>
+        <div class="p-1 flex flex-col items-center py-1 mt-1 rounded-lg relative">
+          <div class="absolute top-0 left-1 bg-darkbg border border-selected w-full h-full rounded-lg z-0"></div>
           <div class="h-4 min-h-4 w-14 relative z-10" on:dragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
@@ -456,7 +452,6 @@
               on:dragover={avatarDragOver}
               on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
               on:dragenter={preventAll}
-              on:contextmenu={preventIfPolyfilled}
             >
               <SidebarIndicator
                 isActive={$selectedCharID === char2.index && sideBarMode !== 1}
@@ -477,7 +472,7 @@
                   }}
                   tabindex="0"
                 >
-                <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} />
+                <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char2.name}/>
               </div>
             </div>
             <div class="h-4 min-h-4 w-14 relative z-20" on:dragover={(e) => {

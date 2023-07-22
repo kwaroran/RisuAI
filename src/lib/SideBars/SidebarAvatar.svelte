@@ -1,12 +1,20 @@
 <script lang="ts">
+  import { tooltipRight } from "src/ts/gui/tooltip";
+
   export let rounded:boolean
   export let src:string|Promise<string>;
+  export let name:string
   export let size = "22";
   export let onClick = () => {}
+  export let bordered = false
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<span class="flex shrink-0 items-center justify-center avatar" on:click={onClick}>
+<span class="flex shrink-0 items-center justify-center avatar"
+      class:border = {bordered}
+      class:border-selected={bordered}
+      class:rounded-md={bordered}
+      on:click={onClick} use:tooltipRight={name}>
   {#if src}
     {#if src === "slot"}
       <div
