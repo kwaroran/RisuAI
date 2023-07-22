@@ -40,6 +40,7 @@
   import { BotCreator } from "src/ts/creation/creator";
   import Button from "../UI/GUI/Button.svelte";
   import { fly } from "svelte/transition";
+  import { alertInput, alertSelect } from "src/ts/alert";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -90,7 +91,7 @@
   }
 
   type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
-  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string}
+  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string}
   let charImages: sortType[] = [];
   let IconRounded = false
   let openFolders:string[] = []
@@ -132,7 +133,8 @@
           folder: folderCharImages,
           type: "folder",
           id: folder.id,
-          name: folder.name
+          name: folder.name,
+          color: folder.color
         });
       }
     }
@@ -407,30 +409,73 @@
           {#if char.type === 'normal'}
             <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char.name} />
           {:else if char.type === "folder"}
-            <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} onClick={() => {
-              if(char.type !== 'folder'){
-                return
-              }
-              if(openFolders.includes(char.id)){
-                openFolders.splice(openFolders.indexOf(char.id), 1)
-              }
-              else{
-                openFolders.push(char.id)
-              }
-              openFolders = openFolders
-            }}>
-              {#if openFolders.includes(char.id)}
-                <FolderOpenIcon />
-              {:else}
-                <FolderIcon />
-              {/if}
-            </SidebarAvatar>
+            {#key char.color}
+            {#key char.name}
+              <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color}
+              on:contextmenu={async (e) => {
+                e.preventDefault()
+                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.cancel]))
+                if(sel === 0){
+                  const v = await alertInput(language.changeFolderName)
+                  const db = get(DataBase)
+                  if(v){
+                    const oder = db.characterOrder[ind]
+                    if(typeof(oder) === 'string'){
+                      return
+                    }
+                    oder.name = v
+                    db.characterOrder[ind] = oder
+                    setDatabase(db)
+                  }
+                }
+                else if(sel === 1){
+                  const colors = ["red","green","blue","yellow","indigo","purple","pink","default"]
+                  const sel = parseInt(await alertSelect(colors))
+                  const db = get(DataBase)
+                  const oder = db.characterOrder[ind]
+                  if(typeof(oder) === 'string'){
+                    return
+                  }
+                  oder.color = colors[sel].toLocaleLowerCase()
+                  db.characterOrder[ind] = oder
+                  setDatabase(db)
+                }
+              }}
+              onClick={() => {
+                if(char.type !== 'folder'){
+                  return
+                }
+                if(openFolders.includes(char.id)){
+                  openFolders.splice(openFolders.indexOf(char.id), 1)
+                }
+                else{
+                  openFolders.push(char.id)
+                }
+                openFolders = openFolders
+              }}>
+                {#if openFolders.includes(char.id)}
+                  <FolderOpenIcon />
+                {:else}
+                  <FolderIcon />
+                {/if}
+              </SidebarAvatar>
+            {/key}
+            {/key}
           {/if}
         </div>
       </div>
       {#if char.type === 'folder' && openFolders.includes(char.id)}
+        {#key char.color}
         <div class="p-1 flex flex-col items-center py-1 mt-1 rounded-lg relative">
-          <div class="absolute top-0 left-1 bg-darkbg border border-selected w-full h-full rounded-lg z-0"></div>
+          <div class="absolute top-0 left-1  border border-selected w-full h-full rounded-lg z-0 bg-opacity-20"
+          class:bg-darkbg={char.color === 'default' || char.color === ''}
+          class:bg-red-700={char.color === 'red'}
+          class:bg-yellow-700={char.color === 'yellow'}
+          class:bg-green-700={char.color === 'green'}
+          class:bg-blue-700={char.color === 'blue'}
+          class:bg-indigo-700={char.color === 'indigo'}
+          class:bg-purple-700={char.color === 'purple'}
+          class:bg-pink-700={char.color === 'pink'}></div>
           <div class="h-4 min-h-4 w-14 relative z-10" on:dragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
@@ -491,6 +536,7 @@
             }} on:dragenter={preventAll}/>
           {/each}
         </div>
+        {/key}
       {/if}
       <div class="h-4 min-h-4 w-14" on:dragover|preventDefault={(e) => {
         e.dataTransfer.dropEffect = 'move'

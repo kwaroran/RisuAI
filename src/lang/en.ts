@@ -353,4 +353,8 @@ export const languageEnglish = {
     inputBotGenerationPrompt: "Input Bot Generation Prompt",
     createBotAI: "Create OC Bot from AI",
     createBotwithAI: "Create Bot from AI",
+    changeFolderName: "Input the new folder name (blank to cancel)",
+    cancel: "Cancel",
+    renameFolder: "Rename Folder",
+    changeFolderColor: "Change Folder Color",
 }
