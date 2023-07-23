@@ -552,12 +552,16 @@ export async function globalFetch(url:string, arg:{
                 abortFn = () => {
                     res("aborted")
                 }
-                arg.abortSignal?.addEventListener('abort', abortFn)
+                if(arg.abortSignal){
+                    arg.abortSignal?.addEventListener('abort', abortFn)
+                }
             }))
 
             const result = await Promise.any([fetchPromise,abortPromise])
 
-            arg.abortSignal.removeEventListener('abort', abortFn)
+            if(arg.abortSignal){
+                arg.abortSignal.removeEventListener('abort', abortFn)
+            }
 
             if(result === 'aborted'){
                 return {
