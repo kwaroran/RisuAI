@@ -1,17 +1,15 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
-import { checkNullish, selectMultipleFile, selectSingleFile, sleep } from "./util"
+import { checkNullish, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import { v4 as uuidv4 } from 'uuid';
-import exifr from 'exifr'
-import { PngMetadata } from "./exif"
 import { characterFormatUpdate } from "./characters"
 import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage } from "./parser"
+import * as yuso from 'yuso'
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -60,69 +58,22 @@ async function importCharacterProcess(f:{
     })
     await sleep(10)
     const img = f.data
-    const readed = (await exifr.parse(img, true))
-    if(readed.chara){
-        // standard spec v2 imports
-        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
+    
+    const readed = yuso.decode(img, 'chara')
+    {
+        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
         if(await importSpecv2(charaData, img)){
             let db = get(DataBase)
             return db.characters.length - 1
         }
     }
-    if(readed.risuai){
-        // old risu imports
-        await sleep(10)
-        const va = decodeMsgpack(Buffer.from(readed.risuai, 'base64')) as any
-        if(va.type !== 101){
-            alertError(language.errors.noData)
-            return
-        }
-
-        let char:character = va.data
-        let db = get(DataBase)
-        if(char.emotionImages && char.emotionImages.length > 0){
-            for(let i=0;i<char.emotionImages.length;i++){
-                alertStore.set({
-                    type: 'wait',
-                    msg: `Loading... (Getting Emotions ${i} / ${char.emotionImages.length})`
-                })
-                await sleep(10)
-                const imgp = await saveAsset(char.emotionImages[i][1] as any)
-                char.emotionImages[i][1] = imgp
-            }
-        }
-        char.chats = [{
-            message: [],
-            note: '',
-            name: 'Chat 1',
-            localLore: []
-        }]
-
-        if(checkNullish(char.sdData)){
-            char.sdData = defaultSdDataFunc()
-        }
-
-        char.chatPage = 0
-        char.image = await saveAsset(PngMetadata.filter(img))
-        db.characters.push(characterFormatUpdate(char))
-        char.chaId = uuidv4()
-        setDatabase(db)
-        alertNormal(language.importedCharacter)
-        return db.characters.length - 1
-    }
-    else if(readed.chara){
-        const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
-        const imgp = await saveAsset(PngMetadata.filter(img))
-        let db = get(DataBase)
-        db.characters.push(convertOldTavernAndJSON(charaData, imgp))
-        DataBase.set(db)
-        alertNormal(language.importedCharacter)
-        return db.characters.length - 1
-    }   
-    else{
-        alertError(language.errors.noData)
-        return null
-    }
+    const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
+    const imgp = await saveAsset(yuso.trim(img))
+    let db = get(DataBase)
+    db.characters.push(convertOldTavernAndJSON(charaData, imgp))
+    DataBase.set(db)
+    alertNormal(language.importedCharacter)
+    return db.characters.length - 1
 }
 
 export const showRealmInfoStore:Writable<null|hubType> = writable(null)
@@ -170,18 +121,18 @@ export async function characterURLImport() {
             })
             const img = new Uint8Array(await chara.arrayBuffer())
     
-            const readed = (await exifr.parse(img, true))
+            const readed = (yuso.decode(img, "chara"))
             {
-                const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))
+                const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
                 if(await importSpecv2(charaData, img)){
                     checkCharOrder()
                     return
                 }
             }
             {
-                const imgp = await saveAsset(PngMetadata.filter(img))
+                const imgp = await saveAsset(yuso.trim(img))
                 let db = get(DataBase)
-                const charaData:OldTavernChar = JSON.parse(Buffer.from(readed.chara, 'base64').toString('utf-8'))    
+                const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))    
                 db.characters.push(convertOldTavernAndJSON(charaData, imgp))
     
                 DataBase.set(db)
@@ -268,7 +219,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
     }
 
     const data = card.data
-    const im = img ? await saveAsset(PngMetadata.filter(img)) : undefined
+    const im = img ? await saveAsset(yuso.trim(img)) : undefined
     let db = get(DataBase)
 
     const risuext = cloneDeep(data.extensions.risuai)
@@ -517,9 +468,8 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
         })
 
         await sleep(10)
-        img = PngMetadata.write(img, {
-            'chara': Buffer.from(JSON.stringify(card)).toString('base64'),
-        })
+
+        img = yuso.encode(img, "chara",Buffer.from(JSON.stringify(card)).toString('base64'))
 
         alertStore.set({
             type: 'wait',
