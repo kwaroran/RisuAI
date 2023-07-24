@@ -283,7 +283,8 @@ function wppParser(data:string){
 
 
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
-const matcher = (p1:string,matcherArg:{chatID:number,db:Database,chara:character|string,rmVar:boolean}) => {
+type matcherArg = {chatID:number,db:Database,chara:character|string,rmVar:boolean}
+const matcher = (p1:string,matcherArg:matcherArg) => {
     const lowerCased = p1.toLocaleLowerCase()
     const chatID = matcherArg.chatID
     const db = matcherArg.db
@@ -457,7 +458,7 @@ const matcher = (p1:string,matcherArg:{chatID:number,db:Database,chara:character
     return null
 }
 
-const smMatcher = (p1:string,matcherArg:{db:Database,chara:character|string,rmVar:boolean}) => {
+const smMatcher = (p1:string,matcherArg:matcherArg) => {
     const lowerCased = p1.toLocaleLowerCase()
     const db = matcherArg.db
     const chara = matcherArg.chara
@@ -483,6 +484,27 @@ const smMatcher = (p1:string,matcherArg:{db:Database,chara:character|string,rmVa
             return db.username
         }
     }
+}
+
+const blockMatcher = (p1:string,matcherArg:matcherArg) => {
+    const bn = p1.indexOf('\n')
+
+    if(bn === -1){
+        return null
+    }
+
+    const logic = p1.substring(0, bn)
+    const content = p1.substring(bn + 1)
+    const statement = logic.split(" ", 2)
+
+
+    if(["","0","-1"].includes(statement[1])){
+        return ''
+    }
+
+    return content.trim()
+
+
 }
 
 export function risuChatParser(da:string, arg:{
@@ -522,7 +544,7 @@ export function risuChatParser(da:string, arg:{
     while(pointer < da.length){
         switch(da[pointer]){
             case '{':{
-                if(da[pointer + 1] !== '{'){
+                if(da[pointer + 1] !== '{' && da[pointer + 1] !== '#'){
                     nested[0] += da[pointer]
                     break
                 }
@@ -534,6 +556,17 @@ export function risuChatParser(da:string, arg:{
             case '<':{
                 nested.unshift('')
                 v[nested.length] = 2
+                break
+            }
+            case '#':{
+                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                    nested[0] += da[pointer]
+                    break
+                }
+                pointer++
+                const dat = nested.shift()
+                const mc = blockMatcher(dat, matcherObj)
+                nested[0] += mc ?? `{#${dat}#}`
                 break
             }
             case '}':{
