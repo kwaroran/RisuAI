@@ -512,7 +512,7 @@ export function risuChatParser(da:string, arg:{
     let pointer = 0;
     let nested:string[] = [""]
     let pf = performance.now()
-    let v = new Uint8Array(255)
+    let v = new Uint8Array(512)
     const matcherObj = {
         chatID: chatID,
         chara: chara,
