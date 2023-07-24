@@ -91,11 +91,11 @@ export async function loadLoreBookPrompt(){
                 }
 
                 formatedLore.push({
-                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("regex:")) ? ({type:'regex',regex:lore.key.replace('regex:','')}) :
+                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.key.replace('@@@regex ','')}) :
                         (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                             return a.length > 1
                         }),
-                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("regex:")) ? ({type:'regex',regex:lore.secondkey.replace('regex:','')}) :
+                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.secondkey.replace('@@@regex ','')}) :
                         (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                             return a.length > 1
                         })) : [],
