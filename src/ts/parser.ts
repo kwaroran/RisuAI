@@ -442,6 +442,24 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'risu':{
                 return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
             }
+            case 'equal':{
+                return (arra[1] === arra[2]) ? '1' : '0'
+            }
+            case 'not_equal':{
+                return (arra[1] !== arra[2]) ? '1' : '0'
+            }
+            case 'greater':{
+                return (arra[1] > arra[2]) ? '1' : '0'
+            }
+            case 'less':{
+                return (arra[1] < arra[2]) ? '1' : '0'
+            }
+            case 'greater_equal':{
+                return (arra[1] >= arra[2]) ? '1' : '0'
+            }
+            case 'less_equal':{
+                return (arra[1] <= arra[2]) ? '1' : '0'
+            } 
         }
     }
     if(p1.startsWith('random')){
