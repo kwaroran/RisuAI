@@ -283,6 +283,208 @@ function wppParser(data:string){
 
 
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
+const matcher = (p1:string,matcherArg:{chatID:number,db:Database,chara:character|string,rmVar:boolean}) => {
+    const lowerCased = p1.toLocaleLowerCase()
+    const chatID = matcherArg.chatID
+    const db = matcherArg.db
+    const chara = matcherArg.chara
+    switch(lowerCased){
+        case 'previous_char_chat':{
+            if(chatID !== -1){
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                let pointer = chatID - 1
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'char'){
+                        return chat.message[pointer].data
+                    }
+                    pointer--
+                }
+                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+            }
+            return ''
+        }
+        case 'previous_user_chat':{
+            if(chatID !== -1){
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                let pointer = chatID - 1
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'user'){
+                        return chat.message[pointer].data
+                    }
+                    pointer--
+                }
+                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+            }
+            return ''
+        }
+        case 'char':
+        case 'bot':{
+            let selectedChar = get(selectedCharID)
+            let currentChar = db.characters[selectedChar]
+            if(currentChar.type !== 'group'){
+                return currentChar.name
+            }
+            if(chara){
+                if(typeof(chara) === 'string'){
+                    return chara
+                }
+                else{
+                    return chara.name
+                }
+            }
+            return currentChar.name
+        }
+        case 'user':{
+            return db.username
+        }
+        case 'personality':
+        case 'char_persona':{
+            const argChara = chara
+            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+            if(achara.type === 'group'){
+                return ""
+            }
+            return achara.personality
+        }
+        case 'description':
+        case 'char_desc':{
+            const argChara = chara
+            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+            if(achara.type === 'group'){
+                return ""
+            }
+            return achara.desc
+        }
+        case 'scenario':{
+            const argChara = chara
+            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+            if(achara.type === 'group'){
+                return ""
+            }
+            return achara.scenario
+        }
+        case 'example_dialogue':
+        case 'example_message':{
+            const argChara = chara
+            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+            if(achara.type === 'group'){
+                return ""
+            }
+            return achara.exampleMessage
+        }
+        case 'persona':
+        case 'user_persona':{
+            return db.personaPrompt
+        }
+        case 'main_prompt':
+        case 'system_prompt':{
+            return db.mainPrompt
+        }
+        case 'lorebook':
+        case 'world_info':{
+            const argChara = chara
+            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+            const selchar = db.characters[get(selectedCharID)]
+            const chat = selchar.chats[selchar.chatPage]
+            const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
+            const chatLore = chat.localLore ?? []
+            const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
+            const fullLore = characterLore.concat(chatLore.concat(globalLore))
+            return fullLore.map((f) => {
+                return JSON.stringify(f)
+            }).join("§\n")
+        }
+        case 'history':
+        case 'messages':{
+            const selchar = db.characters[get(selectedCharID)]
+            const chat = selchar.chats[selchar.chatPage]
+            return chat.message.map((f) => {
+                return JSON.stringify(f)
+            }).join("§\n")
+        }
+        case 'ujb':
+        case 'global_note':
+        case 'system_note':{
+            return db.globalNote
+        }
+        case 'chat_index':{
+            return chatID.toString() 
+        }
+        case 'blank':
+        case 'none':{
+            return ''
+        }
+    }
+    const arra = p1.split("::")
+    if(arra.length > 1){
+        const v = arra[1]
+        switch(arra[0]){
+            case 'getvar':{
+                const d =getVarChat(chatID)
+                return d[v] ?? "[Null]" 
+            }
+            case 'calc':{
+                return calcString(v).toString()
+            }
+            case 'addvar':
+            case 'setvar':{
+                if(matcherArg.rmVar){
+                    return ''
+                }
+                break
+            }
+            case 'button':{
+                return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
+            }
+            case 'risu':{
+                return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
+            }
+        }
+    }
+    if(p1.startsWith('random')){
+        if(p1.startsWith('random::')){
+            const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
+            return arra[randomIndex]
+        }
+        else{
+            const arr = p1.split(/\:|\,/g)
+            const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+            return arr[randomIndex]
+        }
+    }
+    return null
+}
+
+const smMatcher = (p1:string,matcherArg:{db:Database,chara:character|string,rmVar:boolean}) => {
+    const lowerCased = p1.toLocaleLowerCase()
+    const db = matcherArg.db
+    const chara = matcherArg.chara
+    switch(lowerCased){
+        case 'char':
+        case 'bot':{
+            let selectedChar = get(selectedCharID)
+            let currentChar = db.characters[selectedChar]
+            if(currentChar.type !== 'group'){
+                return currentChar.name
+            }
+            if(chara){
+                if(typeof(chara) === 'string'){
+                    return chara
+                }
+                else{
+                    return chara.name
+                }
+            }
+            return currentChar.name
+        }
+        case 'user':{
+            return db.username
+        }
+    }
+}
+
 export function risuChatParser(da:string, arg:{
     chatID?:number
     db?:Database
@@ -305,181 +507,18 @@ export function risuChatParser(da:string, arg:{
             chara = aChara
         }
     }
-    const matcher = (p1:string) => {
-        const lowerCased = p1.toLocaleLowerCase()
-        switch(lowerCased){
-            case 'previous_char_chat':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    let pointer = chatID - 1
-                    while(pointer >= 0){
-                        if(chat.message[pointer].role === 'char'){
-                            return chat.message[pointer].data
-                        }
-                        pointer--
-                    }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
-                }
-                return ''
-            }
-            case 'previous_user_chat':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    let pointer = chatID - 1
-                    while(pointer >= 0){
-                        if(chat.message[pointer].role === 'user'){
-                            return chat.message[pointer].data
-                        }
-                        pointer--
-                    }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
-                }
-                return ''
-            }
-            case 'char':
-            case 'bot':{
-                let selectedChar = get(selectedCharID)
-                let currentChar = db.characters[selectedChar]
-                if(currentChar.type !== 'group'){
-                    return currentChar.name
-                }
-                if(chara){
-                    if(typeof(chara) === 'string'){
-                        return chara
-                    }
-                    else{
-                        return chara.name
-                    }
-                }
-                return currentChar.name
-            }
-            case 'user':{
-                return db.username
-            }
-            case 'personality':
-            case 'char_persona':{
-                const argChara = chara
-                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(achara.type === 'group'){
-                    return ""
-                }
-                return achara.personality
-            }
-            case 'description':
-            case 'char_desc':{
-                const argChara = chara
-                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(achara.type === 'group'){
-                    return ""
-                }
-                return achara.desc
-            }
-            case 'scenario':{
-                const argChara = chara
-                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(achara.type === 'group'){
-                    return ""
-                }
-                return achara.scenario
-            }
-            case 'example_dialogue':
-            case 'example_message':{
-                const argChara = chara
-                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                if(achara.type === 'group'){
-                    return ""
-                }
-                return achara.exampleMessage
-            }
-            case 'persona':
-            case 'user_persona':{
-                return db.personaPrompt
-            }
-            case 'main_prompt':
-            case 'system_prompt':{
-                return db.mainPrompt
-            }
-            case 'lorebook':
-            case 'world_info':{
-                const argChara = chara
-                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-                const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar.chats[selchar.chatPage]
-                const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
-                const chatLore = chat.localLore ?? []
-                const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
-                const fullLore = characterLore.concat(chatLore.concat(globalLore))
-                return fullLore.map((f) => {
-                    return JSON.stringify(f)
-                }).join("§\n")
-            }
-            case 'history':
-            case 'messages':{
-                const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar.chats[selchar.chatPage]
-                return chat.message.map((f) => {
-                    return JSON.stringify(f)
-                }).join("§\n")
-            }
-            case 'ujb':
-            case 'global_note':
-            case 'system_note':{
-                return db.globalNote
-            }
-            case 'chat_index':{
-                return chatID.toString() 
-            }
-            case 'blank':
-            case 'none':{
-                return ''
-            }
-        }
-        const arra = p1.split("::")
-        if(arra.length > 1){
-            const v = arra[1]
-            switch(arra[0]){
-                case 'getvar':{
-                    const d =getVarChat(chatID)
-                    return d[v] ?? "[Null]" 
-                }
-                case 'calc':{
-                    return calcString(v).toString()
-                }
-                case 'addvar':
-                case 'setvar':{
-                    if(arg.rmVar){
-                        return ''
-                    }
-                    break
-                }
-                case 'button':{
-                    return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
-                }
-                case 'risu':{
-                    return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
-                }
-            }
-        }
-        if(p1.startsWith('random')){
-            if(p1.startsWith('random::')){
-                const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
-                return arra[randomIndex]
-            }
-            else{
-                const arr = p1.split(/\:|\,/g)
-                const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
-                return arr[randomIndex]
-            }
-        }
-        return null
-    }
+
     
     let pointer = 0;
     let nested:string[] = [""]
     let pf = performance.now()
     let v = new Uint8Array(255)
+    const matcherObj = {
+        chatID: chatID,
+        chara: chara,
+        rmVar: arg.rmVar ?? false,
+        db: db
+    }
     while(pointer < da.length){
         switch(da[pointer]){
             case '{':{
@@ -504,7 +543,7 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 const dat = nested.shift()
-                const mc = matcher(dat)
+                const mc = matcher(dat, matcherObj)
                 nested[0] += mc ?? `{{${dat}}}`
                 break
             }
@@ -513,7 +552,7 @@ export function risuChatParser(da:string, arg:{
                     break
                 }
                 const dat = nested.shift()
-                const mc = matcher(dat)
+                const mc = smMatcher(dat, matcherObj)
                 nested[0] += mc ?? `<${dat}>`
                 break
             }
