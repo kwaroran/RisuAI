@@ -604,7 +604,7 @@
                 {#each currentChar.data.alternateGreetings as bias, i}
                     <tr>
                         <td class="font-medium truncate">
-                            <TextAreaInput bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." />
+                            <TextAreaInput bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." fullwidth />
                         </td>
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={() => {

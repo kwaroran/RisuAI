@@ -660,7 +660,7 @@
 {/if}
 
 {#if $DynamicGUI}
-    <div class="flex-grow h-full min-w-12" on:click={() => {
+    <div class="flex-grow h-full min-w-6" on:click={() => {
       if($sideBarClosing){
         return
       }

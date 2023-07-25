@@ -2,7 +2,7 @@
     import type { character, groupChat } from "src/ts/storage/database";
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../UI/GUI/TextInput.svelte";
-    import { DownloadIcon, TrashIcon } from "lucide-svelte";
+    import { DownloadIcon, EditIcon, TrashIcon } from "lucide-svelte";
     import { exportChat } from "src/ts/characters";
     import { alertConfirm, alertError } from "src/ts/alert";
     import { language } from "src/lang";
@@ -47,7 +47,12 @@
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
-                <button class="text-gray-500 hover:text-green-500 mr-2 cursor-pointer" on:click={async (e) => {
+                <button class="text-gray-500 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
+                    editMode = !editMode
+                }}>
+                    <EditIcon size={18}/>
+                </button>
+                <button class="text-gray-500 hover:text-green-500 mr-1 cursor-pointer" on:click={async (e) => {
                     e.stopPropagation()
                     exportChat(i)
                 }}>
