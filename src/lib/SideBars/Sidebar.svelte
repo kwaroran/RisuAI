@@ -99,6 +99,7 @@
   let IconRounded = false
   let openFolders:string[] = []
   let currentDrag: DragData = null
+  export let hidden = false
 
   sideBarClosing.set(false)
 
@@ -327,11 +328,12 @@
 </script>
 
 <div
-  class="flex h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg relative"
+  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg relative"
   class:editMode
   class:risu-sub-sidebar={$sideBarClosing}
   class:risu-sub-sidebar-close={$sideBarClosing}
-
+  class:hidden={hidden}
+  class:flex={!hidden}
 >
   <button
     class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer mt-2 items-center justify-center rounded-md bg-gray-500 transition-colors hover:bg-green-500"
@@ -583,11 +585,13 @@
   </div>
 </div>
 <div
-  class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 px-2 text-gray-200 max-h-full"
+  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 px-2 text-gray-200 max-h-full"
   class:risu-sidebar={!$sideBarClosing}
   class:risu-sidebar-close={$sideBarClosing}
   class:minw96={!$DynamicGUI}
   class:dynamic-sidebar={$DynamicGUI}
+  class:hidden={hidden}
+  class:flex={!hidden}
   on:animationend={() => {
     if($sideBarClosing){
       $sideBarClosing = false
@@ -660,7 +664,7 @@
 {/if}
 
 {#if $DynamicGUI}
-    <div class="flex-grow h-full min-w-12" on:click={() => {
+    <div class="flex-grow h-full min-w-12" class:hidden={hidden} on:click={() => {
       if($sideBarClosing){
         return
       }

@@ -36,18 +36,16 @@
         {#if gridOpen}
             <GridChars endGrid={() => {gridOpen = false}} />
         {:else}
-            {#if $sideBarStore}
-                {#if (!$DynamicGUI)}
-                    <Sidebar openGrid={() => {gridOpen = true}} />
-                {:else}
-                    <div class="fixed top-0 w-full h-full left-0 z-30 flex flex-row items-center">
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <Sidebar openGrid={() => {gridOpen = true}} />
+            {#if (!$DynamicGUI)}
+                <Sidebar openGrid={() => {gridOpen = true}} hidden={!$sideBarStore} />
+            {:else}
+                <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" class:fixed={$sideBarStore} class:hidden={!$sideBarStore} >
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
 
 
 
-                    </div>
-                {/if}
+                </div>
             {/if}
             <ChatScreen />
         {/if}
