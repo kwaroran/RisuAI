@@ -68,9 +68,10 @@ async function parseAdditionalAssets(data:string, char:character, mode:'normal'|
 
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0]] = assetPath
+            assetPaths[asset[0].toLocaleLowerCase()] = assetPath
         }
-        data = data.replaceAll(assetRegex, (full, type, name) => {
+        data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
+            name = name.toLocaleLowerCase()
             const path = assetPaths[name]
             if(!path){
                 return ''
