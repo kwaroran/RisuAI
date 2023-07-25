@@ -531,14 +531,12 @@
                         
                     {/if}
             
-                    {#if $DataBase.useExperimental}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
-                            screenShot()
-                        }}>
-                            <CameraIcon />
-                            <span class="ml-2">{language.screenshot} <Help key="experimental"/></span>
-                        </div>
-                    {/if}
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                        screenShot()
+                    }}>
+                        <CameraIcon />
+                        <span class="ml-2">{language.screenshot} <Help key="experimental"/></span>
+                    </div>
 
 
                     <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {

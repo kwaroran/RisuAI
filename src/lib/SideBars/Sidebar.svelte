@@ -5,6 +5,7 @@
     botMakerMode,
     selectedCharID,
     settingsOpen,
+    sideBarClosing,
     sideBarStore,
   } from "../../ts/stores";
   import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
@@ -29,7 +30,7 @@
   import CharConfig from "./CharConfig.svelte";
   import { language } from "../../lang";
   import Botpreset from "../Setting/botpreset.svelte";
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { cloneDeep, isEqual } from "lodash";
   import SidebarAvatar from "./SidebarAvatar.svelte";
   import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
@@ -98,7 +99,9 @@
   let IconRounded = false
   let openFolders:string[] = []
   let currentDrag: DragData = null
-  let closing = false
+
+  sideBarClosing.set(false)
+
 
   const unsub = DataBase.subscribe((db) => {
     let newCharImages: sortType[] = [];
@@ -326,8 +329,8 @@
 <div
   class="flex h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg relative"
   class:editMode
-  class:risu-sub-sidebar={!closing}
-  class:risu-sub-sidebar-close={closing}
+  class:risu-sub-sidebar={$sideBarClosing}
+  class:risu-sub-sidebar-close={$sideBarClosing}
 
 >
   <button
@@ -581,12 +584,13 @@
 </div>
 <div
   class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200 max-h-full"
-  class:risu-sidebar={!closing}
-  class:risu-sidebar-close={closing}
+  class:risu-sidebar={!$sideBarClosing}
+  class:risu-sidebar-close={$sideBarClosing}
   class:minw96={!$DynamicGUI}
+  class:dynamic-sidebar={$DynamicGUI}
   on:animationend={() => {
-    if(closing){
-      closing = false
+    if($sideBarClosing){
+      $sideBarClosing = false
       sideBarStore.set(false)
     }
   }}
@@ -594,10 +598,10 @@
   <button
     class="flex w-full justify-end text-gray-200"
     on:click={async () => {
-      if(closing){
+      if($sideBarClosing){
         return
       }
-      closing = true;
+      $sideBarClosing = true;
     }}
   >
     <!-- <button class="border-none bg-transparent p-0 text-gray-200"><X /></button> -->
@@ -657,13 +661,13 @@
 
 {#if $DynamicGUI}
     <div class="flex-grow h-full min-w-12" on:click={() => {
-      if(closing){
+      if($sideBarClosing){
         return
       }
-      closing = true;
+      $sideBarClosing = true;
     }}
-      class:sidebar-dark-animation={!closing}
-      class:sidebar-dark-close-animation={closing}>
+      class:sidebar-dark-animation={!$sideBarClosing}
+      class:sidebar-dark-close-animation={$sideBarClosing}>
 
     </div>
 
@@ -692,6 +696,28 @@
     to {
       width: 0rem;
       right: 10rem;
+    }
+  }
+  @keyframes sidebar-transition-non-dynamic {
+    from {
+      width: 0rem;
+      min-width: 0rem;
+    }
+    to {
+      width: 24rem;
+      min-width: 24rem;
+    }
+  }
+  @keyframes sidebar-transition-close-non-dynamic {
+    from {
+      width: 24rem;
+      min-width: 24rem;
+      right:0rem;
+    }
+    to {
+      width: 0rem;
+      min-width: 0rem;
+      right:3rem;
     }
   }
   @keyframes sub-sidebar-transition {
@@ -736,15 +762,27 @@
     }
   }
 
-  .risu-sidebar {
-    animation-name: sidebar-transition;
+  .risu-sidebar:not(.dynamic-sidebar) {
+    animation-name: sidebar-transition-non-dynamic;
     animation-duration: var(--risu-animation-speed);
   }
-  .risu-sidebar-close {
-    animation-name: sidebar-transition-close;
+  .risu-sidebar-close:not(.dynamic-sidebar) {
+    animation-name: sidebar-transition-close-non-dynamic;
     animation-duration: var(--risu-animation-speed);
     position: relative;
   }
+  .risu-sidebar.dynamic-sidebar {
+    animation-name: sidebar-transition;
+    animation-duration: var(--risu-animation-speed);
+  }
+  .risu-sidebar-close.dynamic-sidebar {
+    animation-name: sidebar-transition-close;
+    animation-duration: var(--risu-animation-speed);
+    position: relative;
+    right: 3rem;
+  }
+
+
   .risu-sub-sidebar {
     animation-name: sub-sidebar-transition;
     animation-duration: var(--risu-animation-speed);

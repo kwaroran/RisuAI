@@ -13,6 +13,7 @@ export const SizeStore = writable({
     h: 0
 })
 export const DynamicGUI = writable(false)
+export const sideBarClosing = writable(false)
 export const sideBarStore = writable(window.innerWidth > 1024)
 export const selectedCharID = writable(-1)
 export const CharEmotion = writable({} as {[key:string]: [string, string, number][]})
