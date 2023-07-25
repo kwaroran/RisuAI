@@ -4,7 +4,7 @@
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBraces, Volume2Icon, XIcon } from 'lucide-svelte'
-    import Check from "../UI/GUI/Check.svelte";
+    import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertError, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";

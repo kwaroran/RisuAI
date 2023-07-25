@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Check from "src/lib/UI/GUI/Check.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { changeLanguage, language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
@@ -16,7 +16,7 @@
 <span class="text-neutral-200 mt-4">{language.UiLanguage}</span>
 <SelectInput className="mt-2" bind:value={$DataBase.language} on:change={async () => {
     if($DataBase.language === 'translang'){
-        downloadFile('lang.json', Buffer.from(JSON.stringify(languageEnglish, null, 4), 'utf-8'))
+        downloadFile('lang.json', new TextEncoder().encode(JSON.stringify(languageEnglish, null, 4)))
         alertNormal("Downloaded JSON, translate it, and send it to the dev by discord DM and email. I will add it to the next version.")
         $DataBase.language = 'en'
     }

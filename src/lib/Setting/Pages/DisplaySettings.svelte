@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import { DataBase, saveImage, updateTextTheme } from "src/ts/storage/database";
     import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
-    import Check from "src/lib/UI/GUI/Check.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
   import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";

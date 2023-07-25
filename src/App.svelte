@@ -1,7 +1,7 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import {ArrowRight} from 'lucide-svelte'
-    import { SizeStore, settingsOpen, sideBarStore } from './ts/stores';
+    import { DynamicGUI, settingsOpen, sideBarStore } from './ts/stores';
     import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
@@ -37,7 +37,7 @@
             <GridChars endGrid={() => {gridOpen = false}} />
         {:else}
             {#if $sideBarStore}
-                {#if ($SizeStore.w > 1028)}
+                {#if (!$DynamicGUI)}
                     <Sidebar openGrid={() => {gridOpen = true}} />
                 {:else}
                     <div class="fixed top-0 w-full h-full left-0 z-30 flex flex-row items-center">
@@ -48,10 +48,6 @@
 
                     </div>
                 {/if}
-            {:else}
-                <button on:click={() => {sideBarStore.set(true)}} class="fixed top-3 left-0 h-12 w-12 border-none rounded-r-md bg-borderc hover:bg-green-500 transition-colors flex items-center justify-center text-neutral-200 opacity-30 hover:opacity-70 z-20">
-                    <ArrowRight />
-                </button>
             {/if}
             <ChatScreen />
         {/if}

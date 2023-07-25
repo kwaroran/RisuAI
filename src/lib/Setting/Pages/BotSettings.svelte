@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Check from "src/lib/UI/GUI/Check.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";

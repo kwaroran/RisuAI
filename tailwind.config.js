@@ -14,10 +14,15 @@ export default {
           draculared: "#ff5555"
       },
       minWidth: {
+        '2': '0.5rem',
+        '8': '2rem',
+        '12': '3rem',
         '20': '5rem',
         '14': '3.5rem',
         'half': '50%',
-        '5': '1.25rem'
+        '5': '1.25rem',
+        '6': '1.5rem',
+
       },
       maxWidth:{
         'half': '50%',
@@ -36,6 +41,7 @@ export default {
         '3xl': '72rem',
       },
       minHeight:{
+        '2': '0.5rem',
         '8': '2rem',
         '5': '1.25rem',
         '14': '3.5rem',

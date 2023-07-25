@@ -1,13 +1,14 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
-    import { CharEmotion, SizeStore, selectedCharID, sideBarStore } from "../../ts/stores";
+    import { CharEmotion, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
     import ChatList from "../Others/ChatList.svelte";
     import TransitionImage from "./TransitionImage.svelte";
   import BackgroundDom from "./BackgroundDom.svelte";
+  import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     let openChatList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
@@ -28,6 +29,7 @@
 </script>
 {#if $DataBase.theme === ''}
     <div class="flex-grow h-full min-w-0 relative justify-center flex">
+        <SideBarArrow />
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
             {#if $selectedCharID >= 0}
@@ -40,6 +42,7 @@
     </div>
 {:else if $DataBase.theme === 'waifu'}
     <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
+        <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
             {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
@@ -54,6 +57,7 @@
     </div>
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
+        <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
             class:per33={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}

@@ -3,7 +3,7 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import type { customscript } from "src/ts/storage/database";
-    import Check from "../../UI/GUI/Check.svelte";
+    import Check from "../../UI/GUI/CheckInput.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";

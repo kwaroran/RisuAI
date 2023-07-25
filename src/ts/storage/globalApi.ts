@@ -39,7 +39,7 @@ interface fetchLog{
 
 let fetchLog:fetchLog[] = []
 
-export async function downloadFile(name:string, data:Uint8Array) {
+export async function downloadFile(name:string, data:Uint8Array|ArrayBuffer) {
     const downloadURL = (data:string, fileName:string) => {
         const a = document.createElement('a')
         a.href = data

@@ -4,7 +4,7 @@
     import {selectedCharID} from '../../../ts/stores'
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook";
-    import Check from "../../UI/GUI/Check.svelte";
+    import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
 

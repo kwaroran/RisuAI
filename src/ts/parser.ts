@@ -524,12 +524,17 @@ const blockMatcher = (p1:string,matcherArg:matcherArg) => {
     const content = p1.substring(bn + 1)
     const statement = logic.split(" ", 2)
 
-
-    if(["","0","-1"].includes(statement[1])){
-        return ''
+    switch(statement[0]){
+        case 'if':{
+            if(["","0","-1"].includes(statement[1])){
+                return ''
+            }
+        
+            return content.trim()
+        }
     }
 
-    return content.trim()
+    return null
 
 
 }
@@ -562,6 +567,7 @@ export function risuChatParser(da:string, arg:{
     let nested:string[] = [""]
     let pf = performance.now()
     let v = new Uint8Array(512)
+    let pureMode = false
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -603,7 +609,7 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 const dat = nested.shift()
-                const mc = matcher(dat, matcherObj)
+                const mc = (pureMode) ? null :matcher(dat, matcherObj)
                 nested[0] += mc ?? `{{${dat}}}`
                 break
             }
@@ -612,8 +618,21 @@ export function risuChatParser(da:string, arg:{
                     break
                 }
                 const dat = nested.shift()
-                const mc = smMatcher(dat, matcherObj)
-                nested[0] += mc ?? `<${dat}>`
+                switch(dat){
+                    case 'Pure':{
+                        pureMode = true
+                        break
+                    }
+                    case '/Pure':{
+                        pureMode = false
+                        break
+                    }
+                    default:{
+                        const mc = (pureMode) ? null : smMatcher(dat, matcherObj)
+                        nested[0] += mc ?? `<${dat}>`
+                        break
+                    }
+                }
                 break
             }
             default:{

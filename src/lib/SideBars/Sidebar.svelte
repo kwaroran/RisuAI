@@ -1,7 +1,8 @@
 <script lang="ts">
   import {
     CharEmotion,
-    SizeStore,
+    DynamicGUI,
+    botMakerMode,
     selectedCharID,
     settingsOpen,
     sideBarStore,
@@ -41,6 +42,7 @@
   import Button from "../UI/GUI/Button.svelte";
   import { fly } from "svelte/transition";
   import { alertInput, alertSelect } from "src/ts/alert";
+  import SideChatList from "./SideChatList.svelte";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -581,7 +583,7 @@
   class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg p-6 text-gray-200 max-h-full"
   class:risu-sidebar={!closing}
   class:risu-sidebar-close={closing}
-  class:minw96={$SizeStore.w > 1028}
+  class:minw96={!$DynamicGUI}
   on:animationend={() => {
     if(closing){
       closing = false
@@ -598,7 +600,7 @@
       closing = true;
     }}
   >
-    <button class="border-none bg-transparent p-0 text-gray-200"><X /></button>
+    <!-- <button class="border-none bg-transparent p-0 text-gray-200"><X /></button> -->
   </button>
   {#if sideBarMode === 0}
     {#if $selectedCharID < 0 || $settingsOpen}
@@ -607,7 +609,15 @@
         <span class="text-xs text-gray-400">Select a bot to start chating</span>
       </div>
     {:else}
-      <CharConfig />
+      <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
+        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-gray-500={$botMakerMode}>Chat</button>
+        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-gray-500={!$botMakerMode}>Bot</button>
+      </div>
+      {#if $botMakerMode}
+        <CharConfig />
+      {:else}
+        <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
+      {/if}
     {/if}
   {:else if sideBarMode === 1}
     <Button
@@ -645,8 +655,13 @@
   />
 {/if}
 
-{#if $SizeStore.w <= 1028}
-    <div class="flex-grow h-full"
+{#if $DynamicGUI}
+    <div class="flex-grow h-full min-w-12" on:click={() => {
+      if(closing){
+        return
+      }
+      closing = true;
+    }}
       class:sidebar-dark-animation={!closing}
       class:sidebar-dark-close-animation={closing}>
 
@@ -664,24 +679,18 @@
   @keyframes sidebar-transition {
     from {
       width: 0rem;
-      min-width: 0rem;
     }
     to {
       width: 24rem;
-      min-width: 24rem;
     }
   }
   @keyframes sidebar-transition-close {
     from {
       width: 24rem;
-      min-width: 24rem;
-      max-width: 24rem;
       right:0rem;
     }
     to {
       width: 0rem;
-      min-width: 0rem;
-      max-width: 0rem;
       right: 10rem;
     }
   }

@@ -3,7 +3,7 @@
     import { language } from "../../../lang";
     import type { loreBook } from "../../../ts/storage/database";
     import { alertConfirm } from "../../../ts/alert";
-    import Check from "../../UI/GUI/Check.svelte";
+    import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";

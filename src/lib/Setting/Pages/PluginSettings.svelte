@@ -4,7 +4,7 @@
   import { alertConfirm } from "src/ts/alert";
   import { DataBase } from "src/ts/storage/database";
   import { importPlugin } from "src/ts/plugins/plugins";
-  import Check from "src/lib/UI/GUI/Check.svelte";
+  import Check from "src/lib/UI/GUI/CheckInput.svelte";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
