@@ -55,21 +55,42 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     }
 })
 
+
+const assetRegex = /{{(raw|img|video|audio)::(.+?)}}/g
+
 async function parseAdditionalAssets(data:string, char:character, mode:'normal'|'back'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
     if(char.additionalAssets){
+
+        let assetPaths:{[key:string]:string} = {}
+
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
-            data = data.replaceAll(`{{raw::${asset[0]}}}`, assetPath).
-                    replaceAll(`{{img::${asset[0]}}}`,`<img src="${assetPath}" alt="${asset[0]}" style="${assetWidthString} "/>`)
-                    .replaceAll(`{{video::${asset[0]}}}`,`<video controls autoplay loop><source src="${assetPath}" type="video/mp4"></video>`)
-                    .replaceAll(`{{audio::${asset[0]}}}`,`<audio controls autoplay loop><source src="${assetPath}" type="audio/mpeg"></audio>`)
-            if(mode === 'back'){
-                data = data.replaceAll(`{{bg::${asset[0]}}}`, `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${assetPath}); background-size: cover;"></div>`)
-            }
+            assetPaths[asset[0]] = assetPath
         }
+        data = data.replaceAll(assetRegex, (full, type, name) => {
+            const path = assetPaths[name]
+            if(!path){
+                return ''
+            }
+            switch(type){
+                case 'raw':
+                    return path
+                case 'img':
+                    return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+                case 'video':
+                    return `<video controls autoplay loop><source src="${path}" type="video/mp4"></video>`
+                case 'audio':
+                    return `<audio controls autoplay loop><source src="${path}" type="audio/mpeg"></audio>`
+                case 'bg':
+                    if(mode === 'back'){
+                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path}); background-size: cover;"></div>`
+                    }
+            }
+            return ''
+        })
     }
 
     return data
