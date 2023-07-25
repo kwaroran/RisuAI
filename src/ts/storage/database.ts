@@ -283,7 +283,7 @@ export function setDatabase(data:Database){
     data.toggleConfirmRecommendedPreset ??= true
     data.officialplugins ??= {}
     data.assetWidth ??= -1
-    data.animationSpeed ??= 0.2
+    data.animationSpeed ??= 0.4
     
     changeLanguage(data.language)
     DataBase.set(data)
