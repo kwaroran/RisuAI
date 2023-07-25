@@ -459,7 +459,16 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'less_equal':{
                 return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
-            } 
+            }
+            case 'and':{
+                return (Number(arra[1]) && Number(arra[2])) ? '1' : '0'
+            }
+            case 'or':{
+                return (Number(arra[1]) || Number(arra[2])) ? '1' : '0'
+            }
+            case 'not':{
+                return (Number(arra[1]) === 0) ? '1' : '0'
+            }
         }
     }
     if(p1.startsWith('random')){
