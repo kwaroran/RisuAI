@@ -122,7 +122,7 @@
                             }
                             if(msgDisplay === risuChatParser(message, {chara: name, chatID: idx, rmVar: true})){
                                 translating = true
-                                msgDisplay = (await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false))
+                                msgDisplay = risuChatParser(await translate(message, false), {chara: name, chatID: idx, rmVar: true}), false
                                 translating = false
                             }
                             else{

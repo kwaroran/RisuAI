@@ -32,7 +32,6 @@ export async function translate(text:string, reverse:boolean) {
 }
 
 async function googleTrans(text:string, reverse:boolean, from:string,target:'en'|'ja') {
-    let db = get(DataBase)
     const arg = {
 
         from: reverse ? from : target,
@@ -42,8 +41,55 @@ async function googleTrans(text:string, reverse:boolean, from:string,target:'en'
         host: 'translate.googleapis.com',
 
     }
+    const texts = text.split('\n')
+    let chunks:[string,boolean][] = [['', true]]
+
+    for(let i = 0; i < texts.length; i++){
+        if( texts[i].startsWith('{{img')
+            || texts[i].startsWith('{{raw')
+            || texts[i].startsWith('{{video')
+            || texts[i].startsWith('{{audio')
+            && texts[i].endsWith('}}')
+            || texts[i].length === 0){
+            chunks.push([texts[i], false])
+            chunks.push(["", true])
+        }
+        else{
+            chunks[chunks.length-1][0] += texts[i]
+        }
+    }
+
+    let fullResult:string[] = []
+
+    for(const chunk of chunks){
+        if(chunk[1]){
+            const trimed = chunk[0].trim();
+            if(trimed.length === 0){
+                fullResult.push(chunk[0])
+                continue
+            }
+            const result = await translateMain(trimed, arg);
 
 
+            fullResult.push(result.trim())
+        }
+        else{
+            fullResult.push(chunk[0])
+        }
+    }
+
+    const result = fullResult.join("\n").trim()
+
+    cache.origin.push(reverse ? result : text)
+        
+    cache.trans.push(reverse ? text : result)
+
+
+    return result
+
+}
+
+async function translateMain(text:string, arg:{from:string, to:string, host:string}){
 
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
@@ -66,13 +112,7 @@ async function googleTrans(text:string, reverse:boolean, from:string,target:'en'
     }
 
     const result = (res[0].map((s) => s[0]).filter(Boolean).join('') as string).replace(/\* ([^*]+)\*/g, '*$1*').replace(/\*([^*]+) \*/g, '*$1*');
-
-    cache.origin.push(reverse ? result : text)
-
-    cache.trans.push(reverse ? text : result)
-
     return result
-
 }
 
 export async function translateVox(text:string) {
