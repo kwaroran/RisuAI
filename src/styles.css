@@ -69,6 +69,22 @@ html, body{
   background: rgba(85, 85, 85, 0.5); 
 }
 
+.n-scroll::-webkit-scrollbar-thumb {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.5s, opacity 0.5s linear;
+}
+
+.n-scroll:hover::-webkit-scrollbar-thumb {
+  visibility: visible;
+  opacity: 1;
+}
+
+.n-scroll:focus::-webkit-scrollbar-thumb {
+  visibility: visible;
+  opacity: 1;
+}
+
 *{
   font-family: Arial, Helvetica, sans-serif;
 }
