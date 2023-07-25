@@ -585,10 +585,12 @@
   </div>
 </div>
 <div
-  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 px-2 text-gray-200 max-h-full"
+  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-gray-200 max-h-full"
   class:risu-sidebar={!$sideBarClosing}
   class:risu-sidebar-close={$sideBarClosing}
   class:minw96={!$DynamicGUI}
+  class:px-2={$DynamicGUI}
+  class:px-4={!$DynamicGUI}
   class:dynamic-sidebar={$DynamicGUI}
   class:hidden={hidden}
   class:flex={!hidden}
