@@ -583,7 +583,7 @@
   </div>
 </div>
 <div
-  class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 px-4 text-gray-200 max-h-full"
+  class="setting-area flex w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 px-2 text-gray-200 max-h-full"
   class:risu-sidebar={!$sideBarClosing}
   class:risu-sidebar-close={$sideBarClosing}
   class:minw96={!$DynamicGUI}
@@ -660,7 +660,7 @@
 {/if}
 
 {#if $DynamicGUI}
-    <div class="flex-grow h-full min-w-8" on:click={() => {
+    <div class="flex-grow h-full min-w-12" on:click={() => {
       if($sideBarClosing){
         return
       }
