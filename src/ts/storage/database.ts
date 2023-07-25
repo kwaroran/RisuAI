@@ -407,6 +407,7 @@ export interface groupChat{
     backgroundHTML?:string,
     reloadKeys?:number
     backgroundCSS?:string
+    oneAtTime?:boolean
 }
 
 export interface botPreset{

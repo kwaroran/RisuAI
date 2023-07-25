@@ -256,7 +256,7 @@ function wppParser(data:string){
         // Extract key and value within brackets
         let keyBracketStartIndex = line.indexOf('(');
         let keyBracketEndIndex = line.indexOf(')');
-        
+    
        if(keyBracketStartIndex === -1 || keyBracketEndIndex === -1) 
             throw new Error(`Invalid syntax ${line}`);
         
@@ -449,16 +449,16 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return (arra[1] !== arra[2]) ? '1' : '0'
             }
             case 'greater':{
-                return (arra[1] > arra[2]) ? '1' : '0'
+                return (Number(arra[1]) > Number(arra[2])) ? '1' : '0'
             }
             case 'less':{
-                return (arra[1] < arra[2]) ? '1' : '0'
+                return (Number(arra[1]) < Number(arra[2])) ? '1' : '0'
             }
             case 'greater_equal':{
-                return (arra[1] >= arra[2]) ? '1' : '0'
+                return (Number(arra[1]) >= Number(arra[2])) ? '1' : '0'
             }
             case 'less_equal':{
-                return (arra[1] <= arra[2]) ? '1' : '0'
+                return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
             } 
         }
     }
