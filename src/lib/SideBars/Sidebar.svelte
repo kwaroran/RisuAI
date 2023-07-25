@@ -614,8 +614,8 @@
       </div>
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
-        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-gray-500={$botMakerMode}>Chat</button>
-        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-gray-500={!$botMakerMode}>Bot</button>
+        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-gray-500={$botMakerMode}>{language.Chat}</button>
+        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-gray-500={!$botMakerMode}>{language.character}</button>
       </div>
       {#if $botMakerMode}
         <CharConfig />
