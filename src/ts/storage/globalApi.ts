@@ -8,7 +8,7 @@ import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
 import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
-import { selectedCharID } from "../stores";
+import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
 import { alertConfirm, alertError } from "../alert";
@@ -418,13 +418,17 @@ export async function loadData() {
             try {
                 await loadPlugins()            
             } catch (error) {}
-            await checkNewFormat()
-            updateTextTheme()
-            updateAnimationSpeed()
             if(get(DataBase).account){
                 try {
                     await loadRisuAccountData()                    
                 } catch (error) {}
+            }
+            await checkNewFormat()
+            const db = get(DataBase);
+            updateTextTheme()
+            updateAnimationSpeed()
+            if(db.botSettingAtStart){
+                botMakerMode.set(true)
             }
             loadedStore.set(true)
             selectedCharID.set(-1)

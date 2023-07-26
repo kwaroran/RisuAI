@@ -27,5 +27,9 @@
 </div>
 
 <div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.botSettingAtStart} name={language.botSettingAtStart}/>
+</div>
+
+<div class="flex items-center mt-2">
     <Check bind:check={$DataBase.toggleConfirmRecommendedPreset} name={language.toggleConfirmRecommendedPreset}/>
 </div>

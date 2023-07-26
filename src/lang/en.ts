@@ -358,4 +358,5 @@ export const languageEnglish = {
     renameFolder: "Rename Folder",
     changeFolderColor: "Change Folder Color",
     fullWordMatching: "Full Word Matching",
+    botSettingAtStart: "Bot Menu when Launch",
 }

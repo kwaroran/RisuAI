@@ -581,6 +581,7 @@ export interface Database{
     }[]
     assetWidth:number
     animationSpeed:number
+    botSettingAtStart:false
 }
 
 interface hordeConfig{
