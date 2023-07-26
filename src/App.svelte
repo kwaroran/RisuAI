@@ -15,11 +15,11 @@
     let didFirstSetup: boolean  = false
     let gridOpen = false
 
-    DataBase.subscribe(db => {
-        if(db.didFirstSetup !== didFirstSetup){
-            didFirstSetup = db.didFirstSetup || false
-        }
-    })
+    // DataBase.subscribe(db => {
+    //     if(db.didFirstSetup !== didFirstSetup){
+    //         didFirstSetup = db.didFirstSetup || false
+    //     }
+    // })
 
 </script>
 
