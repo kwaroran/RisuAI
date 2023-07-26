@@ -275,7 +275,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
             loresettings = {
                 tokenBudget:charbook.token_budget,
                 scanDepth:charbook.scan_depth,
-                recursiveScanning: charbook.recursive_scanning
+                recursiveScanning: charbook.recursive_scanning,
+                fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
             }
         }
 
@@ -382,6 +383,9 @@ async function createBaseV2(char:character) {
             case_sensitive: caseSensitive,
         })
     }
+    char.loreExt ??= {}
+
+    char.loreExt.risu_fullWordMatching = char.loreSettings?.fullWordMatching ?? false
 
     const card:CharacterCardV2 = {
         spec: "chara_card_v2",

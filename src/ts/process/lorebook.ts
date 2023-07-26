@@ -72,6 +72,7 @@ export async function loadLoreBookPrompt(){
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
 
     let activatiedPrompt: string[] = []
 
@@ -120,6 +121,7 @@ export async function loadLoreBookPrompt(){
     while(loreListUpdated){
         loreListUpdated = false
         const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
+        const formatedChatList = fullWordMatching ? formatedChat.split(' ') : formatedChat
         for(let i=0;i<formatedLore.length;i++){
             const lore = formatedLore[i]
             if(lore.activatied){
@@ -141,7 +143,7 @@ export async function loadLoreBookPrompt(){
             if(Array.isArray(lore.keys)){
                 for(const key of lore.keys){
                     if(key){
-                        if(formatedChat.includes(key)){
+                        if(formatedChatList.includes(key)){
                             firstKeyActivation = true
                             break
                         }
@@ -163,7 +165,7 @@ export async function loadLoreBookPrompt(){
                         continue
                     }
                     for(const key of lore.secondKey){
-                        if(formatedChat.includes(key)){
+                        if(formatedChatList.includes(key)){
                             activatiedPrompt.push(lore.content)
                             lore.activatied = true
                             loreListUpdated = true

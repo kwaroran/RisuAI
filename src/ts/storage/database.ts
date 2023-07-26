@@ -375,6 +375,7 @@ export interface loreSettings{
     tokenBudget: number
     scanDepth:number
     recursiveScanning: boolean
+    fullWordMatching?: boolean
 }
 
 

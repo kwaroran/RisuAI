@@ -357,4 +357,5 @@ export const languageEnglish = {
     cancel: "Cancel",
     renameFolder: "Rename Folder",
     changeFolderColor: "Change Folder Color",
+    fullWordMatching: "Full Word Matching",
 }

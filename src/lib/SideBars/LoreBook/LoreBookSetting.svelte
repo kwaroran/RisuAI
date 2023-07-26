@@ -48,6 +48,9 @@
         <div class="flex items-center mt-4">
             <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
         </div>
+        <div class="flex items-center mt-4">
+            <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.fullWordMatching} name={language.fullWordMatching}/>
+        </div>
         <span class="text-neutral-200 mt-4 mb-2">{language.loreBookDepth}</span>
         <NumberInput size="sm" min={0} max={20} bind:value={$DataBase.characters[$selectedCharID].loreSettings.scanDepth} />
         <span class="text-neutral-200">{language.loreBookToken}</span>
