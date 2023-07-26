@@ -1,7 +1,7 @@
 # RisuAI
 ![logo_typo_trans](https://github.com/kwaroran/RisuAI/assets/116663078/efbbfe78-65ad-43ef-89f8-36fa94826925)
 
-A AI Chat frontend, with powerful features like Multiple API supports, Reverse proxies, Waifumode, Powerful Auto-translators, TTS, Lorebook, Additional Asset for displaying Images, Audios, video on chat, Regex Scripts, Highly customizable GUIs for both App and Bot, Powerful prompting options for both web and local, without complex settings and installation requirements.
+A AI Chat frontend, with powerful features like Multiple API supports, Reverse proxies, Waifumode, Powerful Auto-translators, TTS, Lorebook, Additional Asset for displaying Images, Audios, video on chat, Regex Scripts, Highly customizable GUIs for both App and Bot, Powerful prompting options for both web and local, without complex settings and installation requirements, in simple GUI.
 
 
 # Screenshots
@@ -11,22 +11,34 @@ A AI Chat frontend, with powerful features like Multiple API supports, Reverse p
 
 
 ## Features
+ - **Multiple API Supports**
+   - Supports OAI, Claude, Ooba, OpenRouter... and More!
  - **Emotion Images**
-   - Also known as expressions. Works without additional programs
- - **Multiple AI Providers**
-   - OpenAI, Oogabooga, etc.
+   - Display the image of the current character, accoding to his/her expressions!
  - **Group Chats**
-   - Multiple characters in one chat
+   - Multiple characters in one chat.
  - **Plugins**
-   - Add your features and providers with one file.
+   - Add your features and providers, and simple share.
  - **Regex Script**
-   - Modify Ai's Output by simple Regex
+   - Modify model's output by regex, to make a custom gui and others
+ - **Powerful Translators**
+   - Automaticly translate the input/output, so you can roleplay without knowing model's language.
  - **Lorebook**
-   - Also known as world infos or memory book
+   - Also known as world infos or memory book, which can made character memorize more. 
  - **Themes**
-   - Choose it from 3 themes
+   - Choose it from 3 themes, Classic, WaifuLike, WaifuCut.
+ - **Powerful Prompting**
+   - Change the prompting order easily, Impersonaite inside prompts, Use conditions, varables... and more!
  - **Customizable, Friendly UI**
    - Great Accessibility and mobile friendly
+ - **TTS**
+   - Use TTS to make the output text into voice.
+ - **Additonal Assets**
+   - Embed your images, audios and videos to bot, and make it display at chat or background!
+ - And More!
+
+You can get detailed information on https://github.com/kwaroran/RisuAI/wiki (Work in Progress)
+
 
 ## Discord
  - https://discord.gg/JzP8tB9ZK8
