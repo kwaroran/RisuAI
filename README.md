@@ -1,7 +1,7 @@
 # RisuAI
 ![logo_typo_trans](https://github.com/kwaroran/RisuAI/assets/116663078/efbbfe78-65ad-43ef-89f8-36fa94826925)
 
-A AI Chatting frontend for, with powerful features like Multiple API supports, Reverse proxies, Waifumode, Powerful Auto-translators, TTS, Lorebook, Additional Asset for displaying Images, Audios, video on chat, Regex Scripts, Highly customizable GUIs for both App and Bot, Powerful prompting options for both web and local, without complex settings and installation requirements, in simple GUI.
+A AI Chatting frontend with powerful features like Multiple API supports, Reverse proxies, Waifumode, Powerful Auto-translators, TTS, Lorebook, Additional Asset for displaying Images, Audios, video on chat, Regex Scripts, Highly customizable GUIs for both App and Bot, Powerful prompting options for both web and local, without complex settings and installation requirements, in simple GUI.
 
 
 # Screenshots
