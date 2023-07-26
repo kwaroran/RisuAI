@@ -307,6 +307,9 @@ function wppParser(data:string){
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
 type matcherArg = {chatID:number,db:Database,chara:character|string,rmVar:boolean}
 const matcher = (p1:string,matcherArg:matcherArg) => {
+    if(p1.length > 10000){
+        return ''
+    }
     const lowerCased = p1.toLocaleLowerCase()
     const chatID = matcherArg.chatID
     const db = matcherArg.db
