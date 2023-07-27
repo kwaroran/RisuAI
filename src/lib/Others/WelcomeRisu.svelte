@@ -13,14 +13,14 @@
 </script>
 
 <div class="w-full h-full flex justify-center welcome-bg text-neutral-200">
-    <article class="w-full overflow-y-hidden overflow-x-hidden max-w-full min-h-full h-full flex flex-col">
+    <article class="w-full overflow-y-hidden overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-auto">
         <div class="w-full justify-center flex mt-8">
             <img src="/logo_typo_trans.png" alt="logo" class="w-full max-w-screen-sm  mb-0">
         </div>
         <!-- <div class="w-full items-center flex flex-col justify-center mb-8">
             <button class=" border border-selected rounded-md px-4 py-2 text-lg hover:border-neutral-200 transition">Get Started</button>
         </div> -->
-        <div class="w-full flex-col bg-darkbg flex-grow mt-5 prose prose-invert max-w-full p-5 rounded-t-lg overflow-y-auto overflow-x-hidden">
+        <div class="w-full flex-col bg-darkbg flex-grow mt-5 prose prose-invert max-w-full p-5 rounded-t-lg overflow-x-hidden">
             {#if step === 0}
                 <h2>Choose the language</h2>
                 <div class="flex flex-col items-start ml-2">
