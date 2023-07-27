@@ -19,6 +19,7 @@
     import Help from '../Others/Help.svelte';
     import AssetInput from './AssetInput.svelte';
   import { downloadFile } from 'src/ts/storage/globalApi';
+  import { runTrigger } from 'src/ts/process/triggers';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -61,6 +62,11 @@
         else{
             const char = $DataBase.characters[selectedChar]
             if(char.type === 'character'){
+                let triggerResult = runTrigger(char,'input', {chat: char.chats[char.chatPage]})
+                if(triggerResult){
+                    cha = triggerResult.chat.message
+                }
+
                 cha.push({
                     role: 'user',
                     data: processScript(char,messageInput,'editinput')

@@ -305,7 +305,7 @@ function wppParser(data:string){
 
 
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
-type matcherArg = {chatID:number,db:Database,chara:character|string,rmVar:boolean}
+type matcherArg = {chatID:number,db:Database,chara:character|string,rmVar:boolean,var?:{[key:string]:string}}
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 10000){
         return ''
@@ -448,7 +448,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         const v = arra[1]
         switch(arra[0]){
             case 'getvar':{
-                const d =getVarChat(chatID)
+                const d = matcherArg.var ?? getVarChat(chatID)
                 return d[v] ?? "[Null]" 
             }
             case 'calc':{
@@ -568,7 +568,8 @@ export function risuChatParser(da:string, arg:{
     chatID?:number
     db?:Database
     chara?:string|character|groupChat
-    rmVar?:boolean
+    rmVar?:boolean,
+    var?:{[key:string]:string}
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -597,7 +598,8 @@ export function risuChatParser(da:string, arg:{
         chatID: chatID,
         chara: chara,
         rmVar: arg.rmVar ?? false,
-        db: db
+        db: db,
+        var: arg.var ?? null
     }
     while(pointer < da.length){
         switch(da[pointer]){

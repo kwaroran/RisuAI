@@ -15,6 +15,7 @@ import { supaMemory } from "./memory/supaMemory";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
+import { runTrigger, type additonalSysPrompt } from "./triggers";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -185,7 +186,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
               chatObjects.push({ role, content });
             }
 
-            console.log(chatObjects)
             return chatObjects;
         }
 
@@ -288,7 +288,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
-    const ms = currentChat.message
+    let ms = currentChat.message
+
+    const triggerResult = runTrigger(currentChar, 'start', {chat: currentChat})
+    if(triggerResult){
+        currentChat = triggerResult.chat
+        ms = currentChat.message
+    }
+
     for(const msg of ms){
         let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
         let name = ''
@@ -368,6 +375,29 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     unformated.chats = chats
 
+
+    if(triggerResult){
+        if(triggerResult.additonalSysPrompt.promptend){
+            unformated.postEverything.push({
+                role: 'system',
+                content: triggerResult.additonalSysPrompt.promptend
+            })
+        }
+        if(triggerResult.additonalSysPrompt.historyend){
+            unformated.lastChat.push({
+                role: 'system',
+                content: triggerResult.additonalSysPrompt.historyend
+            })
+        }
+        if(triggerResult.additonalSysPrompt.start){
+            unformated.lastChat.unshift({
+                role: 'system',
+                content: triggerResult.additonalSysPrompt.start
+            })
+        }
+    }
+
+    
     //make into one
 
     let formated:OpenAIChat[] = []
@@ -462,6 +492,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }   
         }
         
+        const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+        if(triggerResult){
+            db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
+            setDatabase(db)
+        }
         await sayTTS(currentChar, result)
     }
     else{
@@ -477,6 +512,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 saying: currentChar.chaId
             })
             db.characters[selectedChar].reloadKeys += 1
+            const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+            if(triggerResult){
+                db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
+            }
             await sayTTS(currentChar, result)
             setDatabase(db)
         }
@@ -646,7 +685,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const msgs = db.characters[selectedChar].chats[selectedChat].message
         let msgStr = ''
         for(let i = (msgs.length - 1);i>=0;i--){
-            console.log(i,msgs.length,msgs[i])
             if(msgs[i].role === 'char'){
                 msgStr = `character: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
             }
@@ -663,5 +701,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             setDatabase(db)
         }
     }
+
     return true
 }

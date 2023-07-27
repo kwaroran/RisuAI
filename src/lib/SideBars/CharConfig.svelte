@@ -469,7 +469,7 @@
                 let script = currentChar.data.triggerscript
                 script.push({
                     comment: "",
-                    type: "output",
+                    type: "start",
                     conditions: [],
                     effect: []
                 })

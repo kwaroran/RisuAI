@@ -1,5 +1,6 @@
-import { getVarChat } from "../parser";
-import type { character } from "../storage/database";
+import { cloneDeep } from "lodash";
+import { getVarChat, risuChatParser } from "../parser";
+import type { Chat, character } from "../storage/database";
 
 export interface triggerscript{
     comment: string;
@@ -8,7 +9,7 @@ export interface triggerscript{
     effect:triggerEffect[]
 }
 
-export type triggerCondition = triggerConditionsVar|triggerConditionsExists
+export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
 export type triggerEffect = triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate
 
@@ -16,7 +17,13 @@ export type triggerConditionsVar = {
     type:'var'
     var:string
     value:string
-    operator:'='|'!='|'>'|'<'|'>='|'<='
+    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'
+}
+
+export type triggerConditionsChatIndex = {
+    type:'chatindex'
+    value:string
+    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'
 }
 
 export type triggerConditionsExists ={
@@ -45,8 +52,17 @@ export interface triggerEffectImpersonate{
     value:string
 }type triggerMode = 'start'|'manual'|'output'|'input'
 
-export function runTrigger(char:character,mode:triggerMode){
-    let additonalSysPrompt = {
+export type additonalSysPrompt = {
+    start:string,
+    historyend: string,
+    promptend: string
+}
+
+export function runTrigger(char:character,mode:triggerMode, arg:{
+    chat?: Chat
+} = {}){
+    char = cloneDeep(char)
+    let additonalSysPrompt:additonalSysPrompt = {
         start:'',
         historyend: '',
         promptend: ''
@@ -54,9 +70,9 @@ export function runTrigger(char:character,mode:triggerMode){
     let varValues = getVarChat(-1, char)
     let varValuesChanged = false
     const triggers = char.triggerscript
-    const chat = char.chats[char.chatPage]
+    const chat = arg.chat ?? char.chats[char.chatPage]
     if(!triggers){
-        return {additonalSysPrompt, char}
+        return null
     }
 
     for(const trigger of triggers){
@@ -66,61 +82,63 @@ export function runTrigger(char:character,mode:triggerMode){
 
         let pass = true
         for(const condition of trigger.conditions){
-            if(condition.type === 'var'){
-                const varValue = varValues[condition.var]
+            if(condition.type === 'var' || condition.type === 'chatindex'){
+                const varValue = (condition.type === 'var') ? (varValues[condition.var] ?? '[Null]') : (chat.message.length)
                 if(varValue === undefined || varValue === null){
                     pass = false
                     break
                 }
                 else{
-                    if(condition.operator === '='){
-                        if(varValue !== condition.value){
-                            pass = false
+                    switch(condition.operator){
+                        case '=':
+                            if(varValue !== condition.value){
+                                pass = false
+                            }
                             break
-                        }
-                    }
-                    else if(condition.operator === '!='){
-                        if(varValue === condition.value){
-                            pass = false
+                        case '!=':
+                            if(varValue === condition.value){
+                                pass = false
+                            }
                             break
-                        }
-                    }
-                    else if(condition.operator === '>'){
-                        if(Number(varValue) > Number(condition.value)){
-                            pass = false
+                        case '>':
+                            if(Number(varValue) > Number(condition.value)){
+                                pass = false
+                            }
                             break
-                        }
-                    }
-                    else if(condition.operator === '<'){
-                        if(Number(varValue) < Number(condition.value)){
-                            pass = false
+                        case '<':
+                            if(Number(varValue) < Number(condition.value)){
+                                pass = false
+                            }
                             break
-                        }
-                    }
-                    else if(condition.operator === '>='){
-                        if(Number(varValue) >= Number(condition.value)){
-                            pass = false
+                        case '>=':
+                            if(Number(varValue) >= Number(condition.value)){
+                                pass = false
+                            }
                             break
-                        }
-                    }
-                    else if(condition.operator === '<='){
-                        if(Number(varValue) <= Number(condition.value)){
-                            pass = false
+                        case '<=':
+                            if(Number(varValue) <= Number(condition.value)){
+                                pass = false
+                            }
                             break
-                        }
+                        case 'null':
+                            if(varValue !== '[Null]'){
+                                pass = false
+                            }
+                            break
                     }
                 }
             }
             else if(condition.type === 'exists'){
+                const val = risuChatParser(condition.value,{chara:char, var:varValues})
                 let da =  chat.message.slice(0-condition.depth).map((v)=>v.data).join(' ')
                 if(condition.type2 === 'strict'){
-                    pass = da.split(' ').includes(condition.value)
+                    pass = da.split(' ').includes(val)
                 }
                 else if(condition.type2 === 'loose'){
-                    pass = da.toLowerCase().includes(condition.value.toLowerCase())
+                    pass = da.toLowerCase().includes(val.toLowerCase())
                 }
                 else if(condition.type2 === 'regex'){
-                    pass = new RegExp(condition.value).test(da)
+                    pass = new RegExp(val).test(da)
                 }
             }
             if(!pass){
@@ -169,8 +187,9 @@ export function runTrigger(char:character,mode:triggerMode){
         chat.message[chat.message.length-1].data = chat.message.at(-1).data.replaceAll(/{{(setvar|getvar)::.+?}}/gis,'') + Object.keys(varValues).map((v)=>`{{setvar::${v}::${varValues[v]}}}`).join('')
     }
 
-    char.chats[char.chatPage] = chat
-
-    return {additonalSysPrompt, char}
+    if(arg.chat !== undefined && arg.chat !== null){
+        char.chats[char.chatPage] = chat
+    }
+    return {additonalSysPrompt, chat}
 
 }

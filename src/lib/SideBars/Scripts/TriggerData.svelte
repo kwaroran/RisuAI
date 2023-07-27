@@ -50,8 +50,9 @@
             <TextInput size="sm" bind:value={value.comment} />
             <span class="text-neutral-200 mt-4">{language.type}</span>
             <SelectInput bind:value={value.type}>
-                <OptionInput value="output">{language.triggerOutput}</OptionInput>
                 <OptionInput value="start">{language.triggerStart}</OptionInput>
+                <OptionInput value="output">{language.triggerOutput}</OptionInput>
+                <OptionInput value="input">{language.triggerInput}</OptionInput>
                 <OptionInput value="manual">{language.triggerManual}</OptionInput>
             </SelectInput>
             
@@ -100,9 +101,18 @@
                                 operator: '='
                             }
                         }
+                        if(cond.type === 'chatindex'){
+                            cond = {
+                                type: 'chatindex',
+                                value: '',
+                                operator: '='
+                            }
+                        }
+
                     }}>
                         <OptionInput value="exists">{language.triggerCondExists}</OptionInput>
                         <OptionInput value="var">{language.triggerCondVar}</OptionInput>
+                        <OptionInput value="chatindex">{language.ifChatIndex}</OptionInput>
                     </SelectInput>
 
                     {#if cond.type === 'exists'}
@@ -117,9 +127,11 @@
                         <span  class="text-gray-400 text-sm">{language.searchDepth}</span>
                         <NumberInput size="sm" bind:value={cond.depth} />
                     {/if}
-                    {#if cond.type === 'var'}
-                        <span class="text-gray-400 text-sm">{language.varableName}</span>
-                        <TextInput size="sm" bind:value={cond.var} />
+                    {#if cond.type === 'var' || cond.type === 'chatindex'}
+                        {#if cond.type === 'var'}
+                            <span class="text-gray-400 text-sm">{language.varableName}</span>
+                            <TextInput size="sm" bind:value={cond.var} />
+                        {/if}
                         <span  class="text-gray-400 text-sm">{language.value}</span>
                         <SelectInput bind:value={cond.operator} size="sm">
                             <OptionInput value="=">{language.equal}</OptionInput>
@@ -128,19 +140,33 @@
                             <OptionInput value="<">{language.less}</OptionInput>
                             <OptionInput value=">=">{language.greaterEqual}</OptionInput>
                             <OptionInput value="<=">{language.lessEqual}</OptionInput>
+                            <OptionInput value="null">{language.isNull}</OptionInput>
+
                         </SelectInput>
-                        <TextInput size="sm" bind:value={cond.value} />
+                        {#if cond.operator !== 'null'}
+                            <TextInput size="sm" bind:value={cond.value} />
+                        {/if}
                     {/if}
                 {/each}
             </div>
 
             <span class="text-neutral-200 mt-4">Effects
                 <button aria-labelledby="Add Effects" class="float-right text-gray-400 hover:text-green-500" on:click={() => {
-                    value.effect.push({
-                        type: 'systemprompt',
-                        value: '',
-                        location: 'historyend'
-                    })
+                    if(value.type === 'start'){
+                        value.effect.push({
+                            type: 'systemprompt',
+                            value: '',
+                            location: 'historyend'
+                        })
+                    }
+                    else{
+                        value.effect.push({
+                            type: 'setvar',
+                            var: '',
+                            value: '',
+                            operator: '='
+                        })
+                    }
                     value.effect = value.effect
 
                 }}><PlusIcon size={18} /></button>
@@ -174,7 +200,8 @@
                             effect = {
                                 type: 'setvar',
                                 var: '',
-                                value: ''
+                                value: '',
+                                operator: '='
                             }
                         }
                         if(effect.type === 'impersonate'){
@@ -185,11 +212,16 @@
                             }
                         }
                     }}>
-                        <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
+                        {#if effect.type === 'systemprompt' || value.type === 'start'}
+                            <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
+                        {/if}
                         <OptionInput value="setvar">{language.triggerEffSetVar}</OptionInput>
                         <OptionInput value="impersonate">{language.triggerEffImperson}</OptionInput>
                     </SelectInput>
                     {#if effect.type === 'systemprompt'}
+                        {#if value.type !== 'start'}
+                            <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
+                        {/if}
                         <span class="text-gray-400 text-sm">{language.location}</span>
                         <SelectInput bind:value={effect.location} size="sm">
                             <OptionInput value="start">{language.promptstart}</OptionInput>
@@ -202,6 +234,14 @@
                     {#if effect.type === 'setvar'}
                         <span class="text-gray-400 text-sm">{language.varableName}</span>
                         <TextInput size="sm" bind:value={effect.var} />
+                        <span class="text-gray-400 text-sm">{language.operator}</span>
+                        <SelectInput bind:value={effect.operator} size="sm">
+                            <OptionInput value="=">{language.TriggerSetToVar}</OptionInput>
+                            <OptionInput value="+=">{language.TriggerAddToVar}</OptionInput>
+                            <OptionInput value="-=">{language.TriggerSubToVar}</OptionInput>
+                            <OptionInput value="*=">{language.TriggerMulToVar}</OptionInput>
+                            <OptionInput value="/=">{language.TriggerDivToVar}</OptionInput>
+                        </SelectInput>
                         <span class="text-gray-400 text-sm">{language.value}</span>
                         <TextInput size="sm" bind:value={effect.value} />
                     {/if}
