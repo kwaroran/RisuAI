@@ -679,9 +679,9 @@ export function risuChatParser(da:string, arg:{
     return nested[0] + result
 }
 
-function getVarChat(targetIndex = -1){
+export function getVarChat(targetIndex = -1, chara:character|groupChat = null){
     const db = get(DataBase)
-    const selchar = db.characters[get(selectedCharID)]
+    const selchar = chara ?? db.characters[get(selectedCharID)]
     const chat = selchar.chats[selchar.chatPage]
     let i =0;
     if(targetIndex === -1 || targetIndex >= chat.message.length){
