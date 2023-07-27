@@ -2,6 +2,7 @@ import { get, writable } from 'svelte/store';
 import { checkNullish, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
+import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
 import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
@@ -300,6 +301,8 @@ export interface customscript{
 
 }
 
+export type triggerscript = triggerscriptMain
+
 export interface loreBook{
     key:string
     secondkey:string
@@ -331,6 +334,7 @@ export interface character{
     chaId: string
     sdData: [string, string][]
     customscript: customscript[]
+    triggerscript: triggerscript[]
     utilityBot: boolean
     exampleMessage:string
     removedQuotes?:boolean
@@ -540,7 +544,7 @@ export interface Database{
         token:string,
         model:string
     }
-    globalscript: customscript[]
+    globalscript: customscript[],
     sendWithEnter:boolean
     clickToEdit: boolean
     koboldURL:string

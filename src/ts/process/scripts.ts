@@ -57,8 +57,11 @@ export async function importRegex(){
 export function processScriptFull(char:character|groupChat, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
-    const scripts = (db.globalscript ?? []).concat(char.customscript)
-    for (const script of scripts){
+    const globalscripts = (db.globalscript ?? []).concat(char.customscript)
+    if(db.officialplugins.automark && mode === 'editdisplay'){
+        data = autoMarkPlugin(data)
+    }
+    for (const script of globalscripts){
         if(script.type === mode){
             const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
             let outScript2 = script.out.replaceAll("$n", "\n")
@@ -140,9 +143,6 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 data = risuChatParser(data.replace(reg, outScript), {chatID: chatID, db:db})
             }
         }
-    }
-    if(db.officialplugins.automark && mode === 'editdisplay'){
-        data = autoMarkPlugin(data)
     }
     return {data, emoChanged}
 }

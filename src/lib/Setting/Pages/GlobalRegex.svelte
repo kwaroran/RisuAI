@@ -4,7 +4,7 @@
   import Help from "src/lib/Others/Help.svelte";
   import { DataBase } from "src/ts/storage/database";
   import { exportRegex, importRegex } from "src/ts/process/scripts";
-  import RegexList from "src/lib/SideBars/Regex/RegexList.svelte";
+  import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.globalRegexScript} <Help key="regexScript" /></h2>
 <RegexList bind:value={$DataBase.globalscript} />

@@ -1,27 +1,14 @@
-<!-- <input
-    class="text-neutral-200 bg-transparent input-text focus:bg-selected"
-    class:text-sm={size === 'sm'}
-    class:text-md={size === 'md'}
-    class:text-lg={size === 'lg'}
-    class:p-2={padding}
-    class:mb-4={marginBottom}
-    class:w-full={fullwidth}
-    class:h-full={fullh}
-    on:change={onChange}
-    type="number"
-    min={min}
-    max={max}
-    id={id}
-    bind:value
-> -->
-
 <input 
     class={"border border-gray-600 focus:border-borderc rounded-md shadow-sm text-white bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
     class:text-sm={size === 'sm'}
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}
-    class:px-4={padding}
-    class:py-2={padding}
+    class:px-4={size === 'md' && padding}
+    class:py-2={size === 'md' && padding}
+    class:px-2={size === 'sm' && padding}
+    class:py-1={size === 'sm' && padding}
+    class:px-6={size === 'lg' && padding}
+    class:py-3={size === 'lg' && padding}
     class:mb-4={marginBottom}
     class:w-full={fullwidth}
     class:h-full={fullh}

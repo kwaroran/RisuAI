@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook } from "./storage/database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
 import { checkNullish, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
@@ -183,7 +183,8 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         personality: charaData.personality ?? '',
         scenario:charaData.scenario ?? '',
         firstMsgIndex: -1,
-        replaceGlobalNote: ""
+        replaceGlobalNote: "",
+        triggerscript: []
     }
 }
 
@@ -343,7 +344,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         additionalAssets: extAssets,
         replaceGlobalNote: data.post_history_instructions ?? '',
         backgroundHTML: data?.extensions?.risuai?.backgroundHTML,
-        license: data?.extensions?.risuai?.license
+        license: data?.extensions?.risuai?.license,
+        triggerscript: data?.extensions?.risuai?.triggerscript ?? []
     }
 
     db.characters.push(char)
@@ -685,7 +687,8 @@ type CharacterCardV2 = {
                 sdData?:[string,string][],
                 additionalAssets?:[string,string,string][],
                 backgroundHTML?:string,
-                license?:string
+                license?:string,
+                triggerscript?:triggerscript[]
             }
         }
     }

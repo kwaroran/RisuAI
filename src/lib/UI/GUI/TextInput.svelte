@@ -4,8 +4,14 @@
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}
     class:text-xl={size === 'xl'}
-    class:px-4={padding}
-    class:py-2={padding}
+
+    class:px-4={size === 'md' && padding}
+    class:py-2={size === 'md' && padding}
+    class:px-2={size === 'sm' && padding}
+    class:py-1={size === 'sm' && padding}
+    class:px-6={size === 'lg' || size === 'xl' && padding}
+    class:py-3={size === 'lg' || size === 'xl'&& padding}
+
     class:mb-4={marginBottom}
     class:mt-4={marginTop}
     class:w-full={fullwidth}

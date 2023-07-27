@@ -302,6 +302,7 @@ export function characterFormatUpdate(index:number|character){
         if(checkNullish(cha.utilityBot)){
             cha.utilityBot = false
         }
+        cha.triggerscript = cha.triggerscript ?? []
         cha.alternateGreetings = cha.alternateGreetings ?? []
         cha.exampleMessage = cha.exampleMessage ?? ''
         cha.creatorNotes = cha.creatorNotes ?? ''
@@ -388,7 +389,8 @@ export function createBlankChar():character{
         personality:"",
         scenario:"",
         firstMsgIndex: -1,
-        replaceGlobalNote: ""
+        replaceGlobalNote: "",
+        triggerscript: []
     }
 }
 

@@ -13,7 +13,7 @@
     import { onDestroy } from "svelte";
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import RegexData from "./Regex/RegexData.svelte";
+    import RegexData from "./Scripts/RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
@@ -22,10 +22,11 @@
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-  import Button from "../UI/GUI/Button.svelte";
-  import SelectInput from "../UI/GUI/SelectInput.svelte";
-  import OptionInput from "../UI/GUI/OptionInput.svelte";
-  import RegexList from "./Regex/RegexList.svelte";
+    import Button from "../UI/GUI/Button.svelte";
+    import SelectInput from "../UI/GUI/SelectInput.svelte";
+    import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import RegexList from "./Scripts/RegexList.svelte";
+    import TriggerList from "./Scripts/TriggerList.svelte";
 
     let subMenu = 0
     let openHubUpload = false
@@ -458,6 +459,21 @@
                   type: "editinput"
                 })
                 currentChar.data.customscript = script
+            }
+        }}><PlusIcon /></button>
+
+        <span class="text-neutral-200 mt-4">{language.triggerScript} <Help key="regexScript"/></span>
+        <TriggerList bind:value={currentChar.data.triggerscript} />
+        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
+            if(currentChar.type === 'character'){
+                let script = currentChar.data.triggerscript
+                script.push({
+                    comment: "",
+                    type: "output",
+                    conditions: [],
+                    effect: []
+                })
+                currentChar.data.triggerscript = script
             }
         }}><PlusIcon /></button>
     {/if}
