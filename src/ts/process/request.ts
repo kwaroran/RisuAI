@@ -167,6 +167,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
                 (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')
 
+            let risuIdentify = false
+            if(replacerURL.startsWith("risu::")){
+                risuIdentify = true
+                replacerURL.replace("risu::", '')
+            }
+
             if(aiModel === 'reverse_proxy'){
                 if(replacerURL.endsWith('v1')){
                     replacerURL += '/chat/completions'
@@ -193,9 +199,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers["X-Title"] = 'RisuAI'
                 headers["HTTP-Referer"] = 'https://risuai.xyz'
             }
+            if(risuIdentify){
+                headers["X-Proxy-Risu"] = 'RisuAI'
+            }
+            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
-                const da =  ((!isTauri) && (!isNodeServer) && (!db.usePlainFetch))
+                const da =  (throughProxi)
                     ? await fetch(hubURL + `/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
@@ -270,7 +280,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body: body,
                 headers: headers,
                 abortSignal,
-                useRisuToken:true
+                useRisuToken:throughProxi
             })
 
             const dat = res.data as any

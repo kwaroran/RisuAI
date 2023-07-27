@@ -13,7 +13,7 @@
 </script>
 
 <div class="w-full h-full flex justify-center welcome-bg text-neutral-200">
-    <article class="w-full overflow-y-hidden overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-auto">
+    <article class="w-full overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-auto">
         <div class="w-full justify-center flex mt-8">
             <img src="/logo_typo_trans.png" alt="logo" class="w-full max-w-screen-sm  mb-0">
         </div>
