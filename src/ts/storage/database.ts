@@ -7,6 +7,8 @@ import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
 import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal } from '../alert';
+import type { NAISettings } from '../process/models/nai';
+import { prebuiltNAIpresets } from '../process/templates/templates';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -283,6 +285,7 @@ export function setDatabase(data:Database){
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
     data.toggleConfirmRecommendedPreset ??= true
     data.officialplugins ??= {}
+    data.NAIsettings ??= cloneDeep(prebuiltNAIpresets)
     data.assetWidth ??= -1
     data.animationSpeed ??= 0.4
     
@@ -442,6 +445,7 @@ export interface botPreset{
     ooba: OobaSettings
     ainconfig: AINsettings
     koboldURL?: string
+    NAISettings?: NAISettings
 }
 
 export interface Database{
@@ -586,6 +590,7 @@ export interface Database{
     assetWidth:number
     animationSpeed:number
     botSettingAtStart:false
+    NAIsettings:NAISettings
 }
 
 interface hordeConfig{
@@ -828,7 +833,8 @@ export function saveCurrentPreset(){
         ooba: cloneDeep(db.ooba),
         ainconfig: cloneDeep(db.ainconfig),
         proxyRequestModel: db.proxyRequestModel,
-        openrouterRequestModel: db.openrouterRequestModel
+        openrouterRequestModel: db.openrouterRequestModel,
+        NAISettings: cloneDeep(db.NAIsettings)
     }
     db.botPresets = pres
     setDatabase(db)
@@ -882,6 +888,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
     db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
     db.proxyRequestModel = newPres.proxyRequestModel ?? db.proxyRequestModel
+    db.NAIsettings = newPres.NAISettings ?? db.NAIsettings
     return db
 }
 

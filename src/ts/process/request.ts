@@ -8,6 +8,7 @@ import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
+import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -317,28 +318,41 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
         case 'novelai':
         case 'novelai_kayra':{
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
-            const params = {
+            const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '')
+
+            const gen = db.NAIsettings
+            const payload = {
+                temperature:temperature,
+                max_length: maxTokens,
+                min_length: 1,
+                top_k: gen.topK,
+                top_p: gen.topP,
+                top_a: gen.topA,
+                tail_free_sampling: gen.tailFreeSampling,
+                repetition_penalty: gen.repetitionPenalty,
+                repetition_penalty_range: gen.repetitionPenaltyRange,
+                repetition_penalty_slope: gen.repetitionPenaltySlope,
+                repetition_penalty_frequency: gen.frequencyPenalty,
+                repetition_penalty_presence: gen.presencePenalty,
+                generate_until_sentence: true,
+                use_cache: false,
+                use_string: true,
+                return_full_text: false,
+                prefix: 'vanilla',
+                order: [3,0],
+                bad_words_ids: NovelAIBadWordIds,
+                typical_p: gen.typicalp,
+            }
+
+              
+            const body = {
                 "input": proompt,
                 "model":db.novelai.model,
-                "parameters":{
-                    "use_string":true,
-                    "temperature":1.7,
-                    "max_length":90,
-                    "min_length":1,
-                    "tail_free_sampling":0.6602,
-                    "repetition_penalty":1.0565,
-                    "repetition_penalty_range":340,
-                    "repetition_penalty_frequency":0,
-                    "repetition_penalty_presence":0,
-                    "use_cache":false,
-                    "return_full_text":false,
-                    "prefix":"vanilla",
-                "order":[3,0]}
+                "parameters":payload
             }
 
             const da = await globalFetch("https://api.novelai.net/ai/generate", {
-                body: params,
+                body: body,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
                 },

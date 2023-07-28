@@ -43,7 +43,7 @@
             case "novelai":
                 return "NovelAI"
             case "novelai_kayra":
-                return "NovelAI_kayra"
+                return "NovelAI Kayra"
             case "novellist":
                 return "NovelList SuperTrin"
             case "novellist damsel":

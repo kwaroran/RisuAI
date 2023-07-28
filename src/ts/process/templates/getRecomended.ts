@@ -1,6 +1,6 @@
 import { DataBase, setPreset, type botPreset, setDatabase } from "src/ts/storage/database";
 import { get } from "svelte/store";
-import { prebuiltPresets } from "./templates";
+import { prebuiltNAIpresets, prebuiltPresets } from "./templates";
 import { alertConfirm, alertSelect } from "src/ts/alert";
 import { language } from "src/lang";
 
@@ -18,6 +18,17 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
     db.aiModel = model
     if(db.aiModel.startsWith('gpt') || db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
         const pr:botPreset = prebuiltPresets.OAI
+        setDatabase(setPreset(db, pr))
+    }
+    else if(db.aiModel.startsWith('novelai')){
+        const pr:botPreset = prebuiltPresets.OAI
+        pr.NAISettings = prebuiltNAIpresets
+        pr.temperature = 1.05
+        pr.maxContext = 8000
+        pr.maxResponse = 300
+        pr.mainPrompt = "***\n[ Style: chat ]"
+        pr.jailbreak = ''
+        pr.globalNote = ''
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel === 'textgen_webui'){
@@ -60,5 +71,5 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
 }
 
 export function recommendedPresetExist(model:string){
-    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui'
+    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui' || model.startsWith('novelai')
 }

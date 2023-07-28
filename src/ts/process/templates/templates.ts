@@ -1,4 +1,5 @@
 import type { botPreset } from "../../storage/database";
+import type { NAISettings } from "../models/nai";
 
 
 export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
@@ -137,4 +138,20 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
       "top_k": 140
     }
   }
+}
+
+
+export const prebuiltNAIpresets:NAISettings = {
+  topK: 12,
+  topP: 0.85,
+  topA: 0.1,
+  tailFreeSampling: 0.915,
+  repetitionPenalty: 2.8,
+  repetitionPenaltyRange: 2048,
+  repetitionPenaltySlope: 0.02,
+  repostitionPenaltyPresence: 0,
+  seperator: "",
+  frequencyPenalty: 0.03,
+  presencePenalty: 0,
+  typicalp: 1
 }

@@ -295,6 +295,38 @@
             <TextInput marginBottom bind:value={$DataBase.ooba.formating.seperator} />
         </div>
     {/if}
+{:else if $DataBase.aiModel.startsWith('novelai')}
+    <span class="text-neutral-200">Top P</span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
+    <span class="text-neutral-200">Top P</span>
+    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
+    <span class="text-neutral-200">Top A</span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topA}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topA).toFixed(2)}</span>
+    <span class="text-neutral-200">Tailfree Sampling</span>
+    <SliderInput min={0} max={1} step={0.001} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
+    <span class="text-neutral-200">Typical P</span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.typicalp}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(2)}</span>
+    <span class="text-neutral-200">Repetition Penalty</span>
+    <SliderInput min={0} max={3} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
+    <span class="text-neutral-200">Repetition Penalty Range</span>
+    <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
+    <span class="text-neutral-200">Repetition Penalty Slope</span>
+    <SliderInput min={0} max={10} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope).toFixed(2)}</span>
+    <span class="text-neutral-200">Frequency Penalty</span>
+    <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty).toFixed(2)}</span>
+    <span class="text-neutral-200">Presence Penalty</span>
+    <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.presencePenalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
+
 {:else if $DataBase.aiModel.startsWith('novellist')}
     <span class="text-neutral-200">Top P</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.top_p}/>
