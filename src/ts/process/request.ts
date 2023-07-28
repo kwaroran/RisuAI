@@ -315,13 +315,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             break
         }
-        case 'novelai':{
-            if(!isTauri){
-                return{
-                    type: 'fail',
-                    result: "NovelAI doesn't work in web version."
-                }
-            }
+        case 'novelai':
+        case 'novelai_kayra':{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '')
             const params = {
                 "input": proompt,

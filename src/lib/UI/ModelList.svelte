@@ -42,6 +42,8 @@
                 return "Plugin"
             case "novelai":
                 return "NovelAI"
+            case "novelai_kayra":
+                return "NovelAI_kayra"
             case "novellist":
                 return "NovelList SuperTrin"
             case "novellist damsel":
@@ -115,7 +117,10 @@
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist')}}>SuperTrin</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist_damsel')}}>Damsel</button>
             </Arcodion>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
+            <Arcodion name="NovelAI">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai_kayra')}}>NovelAI Kayra</button>
+            </Arcodion>
             {#if isTauri ||isNodeServer}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('deepai')}}>DeepAI</button>
             {/if}

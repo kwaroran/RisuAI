@@ -191,7 +191,7 @@
         {/each}
     </SelectInput>
 {/if}
-{#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai"}
+{#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
     <span class="text-neutral-200">NovelAI Bearer Token</span>
     <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
 
