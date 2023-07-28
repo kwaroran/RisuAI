@@ -41,7 +41,7 @@
             case "custom":
                 return "Plugin"
             case "novelai":
-                return "NovelAI"
+                return "NovelAI Clio"
             case "novelai_kayra":
                 return "NovelAI Kayra"
             case "novellist":
