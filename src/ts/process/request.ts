@@ -347,7 +347,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
               
             const body = {
                 "input": proompt,
-                "model":db.novelai.model,
+                "model": aiModel === 'novelai_kayra' ? 'kayra-v1' : 'clio-v1',
                 "parameters":payload
             }
 
