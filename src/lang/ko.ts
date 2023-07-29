@@ -349,7 +349,7 @@ export const languageKorean = {
     triggerEffSetVar: '변수 변경',
     triggerEffImperson: '채팅 보내기',
     varableName: "변수 이름",
-    role: "역학",
+    role: "역할",
     location: '위치',
     promptstart: "프롬프트 시작",
     promptend: "프롬프트 끝",
