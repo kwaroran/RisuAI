@@ -39,55 +39,67 @@ export const novelLogin = async () => {
 
 
         alertWait('Logging in to NovelAI')
-        const _sodium = await import('libsodium-wrappers-sumo')
-        await sleep(1000)
-        await _sodium.ready
-        const sodium = _sodium;
 
-        // I don't know why, but this is needed to make it work
-        console.log(sodium)
-        await sleep(1000)
+        let tries = 0
+        let error = ''
+        while (tries < 3) {
+            try {
 
-        const key = sodium
-          .crypto_pwhash(
-            64,
-            new Uint8Array(Buffer.from(password)),
-            sodium.crypto_generichash(
-              sodium.crypto_pwhash_SALTBYTES,
-              password.slice(0, 6) + username + 'novelai_data_access_key'
-            ),
-            2,
-            2e6,
-            sodium.crypto_pwhash_ALG_ARGON2ID13,
-            'base64'
-          )
-          .slice(0, 64)
-    
-        const r = await globalFetch('https://api.novelai.net/user/login', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body:{
-                key: key
+                const _sodium = await import('libsodium-wrappers-sumo')
+                await sleep(1000)
+                await _sodium.ready
+                const sodium = _sodium;
+
+                // I don't know why, but this is needed to make it work
+                console.log(sodium)
+                await sleep(1000)
+
+                const key = sodium
+                .crypto_pwhash(
+                    64,
+                    new Uint8Array(Buffer.from(password)),
+                    sodium.crypto_generichash(
+                    sodium.crypto_pwhash_SALTBYTES,
+                    password.slice(0, 6) + username + 'novelai_data_access_key'
+                    ),
+                    2,
+                    2e6,
+                    sodium.crypto_pwhash_ALG_ARGON2ID13,
+                    'base64'
+                )
+                .slice(0, 64)
+            
+                const r = await globalFetch('https://api.novelai.net/user/login', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body:{
+                        key: key
+                    }
+                })
+            
+                if ((!r.ok) || (!r.data?.accessToken)) {
+                    alertError(`Failed to authenticate with NovelAI: ${r.data?.message ?? r.data}`)
+                    return
+                }
+
+                const data = r.data?.accessToken
+
+                const db = get(DataBase)
+                db.novelai.token = data
+
+                alertNormal('Logged in to NovelAI')
+                setDatabase(db)
+                return
             }
-        })
-    
-        if ((!r.ok) || (!r.data?.accessToken)) {
-            alertError(`Failed to authenticate with NovelAI: ${r.data?.message ?? r.data}`)
-            return
+            catch (error) {
+                error = (`Failed to authenticate with NovelAI: ${error}`)
+                tries++
+            }
         }
-
-        const data = r.data?.accessToken
-
-        const db = get(DataBase)
-        db.novelai.token = data
-
-        alertNormal('Logged in to NovelAI')
-        setDatabase(db)
-
-
+        alertError(error)
     } catch (error) {
         alertError(`Failed to authenticate with NovelAI: ${error}`)
     }
