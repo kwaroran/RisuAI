@@ -36,7 +36,7 @@
         <SelectInput bind:value={license}>
             <OptionInput value="">None</OptionInput>
             {#each Object.keys(CCLicenseData) as ccl}
-                <OptionInput value={ccl}>{ccl} ({CCLicenseData[ccl][1]})</OptionInput>
+                <OptionInput value={ccl}>{CCLicenseData[ccl][2]} ({CCLicenseData[ccl][1]})</OptionInput>
             {/each}
         </SelectInput>
 

@@ -184,7 +184,7 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         scenario:charaData.scenario ?? '',
         firstMsgIndex: -1,
         replaceGlobalNote: "",
-        triggerscript: []
+        triggerscript: [],
     }
 }
 
@@ -345,7 +345,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         replaceGlobalNote: data.post_history_instructions ?? '',
         backgroundHTML: data?.extensions?.risuai?.backgroundHTML,
         license: data?.extensions?.risuai?.license,
-        triggerscript: data?.extensions?.risuai?.triggerscript ?? []
+        triggerscript: data?.extensions?.risuai?.triggerscript ?? [],
+        private: data?.extensions?.risuai?.private ?? false
     }
 
     db.characters.push(char)
@@ -557,7 +558,7 @@ export async function shareRisuHub(char:character, arg:{
                 img: Buffer.from(img).toString('base64'),
                 resources: resources,
                 token: get(DataBase)?.account?.token,
-                apiver: 2
+                apiver: 3
             })
         })
 
@@ -623,7 +624,7 @@ export async function downloadRisuHub(id:string) {
             method: "POST",
             body: JSON.stringify({
                 id: id,
-                apiver: 2
+                apiver: 3
             })
         })
         if(res.status !== 200){
@@ -689,6 +690,7 @@ type CharacterCardV2 = {
                 backgroundHTML?:string,
                 license?:string,
                 triggerscript?:triggerscript[]
+                private?:boolean
             }
         }
     }

@@ -375,6 +375,7 @@ export interface character{
     reloadKeys?:number
     backgroundCSS?:string
     license?:string
+    private?:boolean
 }
 
 

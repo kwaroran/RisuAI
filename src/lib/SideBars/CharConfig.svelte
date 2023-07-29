@@ -104,6 +104,7 @@
 
     let assetFileExtensions:string[] = []
     let assetFilePath:string[] = []
+    let licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
 
     $: {
         if(database.characters[$selectedCharID].chaId === currentChar.data.chaId){
@@ -133,34 +134,38 @@
 
     onDestroy(unsub);
 
+
+    $:licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
 </script>
 
-<div class="flex gap-2 mb-2">
-    <button class={subMenu === 0 ? 'text-gray-200 ' : 'text-gray-500'} on:click={() => {subMenu = 0}}>
-        <UserIcon />
-    </button>
-    <button class={subMenu === 1 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 1}}>
-        <SmileIcon />
-    </button>
-    <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3}}>
-        <BookIcon />
-    </button>
-    {#if currentChar.type === 'character'}
-        <button class={subMenu === 5 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 5}}>
-            <Volume2Icon />
+{#if licensed !== 'private'}
+    <div class="flex gap-2 mb-2">
+        <button class={subMenu === 0 ? 'text-gray-200 ' : 'text-gray-500'} on:click={() => {subMenu = 0}}>
+            <UserIcon />
         </button>
-        <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
-            <CurlyBraces />
+        <button class={subMenu === 1 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 1}}>
+            <SmileIcon />
         </button>
-    {/if}
-    <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
-        <ActivityIcon />
-    </button>
-</div>
+        <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3}}>
+            <BookIcon />
+        </button>
+        {#if currentChar.type === 'character'}
+            <button class={subMenu === 5 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 5}}>
+                <Volume2Icon />
+            </button>
+            <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
+                <CurlyBraces />
+            </button>
+        {/if}
+        <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
+            <ActivityIcon />
+        </button>
+    </div>
+{/if}
 
 
 {#if subMenu === 0}
-    {#if currentChar.type !== 'group'}
+    {#if currentChar.type !== 'group' && licensed !== 'private'}
         <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
         <span class="text-neutral-200">{language.description} <Help key="charDesc"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.desc}></TextAreaInput>
@@ -169,7 +174,7 @@
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.firstMessage}></TextAreaInput>
         <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
 
-    {:else}
+    {:else if licensed !== 'private' && currentChar.type === 'group'}
         <TextInput size="xl" marginBottom placeholder="Group Name" bind:value={currentChar.data.name} />
         <span class="text-neutral-200">{language.character}</span>
         <div class="p-4 gap-2 bg-bgcolor rounded-lg char-grid">
@@ -237,6 +242,29 @@
             <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
         </div>
     {/if}
+    {#if licensed === 'private'}
+        <Button on:click={async () => {
+            const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
+            if(!conf){
+                return
+            }
+            const conf2 = await alertConfirm(language.removeConfirm2 + currentChar.data.name)
+            if(!conf2){
+                return
+            }
+            let chars = $DataBase.characters
+            chars.splice($selectedCharID, 1)
+            checkCharOrder()
+            $selectedCharID = -1
+            $DataBase.characters = chars
+
+        }} className="mt-2" size="sm">{ currentChar.type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
+    {/if}
+{:else if licensed === 'private'}
+    <span>You are not allowed</span>
+    {(() => {
+        subMenu = 0
+    })()}
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
     <span class="text-neutral-200 mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
