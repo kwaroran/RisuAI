@@ -33,7 +33,7 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string = ''){
 
 export const novelLogin = async () => {
     try {
-        const username = await alertInput("NovelAI ID")
+        const username = await alertInput("NovelAI Email")
 
         const password = await alertInput("NovelAI Password")
 
