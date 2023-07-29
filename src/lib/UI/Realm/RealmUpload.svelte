@@ -42,18 +42,15 @@
 
         {/if}
         <div class="flex items-center flex-wrap mt-4">
-            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Public</button>
-            <!-- <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Private</button> -->
+            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Show Author ID</button>
+            <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Anonymized</button>
         </div>
         <div class="flex items-center flex-wrap mt-2">
-            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} on:click={() => {nsfwMode = false}}>🧑‍🧒‍🧒 Safe</button>
+            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} on:click={() => {nsfwMode = false}}>🎖️ Safe</button>
             <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} on:click={() => {nsfwMode = true}}>🔞 NSFW</button>
         </div>
         {#if nsfwMode}
             <span class="text-gray-400 text-sm">Grotesque Contents and non-adult characters with NSFW would be banned.</span>
-        {/if}
-        {#if privateMode}
-            <span class="text-gray-400 text-sm">Private characters can be removed from the server if there is only a few downloads.</span>
         {/if}
         <Button on:click={async () => {
             if(char.creatorNotes.length < 20){
@@ -61,7 +58,7 @@
             }
             else{
                 shareRisuHub(char, {
-                    privateMode: privateMode,
+                    anon: privateMode,
                     nsfw: nsfwMode,
                     tag: tags,
                     license: license

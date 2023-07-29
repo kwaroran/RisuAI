@@ -497,9 +497,9 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
 
 export async function shareRisuHub(char:character, arg:{
     nsfw: boolean,
-    privateMode:boolean
     tag:string
     license: string
+    anon: boolean
 }) {
     char = cloneDeep(char)
     char.license = arg.license
@@ -508,9 +508,7 @@ export async function shareRisuHub(char:character, arg:{
     if(arg.nsfw){
         tagList.push("nsfw")
     }
-    if(arg.privateMode){
-        tagList.push("private")
-    }
+
     
 
     let tags = tagList.filter((v, i) => {
@@ -558,6 +556,7 @@ export async function shareRisuHub(char:character, arg:{
                 img: Buffer.from(img).toString('base64'),
                 resources: resources,
                 token: get(DataBase)?.account?.token,
+                anon: arg.anon,
                 apiver: 3
             })
         })
@@ -587,6 +586,8 @@ export type hubType = {
     hasEmotion:boolean
     hasAsset:boolean
     creator?:string
+    creatorName?:string
+    hot:number
     license:string
 }
 

@@ -6,6 +6,7 @@
     import { parseMarkdownSafe } from "src/ts/parser";
     import { DataBase } from "src/ts/storage/database";
     import RealmLicense from "./RealmLicense.svelte";
+  import { characterFormatUpdate } from "src/ts/characters";
 
     export let openedData:hubType
 
@@ -19,6 +20,9 @@
     <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">
         <div class="w-full flex flex-col">
             <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
+            {#if openedData.creatorName}
+                <span class="text-gray-500">{openedData.creatorName}</span>
+            {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
                 <span class="text-gray-400 break-words text-base chattext prose prose-invert">
@@ -34,7 +38,7 @@
             </div>
             <div class="flex flex-wrap w-full flex-row gap-1 mt-2">
                 <span class="text-gray-500">
-                    {language.chatAssumed.replace('{}', openedData.download.toString())}
+                    {language.popularityLevel.replace('{}', openedData.download.toString())}
                 </span>
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
                 {#if openedData.hasEmotion}

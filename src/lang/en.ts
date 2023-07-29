@@ -398,4 +398,5 @@ export const languageEnglish = {
     ifChatIndex: "If chat index",
     ifRandom: "If random",
     hideRealm: "Hide RisuRealm",
+    popularityLevel: "Popularity Level {}",
 }
