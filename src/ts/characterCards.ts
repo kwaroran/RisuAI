@@ -556,7 +556,7 @@ export async function shareRisuHub(char:character, arg:{
                 img: Buffer.from(img).toString('base64'),
                 resources: resources,
                 token: get(DataBase)?.account?.token,
-                anon: arg.anon,
+                username: arg.anon ? '' : (get(DataBase)?.account?.id),
                 apiver: 3
             })
         })
@@ -589,6 +589,7 @@ export type hubType = {
     creatorName?:string
     hot:number
     license:string
+    authorname?:string
 }
 
 export async function getRisuHub(arg?:{

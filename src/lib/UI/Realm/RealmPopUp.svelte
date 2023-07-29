@@ -20,8 +20,8 @@
     <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">
         <div class="w-full flex flex-col">
             <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
-            {#if openedData.creatorName}
-                <span class="text-gray-500">{openedData.creatorName}</span>
+            {#if openedData.authorname}
+                <span class="text-borderc">Made by {openedData.authorname}</span>
             {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
