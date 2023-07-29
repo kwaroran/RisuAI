@@ -59,6 +59,9 @@ dependencies:
   isomorphic-dompurify:
     specifier: ^1.8.0
     version: 1.8.0
+  libsodium-wrappers-sumo:
+    specifier: ^0.7.11
+    version: 0.7.11
   localforage:
     specifier: ^1.10.0
     version: 1.10.0
@@ -142,6 +145,9 @@ devDependencies:
   '@types/dompurify':
     specifier: ^3.0.2
     version: 3.0.2
+  '@types/libsodium-wrappers-sumo':
+    specifier: ^0.7.5
+    version: 0.7.5
   '@types/lodash':
     specifier: ^4.14.195
     version: 4.14.195
@@ -846,6 +852,16 @@ packages:
 
   /@types/estree@1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
+
+  /@types/libsodium-wrappers-sumo@0.7.5:
+    resolution: {integrity: sha512-CL7rmLxw28H/FpFUnMu5BzzRsE+ICxHBpRoaY8ks+3HMsCJdA/Vp809sj+qNhw64Ht0OEnfoN3BC1sHwagoVaw==}
+    dependencies:
+      '@types/libsodium-wrappers': 0.7.10
+    dev: true
+
+  /@types/libsodium-wrappers@0.7.10:
+    resolution: {integrity: sha512-BqI9B92u+cM3ccp8mpHf+HzJ8fBlRwdmyd6+fz3p99m3V6ifT5O3zmOMi612PGkpeFeG/G6loxUnzlDNhfjPSA==}
+    dev: true
 
   /@types/lodash.clonedeep@4.5.7:
     resolution: {integrity: sha512-ccNqkPptFIXrpVqUECi60/DFxjNKsfoQxSQsgcBJCX/fuX1wgyQieojkcWH/KpE3xzLoWN/2k+ZeGqIN3paSvw==}
@@ -1902,6 +1918,16 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /libsodium-sumo@0.7.11:
+    resolution: {integrity: sha512-bY+7ph7xpk51Ez2GbE10lXAQ5sJma6NghcIDaSPbM/G9elfrjLa0COHl/7P6Wb/JizQzl5UQontOOP1z0VwbLA==}
+    dev: false
+
+  /libsodium-wrappers-sumo@0.7.11:
+    resolution: {integrity: sha512-DGypHOmJbB1nZn89KIfGOAkDgfv5N6SBGC3Qvmy/On0P0WD1JQvNRS/e3UL3aFF+xC0m+MYz5M+MnRnK2HMrKQ==}
+    dependencies:
+      libsodium-sumo: 0.7.11
+    dev: false
 
   /lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}

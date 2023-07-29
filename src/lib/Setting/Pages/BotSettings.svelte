@@ -19,6 +19,7 @@
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
   import { openRouterModels } from "src/ts/model/openrouter";
+  import { novelLogin } from "src/ts/process/models/nai";
 
     let tokens = {
         mainPrompt: 0,
@@ -192,9 +193,15 @@
     </SelectInput>
 {/if}
 {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
+
     <span class="text-neutral-200">NovelAI Bearer Token</span>
     <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
 
+    {#if !($DataBase.novelai.token)}
+        <div class="mb-2">
+            <Button on:click={novelLogin} size="sm">Login to NovelAI</Button>
+        </div>
+    {/if}
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
