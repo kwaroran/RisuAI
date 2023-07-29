@@ -591,6 +591,7 @@ export interface Database{
     animationSpeed:number
     botSettingAtStart:false
     NAIsettings:NAISettings
+    hideRealm:boolean
 }
 
 interface hordeConfig{

@@ -397,4 +397,5 @@ export const languageEnglish = {
     isNull: "is not set",
     ifChatIndex: "If chat index",
     ifRandom: "If random",
+    hideRealm: "Hide RisuRealm",
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appVer, webAppSubVer } from "src/ts/storage/database";
+  import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Realm/RealmMain.svelte";
   import { sideBarStore } from "src/ts/stores";
@@ -34,26 +34,30 @@
           <span class="mt-2 text-gray-400 text-start">{language.officialDiscordDesc}</span>
         </button>
       </div>
-      {#await getRisuHub({
-          search: '',
-          page: -10,
-          nsfw: false,
-          sort: ''
-      }) then charas}
-          <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
-          <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
-            openHub = true
-          }}>Get More</button></h1>
-          {#if charas.length > 0}
-          <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
-              {#each charas as chara}
-                  <RisuHubIcon onClick={() => {openHub = true}} chara={chara} />
-              {/each}
-          </div>
-          {:else}
-          <div class="text-gray-500">Failed to load {language.hub}...</div>
-          {/if}
-      {/await}
+      <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
+      <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
+        openHub = true
+      }}>Get More</button></h1>
+          {#if !$DataBase.hideRealm}
+            {#await getRisuHub({
+                  search: '',
+                  page: -10,
+                  nsfw: false,
+                  sort: ''
+              }) then charas}
+            {#if charas.length > 0}
+              <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
+                  {#each charas as chara}
+                      <RisuHubIcon onClick={() => {openHub = true}} chara={chara} />
+                  {/each}
+              </div>
+            {:else}
+              <div class="text-gray-500">Failed to load {language.hub}...</div>
+            {/if}
+          {/await}
+        {:else}
+          <div class="text-gray-500">{language.hideRealm}</div>
+        {/if}
       {:else}
         <div class="flex items-center mt-4">
           <button class="mr-2 text-gray-400 hover:text-green-500" on:click={() => (openHub = false)}>
