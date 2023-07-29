@@ -39,7 +39,7 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         pr.maxResponse = 300
         pr.mainPrompt = ""
         pr.jailbreak = ''
-        pr.globalNote = '***\n[ Style: chat; Tags: conversation; Genre: online roleplay]'
+        pr.globalNote = '[ Style: chat; Tags: conversation; Genre: online roleplay; Respond: long]'
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel === 'textgen_webui'){
