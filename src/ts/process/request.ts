@@ -89,7 +89,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let bias = arg.bias
     let currentChar = arg.currentChar
     const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
-    switch(aiModel){
+
+    let raiModel = aiModel
+    if(aiModel === 'reverse_proxy'){
+        if(db.proxyRequestModel.startsWith('claude')){
+            raiModel = 'claude'
+        }
+    }
+    switch(raiModel){
         case 'gpt35':
         case 'gpt35_0613':
         case 'gpt35_16k':
@@ -655,7 +662,26 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         default:{     
-            if(aiModel.startsWith('claude')){
+            if(raiModel.startsWith('claude')){
+
+                let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/complete')
+                if(aiModel === 'reverse_proxy'){
+                    if(replacerURL.endsWith('v1')){
+                        replacerURL += '/complete'
+                    }
+                    else if(replacerURL.endsWith('v1/')){
+                        replacerURL += 'complete'
+                    }
+                    else if(!(replacerURL.endsWith('complete') || replacerURL.endsWith('complete/'))){
+                        if(replacerURL.endsWith('/')){
+                            replacerURL += 'v1/complete'
+                        }
+                        else{
+                            replacerURL += '/v1/complete'
+                        }
+                    }
+                }
+
                 for(let i=0;i<formated.length;i++){
                     if(arg.isGroupChat && formated[i].name){
                         formated[i].content = formated[i].name + ": " + formated[i].content
@@ -681,11 +707,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
 
-                const da = await globalFetch('https://api.anthropic.com/v1/complete', {
+                const da = await globalFetch(replacerURL, {
                     method: "POST",
                     body: {
                         prompt : "\n\nHuman: " + requestPrompt,
-                        model: aiModel,
+                        model: raiModel,
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
