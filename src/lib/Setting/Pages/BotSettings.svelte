@@ -246,12 +246,17 @@
 <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 {#if $DataBase.aiModel === 'textgen_webui'}
+    <span class="text-neutral-200">Repetition Penalty</span>
+    <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
+    <span class="text-neutral-200">Length Penalty</span>
+    <SliderInput min={-5} max={5} step={0.05} bind:value={$DataBase.ooba.length_penalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
     <span class="text-neutral-200">Top K</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ooba.top_k} />
-
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(2)}</span>
+    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.ooba.top_k} />
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
     <span class="text-neutral-200">Top P</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ooba.top_p}/>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_p}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
     <span class="text-neutral-200">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.typical_p}/>
@@ -259,24 +264,9 @@
     <span class="text-neutral-200">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_a}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
-    <span class="text-neutral-200">Tail Free Sampling</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.tfs}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.tfs).toFixed(2)}</span>
-    <span class="text-neutral-200">Epsilon Cutoff</span>
-    <SliderInput min={0} max={9} step={0.01} bind:value={$DataBase.ooba.epsilon_cutoff}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.epsilon_cutoff).toFixed(2)}</span>
-    <span class="text-neutral-200">Eta Cutoff</span>
-    <SliderInput min={0} max={20} step={0.01} bind:value={$DataBase.ooba.eta_cutoff}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.eta_cutoff).toFixed(2)}</span>
-    <span class="text-neutral-200">Number of Beams</span>
-    <SliderInput min={1} max={20} step={1} bind:value={$DataBase.ooba.num_beams}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.num_beams).toFixed(2)}</span>
-    <span class="text-neutral-200">Length Penalty</span>
-    <SliderInput min={-5} max={5} step={0.1} bind:value={$DataBase.ooba.length_penalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Penalty Alpha</span>
-    <SliderInput min={0} max={5} step={0.05} bind:value={$DataBase.ooba.penalty_alpha}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.penalty_alpha).toFixed(2)}</span>
+    <span class="text-neutral-200">No Repeat n-gram Size</span>
+    <SliderInput min={0} max={20} step={1} bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
     </div>
@@ -306,7 +296,7 @@
     <span class="text-neutral-200">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
-    <span class="text-neutral-200">Top P</span>
+    <span class="text-neutral-200">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
     <span class="text-neutral-200">Top A</span>
