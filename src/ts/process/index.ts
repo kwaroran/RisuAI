@@ -55,6 +55,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     function reformatContent(data:string){
+        if(chatProcessIndex === -1){
+            return data.trim()
+        }
         return data.trim().replace(`${currentChar.name}:`, '').trim()
     }
 
