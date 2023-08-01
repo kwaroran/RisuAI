@@ -68,6 +68,8 @@ export function getStopStrings(){
     const { username } = db
     const stopStrings = [
         "GPT4 User",
+        "</s>",
+        "<|end",
         userPrefix,
         `${username}:`,
     ]
