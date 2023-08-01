@@ -418,13 +418,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     })
                 }
 
+                const close = () => {
+                    oobaboogaSocket.close()
+                }
                 const stream = new ReadableStream({
                     start(controller){
                         let readed = "";
                         oobaboogaSocket.onmessage = async (event) => {
                             const json = JSON.parse(event.data);
                             if (json.event === "stream_end") {
-                                oobaboogaSocket.close()
+                                close()
                                 controller.close()
                                 return
                             }
@@ -435,13 +438,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         oobaboogaSocket.send(JSON.stringify(bodyTemplate));
                     },
                     cancel(){
-                        oobaboogaSocket.close()
+                        close()
                     }
                 })
-                const cancel = () => stream.cancel()
-                oobaboogaSocket.onerror = cancel
-                oobaboogaSocket.onclose = cancel
-                abortSignal.addEventListener("abort", cancel)
+                oobaboogaSocket.onerror = close
+                oobaboogaSocket.onclose = close
+                abortSignal.addEventListener("abort", close)
 
                 return {
                     type: 'streaming',
