@@ -10,7 +10,7 @@ fn greet(name: &str) -> String {
 use serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
-use std::time::Duration;
+use std::{time::Duration, path::Path};
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -76,9 +76,28 @@ async fn native_request(url: String, body: String, header: String, method:String
     }
 }
 
+#[tauri::command]
+fn check_auth(fpath: String, auth: String) -> bool{
+    //check file exists
+    let path = Path::new(&fpath);
+    if !path.exists() {
+        println!("File {} does not exist", path.display());
+        return false;
+    }
+    // read file
+    let got_auth = std::fs::read_to_string(&path).expect("Something went wrong reading the file");
+
+    // check auth
+    if got_auth != auth {
+        return false;
+    }
+    return true;
+    
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, native_request])
+        .invoke_handler(tauri::generate_handler![greet, native_request, check_auth])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
