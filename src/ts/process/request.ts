@@ -376,7 +376,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let bodyTemplate:any
             const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
             const stopStrings = getStopStrings()
-            if(!DURL.endsWith('generate')){
+            if(!DURL.startsWith("ws") && !DURL.endsWith('generate')){
                 DURL = DURL + "/v1/generate"
             }
             console.log(proompt)
@@ -403,6 +403,52 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 add_bos_token: true,
                 prompt: proompt
             }
+            if(db.useStreaming && arg.useStreaming){
+                const oobaboogaSocket = new WebSocket(DURL);
+                const statusCode = await new Promise((resolve) => {
+                    oobaboogaSocket.onopen = () => resolve(0)
+                    oobaboogaSocket.onerror = () => resolve(1001)
+                    oobaboogaSocket.onclose = ({ code }) => resolve(code)
+                })
+                if(abortSignal.aborted || statusCode !== 0) {
+                    oobaboogaSocket.close()
+                    return ({
+                        type: "fail",
+                        result: abortSignal.reason || "connection failed",
+                    })
+                }
+
+                const stream = new ReadableStream({
+                    start(controller){
+                        let readed = "";
+                        oobaboogaSocket.onmessage = async (event) => {
+                            const json = JSON.parse(event.data);
+                            if (json.event === "stream_end") {
+                                oobaboogaSocket.close()
+                                controller.close()
+                                return
+                            }
+                            if (json.event !== "text_stream") return
+                            readed += json.text
+                            controller.enqueue(readed)
+                        };
+                        oobaboogaSocket.send(JSON.stringify(bodyTemplate));
+                    },
+                    cancel(){
+                        oobaboogaSocket.close()
+                    }
+                })
+                const cancel = () => stream.cancel()
+                oobaboogaSocket.onerror = cancel
+                oobaboogaSocket.onclose = cancel
+                abortSignal.addEventListener("abort", cancel)
+
+                return {
+                    type: 'streaming',
+                    result: stream
+                }
+            }
+
             const res = await globalFetch(DURL, {
                 body: bodyTemplate,
                 headers: {},

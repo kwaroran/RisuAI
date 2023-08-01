@@ -54,6 +54,10 @@
     onDestroy(() => {
         unsub()
     })
+
+    $: if($DataBase.aiModel === 'textgen_webui'){
+        $DataBase.useStreaming = $DataBase.textgenWebUIURL.startsWith('ws')
+    }
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
