@@ -84,6 +84,13 @@ fn check_auth(fpath: String, auth: String) -> bool{
         println!("File {} does not exist", path.display());
         return false;
     }
+
+    // check file is a file
+    if !path.is_file() {
+        println!("File {} is not a file", path.display());
+        return false;
+    }
+    
     // check file size
     let size = std::fs::metadata(&fpath).unwrap().len();
 
@@ -92,6 +99,7 @@ fn check_auth(fpath: String, auth: String) -> bool{
         println!("File {} is too large", path.display());
         return false;
     }
+    
 
 
     // read file
