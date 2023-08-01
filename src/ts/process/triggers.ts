@@ -67,14 +67,13 @@ export function runTrigger(char:character,mode:triggerMode, arg:{
         historyend: '',
         promptend: ''
     }
-    let varValues = getVarChat(-1, char)
-    let varValuesChanged = false
     const triggers = char.triggerscript
     const chat = arg.chat ?? char.chats[char.chatPage]
     if(!triggers){
         return null
     }
-
+    let varValues = getVarChat(-1, char)
+    let varValuesChanged = false
     for(const trigger of triggers){
         if(mode !== trigger.type){
             continue

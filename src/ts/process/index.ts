@@ -503,7 +503,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         await sayTTS(currentChar, result)
     }
     else{
-        const msgs = req.type === 'success' ? [['char',req.result]] as const : req.type === 'multiline' ? req.result : []
+        const msgs = (req.type === 'success') ? [['char',req.result]] as const 
+                    : (req.type === 'multiline') ? req.result
+                    : []
         for(const msg of msgs){
             const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
             const result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput', msgIndex)
