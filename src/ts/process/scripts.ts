@@ -57,11 +57,14 @@ export async function importRegex(){
 export function processScriptFull(char:character|groupChat, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
-    const globalscripts = (db.globalscript ?? []).concat(char.customscript)
+    const scripts = (db.globalscript ?? []).concat(char.customscript)
     if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
     }
-    for (const script of globalscripts){
+    if(scripts.length === 0){
+        return {data, emoChanged}
+    }
+    for (const script of scripts){
         if(script.type === mode){
             const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
             let outScript2 = script.out.replaceAll("$n", "\n")
