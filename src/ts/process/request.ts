@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -375,11 +375,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let DURL = db.textgenWebUIURL
             let bodyTemplate:any
             const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
+            const stopStrings = getStopStrings()
             if(!DURL.endsWith('generate')){
                 DURL = DURL + "/v1/generate"
             }
-            const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
             console.log(proompt)
+            console.log(stopStrings)
             bodyTemplate = {
                 'max_new_tokens': db.maxResponse,
                 'do_sample': true,

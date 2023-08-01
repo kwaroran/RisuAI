@@ -285,11 +285,11 @@
     {#if $DataBase.ooba.formating.custom}
         <div class="flex flex-col p-3 bg-darkbg mt-4">
             <span class="text-neutral-200">User Prefix</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.userPrefix} />
+            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.userPrefix} />
             <span class="text-neutral-200">Assistant Prefix</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.assistantPrefix} />
+            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.assistantPrefix} />
             <span class="text-neutral-200">Seperator</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.seperator} />
+            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.seperator} />
         </div>
     {/if}
 {:else if $DataBase.aiModel.startsWith('novelai')}
