@@ -90,7 +90,7 @@ fn check_auth(fpath: String, auth: String) -> bool{
         println!("File {} is not a file", path.display());
         return false;
     }
-    
+
     // check file size
     let size = std::fs::metadata(&fpath).unwrap().len();
 
@@ -102,14 +102,23 @@ fn check_auth(fpath: String, auth: String) -> bool{
     
 
 
-    // read file
-    let got_auth = std::fs::read_to_string(&path).expect("Something went wrong reading the file");
+    // read file, return false when error
+    let got_auth = std::fs::read_to_string(&path);
 
-    // check auth
-    if got_auth != auth {
+    // check read error
+    if got_auth.is_err() {
+        println!("Error reading file {}", path.display());
         return false;
     }
-    return true;
+    else{
+        // check auth
+        if got_auth.unwrap() != auth {
+            println!("Auth does not match");
+            return false;
+        }
+        println!("Auth matches");
+        return true;
+    }
     
 }
 
