@@ -383,7 +383,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
             const suggesting = model === "submodel"
-            const proompt = stringlizeChatOba(formated, suggesting)
+            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting)
             const stopStrings = getStopStrings(suggesting)
             console.log(proompt)
             console.log(stopStrings)

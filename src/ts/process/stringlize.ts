@@ -29,7 +29,7 @@ function appendWhitespace(prefix:string, seperator:string=" ") {
     }
     return prefix
 }
-export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=false){
+export function stringlizeChatOba(formated:OpenAIChat[], characterName:string='', suggesting:boolean=false){
     const db = get(DataBase)
     let resultString:string[] = []
     let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
@@ -45,21 +45,24 @@ export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=fals
             continue
         }
         let prefix = ""
+        let name = ""
         if(form.role === 'user'){
             prefix = appendWhitespace(userPrefix, seperator)
+            name = `${db.username}: `
         }
         else if(form.role === 'assistant'){
             prefix = appendWhitespace(assistantPrefix, seperator)
+            name = `${characterName}: `
         }
         else if(form.role === 'system'){
             prefix = appendWhitespace(systemPrefix, seperator)
         }
-        resultString.push(prefix + form.content)
+        resultString.push(prefix + name + form.content)
     }
     if (suggesting){
         resultString.push(appendWhitespace(assistantPrefix, seperator) + "\n" + db.autoSuggestPrefix)
     } else {
-        resultString.push(assistantPrefix)
+        resultString.push(assistantPrefix + `${characterName}:`)
     }
     return resultString.join(seperator)
 }
@@ -81,6 +84,8 @@ export function getStopStrings(suggesting:boolean=false){
         "<|end",
         "<|im_end",
         userPrefix,
+        `*${username}'`,
+        `*${username} `,
         `\n${username} `,
         `${username}:`,
     ]
