@@ -54,6 +54,10 @@
     onDestroy(() => {
         unsub()
     })
+
+    $: if($DataBase.aiModel === 'textgen_webui'){
+        $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
+    }
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
@@ -217,9 +221,11 @@
 
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
-    <span class="text-neutral-200 mt-2">TextGen {language.providerURL}</span>
-    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIURL} placeholder="https://..."/>
-    <span class="text-draculared text-xs mb-2">You must use textgen webui with --api, and use api server's port (default is 5000)</span>
+    <span class="text-neutral-200 mt-2">Oobabooga Blocking {language.providerURL}</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
+    <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
+    <span class="text-neutral-200 mt-2">Oobabooga Stream {language.providerURL}</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIStreamURL} placeholder="wss://..."/>
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
@@ -246,12 +252,17 @@
 <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
 <span class="text-gray-400 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 {#if $DataBase.aiModel === 'textgen_webui'}
+    <span class="text-neutral-200">Repetition Penalty</span>
+    <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
+    <span class="text-neutral-200">Length Penalty</span>
+    <SliderInput min={-5} max={5} step={0.05} bind:value={$DataBase.ooba.length_penalty}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
     <span class="text-neutral-200">Top K</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ooba.top_k} />
-
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(2)}</span>
+    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.ooba.top_k} />
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
     <span class="text-neutral-200">Top P</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ooba.top_p}/>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_p}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
     <span class="text-neutral-200">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.typical_p}/>
@@ -259,24 +270,9 @@
     <span class="text-neutral-200">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_a}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
-    <span class="text-neutral-200">Tail Free Sampling</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.tfs}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.tfs).toFixed(2)}</span>
-    <span class="text-neutral-200">Epsilon Cutoff</span>
-    <SliderInput min={0} max={9} step={0.01} bind:value={$DataBase.ooba.epsilon_cutoff}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.epsilon_cutoff).toFixed(2)}</span>
-    <span class="text-neutral-200">Eta Cutoff</span>
-    <SliderInput min={0} max={20} step={0.01} bind:value={$DataBase.ooba.eta_cutoff}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.eta_cutoff).toFixed(2)}</span>
-    <span class="text-neutral-200">Number of Beams</span>
-    <SliderInput min={1} max={20} step={1} bind:value={$DataBase.ooba.num_beams}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.num_beams).toFixed(2)}</span>
-    <span class="text-neutral-200">Length Penalty</span>
-    <SliderInput min={-5} max={5} step={0.1} bind:value={$DataBase.ooba.length_penalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Penalty Alpha</span>
-    <SliderInput min={0} max={5} step={0.05} bind:value={$DataBase.ooba.penalty_alpha}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.penalty_alpha).toFixed(2)}</span>
+    <span class="text-neutral-200">No Repeat n-gram Size</span>
+    <SliderInput min={0} max={20} step={1} bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
+    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
     </div>
@@ -289,24 +285,30 @@
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
     </div>
-    <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.ooba.formating.custom} name={'Instruct Format'}/>
+    <div class="flex flex-col p-3 bg-darkbg mt-4">
+        <span class="text-neutral-200">Header</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.header} />
+        <span class="text-neutral-200">System Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
+        <span class="text-neutral-200">User Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
+        <span class="text-neutral-200">Assistant Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
+        <span class="text-neutral-200">Seperator</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
     </div>
-    {#if $DataBase.ooba.formating.custom}
-        <div class="flex flex-col p-3 bg-darkbg mt-4">
-            <span class="text-neutral-200">User Prefix</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.userPrefix} />
-            <span class="text-neutral-200">Assistant Prefix</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.assistantPrefix} />
-            <span class="text-neutral-200">Seperator</span>
-            <TextInput marginBottom bind:value={$DataBase.ooba.formating.seperator} />
-        </div>
-    {/if}
+
+    <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.autoSuggestPrompt} />
+    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+
+    <span class="text-neutral-200">{language.autoSuggest} Prefix</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
 {:else if $DataBase.aiModel.startsWith('novelai')}
     <span class="text-neutral-200">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
-    <span class="text-neutral-200">Top P</span>
+    <span class="text-neutral-200">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
     <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
     <span class="text-neutral-200">Top A</span>

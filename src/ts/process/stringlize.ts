@@ -23,43 +23,85 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
     return resultString.join('\n\n') + `\n\n${char}:`
 }
 
-export function stringlizeChatOba(formated:OpenAIChat[], char:string = ''){
+function appendWhitespace(prefix:string, seperator:string=" ") {
+    if(prefix && !"> \n".includes(prefix[prefix.length-1])){
+        prefix += seperator.includes("\n\n") ? "\n" : " "
+    }
+    return prefix
+}
+export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=false){
     const db = get(DataBase)
     let resultString:string[] = []
-    if(db.ooba.formating.custom){
-        for(const form of formated){
-            if(form.role === 'system'){
-                resultString.push(form.content)
-            }
-            else if(form.name){
-                resultString.push(db.ooba.formating.userPrefix + form.content + db.ooba.formating.seperator)
-            }
-            else if(form.role === 'assistant' && char){
-                resultString.push(db.ooba.formating.assistantPrefix + form.content + db.ooba.formating.seperator)
-    
-            }
-            else{
-                resultString.push(form.content)
-            }
-        }
-        return resultString.join('\n\n') + `\n\n${db.ooba.formating.assistantPrefix}:`
+    let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
+    if(!seperator){
+        seperator = "\n\n"
+    }
+
+    if(header) {
+        resultString.push(header)
     }
     for(const form of formated){
-        if(form.role === 'system'){
-            resultString.push(form.content)
+        if(form.content === "[Start a new chat]"){
+            continue
         }
-        else if(form.name){
-            resultString.push(form.name + ": " + form.content)
+        let prefix = ""
+        if(form.role === 'user'){
+            prefix = appendWhitespace(userPrefix, seperator)
         }
-        else if(form.role === 'assistant' && char){
-            resultString.push(char + ": " + form.content)
+        else if(form.role === 'assistant'){
+            prefix = appendWhitespace(assistantPrefix, seperator)
+        }
+        else if(form.role === 'system'){
+            prefix = appendWhitespace(systemPrefix, seperator)
+        }
+        resultString.push(prefix + form.content)
+    }
+    if (suggesting){
+        resultString.push(appendWhitespace(assistantPrefix, seperator) + "\n" + db.autoSuggestPrefix)
+    } else {
+        resultString.push(assistantPrefix)
+    }
+    return resultString.join(seperator)
+}
 
-        }
-        else{
-            resultString.push(form.content)
+const userStrings = ["user", "human", "input", "inst", "instruction"]
+function toTitleCase(s:string){
+    return s[0].toUpperCase() + s.slice(1).toLowerCase()
+}
+export function getStopStrings(suggesting:boolean=false){
+    const db = get(DataBase)
+    let { userPrefix, seperator } = db.ooba.formating;
+    if(!seperator){
+        seperator = "\n"
+    }
+    const { username } = db
+    const stopStrings = [
+        "GPT4 User",
+        "</s>",
+        "<|end",
+        "<|im_end",
+        userPrefix,
+        `\n${username} `,
+        `${username}:`,
+    ]
+    if(seperator !== " "){
+        stopStrings.push(seperator + username)
+    }
+    if(suggesting){
+        stopStrings.push("\n\n")
+    }
+    for (const user of userStrings){
+        for (const u of [
+            user.toLowerCase(),
+            user.toUpperCase(),
+            user.replace(/\w\S*/g, toTitleCase),
+        ]){
+            stopStrings.push(`${u}:`)
+            stopStrings.push(`<<${u}>>`)
+            stopStrings.push(`### ${u}`)
         }
     }
-    return resultString.join('\n\n') + `\n\n${char}:`
+    return [...new Set(stopStrings)]
 }
 
 export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string = ''){
@@ -160,7 +202,6 @@ export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
         else{
             resultString.push(form.content)
         }
-        console.log(resultString)
     }
     return resultString.join('\n\n') + `\n\n${char} 「`
 }

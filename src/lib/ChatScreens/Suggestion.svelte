@@ -64,7 +64,7 @@
             let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)
                 return
-            const promptbody:OpenAIChat[] = [
+            let promptbody:OpenAIChat[] = [
             {
                 role:'system',
                 content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
@@ -74,6 +74,21 @@
                 content: lastMessages.map(b=>(b.role==='char'? currentChar.name : $DataBase.username)+":"+b.data).reduce((a,b)=>a+','+b)
             }
             ]
+
+            if($DataBase.subModel === "textgen_webui"){
+                promptbody = [
+                    {
+                        role: 'system',
+                        content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
+                    },
+                    {
+                        role: 'user', 
+                        content: lastMessages.map(({ role, data }) => `${
+                            role === 'char' ? currentChar.name : $DataBase.username
+                        }: ${data}`).join("\n\n") + `\n\n${$DataBase.username}:`
+                    },
+                ]
+            }
 
             progress = true
             progressChatPage = chatPage

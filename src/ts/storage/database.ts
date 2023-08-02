@@ -106,8 +106,11 @@ export function setDatabase(data:Database){
     if(checkNullish(data.customBackground)){
         data.customBackground = ''
     }
-    if(checkNullish(data.textgenWebUIURL)){
-        data.textgenWebUIURL = 'http://127.0.0.1:7860/api/'
+    if(checkNullish(data.textgenWebUIStreamURL)){
+        data.textgenWebUIStreamURL = 'wss://localhost/api/'
+    }
+    if(checkNullish(data.textgenWebUIBlockingURL)){
+        data.textgenWebUIBlockingURL = 'https://localhost/api/'
     }
     if(checkNullish(data.autoTranslate)){
         data.autoTranslate = false
@@ -264,6 +267,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.autoSuggestPrompt)){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
+    }
+    if(checkNullish(data.autoSuggestPrefix)){
+        data.autoSuggestPrompt = ""
     }
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
@@ -435,7 +441,8 @@ export interface botPreset{
     aiModel?: string
     subModel?:string
     currentPluginProvider?:string
-    textgenWebUIURL?:string
+    textgenWebUIStreamURL?:string
+    textgenWebUIBlockingURL?:string
     forceReplaceUrl?:string
     forceReplaceUrl2?:string
     promptPreprocess: boolean,
@@ -447,6 +454,8 @@ export interface botPreset{
     ainconfig: AINsettings
     koboldURL?: string
     NAISettings?: NAISettings
+    autoSuggestPrompt?: string
+    autoSuggestPrefix?: string
 }
 
 export interface Database{
@@ -490,7 +499,8 @@ export interface Database{
     zoomsize:number
     lastup:string
     customBackground:string
-    textgenWebUIURL:string
+    textgenWebUIStreamURL:string
+    textgenWebUIBlockingURL:string
     autoTranslate: boolean
     fullScreen:boolean
     playMessage:boolean
@@ -555,7 +565,8 @@ export interface Database{
     koboldURL:string
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
-    autoSuggestPrompt:string,
+    autoSuggestPrompt:string
+    autoSuggestPrefix:string
     claudeAPIKey:string,
     useChatCopy:boolean,
     novellistAPI:string,
@@ -678,7 +689,8 @@ interface OobaSettings{
     epsilon_cutoff: number,
     eta_cutoff: number,
     formating:{
-        custom:boolean,
+        header:string,
+        systemPrefix:string,
         userPrefix:string,
         assistantPrefix:string
         seperator:string
@@ -704,12 +716,12 @@ export const defaultAIN:AINsettings = {
 export const defaultOoba:OobaSettings = {
     max_new_tokens: 180,
     do_sample: true,
-    temperature: 0.5,
+    temperature: 0.7,
     top_p: 0.9,
     typical_p: 1,
-    repetition_penalty: 1.1,
+    repetition_penalty: 1.15,
     encoder_repetition_penalty: 1,
-    top_k: 0,
+    top_k: 20,
     min_length: 0,
     no_repeat_ngram_size: 0,
     num_beams: 1,
@@ -718,7 +730,7 @@ export const defaultOoba:OobaSettings = {
     early_stopping: false,
     seed: -1,
     add_bos_token: true,
-    truncation_length: 2048,
+    truncation_length: 4096,
     ban_eos_token: false,
     skip_special_tokens: true,
     top_a: 0,
@@ -726,10 +738,11 @@ export const defaultOoba:OobaSettings = {
     epsilon_cutoff: 0,
     eta_cutoff: 0,
     formating:{
-        custom:false,
-        userPrefix:'user:',
-        assistantPrefix:'assistant:',
-        seperator:'',
+        header: "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+        systemPrefix: "### Instruction:",
+        userPrefix: "### Input:",
+        assistantPrefix: "### Response:",
+        seperator:"",
         useName:false,
     }
 }
@@ -751,7 +764,8 @@ export const presetTemplate:botPreset = {
     aiModel: "gpt35",
     subModel: "gpt35",
     currentPluginProvider: "",
-    textgenWebUIURL: '',
+    textgenWebUIStreamURL: '',
+    textgenWebUIBlockingURL: '',
     forceReplaceUrl: '',
     forceReplaceUrl2: '',
     promptPreprocess: false,
@@ -825,7 +839,8 @@ export function saveCurrentPreset(){
         aiModel: db.aiModel,
         subModel: db.subModel,
         currentPluginProvider: db.currentPluginProvider,
-        textgenWebUIURL: db.textgenWebUIURL,
+        textgenWebUIStreamURL: db.textgenWebUIStreamURL,
+        textgenWebUIBlockingURL: db.textgenWebUIBlockingURL,
         forceReplaceUrl: db.forceReplaceUrl,
         forceReplaceUrl2: db.forceReplaceUrl2,
         promptPreprocess: db.promptPreprocess,
@@ -879,7 +894,8 @@ export function setPreset(db:Database, newPres: botPreset){
     db.aiModel = newPres.aiModel ?? db.aiModel
     db.subModel = newPres.subModel ?? db.subModel
     db.currentPluginProvider = newPres.currentPluginProvider ?? db.currentPluginProvider
-    db.textgenWebUIURL = newPres.textgenWebUIURL ?? db.textgenWebUIURL
+    db.textgenWebUIStreamURL = newPres.textgenWebUIStreamURL ?? db.textgenWebUIStreamURL
+    db.textgenWebUIBlockingURL = newPres.textgenWebUIBlockingURL ?? db.textgenWebUIBlockingURL
     db.forceReplaceUrl = newPres.forceReplaceUrl ?? db.forceReplaceUrl
     db.promptPreprocess = newPres.promptPreprocess ?? db.promptPreprocess
     db.forceReplaceUrl2 = newPres.forceReplaceUrl2 ?? db.forceReplaceUrl2
@@ -891,6 +907,8 @@ export function setPreset(db:Database, newPres: botPreset){
     db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
     db.proxyRequestModel = newPres.proxyRequestModel ?? db.proxyRequestModel
     db.NAIsettings = newPres.NAISettings ?? db.NAIsettings
+    db.autoSuggestPrompt = newPres.autoSuggestPrompt ?? db.autoSuggestPrompt
+    db.autoSuggestPrefix = newPres.autoSuggestPrefix ?? db.autoSuggestPrefix
     return db
 }
 
@@ -902,7 +920,8 @@ export function downloadPreset(id:number){
     pres.forceReplaceUrl = ''
     pres.forceReplaceUrl2 = ''
     pres.proxyKey = ''
-    pres.textgenWebUIURL=  ''
+    pres.textgenWebUIStreamURL=  ''
+    pres.textgenWebUIBlockingURL=  ''
     downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
     alertNormal(language.successExport)
 }

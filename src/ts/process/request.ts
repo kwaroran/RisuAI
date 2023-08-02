@@ -3,7 +3,7 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -379,14 +379,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
 
         case "textgen_webui":{
-            let DURL = db.textgenWebUIURL
+            let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
+            let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
-            const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
-            if(!DURL.endsWith('generate')){
-                DURL = DURL + "/v1/generate"
-            }
-            const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
+            const suggesting = model === "submodel"
+            const proompt = stringlizeChatOba(formated, suggesting)
+            const stopStrings = getStopStrings(suggesting)
             console.log(proompt)
+            console.log(stopStrings)
             bodyTemplate = {
                 'max_new_tokens': db.maxResponse,
                 'do_sample': true,
@@ -409,7 +409,55 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 add_bos_token: true,
                 prompt: proompt
             }
-            const res = await globalFetch(DURL, {
+            if(db.useStreaming && arg.useStreaming){
+                const oobaboogaSocket = new WebSocket(streamUrl);
+                const statusCode = await new Promise((resolve) => {
+                    oobaboogaSocket.onopen = () => resolve(0)
+                    oobaboogaSocket.onerror = () => resolve(1001)
+                    oobaboogaSocket.onclose = ({ code }) => resolve(code)
+                })
+                if(abortSignal.aborted || statusCode !== 0) {
+                    oobaboogaSocket.close()
+                    return ({
+                        type: "fail",
+                        result: abortSignal.reason || `WebSocket connection failed to '${streamUrl}' failed!`,
+                    })
+                }
+
+                const close = () => {
+                    oobaboogaSocket.close()
+                }
+                const stream = new ReadableStream({
+                    start(controller){
+                        let readed = "";
+                        oobaboogaSocket.onmessage = async (event) => {
+                            const json = JSON.parse(event.data);
+                            if (json.event === "stream_end") {
+                                close()
+                                controller.close()
+                                return
+                            }
+                            if (json.event !== "text_stream") return
+                            readed += json.text
+                            controller.enqueue(readed)
+                        };
+                        oobaboogaSocket.send(JSON.stringify(bodyTemplate));
+                    },
+                    cancel(){
+                        close()
+                    }
+                })
+                oobaboogaSocket.onerror = close
+                oobaboogaSocket.onclose = close
+                abortSignal.addEventListener("abort", close)
+
+                return {
+                    type: 'streaming',
+                    result: stream
+                }
+            }
+
+            const res = await globalFetch(blockingUrl, {
                 body: bodyTemplate,
                 headers: {},
                 abortSignal
@@ -419,6 +467,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(res.ok){
                 try {
                     let result:string = dat.results[0].text
+                    if(suggesting){
+                        result = "\n" + db.autoSuggestPrefix + result
+                    }
 
                     return {
                         type: 'success',
