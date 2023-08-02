@@ -4,7 +4,7 @@ import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
-import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
+import { addFetchLog, globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
@@ -245,6 +245,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         result: await da.text()
                     }
                 }
+
+                addFetchLog({
+                    body: body,
+                    response: "Streaming",
+                    success: true,
+                    url: replacerURL,
+                })
 
                 let dataUint = new Uint8Array([])
 

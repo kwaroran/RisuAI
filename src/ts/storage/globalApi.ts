@@ -441,6 +441,17 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1"]
 
+export function addFetchLog(body:any, headers:any, response:any, success:boolean, url:string){
+    fetchLog.unshift({
+        body: JSON.stringify(body, null, 2),
+        header: JSON.stringify(headers ?? {}, null, 2),
+        response: JSON.stringify(response, null, 2),
+        success: success,
+        date: (new Date()).toLocaleTimeString(),
+        url: url
+    })
+}
+
 export async function globalFetch(url:string, arg:{
     plainFetchForce?:boolean,
     body?:any,
