@@ -35,7 +35,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             add()
             currentMessage = {
                 role: "assistant",
-                content: trimed.split(':', 2)[1],
+                content: trimed.split(':', 2)[1].trimStart(),
                 name: 'example_assistant' 
             }
         }
@@ -43,7 +43,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             add()
             currentMessage = {
                 role: "user",
-                content: trimed.split(':', 2)[1],
+                content: trimed.split(':', 2)[1].trimStart(),
                 name: 'example_user'
             }
         }

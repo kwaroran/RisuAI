@@ -56,7 +56,7 @@
     })
 
     $: if($DataBase.aiModel === 'textgen_webui'){
-        $DataBase.useStreaming = $DataBase.textgenWebUIURL.startsWith('ws')
+        $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
     }
 </script>
 
@@ -221,9 +221,11 @@
 
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
-    <span class="text-neutral-200 mt-2">TextGen {language.providerURL}</span>
-    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIURL} placeholder="https://..."/>
-    <span class="text-draculared text-xs mb-2">You must use textgen webui with --api, and use api server's port (default is 5000)</span>
+    <span class="text-neutral-200 mt-2">Oobabooga Blocking {language.providerURL}</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
+    <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
+    <span class="text-neutral-200 mt-2">Oobabooga Stream {language.providerURL}</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIStreamURL} placeholder="wss://..."/>
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
@@ -283,19 +285,25 @@
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
     </div>
-    <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.ooba.formating.custom} name={'Instruct Format'}/>
+    <div class="flex flex-col p-3 bg-darkbg mt-4">
+        <span class="text-neutral-200">Header</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.header} />
+        <span class="text-neutral-200">System Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
+        <span class="text-neutral-200">User Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
+        <span class="text-neutral-200">Assistant Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
+        <span class="text-neutral-200">Seperator</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
     </div>
-    {#if $DataBase.ooba.formating.custom}
-        <div class="flex flex-col p-3 bg-darkbg mt-4">
-            <span class="text-neutral-200">User Prefix</span>
-            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.userPrefix} />
-            <span class="text-neutral-200">Assistant Prefix</span>
-            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.assistantPrefix} />
-            <span class="text-neutral-200">Seperator</span>
-            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind bind:value={$DataBase.ooba.formating.seperator} />
-        </div>
-    {/if}
+
+    <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.autoSuggestPrompt} />
+    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+
+    <span class="text-neutral-200">{language.autoSuggest} Prefix</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
 {:else if $DataBase.aiModel.startsWith('novelai')}
     <span class="text-neutral-200">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>

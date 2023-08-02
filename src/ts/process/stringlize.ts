@@ -24,34 +24,43 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
 }
 
 function appendWhitespace(prefix:string, seperator:string=" ") {
-    if(!"> \n".includes(prefix[prefix.length-1])){
+    if(prefix && !"> \n".includes(prefix[prefix.length-1])){
         prefix += seperator.includes("\n\n") ? "\n" : " "
     }
     return prefix
 }
-export function stringlizeChatOba(formated:OpenAIChat[], char:string = ''){
+export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=false){
     const db = get(DataBase)
     let resultString:string[] = []
-    let { custom, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
-    if(!custom || !seperator){
+    let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
+    if(!seperator){
         seperator = "\n\n"
     }
 
+    if(header) {
+        resultString.push(header)
+    }
     for(const form of formated){
         if(form.content === "[Start a new chat]"){
             continue
         }
         let prefix = ""
-        if(form.role !== 'system' && form.name){
-            prefix = custom ? appendWhitespace(userPrefix, seperator) : form.name + ": "
+        if(form.role === 'user'){
+            prefix = appendWhitespace(userPrefix, seperator)
         }
-        else if(form.role === 'assistant' && char){
-            prefix = custom ? appendWhitespace(assistantPrefix, seperator) : char + ": "
+        else if(form.role === 'assistant'){
+            prefix = appendWhitespace(assistantPrefix, seperator)
+        }
+        else if(form.role === 'system'){
+            prefix = appendWhitespace(systemPrefix, seperator)
         }
         resultString.push(prefix + form.content)
     }
-    const name = custom ? assistantPrefix : char + ":"
-    resultString.push(name)
+    if (suggesting){
+        resultString.push(appendWhitespace(assistantPrefix, seperator) + "\n" + db.autoSuggestPrefix)
+    } else {
+        resultString.push(assistantPrefix)
+    }
     return resultString.join(seperator)
 }
 
@@ -59,10 +68,10 @@ const userStrings = ["user", "human", "input", "inst", "instruction"]
 function toTitleCase(s:string){
     return s[0].toUpperCase() + s.slice(1).toLowerCase()
 }
-export function getStopStrings(){
+export function getStopStrings(suggesting:boolean=false){
     const db = get(DataBase)
-    let { custom, userPrefix, seperator } = db.ooba.formating;
-    if(!custom || !seperator){
+    let { userPrefix, seperator } = db.ooba.formating;
+    if(!seperator){
         seperator = "\n"
     }
     const { username } = db
@@ -70,11 +79,16 @@ export function getStopStrings(){
         "GPT4 User",
         "</s>",
         "<|end",
+        "<|im_end",
         userPrefix,
+        `\n${username} `,
         `${username}:`,
     ]
     if(seperator !== " "){
         stopStrings.push(seperator + username)
+    }
+    if(suggesting){
+        stopStrings.push("\n\n")
     }
     for (const user of userStrings){
         for (const u of [
@@ -188,7 +202,6 @@ export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
         else{
             resultString.push(form.content)
         }
-        console.log(resultString)
     }
     return resultString.join('\n\n') + `\n\n${char} 「`
 }

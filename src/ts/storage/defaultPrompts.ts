@@ -28,3 +28,15 @@ Out Examples:
 
 Let's read these guidelines step by step three times to be sure we have accurately adhered to the rules.
 `
+export const defaultAutoSuggestPromptOoba = `Write {{user}}'s next responses that meet the following criteria:
+
+1. The purpose, intention, personality, and tendency must be consistent with the previous conversations.
+2. It must contain {{user}}'s response only, NOT {{char}}'s.
+3. The responses should be as diverse as feasible while remaining consistent.
+4. It could be what {{char}} expects or does NOT expect.
+5. It should be interesting and creative while NOT being obvious or boring.
+6. It must make the future development and situation more detailed.
+
+Write 5 possible {{user}}'s next responses in distinct categories.
+Write only one {{user}}'s response per line; each line must start with a hyphen '-'.`
+export const defaultAutoSuggestPrefixOoba = `- "`

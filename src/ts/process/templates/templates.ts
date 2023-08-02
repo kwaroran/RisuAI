@@ -50,9 +50,10 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
       "epsilon_cutoff": 0,
       "eta_cutoff": 0,
       "formating": {
-        "custom": false,
-        "userPrefix": "user:",
-        "assistantPrefix": "assistant:",
+        "header": "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+        "systemPrefix": "### Instruction:",
+        "userPrefix": "### Input:",
+        "assistantPrefix": "### Response:",
         "seperator": "",
         "useName": false
       }
@@ -70,10 +71,10 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
     }
   },
   "ooba":{
-    "mainPrompt": "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\nWrite {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}.",
+    "mainPrompt": "Write {{char}}'s next reply in a fictional roleplay chat between {{user}} and {{char}}.",
     "jailbreak": "",
     "globalNote": "",
-    "temperature": 80,
+    "temperature": 70,
     "maxContext": 4000,
     "maxResponse": 300,
     "frequencyPenalty": 70,
@@ -84,13 +85,13 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
       "description",
       "personaPrompt",
       "lorebook",
-      "chats",
-      "lastChat",
       "globalNote",
-      "authorNote"
+      "authorNote",
+      "chats",
+      "lastChat"
     ],
     "aiModel": "textgen_webui",
-    "subModel": "gpt35",
+    "subModel": "textgen_webui",
     "promptPreprocess": false,
     "bias": [],
     "koboldURL": null,
@@ -119,9 +120,10 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset} = {
       "epsilon_cutoff": 0,
       "eta_cutoff": 0,
       "formating": {
-        "custom": true,
-        "userPrefix": "user:",
-        "assistantPrefix": "assistant:",
+        "header": "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+        "systemPrefix": "### Instruction:",
+        "userPrefix": "### Input:",
+        "assistantPrefix": "### Response:",
         "seperator": "",
         "useName": false
       }

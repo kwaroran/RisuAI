@@ -372,13 +372,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
 
         case "textgen_webui":{
-            let DURL = db.textgenWebUIURL
+            let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
+            let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
-            const proompt = stringlizeChatOba(formated, currentChar?.name ?? '')
-            const stopStrings = getStopStrings()
-            if(!DURL.startsWith("ws") && !DURL.endsWith('generate')){
-                DURL = DURL + "/v1/generate"
-            }
+            const suggesting = model === "submodel"
+            const proompt = stringlizeChatOba(formated, suggesting)
+            const stopStrings = getStopStrings(suggesting)
             console.log(proompt)
             console.log(stopStrings)
             bodyTemplate = {
@@ -404,7 +403,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 prompt: proompt
             }
             if(db.useStreaming && arg.useStreaming){
-                const oobaboogaSocket = new WebSocket(DURL);
+                const oobaboogaSocket = new WebSocket(streamUrl);
                 const statusCode = await new Promise((resolve) => {
                     oobaboogaSocket.onopen = () => resolve(0)
                     oobaboogaSocket.onerror = () => resolve(1001)
@@ -414,7 +413,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     oobaboogaSocket.close()
                     return ({
                         type: "fail",
-                        result: abortSignal.reason || "connection failed",
+                        result: abortSignal.reason || `WebSocket connection failed to '${streamUrl}' failed!`,
                     })
                 }
 
@@ -451,7 +450,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
-            const res = await globalFetch(DURL, {
+            const res = await globalFetch(blockingUrl, {
                 body: bodyTemplate,
                 headers: {},
                 abortSignal
@@ -461,6 +460,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(res.ok){
                 try {
                     let result:string = dat.results[0].text
+                    if(suggesting){
+                        result = "\n" + db.autoSuggestPrefix + result
+                    }
 
                     return {
                         type: 'success',
