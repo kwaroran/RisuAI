@@ -17,12 +17,12 @@
             changeUserPersona(i)
         }}>
             {#if persona.icon === ''}
-                <div class="rounded-md h-20 w-20 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona} />
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona} />
             {:else}
                 {#await getCharImage(persona.icon, 'css')}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}/>
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}/>
                 {:then im} 
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" style={im} class:ring={i === $DataBase.selectedPersona} />                
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === $DataBase.selectedPersona} />                
                 {/await}
             {/if}
         </button>
@@ -61,20 +61,20 @@
     <div class="flex flex-col mt-4">
         <button on:click={() => {selectUserImg()}}>
             {#if $DataBase.userIcon === ''}
-                <div class="rounded-md h-28 w-28 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" />
+                <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
             {:else}
                 {#await getCharImage($DataBase.userIcon, 'css')}
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" />
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
                 {:then im} 
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" style={im} />                
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
                 {/await}
             {/if}
         </button>
     </div>
     <div class="flex flex-grow flex-col p-2 ml-4">
-        <span class="text-sm text-gray-500">{language.name}</span>
+        <span class="text-sm text-textcolor2">{language.name}</span>
         <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username} />
-        <span class="text-sm text-gray-500">{language.description}</span>
+        <span class="text-sm text-textcolor2">{language.description}</span>
         <TextAreaInput height="32" autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div>
             <button class="float-right rounded-md border border-red-700 p-2 hover:bg-red-700 transition-colors mt-4 text-sm" on:click={async () => {

@@ -75,7 +75,7 @@
     {#key sorted}
         {#if globalMode}
             {#if $DataBase.loreBook[$DataBase.loreBookPage].data.length === 0}
-                <span class="text-gray-500">No Lorebook</span>
+                <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each $DataBase.loreBook[$DataBase.loreBookPage].data as book, i}
                     <LoreBookData bind:value={$DataBase.loreBook[$DataBase.loreBookPage].data[i]} idx={i} onRemove={() => {
@@ -87,7 +87,7 @@
             {/if}
         {:else if submenu === 0}
             {#if $DataBase.characters[$selectedCharID].globalLore.length === 0}
-                <span class="text-gray-500">No Lorebook</span>
+                <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each $DataBase.characters[$selectedCharID].globalLore as book, i}
                     <LoreBookData bind:value={$DataBase.characters[$selectedCharID].globalLore[i]} idx={i} onRemove={() => {
@@ -99,7 +99,7 @@
             {/if}
         {:else if submenu === 1}
             {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore.length === 0}
-                <span class="text-gray-500">No Lorebook</span>
+                <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore as book, i}
                     <LoreBookData bind:value={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore[i]} idx={i} onRemove={() => {

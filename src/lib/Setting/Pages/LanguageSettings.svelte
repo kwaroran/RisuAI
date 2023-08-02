@@ -13,7 +13,7 @@
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
-<span class="text-neutral-200 mt-4">{language.UiLanguage}</span>
+<span class="text-textcolor mt-4">{language.UiLanguage}</span>
 <SelectInput className="mt-2" bind:value={$DataBase.language} on:change={async () => {
     if($DataBase.language === 'translang'){
         downloadFile('lang.json', new TextEncoder().encode(JSON.stringify(languageEnglish, null, 4)))
@@ -32,7 +32,7 @@
 {#if langChanged}
     <span class="bg-red-500 text-sm">Close the settings to take effect</span>
 {/if}
-<span class="text-neutral-200 mt-4">{language.translator}</span>
+<span class="text-textcolor mt-4">{language.translator}</span>
 <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translator}>
     <OptionInput value="" >{language.disabled}</OptionInput>
     <OptionInput value="ko" >Korean</OptionInput>

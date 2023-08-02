@@ -12,7 +12,7 @@
     let provider = 0
 </script>
 
-<div class="w-full h-full flex justify-center welcome-bg text-neutral-200">
+<div class="w-full h-full flex justify-center welcome-bg text-textcolor">
     <article class="w-full overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-auto">
         <div class="w-full justify-center flex mt-8">
             <img src="/logo_typo_trans.png" alt="logo" class="w-full max-w-screen-sm  mb-0">
@@ -64,7 +64,7 @@
                         <span class="mb-2">API key</span>
                         <TextInput bind:value={$DataBase.openAIKey} placeholder="API Key" autocomplete="off"/>
                     </div>
-                    <span class="text-gray-400">{language.setup.apiKeyhelp} <a href="https://platform.openai.com/account/api-keys" target="_blank">https://platform.openai.com/account/api-keys</a></span>
+                    <span class="text-textcolor2">{language.setup.apiKeyhelp} <a href="https://platform.openai.com/account/api-keys" target="_blank">https://platform.openai.com/account/api-keys</a></span>
                     <div class="flex flex-col items-start ml-2 mt-6">
                         <button class="hover:text-green-500 transition-colors" on:click={() => {
                             provider = 1

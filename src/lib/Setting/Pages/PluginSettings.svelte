@@ -27,7 +27,7 @@
         <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
         <div class="flex">
             <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
-            <button class="gray-500 hover:gray-200 cursor-pointer" on:click={async () => {
+            <button class="textcolor2 hover:gray-200 cursor-pointer" on:click={async () => {
                 const v = await alertConfirm(language.removeConfirm + (plugin.displayName ?? plugin.name))
                 if(v){
                     if($DataBase.currentPluginProvider === plugin.name){
@@ -61,10 +61,10 @@
         {/if}
     {/each}
 </div>
-<div class="text-gray-500 mt-2 flex">
+<div class="text-textcolor2 mt-2 flex">
     <button on:click={() => {
         importPlugin()  
-    }} class="hover:text-neutral-200 cursor-pointer">
+    }} class="hover:text-textcolor cursor-pointer">
         <PlusIcon />
     </button>
 </div>

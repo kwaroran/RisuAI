@@ -63,8 +63,8 @@
         position: absolute;
         right: 0px;
         top: 0px;
-        border-bottom: 1px solid #6272a4;
-        border-left: 1px solid #6272a4;
+        border-bottom: 1px solid var(--risu-theme-borderc);
+        border-left: 1px solid var(--risu-theme-borderc);
         width: 12rem;
         height: 12rem;
         z-index: 5;
@@ -74,8 +74,8 @@
         position: absolute;
         width: 16px;
         height: 16px;
-        border-top: 1px solid #6272a4;
-        border-right: 1px solid #6272a4;
+        border-top: 1px solid var(--risu-theme-borderc);
+        border-right: 1px solid var(--risu-theme-borderc);
         cursor: sw-resize;
         bottom: 0;
         left: 0;

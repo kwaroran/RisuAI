@@ -53,7 +53,7 @@
 
 <div class="contain w-full max-w-full mt-4 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
     {#if value.length === 0}
-            <div class="text-gray-500">No Scripts</div>
+            <div class="text-textcolor2">No Scripts</div>
     {/if}
     {#key sorted}
         {#each value as customscript, i}

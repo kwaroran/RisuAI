@@ -82,7 +82,7 @@
         {/if}</h1>
     </div>
     {#if $DataBase.account}
-        <span class="mb-4 text-gray-400">ID: {$DataBase.account.id}</span>
+        <span class="mb-4 text-textcolor2">ID: {$DataBase.account.id}</span>
         {#if !isTauri}
             <div class="flex items-center mt-2">
                 {#if $DataBase.account.useSync || forageStorage.isAccount}

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
-import { DataBase, loadedStore, setDatabase, type Database, updateTextTheme, defaultSdDataFunc } from "./database";
+import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database";
 import { appWindow } from "@tauri-apps/api/window";
 import { checkOldDomain, checkUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
@@ -21,6 +21,7 @@ import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
+import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -425,6 +426,7 @@ export async function loadData() {
             }
             await checkNewFormat()
             const db = get(DataBase);
+            updateColorScheme()
             updateTextTheme()
             updateAnimationSpeed()
             if(db.botSettingAtStart){
@@ -441,14 +443,20 @@ export async function loadData() {
 
 const knownHostes = ["localhost","127.0.0.1"]
 
-export function addFetchLog(body:any, headers:any, response:any, success:boolean, url:string){
+export function addFetchLog(arg:{
+    body:any,
+    headers?:{[key:string]:string},
+    response:any,
+    success:boolean,
+    url:string
+}){
     fetchLog.unshift({
-        body: JSON.stringify(body, null, 2),
-        header: JSON.stringify(headers ?? {}, null, 2),
-        response: JSON.stringify(response, null, 2),
-        success: success,
+        body: JSON.stringify(arg.body, null, 2),
+        header: JSON.stringify(arg.headers ?? {}, null, 2),
+        response: JSON.stringify(arg.response, null, 2),
+        success: arg.success,
         date: (new Date()).toLocaleTimeString(),
-        url: url
+        url: arg.url
     })
 }
 

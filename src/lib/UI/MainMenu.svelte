@@ -12,26 +12,26 @@
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !openHub}
-      <h2 class="text-4xl text-white mb-0 mt-6 font-black">RisuAI</h2>
+      <h2 class="text-4xl text-textcolor mb-0 mt-6 font-black">RisuAI</h2>
       {#if (!isTauri) && (!isNodeServer)}
-        <h3 class="text-gray-500 mt-1">Version {appVer}{webAppSubVer}</h3>
+        <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
       {:else}
-        <h3 class="text-gray-500 mt-1">Version {appVer}</h3>
+        <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
       {/if}
       <GithubStars />
     {/if}
-    <div class="w-full flex p-4 flex-col text-white max-w-4xl">
+    <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !openHub}
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
           openURL("https://github.com/kwaroran/RisuAI/wiki")
         }}>
           <h1 class="text-2xl font-bold text-start">{language.officialWiki}</h1>
-          <span class="mt-2 text-gray-400 text-start">{language.officialWikiDesc}</span>
+          <span class="mt-2 text-textcolor2 text-start">{language.officialWikiDesc}</span>
         </button>
         <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {openURL("https://discord.gg/JzP8tB9ZK8")}}>
           <h1 class="text-2xl font-bold text-start">{language.officialDiscord}</h1>
-          <span class="mt-2 text-gray-400 text-start">{language.officialDiscordDesc}</span>
+          <span class="mt-2 text-textcolor2 text-start">{language.officialDiscordDesc}</span>
         </button>
       </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
@@ -52,15 +52,15 @@
                   {/each}
               </div>
             {:else}
-              <div class="text-gray-500">Failed to load {language.hub}...</div>
+              <div class="text-textcolor2">Failed to load {language.hub}...</div>
             {/if}
           {/await}
         {:else}
-          <div class="text-gray-500">{language.hideRealm}</div>
+          <div class="text-textcolor2">{language.hideRealm}</div>
         {/if}
       {:else}
         <div class="flex items-center mt-4">
-          <button class="mr-2 text-gray-400 hover:text-green-500" on:click={() => (openHub = false)}>
+          <button class="mr-2 text-textcolor2 hover:text-green-500" on:click={() => (openHub = false)}>
             <ArrowLeft/>
           </button>
         </div>

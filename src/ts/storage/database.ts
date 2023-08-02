@@ -9,6 +9,7 @@ import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from '.
 import { alertNormal } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets } from '../process/templates/templates';
+import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -294,6 +295,8 @@ export function setDatabase(data:Database){
     data.NAIsettings ??= cloneDeep(prebuiltNAIpresets)
     data.assetWidth ??= -1
     data.animationSpeed ??= 0.4
+    data.colorScheme ??= cloneDeep(defaultColorScheme)
+    data.colorSchemeName ??= 'default'
     
     changeLanguage(data.language)
     DataBase.set(data)
@@ -604,6 +607,8 @@ export interface Database{
     botSettingAtStart:false
     NAIsettings:NAISettings
     hideRealm:boolean
+    colorScheme:ColorScheme
+    colorSchemeName:string
 }
 
 interface hordeConfig{
@@ -787,37 +792,6 @@ const defaultSdData:[string,string][] = [
 
 export const defaultSdDataFunc = () =>{
     return cloneDeep(defaultSdData)
-}
-
-export function updateTextTheme(){
-    let db = get(DataBase)
-    const root = document.querySelector(':root') as HTMLElement;
-    if(!root){
-        return
-    }
-    switch(db.textTheme){
-        case "standard":{
-            root.style.setProperty('--FontColorStandard', '#fafafa');
-            root.style.setProperty('--FontColorItalic', '#8C8D93');
-            root.style.setProperty('--FontColorBold', '#fafafa');
-            root.style.setProperty('--FontColorItalicBold', '#8C8D93');
-            break
-        }
-        case "highcontrast":{
-            root.style.setProperty('--FontColorStandard', '#f8f8f2');
-            root.style.setProperty('--FontColorItalic', '#F1FA8C');
-            root.style.setProperty('--FontColorBold', '#8BE9FD');
-            root.style.setProperty('--FontColorItalicBold', '#FFB86C');
-            break
-        }
-        case "custom":{
-            root.style.setProperty('--FontColorStandard', db.customTextTheme.FontColorStandard);
-            root.style.setProperty('--FontColorItalic', db.customTextTheme.FontColorItalic);
-            root.style.setProperty('--FontColorBold', db.customTextTheme.FontColorBold);
-            root.style.setProperty('--FontColorItalicBold', db.customTextTheme.FontColorItalicBold);
-            break
-        }
-    }
 }
 
 export function saveCurrentPreset(){

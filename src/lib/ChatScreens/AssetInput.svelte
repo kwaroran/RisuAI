@@ -28,7 +28,7 @@
     }
 </script>
 {#if currentCharacter.type ==='character'}
-    <button class="hover:text-green-500 bg-gray-500 flex justify-center items-center w-16 h-16 m-1 rounded-md" on:click={async () => {
+    <button class="hover:text-green-500 bg-textcolor2 flex justify-center items-center w-16 h-16 m-1 rounded-md" on:click={async () => {
         if(currentCharacter.type === 'character'){
             const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
             currentCharacter.additionalAssets = currentCharacter.additionalAssets ?? []

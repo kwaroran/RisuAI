@@ -120,7 +120,7 @@
                 <span>
                     Menu
                 </span>
-                <button class="float-right text-gray-400 hover:text-green-500" on:click={() => {menuOpen = false}}>
+                <button class="float-right text-textcolor2 hover:text-green-500" on:click={() => {menuOpen = false}}>
                     <XIcon />
                 </button>
             </h1>

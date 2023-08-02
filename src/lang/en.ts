@@ -399,4 +399,5 @@ export const languageEnglish = {
     ifRandom: "If random",
     hideRealm: "Hide RisuRealm",
     popularityLevel: "{} Popularity",
+    colorScheme: "Color Scheme",
 }

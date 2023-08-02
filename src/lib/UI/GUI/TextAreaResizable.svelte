@@ -29,7 +29,7 @@
         resize: none;
         box-sizing: border-box;
         background: transparent;
-        color: white;
+        color: var(--risu-theme-textcolor);
         border: 1px solid rgba(98, 114, 164, 0.5);
         max-width: calc(95% - 2rem);
         padding: 1rem;
