@@ -400,7 +400,11 @@
             {/if}
 
             {#if $DataBase.useAutoSuggestions}
-                <Suggestion messageInput={(msg)=>messageInput=msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')} {send}/>
+                <Suggestion messageInput={(msg)=>messageInput=(
+                    $DataBase.subModel === "textgen_webui" && $DataBase.autoSuggestClean
+                    ? msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')
+                    : msg
+                )} {send}/>
             {/if}
             
             {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
