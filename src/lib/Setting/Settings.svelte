@@ -35,81 +35,117 @@
                 <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={selected === 1}
                     class:text-textcolor2={selected !== 1}
-                on:click={() => {
-                    selected = 1
+                    on:click={() => {
+                        selected = 1
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
                 </button>
                 {#if $DataBase.promptTemplate}
-                    <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 13} on:click={() => {
+                    <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 13}
+                    class:text-textcolor2={selected !== 13}
+                    on:click={() => {
                         selected = 13
-                    }}>
+                }}>
                         <BotIcon />
                         <span>{language.prompt}</span>
                     </button>
                 {/if}
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 12} on:click={() => {
-                    selected = 12
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 12}
+                    class:text-textcolor2={selected !== 12}
+                    on:click={() => {
+                        selected = 12
                 }}>
                     <ContactIcon />
                     <span>{language.persona}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 2} on:click={() => {
-                    selected = 2
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 2}
+                    class:text-textcolor2={selected !== 2}
+                    on:click={() => {
+                        selected = 2
                 }}>
                     <Sailboat />
                     <span>{language.otherBots}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 3} on:click={() => {
-                    selected = 3
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 3}
+                    class:text-textcolor2={selected !== 3}
+                    on:click={() => {
+                        selected = 3
                 }}>
                     <MonitorIcon />
                     <span>{language.display}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 10} on:click={() => {
-                    selected = 10
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 10}
+                    class:text-textcolor2={selected !== 10}
+                    on:click={() => {
+                        selected = 10
                 }}>
                     <LanguagesIcon />
                     <span>{language.language}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 11} on:click={() => {
-                    selected = 11
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 11}
+                    class:text-textcolor2={selected !== 11}
+                    on:click={() => {
+                        selected = 11
                 }}>
                     <AccessibilityIcon />
                     <span>{language.accessibility}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 8} on:click={() => {
-                    selected = 8
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 8}
+                    class:text-textcolor2={selected !== 8}
+                    on:click={() => {
+                        selected = 8
                 }}>
                     <BookIcon />
                     <span>{language.globalLoreBook}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 9} on:click={() => {
-                    selected = 9
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 9}
+                    class:text-textcolor2={selected !== 9}
+                    on:click={() => {
+                        selected = 9
                 }}>
                     <AlignLeft />
                     <span>{language.globalRegexScript}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 4} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 4}
+                    class:text-textcolor2={selected !== 4}
+                    on:click={() => {
                     selected = 4
                 }}>
                     <CodeIcon />
                     <span>{language.plugin}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 0} on:click={() => {
-                    selected = 0
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 0}
+                    class:text-textcolor2={selected !== 0}
+                    on:click={() => {
+                        selected = 0
                 }}>
                     <UserIcon />
                     <span>{language.account} & {language.files}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 6} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 6}
+                    class:text-textcolor2={selected !== 6}
+                    on:click={() => {
                     selected = 6
                 }}>
                     <ActivityIcon />
                     <span>{language.advancedSettings}</span>
                 </button>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 7} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 7}
+                    class:text-textcolor2={selected !== 7}
+                    on:click={() => {
                     selected = 7
                 }}>
                     <BoxIcon />
