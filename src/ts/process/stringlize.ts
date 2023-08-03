@@ -47,11 +47,11 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string=''
         let prefix = ""
         let name = ""
         if(form.role === 'user'){
-            prefix = appendWhitespace(userPrefix, seperator)
+            prefix = appendWhitespace(suggesting ? assistantPrefix : userPrefix, seperator)
             name = `${db.username}: `
         }
         else if(form.role === 'assistant'){
-            prefix = appendWhitespace(assistantPrefix, seperator)
+            prefix = appendWhitespace(suggesting ? userPrefix : assistantPrefix, seperator)
             name = `${characterName}: `
         }
         else if(form.role === 'system'){
@@ -60,7 +60,7 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string=''
         resultString.push(prefix + name + form.content)
     }
     if (suggesting){
-        resultString.push(appendWhitespace(assistantPrefix, seperator) + "\n" + db.autoSuggestPrefix)
+        resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
     } else {
         resultString.push(assistantPrefix + `${characterName}:`)
     }

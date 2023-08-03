@@ -77,14 +77,14 @@
 
             if($DataBase.subModel === "textgen_webui"){
                 promptbody = [
-                    ...lastMessages.map(({ role, data }) => ({
-                        role: role === "user" ? "user" as const : "assistant" as const,
-                        content: data,
-                    })),
                     {
                         role: 'system',
                         content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
                     },
+                    ...lastMessages.map(({ role, data }) => ({
+                        role: role === "user" ? "user" as const : "assistant" as const,
+                        content: data,
+                    })),
                 ]
             }
 
