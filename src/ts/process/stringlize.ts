@@ -84,9 +84,7 @@ export function getStopStrings(suggesting:boolean=false){
         "<|end",
         "<|im_end",
         userPrefix,
-        `*You '`,
-        `\nYou '`,
-        ` You '`,
+        "\nYou ",
         `*${username}'`,
         `*${username} `,
         `\n${username} `,
@@ -97,6 +95,10 @@ export function getStopStrings(suggesting:boolean=false){
     }
     if(suggesting){
         stopStrings.push("\n\n")
+    }
+    if(!suggesting){
+        stopStrings.push("*You ")
+        stopStrings.push(" You ")
     }
     for (const user of userStrings){
         for (const u of [
