@@ -10,7 +10,8 @@ export const languageEnglish = {
         'authorNote': "Author's Note",
         'lastChat': "Last Chat",
         "description": "Character Description",
-        'personaPrompt':'Persona Prompt'
+        'personaPrompt':'Persona Prompt',
+        'plain': "Plain Prompt",
     },
     errors:{
         toomuchtoken: 'Error: The minimum required token is greater than the Max Context Size.',
@@ -400,4 +401,8 @@ export const languageEnglish = {
     hideRealm: "Hide RisuRealm",
     popularityLevel: "{} Popularity",
     colorScheme: "Color Scheme",
+    rangeStart: "Range Start",
+    rangeEnd: "Range End",
+    untilChatEnd: "Until Chat End",
+    usePromptTemplate: "Use Prompt Template",
 }

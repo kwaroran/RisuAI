@@ -417,7 +417,17 @@
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
     </div>
-
+    <div class="flex items-center mt-4">
+        {#if $DataBase.promptTemplate}
+            <Check check={true} name={language.usePromptTemplate} onChange={()=>{
+                $DataBase.promptTemplate = undefined
+            }}/>
+        {:else}
+            <Check check={false} name={language.usePromptTemplate} onChange={() => {
+                $DataBase.promptTemplate = []
+            }}/>
+        {/if}
+    </div>
 <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 
 {/if}

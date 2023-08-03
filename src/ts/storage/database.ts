@@ -10,6 +10,7 @@ import { alertNormal } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
+import type { Proompt } from '../process/proompt';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -609,6 +610,7 @@ export interface Database{
     hideRealm:boolean
     colorScheme:ColorScheme
     colorSchemeName:string
+    promptTemplate?:Proompt[]
 }
 
 interface hordeConfig{

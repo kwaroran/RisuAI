@@ -17,6 +17,8 @@
     import LanguageSettings from "./Pages/LanguageSettings.svelte";
     import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
     import PersonaSettings from "./Pages/PersonaSettings.svelte";
+  import PromptSettings from "./Pages/PromptSettings.svelte";
+  import { DataBase } from "src/ts/storage/database";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
@@ -30,12 +32,23 @@
         {#if window.innerWidth >= 700 || selected === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
-                <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 1} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 1}
+                    class:text-textcolor2={selected !== 1}
+                on:click={() => {
                     selected = 1
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
                 </button>
+                {#if $DataBase.promptTemplate}
+                    <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 13} on:click={() => {
+                        selected = 13
+                    }}>
+                        <BotIcon />
+                        <span>{language.prompt}</span>
+                    </button>
+                {/if}
                 <button class="text-textcolor2 flex gap-2 items-center hover:text-textcolor" class:text-textcolor={selected === 12} on:click={() => {
                     selected = 12
                 }}>
@@ -137,6 +150,8 @@
                     <AccessibilitySettings/>
                 {:else if selected === 12}
                     <PersonaSettings/>
+                {:else if selected === 13}
+                    <PromptSettings/>
                 {/if}
             </div>
             <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
