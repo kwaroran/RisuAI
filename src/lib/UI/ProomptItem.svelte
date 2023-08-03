@@ -38,8 +38,8 @@
         <TextAreaInput bind:value={proompt.text} />
         <span>{language.role}</span>
         <SelectInput bind:value={proompt.role}>
-            <OptionInput value="plain">{language.user}</OptionInput>
-            <OptionInput value="jailbreak">{language.character}</OptionInput>
+            <OptionInput value="user">{language.user}</OptionInput>
+            <OptionInput value="bot">{language.character}</OptionInput>
             <OptionInput value="system">{language.systemPrompt}</OptionInput>
         </SelectInput>
     {/if}
