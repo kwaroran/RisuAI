@@ -1,5 +1,5 @@
 <input
-    class="text-neutral-200 bg-transparent input-text"
+    class="text-textcolor bg-transparent input-text"
     class:mb-4={marginBottom}
     type="range"
     min={min}
@@ -11,7 +11,7 @@
 
 <!-- <div class="p-6 max-w-sm mx-auto bg-gray-800 rounded-xl shadow-md flex items-center space-x-4 w-full" class:mb-4={marginBottom}>
     <div 
-      class="relative w-full h-2 bg-gray-700 rounded-full cursor-pointer"
+      class="relative w-full h-2 bg-darkbutton rounded-full cursor-pointer"
       on:click={changeValue}
     >
       <div 

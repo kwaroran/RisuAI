@@ -1,6 +1,6 @@
 {#if optimaizedInput}
     <textarea 
-        class={"border border-gray-600 n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-white bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
         class:text-sm={size === 'sm'}
         class:text-md={size === 'md'}
         class:text-lg={size === 'lg'}
@@ -14,6 +14,7 @@
         class:mt-2={margin === 'both'}
         class:w-full={fullwidth}
         class:h-20={height === '20'}
+        class:h-24={height === '24'}
         class:h-32={height === '32'}
         class:h-full={height === 'full'}
         class:min-h-20={height === '20'}
@@ -36,7 +37,7 @@
     />
 {:else}
     <textarea 
-        class={"border border-gray-600 n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-white bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
         class:text-sm={size === 'sm'}
         class:text-md={size === 'md'}
         class:text-lg={size === 'lg'}
@@ -50,6 +51,7 @@
         class:mt-2={margin === 'both'}
         class:w-full={fullwidth}
         class:h-20={height === '20'}
+        class:h-24={height === '24'}
         class:h-32={height === '32'}
         class:h-full={height === 'full'}
         class:min-h-20={height === '20'}
@@ -71,7 +73,7 @@
     export let margin:"none"|"top"|"bottom"|"both" = "none"
     export let onInput = () => {}
     export let fullwidth = false
-    export let height:'20'|'32'|'full' = '20'
+    export let height:'20'|'24'|'32'|'full' = '20'
     export let additionalClass = ''
     export let optimaizedInput = true
     let inpa = 0

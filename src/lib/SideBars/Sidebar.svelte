@@ -328,7 +328,7 @@
 </script>
 
 <div
-  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-white shadow-lg relative"
+  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative"
   class:editMode
   class:risu-sub-sidebar={$sideBarClosing}
   class:risu-sub-sidebar-close={$sideBarClosing}
@@ -336,12 +336,12 @@
   class:flex={!hidden}
 >
   <button
-    class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer mt-2 items-center justify-center rounded-md bg-gray-500 transition-colors hover:bg-green-500"
+    class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer text-white mt-2 items-center justify-center rounded-md bg-textcolor2 transition-colors hover:bg-green-500"
     on:click={() => {
       menuMode = 1 - menuMode;
     }}><ListIcon />
   </button>
-  <div class="mt-2 border-b border-b-selected w-full relative">
+  <div class="mt-2 border-b border-b-selected w-full relative text-white ">
     {#if menuMode === 1}
       <div class="absolute w-20 min-w-20 flex border-b-selected border-b bg-bgcolor flex-col items-center pt-2 rounded-b-md z-20 pb-2">
         <BarIcon
@@ -585,7 +585,7 @@
   </div>
 </div>
 <div
-  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-gray-200 max-h-full"
+  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
   class:risu-sidebar={!$sideBarClosing}
   class:risu-sidebar-close={$sideBarClosing}
   class:minw96={!$DynamicGUI}
@@ -602,7 +602,7 @@
   }}
 >
   <button
-    class="flex w-full justify-end text-gray-200"
+    class="flex w-full justify-end text-textcolor"
     on:click={async () => {
       if($sideBarClosing){
         return
@@ -610,18 +610,18 @@
       $sideBarClosing = true;
     }}
   >
-    <!-- <button class="border-none bg-transparent p-0 text-gray-200"><X /></button> -->
+    <!-- <button class="border-none bg-transparent p-0 text-textcolor"><X /></button> -->
   </button>
   {#if sideBarMode === 0}
     {#if $selectedCharID < 0 || $settingsOpen}
       <div>
         <h1 class="text-xl">Welcome to RisuAI!</h1>
-        <span class="text-xs text-gray-400">Select a bot to start chating</span>
+        <span class="text-xs text-textcolor2">Select a bot to start chating</span>
       </div>
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
-        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-gray-500={$botMakerMode}>{language.Chat}</button>
-        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-gray-500={!$botMakerMode}>{language.character}</button>
+        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode}>{language.Chat}</button>
+        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode}>{language.character}</button>
       </div>
       {#if $botMakerMode}
         <CharConfig />

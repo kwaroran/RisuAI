@@ -38,16 +38,16 @@
 
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-2 bg-darkbg max-w-full w-2xl flex items-center flex-col ">
-        <h1 class="text-neutral-200 text-2xl font-bold mt-2">Catalog</h1>
+        <h1 class="text-textcolor text-2xl font-bold mt-2">Catalog</h1>
         <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off" marginBottom={true}/>
         <div class="w-full flex justify-center">
             <div class="flex flex-wrap gap-2 mx-auto container">
                 {#each formatChars(search) as char}
-                    <div class="flex items-center text-neutral-200">
+                    <div class="flex items-center text-textcolor">
                         {#if char.image}
                             <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
                         {:else}
-                            <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={char.index === $selectedCharID ? 'background:#44475a' : ''}>
+                            <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={char.index === $selectedCharID ? 'background:var(--risu-theme-selected)' : ''}>
                                 {#if char.type === 'group'}
                                     <Users />
                                 {:else}

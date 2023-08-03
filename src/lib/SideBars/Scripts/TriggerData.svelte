@@ -46,9 +46,9 @@
     </div>
     {#if open}
         <div class="seperator p-2">
-            <span class="text-neutral-200 mt-6">{language.name}</span>
+            <span class="text-textcolor mt-6">{language.name}</span>
             <TextInput size="sm" bind:value={value.comment} />
-            <span class="text-neutral-200 mt-4">{language.type}</span>
+            <span class="text-textcolor mt-4">{language.type}</span>
             <SelectInput bind:value={value.type}>
                 <OptionInput value="start">{language.triggerStart}</OptionInput>
                 <OptionInput value="output">{language.triggerOutput}</OptionInput>
@@ -56,8 +56,8 @@
                 <OptionInput value="manual">{language.triggerManual}</OptionInput>
             </SelectInput>
             
-            <span class="text-neutral-200 mt-4">Conditions
-                <button aria-labelledby="Add Conditions" class="float-right text-gray-400 hover:text-green-500" on:click={() => {
+            <span class="text-textcolor mt-4">Conditions
+                <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
                     value.conditions.push({
                         type: 'exists',
                         value: '',
@@ -70,14 +70,14 @@
             </span>
             <div class="flex flex-col px-2 py-4 border border-selected rounded-md">
                 {#if value.conditions.length === 0}
-                    <span class="text-gray-500 text-sm">{language.always}</span>
+                    <span class="text-textcolor2 text-sm">{language.always}</span>
                 {/if}
                 {#each value.conditions as cond,i}
                     {#if i > 0}
                         <hr class="border-selected my-4" />
                     {/if}
-                    <span class="text-gray-400 text-sm">{language.type}
-                        <button aria-labelledby="Add Conditions" class="float-right text-gray-400 hover:text-green-500" on:click={() => {
+                    <span class="text-textcolor2 text-sm">{language.type}
+                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
                             value.conditions.splice(i, 1)
                             value.conditions = value.conditions
         
@@ -121,18 +121,18 @@
                             <OptionInput value="strict">{language.triggerMatchStrict}</OptionInput>
                             <OptionInput value="regex">{language.triggerMatchRegex}</OptionInput>
                         </SelectInput>
-                        <span  class="text-gray-400 text-sm">{language.value}</span>
+                        <span  class="text-textcolor2 text-sm">{language.value}</span>
                         <TextInput size="sm" bind:value={cond.value} />
 
-                        <span  class="text-gray-400 text-sm">{language.searchDepth}</span>
+                        <span  class="text-textcolor2 text-sm">{language.searchDepth}</span>
                         <NumberInput size="sm" bind:value={cond.depth} />
                     {/if}
                     {#if cond.type === 'var' || cond.type === 'chatindex'}
                         {#if cond.type === 'var'}
-                            <span class="text-gray-400 text-sm">{language.varableName}</span>
+                            <span class="text-textcolor2 text-sm">{language.varableName}</span>
                             <TextInput size="sm" bind:value={cond.var} />
                         {/if}
-                        <span  class="text-gray-400 text-sm">{language.value}</span>
+                        <span  class="text-textcolor2 text-sm">{language.value}</span>
                         <SelectInput bind:value={cond.operator} size="sm">
                             <OptionInput value="=">{language.equal}</OptionInput>
                             <OptionInput value="!=">{language.notEqual}</OptionInput>
@@ -150,8 +150,8 @@
                 {/each}
             </div>
 
-            <span class="text-neutral-200 mt-4">Effects
-                <button aria-labelledby="Add Effects" class="float-right text-gray-400 hover:text-green-500" on:click={() => {
+            <span class="text-textcolor mt-4">Effects
+                <button aria-labelledby="Add Effects" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
                     if(value.type === 'start'){
                         value.effect.push({
                             type: 'systemprompt',
@@ -174,14 +174,14 @@
 
             <div class="flex flex-col px-2 py-4 border border-selected rounded-md">
                 {#if value.effect.length === 0}
-                    <span class="text-gray-500 text-sm">{language.noEffect}</span>
+                    <span class="text-textcolor2 text-sm">{language.noEffect}</span>
                 {/if}
                 {#each value.effect as effect,i}
                     {#if i > 0}
                         <hr class="border-selected my-4" />
                     {/if}
-                    <span class="text-gray-400 text-sm">{language.type}
-                        <button aria-labelledby="Add Conditions" class="float-right text-gray-400 hover:text-green-500" on:click={() => {
+                    <span class="text-textcolor2 text-sm">{language.type}
+                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
                             value.effect.splice(i, 1)
                             value.effect = value.effect
         
@@ -222,19 +222,19 @@
                         {#if value.type !== 'start'}
                             <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
                         {/if}
-                        <span class="text-gray-400 text-sm">{language.location}</span>
+                        <span class="text-textcolor2 text-sm">{language.location}</span>
                         <SelectInput bind:value={effect.location} size="sm">
                             <OptionInput value="start">{language.promptstart}</OptionInput>
                             <OptionInput value="historyend">{language.historyend}</OptionInput>
                             <OptionInput value="promptend">{language.promptend}</OptionInput>
                         </SelectInput>
-                        <span class="text-gray-400 text-sm">{language.value}</span>
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextAreaInput size="sm" bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'setvar'}
-                        <span class="text-gray-400 text-sm">{language.varableName}</span>
+                        <span class="text-textcolor2 text-sm">{language.varableName}</span>
                         <TextInput size="sm" bind:value={effect.var} />
-                        <span class="text-gray-400 text-sm">{language.operator}</span>
+                        <span class="text-textcolor2 text-sm">{language.operator}</span>
                         <SelectInput bind:value={effect.operator} size="sm">
                             <OptionInput value="=">{language.TriggerSetToVar}</OptionInput>
                             <OptionInput value="+=">{language.TriggerAddToVar}</OptionInput>
@@ -242,16 +242,16 @@
                             <OptionInput value="*=">{language.TriggerMulToVar}</OptionInput>
                             <OptionInput value="/=">{language.TriggerDivToVar}</OptionInput>
                         </SelectInput>
-                        <span class="text-gray-400 text-sm">{language.value}</span>
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextInput size="sm" bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'impersonate'}
-                        <span class="text-gray-400 text-sm">{language.role}</span>
+                        <span class="text-textcolor2 text-sm">{language.role}</span>
                         <SelectInput bind:value={effect.role} size="sm">
                             <OptionInput value="user">{language.user}</OptionInput>
                             <OptionInput value="char">{language.character}</OptionInput>
                         </SelectInput>
-                        <span class="text-gray-400 text-sm">{language.value}</span>
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextAreaInput size="sm" bind:value={effect.value} />
                     {/if}
                 {/each}

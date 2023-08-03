@@ -1,5 +1,5 @@
 <input 
-    class={"border border-gray-600 focus:border-borderc rounded-md shadow-sm text-white bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
     class:text-sm={size === 'sm'}
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}

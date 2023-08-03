@@ -140,24 +140,24 @@
 
 {#if licensed !== 'private'}
     <div class="flex gap-2 mb-2">
-        <button class={subMenu === 0 ? 'text-gray-200 ' : 'text-gray-500'} on:click={() => {subMenu = 0}}>
+        <button class={subMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {subMenu = 0}}>
             <UserIcon />
         </button>
-        <button class={subMenu === 1 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 1}}>
+        <button class={subMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 1}}>
             <SmileIcon />
         </button>
-        <button class={subMenu === 3 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 3}}>
+        <button class={subMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 3}}>
             <BookIcon />
         </button>
         {#if currentChar.type === 'character'}
-            <button class={subMenu === 5 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 5}}>
+            <button class={subMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 5}}>
                 <Volume2Icon />
             </button>
-            <button class={subMenu === 4 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 4}}>
+            <button class={subMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 4}}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={subMenu === 2 ? 'text-gray-200' : 'text-gray-500'} on:click={() => {subMenu = 2}}>
+        <button class={subMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 2}}>
             <ActivityIcon />
         </button>
     </div>
@@ -167,19 +167,19 @@
 {#if subMenu === 0}
     {#if currentChar.type !== 'group' && licensed !== 'private'}
         <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
-        <span class="text-neutral-200">{language.description} <Help key="charDesc"/></span>
+        <span class="text-textcolor">{language.description} <Help key="charDesc"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.desc}></TextAreaInput>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.desc} {language.tokens}</span>
-        <span class="text-neutral-200">{language.firstMessage} <Help key="charFirstMessage"/></span>
+        <span class="text-textcolor2 mb-6 text-sm">{tokens.desc} {language.tokens}</span>
+        <span class="text-textcolor">{language.firstMessage} <Help key="charFirstMessage"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.firstMessage}></TextAreaInput>
-        <span class="text-gray-400 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
+        <span class="text-textcolor2 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
 
     {:else if licensed !== 'private' && currentChar.type === 'group'}
         <TextInput size="xl" marginBottom placeholder="Group Name" bind:value={currentChar.data.name} />
-        <span class="text-neutral-200">{language.character}</span>
+        <span class="text-textcolor">{language.character}</span>
         <div class="p-4 gap-2 bg-bgcolor rounded-lg char-grid">
             {#if currentChar.data.characters.length === 0}
-                <span class="text-gray-500">No Character</span>
+                <span class="text-textcolor2">No Character</span>
             {:else}
                 <div></div>
                 <div class="text-center">{language.talkness}</div>
@@ -217,16 +217,16 @@
                 {/each}
             {/if}
         </div>
-        <div class="text-gray-500 mt-1 flex mb-6">
-            <button on:click={addGroupChar} class="hover:text-neutral-200 cursor-pointer">
+        <div class="text-textcolor2 mt-1 flex mb-6">
+            <button on:click={addGroupChar} class="hover:text-textcolor cursor-pointer">
                 <PlusIcon />
             </button>
         </div>
 
     {/if}
-    <span class="text-neutral-200">{language.authorNote} <Help key="chatNote"/></span>
+    <span class="text-textcolor">{language.authorNote} <Help key="chatNote"/></span>
     <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></TextAreaInput>
-    <span class="text-gray-400 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
     </div>
@@ -267,15 +267,15 @@
     })()}
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
-    <span class="text-neutral-200 mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
+    <span class="text-textcolor mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
     <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
         {#if currentChar.data.image === ''}
-            <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" />
+            <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
         {:else}
             {#await getCharImage(currentChar.data.image, 'css')}
-                <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500"></div>
+                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
             {:then im}
-                <div class="rounded-md h-32 w-32 shadow-lg bg-gray-500 cursor-pointer hover:text-green-500" style={im} />                
+                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
             {/await}
         {/if}
     </button>
@@ -289,7 +289,7 @@
     {/if}
 
 
-    <span class="text-neutral-200 mt-6 mb-2">{language.viewScreen}</span>
+    <span class="text-textcolor mt-6 mb-2">{language.viewScreen}</span>
     <!-- svelte-ignore empty-block -->
 
     {#if currentChar.type !== 'group'}
@@ -309,8 +309,8 @@
     {/if}
 
     {#if currentChar.data.viewScreen === 'emotion'}
-        <span class="text-neutral-200 mt-6">{language.emotionImage} <Help key="emotion"/></span>
-        <span class="text-gray-400 text-xs">{language.emotionWarn}</span>
+        <span class="text-textcolor mt-6">{language.emotionImage} <Help key="emotion"/></span>
+        <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
 
         <div class="w-full max-w-full border border-selected p-2 rounded-md">
 
@@ -322,7 +322,7 @@
                 </tr>
                 {#if currentChar.data.emotionImages.length === 0}
                     <tr>
-                        <div class="text-gray-500">{language.noImages}</div>
+                        <div class="text-textcolor2">{language.noImages}</div>
                     </tr>
                 {:else}
                     {#each emos as emo, i}
@@ -345,7 +345,7 @@
 
         </div>
 
-        <div class="text-gray-500 hover:text-neutral-200 mt-2 flex">
+        <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
             {#if !$addingEmotion}
                 <button class="cursor-pointer hover:text-green-500" on:click={() => {addCharEmotion($selectedCharID)}}>
                     <PlusIcon />
@@ -356,8 +356,8 @@
         </div>
     {/if}
     {#if currentChar.data.viewScreen === 'imggen'}
-        <span class="text-neutral-200 mt-6">{language.imageGeneration} <Help key="imggen"/></span>
-        <span class="text-gray-400 text-xs">{language.emotionWarn}</span>
+        <span class="text-textcolor mt-6">{language.imageGeneration} <Help key="imggen"/></span>
+        <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
         
         <div class="w-full max-w-full border border-selected rounded-md p-2">
             <table class="w-full max-w-full tabler">
@@ -368,7 +368,7 @@
                 </tr>
                 {#if currentChar.data.sdData.length === 0}
                     <tr>
-                        <div class="text-gray-500">{language.noData}</div>
+                        <div class="text-textcolor2">{language.noData}</div>
                     </tr>
                 {/if}
                 {#each currentChar.data.sdData as emo, i}
@@ -397,7 +397,7 @@
                 {/each}
             </table>
         </div>
-        <div class="text-gray-500 hover:text-neutral-200 mt-2 flex">
+        <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
             {#if !$addingEmotion}
                 <button class="cursor-pointer hover:text-green-500" on:click={() => {
                     let db = ($DataBase)
@@ -415,11 +415,11 @@
                 <span>Loading...</span>
             {/if}
         </div>
-        <span class="text-neutral-200 mt-6">{language.currentImageGeneration}</span>
+        <span class="text-textcolor mt-6">{language.currentImageGeneration}</span>
         {#if currentChar.data.chats[currentChar.data.chatPage].sdData}
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].sdData}></TextAreaInput>
         {:else}
-            <span><div class="text-gray-500">{language.noData}</div></span>
+            <span><div class="text-textcolor2">{language.noData}</div></span>
         {/if}
     {/if}
 {:else if subMenu === 3}
@@ -429,7 +429,7 @@
     {#if currentChar.type === 'character'}
         <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
 
-        <span class="text-neutral-200 mt-2">Bias <Help key="bias"/></span>
+        <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
 
         <table class="w-full max-w-full tabler mt-2">
@@ -448,7 +448,7 @@
             </tr>
             {#if currentChar.data.bias.length === 0}
                 <tr>
-                    <div class="text-gray-500"> {language.noBias}</div>
+                    <div class="text-textcolor2"> {language.noBias}</div>
                 </tr>
             {/if}
             {#each currentChar.data.bias as bias, i}
@@ -475,7 +475,7 @@
 
         </div>
 
-        <span class="text-neutral-200 mt-4">{language.regexScript} <Help key="regexScript"/></span>
+        <span class="text-textcolor mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <RegexList bind:value={currentChar.data.customscript} />
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
@@ -490,7 +490,7 @@
             }
         }}><PlusIcon /></button>
 
-        <span class="text-neutral-200 mt-4">{language.triggerScript} <Help key="regexScript"/></span>
+        <span class="text-textcolor mt-4">{language.triggerScript} <Help key="regexScript"/></span>
         <TriggerList bind:value={currentChar.data.triggerscript} />
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
@@ -508,7 +508,7 @@
 {:else if subMenu === 5}
     {#if currentChar.type === 'character'}
         <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
-        <span class="text-neutral-200">{language.provider}</span>
+        <span class="text-textcolor">{language.provider}</span>
         <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={() => {
             if(currentChar.type === 'character'){
                 currentChar.data.ttsSpeech = ''
@@ -523,9 +523,9 @@
 
         {#if currentChar.data.ttsMode === 'webspeech'}
             {#if !speechSynthesis}
-                <span class="text-neutral-200">Web Speech isn't supported in your browser or OS</span>
+                <span class="text-textcolor">Web Speech isn't supported in your browser or OS</span>
             {:else}
-                <span class="text-neutral-200">{language.Speech}</span>
+                <span class="text-textcolor">{language.Speech}</span>
                 <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsSpeech}>
                     <OptionInput value="">Auto</OptionInput>
                     {#each getWebSpeechTTSVoices() as voice}
@@ -537,9 +537,9 @@
                 {/if}
             {/if}
         {:else if currentChar.data.ttsMode === 'elevenlab'}
-            <span class="text-sm mb-2 text-gray-400">Please set the ElevenLabs API key in "global Settings → Bot Settings → Others → ElevenLabs API key"</span>
+            <span class="text-sm mb-2 text-textcolor2">Please set the ElevenLabs API key in "global Settings → Bot Settings → Others → ElevenLabs API key"</span>
             {#await getElevenTTSVoices() then voices}
-                <span class="text-neutral-200">{language.Speech}</span>
+                <span class="text-textcolor">{language.Speech}</span>
                 <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsSpeech}>
                     <OptionInput value="">Unset</OptionInput>
                         {#each voices as voice}
@@ -548,7 +548,7 @@
                 </SelectInput>
             {/await}
          {:else if currentChar.data.ttsMode === 'VOICEVOX'}
-                <span class="text-neutral-200">Speaker</span>
+                <span class="text-textcolor">Speaker</span>
                 <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.voicevoxConfig.speaker}>
                     {#await getVOICEVOXVoices() then voices}
                         {#each voices as voice}
@@ -564,18 +564,18 @@
                 {/each}
                 </SelectInput>
                 {/if}
-                <span class="text-neutral-200">Speed scale</span>
+                <span class="text-textcolor">Speed scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.SPEED_SCALE}/>
 
-                <span class="text-neutral-200">Pitch scale</span>
+                <span class="text-textcolor">Pitch scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.PITCH_SCALE}/>
 
-                <span class="text-neutral-200">Volume scale</span>
+                <span class="text-textcolor">Volume scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.VOLUME_SCALE}/>
 
-                <span class="text-neutral-200">Intonation scale</span>
+                <span class="text-textcolor">Intonation scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
-                <span class="text-sm mb-2 text-gray-400">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
+                <span class="text-sm mb-2 text-textcolor2">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
         {/if}
         {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
             <div class="flex items-center mt-2">
@@ -586,44 +586,44 @@
 {:else if subMenu === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
     {#if currentChar.type !== 'group'}
-        <span class="text-neutral-200">{language.exampleMessage} <Help key="exampleMessage"/></span>
+        <span class="text-textcolor">{language.exampleMessage} <Help key="exampleMessage"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>
 
-        <span class="text-neutral-200">{language.creatorNotes} <Help key="creatorQuotes"/></span>
+        <span class="text-textcolor">{language.creatorNotes} <Help key="creatorQuotes"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.creatorNotes} on:input={() => {
             currentChar.data.removedQuotes = false
         }}></TextAreaInput>
 
-        <span class="text-neutral-200">{language.systemPrompt} <Help key="systemPrompt"/></span>
+        <span class="text-textcolor">{language.systemPrompt} <Help key="systemPrompt"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.systemPrompt}></TextAreaInput>
 
-        <span class="text-neutral-200">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
+        <span class="text-textcolor">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></TextAreaInput>
 
 
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
-            <span class="text-neutral-200">{language.SuperMemory}</span>
+            <span class="text-textcolor">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
         {/if}
         {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
-            <span class="text-neutral-200">{language.personality} <Help key="personality" unrecommended/></span>
+            <span class="text-textcolor">{language.personality} <Help key="personality" unrecommended/></span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.personality}></TextAreaInput>
         {/if}
         {#if $DataBase.showUnrecommended || currentChar.data.scenario.length > 3}
-            <span class="text-neutral-200">{language.scenario} <Help key="scenario" unrecommended/></span>
+            <span class="text-textcolor">{language.scenario} <Help key="scenario" unrecommended/></span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.scenario}></TextAreaInput>
         {/if}
 
-        <span class="text-neutral-200 mt-2">{language.backgroundHTML} <Help key="backgroundHTML" /></span>
+        <span class="text-textcolor mt-2">{language.backgroundHTML} <Help key="backgroundHTML" /></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></TextAreaInput>
 
-        <span class="text-neutral-200">{language.creator}</span>
+        <span class="text-textcolor">{language.creator}</span>
         <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
 
-        <span class="text-neutral-200">{language.CharVersion}</span>
+        <span class="text-textcolor">{language.CharVersion}</span>
         <TextInput size="sm" bind:value={currentChar.data.additionalData.character_version}/>
 
-        <span class="text-neutral-200 mt-2">{language.altGreet}</span>
+        <span class="text-textcolor mt-2">{language.altGreet}</span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
             <table class="contain w-full max-w-full tabler mt-2">
                 <tr>
@@ -642,7 +642,7 @@
                 </tr>
                 {#if currentChar.data.alternateGreetings.length === 0}
                     <tr>
-                        <div class="text-gray-500"> No Messages</div>
+                        <div class="text-textcolor2"> No Messages</div>
                     </tr>
                 {/if}
                 {#each currentChar.data.alternateGreetings as bias, i}
@@ -667,7 +667,7 @@
             </table>
         </div>
       
-        <span class="text-neutral-200 mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
+        <span class="text-textcolor mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
             <table class="contain w-full max-w-full tabler mt-2">
                 <tr>
@@ -697,7 +697,7 @@
                 </tr>
                 {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
                     <tr>
-                        <div class="text-gray-500"> No Assets</div>
+                        <div class="text-textcolor2"> No Assets</div>
                     </tr>
                 {:else}
                     {#each currentChar.data.additionalAssets as assets, i}
@@ -770,7 +770,7 @@
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
-            <span class="text-neutral-200">{language.SuperMemory}</span>
+            <span class="text-textcolor">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
         {/if}
         {#if $DataBase.useExperimental}

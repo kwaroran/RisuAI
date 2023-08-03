@@ -6,17 +6,27 @@ body{
   margin: 0;
   padding: 0;
   margin-top: 0px;
-  background-color: #282a36;
+  background-color: var(--risu-theme-bgcolor);
   overflow-y: hidden;
   overflow-x: hidden;
 }
 
 :root{
   --FontColorStandard: #fafafa;
-  --FontColorBold : #fafafa;
+  --FontColorBold : ##e5e5e5;
   --FontColorItalic : #8C8D93;
   --FontColorItalicBold : #8C8D93;
-  --risu-animation-speed: 0.2s
+  --risu-animation-speed: 0.2s;
+  --risu-theme-bgcolor: #282a36;
+  --risu-theme-darkbg:  #21222c;
+  --risu-theme-borderc: #6272a4;
+  --risu-theme-selected: #44475a;
+  --risu-theme-draculared: #ff5555;
+  --risu-theme-textcolor: #f5f5f5;
+  --risu-theme-textcolor2: #64748b;
+  --risu-theme-darkborderc: #4b5563;
+  --risu-theme-darkbutton: #374151;
+
 }
 
 html, body{
@@ -28,7 +38,7 @@ html, body{
 }
 
 .chattext2 pre{
-  background-color: #282a36;
+  background-color: var(--risu-theme-bgcolor);
   padding: 0.5rem;
   overflow-x: auto;
 }
@@ -126,7 +136,7 @@ html, body{
 .input-text{
   border: none;
   outline: 0;
-  border-bottom: 1px solid #6272a4;
+  border-bottom: 1px solid var(--risu-theme-borderc);
 }
 
 .bgc{

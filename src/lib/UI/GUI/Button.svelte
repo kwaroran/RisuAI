@@ -1,6 +1,6 @@
 <button
     on:click
-    class="{selected ? 'bg-borderc' : 'bg-gray-700'} border border-gray-600 text-white rounded-md shadow-sm hover:bg-borderc focus:outline-none focus:ring-2 focus:ring-borderc transition-colors duration-200{className ? (" " + className) : ""}"
+    class="{selected ? 'bg-borderc' : 'bg-darkbutton'} border border-darkborderc text-textcolor rounded-md shadow-sm hover:bg-borderc focus:outline-none focus:ring-2 focus:ring-borderc transition-colors duration-200{className ? (" " + className) : ""}"
     class:px-4 = {size == "md"}
     class:px-2 = {size == "sm"}
     class:px-6 = {size == "lg"}

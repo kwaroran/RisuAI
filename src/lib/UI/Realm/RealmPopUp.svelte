@@ -14,7 +14,7 @@
 
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center text-white" on:click={() => {
+<div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center text-textcolor" on:click={() => {
     openedData = null
 }}>
     <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto">
@@ -25,7 +25,7 @@
             {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
-                <span class="text-gray-400 break-words text-base chattext prose prose-invert">
+                <span class="text-textcolor2 break-words text-base chattext prose prose-invert">
                     {@html parseMarkdownSafe(openedData.desc)}
                 </span>
             </div>
@@ -37,24 +37,24 @@
                 {/each}
             </div>
             <div class="flex flex-wrap w-full flex-row gap-1 mt-2">
-                <span class="text-gray-500">
+                <span class="text-textcolor2">
                     {language.popularityLevel.replace('{}', openedData.download.toString())}
                 </span>
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
                 {#if openedData.hasEmotion}
-                    <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
                 {/if}
                 {#if openedData.hasAsset}
-                    <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes additional Assets")}}><ImageIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes additional Assets")}}><ImageIcon /></button>
                 {/if}
                 {#if openedData.hasLore}
-                    <button class="text-gray-500 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>
                 {/if}
             </div>
 
         </div>
         <div class="flex flex-row-reverse gap-2">
-            <button class="text-gray-400 hover:text-red-500" on:click|stopPropagation={async () => {
+            <button class="text-textcolor2 hover:text-red-500" on:click|stopPropagation={async () => {
                 const conf = await alertConfirm('Report this character?')
                 if(conf){
                     const report = await alertInput('Write a report text that would be sent to the admin')
@@ -71,7 +71,7 @@
                 <FlagIcon />
             </button>
             {#if ($DataBase.account?.token?.split('-') ?? [])[1] === openedData.creator}
-                <button class="text-gray-400 hover:text-red-500" on:click|stopPropagation={async () => {
+                <button class="text-textcolor2 hover:text-red-500" on:click|stopPropagation={async () => {
                     const conf = await alertConfirm('Do you want to remove this character from Realm?')
                     if(conf){
                         const da = await fetch(hubURL + '/hub/remove', {
@@ -87,7 +87,7 @@
                     <TrashIcon />
                 </button>
             {/if}
-            <button class="text-gray-400 hover:text-green-500" on:click|stopPropagation={async () => {
+            <button class="text-textcolor2 hover:text-green-500" on:click|stopPropagation={async () => {
                 await navigator.clipboard.writeText(`https://risuai.xyz/?realm=${openedData.id}`)
                 alertNormal("Copied to clipboard")
             }}>

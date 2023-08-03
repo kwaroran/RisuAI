@@ -9,7 +9,7 @@
 </script>
 
 <label 
-    class="flex items-center space-x-2 cursor-pointer text-white"
+    class="flex items-center space-x-2 cursor-pointer text-textcolor"
     class:mr-2={margin}
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
 >
@@ -23,7 +23,7 @@
         }}
     />
     <span 
-        class="w-5 h-5 min-w-5 min-h-5 rounded-md border-2 border-gray-600 flex justify-center items-center {check ? 'bg-borderc' : 'bg-gray-700'} transition-colors duration-200"
+        class="w-5 h-5 min-w-5 min-h-5 rounded-md border-2 border-darkborderc flex justify-center items-center {check ? 'bg-borderc' : 'bg-darkbutton'} transition-colors duration-200"
         aria-hidden="true"
     >
         {#if check}

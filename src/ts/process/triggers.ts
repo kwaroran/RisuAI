@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash";
 import { getVarChat, risuChatParser } from "../parser";
 import type { Chat, character } from "../storage/database";
+import { tokenize } from "../tokenizer";
 
 export interface triggerscript{
     comment: string;
@@ -58,7 +59,7 @@ export type additonalSysPrompt = {
     promptend: string
 }
 
-export function runTrigger(char:character,mode:triggerMode, arg:{
+export async function runTrigger(char:character,mode:triggerMode, arg:{
     chat?: Chat
 } = {}){
     char = cloneDeep(char)
@@ -189,6 +190,17 @@ export function runTrigger(char:character,mode:triggerMode, arg:{
     if(arg.chat !== undefined && arg.chat !== null){
         char.chats[char.chatPage] = chat
     }
-    return {additonalSysPrompt, chat}
+    let caculatedTokens = 0
+    if(additonalSysPrompt.start){
+        caculatedTokens += await tokenize(additonalSysPrompt.start)
+    }
+    if(additonalSysPrompt.historyend){
+        caculatedTokens += await tokenize(additonalSysPrompt.historyend)
+    }
+    if(additonalSysPrompt.promptend){
+        caculatedTokens += await tokenize(additonalSysPrompt.promptend)
+    }
+
+    return {additonalSysPrompt, chat, tokens:caculatedTokens}
 
 }

@@ -12,24 +12,24 @@
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
 <span class="text-draculared text-xs mb-2">{language.advancedSettingsWarn}</span>
-<span class="text-neutral-200 mt-4 mb-2">{language.loreBookDepth}</span>
+<span class="text-textcolor mt-4 mb-2">{language.loreBookDepth}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.loreBookDepth}/>
-<span class="text-neutral-200">{language.loreBookToken}</span>
+<span class="text-textcolor">{language.loreBookToken}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.loreBookToken}/>
 
-<span class="text-neutral-200">{language.additionalPrompt}</span>
+<span class="text-textcolor">{language.additionalPrompt}</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.additionalPrompt}/>
 
-<span class="text-neutral-200">{language.descriptionPrefix}</span>
+<span class="text-textcolor">{language.descriptionPrefix}</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.descriptionPrefix}/>
 
-<span class="text-neutral-200">{language.emotionPrompt}</span>
+<span class="text-textcolor">{language.emotionPrompt}</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.emotionPrompt2} placeholder="Leave it blank to use default"/>
 
-<span class="text-neutral-200">{language.requestretrys}</span>
+<span class="text-textcolor">{language.requestretrys}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
-<span class="text-neutral-200">Request Lib</span>
+<span class="text-textcolor">Request Lib</span>
 <SelectInput bind:value={$DataBase.requester}>
     <OptionInput value="new">Reqwest</OptionInput>
     <OptionInput value="old">Tauri</OptionInput>

@@ -17,12 +17,12 @@
       <img src="/icon/github-mark-white.svg" width="24" alt="github" />
     </button>
   {/if}
-  <button class="text-white" on:click={() => {
+  <button class="text-textcolor" on:click={() => {
     openURL("https://www.patreon.com/RisuAI")
   }}>
     <WalletIcon size={24} />
   </button>
-  <button class="text-white" on:click={() => {
+  <button class="text-textcolor" on:click={() => {
     openURL("mailto:amasio1234@proton.me")
   }}>
     <MailIcon size={24} />

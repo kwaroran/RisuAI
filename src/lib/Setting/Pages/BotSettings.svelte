@@ -74,13 +74,13 @@
     </button>
 </div>
 {#if advancedBotSettings}
-    <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
+    <span class="text-textcolor mt-4">{language.model} <Help key="model"/></span>
     <ModelList bind:value={$DataBase.aiModel}/>
 
-    <span class="text-neutral-200 mt-2">{language.submodel} <Help key="submodel"/></span>
+    <span class="text-textcolor mt-2">{language.submodel} <Help key="submodel"/></span>
     <ModelList bind:value={$DataBase.subModel}/>
 {:else}
-    <span class="text-neutral-200 mt-4">{language.model} <Help key="model"/></span>
+    <span class="text-textcolor mt-4">{language.model} <Help key="model"/></span>
     <ModelList bind:value={$DataBase.aiModel} onChange={(v) => {
         $DataBase.subModel = v
         if(v.startsWith('gpt') || v.startsWith('palm2')){
@@ -112,24 +112,24 @@
     </div>
 {/if}
 {#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
-    <span class="text-neutral-200">Palm2 {language.apiKey}</span>
+    <span class="text-textcolor">Palm2 {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.palmAPI}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
-    <span class="text-neutral-200">NovelList {language.apiKey}</span>
+    <span class="text-textcolor">NovelList {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
 {/if}
 
 {#if $DataBase.aiModel.startsWith('claude') || $DataBase.subModel.startsWith('claude')}
-    <span class="text-neutral-200">Claude {language.apiKey}</span>
+    <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
-    <span class="text-neutral-200 mt-2">{language.forceReplaceUrl} URL <Help key="forceUrl"/></span>
+    <span class="text-textcolor mt-2">{language.forceReplaceUrl} URL <Help key="forceUrl"/></span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
-    <span class="text-neutral-200 mt-4"> {language.proxyAPIKey}</span>
+    <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
     <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
-    <span class="text-neutral-200 mt-4"> {language.proxyRequestModel}</span>
+    <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.proxyRequestModel}>
         <OptionInput value="">None</OptionInput>
         <OptionInput value="gpt35">GPT 3.5</OptionInput>
@@ -147,10 +147,10 @@
     </SelectInput>
 {/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
-    <span class="text-neutral-200 mt-4">Openrouter Key</span>
+    <span class="text-textcolor mt-4">Openrouter Key</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
 
-    <span class="text-neutral-200 mt-4">Openrouter Model</span>
+    <span class="text-textcolor mt-4">Openrouter Model</span>
     {#await openRouterModels()}
         <SelectInput className="mt-2 mb-4" value="">
             <OptionInput value="">Loading..</OptionInput>
@@ -177,7 +177,7 @@
     {/await}
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
-    <span class="text-neutral-200">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
+    <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
 {/if}
@@ -188,7 +188,7 @@
 {/if}
 
 {#if $DataBase.aiModel === 'custom'}
-    <span class="text-neutral-200 mt-2">{language.plugin}</span>
+    <span class="text-textcolor mt-2">{language.plugin}</span>
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.currentPluginProvider}>
         <OptionInput value="">None</OptionInput>
         {#each $customProviderStore as plugin}
@@ -198,7 +198,7 @@
 {/if}
 {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
 
-    <span class="text-neutral-200">NovelAI Bearer Token</span>
+    <span class="text-textcolor">NovelAI Bearer Token</span>
     <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
 
     {#if !($DataBase.novelai.token)}
@@ -209,70 +209,72 @@
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
-    <span class="text-neutral-200">Kobold URL</span>
+    <span class="text-textcolor">Kobold URL</span>
     <TextInput marginBottom={true} bind:value={$DataBase.koboldURL} />
 
 {/if}
 
 
 {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
-    <span class="text-neutral-200">Horde {language.apiKey}</span>
+    <span class="text-textcolor">Horde {language.apiKey}</span>
     <TextInput marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
 
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
-    <span class="text-neutral-200 mt-2">Oobabooga Blocking {language.providerURL}</span>
+    <span class="text-textcolor mt-2">Oobabooga Blocking {language.providerURL}</span>
     <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
     <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
-    <span class="text-neutral-200 mt-2">Oobabooga Stream {language.providerURL}</span>
+    <span class="text-textcolor mt-2">Oobabooga Stream {language.providerURL}</span>
     <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIStreamURL} placeholder="wss://..."/>
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
 {/if}
 {#if advancedBotSettings}
-    <span class="text-neutral-200">{language.mainPrompt} <Help key="mainprompt"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
-    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
-    <span class="text-neutral-200">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
-    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
-    <span class="text-neutral-200">{language.globalNote} <Help key="globalNote"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
-    <span class="text-gray-400 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>    
+    {#if !$DataBase.promptTemplate}
+        <span class="text-textcolor">{language.mainPrompt} <Help key="mainprompt"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
+        <span class="text-textcolor">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
+        <span class="text-textcolor">{language.globalNote} <Help key="globalNote"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>
+    {/if}    
 
-    <span class="text-neutral-200">{language.maxContextSize}</span>
+    <span class="text-textcolor">{language.maxContextSize}</span>
     <NumberInput min={0} max={getModelMaxContext($DataBase.aiModel)} marginBottom={true} bind:value={$DataBase.maxContext}/>
 
 
-    <span class="text-neutral-200">{language.maxResponseSize}</span>
+    <span class="text-textcolor">{language.maxResponseSize}</span>
     <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.maxResponse}/>
 
-<span class="text-neutral-200">{language.temperature} <Help key="tempature"/></span>
+<span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
 <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
-<span class="text-gray-400 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
+<span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 {#if $DataBase.aiModel === 'textgen_webui'}
-    <span class="text-neutral-200">Repetition Penalty</span>
+    <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Length Penalty</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
+    <span class="text-textcolor">Length Penalty</span>
     <SliderInput min={-5} max={5} step={0.05} bind:value={$DataBase.ooba.length_penalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Top K</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
+    <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.ooba.top_k} />
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
-    <span class="text-neutral-200">Top P</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
+    <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_p}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
-    <span class="text-neutral-200">Typical P</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
+    <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.typical_p}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
-    <span class="text-neutral-200">Top A</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
+    <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_a}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
-    <span class="text-neutral-200">No Repeat n-gram Size</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
+    <span class="text-textcolor">No Repeat n-gram Size</span>
     <SliderInput min={0} max={20} step={1} bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
     </div>
@@ -286,98 +288,98 @@
         <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
     </div>
     <div class="flex flex-col p-3 bg-darkbg mt-4">
-        <span class="text-neutral-200">Header</span>
+        <span class="text-textcolor">Header</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.header} />
-        <span class="text-neutral-200">System Prefix</span>
+        <span class="text-textcolor">System Prefix</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
-        <span class="text-neutral-200">User Prefix</span>
+        <span class="text-textcolor">User Prefix</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
-        <span class="text-neutral-200">Assistant Prefix</span>
+        <span class="text-textcolor">Assistant Prefix</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
-        <span class="text-neutral-200">Seperator</span>
+        <span class="text-textcolor">Seperator</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
     </div>
 
-    <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
     <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.autoSuggestPrompt} />
-    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 
-    <span class="text-neutral-200">{language.autoSuggest} Prefix</span>
+    <span class="text-textcolor">{language.autoSuggest} Prefix</span>
     <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
 {:else if $DataBase.aiModel.startsWith('novelai')}
-    <span class="text-neutral-200">Top P</span>
+    <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
-    <span class="text-neutral-200">Top K</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
+    <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
-    <span class="text-neutral-200">Top A</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
+    <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topA}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.topA).toFixed(2)}</span>
-    <span class="text-neutral-200">Tailfree Sampling</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topA).toFixed(2)}</span>
+    <span class="text-textcolor">Tailfree Sampling</span>
     <SliderInput min={0} max={1} step={0.001} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
-    <span class="text-neutral-200">Typical P</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
+    <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.typicalp}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(2)}</span>
-    <span class="text-neutral-200">Repetition Penalty</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(2)}</span>
+    <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={0} max={3} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Repetition Penalty Range</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
+    <span class="text-textcolor">Repetition Penalty Range</span>
     <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
-    <span class="text-neutral-200">Repetition Penalty Slope</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
+    <span class="text-textcolor">Repetition Penalty Slope</span>
     <SliderInput min={0} max={10} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope).toFixed(2)}</span>
-    <span class="text-neutral-200">Frequency Penalty</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope).toFixed(2)}</span>
+    <span class="text-textcolor">Frequency Penalty</span>
     <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty).toFixed(2)}</span>
-    <span class="text-neutral-200">Presence Penalty</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty).toFixed(2)}</span>
+    <span class="text-textcolor">Presence Penalty</span>
     <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.presencePenalty}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
 
 {:else if $DataBase.aiModel.startsWith('novellist')}
-    <span class="text-neutral-200">Top P</span>
+    <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.top_p}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span>
-    <span class="text-neutral-200">Reputation Penalty</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span>
+    <span class="text-textcolor">Reputation Penalty</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.rep_pen}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
-    <span class="text-neutral-200">Reputation Penalty Range</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <span class="text-textcolor">Reputation Penalty Range</span>
     <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.ainconfig.rep_pen_range}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range).toFixed(2)}</span>
-    <span class="text-neutral-200">Reputation Penalty Slope</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range).toFixed(2)}</span>
+    <span class="text-textcolor">Reputation Penalty Slope</span>
     <SliderInput min={0} max={10} step={0.1} bind:value={$DataBase.ainconfig.rep_pen_slope}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope).toFixed(2)}</span>
-    <span class="text-neutral-200">Top K</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope).toFixed(2)}</span>
+    <span class="text-textcolor">Top K</span>
     <SliderInput min={1} max={500} step={1} bind:value={$DataBase.ainconfig.top_k}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_k).toFixed(2)}</span>
-    <span class="text-neutral-200">Top A</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_k).toFixed(2)}</span>
+    <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.top_a}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.top_a).toFixed(2)}</span>
-    <span class="text-neutral-200">Typical P</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_a).toFixed(2)}</span>
+    <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.typical_p}/>
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
 {:else}
-    <span class="text-neutral-200">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
+    <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
     <SliderInput min={0} max={100} bind:value={$DataBase.frequencyPenalty} />
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
-    <span class="text-neutral-200">{language.presensePenalty} <Help key="presensePenalty"/></span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
+    <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
     <SliderInput min={0} max={100} bind:value={$DataBase.PresensePenalty} />
-    <span class="text-gray-400 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
-    <span class="text-neutral-200 mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
     <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
-    <span class="text-gray-400 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {/if}
 {/if}
 
 
 
 {#if advancedBotSettings}
-    <span class="text-neutral-200 mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
+    <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
     <DropList bind:list={$DataBase.formatingOrder} />
-    <span class="text-neutral-200 mt-2">Bias <Help key="bias"/></span>
+    <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
     <table class="contain w-full max-w-full tabler mt-2">
         <tr>
             <th class="font-medium w-1/2">Bias</th>
@@ -392,7 +394,7 @@
         </tr>
         {#if $DataBase.bias.length === 0}
             <tr>
-                <div class="text-gray-500">{language.noBias}</div>
+                <div class="text-textcolor2">{language.noBias}</div>
             </tr>
         {/if}
         {#each $DataBase.bias as bias, i}
@@ -414,10 +416,22 @@
         {/each}
     </table>
 
+    {#if !$DataBase.promptTemplate}
+        <div class="flex items-center mt-4">
+            <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
+        </div>
+    {/if}
     <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
+        {#if $DataBase.promptTemplate}
+            <Check check={true} name={language.usePromptTemplate} onChange={()=>{
+                $DataBase.promptTemplate = undefined
+            }}/>
+        {:else}
+            <Check check={false} name={language.usePromptTemplate} onChange={() => {
+                $DataBase.promptTemplate = []
+            }}/>
+        {/if}
     </div>
-
 <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 
 {/if}

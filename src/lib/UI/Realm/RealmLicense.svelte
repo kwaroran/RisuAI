@@ -13,7 +13,7 @@
             openURL(`https://creativecommons.org/licenses/${CCLicenseData[license][0]}/4.0/`)
         }}>
             <img alt="creative commons" class="cc" src="https://i.creativecommons.org/l/{CCLicenseData[license][0]}/4.0/88x31.png" />
-            <span class="text-gray-500">
+            <span class="text-textcolor2">
                 Licensed with {CCLicenseData[license][2]}
             </span>
     

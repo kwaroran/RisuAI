@@ -8,7 +8,7 @@
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.globalRegexScript} <Help key="regexScript" /></h2>
 <RegexList bind:value={$DataBase.globalscript} />
-<div class="text-gray-500 mt-2 flex gap-2">
+<div class="text-textcolor2 mt-2 flex gap-2">
     <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
         let script = $DataBase.globalscript
         script.push({

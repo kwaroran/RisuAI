@@ -4,7 +4,7 @@ import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
-import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
+import { addFetchLog, globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
@@ -213,6 +213,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
+                let urlHost = new URL(replacerURL).host
+                if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
+                    if(!isTauri){
+                        return {
+                            type: 'fail',
+                            result: 'You are trying local request on streaming. this is not allowed dude to browser/os security policy. turn off streaming.',
+                        }
+                    }
+                }
                 const da =  (throughProxi)
                     ? await fetch(hubURL + `/proxy2`, {
                         body: JSON.stringify(body),
@@ -245,6 +254,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         result: await da.text()
                     }
                 }
+
+                addFetchLog({
+                    body: body,
+                    response: "Streaming",
+                    success: true,
+                    url: replacerURL,
+                })
 
                 let dataUint = new Uint8Array([])
 

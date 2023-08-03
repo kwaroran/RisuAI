@@ -62,7 +62,7 @@
         else{
             const char = $DataBase.characters[selectedChar]
             if(char.type === 'character'){
-                let triggerResult = runTrigger(char,'input', {chat: char.chats[char.chatPage]})
+                let triggerResult = await runTrigger(char,'input', {chat: char.chats[char.chatPage]})
                 if(triggerResult){
                     cha = triggerResult.chat.message
                 }
@@ -270,7 +270,7 @@
                 mergedCanvas.height = totalHeight;
             }
 
-            mergedCtx.fillStyle = '#282a36'
+            mergedCtx.fillStyle = 'var(--risu-theme-bgcolor)'
             mergedCtx.fillRect(0, 0, maxWidth, totalHeight);
             let indh = 0
             for(let i = 0; i < canvases.length; i++) {
@@ -313,11 +313,11 @@
             <div class="flex items-end mt-2 mb-2 w-full">
                 {#if $DataBase.useChatSticker && currentCharacter.type !== 'group'}
                     <div on:click={()=>{toggleStickers = !toggleStickers}}
-                            class={"ml-4 bg-gray-500 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-white')}>
+                            class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}>
                             <Laugh/>
                     </div>    
                 {/if}
-                <textarea class="text-neutral-200 p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="text-textcolor p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {
@@ -339,28 +339,28 @@
                 
                 {#if $doingChat || doingChatInputTranslate}
                     <div
-                        class="mr-2 bg-selected flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
+                        class="mr-2 bg-selected flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
                         <div class="loadmove" class:autoload={autoMode}>
                         </div>
                     </div>
                 {:else}
                     <div on:click={send}
-                        class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
+                        class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
                     </div>
                 {/if}
                     <div on:click={(e) => {
                         openMenu = !openMenu
                         e.stopPropagation()
                     }}
-                    class="mr-2 bg-gray-500 flex justify-center items-center text-white w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
+                    class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
                     </div>
             </div>
             {#if $DataBase.useAutoTranslateInput}
                 <div class="flex items-center mt-2 mb-2 w-full">
-                    <label for='messageInputTranslate' class="text-neutral-200 ml-4">
+                    <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-neutral-200 p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-gray-700 resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id = 'messageInputTranslate' class="text-textcolor p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                         bind:value={messageInputTranslate}
                         bind:this={inputTranslateEle}
                         on:keydown={(e) => {
@@ -491,7 +491,7 @@
             {/if}
 
             {#if openMenu}
-                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-gray-200" on:click={(e) => {
+                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor" on:click={(e) => {
                     e.stopPropagation()
                 }}>
                     {#if $DataBase.characters[$selectedCharID].type === 'group'}
@@ -569,8 +569,8 @@
         border: 0.4rem solid rgba(0,0,0,0);
         width: 1rem;
         height: 1rem;
-        border-top: 0.4rem solid #6272a4;
-        border-left: 0.4rem solid #6272a4;
+        border-top: 0.4rem solid var(--risu-theme-borderc);
+        border-left: 0.4rem solid var(--risu-theme-borderc);
     }
 
     .autoload{

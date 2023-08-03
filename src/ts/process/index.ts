@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
-import { ChatTokenizer, tokenizeNum } from "../tokenizer";
+import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
@@ -169,7 +169,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         'personaPrompt':([] as OpenAIChat[])
     }
 
-    if(!currentChar.utilityBot){
+    if((!currentChar.utilityBot) && (!db.promptTemplate)){
         const mainp = currentChar.systemPrompt?.replaceAll('{{original}}', db.mainPrompt) || db.mainPrompt
 
 
@@ -255,10 +255,84 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     //await tokenize currernt
     let currentTokens = db.maxResponse
     
-    for(const key in unformated){
-        const chats = unformated[key] as OpenAIChat[]
-        for(const chat of chats){
-            currentTokens += await tokenizer.tokenizeChat(chat)
+
+    if(db.promptTemplate){
+        const template = db.promptTemplate
+
+        async function tokenizeChatArray(chats:OpenAIChat[]){
+            for(const chat of chats){
+                const tokens = await tokenizer.tokenizeChat(chat)
+                currentTokens += tokens
+            }
+        }
+
+
+        for(const card of template){
+            switch(card.type){
+                case 'persona':{
+                    await tokenizeChatArray(unformated.personaPrompt)
+                    break
+                }
+                case 'description':{
+                    await tokenizeChatArray(unformated.description)
+                    break
+                }
+                case 'authornote':{
+                    await tokenizeChatArray(unformated.authorNote)
+                    break
+                }
+                case 'lorebook':{
+                    await tokenizeChatArray(unformated.lorebook)
+                    break
+                }
+                case 'plain':
+                case 'jailbreak':{
+                    if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+
+                    const convertRole = {
+                        "system": "system",
+                        "user": "user",
+                        "bot": "assistant"
+                    } as const
+
+                    let content = card.text
+
+                    if(card.type2 === 'globalNote'){
+                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar}))
+                    }
+                    else if(card.type2 === 'main'){
+                        content = (risuChatParser(content, {chara: currentChar}))
+                    }
+                    else{
+                        content = risuChatParser(content, {chara: currentChar})
+                    }
+
+                    const prompt:OpenAIChat ={
+                        role: convertRole[card.role],
+                        content: content
+                    }
+
+                    await tokenizeChatArray([prompt])
+                    break
+                }
+                case 'chat':{
+                    const start = card.rangeStart
+                    const end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    const chats = unformated.chats.slice(start, end)
+                    await tokenizeChatArray(chats)
+                    break
+                }
+            }
+        }
+    }
+    else{
+        for(const key in unformated){
+            const chats = unformated[key] as OpenAIChat[]
+            for(const chat of chats){
+                currentTokens += await tokenizer.tokenizeChat(chat)
+            }
         }
     }
 
@@ -293,10 +367,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let ms = currentChat.message
 
-    const triggerResult = runTrigger(currentChar, 'start', {chat: currentChat})
+    const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
         ms = currentChat.message
+        currentTokens += triggerResult.tokens
     }
 
     for(const msg of ms){
@@ -406,42 +481,97 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let formated:OpenAIChat[] = []
     const formatOrder = cloneDeep(db.formatingOrder)
     formatOrder.push('postEverything')
-    let sysPrompts:string[] = []
-    for(let i=0;i<formatOrder.length;i++){
-        const cha = unformated[formatOrder[i]]
-        if(cha.length === 1 && cha[0].content.length === 0){
-            continue
-        }
-        else if(cha.length === 1 && cha[0].role === 'system'){
-            sysPrompts.push(cha[0].content)
-        }
-        else if(sysPrompts.length > 0){
-            const prompt = sysPrompts.join('\n')
 
-            if(prompt.replace(/\n/g,'').length > 3){
-                formated.push({
-                    role: 'system',
-                    content: prompt
-                })
+
+    function pushPrompts(cha:OpenAIChat[]){
+        for(const chat of cha){
+            if(!chat.content){
+                continue
             }
-            sysPrompts = []
-            formated = formated.concat(cha)
-        }
-        else{
-            formated = formated.concat(cha)
+            if(chat.role === 'system'){
+                const endf = formated.at(-1)
+                if(endf && endf.role === 'system' && endf.memo === chat.memo && endf.name === chat.name){
+                    formated[formated.length - 1].content += '\n\n' + chat.content
+                }
+                else{
+                    formated.push(chat)
+                }
+                formated.at(-1).content += ''
+            }
+            else{
+                formated.push(chat)
+            }
         }
     }
 
-    if(sysPrompts.length > 0){
-        const prompt = sysPrompts.join('\n')
+    if(db.promptTemplate){
+        const template = db.promptTemplate
 
-        if(prompt.replace(/\n/g,'').length > 3){
-            formated.push({
-                role: 'system',
-                content: prompt
-            })
+        for(const card of template){
+            switch(card.type){
+                case 'persona':{
+                    pushPrompts(unformated.personaPrompt)
+                    break
+                }
+                case 'description':{
+                    pushPrompts(unformated.description)
+                    break
+                }
+                case 'authornote':{
+                    pushPrompts(unformated.authorNote)
+                    break
+                }
+                case 'lorebook':{
+                    pushPrompts(unformated.lorebook)
+                    break
+                }
+                case 'plain':
+                case 'jailbreak':{
+                    if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+
+                    const convertRole = {
+                        "system": "system",
+                        "user": "user",
+                        "bot": "assistant"
+                    } as const
+
+                    let content = card.text
+
+                    if(card.type2 === 'globalNote'){
+                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar}))
+                    }
+                    else if(card.type2 === 'main'){
+                        content = (risuChatParser(content, {chara: currentChar}))
+                    }
+                    else{
+                        content = risuChatParser(content, {chara: currentChar})
+                    }
+
+                    const prompt:OpenAIChat ={
+                        role: convertRole[card.role],
+                        content: content
+                    }
+
+                    pushPrompts([prompt])
+                    break
+                }
+                case 'chat':{
+                    const start = card.rangeStart
+                    const end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    const chats = unformated.chats.slice(start, end)
+                    pushPrompts(chats)
+                    break
+                }
+            }
         }
-        sysPrompts = []
+    }
+    else{
+        for(let i=0;i<formatOrder.length;i++){
+            const cha = unformated[formatOrder[i]]
+            pushPrompts(cha)
+        }
     }
 
 
@@ -495,7 +625,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }   
         }
         
-        const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+        const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
         if(triggerResult){
             db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             setDatabase(db)
@@ -517,7 +647,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 saying: currentChar.chaId
             })
             db.characters[selectedChar].reloadKeys += 1
-            const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+            const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
             if(triggerResult){
                 db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             }

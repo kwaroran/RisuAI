@@ -40,25 +40,25 @@
             if(!editMode){
                 chara.chatPage = i
             }
-        }} class="flex items-center text-neutral-200  border-solid border-0 border-gray-600 p-2 cursor-pointer rounded-md"class:bg-selected={i === chara.chatPage}>
+        }} class="flex items-center text-textcolor  border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"class:bg-selected={i === chara.chatPage}>
             {#if editMode}
                 <TextInput bind:value={chara.chats[i].name} additionalClass="flex-grow min-w-0" padding={false}/>
             {:else}
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
-                <button class="text-gray-500 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
+                <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
                     editMode = !editMode
                 }}>
                     <EditIcon size={18}/>
                 </button>
-                <button class="text-gray-500 hover:text-green-500 mr-1 cursor-pointer" on:click={async (e) => {
+                <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async (e) => {
                     e.stopPropagation()
                     exportChat(i)
                 }}>
                     <DownloadIcon size={18}/>
                 </button>
-                <button class="text-gray-500 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                     e.stopPropagation()
                     if(chara.chats.length === 1){
                         alertError(language.errors.onlyOneChat)

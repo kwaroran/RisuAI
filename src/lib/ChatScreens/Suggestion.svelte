@@ -126,14 +126,14 @@
 
 <div class="ml-4 flex flex-wrap">
     {#if progress}
-        <div class="flex bg-gray-500 p-2 rounded-lg items-center">
+        <div class="flex bg-textcolor2 p-2 rounded-lg items-center">
             <div class="loadmove mx-2"/>
             <div>{language.creatingSuggestions}</div>
         </div>        
     {:else if !$doingChat}
         {#if $DataBase.translator !== ''}
             <div class="flex mr-2 mb-2">
-                <button class={"bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-white')}
+                <button class={"bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-textcolor')}
                     on:click={() => {
                         toggleTranslate = !toggleTranslate
                     }}
@@ -145,7 +145,7 @@
         
 
         <div class="flex mr-2 mb-2">
-            <button class="bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded text-white"
+            <button class="bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded text-textcolor"
                 on:click={() => {
                     alertConfirm(language.askReRollAutoSuggestions).then((result) => {
                         if(result) {
@@ -161,7 +161,7 @@
         </div>
         {#each suggestMessages??[] as suggest, i}
             <div class="flex mr-2 mb-2">
-                <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded" on:click={() => {
                     suggestMessages = []
                     messageInput(suggest)
                     send()
@@ -170,7 +170,7 @@
                     {@html md}
                 {/await}
                 </button>
-                <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded ml-1" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" on:click={() => {
                     messageInput(suggest)
                 }}>
                     <CopyIcon/>
@@ -189,8 +189,8 @@
         border: 0.4rem solid rgba(0,0,0,0);
         width: 1rem;
         height: 1rem;
-        border-top: 0.4rem solid white;
-        border-left: 0.4rem solid white;
+        border-top: 0.4rem solid var(--risu-theme-textcolor);
+        border-left: 0.4rem solid var(--risu-theme-textcolor);
     }
 
     @keyframes spin {

@@ -44,21 +44,21 @@
     </div>
     {#if open}
         <div class="seperator p-2">
-            <span class="text-neutral-200 mt-6">{language.name}</span>
+            <span class="text-textcolor mt-6">{language.name}</span>
             <TextInput size="sm" bind:value={value.comment} />
-            <span class="text-neutral-200 mt-4">Modification Type</span>
+            <span class="text-textcolor mt-4">Modification Type</span>
             <SelectInput bind:value={value.type}>
                 <OptionInput value="editinput">{language.editInput}</OptionInput>
                 <OptionInput value="editoutput">{language.editOutput}</OptionInput>
                 <OptionInput value="editprocess">{language.editProcess}</OptionInput>
                 <OptionInput value="editdisplay">{language.editDisplay}</OptionInput>
             </SelectInput>
-            <span class="text-neutral-200 mt-6">IN:</span>
+            <span class="text-textcolor mt-6">IN:</span>
             <TextInput size="sm" bind:value={value.in} />
-            <span class="text-neutral-200 mt-6">OUT:</span>
+            <span class="text-textcolor mt-6">OUT:</span>
             <TextInput size="sm" bind:value={value.out} />
             {#if value.ableFlag}
-                <span class="text-neutral-200 mt-6">FLAG:</span>
+                <span class="text-textcolor mt-6">FLAG:</span>
                 <TextInput size="sm" bind:value={value.flag} />
             {/if}
             <div class="flex items-center mt-4">

@@ -74,7 +74,7 @@
     }}>
         <div class="w-96 max-w-full max-h-full overflow-y-auto overflow-x-hidden bg-bgcolor p-4 flex flex-col" on:click|stopPropagation>
             <h1 class="font-bold text-xl">{language.model}
-                <!-- <button class="float-right text-sm font-light text-gray-500 hover:text-green-300"
+                <!-- <button class="float-right text-sm font-light text-textcolor2 hover:text-green-300"
                 class:text-green-500={openAdv} on:click={() => {
                     openAdv = !openAdv
                 }}>
