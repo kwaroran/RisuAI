@@ -630,9 +630,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 break
             }   
         }
-        
+
+        currentChat = db.characters[selectedChar].chats[selectedChat]        
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
-        if(triggerResult){
+        console.log(triggerResult)
+        if(triggerResult && triggerResult.chat){
             db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             setDatabase(db)
         }
@@ -653,11 +655,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 saying: currentChar.chaId
             })
             db.characters[selectedChar].reloadKeys += 1
-            const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
-            if(triggerResult){
-                db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
-            }
             await sayTTS(currentChar, result)
+            setDatabase(db)
+        }
+
+        currentChat = db.characters[selectedChar].chats[selectedChat]        
+
+        const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
+        if(triggerResult && triggerResult.chat){
+            db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             setDatabase(db)
         }
     }

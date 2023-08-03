@@ -60,8 +60,8 @@ export type additonalSysPrompt = {
 }
 
 export async function runTrigger(char:character,mode:triggerMode, arg:{
-    chat?: Chat
-} = {}){
+    chat: Chat
+}){
     char = cloneDeep(char)
     let additonalSysPrompt:additonalSysPrompt = {
         start:'',
@@ -69,8 +69,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         promptend: ''
     }
     const triggers = char.triggerscript
-    const chat = arg.chat ?? char.chats[char.chatPage]
-    if(!triggers){
+    const chat = cloneDeep(arg.chat ?? char.chats[char.chatPage])
+    if((!triggers) || (triggers.length === 0)){
         return null
     }
     let varValues = getVarChat(-1, char)
@@ -181,14 +181,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
             }
         }
-    }
-
-    if(varValuesChanged){
-        chat.message[chat.message.length-1].data = chat.message.at(-1).data.replaceAll(/{{(setvar|getvar)::.+?}}/gis,'') + Object.keys(varValues).map((v)=>`{{setvar::${v}::${varValues[v]}}}`).join('')
-    }
-
-    if(arg.chat !== undefined && arg.chat !== null){
-        char.chats[char.chatPage] = chat
     }
     let caculatedTokens = 0
     if(additonalSysPrompt.start){
