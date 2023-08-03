@@ -400,7 +400,7 @@
             {/if}
 
             {#if $DataBase.useAutoSuggestions}
-                <Suggestion messageInput={(msg)=>messageInput=msg} {send}/>
+                <Suggestion messageInput={(msg)=>messageInput=msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')} {send}/>
             {/if}
             
             {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}

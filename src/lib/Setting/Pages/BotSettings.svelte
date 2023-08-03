@@ -306,6 +306,8 @@
 
     <span class="text-textcolor">{language.autoSuggest} Prefix</span>
     <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
+
+    <Check bind:check={$DataBase.autoSuggestClean} name={`Cleanning ${language.autoSuggest}`}/>
 {:else if $DataBase.aiModel.startsWith('novelai')}
     <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
