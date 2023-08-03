@@ -34,6 +34,12 @@
     </SelectInput>
 
     {#if proompt.type === 'plain' || proompt.type === 'jailbreak'}
+        <span>{language.type}2</span>
+        <SelectInput bind:value={proompt.type2}>
+            <OptionInput value="normal">{language.formating.plain}</OptionInput>
+            <OptionInput value="main">{language.mainPrompt}</OptionInput>
+            <OptionInput value="globalNote">{language.globalNote}</OptionInput>
+        </SelectInput>
         <span>{language.prompt}</span>
         <TextAreaInput bind:value={proompt.text} />
         <span>{language.role}</span>
