@@ -7,7 +7,9 @@ export const languageKorean = {
         'globalNote': "글로벌 노트",
         'authorNote': "작가의 노트",
         'lastChat': "마지막 채팅",
-        "description": "캐릭터 설명"
+        "description": "캐릭터 설명",
+        'personaPrompt':'페르소나 프롬프트',
+        'plain': "순수 프롬프트",
     },
     errors:{
         toomuchtoken: '에러: 요청에 필요한 최소 토큰이 최대 토큰보다 큽니다.',
@@ -367,5 +369,12 @@ export const languageKorean = {
     ifChatIndex: "채팅 인덱스가",
     ifRandom: "만약 랜덤",
     hideRealm: "RisuRealm 숨기기",
-
+    popularityLevel: "{} 인기도",
+    colorScheme: "색상 팔레트",
+    rangeStart: "범위 시작",
+    rangeEnd: "범위 끝",
+    untilChatEnd: "채팅 끝까지",
+    usePromptTemplate: "프롬프트 템플릿 사용",
+    specialType: "특수 타입",
+    noSpecialType: "특수 타입 없음",
 }
