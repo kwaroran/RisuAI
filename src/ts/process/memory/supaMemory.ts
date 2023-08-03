@@ -205,6 +205,7 @@ export async function supaMemory(
             const hypa = new HypaProcesser()
             hypa.oaikey = db.supaMemoryKey
             hypa.vectors = []
+            hypaChunks = hypaChunks.filter((value) => value.length > 1)
             await hypa.addText(hypaChunks.filter((value, index, self) => {
                 return self.indexOf(value) === index;
             }))
