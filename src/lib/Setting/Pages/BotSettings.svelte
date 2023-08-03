@@ -231,15 +231,17 @@
     {/if}
 {/if}
 {#if advancedBotSettings}
-    <span class="text-textcolor">{language.mainPrompt} <Help key="mainprompt"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
-    <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
-    <span class="text-textcolor">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
-    <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
-    <span class="text-textcolor">{language.globalNote} <Help key="globalNote"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
-    <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>    
+    {#if !$DataBase.promptTemplate}
+        <span class="text-textcolor">{language.mainPrompt} <Help key="mainprompt"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
+        <span class="text-textcolor">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
+        <span class="text-textcolor">{language.globalNote} <Help key="globalNote"/></span>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
+        <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>
+    {/if}    
 
     <span class="text-textcolor">{language.maxContextSize}</span>
     <NumberInput min={0} max={getModelMaxContext($DataBase.aiModel)} marginBottom={true} bind:value={$DataBase.maxContext}/>
@@ -414,9 +416,11 @@
         {/each}
     </table>
 
-    <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
-    </div>
+    {#if !$DataBase.promptTemplate}
+        <div class="flex items-center mt-4">
+            <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
+        </div>
+    {/if}
     <div class="flex items-center mt-4">
         {#if $DataBase.promptTemplate}
             <Check check={true} name={language.usePromptTemplate} onChange={()=>{

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -48,7 +48,7 @@
                     on:click={() => {
                         selected = 13
                 }}>
-                        <BotIcon />
+                        <ScrollTextIcon />
                         <span>{language.prompt}</span>
                     </button>
                 {/if}

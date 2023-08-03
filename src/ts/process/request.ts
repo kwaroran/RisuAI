@@ -213,6 +213,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
+                let urlHost = new URL(replacerURL).host
+                if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
+                    return {
+                        type: 'fail',
+                        result: 'You are trying local request on streaming. this is not allowed dude to browser/os security policy. turn off streaming.',
+                    }
+                }
                 const da =  (throughProxi)
                     ? await fetch(hubURL + `/proxy2`, {
                         body: JSON.stringify(body),

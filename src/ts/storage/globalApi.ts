@@ -511,6 +511,17 @@ export async function globalFetch(url:string, arg:{
     
         const urlHost = (new URL(url)).hostname
         let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch || arg.plainFetchForce
+
+        console.log(urlHost)
+        //check if the url is a local url like localhost
+        if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
+            return {
+                ok: false,
+                data: 'You are trying local request on web version. this is not allowed dude to browser security policy. use the desktop version instead, or use tunneling service like ngrok and set the cors to allow all.',
+                headers: {}
+            }
+        }
+
         if(forcePlainFetch){
             try {
                 let headers = arg.headers ?? {}
