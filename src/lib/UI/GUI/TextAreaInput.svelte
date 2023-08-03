@@ -14,6 +14,7 @@
         class:mt-2={margin === 'both'}
         class:w-full={fullwidth}
         class:h-20={height === '20'}
+        class:h-24={height === '24'}
         class:h-32={height === '32'}
         class:h-full={height === 'full'}
         class:min-h-20={height === '20'}
@@ -50,6 +51,7 @@
         class:mt-2={margin === 'both'}
         class:w-full={fullwidth}
         class:h-20={height === '20'}
+        class:h-24={height === '24'}
         class:h-32={height === '32'}
         class:h-full={height === 'full'}
         class:min-h-20={height === '20'}
@@ -71,7 +73,7 @@
     export let margin:"none"|"top"|"bottom"|"both" = "none"
     export let onInput = () => {}
     export let fullwidth = false
-    export let height:'20'|'32'|'full' = '20'
+    export let height:'20'|'24'|'32'|'full' = '20'
     export let additionalClass = ''
     export let optimaizedInput = true
     let inpa = 0
