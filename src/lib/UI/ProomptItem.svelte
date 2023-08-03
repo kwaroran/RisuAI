@@ -34,9 +34,9 @@
     </SelectInput>
 
     {#if proompt.type === 'plain' || proompt.type === 'jailbreak'}
-        <span>{language.type}2</span>
+        <span>{language.specialType}</span>
         <SelectInput bind:value={proompt.type2}>
-            <OptionInput value="normal">{language.formating.plain}</OptionInput>
+            <OptionInput value="normal">{language.noSpecialType}</OptionInput>
             <OptionInput value="main">{language.mainPrompt}</OptionInput>
             <OptionInput value="globalNote">{language.globalNote}</OptionInput>
         </SelectInput>

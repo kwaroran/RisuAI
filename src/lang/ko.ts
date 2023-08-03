@@ -314,7 +314,7 @@ export const languageKorean = {
     noweb: "이 기능은 웹에서는 작동하지 않습니다.",
     createBotInternet: "인터넷에서 AI로 캐릭터 생성하기",
     createBotInternetAlert: "캐릭터의 이름과 설명을 입력해주세요.",
-    able:"가능",
+    able:"활성화됨",
     assetWidth: "에셋 넓이",
     animationSpeed: "에니메이션 속도",
     screenshot: "스크린샷",

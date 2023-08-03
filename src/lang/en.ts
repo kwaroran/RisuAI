@@ -405,4 +405,6 @@ export const languageEnglish = {
     rangeEnd: "Range End",
     untilChatEnd: "Until Chat End",
     usePromptTemplate: "Use Prompt Template",
+    specialType: "Special Type",
+    noSpecialType: "No Special Type",
 }

@@ -448,8 +448,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
 
-    unformated.lastChat.push(chats[chats.length - 1])
-    chats.splice(chats.length - 1, 1)
+
+    if(!db.promptTemplate){
+        unformated.lastChat.push(chats[chats.length - 1])
+        chats.splice(chats.length - 1, 1)
+    }
 
     unformated.chats = chats
 
