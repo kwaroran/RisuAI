@@ -575,6 +575,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
 
+    formated = formated.map((v) => {
+        v.content = v.content.trim()
+        return v
+    })
+
+
 
     for(let i=0;i<formated.length;i++){
         formated[i].memo = undefined
