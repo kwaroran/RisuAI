@@ -293,10 +293,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let ms = currentChat.message
 
-    const triggerResult = runTrigger(currentChar, 'start', {chat: currentChat})
+    const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
         ms = currentChat.message
+        currentTokens += triggerResult.tokens
     }
 
     for(const msg of ms){
@@ -495,7 +496,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }   
         }
         
-        const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+        const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
         if(triggerResult){
             db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             setDatabase(db)
@@ -517,7 +518,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 saying: currentChar.chaId
             })
             db.characters[selectedChar].reloadKeys += 1
-            const triggerResult = runTrigger(currentChar, 'output', {chat:currentChat})
+            const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
             if(triggerResult){
                 db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             }

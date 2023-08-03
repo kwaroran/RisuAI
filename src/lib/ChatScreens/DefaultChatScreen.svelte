@@ -62,7 +62,7 @@
         else{
             const char = $DataBase.characters[selectedChar]
             if(char.type === 'character'){
-                let triggerResult = runTrigger(char,'input', {chat: char.chats[char.chatPage]})
+                let triggerResult = await runTrigger(char,'input', {chat: char.chats[char.chatPage]})
                 if(triggerResult){
                     cha = triggerResult.chat.message
                 }
