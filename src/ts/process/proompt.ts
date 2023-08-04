@@ -9,6 +9,7 @@ export interface ProomptPlain {
 
 export interface ProomptTyped {
     type: 'persona'|'description'|'authornote'|'lorebook'
+    innerFormat?: string
 }
 
 

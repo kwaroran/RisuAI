@@ -1,24 +1,23 @@
 <script lang="ts">
-    import { PlusIcon } from "lucide-svelte";
+    import { ArrowLeft, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import ProomptItem from "src/lib/UI/ProomptItem.svelte";
     import type { Proompt } from "src/ts/process/proompt";
-  import { DataBase } from "src/ts/storage/database";
+    import { DataBase } from "src/ts/storage/database";
 
     let sorted = 0
     let opened = 0
-
-    const onOpen = () => {
-        opened += 1
-    }
-    const onClose = () => {
-        opened -= 1
-    }
+    export let onGoBack: () => void = () => {}
 
 </script>
 
-<h2 class="mb-2 text-2xl font-bold mt-2">{language.prompt}</h2>
-<div class="contain w-full max-w-full mt-4 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md">
+<h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
+    <button class="mr-2 text-textcolor2 hover:text-textcolor" on:click={onGoBack}>
+        <ArrowLeft />
+    </button>
+    {language.promptTemplate}
+</h2>
+<div class="contain w-full max-w-full mt-4 flex flex-col p-3 rounded-md">
     {#if $DataBase.promptTemplate.length === 0}
             <div class="text-textcolor2">No Format</div>
     {/if}
@@ -28,7 +27,25 @@
                 let templates = $DataBase.promptTemplate
                 templates.splice(i, 1)
                 $DataBase.promptTemplate = templates
-            }}  />
+            }} moveDown={() => {
+                if(i === $DataBase.promptTemplate.length - 1){
+                    return
+                }
+                let templates = $DataBase.promptTemplate
+                let temp = templates[i]
+                templates[i] = templates[i + 1]
+                templates[i + 1] = temp
+                $DataBase.promptTemplate = templates
+            }} moveUp={() => {
+                if(i === 0){
+                    return
+                }
+                let templates = $DataBase.promptTemplate
+                let temp = templates[i]
+                templates[i] = templates[i - 1]
+                templates[i - 1] = temp
+                $DataBase.promptTemplate = templates
+            }} />
         {/each}
     {/key}
 </div>

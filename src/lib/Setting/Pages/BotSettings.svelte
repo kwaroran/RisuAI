@@ -15,11 +15,11 @@
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import Button from "src/lib/UI/GUI/Button.svelte";
-  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-  import { openRouterModels } from "src/ts/model/openrouter";
-  import { novelLogin } from "src/ts/process/models/nai";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import { openRouterModels } from "src/ts/model/openrouter";
+    import { novelLogin } from "src/ts/process/models/nai";
 
     let tokens = {
         mainPrompt: 0,
@@ -35,6 +35,7 @@
         autoSuggest: ''
     }
     export let openPresetList =false
+    export let goPromptTemplate = () => {}
 
     async function loadTokenize(){
         tokens.mainPrompt = await tokenize($DataBase.mainPrompt)
@@ -309,6 +310,12 @@
 
     <Check bind:check={$DataBase.autoSuggestClean} name={`${language.autoSuggest} suffix removal`}/>
 {:else if $DataBase.aiModel.startsWith('novelai')}
+    <div class="flex flex-col p-3 bg-darkbg mt-4">
+        <span class="text-textcolor">Starter</span>
+        <TextInput bind:value={$DataBase.NAIsettings.starter} placeholder={'[conversation: start]\\n***'} />
+        <span class="text-textcolor">Seperator</span>
+        <TextInput bind:value={$DataBase.NAIsettings.seperator} placeholder={"\\n"}/>
+    </div>
     <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
@@ -434,6 +441,12 @@
             }}/>
         {/if}
     </div>
-<Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+
+    {#if ($DataBase.promptTemplate)}
+        <div class="mt-2">
+            <Button on:click={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
+        </div>
+    {/if}
+    <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 
 {/if}

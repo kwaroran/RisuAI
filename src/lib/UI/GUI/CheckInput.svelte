@@ -6,10 +6,11 @@
     export let margin = true
     export let name = ''
     export let hiddenName = false
+    export let className = ""
 </script>
 
 <label 
-    class="flex items-center space-x-2 cursor-pointer text-textcolor"
+    class={"flex items-center space-x-2 cursor-pointer text-textcolor" + (className ? " " + className : "")}
     class:mr-2={margin}
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
 >

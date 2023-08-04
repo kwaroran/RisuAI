@@ -301,6 +301,8 @@ export function setDatabase(data:Database){
     data.animationSpeed ??= 0.4
     data.colorScheme ??= cloneDeep(defaultColorScheme)
     data.colorSchemeName ??= 'default'
+    data.NAIsettings.starter ??= ""
+    
     
     changeLanguage(data.language)
     DataBase.set(data)
@@ -464,6 +466,7 @@ export interface botPreset{
     autoSuggestPrompt?: string
     autoSuggestPrefix?: string
     autoSuggestClean?: boolean
+    promptTemplate?:Proompt[]
 }
 
 export interface Database{
@@ -834,7 +837,8 @@ export function saveCurrentPreset(){
         ainconfig: cloneDeep(db.ainconfig),
         proxyRequestModel: db.proxyRequestModel,
         openrouterRequestModel: db.openrouterRequestModel,
-        NAISettings: cloneDeep(db.NAIsettings)
+        NAISettings: cloneDeep(db.NAIsettings),
+        promptTemplate: db.promptTemplate ?? null
     }
     db.botPresets = pres
     setDatabase(db)
@@ -893,6 +897,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.autoSuggestPrompt = newPres.autoSuggestPrompt ?? db.autoSuggestPrompt
     db.autoSuggestPrefix = newPres.autoSuggestPrefix ?? db.autoSuggestPrefix
     db.autoSuggestClean = newPres.autoSuggestClean ?? db.autoSuggestClean
+    db.promptTemplate = newPres.promptTemplate
     return db
 }
 
@@ -900,6 +905,7 @@ export function downloadPreset(id:number){
     saveCurrentPreset()
     let db = get(DataBase)
     let pres = cloneDeep(db.botPresets[id])
+    console.log(pres)
     pres.openAIKey = ''
     pres.forceReplaceUrl = ''
     pres.forceReplaceUrl2 = ''

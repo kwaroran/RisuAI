@@ -6,12 +6,19 @@ import { alertError, alertInput, alertNormal, alertWait } from "src/ts/alert"
 import { sleep } from "src/ts/util"
 
 export function stringlizeNAIChat(formated:OpenAIChat[], char:string = ''){
+
+    
     const db = get(DataBase)
+    let seperator = db.NAIsettings.seperator.replaceAll("\\n","\n") || '\n'
+    let starter = db.NAIsettings.starter.replaceAll("\\n","\n") || '***\n[conversation: start]'
     let resultString:string[] = []
+
+    console.log(formated)
+
     for(const form of formated){
         if(form.role === 'system'){
-            if(form.memo === 'NewChatExample' || form.memo === 'NewChat'){
-                resultString.push('[conversation: start]\n***')
+            if(form.memo === 'NewChatExample' || form.memo === 'NewChat' || form.content === "[Start a new chat]"){
+                resultString.push(starter)
             }
             else{
                 resultString.push(form.content)
@@ -26,9 +33,9 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string = ''){
         else{
             resultString.push(form.content)
         }
-        
     }
-    return resultString.join('\n\n') + `\n\n${char}:`
+
+    return resultString.join(seperator) + `\n\n${char}:`
 }
 
 export const novelLogin = async () => {
@@ -118,6 +125,7 @@ export interface NAISettings{
     frequencyPenalty: number
     presencePenalty: number
     typicalp:number
+    starter:string
 }
 
 export const NovelAIBadWordIds = [
@@ -436,5 +444,6 @@ export const NovelAIBadWordIds = [
     [43145],
     [26523],
     [41471],
-    [2936]
+    [2936],
+    [23]
 ]

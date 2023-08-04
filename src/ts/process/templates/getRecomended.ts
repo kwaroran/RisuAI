@@ -22,25 +22,7 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel.startsWith('novelai')){
-        const pr:botPreset = prebuiltPresets.OAI
-        pr.NAISettings = prebuiltNAIpresets
-        pr.formatingOrder = [
-            "main",
-            "personaPrompt",
-            "description",
-            "jailbreak",
-            "chats",
-            "globalNote",
-            "authorNote",
-            "lorebook",
-            "lastChat"
-        ]
-        pr.temperature = 105
-        pr.maxContext = 8000
-        pr.maxResponse = 300
-        pr.mainPrompt = ""
-        pr.jailbreak = ''
-        pr.globalNote = '[ Style: chat; Tags: conversation; Genre: online roleplay; Respond: long]'
+        const pr:botPreset = prebuiltPresets.NAI
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel === 'textgen_webui'){

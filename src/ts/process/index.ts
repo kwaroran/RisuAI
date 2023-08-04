@@ -13,7 +13,7 @@ import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
 import { supaMemory } from "./memory/supaMemory";
 import { v4 } from "uuid";
-import { cloneDeep } from "lodash";
+import { clone, cloneDeep } from "lodash";
 import { groupOrder } from "./group";
 import { runTrigger, type additonalSysPrompt } from "./triggers";
 
@@ -270,11 +270,25 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         for(const card of template){
             switch(card.type){
                 case 'persona':{
-                    await tokenizeChatArray(unformated.personaPrompt)
+                    let pmt = cloneDeep(unformated.personaPrompt)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                        }
+                    }
+
+                    await tokenizeChatArray(pmt)
                     break
                 }
                 case 'description':{
-                    await tokenizeChatArray(unformated.description)
+                    let pmt = cloneDeep(unformated.description)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                        }
+                    }
+
+                    await tokenizeChatArray(pmt)
                     break
                 }
                 case 'authornote':{
@@ -443,25 +457,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
         currentChat.lastMemory = chats[0].memo
     }
-    let bias:{[key:number]:number} = {}
 
-    for(let i=0;i<currentChar.bias.length;i++){
-        const bia = currentChar.bias[i]
-        const tokens = await tokenizeNum(bia[0])
+    let biases:[string,number][] = db.bias.concat(currentChar.bias).map((v) => {
+        return [risuChatParser(v[0].replaceAll("\\n","\n"), {chara: currentChar}),v[1]]
+    })
 
-        for(const token of tokens){
-            bias[token] = bia[1]
-        }
-    }
-
-    for(let i=0;i<db.bias.length;i++){
-        const bia = db.bias[i]
-        const tokens = await tokenizeNum(bia[0])
-
-        for(const token of tokens){
-            bias[token] = bia[1]
-        }
-    }
 
 
 
@@ -529,11 +529,25 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         for(const card of template){
             switch(card.type){
                 case 'persona':{
-                    pushPrompts(unformated.personaPrompt)
+                    let pmt = cloneDeep(unformated.personaPrompt)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                        }
+                    }
+
+                    pushPrompts(pmt)
                     break
                 }
                 case 'description':{
-                    pushPrompts(unformated.description)
+                    let pmt = cloneDeep(unformated.description)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                        }
+                    }
+
+                    pushPrompts(pmt)
                     break
                 }
                 case 'authornote':{
@@ -617,17 +631,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     })
 
 
-
-    for(let i=0;i<formated.length;i++){
-        formated[i].memo = undefined
-    }
-
     const req = await requestChatData({
         formated: formated,
-        bias: bias,
+        biasString: biases,
         currentChar: currentChar,
         useStreaming: true,
         isGroupChat: nowChatroom.type === 'group',
+        bias: {}
     }, 'model', abortSignal)
 
     let result = ''

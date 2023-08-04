@@ -9,10 +9,12 @@ import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
+import { tokenizeNum } from "../tokenizer";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
     bias: {[key:number]:number}
+    biasString?: [string,number][]
     currentChar?: character
     temperature?: number
     maxTokens?:number
@@ -88,6 +90,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
+    let biasString = arg.biasString ?? []
     const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
 
     let raiModel = aiModel
@@ -119,6 +122,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                     formated[i].name = undefined
                     delete formated[i].memo
+                }
+            }
+
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                const tokens = await tokenizeNum(bia[0])
+        
+                for(const token of tokens){
+                    bias[token] = bia[1]
                 }
             }
 
@@ -345,6 +357,26 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'novelai':
         case 'novelai_kayra':{
             const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '')
+            let logit_bias_exp:{
+                sequence: number[], bias: number, ensure_sequence_finish: false, generate_once: true
+            }[] = []
+
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                const tokens = await tokenizeNum(bia[0])
+
+                const tokensInNumberArray:number[] = []
+    
+                for(const token of tokens){
+                    tokensInNumberArray.push(token)
+                }
+                logit_bias_exp.push({
+                    sequence: tokensInNumberArray,
+                    bias: bia[1],
+                    ensure_sequence_finish: false,
+                    generate_once: true
+                })
+            }
 
             const gen = db.NAIsettings
             const payload = {
@@ -365,9 +397,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 use_string: true,
                 return_full_text: false,
                 prefix: 'vanilla',
-                order: [3,0],
-                bad_words_ids: NovelAIBadWordIds,
+                order: [2, 3, 0, 4, 1],
                 typical_p: gen.typicalp,
+                repetition_penalty_whitelist:[49256,49264,49231,49230,49287,85,49255,49399,49262,336,333,432,363,468,492,745,401,426,623,794,1096,2919,2072,7379,1259,2110,620,526,487,16562,603,805,761,2681,942,8917,653,3513,506,5301,562,5010,614,10942,539,2976,462,5189,567,2032,123,124,125,126,127,128,129,130,131,132,588,803,1040,49209,4,5,6,7,8,9,10,11,12],
+                stop_sequences: [[49287]],
+                bad_words_ids: NovelAIBadWordIds,
+                logit_bias_exp: logit_bias_exp
+                
             }
 
               

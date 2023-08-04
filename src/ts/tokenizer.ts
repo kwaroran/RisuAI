@@ -58,6 +58,7 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
                     await (await fetch("/token/nai/nerdstash_v2.model")
                 ).arrayBuffer())
+                
                 break
         }
         tokenizersType = type

@@ -6,18 +6,27 @@
     import { language } from "src/lang";
     import NumberInput from "./GUI/NumberInput.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
-    import { XIcon } from "lucide-svelte";
+    import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
+  import TextInput from "./GUI/TextInput.svelte";
     export let proompt:Proompt
     export let onRemove:() => void = () => {}
-    
+    export let moveUp:() => void = () => {}
+    export let moveDown:() => void = () => {}
+
 </script>
 
-<div class="flex flex-col first:pt-0 first:mt-0 first:border-0 pt-2 mt-2 border-t border-t-selected">
-    <span>{language.type}   <button class="float-right" on:click={onRemove}><XIcon /></button></span>
+<div class="flex flex-col first:mt-0 mt-2 border border-selected p-4 rounded-md bg-darkbg">
+    <span class="mb-2">
+        <button class="float-right" on:click={onRemove}><XIcon /></button>
+        <button class="float-right" on:click={moveDown}><ArrowDown /></button>
+        <button class="float-right" on:click={moveUp}><ArrowUp /></button>
+    </span>
+    <span>{language.type}
+    </span>
     <SelectInput bind:value={proompt.type} on:change={() => {
         if(proompt.type === 'plain' || proompt.type === 'jailbreak'){
             proompt.text = ""
-            proompt.role = "bot"
+            proompt.role = "system"
         }
         if(proompt.type === 'chat'){
             proompt.rangeStart = 0
@@ -64,6 +73,23 @@
             <CheckInput name={language.untilChatEnd} check={false} onChange={() => {
                 if(proompt.type === 'chat'){
                     proompt.rangeEnd = 'end'
+                }
+            }} />
+        {/if}
+    {/if}
+    {#if proompt.type === 'persona' || proompt.type === 'description'}
+        {#if !proompt.innerFormat}
+            <CheckInput name={language.customInnerFormat} check={false} className="mt-2" onChange={() => {
+                if(proompt.type === 'persona' || proompt.type === 'description'){
+                    proompt.innerFormat = "{{slot}}"
+                }
+            }} />
+        {:else}
+            <span>{language.innerFormat}</span>
+            <TextAreaInput bind:value={proompt.innerFormat}/>
+            <CheckInput name={language.customInnerFormat} check={true} className="mt-2" onChange={() => {
+                if(proompt.type === 'persona' || proompt.type === 'description'){
+                    proompt.innerFormat = null
                 }
             }} />
         {/if}

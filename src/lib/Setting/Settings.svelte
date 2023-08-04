@@ -33,25 +33,15 @@
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 1}
-                    class:text-textcolor2={selected !== 1}
+                    class:text-textcolor={selected === 1 || selected === 13}
+                    class:text-textcolor2={selected !== 1 && selected !== 13}
                     on:click={() => {
                         selected = 1
+                        
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
                 </button>
-                {#if $DataBase.promptTemplate}
-                    <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 13}
-                    class:text-textcolor2={selected !== 13}
-                    on:click={() => {
-                        selected = 13
-                }}>
-                        <ScrollTextIcon />
-                        <span>{language.prompt}</span>
-                    </button>
-                {/if}
                 <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={selected === 12}
                     class:text-textcolor2={selected !== 12}
@@ -159,37 +149,43 @@
             </div>
         {/if}
         {#if window.innerWidth >= 700 || selected !== -1}
-            <div class="flex-grow p-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
-                {#if selected === 0}
-                    <UserSettings />
-                {:else if selected === 1}
-                    <BotSettings bind:openPresetList />
-                {:else if selected === 2}
-                    <OtherBotSettings />
-                {:else if selected === 3}
-                    <DisplaySettings />
-                {:else if selected === 4}
-                    <PluginSettings />
-                {:else if selected === 5}
-                    <FilesSettings />
-                {:else if selected === 6}
-                    <AdvancedSettings />
-                {:else if selected === 7}
-                    <Communities />
-                {:else if selected === 8}
-                    <GlobalLoreBookSettings bind:openLoreList />
-                {:else if selected === 9}
-                    <GlobalRegex/>
-                {:else if selected === 10}
-                    <LanguageSettings/>
-                {:else if selected === 11}
-                    <AccessibilitySettings/>
-                {:else if selected === 12}
-                    <PersonaSettings/>
-                {:else if selected === 13}
-                    <PromptSettings/>
-                {/if}
+            {#key selected}
+                <div class="flex-grow p-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
+                    {#if selected === 0}
+                        <UserSettings />
+                    {:else if selected === 1}
+                        <BotSettings bind:openPresetList goPromptTemplate={() => {
+                            selected = 13
+                        }} />
+                    {:else if selected === 2}
+                        <OtherBotSettings />
+                    {:else if selected === 3}
+                        <DisplaySettings />
+                    {:else if selected === 4}
+                        <PluginSettings />
+                    {:else if selected === 5}
+                        <FilesSettings />
+                    {:else if selected === 6}
+                        <AdvancedSettings />
+                    {:else if selected === 7}
+                        <Communities />
+                    {:else if selected === 8}
+                        <GlobalLoreBookSettings bind:openLoreList />
+                    {:else if selected === 9}
+                        <GlobalRegex/>
+                    {:else if selected === 10}
+                        <LanguageSettings/>
+                    {:else if selected === 11}
+                        <AccessibilitySettings/>
+                    {:else if selected === 12}
+                        <PersonaSettings/>
+                    {:else if selected === 13}
+                        <PromptSettings onGoBack={() => {
+                            selected = 1
+                        }}/>
+                    {/if}
             </div>
+            {/key}
             <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
                 if(window.innerWidth >= 700){
                     settingsOpen.set(false)

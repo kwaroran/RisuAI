@@ -66,6 +66,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
     }
     for (const script of scripts){
         if(script.type === mode){
+            
             const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
             let outScript2 = script.out.replaceAll("$n", "\n")
             let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})

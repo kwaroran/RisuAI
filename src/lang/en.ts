@@ -408,4 +408,7 @@ export const languageEnglish = {
     specialType: "Special Type",
     noSpecialType: "No Special Type",
     forceProxyAsOpenAI: "Force Proxy Format as OpenAI",
+    promptTemplate: "Prompt Template",
+    customInnerFormat: "Custom Inner Format",
+    innerFormat: "Inner Format",
 }
