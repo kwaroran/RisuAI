@@ -515,10 +515,12 @@ export async function globalFetch(url:string, arg:{
         console.log(urlHost)
         //check if the url is a local url like localhost
         if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
-            return {
-                ok: false,
-                data: 'You are trying local request on web version. this is not allowed dude to browser security policy. use the desktop version instead, or use tunneling service like ngrok and set the cors to allow all.',
-                headers: {}
+            if((!isTauri) && (!isNodeServer)){
+                return {
+                    ok: false,
+                    data: 'You are trying local request on web version. this is not allowed dude to browser security policy. use the desktop version instead, or use tunneling service like ngrok and set the cors to allow all.',
+                    headers: {}
+                }
             }
         }
 
