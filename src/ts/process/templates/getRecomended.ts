@@ -49,8 +49,9 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         pr.mainPrompt = pr.bias = pr.globalNote = undefined
         pr.jailbreak = ""
         if(!db.autoSuggestPrompt || db.autoSuggestPrompt === defaultAutoSuggestPrompt){
-            pr.autoSuggestPrompt = defaultAutoSuggestPromptOoba;
-            pr.autoSuggestPrefix = defaultAutoSuggestPrefixOoba;
+            pr.autoSuggestPrompt = defaultAutoSuggestPromptOoba
+            pr.autoSuggestPrefix = defaultAutoSuggestPrefixOoba
+            pr.autoSuggestClean = true
         }
         switch(sel){
             case 0:{ //Vicuna, WizardLM, Airoboros
