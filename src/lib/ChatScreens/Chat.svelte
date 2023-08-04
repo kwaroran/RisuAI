@@ -75,17 +75,17 @@
     $: displaya(message)
 </script>
 <div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
-    <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
-        {#await img}
-            <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
-        {:then m}
-            <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
-        {/await}
-        <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
-            <div class="flexium items-center chat">
-                <span class="chat text-xl unmargin">{name}</span>
+    <div class="text-textcolor mt-1 ml-2 mr-2 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
+        <span class="flex flex-col w-full max-w-full min-w-0">
+            <div class="flexium mb-2 items-end chat">
+                {#await img}
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
+                {:then m}
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+                {/await}
+                <span class="ml-3 chat text-xl unmargin">{name}</span>
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
                     {#if $DataBase.useChatCopy}
@@ -148,22 +148,24 @@
                     {/if}
                 </div>
             </div>
-            {#if editMode}
-                <AutoresizeArea bind:value={message} />
-            {:else}
-                {#await ParseMarkdown(msgDisplay, character, 'normal', idx) then md} 
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
-                        if($DataBase.clickToEdit && idx > -1){
-                            editMode = true
-                            msgTranslated = ""
-                        }
-                    }}
-                        style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                        style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
-                    >{@html md}</span>
-                {/await}
-            {/if}
+            <div class="ml-1">
+                {#if editMode}
+                    <AutoresizeArea bind:value={message} />
+                {:else}
+                    {#await ParseMarkdown(msgDisplay, character, 'normal', idx) then md} 
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                            if($DataBase.clickToEdit && idx > -1){
+                                editMode = true
+                                msgTranslated = ""
+                            }
+                        }}
+                            style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
+                            style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                        >{@html md}</span>
+                    {/await}
+                {/if}
+            </div>
         </span>
 
     </div>
