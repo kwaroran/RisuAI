@@ -201,11 +201,11 @@
     <span class="text-textcolor">NovelAI Bearer Token</span>
     <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
 
-    {#if !($DataBase.novelai.token)}
+    <!-- {#if !($DataBase.novelai.token)}
         <div class="mb-2">
             <Button on:click={novelLogin} size="sm">Login to NovelAI</Button>
         </div>
-    {/if}
+    {/if} -->
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
