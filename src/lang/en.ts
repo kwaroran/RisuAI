@@ -407,4 +407,5 @@ export const languageEnglish = {
     usePromptTemplate: "Use Prompt Template",
     specialType: "Special Type",
     noSpecialType: "No Special Type",
+    forceProxyAsOpenAI: "Force Proxy Format as OpenAI",
 }

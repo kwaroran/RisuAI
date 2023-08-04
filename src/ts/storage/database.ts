@@ -616,6 +616,7 @@ export interface Database{
     colorScheme:ColorScheme
     colorSchemeName:string
     promptTemplate?:Proompt[]
+    forceProxyAsOpenAI?:boolean
 }
 
 interface hordeConfig{

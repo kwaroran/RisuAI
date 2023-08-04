@@ -95,6 +95,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         if(db.proxyRequestModel.startsWith('claude')){
             raiModel = 'claude'
         }
+        if(db.forceProxyAsOpenAI){
+            raiModel = 'reverse_proxy'
+        }
     }
     switch(raiModel){
         case 'gpt35':

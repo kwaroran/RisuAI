@@ -48,6 +48,9 @@
     <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
 </div>
 <button
