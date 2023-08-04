@@ -685,7 +685,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case "novellist_damsel":{
             const auth_key = db.novellistAPI;
             const api_server_url = 'https://api.tringpt.com/';
-
+            const logit_bias:string[] = []
+            const logit_bias_values:string[] = []
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                logit_bias.push(bia[0])
+                logit_bias_values.push(bia[1].toString())
+            }
             const headers = {
                 'Authorization': `Bearer ${auth_key}`,
                 'Content-Type': 'application/json'
@@ -705,6 +711,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 badwords: db.ainconfig.badwords,
                 model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
                 stoptokens: ["「"].join("<<|>>") + db.ainconfig.stoptokens,
+                logit_bias: (logit_bias.length > 0) ? logit_bias.join("<<|>>") : undefined,
+                logit_bias_values: (logit_bias_values.length > 0) ? logit_bias_values.join("|") : undefined,
             };
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
