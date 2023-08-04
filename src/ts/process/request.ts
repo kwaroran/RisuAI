@@ -732,6 +732,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(raiModel.startsWith('claude')){
 
                 let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/complete')
+                let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
                 if(aiModel === 'reverse_proxy'){
                     if(replacerURL.endsWith('v1')){
                         replacerURL += '/complete'
@@ -785,10 +786,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     },
                     headers: {
                         "Content-Type": "application/json",
-                        "x-api-key": db.claudeAPIKey,
+                        "x-api-key": apiKey,
                         "anthropic-version": "2023-06-01",
                         "accept": "application/json"
-                    }
+                    },
+                    useRisuToken: true
                 })
 
                 if((!da.ok) || (da.data.error)){
