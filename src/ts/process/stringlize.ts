@@ -29,7 +29,7 @@ function appendWhitespace(prefix:string, seperator:string=" ") {
     }
     return prefix
 }
-export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=false){
+export function stringlizeChatOba(formated:OpenAIChat[], characterName:string='', suggesting:boolean=false){
     const db = get(DataBase)
     let resultString:string[] = []
     let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
@@ -45,21 +45,24 @@ export function stringlizeChatOba(formated:OpenAIChat[], suggesting:boolean=fals
             continue
         }
         let prefix = ""
+        let name = ""
         if(form.role === 'user'){
-            prefix = appendWhitespace(userPrefix, seperator)
+            prefix = appendWhitespace(suggesting ? assistantPrefix : userPrefix, seperator)
+            name = `${db.username}: `
         }
         else if(form.role === 'assistant'){
-            prefix = appendWhitespace(assistantPrefix, seperator)
+            prefix = appendWhitespace(suggesting ? userPrefix : assistantPrefix, seperator)
+            name = `${characterName}: `
         }
         else if(form.role === 'system'){
             prefix = appendWhitespace(systemPrefix, seperator)
         }
-        resultString.push(prefix + form.content)
+        resultString.push(prefix + name + form.content)
     }
     if (suggesting){
-        resultString.push(appendWhitespace(assistantPrefix, seperator) + "\n" + db.autoSuggestPrefix)
+        resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
     } else {
-        resultString.push(assistantPrefix)
+        resultString.push(assistantPrefix + `${characterName}:`)
     }
     return resultString.join(seperator)
 }
@@ -81,6 +84,9 @@ export function getStopStrings(suggesting:boolean=false){
         "<|end",
         "<|im_end",
         userPrefix,
+        "\nYou ",
+        `*${username}'`,
+        `*${username} `,
         `\n${username} `,
         `${username}:`,
     ]
@@ -89,6 +95,10 @@ export function getStopStrings(suggesting:boolean=false){
     }
     if(suggesting){
         stopStrings.push("\n\n")
+    }
+    if(!suggesting){
+        stopStrings.push("*You ")
+        stopStrings.push(" You ")
     }
     for (const user of userStrings){
         for (const u of [

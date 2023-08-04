@@ -271,7 +271,10 @@ export function setDatabase(data:Database){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
     }
     if(checkNullish(data.autoSuggestPrefix)){
-        data.autoSuggestPrompt = ""
+        data.autoSuggestPrefix = ""
+    }
+    if(checkNullish(data.autoSuggestClean)){
+        data.autoSuggestClean = true
     }
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
@@ -460,6 +463,7 @@ export interface botPreset{
     NAISettings?: NAISettings
     autoSuggestPrompt?: string
     autoSuggestPrefix?: string
+    autoSuggestClean?: boolean
 }
 
 export interface Database{
@@ -571,6 +575,7 @@ export interface Database{
     useAutoSuggestions:boolean
     autoSuggestPrompt:string
     autoSuggestPrefix:string
+    autoSuggestClean:boolean
     claudeAPIKey:string,
     useChatCopy:boolean,
     novellistAPI:string,
@@ -885,6 +890,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.NAIsettings = newPres.NAISettings ?? db.NAIsettings
     db.autoSuggestPrompt = newPres.autoSuggestPrompt ?? db.autoSuggestPrompt
     db.autoSuggestPrefix = newPres.autoSuggestPrefix ?? db.autoSuggestPrefix
+    db.autoSuggestClean = newPres.autoSuggestClean ?? db.autoSuggestClean
     return db
 }
 
