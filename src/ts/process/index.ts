@@ -614,7 +614,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         db.characters[selectedChar].chats[selectedChat].message.push({
             role: 'char',
             data: "",
-            saying: currentChar.chaId
+            saying: currentChar.chaId,
+            time: Date.now()
         })
         while(abortSignal.aborted === false){
             const readed = (await reader.read())
@@ -655,7 +656,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             db.characters[selectedChar].chats[selectedChat].message.push({
                 role: msg[0],
                 data: result,
-                saying: currentChar.chaId
+                saying: currentChar.chaId,
+                time: Date.now()
             })
             db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)

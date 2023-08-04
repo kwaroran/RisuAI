@@ -69,13 +69,15 @@
 
                 cha.push({
                     role: 'user',
-                    data: processScript(char,messageInput,'editinput')
+                    data: processScript(char,messageInput,'editinput'),
+                    time: Date.now()
                 })
             }
             else{
                 cha.push({
                     role: 'user',
-                    data: messageInput
+                    data: messageInput,
+                    time: Date.now()
                 })
             }
         }

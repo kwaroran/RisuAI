@@ -662,6 +662,7 @@ export interface Message{
     data: string
     saying?: string
     chatId?:string
+    time?: number
 }
 
 interface AINsettings{

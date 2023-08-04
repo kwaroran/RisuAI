@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 import { Marked } from 'marked';
 
-import { DataBase, type Database, type character, type groupChat } from './storage/database';
+import { DataBase, type Database, type Message, type character, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScript, processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
@@ -441,6 +441,88 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         case 'blank':
         case 'none':{
             return ''
+        }
+        case 'time':{
+            if(chatID === -1){
+                return "[Cannot get time]"
+            }
+
+            const selchar = db.characters[get(selectedCharID)]
+            const chat = selchar.chats[selchar.chatPage]
+            const message = chat.message[chatID]
+            if(!message.time){
+                return "[Cannot get time, message was sent in older version]"
+            }
+            const date = new Date(message.time)
+            //output time in format like 10:30 AM
+            return date.toLocaleTimeString()
+        }
+        case 'date':{
+            if(chatID === -1){
+                return "[Cannot get time]"
+            }
+            const selchar = db.characters[get(selectedCharID)]
+            const chat = selchar.chats[selchar.chatPage]
+            const message = chat.message[chatID]
+            if(!message.time){
+                return "[Cannot get time, message was sent in older version]"
+            }
+            const date = new Date(message.time)
+            //output date in format like Aug 23, 2021
+            return date.toLocaleDateString()
+        }
+        case 'idle_duration':{
+            if(chatID === -1){
+                return "[Cannot get time]"
+            }
+            const selchar = db.characters[get(selectedCharID)]
+            const chat = selchar.chats[selchar.chatPage]
+            
+            //get latest user message
+            let pointer = chatID
+            let pointerMode: 'findLast'|'findSecondLast' = 'findLast'
+            let message:Message
+            let previous_message:Message
+            while(pointer >= 0){
+                if(chat.message[pointer].role === 'user'){
+                    if(pointerMode === 'findLast'){
+                        message = chat.message[pointer]
+                        pointerMode = 'findSecondLast'
+                    }
+                    else{
+                        previous_message = chat.message[pointer]
+                        break
+                    }
+                }
+                pointer--
+            }
+
+            if(!message){
+                return '[No user message found]'
+            }
+
+            if(!previous_message){
+                return '[No previous user message found]'
+            }
+            if(!message.time){
+                return "[Cannot get time, message was sent in older version]"
+            }
+            if(!previous_message.time){
+                return "[Cannot get time, previous message was sent in older version]"
+            }
+
+            console.log(message.time)
+            console.log(previous_message.time)
+            let duration = message.time - previous_message.time
+            //output time in format like 10:30:00
+            let seconds = Math.floor(duration / 1000)
+            let minutes = Math.floor(seconds / 60)
+            let hours = Math.floor(minutes / 60)
+            seconds = seconds % 60
+            minutes = minutes % 60
+            //output, like 1:30:00
+            return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
+
         }
     }
     const arra = p1.split("::")
