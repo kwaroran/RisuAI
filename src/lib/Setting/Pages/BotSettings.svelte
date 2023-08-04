@@ -252,8 +252,14 @@
     <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.maxResponse}/>
 
 <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
-<SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
+
+{#if $DataBase.aiModel.startsWith("novelai")}
+    <SliderInput min={0} max={250} bind:value={$DataBase.temperature}/>
+{:else}
+    <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
+{/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
+
 {#if $DataBase.aiModel === 'textgen_webui'}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
@@ -330,12 +336,12 @@
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
     <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.typicalp}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.typicalp).toFixed(2)}</span>
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={0} max={3} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
     <span class="text-textcolor">Repetition Penalty Range</span>
-    <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
+    <SliderInput min={0} max={8192} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
     <span class="text-textcolor">Repetition Penalty Slope</span>
     <SliderInput min={0} max={10} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
