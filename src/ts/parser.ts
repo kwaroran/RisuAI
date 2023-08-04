@@ -522,8 +522,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             minutes = minutes % 60
             //output, like 1:30:00
             return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
-
         }
+        
     }
     const arra = p1.split("::")
     if(arra.length > 1){
