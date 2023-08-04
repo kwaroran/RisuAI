@@ -318,8 +318,24 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'chat':{
-                    const start = card.rangeStart
-                    const end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    let start = card.rangeStart
+                    let end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    if(start < 0){
+                        start = unformated.chats.length + start
+                        if(start < 0){
+                            start = 0
+                        }
+                    }
+                    if(end < 0){
+                        end = unformated.chats.length + end
+                        if(end < 0){
+                            end = 0
+                        }
+                    }
+                    
+                    if(start >= end){
+                        break
+                    }
                     const chats = unformated.chats.slice(start, end)
                     await tokenizeChatArray(chats)
                     break
@@ -561,8 +577,25 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'chat':{
-                    const start = card.rangeStart
-                    const end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    let start = card.rangeStart
+                    let end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    if(start < 0){
+                        start = unformated.chats.length + start
+                        if(start < 0){
+                            start = 0
+                        }
+                    }
+                    if(end < 0){
+                        end = unformated.chats.length + end
+                        if(end < 0){
+                            end = 0
+                        }
+                    }
+                    
+                    if(start >= end){
+                        break
+                    }
+
                     const chats = unformated.chats.slice(start, end)
                     pushPrompts(chats)
                     break
