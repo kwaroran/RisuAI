@@ -96,7 +96,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let raiModel = aiModel
     if(aiModel === 'reverse_proxy'){
         if(db.proxyRequestModel.startsWith('claude')){
-            raiModel = 'claude'
+            raiModel = db.proxyRequestModel
         }
         if(db.forceProxyAsOpenAI){
             raiModel = 'reverse_proxy'
