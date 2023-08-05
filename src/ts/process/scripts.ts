@@ -140,10 +140,6 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                 }
             }
             else{
-                if(randomness.test(data)){
-                    const list = data.split('|||')
-                    data = list[Math.floor(Math.random()*list.length)];
-                }
                 data = data.replace(reg, outScript)
             }
         }
