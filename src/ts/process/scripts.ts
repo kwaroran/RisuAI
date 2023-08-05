@@ -144,7 +144,7 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                     const list = data.split('|||')
                     data = list[Math.floor(Math.random()*list.length)];
                 }
-                data = risuChatParser(data.replace(reg, outScript), {chatID: chatID, db:db})
+                data = data.replace(reg, outScript)
             }
         }
     }
