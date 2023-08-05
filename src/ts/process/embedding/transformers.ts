@@ -1,6 +1,4 @@
 import type { Pipeline, PretrainedOptions } from '@xenova/transformers';
-import { DataBase } from 'src/ts/storage/database';
-import { get } from 'svelte/store';
 
 let pipeline: (task: string, model?: string, { quantized, progress_callback, config, cache_dir, local_files_only, revision, }?: PretrainedOptions) => Promise<Pipeline> = null
 
@@ -37,7 +35,7 @@ export const runTransformers = async (baseText:string, model:string,bodyTemplate
     await loadTransformer()
     let text = baseText
     let generator = await pipeline('text-generation', model);
-    let output = await generator(text, bodyTemplate);
+    let output:{generated_text:string}[] = await generator(text);
     return output
 }
 
