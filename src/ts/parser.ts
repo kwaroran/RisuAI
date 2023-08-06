@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 import { Marked } from 'marked';
 
-import { DataBase, type Database, type Message, type character, type groupChat } from './storage/database';
+import { DataBase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScript, processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
@@ -58,7 +58,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 const assetRegex = /{{(raw|img|video|audio|bg)::(.+?)}}/g
 
-async function parseAdditionalAssets(data:string, char:character, mode:'normal'|'back'){
+async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
@@ -97,9 +97,19 @@ async function parseAdditionalAssets(data:string, char:character, mode:'normal'|
     return data
 }
 
-export async function ParseMarkdown(data:string, char:(character | groupChat) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
+export interface simpleCharacterArgument{
+    type: 'simple'
+    additionalAssets?: [string, string, string][]
+    customscript: customscript[]
+    chaId: string,
+}
+
+
+export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
     let firstParsed = ''
     const orgDat = data
+
+    let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
     if(char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)
         firstParsed = data

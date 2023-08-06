@@ -1,6 +1,7 @@
 import { get, writable } from "svelte/store";
-import { DataBase } from "./storage/database";
+import { DataBase, type character, type groupChat } from "./storage/database";
 import { cloneDeep, isEqual } from "lodash";
+import type { simpleCharacterArgument } from "./parser";
 
 function updateSize(){
     SizeStore.set({
@@ -30,7 +31,28 @@ let currentChar = get(selectedCharID)
 let currentCharacter = db.characters ? (db.characters[currentChar]) : null
 let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
 export const CurrentCharacter = writable(cloneDeep(currentCharacter))
+export const CurrentSimpleCharacter = writable(createSimpleCharacter(currentCharacter))
 export const CurrentChat = writable(cloneDeep(currentChat))
+export const CurrentUsername = writable(db.username)
+export const CurrentUserIcon = writable(db.userIcon)
+export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
+
+function createSimpleCharacter(char:character|groupChat){
+    if((!char) || char.type === 'group'){
+        return null
+    }
+
+    const simpleChar:simpleCharacterArgument = {
+        type: "simple",
+        customscript: cloneDeep(char.customscript),
+        chaId: char.chaId,
+        additionalAssets: char.additionalAssets
+    }
+
+    return simpleChar
+
+}
+
 
 function updateCurrentCharacter(){
     const db = get(DataBase)
@@ -48,6 +70,12 @@ function updateCurrentCharacter(){
     }
     console.log("Character updated")
     CurrentCharacter.set(cloneDeep(currentChar))
+    const simp = createSimpleCharacter(currentChar)
+    
+    if(!isEqual(get(CurrentSimpleCharacter), simp)){
+        CurrentSimpleCharacter.set(simp)
+    }
+
     updateCurrentChat()
 }
 
@@ -67,6 +95,15 @@ function updateCurrentChat(){
 
 DataBase.subscribe((data) => {
     updateCurrentCharacter()
+    if(data.username !== get(CurrentUsername)){
+        CurrentUsername.set(data.username)
+    }
+    if(data.userIcon !== get(CurrentUserIcon)){
+        CurrentUserIcon.set(data.userIcon)
+    }
+    if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
+        CurrentShowMemoryLimit.set(data.showMemoryLimit)
+    }
 })
 
 selectedCharID.subscribe((id) => {  

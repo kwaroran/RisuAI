@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
-    import { ParseMarkdown } from "../../ts/parser";
+    import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
@@ -16,7 +16,7 @@
     export let rerollIcon = false
     export let onReroll = () => {}
     export let unReroll = () => {}
-    export let character:character|groupChat|null = null
+    export let character:simpleCharacterArgument|string|null = null
     let translating = false
     let editMode = false
     let statusMessage:string = ''

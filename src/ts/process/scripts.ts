@@ -5,7 +5,7 @@ import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
-import { risuChatParser as risuChatParserOrg } from "../parser";
+import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { autoMarkPlugin } from "../plugins/automark";
 
 const dreg = /{{data}}/g
@@ -54,7 +54,7 @@ export async function importRegex(){
     }
 }
 
-export function processScriptFull(char:character|groupChat, data:string, mode:ScriptMode, chatID = -1){
+export function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript)
@@ -83,14 +83,16 @@ export function processScriptFull(char:character|groupChat, data:string, mode:Sc
                         if(tempEmotion.length > 4){
                             tempEmotion.splice(0, 1)
                         }
-                        for(const emo of char.emotionImages){
-                            if(emo[0] === emoName){
-                                const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
-                                tempEmotion.push(emos)
-                                charemotions[char.chaId] = tempEmotion
-                                CharEmotion.set(charemotions)
-                                emoChanged = true
-                                break
+                        if(char.type !== 'simple'){
+                            for(const emo of char.emotionImages){
+                                if(emo[0] === emoName){
+                                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                                    tempEmotion.push(emos)
+                                    charemotions[char.chaId] = tempEmotion
+                                    CharEmotion.set(charemotions)
+                                    emoChanged = true
+                                    break
+                                }
                             }
                         }
                     }

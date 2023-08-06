@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
-    import { CurrentCharacter, CurrentChat, selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
@@ -420,8 +420,8 @@
                             rerollIcon={i === 0}
                             onReroll={reroll}
                             unReroll={unReroll}
-                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
-                            character={$CurrentCharacter}
+                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                            character={$CurrentSimpleCharacter}
                         />
                     {:else}
                         <Chat
@@ -432,25 +432,25 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
-                            character={findCharacterbyId(chat.saying)}
+                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                            character={chat.saying}
                         />
                     {/if}
                 {:else}
                     <Chat
-                        character={$CurrentCharacter}
+                        character={$CurrentSimpleCharacter}
                         idx={chat.index}
-                        name={$DataBase.username} 
+                        name={$CurrentUsername} 
                         message={chat.data}
-                        img={getCharImage($DataBase.userIcon, 'css')}
-                        isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                        img={getCharImage($CurrentUserIcon, 'css')}
+                        isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                     />
                 {/if}
             {/each}
             {#if $CurrentChat.message.length <= loadPages}
                 {#if $CurrentCharacter.type !== 'group'}
                     <Chat
-                        character={$CurrentCharacter}
+                        character={$CurrentSimpleCharacter}
                         name={$CurrentCharacter.name}
                         message={$CurrentCharacter.firstMsgIndex === -1 ? $CurrentCharacter.firstMessage :
                             $CurrentCharacter.alternateGreetings[$CurrentCharacter.firstMsgIndex]}
