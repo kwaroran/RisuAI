@@ -80,8 +80,15 @@
     <span class="text-textcolor">{language.SuperMemory} Prompt</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default"/>
 {/if}
-{#if ($DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie') && $DataBase.useExperimental}
+{#if $DataBase.hypaMemory}
+    <span class="text-textcolor">{language.HypaMemory} Model</span>
+    <SelectInput className="mt-2 mb-2" bind:value={$DataBase.hypaModel}>
+        <OptionInput value="MiniLM" >MiniLM-L6-v2 (Free / Local)</OptionInput>
+        <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
+    </SelectInput>
+{/if}
+{#if $DataBase.useExperimental}
     <div class="flex">
-        <Check bind:check={$DataBase.hypaMemory} name='Able HypaMemory'/> <Help key="experimental" />
+        <Check bind:check={$DataBase.hypaMemory} name={language.able + ' ' + language.HypaMemory}/> <Help key="experimental" />
     </div>
 {/if}

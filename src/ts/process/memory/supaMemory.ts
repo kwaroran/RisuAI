@@ -202,7 +202,7 @@ export async function supaMemory(
         let hypaResult = ""
 
         if(arg.asHyper){
-            const hypa = new HypaProcesser('MiniLM')
+            const hypa = new HypaProcesser(db.hypaModel)
             hypa.oaikey = db.supaMemoryKey
             hypa.vectors = []
             hypaChunks = hypaChunks.filter((value) => value.length > 1)

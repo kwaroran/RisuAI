@@ -302,7 +302,7 @@ export function setDatabase(data:Database){
     data.colorScheme ??= cloneDeep(defaultColorScheme)
     data.colorSchemeName ??= 'default'
     data.NAIsettings.starter ??= ""
-    
+    data.hypaModel ??= 'MiniLM'
     
     changeLanguage(data.language)
     DataBase.set(data)
@@ -620,6 +620,7 @@ export interface Database{
     colorSchemeName:string
     promptTemplate?:Proompt[]
     forceProxyAsOpenAI?:boolean
+    hypaModel:'ada'|'MiniLM'
 }
 
 interface hordeConfig{
