@@ -1,18 +1,21 @@
 import localforage from "localforage";
 import { similarity } from "ml-distance";
 import { globalFetch } from "src/ts/storage/globalApi";
+import { runEmbedding } from "../embedding/transformers";
 
 
 export class HypaProcesser{
     oaikey:string
     vectors:memoryVector[]
     forage:LocalForage
+    model:'ada'|'MiniLM'
 
-    constructor(){
+    constructor(model:'ada'|'MiniLM'){
         this.forage = localforage.createInstance({
             name: "hypaVector"
         })
         this.vectors = []
+        this.model = model
     }
 
     async embedDocuments(texts: string[]): Promise<number[][]> {
@@ -33,6 +36,25 @@ export class HypaProcesser{
     
     
     async getEmbeds(input:string[]|string) {
+        if(this.model === 'MiniLM'){
+            const inputs:string[] = Array.isArray(input) ? input : [input]
+            let results:Float32Array[] = []
+            for(let i=0;i<inputs.length;i++){
+                const res = await runEmbedding(inputs[i])
+                results.push(res)
+            }
+            //convert to number[][]
+            const result:number[][] = []
+            for(let i=0;i<results.length;i++){
+                const res = results[i]
+                const arr:number[] = []
+                for(let j=0;j<res.length;j++){
+                    arr.push(res[j])
+                }
+                result.push(arr)
+            }
+            return result
+        }
         const gf = await globalFetch("https://api.openai.com/v1/embeddings", {
             headers: {
             "Authorization": "Bearer " + this.oaikey
