@@ -2,7 +2,7 @@
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase } from "../../ts/storage/database";
-    import { selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
@@ -22,15 +22,15 @@
                 </button>
             </div>
         </div>
-        {#each $DataBase.characters[$selectedCharID].chats as chat, i}
+        {#each $CurrentCharacter.chats as chat, i}
             <button on:click={() => {
                 if(!editMode){
-                    $DataBase.characters[$selectedCharID].chatPage = i
+                    $CurrentCharacter.chatPage = i
                      close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === $DataBase.characters[$selectedCharID].chatPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === $CurrentCharacter.chatPage}>
                 {#if editMode}
-                    <TextInput bind:value={$DataBase.characters[$selectedCharID].chats[i].name} padding={false}/>
+                    <TextInput bind:value={$CurrentCharacter.chats[i].name} padding={false}/>
                 {:else}
                     <span>{chat.name}</span>
                 {/if}
@@ -43,16 +43,16 @@
                     </button>
                     <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
-                        if($DataBase.characters[$selectedCharID].chats.length === 1){
+                        if($CurrentCharacter.chats.length === 1){
                             alertError(language.errors.onlyOneChat)
                             return
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
-                            $DataBase.characters[$selectedCharID].chatPage = 0
-                            let chats = $DataBase.characters[$selectedCharID].chats
+                            $CurrentCharacter.chatPage = 0
+                            let chats = $CurrentCharacter.chats
                             chats.splice(i, 1)
-                            $DataBase.characters[$selectedCharID].chats = chats
+                            $CurrentCharacter.chats = chats
                         }
                     }}>
                         <TrashIcon size={18}/>
@@ -62,9 +62,9 @@
         {/each}
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
-                const cha = $DataBase.characters[$selectedCharID]
-                const len = $DataBase.characters[$selectedCharID].chats.length
-                let chats = $DataBase.characters[$selectedCharID].chats
+                const cha = $CurrentCharacter
+                const len = $CurrentCharacter.chats.length
+                let chats = $CurrentCharacter.chats
                 chats.push({
                     message:[], note:'', name:`New Chat ${len + 1}`, localLore:[]
                 })
@@ -77,8 +77,8 @@
                         })
                     })
                 }
-                $DataBase.characters[$selectedCharID].chats = chats
-                $DataBase.characters[$selectedCharID].chatPage = len
+                $CurrentCharacter.chats = chats
+                $CurrentCharacter.chatPage = len
                 close()
             }}>
                 <PlusIcon/>

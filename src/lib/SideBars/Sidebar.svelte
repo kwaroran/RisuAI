@@ -7,6 +7,7 @@
     settingsOpen,
     sideBarClosing,
     sideBarStore,
+    CurrentCharacter
   } from "../../ts/stores";
   import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
   import BarIcon from "./BarIcon.svelte";
@@ -626,7 +627,7 @@
       {#if $botMakerMode}
         <CharConfig />
       {:else}
-        <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
+        <SideChatList bind:chara={ $CurrentCharacter} />
       {/if}
     {/if}
   {:else if sideBarMode === 1}

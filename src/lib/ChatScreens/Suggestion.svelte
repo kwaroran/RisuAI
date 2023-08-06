@@ -2,7 +2,7 @@
 	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
     import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
-    import { selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
     import { translate } from "src/ts/translator/translator";
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
@@ -15,7 +15,7 @@
 
     export let send: () => any;
     export let messageInput:(string:string) => any;
-    let suggestMessages:string[] = $DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages
+    let suggestMessages:string[] = $CurrentCharacter?.chats[$CurrentCharacter.chatPage]?.suggestMessages
     let suggestMessagesTranslated:string[]
     let toggleTranslate:boolean = $DataBase.autoTranslate
     let progress:boolean;
@@ -25,7 +25,7 @@
     $: {
         $selectedCharID
         //FIXME add selectedChatPage for optimize render
-        chatPage = $DataBase.characters[$selectedCharID].chatPage
+        chatPage = $CurrentCharacter.chatPage
         updateSuggestions()
     }
 
@@ -35,7 +35,7 @@
                 progress=false
                 abortController?.abort()
             }
-            let currentChar = $DataBase.characters[$selectedCharID];
+            let currentChar = $CurrentCharacter;
             suggestMessages = currentChar?.chats[currentChar.chatPage].suggestMessages
         }
     }
@@ -48,7 +48,7 @@
             suggestMessages = []
         }
         if(!v && $selectedCharID > -1 && (!suggestMessages || suggestMessages.length === 0) && !progress){
-            let currentChar:character|groupChat = $DataBase.characters[$selectedCharID];
+            let currentChar:character|groupChat = $CurrentCharacter;
             let messages:Message[] = []
             
             if(currentChar.type !== 'group'){

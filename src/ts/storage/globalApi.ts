@@ -197,7 +197,6 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
         let form = `assets/${id}.${fileExtension}`
         const replacer = await forageStorage.setItem(form, data)
         if(replacer){
-            console.log(replacer)
             return replacer
         }
         return form
@@ -279,7 +278,6 @@ async function getDbBackups() {
                 backups.push(parseInt(da))
             }
         }
-        console.log(backups)
         while(backups.length > 20){
             const last = backups.pop()
             await forageStorage.removeItem(`database/dbbackup-${last}.bin`)
@@ -511,8 +509,6 @@ export async function globalFetch(url:string, arg:{
     
         const urlHost = (new URL(url)).hostname
         let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch || arg.plainFetchForce
-
-        console.log(urlHost)
         //check if the url is a local url like localhost
         if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
             if((!isTauri) && (!isNodeServer)){
@@ -704,7 +700,6 @@ export async function globalFetch(url:string, arg:{
                     }
                 }
             } catch (error) {
-                console.log(error)
                 return {
                     ok:false,
                     data: `${error}`,
@@ -969,7 +964,6 @@ export function getRequestLog(){
         logString += `## ${log.date}\n\n* Request URL\n\n${b}${log.url}${bend}\n\n* Request Body\n\n${b}${log.body}${bend}\n\n* Request Header\n\n${b}${log.header}${bend}\n\n`
                     + `* Response Body\n\n${b}${log.response}${bend}\n\n* Response Success\n\n${b}${log.success}${bend}\n\n`
     }
-    console.log(logString)
     return logString
 }
 

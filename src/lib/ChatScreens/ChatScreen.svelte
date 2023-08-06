@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
-    import { CharEmotion, selectedCharID } from "../../ts/stores";
+    import { CharEmotion, CurrentCharacter, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
@@ -33,7 +33,7 @@
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
             {#if $selectedCharID >= 0}
-                {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+                {#if $CurrentCharacter.viewScreen !== 'none'}
                     <ResizeBox />
                 {/if}
             {/if}
@@ -45,13 +45,13 @@
         <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            {#if $CurrentCharacter.viewScreen !== 'none'}
                 <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * ($DataBase.waifuWidth2 / 100)}rem">
                     <TransitionImage classType="waifu" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>
             {/if}
         {/if}
-        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}>
+        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
     </div>
@@ -60,13 +60,13 @@
         <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
-            class:per33={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
-            class:h-full={!($selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none')}
+            class:per33={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}
+            class:h-full={!($selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none')}
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            {#if $CurrentCharacter.viewScreen !== 'none'}
                 <div class="h-full w-full absolute bottom-0 left-0 max-w-full">
                     <TransitionImage classType="mobile" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>

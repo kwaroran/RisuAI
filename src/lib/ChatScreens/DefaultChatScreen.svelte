@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
-    import { selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, selectedCharID } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
@@ -18,8 +18,8 @@
     import MainMenu from '../UI/MainMenu.svelte';
     import Help from '../Others/Help.svelte';
     import AssetInput from './AssetInput.svelte';
-  import { downloadFile } from 'src/ts/storage/globalApi';
-  import { runTrigger } from 'src/ts/process/triggers';
+    import { downloadFile } from 'src/ts/storage/globalApi';
+    import { runTrigger } from 'src/ts/process/triggers';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -31,7 +31,7 @@
     let rerollid = -1
     let lastCharId = -1
     let doingChatInputTranslate = false
-    let currentCharacter:character|groupChat = $DataBase.characters[$selectedCharID]
+    let currentCharacter:character|groupChat = $CurrentCharacter
     let toggleStickers:boolean = false
 
     async function send() {
@@ -103,16 +103,16 @@
             if(Array.isArray(rerolls[rerollid + 1])){
                 let db = $DataBase
                 rerollid += 1
-                db.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cloneDeep(rerolls[rerollid])
+                db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = cloneDeep(rerolls[rerollid])
                 $DataBase = db
             }
             return
         }
         if(rerolls.length === 0){
-            rerolls.push($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message)
+            rerolls.push($CurrentChat.message)
             rerollid = rerolls.length - 1
         }
-        let cha = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+        let cha = $CurrentChat.message
         if(cha.length === 0 ){
             return
         }
@@ -128,7 +128,7 @@
             }
             cha.pop()
         }
-        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cha
+        $CurrentChat.message = cha
         await sendChatMain()
     }
 
@@ -146,7 +146,7 @@
         if(Array.isArray(rerolls[rerollid - 1])){
             let db = $DataBase
             rerollid -= 1
-            db.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = cloneDeep(rerolls[rerollid])
+            db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = cloneDeep(rerolls[rerollid])
             $DataBase = db
         }
     }
@@ -162,7 +162,7 @@
             console.error(error)
             alertError(`${error}`)
         }
-        rerolls.push(cloneDeep($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message))
+        rerolls.push(cloneDeep($CurrentChat.message))
         rerollid = rerolls.length - 1
         lastCharId = $selectedCharID
         $doingChat = false
@@ -295,7 +295,7 @@
     }
 
     $: {
-        currentCharacter = $DataBase.characters[$selectedCharID]
+        currentCharacter = $CurrentCharacter
     }
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -308,7 +308,7 @@
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  on:scroll={(e) => {
             //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
-            if(scrolled < 100 && $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length > loadPages){
+            if(scrolled < 100 && $CurrentChat.message.length > loadPages){
                 loadPages += 30
             }
         }}>
@@ -409,19 +409,19 @@
                 )} {send}/>
             {/if}
             
-            {#each messageForm($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
+            {#each messageForm($CurrentChat.message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
-                    {#if $DataBase.characters[$selectedCharID].type !== 'group'}
+                    {#if $CurrentCharacter.type !== 'group'}
                         <Chat
                             idx={chat.index}
-                            name={$DataBase.characters[$selectedCharID].name} 
+                            name={$CurrentCharacter.name} 
                             message={chat.data}
-                            img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
+                            img={getCharImage($CurrentCharacter.image, 'css')}
                             rerollIcon={i === 0}
                             onReroll={reroll}
                             unReroll={unReroll}
-                            isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
-                            character={$DataBase.characters[$selectedCharID]}
+                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                            character={$CurrentCharacter}
                         />
                     {:else}
                         <Chat
@@ -432,33 +432,33 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                            isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
                             character={findCharacterbyId(chat.saying)}
                         />
                     {/if}
                 {:else}
                     <Chat
-                        character={$DataBase.characters[$selectedCharID]}
+                        character={$CurrentCharacter}
                         idx={chat.index}
                         name={$DataBase.username} 
                         message={chat.data}
                         img={getCharImage($DataBase.userIcon, 'css')}
-                        isLastMemory={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
+                        isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $DataBase.showMemoryLimit}
                     />
                 {/if}
             {/each}
-            {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length <= loadPages}
-                {#if $DataBase.characters[$selectedCharID].type !== 'group'}
+            {#if $CurrentChat.message.length <= loadPages}
+                {#if $CurrentCharacter.type !== 'group'}
                     <Chat
-                        character={$DataBase.characters[$selectedCharID]}
-                        name={$DataBase.characters[$selectedCharID].name}
-                        message={$DataBase.characters[$selectedCharID].firstMsgIndex === -1 ? $DataBase.characters[$selectedCharID].firstMessage :
-                            $DataBase.characters[$selectedCharID].alternateGreetings[$DataBase.characters[$selectedCharID].firstMsgIndex]}
-                        img={getCharImage($DataBase.characters[$selectedCharID].image, 'css')}
+                        character={$CurrentCharacter}
+                        name={$CurrentCharacter.name}
+                        message={$CurrentCharacter.firstMsgIndex === -1 ? $CurrentCharacter.firstMessage :
+                            $CurrentCharacter.alternateGreetings[$CurrentCharacter.firstMsgIndex]}
+                        img={getCharImage($CurrentCharacter.image, 'css')}
                         idx={-1}
-                        altGreeting={$DataBase.characters[$selectedCharID].alternateGreetings.length > 0}
+                        altGreeting={$CurrentCharacter.alternateGreetings.length > 0}
                         onReroll={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
+                            const cha = $CurrentCharacter
                             if(cha.type !== 'group'){
                                 if (cha.firstMsgIndex >= (cha.alternateGreetings.length - 1)){
                                     cha.firstMsgIndex = -1
@@ -467,10 +467,10 @@
                                     cha.firstMsgIndex += 1
                                 }
                             }
-                            $DataBase.characters[$selectedCharID] = cha
+                            $CurrentCharacter = cha
                         }}
                         unReroll={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
+                            const cha = $CurrentCharacter
                             if(cha.type !== 'group'){
                                 if (cha.firstMsgIndex === -1){
                                     cha.firstMsgIndex = (cha.alternateGreetings.length - 1)
@@ -479,18 +479,18 @@
                                     cha.firstMsgIndex -= 1
                                 }
                             }
-                            $DataBase.characters[$selectedCharID] = cha
+                            $CurrentCharacter = cha
                         }}
                         isLastMemory={false}
 
                     />
-                    {#if !$DataBase.characters[$selectedCharID].removedQuotes && $DataBase.characters[$selectedCharID].creatorNotes.length >= 2}
-                        <CreatorQuote quote={$DataBase.characters[$selectedCharID].creatorNotes} onRemove={() => {
-                            const cha = $DataBase.characters[$selectedCharID]
+                    {#if !$CurrentCharacter.removedQuotes && $CurrentCharacter.creatorNotes.length >= 2}
+                        <CreatorQuote quote={$CurrentCharacter.creatorNotes} onRemove={() => {
+                            const cha = $CurrentCharacter
                             if(cha.type !== 'group'){
                                 cha.removedQuotes = true
                             }
-                            $DataBase.characters[$selectedCharID] = cha
+                            $CurrentCharacter = cha
                         }} />
                     {/if}
                 {/if}
@@ -500,7 +500,7 @@
                 <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor" on:click={(e) => {
                     e.stopPropagation()
                 }}>
-                    {#if $DataBase.characters[$selectedCharID].type === 'group'}
+                    {#if $CurrentCharacter.type === 'group'}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={runAutoMode}>
                             <DicesIcon />
                             <span class="ml-2">{language.autoMode}</span>
@@ -509,7 +509,7 @@
 
                     
                     <!-- svelte-ignore empty-block -->
-                    {#if $DataBase.characters[$selectedCharID].ttsMode === 'webspeech' || $DataBase.characters[$selectedCharID].ttsMode === 'elevenlab'}
+                    {#if $CurrentCharacter.ttsMode === 'webspeech' || $CurrentCharacter.ttsMode === 'elevenlab'}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
                             stopTTS()
                         }}>
