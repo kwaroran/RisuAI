@@ -547,7 +547,7 @@
                         screenShot()
                     }}>
                         <CameraIcon />
-                        <span class="ml-2">{language.screenshot} <Help key="experimental"/></span>
+                        <span class="ml-2">{language.screenshot}</span>
                     </div>
 
 

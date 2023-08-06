@@ -150,7 +150,7 @@
         {/if}
         {#if window.innerWidth >= 700 || selected !== -1}
             {#key selected}
-                <div class="flex-grow p-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
+                <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
                     {#if selected === 0}
                         <UserSettings />
                     {:else if selected === 1}
