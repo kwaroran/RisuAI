@@ -412,4 +412,5 @@ export const languageEnglish = {
     customInnerFormat: "Custom Inner Format",
     innerFormat: "Inner Format",
     HypaMemory: "HypaMemory",
+    ToggleHypaMemory: "Toggle HypaMemory",
 }

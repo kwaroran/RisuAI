@@ -84,9 +84,15 @@
         </div>
         
         {#if $DataBase.supaMemoryType !== 'none'}
-            <div class="flex mt-2 items-center">
-                <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
-            </div>
+            {#if $DataBase.hypaMemory}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
+                </div>
+            {:else}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
+                </div>
+            {/if}
         {/if}
     </div>
 

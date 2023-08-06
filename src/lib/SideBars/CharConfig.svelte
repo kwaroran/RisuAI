@@ -232,9 +232,15 @@
     </div>
     
     {#if $DataBase.supaMemoryType !== 'none'}
-        <div class="flex mt-2 items-center">
-            <Check bind:check={currentChar.data.supaMemory} name={language.ToggleSuperMemory}/>
-        </div>
+        {#if $DataBase.hypaMemory}
+            <div class="flex mt-2 items-center">
+                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleHypaMemory}/>
+            </div>
+        {:else}
+            <div class="flex mt-2 items-center">
+                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleSuperMemory}/>
+            </div>
+        {/if}
     {/if}
 
     {#if currentChar.type === 'group'}
