@@ -214,7 +214,8 @@ export async function supaMemory(
             hypaResult = "past events: " + s.slice(0,3).join("\n")
             currentTokens += await tokenizer.tokenizeChat({
                 role: "assistant",
-                content: hypaResult
+                content: hypaResult,
+                memo: "hypaMemory"
             })
             currentTokens += 10
         }
@@ -311,7 +312,7 @@ export async function supaMemory(
         chats.unshift({
             role: "system",
             content: supaMemory,
-            name: "supaMemory"
+            memo: "supaMemory"
         })
 
         
