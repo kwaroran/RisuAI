@@ -5,6 +5,7 @@ let pipeline: (task: string, model?: string, { quantized, progress_callback, con
 async function loadTransformer() {
     if(!pipeline){
         const transformersLib = await import('@xenova/transformers')
+        transformersLib.env.localModelPath = "https://sv.risuai.xyz/transformers/"
         pipeline = transformersLib.pipeline
     }
 }
@@ -50,6 +51,7 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     await loadTransformer()
     let extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     let result = await extractor(text, { pooling: 'mean', normalize: true });
+    console.log(result)
     return result?.data ?? null;
 
 }

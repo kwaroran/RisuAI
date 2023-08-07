@@ -227,6 +227,9 @@ export async function saveDb(){
                     if(!forageStorage.isAccount){
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
+                    if(forageStorage.isAccount){
+                        await sleep(2500);
+                    }
                 }
                 if(!forageStorage.isAccount){
                     await getDbBackups()
