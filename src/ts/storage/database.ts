@@ -621,6 +621,7 @@ export interface Database{
     promptTemplate?:Proompt[]
     forceProxyAsOpenAI?:boolean
     hypaModel:'ada'|'MiniLM'
+    saveTime?:number
 }
 
 interface hordeConfig{

@@ -217,7 +217,9 @@ export async function saveDb(){
         try {
             if(changed){
                 changed = false
-                const dbData = encodeRisuSave(get(DataBase))
+                let db = get(DataBase)
+                db.saveTime = Math.floor(Date.now() / 1000)
+                const dbData = encodeRisuSave(db)
                 if(isTauri){
                     await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
                     await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
