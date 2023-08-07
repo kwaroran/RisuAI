@@ -164,7 +164,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset} = {
       "personaPrompt"
     ],
     "aiModel": "novelai_kayra",
-    "subModel": "gpt35",
+    "subModel": "novelai_kayra",
     "currentPluginProvider": "",
     "textgenWebUIStreamURL": "",
     "textgenWebUIBlockingURL": "",
