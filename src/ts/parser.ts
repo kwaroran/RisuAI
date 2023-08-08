@@ -600,8 +600,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         }
     }
     if(p1.startsWith('roll')){
-        const arr = p1.split(' ', 2)
-        let ina = arr[1]
+        const arr = p1.split(/\:|\ /g)
+        let ina = arr.at(-1)
 
         if(ina.startsWith('d')){
             ina = ina.substring(1)
