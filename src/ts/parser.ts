@@ -599,6 +599,14 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return arr[randomIndex]
         }
     }
+    if(p1.startsWith('roll')){
+        const arr = p1.split(' ', 2)
+        const maxRoll = parseInt(p1[1])
+        if(isNaN(maxRoll)){
+            return 'NaN'
+        }
+        return Math.floor(Math.random() * maxRoll).toString()
+    }
     return null
 }
 
