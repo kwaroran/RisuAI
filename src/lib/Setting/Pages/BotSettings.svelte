@@ -20,6 +20,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { openRouterModels } from "src/ts/model/openrouter";
     import { novelLogin } from "src/ts/process/models/nai";
+  import { alertConfirm } from "src/ts/alert";
 
     let tokens = {
         mainPrompt: 0,
@@ -392,8 +393,10 @@
 
 
 {#if advancedBotSettings}
-    <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
-    <DropList bind:list={$DataBase.formatingOrder} />
+    {#if !$DataBase.promptTemplate}
+        <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
+        <DropList bind:list={$DataBase.formatingOrder} />
+    {/if}
     <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
     <table class="contain w-full max-w-full tabler mt-2">
         <tr>
@@ -438,8 +441,17 @@
     {/if}
     <div class="flex items-center mt-4">
         {#if $DataBase.promptTemplate}
-            <Check check={true} name={language.usePromptTemplate} onChange={()=>{
-                $DataBase.promptTemplate = undefined
+            <Check check={!!$DataBase.promptTemplate} name={language.usePromptTemplate} onChange={async ()=>{
+                const conf = await alertConfirm(language.resetPromptTemplateConfirm)
+                
+                if(conf){
+                    $DataBase.promptTemplate = undefined
+                }
+                else{
+                    $DataBase.promptTemplate = $DataBase.promptTemplate
+                }
+
+
             }}/>
         {:else}
             <Check check={false} name={language.usePromptTemplate} onChange={() => {

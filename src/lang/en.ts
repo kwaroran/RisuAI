@@ -413,4 +413,5 @@ export const languageEnglish = {
     innerFormat: "Inner Format",
     HypaMemory: "HypaMemory",
     ToggleHypaMemory: "Toggle HypaMemory",
+    resetPromptTemplateConfirm: "Do you really want to reset prompt template?",
 }
