@@ -605,7 +605,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         if(isNaN(maxRoll)){
             return 'NaN'
         }
-        return Math.floor(Math.random() * maxRoll).toString()
+        return (Math.floor(Math.random() * maxRoll) + 1).toString()
     }
     return null
 }
