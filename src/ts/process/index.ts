@@ -170,10 +170,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     const promptTemplate = cloneDeep(db.promptTemplate)
-
-    db.promptTemplate.push({
-        type: 'postEverything'
-    })
+    if(promptTemplate){
+        promptTemplate.push({
+            type: 'postEverything'
+        })
+    }
 
     if((!currentChar.utilityBot) && (!promptTemplate)){
         const mainp = currentChar.systemPrompt?.replaceAll('{{original}}', db.mainPrompt) || db.mainPrompt
