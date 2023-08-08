@@ -509,7 +509,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let formated:OpenAIChat[] = []
     const formatOrder = cloneDeep(db.formatingOrder)
-    formatOrder.push('postEverything')
+    if(formatOrder){
+        formatOrder.push('postEverything')
+    }
 
 
     function pushPrompts(cha:OpenAIChat[]){
