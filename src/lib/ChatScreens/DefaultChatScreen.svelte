@@ -20,6 +20,7 @@
     import AssetInput from './AssetInput.svelte';
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
+  import { v4 } from 'uuid';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -283,7 +284,7 @@
             }
 
             if(mergedCanvas){
-                await downloadFile("chat.png", Buffer.from(mergedCanvas.toDataURL('png').split(',').at(-1), 'base64'))
+                await downloadFile(`chat-${v4()}.png`, Buffer.from(mergedCanvas.toDataURL('png').split(',').at(-1), 'base64'))
                 mergedCanvas.remove();
             }
             alertNormal(language.screenshotSaved)
