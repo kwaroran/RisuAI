@@ -601,7 +601,13 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
     }
     if(p1.startsWith('roll')){
         const arr = p1.split(' ', 2)
-        const maxRoll = parseInt(p1[1])
+        let ina = arr[1]
+
+        if(ina.startsWith('d')){
+            ina = ina.substring(1)
+        }
+
+        const maxRoll = parseInt(ina)
         if(isNaN(maxRoll)){
             return 'NaN'
         }
