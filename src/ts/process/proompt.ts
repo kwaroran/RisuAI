@@ -8,7 +8,7 @@ export interface ProomptPlain {
 }
 
 export interface ProomptTyped {
-    type: 'persona'|'description'|'authornote'|'lorebook'
+    type: 'persona'|'description'|'authornote'|'lorebook'|'postEverything'
     innerFormat?: string
 }
 

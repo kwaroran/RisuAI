@@ -169,7 +169,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         'personaPrompt':([] as OpenAIChat[])
     }
 
-    if((!currentChar.utilityBot) && (!db.promptTemplate)){
+    const promptTemplate = cloneDeep(db.promptTemplate)
+
+    db.promptTemplate.push({
+        type: 'postEverything'
+    })
+
+    if((!currentChar.utilityBot) && (!promptTemplate)){
         const mainp = currentChar.systemPrompt?.replaceAll('{{original}}', db.mainPrompt) || db.mainPrompt
 
 
@@ -256,8 +262,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let currentTokens = db.maxResponse
     
 
-    if(db.promptTemplate){
-        const template = db.promptTemplate
+    if(promptTemplate){
+        const template = promptTemplate
 
         async function tokenizeChatArray(chats:OpenAIChat[]){
             for(const chat of chats){
@@ -297,6 +303,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'lorebook':{
                     await tokenizeChatArray(unformated.lorebook)
+                    break
+                }
+                case 'postEverything':{
+                    await tokenizeChatArray(unformated.postEverything)
                     break
                 }
                 case 'plain':
@@ -465,7 +475,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
 
 
-    if(!db.promptTemplate){
+    if(!promptTemplate){
         unformated.lastChat.push(chats[chats.length - 1])
         chats.splice(chats.length - 1, 1)
     }
@@ -523,8 +533,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    if(db.promptTemplate){
-        const template = db.promptTemplate
+    if(promptTemplate){
+        const template = promptTemplate
 
         for(const card of template){
             switch(card.type){
@@ -556,6 +566,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'lorebook':{
                     pushPrompts(unformated.lorebook)
+                    break
+                }
+                case 'postEverything':{
+                    pushPrompts(unformated.postEverything)
                     break
                 }
                 case 'plain':
