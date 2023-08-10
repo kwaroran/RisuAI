@@ -811,6 +811,38 @@ export function replaceDbResources(db:Database,replacer:{[key:string]:string}) {
 async function checkNewFormat() {
     let db = get(DataBase)
 
+    //check data integrity
+    db.characters = db.characters.map((v) => {
+        if(!v){
+            return null
+        }
+        v.chaId ??= uuidv4()
+        v.type ??= 'character'
+        v.chatPage ??= 0
+        v.chats ??= []
+        v.customscript ??= []
+        v.firstMessage ??= ''
+        v.globalLore ??= []
+        v.name ??= ''
+        v.viewScreen ??= 'none'
+        v.emotionImages = v.emotionImages ?? []
+
+        if(v.type === 'character'){
+            v.bias ??= []
+            v.characterVersion ??= ''
+            v.creator ??= ''
+            v.desc ??= ''
+            v.utilityBot ??= false
+            v.tags ??= []
+            v.systemPrompt ??= ''
+            v.scenario ??= ''
+        }
+        return v
+    }).filter((v) => {
+        return v !== null
+    })
+
+
     if(!db.formatversion){
         function checkParge(data:string){
 
