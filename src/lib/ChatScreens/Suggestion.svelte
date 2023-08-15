@@ -75,7 +75,7 @@
             }
             ]
 
-            if($DataBase.subModel === "textgen_webui"){
+            if($DataBase.subModel === "textgen_webui" || $DataBase.subModel === 'mancer'){
                 promptbody = [
                     {
                         role: 'system',

@@ -57,7 +57,7 @@
         unsub()
     })
 
-    $: if($DataBase.aiModel === 'textgen_webui'){
+    $: if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
         $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
     }
 </script>
@@ -121,7 +121,10 @@
     <span class="text-textcolor">NovelList {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
 {/if}
-
+{#if $DataBase.aiModel.startsWith('mancer') || $DataBase.subModel.startsWith('mancer')}
+    <span class="text-textcolor">Mancer {language.apiKey}</span>
+    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
+{/if}
 {#if $DataBase.aiModel.startsWith('claude') || $DataBase.subModel.startsWith('claude')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
@@ -222,11 +225,12 @@
     <TextInput marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
 
 {/if}
-{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'}
-    <span class="text-textcolor mt-2">Oobabooga Blocking {language.providerURL}</span>
+{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'
+    || $DataBase.aiModel === 'mancer' || $DataBase.subModel === 'mancer'}
+    <span class="text-textcolor mt-2">Blocking {language.providerURL}</span>
     <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
     <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
-    <span class="text-textcolor mt-2">Oobabooga Stream {language.providerURL}</span>
+    <span class="text-textcolor mt-2">Stream {language.providerURL}</span>
     <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIStreamURL} placeholder="wss://..."/>
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
@@ -261,7 +265,7 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-{#if $DataBase.aiModel === 'textgen_webui'}
+{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>

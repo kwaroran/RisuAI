@@ -433,7 +433,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
 
-        case "textgen_webui":{
+        case "textgen_webui":
+        case 'mancer':{
             let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
@@ -464,6 +465,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 add_bos_token: true,
                 prompt: proompt
             }
+
+            const headers = (aiModel === 'textgen_webui') ? {} : {
+                'X-API-KEY': db.mancerHeader
+            }
+
             if(db.useStreaming && arg.useStreaming){
                 const oobaboogaSocket = new WebSocket(streamUrl);
                 const statusCode = await new Promise((resolve) => {
@@ -514,7 +520,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const res = await globalFetch(blockingUrl, {
                 body: bodyTemplate,
-                headers: {},
+                headers: headers,
                 abortSignal
             })
             

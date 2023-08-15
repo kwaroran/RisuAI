@@ -25,9 +25,13 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         const pr:botPreset = prebuiltPresets.NAI
         setDatabase(setPreset(db, pr))
     }
-    else if(db.aiModel === 'textgen_webui'){
+    else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'){
+        const model = db.aiModel
+        const submodel = db.subModel
         const sel = parseInt(await alertSelect(["Vicuna, WizardLM, Airoboros", "OpenChat V3.2", "Guanaco", "OpenAssistant", "Dolphin, Luna", "StableBeluga, Orca-Mini", "Others (Alpaca, Nous-Hermes, ...)"]))
         let pr = prebuiltPresets.ooba
+        pr.aiModel = model
+        pr.subModel = submodel
         pr.mainPrompt = pr.bias = pr.globalNote = undefined
         pr.jailbreak = ""
         if(!db.autoSuggestPrompt || db.autoSuggestPrompt === defaultAutoSuggestPrompt){
@@ -99,5 +103,5 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
 }
 
 export function recommendedPresetExist(model:string){
-    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui' || model.startsWith('novelai')
+    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui' || model.startsWith('novelai') || model === 'mancer'
 }

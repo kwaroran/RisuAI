@@ -303,7 +303,7 @@ export function setDatabase(data:Database){
     data.colorSchemeName ??= 'default'
     data.NAIsettings.starter ??= ""
     data.hypaModel ??= 'MiniLM'
-    
+    data.mancerHeader ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -622,6 +622,7 @@ export interface Database{
     forceProxyAsOpenAI?:boolean
     hypaModel:'ada'|'MiniLM'
     saveTime?:number
+    mancerHeader:string
 }
 
 interface hordeConfig{
