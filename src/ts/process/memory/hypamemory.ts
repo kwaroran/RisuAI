@@ -122,12 +122,15 @@ export class HypaProcesser{
 
     async similaritySearch(query: string) {
         const results = await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
-    
-        console.log(results)
         return results.map((result) => result[0]);
     }
 
-    async similaritySearchVectorWithScore(
+    async similaritySearchScored(query: string) {
+        const results = await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
+        return results
+    }
+
+    private async similaritySearchVectorWithScore(
         query: number[],
       ): Promise<[string, number][]> {
           const memoryVectors = this.vectors

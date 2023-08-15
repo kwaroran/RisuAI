@@ -304,6 +304,7 @@ export function setDatabase(data:Database){
     data.NAIsettings.starter ??= ""
     data.hypaModel ??= 'MiniLM'
     data.mancerHeader ??= ''
+    data.emotionProcesser ??= 'submodel'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -623,6 +624,7 @@ export interface Database{
     hypaModel:'ada'|'MiniLM'
     saveTime?:number
     mancerHeader:string
+    emotionProcesser:'submodel'|'embedding'
 }
 
 interface hordeConfig{

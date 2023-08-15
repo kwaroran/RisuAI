@@ -16,6 +16,7 @@ import { v4 } from "uuid";
 import { clone, cloneDeep } from "lodash";
 import { groupOrder } from "./group";
 import { runTrigger, type additonalSysPrompt } from "./triggers";
+import { HypaProcesser } from "./memory/hypamemory";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -762,19 +763,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(currentChar.viewScreen === 'emotion' && (!emoChanged) && (abortSignal.aborted === false)){
 
         let currentEmotion = currentChar.emotionImages
-
-        function shuffleArray(array:string[]) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array
-        }
-
         let emotionList = currentEmotion.map((a) => {
             return a[0]
         })
-
         let charemotions = get(CharEmotion)
 
         let tempEmotion = charemotions[currentChar.chaId]
@@ -783,6 +774,61 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
         if(tempEmotion.length > 4){
             tempEmotion.splice(0, 1)
+        }
+
+        if(db.emotionProcesser === 'embedding'){
+            const hypaProcesser = new HypaProcesser('MiniLM')
+            await hypaProcesser.addText(emotionList.map((v) => 'emotion:' + v))
+            let searched = (await hypaProcesser.similaritySearchScored(result)).map((v) => {
+                v[0] = v[0].replace("emotion:",'')
+                return v
+            })
+
+            //give panaltys
+            for(let i =0;i<tempEmotion.length;i++){
+                const emo = tempEmotion[i]
+                //give panalty index
+                const index = searched.findIndex((v) => {
+                    return v[0] === emo[0]
+                })
+
+                const modifier = ((5 - ((tempEmotion.length - (i + 1))))) / 200
+
+                if(index !== -1){
+                    searched[index][1] -= modifier
+                }
+            }
+
+            //make a sorted array by score
+            const emoresult = searched.sort((a,b) => {
+                return b[1] - a[1]
+            }).map((v) => {
+                return v[0]
+            })
+
+            console.log(searched)
+
+            for(const emo of currentEmotion){
+                if(emo[0] === emoresult[0]){
+                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                    tempEmotion.push(emos)
+                    charemotions[currentChar.chaId] = tempEmotion
+                    CharEmotion.set(charemotions)
+                    break
+                }
+            }
+
+            
+
+            return true
+        }
+
+        function shuffleArray(array:string[]) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array
         }
 
         let emobias:{[key:number]:number} = {}

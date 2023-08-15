@@ -14,7 +14,7 @@
 
 <span class="text-textcolor mt-4 text-lg font-bold">{language.imageGeneration}</span>
 
-<span class="text-textcolor mt-2">{language.provider} <Help key="sdProvider"/></span>
+<span class="text-textcolor mt-2">{language.imageGeneration} {language.provider} <Help key="sdProvider"/></span>
 <SelectInput className="mt-2 mb-4" bind:value={$DataBase.sdProvider}>
     <OptionInput value="" >None</OptionInput>
     <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
@@ -63,6 +63,14 @@
 
 <span class="text-textcolor mt-2">VOICEVOX URL</span>
 <TextInput size="sm" marginBottom bind:value={$DataBase.voicevoxUrl}/>
+
+<span class="text-textcolor mt-4 text-lg font-bold">{language.emotionImage}</span>
+
+<span class="text-textcolor mt-2">{language.emotionMethod}</span>
+<SelectInput className="mt-2 mb-4" bind:value={$DataBase.emotionProcesser}>
+    <OptionInput value="submodel" >Ax. Model</OptionInput>
+    <OptionInput value="embedding" >MiniLM-L6-v2</OptionInput>
+</SelectInput>
 
 <span class="text-textcolor mt-4 text-lg font-bold">{language.SuperMemory} <Help key="superMemory" /></span>
 <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>

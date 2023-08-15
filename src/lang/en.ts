@@ -414,4 +414,5 @@ export const languageEnglish = {
     HypaMemory: "HypaMemory",
     ToggleHypaMemory: "Toggle HypaMemory",
     resetPromptTemplateConfirm: "Do you really want to reset prompt template?",
+    emotionMethod: "Emotion Method",
 }
