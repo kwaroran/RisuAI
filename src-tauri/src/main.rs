@@ -122,9 +122,112 @@ fn check_auth(fpath: String, auth: String) -> bool{
     
 }
 
+use std::process::Command;
+
+#[tauri::command]
+fn check_requirements_local() -> String{
+    let mut py = Command::new("python");
+    let output = py.arg("--version").output();
+    match output {
+        Ok(o) => {
+            let res = String::from_utf8(o.stdout).unwrap();
+            if !res.starts_with("Python ") {
+                return "Python is not installed".to_string()
+            }
+            println!("{}", res);
+        },
+        Err(e) => {
+            println!("{}", e);
+            return "Python is not installed, or not loadable".to_string()
+        }
+    }
+
+    let mut git = Command::new("git");
+    let output = git.arg("--version").output();
+    match output {
+        Ok(o) => {
+            let res = String::from_utf8(o.stdout).unwrap();
+            if !res.starts_with("git version ") {
+                return "Git is not installed".to_string()
+            }
+            println!("{}", res);
+        },
+        Err(e) => {
+            println!("{}", e);
+            return "Git is not installed, or not loadable".to_string()
+        }
+    }
+
+    return "success".to_string()
+}
+
+#[tauri::command]
+fn run_server_local(){
+    let app_base_path = tauri::api::path::data_dir().unwrap().join("co.aiclient.risu");
+
+    //check app base path exists
+    if !app_base_path.exists() {
+        std::fs::create_dir_all(&app_base_path).unwrap();
+    }
+
+    let server_path = app_base_path.clone().join("local_server");
+
+    //check server path exists
+    if !&server_path.exists() {
+        //git clone server
+        let mut git = Command::new("git");
+        let output = git
+            .current_dir(&app_base_path.clone())
+            .arg("clone")
+            .arg("https://github.com/kwaroran/risu-exllama-connector.git")
+            .output();
+        match output {
+            Ok(o) => {
+                let res = String::from_utf8(o.stdout).unwrap();
+                println!("output: {}", res);
+            },
+            Err(e) => {
+                println!("{}", e);
+                return
+            }
+        }
+
+        println!("cloned");
+
+        let git_cloned_path = app_base_path.clone().join("risu-exllama-connector");
+
+        println!("git_cloned_path: {}", git_cloned_path.display());
+        //rename folder to local_server
+        std::fs::rename(git_cloned_path, server_path.clone()).unwrap();
+    }
+
+
+    //check os is windows
+    if cfg!(target_os = "windows") {
+        println!("windows runner");
+        let command_location = &server_path.clone().join("run.cmd");
+        let mut server = Command::new(command_location);
+        let mut _child = server.current_dir(server_path).spawn().expect("failed to execute process");
+    }
+    else{
+        println!("linux/mac runner");
+        let command_location = &server_path.clone().join("run.sh");
+        let mut server = Command::new(command_location);
+        let mut _child = server.current_dir(server_path).spawn().expect("failed to execute process");
+    }
+    return
+
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, native_request, check_auth])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            native_request,
+            check_auth,
+            check_requirements_local,
+            run_server_local
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

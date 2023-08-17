@@ -265,7 +265,7 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'}
+{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer' || $DataBase.subModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>

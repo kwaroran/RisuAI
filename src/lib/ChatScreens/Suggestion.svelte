@@ -75,7 +75,7 @@
             }
             ]
 
-            if($DataBase.subModel === "textgen_webui" || $DataBase.subModel === 'mancer'){
+            if($DataBase.subModel === "textgen_webui" || $DataBase.subModel === 'mancer' || $DataBase.subModel.startsWith('local_')){
                 promptbody = [
                     {
                         role: 'system',

@@ -87,6 +87,13 @@ export function alertWait(msg:string){
 
 }
 
+export function alertClear(){
+    alertStore.set({
+        'type': 'none',
+        'msg': ''
+    })
+}
+
 export async function alertSelectChar(){
     alertStore.set({
         'type': 'selectChar',

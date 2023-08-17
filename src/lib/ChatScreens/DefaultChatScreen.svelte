@@ -404,7 +404,7 @@
 
             {#if $DataBase.useAutoSuggestions}
                 <Suggestion messageInput={(msg)=>messageInput=(
-                    ($DataBase.subModel === "textgen_webui" || $DataBase.subModel === "mancer") && $DataBase.autoSuggestClean
+                    ($DataBase.subModel === "textgen_webui" || $DataBase.subModel === "mancer" || $DataBase.subModel.startsWith('local_')) && $DataBase.autoSuggestClean
                     ? msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')
                     : msg
                 )} {send}/>

@@ -4,6 +4,8 @@
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
+  import { checkLocalModel } from "src/ts/process/models/local";
+  import { alertError } from "src/ts/alert";
     let openAdv = true
 
     export let value = ""
@@ -32,6 +34,8 @@
                 return "GPT-4 0613"
             case "gpt4_32k_0613":
                 return "GPT-4 32k 0613"
+            case 'local_gptq':
+                return 'Local Model GPTQ'
             case "palm2":
                 return "PaLM2"
             case "textgen_webui":
@@ -111,10 +115,20 @@
                 {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
+            <!-- <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
+                const res = (await checkLocalModel())
+                if(res === 'success'){
+                    changeModel('local_gptq')
+                }
+                else{
+                    alertError("python 3.10, cuda 11.7 and git must be installed to run it. " + res)
+                }
+                // changeModel('local_gptq')
+            }}>Local Model GPTQ</button> -->
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             <Arcodion name="Novellist">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist')}}>SuperTrin</button>
