@@ -194,7 +194,7 @@
     </div>
 {/if}
 
-{#if $DataBase.aiModel === 'custom'}
+{#if $DataBase.aiModel === 'custom' || $DataBase.subModel === 'custom'}
     <span class="text-textcolor mt-2">{language.plugin}</span>
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.currentPluginProvider}>
         <OptionInput value="">None</OptionInput>
