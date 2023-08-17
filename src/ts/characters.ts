@@ -77,46 +77,6 @@ export async function selectCharImg(charId:number) {
     setDatabase(db)
 }
 
-export async function selectUserImg() {
-    const selected = await selectSingleFile(['png'])
-    if(!selected){
-        return
-    }
-    const img = selected.data
-    let db = get(DataBase)
-    const imgp = await saveImage(img)
-    db.userIcon = imgp
-    db.personas[db.selectedPersona] = {
-        name: db.username,
-        icon: db.userIcon,
-        personaPrompt: db.personaPrompt
-    }
-    setDatabase(db)
-}
-
-export function saveUserPersona() {
-    let db = get(DataBase)
-    db.personas[db.selectedPersona] = {
-        name: db.username,
-        icon: db.userIcon,
-        personaPrompt: db.personaPrompt
-    }
-    setDatabase(db)
-}
-
-export function changeUserPersona(id:number, save:'save'|'noSave' = 'save') {
-    if(save === 'save'){
-        saveUserPersona()
-    }
-    let db = get(DataBase)
-    const pr = db.personas[id]
-    db.personaPrompt = pr.personaPrompt
-    db.username = pr.name,
-    db.userIcon = pr.icon
-    db.selectedPersona = id
-    setDatabase(db)
-    
-}
 
 export const addingEmotion = writable(false)
 

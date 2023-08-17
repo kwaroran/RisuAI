@@ -19,7 +19,8 @@ export const languageEnglish = {
         httpError: 'Error: error in request:',
         noData: 'There is no data in file, or the file is corrupted',
         onlyOneChat: 'There must be least one chat',
-        alreadyCharInGroup: "There is already a character with the same name in the group."
+        alreadyCharInGroup: "There is already a character with the same name in the group.",
+        noUserIcon: "You must set your icon first.",
     },
     showHelp: "Show Help",
     help:{
@@ -421,4 +422,8 @@ export const languageEnglish = {
     translatorType: "Translator Type",
     deeplKey: "deepL API Key",
     deeplFreeKey: "deepL Free API Key",
+    exportPersona: "Export Persona",
+    importPersona: "Import Persona",
+    export: "Export",
+    import: "Import",
 }

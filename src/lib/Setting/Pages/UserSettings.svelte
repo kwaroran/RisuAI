@@ -1,14 +1,13 @@
 <script lang="ts">
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
-    import { getCharImage, selectUserImg } from "src/ts/characters";
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-  import { alertConfirm, alertSelect } from "src/ts/alert";
-  import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
-  import { unMigrationAccount } from "src/ts/storage/accountStorage";
-  import { checkDriver } from "src/ts/drive/drive";
+    import { alertConfirm } from "src/ts/alert";
+    import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
+    import { unMigrationAccount } from "src/ts/storage/accountStorage";
+    import { checkDriver } from "src/ts/drive/drive";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null

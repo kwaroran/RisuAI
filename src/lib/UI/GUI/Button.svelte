@@ -1,6 +1,10 @@
 <button
     on:click
-    class="{selected ? 'bg-borderc' : 'bg-darkbutton'} border border-darkborderc text-textcolor rounded-md shadow-sm hover:bg-borderc focus:outline-none focus:ring-2 focus:ring-borderc transition-colors duration-200{className ? (" " + className) : ""}"
+    class="{
+        styled === 'primary' ?
+        ((selected ? 'bg-borderc' : 'bg-darkbutton') + " hover:bg-borderc focus:ring-borderc border-darkborderc")
+        : ((selected ? 'bg-red-800' : 'bg-red-700') + ' hover:bg-red-500 focus:ring-red-600 border-red-600')
+    } border text-textcolor rounded-md shadow-sm focus:outline-none focus:ring-2 transition-colors duration-200{className ? (" " + className) : ""}"
     class:px-4 = {size == "md"}
     class:px-2 = {size == "sm"}
     class:px-6 = {size == "lg"}
@@ -14,6 +18,7 @@
 </button>
 <script lang="ts">
     export let selected = false
+    export let styled:'primary'|'danger' = 'primary'
     export let className = ""
     export let size: "sm" | "md" | "lg" = "md"
 </script>
