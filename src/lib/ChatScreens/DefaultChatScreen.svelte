@@ -111,16 +111,21 @@
             if(Array.isArray(rerolls[rerollid + 1])){
                 let db = $DataBase
                 rerollid += 1
-                db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = cloneDeep(rerolls[rerollid])
+                let rerollData = cloneDeep(rerolls[rerollid])
+                let msgs = db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message
+                for(let i = 0; i < rerollData.length; i++){
+                    msgs[msgs.length - rerollData.length + i] = rerollData[i]
+                }
+                db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = msgs
                 $DataBase = db
             }
             return
         }
         if(rerolls.length === 0){
-            rerolls.push($CurrentChat.message)
+            rerolls.push(cloneDeep([$CurrentChat.message.at(-1)]))
             rerollid = rerolls.length - 1
         }
-        let cha = $CurrentChat.message
+        let cha = cloneDeep($CurrentChat.message)
         if(cha.length === 0 ){
             return
         }
@@ -134,7 +139,10 @@
                     break
                 }   
             }
-            cha.pop()
+            let msg = cha.pop()
+            if(!msg){
+                return
+            }
         }
         $CurrentChat.message = cha
         await sendChatMain()
@@ -154,7 +162,12 @@
         if(Array.isArray(rerolls[rerollid - 1])){
             let db = $DataBase
             rerollid -= 1
-            db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = cloneDeep(rerolls[rerollid])
+            let rerollData = cloneDeep(rerolls[rerollid])
+            let msgs = db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message
+            for(let i = 0; i < rerollData.length; i++){
+                msgs[msgs.length - rerollData.length + i] = rerollData[i]
+            }
+            db.characters[$selectedCharID].chats[$CurrentCharacter.chatPage].message = msgs
             $DataBase = db
         }
     }
@@ -162,19 +175,23 @@
     let abortController:null|AbortController = null
 
     async function sendChatMain(continued:boolean = false) {
+
+        let previousLength = $CurrentChat.message.length
         messageInput = ''
         abortController = new AbortController()
         try {
             await sendChat(-1, {
                 signal:abortController.signal,
                 continue:continued
-            })            
+            })
+            if(previousLength < $CurrentChat.message.length){
+                rerolls.push(cloneDeep($CurrentChat.message).slice(previousLength))
+                rerollid = rerolls.length - 1
+            }
         } catch (error) {
             console.error(error)
             alertError(`${error}`)
         }
-        rerolls.push(cloneDeep($CurrentChat.message))
-        rerollid = rerolls.length - 1
         lastCharId = $selectedCharID
         $doingChat = false
         if($DataBase.playMessage){
