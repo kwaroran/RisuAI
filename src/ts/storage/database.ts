@@ -305,6 +305,11 @@ export function setDatabase(data:Database){
     data.hypaModel ??= 'MiniLM'
     data.mancerHeader ??= ''
     data.emotionProcesser ??= 'submodel'
+    data.translatorType ??= 'google'
+    data.deeplOptions ??= {
+        key:'',
+        freeApi: false
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -465,7 +470,12 @@ export interface Database{
     saveTime?:number
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
-    showMenuChatList?:boolean
+    showMenuChatList?:boolean,
+    translatorType:'google'|'deepl'|'none',
+    deeplOptions:{
+        key:string,
+        freeApi:boolean
+    }
 }
 
 export interface customscript{

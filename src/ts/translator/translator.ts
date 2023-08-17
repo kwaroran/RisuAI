@@ -1,6 +1,8 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
 import { DataBase } from "../storage/database"
+import { globalFetch } from "../storage/globalApi"
+import { alertError } from "../alert"
 
 let cache={
     origin: [''],
@@ -28,10 +30,10 @@ export async function translate(text:string, reverse:boolean) {
         }
     }
 
-    return googleTrans(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'ja' : 'en')
+    return runTranslator(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'ja' : 'en')
 }
 
-async function googleTrans(text:string, reverse:boolean, from:string,target:'en'|'ja') {
+async function runTranslator(text:string, reverse:boolean, from:string,target:'en'|'ja') {
     const arg = {
 
         from: reverse ? from : target,
@@ -70,6 +72,11 @@ async function googleTrans(text:string, reverse:boolean, from:string,target:'en'
             }
             const result = await translateMain(trimed, arg);
 
+            if(result.startsWith('ERR::')){
+                alertError(result)
+                return text
+            }
+
 
             fullResult.push(result.trim())
         }
@@ -90,6 +97,28 @@ async function googleTrans(text:string, reverse:boolean, from:string,target:'en'
 }
 
 async function translateMain(text:string, arg:{from:string, to:string, host:string}){
+    let db = get(DataBase)
+
+    if(db.translatorType === 'deepl'){
+        let url = db.deeplOptions.freeApi ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate"
+        const f = await globalFetch(url, {
+            headers: {
+                "Authorization": "DeepL-Auth-Key " + db.deeplOptions.key,
+            },
+            body: {
+                text: text,
+                source_lang: arg.from.toLocaleUpperCase(),
+                target_lang: arg.to.toLocaleUpperCase(),
+            }
+        })
+
+        if(!f.ok){
+            return 'ERR::DeepL API Error' + (await f.data)
+        }
+        return f.data.translations[0].text
+
+    }
+
 
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
@@ -129,5 +158,5 @@ async function jaTrans(text:string) {
     if(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(text)){
         return text
     }
-    return await googleTrans(text,false, 'en','ja')
+    return await runTranslator(text,false, 'en','ja')
 }

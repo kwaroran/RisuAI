@@ -417,4 +417,8 @@ export const languageEnglish = {
     emotionMethod: "Emotion Method",
     continueResponse: "Continue Response",
     showMenuChatList: "Show Menu Chat List",
+    translatorLanguage: "Translator Language",
+    translatorType: "Translator Type",
+    deeplKey: "deepL API Key",
+    deeplFreeKey: "deepL Free API Key",
 }

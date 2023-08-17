@@ -143,6 +143,8 @@
         <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
         <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
         <OptionInput value="gpt4_0301">GPT-4 0301</OptionInput>
+        <OptionInput value="gpt35_0613">GPT-3.5 0613</OptionInput>
+        <OptionInput value="gpt4_0613">GPT-4 0613</OptionInput>
         <OptionInput value="claude-2">claude-2</OptionInput>
         <OptionInput value="claude-v1.3">claude-v1.3</OptionInput>
         <OptionInput value="claude-v1.3-100k">claude-v1.3-100k</OptionInput>
