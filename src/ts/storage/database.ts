@@ -14,7 +14,7 @@ import type { Proompt } from '../process/proompt';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.47.3"
+export let appVer = "1.48.0"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
