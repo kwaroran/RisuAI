@@ -415,4 +415,6 @@ export const languageEnglish = {
     ToggleHypaMemory: "Toggle HypaMemory",
     resetPromptTemplateConfirm: "Do you really want to reset prompt template?",
     emotionMethod: "Emotion Method",
+    continueResponse: "Continue Response",
+    showMenuChatList: "Show Menu Chat List",
 }

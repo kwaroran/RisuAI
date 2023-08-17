@@ -4,6 +4,7 @@
     import { DataBase } from "src/ts/storage/database";
 
 </script>
+
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.accessibility}</h2>
 
 <div class="flex items-center mt-2">
@@ -32,4 +33,8 @@
 
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.toggleConfirmRecommendedPreset} name={language.toggleConfirmRecommendedPreset}/>
+</div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.showMenuChatList} name={language.showMenuChatList}/>
 </div>

@@ -36,7 +36,7 @@ export interface OpenAIChatFull extends OpenAIChat{
 export const doingChat = writable(false)
 export const abortChat = writable(false)
 
-export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal} = {}):Promise<boolean> {
+export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean} = {}):Promise<boolean> {
 
 
     const abortSignal = arg.signal ?? (new AbortController()).signal
@@ -515,6 +515,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         formatOrder.push('postEverything')
     }
 
+    //continue chat model
+    if(arg.continue && (db.aiModel.startsWith('claude') || db.aiModel.startsWith('gpt') || db.aiModel.startsWith('openrouter') || db.aiModel.startsWith('reverse_proxy'))){
+        unformated.postEverything.push({
+            role: 'system',
+            content: '[Continue the last response]'
+        })
+    }
+
 
     function pushPrompts(cha:OpenAIChat[]){
         for(const chat of cha){
@@ -670,19 +678,26 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
     else if(req.type === 'streaming'){
         const reader = req.result.getReader()
-        const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+        let msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+        let prefix = ''
+        if(arg.continue){
+            msgIndex -= 1
+            prefix = db.characters[selectedChar].chats[selectedChat].message[msgIndex].data
+        }
+        else{
+            db.characters[selectedChar].chats[selectedChat].message.push({
+                role: 'char',
+                data: "",
+                saying: currentChar.chaId,
+                time: Date.now()
+            })
+        }
         db.characters[selectedChar].chats[selectedChat].isStreaming = true
-        db.characters[selectedChar].chats[selectedChat].message.push({
-            role: 'char',
-            data: "",
-            saying: currentChar.chaId,
-            time: Date.now()
-        })
         while(abortSignal.aborted === false){
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
-                const result2 = processScriptFull(nowChatroom, reformatContent(result), 'editoutput', msgIndex)
+                const result2 = processScriptFull(nowChatroom, reformatContent(prefix + result), 'editoutput', msgIndex)
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
                 emoChanged = result2.emoChanged
                 db.characters[selectedChar].reloadKeys += 1
@@ -709,17 +724,33 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const msgs = (req.type === 'success') ? [['char',req.result]] as const 
                     : (req.type === 'multiline') ? req.result
                     : []
-        for(const msg of msgs){
-            const msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
-            const result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput', msgIndex)
+        for(let i=0;i<msgs.length;i++){
+            const msg = msgs[i]
+            let msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
+            let result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput', msgIndex)
+            if(i === 0 && arg.continue){
+                msgIndex -= 1
+                let beforeChat = db.characters[selectedChar].chats[selectedChat].message[msgIndex]
+                result2 = processScriptFull(nowChatroom, reformatContent(beforeChat.data + msg[1]), 'editoutput', msgIndex)
+            }
             result = result2.data
             emoChanged = result2.emoChanged
-            db.characters[selectedChar].chats[selectedChat].message.push({
-                role: msg[0],
-                data: result,
-                saying: currentChar.chaId,
-                time: Date.now()
-            })
+            if(i === 0 && arg.continue){
+                db.characters[selectedChar].chats[selectedChat].message[msgIndex] = {
+                    role: 'char',
+                    data: result,
+                    saying: currentChar.chaId,
+                    time: Date.now()
+                }
+            }
+            else{
+                db.characters[selectedChar].chats[selectedChat].message.push({
+                    role: msg[0],
+                    data: result,
+                    saying: currentChar.chaId,
+                    time: Date.now()
+                })
+            }
             db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)
             setDatabase(db)

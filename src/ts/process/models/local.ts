@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { sleep } from "src/ts/util";
-import path from "@tauri-apps/api/path";
+import * as path from "@tauri-apps/api/path";
 import { exists } from "@tauri-apps/api/fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
 import { get } from "svelte/store";

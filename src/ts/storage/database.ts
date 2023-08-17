@@ -310,6 +310,164 @@ export function setDatabase(data:Database){
 }
 
 
+export interface Database{
+    characters: (character|groupChat)[],
+    apiType: string
+    forceReplaceUrl2:string
+    openAIKey: string
+    proxyKey:string
+    mainPrompt: string
+    jailbreak: string
+    globalNote:string
+    temperature: number
+    askRemoval:boolean
+    maxContext: number
+    maxResponse: number
+    frequencyPenalty: number
+    PresensePenalty: number
+    formatingOrder: FormatingOrderItem[]
+    aiModel: string
+    jailbreakToggle:boolean
+    loreBookDepth: number
+    loreBookToken: number,
+    loreBook: {
+        name:string
+        data:loreBook[]
+    }[]
+    loreBookPage: number
+    supaMemoryPrompt: string
+    username: string
+    userIcon: string
+    additionalPrompt: string
+    descriptionPrefix: string
+    forceReplaceUrl: string
+    language: string
+    translator: string
+    plugins: RisuPlugin[]
+    officialplugins: {
+        automark?: boolean
+    }
+    currentPluginProvider: string
+    zoomsize:number
+    lastup:string
+    customBackground:string
+    textgenWebUIStreamURL:string
+    textgenWebUIBlockingURL:string
+    autoTranslate: boolean
+    fullScreen:boolean
+    playMessage:boolean
+    iconsize:number
+    theme: string
+    subModel:string
+    timeOut:number
+    emotionPrompt: string,
+    requester:string
+    formatversion:number
+    waifuWidth:number
+    waifuWidth2:number
+    botPresets:botPreset[]
+    botPresetsId:number
+    sdProvider: string
+    webUiUrl:string
+    sdSteps:number
+    sdCFG:number
+    sdConfig:sdConfig
+    runpodKey:string
+    promptPreprocess:boolean
+    bias: [string, number][]
+    swipe:boolean
+    instantRemove:boolean
+    textTheme: string
+    customTextTheme: {
+        FontColorStandard: string,
+        FontColorBold : string,
+        FontColorItalic : string,
+        FontColorItalicBold : string,
+    }
+    requestRetrys:number
+    emotionPrompt2:string
+    useSayNothing:boolean
+    didFirstSetup: boolean
+    requestmet: string
+    requestproxy: string
+    showUnrecommended:boolean
+    elevenLabKey:string
+    voicevoxUrl:string
+    useExperimental:boolean
+    showMemoryLimit:boolean
+    roundIcons:boolean
+    useStreaming:boolean
+    palmAPI:string,
+    supaMemoryKey:string
+    supaMemoryType:string
+    textScreenColor?:string
+    textBorder?:boolean
+    textScreenRounded?:boolean
+    textScreenBorder?:string
+    characterOrder:(string|folder)[]
+    hordeConfig:hordeConfig,
+    toggleConfirmRecommendedPreset:boolean,
+    novelai:{
+        token:string,
+        model:string
+    }
+    globalscript: customscript[],
+    sendWithEnter:boolean
+    clickToEdit: boolean
+    koboldURL:string
+    advancedBotSettings:boolean
+    useAutoSuggestions:boolean
+    autoSuggestPrompt:string
+    autoSuggestPrefix:string
+    autoSuggestClean:boolean
+    claudeAPIKey:string,
+    useChatCopy:boolean,
+    novellistAPI:string,
+    useAutoTranslateInput:boolean
+    imageCompression:boolean
+    account?:{
+        token:string
+        id:string,
+        data: {
+            refresh_token?:string,
+            access_token?:string
+            expires_in?: number
+        }
+        useSync?:boolean
+    },
+    classicMaxWidth: boolean,
+    useChatSticker:boolean,
+    useAdditionalAssetsPreview:boolean,
+    usePlainFetch:boolean
+    hypaMemory:boolean
+    proxyRequestModel:string
+    ooba:OobaSettings
+    ainconfig: AINsettings
+    personaPrompt:string
+    openrouterRequestModel:string
+    openrouterKey:string
+    selectedPersona:number
+    personas:{
+        personaPrompt:string
+        name:string
+        icon:string
+    }[]
+    assetWidth:number
+    animationSpeed:number
+    botSettingAtStart:false
+    NAIsettings:NAISettings
+    hideRealm:boolean
+    colorScheme:ColorScheme
+    colorSchemeName:string
+    promptTemplate?:Proompt[]
+    forceProxyAsOpenAI?:boolean
+    hypaModel:'ada'|'MiniLM'
+    saveTime?:number
+    mancerHeader:string
+    emotionProcesser:'submodel'|'embedding',
+    showMenuChatList?:boolean
+}
+
 export interface customscript{
     comment: string;
     in:string
@@ -470,162 +628,6 @@ export interface botPreset{
     promptTemplate?:Proompt[]
 }
 
-export interface Database{
-    characters: (character|groupChat)[],
-    apiType: string
-    forceReplaceUrl2:string
-    openAIKey: string
-    proxyKey:string
-    mainPrompt: string
-    jailbreak: string
-    globalNote:string
-    temperature: number
-    askRemoval:boolean
-    maxContext: number
-    maxResponse: number
-    frequencyPenalty: number
-    PresensePenalty: number
-    formatingOrder: FormatingOrderItem[]
-    aiModel: string
-    jailbreakToggle:boolean
-    loreBookDepth: number
-    loreBookToken: number,
-    loreBook: {
-        name:string
-        data:loreBook[]
-    }[]
-    loreBookPage: number
-    supaMemoryPrompt: string
-    username: string
-    userIcon: string
-    additionalPrompt: string
-    descriptionPrefix: string
-    forceReplaceUrl: string
-    language: string
-    translator: string
-    plugins: RisuPlugin[]
-    officialplugins: {
-        automark?: boolean
-    }
-    currentPluginProvider: string
-    zoomsize:number
-    lastup:string
-    customBackground:string
-    textgenWebUIStreamURL:string
-    textgenWebUIBlockingURL:string
-    autoTranslate: boolean
-    fullScreen:boolean
-    playMessage:boolean
-    iconsize:number
-    theme: string
-    subModel:string
-    timeOut:number
-    emotionPrompt: string,
-    requester:string
-    formatversion:number
-    waifuWidth:number
-    waifuWidth2:number
-    botPresets:botPreset[]
-    botPresetsId:number
-    sdProvider: string
-    webUiUrl:string
-    sdSteps:number
-    sdCFG:number
-    sdConfig:sdConfig
-    runpodKey:string
-    promptPreprocess:boolean
-    bias: [string, number][]
-    swipe:boolean
-    instantRemove:boolean
-    textTheme: string
-    customTextTheme: {
-        FontColorStandard: string,
-        FontColorBold : string,
-        FontColorItalic : string,
-        FontColorItalicBold : string,
-    }
-    requestRetrys:number
-    emotionPrompt2:string
-    useSayNothing:boolean
-    didFirstSetup: boolean
-    requestmet: string
-    requestproxy: string
-    showUnrecommended:boolean
-    elevenLabKey:string
-    voicevoxUrl:string
-    useExperimental:boolean
-    showMemoryLimit:boolean
-    roundIcons:boolean
-    useStreaming:boolean
-    palmAPI:string,
-    supaMemoryKey:string
-    supaMemoryType:string
-    textScreenColor?:string
-    textBorder?:boolean
-    textScreenRounded?:boolean
-    textScreenBorder?:string
-    characterOrder:(string|folder)[]
-    hordeConfig:hordeConfig,
-    toggleConfirmRecommendedPreset:boolean,
-    novelai:{
-        token:string,
-        model:string
-    }
-    globalscript: customscript[],
-    sendWithEnter:boolean
-    clickToEdit: boolean
-    koboldURL:string
-    advancedBotSettings:boolean
-    useAutoSuggestions:boolean
-    autoSuggestPrompt:string
-    autoSuggestPrefix:string
-    autoSuggestClean:boolean
-    claudeAPIKey:string,
-    useChatCopy:boolean,
-    novellistAPI:string,
-    useAutoTranslateInput:boolean
-    imageCompression:boolean
-    account?:{
-        token:string
-        id:string,
-        data: {
-            refresh_token?:string,
-            access_token?:string
-            expires_in?: number
-        }
-        useSync?:boolean
-    },
-    classicMaxWidth: boolean,
-    useChatSticker:boolean,
-    useAdditionalAssetsPreview:boolean,
-    usePlainFetch:boolean
-    hypaMemory:boolean
-    proxyRequestModel:string
-    ooba:OobaSettings
-    ainconfig: AINsettings
-    personaPrompt:string
-    openrouterRequestModel:string
-    openrouterKey:string
-    selectedPersona:number
-    personas:{
-        personaPrompt:string
-        name:string
-        icon:string
-    }[]
-    assetWidth:number
-    animationSpeed:number
-    botSettingAtStart:false
-    NAIsettings:NAISettings
-    hideRealm:boolean
-    colorScheme:ColorScheme
-    colorSchemeName:string
-    promptTemplate?:Proompt[]
-    forceProxyAsOpenAI?:boolean
-    hypaModel:'ada'|'MiniLM'
-    saveTime?:number
-    mancerHeader:string
-    emotionProcesser:'submodel'|'embedding'
-}
 
 interface hordeConfig{
     apiKey:string

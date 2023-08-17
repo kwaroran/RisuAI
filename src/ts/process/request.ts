@@ -23,6 +23,7 @@ interface requestDataArgument{
     useStreaming?:boolean
     isGroupChat?:boolean
     useEmotion?:boolean
+    continue?:boolean
 }
 
 type requestDataResponse = {
@@ -90,6 +91,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
+    arg.continue = arg.continue ?? false
     let biasString = arg.biasString ?? []
     const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
 
@@ -356,7 +358,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
         case 'novelai':
         case 'novelai_kayra':{
-            const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '')
+            const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '', arg.continue)
             let logit_bias_exp:{
                 sequence: number[], bias: number, ensure_sequence_finish: false, generate_once: true
             }[] = []
@@ -439,7 +441,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
             const suggesting = model === "submodel"
-            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting)
+            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
             const stopStrings = getStopStrings(suggesting)
             console.log(proompt)
             console.log(stopStrings)
@@ -583,7 +585,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'palm2':{
             const body = {
                 "prompt": {
-                      "text": stringlizeChat(formated, currentChar?.name ?? '')
+                      "text": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
                 },
                 "safetySettings":[
                     {
@@ -654,7 +656,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case "kobold":{
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             const url = new URL(db.koboldURL)
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
@@ -704,7 +706,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             };
             
             const send_body = {
-                text: stringlizeAINChat(formated, currentChar?.name ?? ''),
+                text: stringlizeAINChat(formated, currentChar?.name ?? '', arg.continue),
                 length: maxTokens,
                 temperature: temperature,
                 top_p: db.ainconfig.top_p,
@@ -764,7 +766,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const response = await createDeep([{
                 role: 'user',
-                content: stringlizeChat(formated, currentChar?.name ?? '')
+                content: stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             }])
 
             if(!response.ok){
@@ -862,7 +864,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             }
             if(aiModel.startsWith("horde:::")){
-                const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+                const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
 
                 const realModel = aiModel.split(":::")[1]
 

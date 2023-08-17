@@ -7,7 +7,7 @@ export function multiChatReplacer(){
 
 }
 
-export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
+export function stringlizeChat(formated:OpenAIChat[], char:string, continued:boolean){
     let resultString:string[] = []
     for(const form of formated){
         if(form.role === 'system'){
@@ -20,7 +20,12 @@ export function stringlizeChat(formated:OpenAIChat[], char:string = ''){
             resultString.push(form.content)
         }
     }
-    return resultString.join('\n\n') + `\n\n${char}:`
+    let res = resultString.join('\n\n')
+
+    if(!continued){
+        res += `\n\n${char}:`
+    }
+    return res
 }
 
 function appendWhitespace(prefix:string, seperator:string=" ") {
@@ -29,7 +34,7 @@ function appendWhitespace(prefix:string, seperator:string=" ") {
     }
     return prefix
 }
-export function stringlizeChatOba(formated:OpenAIChat[], characterName:string='', suggesting:boolean=false){
+export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, suggesting:boolean, continued:boolean){
     const db = get(DataBase)
     let resultString:string[] = []
     let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
@@ -59,10 +64,12 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string=''
         }
         resultString.push(prefix + name + form.content)
     }
-    if (suggesting){
-        resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
-    } else {
-        resultString.push(assistantPrefix + `${characterName}:`)
+    if(!continued){
+        if (suggesting){
+            resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
+        } else {
+            resultString.push(assistantPrefix + `${characterName}:`)
+        }
     }
     return resultString.join(seperator)
 }
@@ -190,7 +197,7 @@ export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:
     return {chunks,extChunk:charNames.concat(chunks)}
 }
 
-export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
+export function stringlizeAINChat(formated:OpenAIChat[], char:string, continued: boolean){
     let resultString:string[] = []
     const db = get(DataBase)
 
@@ -213,7 +220,14 @@ export function stringlizeAINChat(formated:OpenAIChat[], char:string = ''){
             resultString.push(form.content)
         }
     }
-    return resultString.join('\n\n') + `\n\n${char} 「`
+    let res = resultString.join('\n\n')
+    if(!continued){
+        res +=  + `\n\n${char} 「`
+    }
+    else{
+        res += " 「"
+    }
+    return res
 }
 
 function extractAINOutputStrings(inputString:string, characters:string[]) {

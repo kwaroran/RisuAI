@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -20,12 +20,11 @@
     import AssetInput from './AssetInput.svelte';
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
-  import { v4 } from 'uuid';
+    import { v4 } from 'uuid';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
     let openMenu = false
-    export let openChatList = false
     let loadPages = 30
     let autoMode = false
     let rerolls:Message[][] = []
@@ -34,8 +33,16 @@
     let doingChatInputTranslate = false
     let currentCharacter:character|groupChat = $CurrentCharacter
     let toggleStickers:boolean = false
+    export let openChatList:boolean = false 
 
-    async function send() {
+    async function send(){
+        return sendMain(false)
+    }
+    async function sendContinue(){
+        return sendMain(true)
+    }
+
+    async function sendMain(continueResponse:boolean) {
         let selectedChar = $selectedCharID
         console.log('send')
         if($doingChat){
@@ -88,7 +95,7 @@
         rerolls = []
         await sleep(10)
         updateInputSizeAll()
-        await sendChatMain()
+        await sendChatMain(continueResponse)
 
     }
 
@@ -154,11 +161,14 @@
 
     let abortController:null|AbortController = null
 
-    async function sendChatMain(saveReroll = false) {
+    async function sendChatMain(continued:boolean = false) {
         messageInput = ''
         abortController = new AbortController()
         try {
-            await sendChat(-1, {signal:abortController.signal})            
+            await sendChat(-1, {
+                signal:abortController.signal,
+                continue:continued
+            })            
         } catch (error) {
             console.error(error)
             alertError(`${error}`)
@@ -519,22 +529,31 @@
                         </div>
                     {/if}
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
-                        openChatList = true
-                        openMenu = false
-                    }}>
-                        <DatabaseIcon />
-                        <span class="ml-2">{language.chatList}</span>
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors"
+                        class:text-textcolor2={($CurrentChat.message.length < 2) || ($CurrentChat.message[$CurrentChat.message.length - 1].role !== 'char')}
+                        on:click={() => {
+                            if(($CurrentChat.message.length < 2) || ($CurrentChat.message[$CurrentChat.message.length - 1].role !== 'char')){
+                                return
+                            }
+                            sendContinue();
+                        }}
+                    >
+                        <StepForwardIcon />
+                        <span class="ml-2">{language.continueResponse}</span>
                     </div>
-                    {#if $DataBase.translator !== ''}
-                        <!-- <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            doingChatInputTranslate = true
-                            messageInput = (await translate(messageInput, true))
-                            doingChatInputTranslate = false
+
+
+                    {#if $DataBase.showMenuChatList}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                            openChatList = true
+                            openMenu = false
                         }}>
-                            <LanguagesIcon />
-                            <span class="ml-2">{language.translateInput}</span>
-                        </div> -->
+                            <DatabaseIcon />
+                            <span class="ml-2">{language.chatList}</span>
+                        </div>
+                    {/if}
+                    
+                    {#if $DataBase.translator !== ''}
                         <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} on:click={() => {
                             $DataBase.useAutoTranslateInput = !$DataBase.useAutoTranslateInput
                         }}>

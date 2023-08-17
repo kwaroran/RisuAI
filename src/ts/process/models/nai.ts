@@ -5,7 +5,7 @@ import { globalFetch } from "src/ts/storage/globalApi"
 import { alertError, alertInput, alertNormal, alertWait } from "src/ts/alert"
 import { sleep } from "src/ts/util"
 
-export function stringlizeNAIChat(formated:OpenAIChat[], char:string = ''){
+export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued: boolean){
 
     
     const db = get(DataBase)
@@ -35,7 +35,12 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string = ''){
         }
     }
 
-    return resultString.join(seperator) + `\n\n${char}:`
+    let res = resultString.join(seperator)
+
+    if(!continued){
+        res += `\n\n${char}:`
+    }
+    return res
 }
 
 export const novelLogin = async () => {
