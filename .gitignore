@@ -31,3 +31,8 @@ src-others/
 /build/
 pycache/
 test.ts
+
+
+
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

@@ -10,6 +10,7 @@ import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { tokenizeNum } from "../tokenizer";
+import { runLocalModel } from "./models/local";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -957,6 +958,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
+            }
+            if(aiModel.startsWith('local_')){
+                console.log('running local model')
+                const suggesting = model === "submodel"
+                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const stopStrings = getStopStrings(suggesting)
+                await runLocalModel(proompt)
             }
             return {
                 type: 'fail',

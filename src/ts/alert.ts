@@ -79,7 +79,7 @@ export function alertToast(msg:string){
 }
 
 export function alertWait(msg:string){
-
+    console.log(msg)
     alertStore.set({
         'type': 'wait',
         'msg': msg

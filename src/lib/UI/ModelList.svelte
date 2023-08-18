@@ -115,16 +115,9 @@
                 {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
-            <!-- <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
-                const res = (await checkLocalModel())
-                if(res === 'success'){
-                    changeModel('local_gptq')
-                }
-                else{
-                    alertError("python 3.10, cuda 11.7 and git must be installed to run it. " + res)
-                }
-                // changeModel('local_gptq')
-            }}>Local Model GPTQ</button> -->
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
+                changeModel('local_gptq')
+            }}>Local Model GPTQ</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>

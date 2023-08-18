@@ -21,7 +21,8 @@ export async function startLocalModelServer(){
 }
 
 export async function checkLocalServerInstalled() {
-    const p = await path.join(await path.appDataDir(), 'local_server')
+    console.log(await path.appDataDir())
+    const p = await path.join(await path.appDataDir(), 'local_server', 'key.txt')
     return await exists(p)
 }
 
@@ -76,6 +77,17 @@ interface LocalGeneratorItem {
     max_new_tokens?: number;
 }
 
+export async function checkServerRunning() {
+    try {
+        console.log("checking server")
+        const res = await fetch("http://localhost:7239/")
+        console.log(res)
+        return res.ok   
+    } catch (error) {
+        return false
+    }
+}
+
 
 export async function loadExllamaFull(){
 
@@ -89,17 +101,20 @@ export async function loadExllamaFull(){
         }
         while(true){
             //check is server is running by fetching the status
-            try {
-                const res = await globalFetch("http://localhost:7239/")
-                if(res.ok){
-                    break
-                }
-            } catch (error) {}
+            if(await checkLocalServerInstalled()){
+                await sleep(1000)
+                try {
+                    const res = await fetch("http://localhost:7239/")
+                    if(res.status === 200){
+                        break
+                    }
+                } catch (error) {}
+            }
             await sleep(1000)
         }
 
         const body:LocalLoaderItem = {
-            dir: "exllama",
+            dir: "C:\\Users\\blueb\\Downloads\\model",
         }
     
         alertWait("Loading Local Model")
@@ -117,6 +132,10 @@ export async function loadExllamaFull(){
 export async function runLocalModel(prompt:string){
     const db = get(DataBase)
 
+    if(!serverRunning){
+        await loadExllamaFull()
+    }
+
     const body:LocalGeneratorItem = {
         prompt: prompt,
         temperature: db.temperature,
@@ -125,6 +144,8 @@ export async function runLocalModel(prompt:string){
         typical: db.ooba.typical_p,
         max_new_tokens: db.maxResponse
     }
+
+    console.log("generating")
 
     const gen = await globalFetch("http://localhost:7239/generate/", {
         body: body
