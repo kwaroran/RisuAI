@@ -6,6 +6,7 @@
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
   import { checkLocalModel } from "src/ts/process/models/local";
   import { alertError } from "src/ts/alert";
+  import Help from "../Others/Help.svelte";
     let openAdv = true
 
     export let value = ""
@@ -118,7 +119,7 @@
             {#if import.meta.env.DEV}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
                     changeModel('local_gptq')
-                }}>Local Model GPTQ</button>
+                }}>Local Model GPTQ <Help key="experimental"/> </button>
             {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
