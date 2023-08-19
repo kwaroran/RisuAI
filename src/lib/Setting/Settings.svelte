@@ -19,6 +19,7 @@
     import PersonaSettings from "./Pages/PersonaSettings.svelte";
   import PromptSettings from "./Pages/PromptSettings.svelte";
   import { DataBase } from "src/ts/storage/database";
+  import ThanksPage from "./Pages/ThanksPage.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
@@ -136,10 +137,10 @@
                     class:text-textcolor={selected === 7}
                     class:text-textcolor2={selected !== 7}
                     on:click={() => {
-                    selected = 7
+                    selected = 77
                 }}>
                     <BoxIcon />
-                    <span>{language.community}</span>
+                    <span>{language.supporterThanks}</span>
                 </button>
                 {#if window.innerWidth < 700}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
@@ -183,6 +184,8 @@
                         <PromptSettings onGoBack={() => {
                             selected = 1
                         }}/>
+                    {:else if selected === 77}
+                        <ThanksPage/>
                     {/if}
             </div>
             {/key}
