@@ -73,7 +73,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
         if(da.type !== 'fail' || da.noRetry){
             return da
         }
-        
+
         trys += 1
         if(trys > db.requestRetrys){
             return da
@@ -87,7 +87,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let result = ''
-    let formated = arg.formated
+    let formated = db.numberOfChat === 0 ? arg.formated : arg.formated.slice(-db.numberOfChat)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
@@ -131,7 +131,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             for(let i=0;i<biasString.length;i++){
                 const bia = biasString[i]
                 const tokens = await tokenizeNum(bia[0])
-        
+
                 for(const token of tokens){
                     bias[token] = bia[1]
                 }
@@ -257,7 +257,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         method: "POST",
                         headers: headers,
                         signal: abortSignal
-                    })  
+                    })
 
                 if(da.status !== 200){
                     return {
@@ -305,7 +305,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             }
                             control.enqueue(readed)
                         } catch (error) {
-                            
+
                         }
                     }
                 },)
@@ -333,7 +333,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         type: 'success',
                         result: msg.content
                     }
-                } catch (error) {                    
+                } catch (error) {
                     return {
                         type: 'fail',
                         result: (language.errors.httpError + `${JSON.stringify(dat)}`)
@@ -341,13 +341,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
             else{
-                if(dat.error && dat.error.message){                    
+                if(dat.error && dat.error.message){
                     return {
                         type: 'fail',
                         result: (language.errors.httpError + `${dat.error.message}`)
                     }
                 }
-                else{                    
+                else{
                     return {
                         type: 'fail',
                         result: (language.errors.httpError + `${JSON.stringify(res.data)}`)
@@ -369,7 +369,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 const tokens = await tokenizeNum(bia[0])
 
                 const tokensInNumberArray:number[] = []
-    
+
                 for(const token of tokens){
                     tokensInNumberArray.push(token)
                 }
@@ -406,10 +406,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 stop_sequences: [[49287]],
                 bad_words_ids: NovelAIBadWordIds,
                 logit_bias_exp: logit_bias_exp
-                
+
             }
 
-              
+
             const body = {
                 "input": proompt,
                 "model": aiModel === 'novelai_kayra' ? 'kayra-v1' : 'clio-v1',
@@ -526,7 +526,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: headers,
                 abortSignal
             })
-            
+
             const dat = res.data as any
             if(res.ok){
                 try {
@@ -539,7 +539,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         type: 'success',
                         result: unstringlizeChat(result, formated, currentChar?.name ?? '')
                     }
-                } catch (error) {                    
+                } catch (error) {
                     return {
                         type: 'fail',
                         result: (language.errors.httpError + `${error}`)
@@ -553,7 +553,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
         }
-        
+
         case 'custom':{
             const d = await pluginProcess({
                 bias: bias,
@@ -662,7 +662,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
             }
-            
+
             const da = await globalFetch(url.toString(), {
                 method: "POST",
                 body: {
@@ -705,7 +705,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'Authorization': `Bearer ${auth_key}`,
                 'Content-Type': 'application/json'
             };
-            
+
             const send_body = {
                 text: stringlizeAINChat(formated, currentChar?.name ?? '', arg.continue),
                 length: maxTokens,
@@ -723,6 +723,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 logit_bias: (logit_bias.length > 0) ? logit_bias.join("<<|>>") : undefined,
                 logit_bias_values: (logit_bias_values.length > 0) ? logit_bias_values.join("|") : undefined,
             };
+
+            console.log(send_body);
+
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
@@ -784,7 +787,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'result': result
             }
         }
-        default:{     
+        default:{
             if(raiModel.startsWith('claude')){
 
                 let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/complete')

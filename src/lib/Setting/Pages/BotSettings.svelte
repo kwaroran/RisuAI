@@ -249,7 +249,7 @@
         <span class="text-textcolor">{language.globalNote} <Help key="globalNote"/></span>
         <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>
-    {/if}    
+    {/if}
 
     <span class="text-textcolor">{language.maxContextSize}</span>
     <NumberInput min={0} max={getModelMaxContext($DataBase.aiModel)} marginBottom={true} bind:value={$DataBase.maxContext}/>
@@ -404,6 +404,7 @@
         <DropList bind:list={$DataBase.formatingOrder} />
     {/if}
     <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
+
     <table class="contain w-full max-w-full tabler mt-2">
         <tr>
             <th class="font-medium w-1/2">Bias</th>
@@ -440,6 +441,9 @@
         {/each}
     </table>
 
+    <span class="text-textcolor mt-2">{language.numberOfChat}</span>
+    <NumberInput bind:value={$DataBase.numberOfChat} />
+
     {#if !$DataBase.promptTemplate}
         <div class="flex items-center mt-4">
             <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
@@ -449,7 +453,7 @@
         {#if $DataBase.promptTemplate}
             <Check check={!!$DataBase.promptTemplate} name={language.usePromptTemplate} onChange={async ()=>{
                 const conf = await alertConfirm(language.resetPromptTemplateConfirm)
-                
+
                 if(conf){
                     $DataBase.promptTemplate = undefined
                 }

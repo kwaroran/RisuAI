@@ -311,5 +311,6 @@ export const languageChinese = {
     recent: '最新',
     downloads: '下载量',
     trending: "热度",
-    imageCompression: "图像压缩"
+    imageCompression: "图像压缩",
+    numberOfChat: "请求聊天次数",
 }

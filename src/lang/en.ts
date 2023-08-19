@@ -426,4 +426,5 @@ export const languageEnglish = {
     importPersona: "Import Persona",
     export: "Export",
     import: "Import",
+    numberOfChat: "Number of chats to request",
 }

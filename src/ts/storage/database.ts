@@ -310,6 +310,7 @@ export function setDatabase(data:Database){
         key:'',
         freeApi: false
     }
+    data.numberOfChat ??= 0
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -465,6 +466,7 @@ export interface Database{
     colorScheme:ColorScheme
     colorSchemeName:string
     promptTemplate?:Proompt[]
+    numberOfChat?:number
     forceProxyAsOpenAI?:boolean
     hypaModel:'ada'|'MiniLM'
     saveTime?:number

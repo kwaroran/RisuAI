@@ -311,7 +311,7 @@ export const languageKorean = {
     account: "계정",
     remove: "삭제",
 
-    
+
     creationSuccess: "생성 성공",
     noweb: "이 기능은 웹에서는 작동하지 않습니다.",
     createBotInternet: "인터넷에서 AI로 캐릭터 생성하기",
@@ -383,4 +383,5 @@ export const languageKorean = {
     innerFormat: "내부 포맷",
     HypaMemory: "하이파메모리",
     ToggleHypaMemory: "하이파메모리 토글",
+    numberOfChat: "요청할 채팅 수",
 }
