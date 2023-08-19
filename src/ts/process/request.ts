@@ -724,8 +724,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 logit_bias_values: (logit_bias_values.length > 0) ? logit_bias_values.join("|") : undefined,
             };
 
-            console.log(send_body);
-
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
