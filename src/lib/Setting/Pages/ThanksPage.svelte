@@ -1,5 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
+  import { openURL } from "src/ts/storage/globalApi";
 
 
     interface supporters{
@@ -35,9 +36,18 @@
 <span class="mb-2 text-textcolor2">{language.supporterThanksDesc}</span>
 
 <!-- Patreon Button -->
-<button class="flex flex-col items-center justify-center mt-4 rounded-md">
-    <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="patreon button"/>
-</button>
+<div class="flex items-center justify-center rounded-md flex-wrap gap-2">
+    <button class="h-12 w-44" on:click={() => {
+        openURL("https://www.patreon.com/RisuAI")
+    }}>
+        <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="patreon button" class="w-full h-full"/>
+    </button>
+    <button class="h-12 w-44 bg-slate-700 font-bold text-sm" on:click={() => {
+        openURL("https://sv.risuai.xyz/patreon")
+    }}>
+        ADD YOUR NAME
+    </button>
+</div>
 
 <!-- Supporters -->
 
