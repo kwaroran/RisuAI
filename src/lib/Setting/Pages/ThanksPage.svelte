@@ -10,14 +10,23 @@
         V: string[],
     }
 
+    interface supporterL{
+        amount: number,
+        name: string,
+    }
+
     async function loadSupporters() {
+
+        const supp = await fetch("https://sv.risuai.xyz/patreon/list")
+
+        const list = await supp.json() as supporterL[]
         const dummy:supporters = {
             //random names
-            I: ["Preview", "Preview"],
-            II: ["Preview", "Preview"],
-            III: ["Preview", "Preview"],
-            IV: ["Preview"],
-            V: ["Preview"],
+            I: list.filter((v) => v.amount < 5).map((v) => v.name),
+            II: list.filter((v) => v.amount >= 5 && v.amount < 10).map((v) => v.name),
+            III: list.filter((v) => v.amount >= 10 && v.amount < 20).map((v) => v.name),
+            IV: list.filter((v) => v.amount >= 20 && v.amount < 50).map((v) => v.name),
+            V: list.filter((v) => v.amount >= 50).map((v) => v.name),
         }
         return dummy
     }
@@ -25,7 +34,17 @@
 <h2 class="text-2xl font-bold mt-2">{language.supporterThanks}</h2>
 <span class="mb-2 text-textcolor2">{language.supporterThanksDesc}</span>
 
-{#await loadSupporters() then supporter}
+<!-- Patreon Button -->
+<button class="flex flex-col items-center justify-center mt-4 rounded-md">
+    <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="patreon button"/>
+</button>
+
+<!-- Supporters -->
+
+{#await loadSupporters()}
+    <span>Loading...</span>
+
+{:then supporter}
     <h3 class="text-xl font-bold mt-4">Supporter V</h3>
     <div class="flex w-full flex-wrap gap-2"> 
         {#each supporter.V as support}
