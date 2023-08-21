@@ -2,45 +2,22 @@
     import { language } from "src/lang";
 
 
-    interface SupporterImaged{
-        name: string,
-        image: string,
-    }
-
     interface supporters{
         I: string[],
         II: string[],
         III: string[],
-        IV: SupporterImaged[],
-        V: SupporterImaged[],
+        IV: string[],
+        V: string[],
     }
 
     async function loadSupporters() {
         const dummy:supporters = {
             //random names
-            I: ["John", "Doe"],
-            II: ["Lorem", "Ipsum"],
-            III: ["Dolor", "Sit"],
-            IV: [
-                {
-                    name: "John",
-                    image: "https://placehold.co/600x400",
-                },
-                {
-                    name: "Doe",
-                    image: "https://placehold.co/600x400",
-                },
-            ],
-            V: [
-                {
-                    name: "John",
-                    image: "https://placehold.co/600x400",
-                },
-                {
-                    name: "Doe",
-                    image: "https://placehold.co/600x400",
-                },
-            ],
+            I: ["Preview", "Preview"],
+            II: ["Preview", "Preview"],
+            III: ["Preview", "Preview"],
+            IV: ["Preview"],
+            V: ["Preview"],
         }
         return dummy
     }
@@ -52,12 +29,9 @@
     <h3 class="text-xl font-bold mt-4">Supporter V</h3>
     <div class="flex w-full flex-wrap gap-2"> 
         {#each supporter.V as support}
-            <!-- make a card -->
-            <div class="flex flex-col items-center justify-center p-4 border-selected border rounded">
-                <img class="w-44 h-44 rounded-t" src={support.image} alt={support.name} />
-                <!-- prietty nameplate diamond style -->
-                <div class="w-44 bg-selected rounded-b-lg flex justify-center items-center p-2">
-                    <span class="font-black prism-font prism-font-gold text-xl">{support.name}</span>
+            <div class="flex flex-col items-center justify-center border-selected border rounded">
+                <div class="flex justify-center items-center py-4 px-8">
+                    <span class="font-black prism-font prism-font-gold text-3xl">{support}</span>
                 </div>
             </div>
         {/each}
@@ -65,12 +39,9 @@
     <h3 class="text-xl font-bold mt-4">Supporter IV</h3>
     <div class="flex w-full flex-wrap gap-2"> 
         {#each supporter.IV as support}
-            <!-- make a card -->
-            <div class="flex flex-col items-center justify-center p-4 border-selected border rounded">
-                <img class="w-32 h-32 rounded-t" src={support.image} alt={support.name} />
-                <!-- prietty nameplate diamond style -->
-                <div class="w-32 bg-selected rounded-b-lg flex justify-center items-center p-1">
-                    <span class="font-black prism-font prism-font-silver text-lg">{support.name}</span>
+            <div class="flex flex-col items-center justify-center border-selected border rounded">
+                <div class="flex justify-center items-center py-4 px-8">
+                    <span class="font-black prism-font prism-font-silver text-2xl">{support}</span>
                 </div>
             </div>
         {/each}
@@ -80,8 +51,8 @@
         {#each supporter.III as support}
             <!-- make a card -->
             <div class="flex flex-col items-center justify-center border-selected border rounded">
-                <div class="w-32 flex justify-center items-center p-1">
-                    <span class="font-black prism-font prism-font-silver text-lg">{support}</span>
+                <div class="w-32 flex justify-center items-center py-3 px-6">
+                    <span class="font-black prism-font prism-font-silver text-xl">{support}</span>
                 </div>
             </div>
         {/each}
@@ -119,9 +90,6 @@
     .prism-font-gold{
         background: linear-gradient(to right, #D4AF32, #fff ,#D4AF32, #fff, #D4AF32);
     }
-    .prism-font-ruby{
-        background: linear-gradient(to right, #E0115F, #fff ,#E0115F, #fff, #E0115F);
-    }
     .prism-font-copper{
         background: linear-gradient(to right, #B87333, #fff ,#B87333, #fff, #B87333);
     }
@@ -129,7 +97,7 @@
     .prism-font{
 		text-align: center;
 		color: transparent;
-        background-size: 125px 100%;
+        background-size: 150px 100%;
 		background-clip: text;
 		animation-name: shimmer;
 		animation-duration: 2s;

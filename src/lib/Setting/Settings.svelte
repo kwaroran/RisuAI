@@ -134,8 +134,8 @@
                     <span>{language.advancedSettings}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 7}
-                    class:text-textcolor2={selected !== 7}
+                    class:text-textcolor={selected === 77}
+                    class:text-textcolor2={selected !== 77}
                     on:click={() => {
                     selected = 77
                 }}>

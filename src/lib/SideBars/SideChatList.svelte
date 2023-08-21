@@ -2,8 +2,8 @@
     import type { character, groupChat } from "src/ts/storage/database";
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../UI/GUI/TextInput.svelte";
-    import { DownloadIcon, EditIcon, TrashIcon } from "lucide-svelte";
-    import { exportChat } from "src/ts/characters";
+    import { DownloadIcon, EditIcon, FolderUpIcon, TrashIcon } from "lucide-svelte";
+    import { exportChat, importChat } from "src/ts/characters";
     import { alertConfirm, alertError } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
@@ -78,7 +78,20 @@
         </button>
     {/each}
     </div>
+    
     <div class="border-t border-selected mt-2">
+        <div class="flex mt-2 ml-2 items-center">
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={() => {
+                importChat()
+            }}>
+                <FolderUpIcon size={18}/>
+            </button>
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={() => {
+                editMode = !editMode
+            }}>
+                <EditIcon size={18}/>
+            </button>
+        </div>
         <div class="flex mt-2 items-center">
             <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
         </div>
