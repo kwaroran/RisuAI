@@ -42,7 +42,7 @@ export const runTransformers = async (baseText:string, model:string,bodyTemplate
 
 export const runSummarizer = async (text: string) => {
     await loadTransformer()
-    let classifier = await pipeline("summarization", "Xenova/bart-large-cnn")
+    let classifier = await pipeline("summarization", "Xenova/distilbart-cnn-6-6")
     const v:{summary_text:string}[] = await classifier(text)
     return v
 }
