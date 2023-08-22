@@ -4,9 +4,10 @@
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
-  import { checkLocalModel } from "src/ts/process/models/local";
+  import { checkLocalModel, getLocalModelList, openLocalModelFolder } from "src/ts/process/models/local";
   import { alertError } from "src/ts/alert";
   import Help from "../Others/Help.svelte";
+  import { FolderOpen } from "lucide-svelte";
     let openAdv = true
 
     export let value = ""
@@ -60,6 +61,9 @@
             case 'openrouter':
                 return "OpenRouter"
             default:
+                if(name.startsWith('local_')){
+                    return name.replace('local_', 'Local ')
+                }
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
                 }
@@ -117,9 +121,20 @@
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
             {#if import.meta.env.DEV}
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
-                    changeModel('local_gptq')
-                }}>Local Model GPTQ <Help key="experimental"/> </button>
+                <Arcodion name="Local Models">
+                    {#await getLocalModelList()}
+                        <button class="p-2">Loading...</button>
+                    {:then models}
+                        {#each models as model}
+                            <button on:click={() => {changeModel("local_" + model)}} class="p-2 hover:text-green-500">{model.trim()}</button>
+                        {/each}
+                        <div class="w-full flex flex-row-reverse p-2">
+                            <button class="text-textcolor2 hover:text-textcolor" on:click={openLocalModelFolder}>
+                                <FolderOpen />
+                            </button>
+                        </div>
+                    {/await}
+                </Arcodion>
             {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
