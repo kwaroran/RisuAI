@@ -312,6 +312,7 @@
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
         <span class="text-textcolor">Seperator</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
+
     </div>
 
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
@@ -322,6 +323,9 @@
     <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
 
     <Check bind:check={$DataBase.autoSuggestClean} name={`${language.autoSuggest} suffix removal`}/>
+
+    <Check bind:check={$DataBase.ooba.formating.useName} name={language.useNamePrefix}/>
+
 {:else if $DataBase.aiModel.startsWith('novelai')}
     <div class="flex flex-col p-3 bg-darkbg mt-4">
         <span class="text-textcolor">Starter</span>

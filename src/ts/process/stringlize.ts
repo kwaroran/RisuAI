@@ -38,9 +38,11 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
     const db = get(DataBase)
     let resultString:string[] = []
     let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
-    if(!seperator){
-        seperator = "\n\n"
-    }
+    header = header ?? ""
+    systemPrefix = systemPrefix ?? ""
+    userPrefix = userPrefix ?? ""
+    assistantPrefix = assistantPrefix ?? ""
+    seperator = seperator ?? "\n\n"
 
     if(header) {
         resultString.push(header)
@@ -50,25 +52,39 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
             continue
         }
         let prefix = ""
-        let name = ""
+        let name = form.name
         if(form.role === 'user'){
             prefix = appendWhitespace(suggesting ? assistantPrefix : userPrefix, seperator)
-            name = `${db.username}: `
+            name ??= `${db.username}: `
         }
         else if(form.role === 'assistant'){
             prefix = appendWhitespace(suggesting ? userPrefix : assistantPrefix, seperator)
-            name = `${characterName}: `
+            name ??= `${characterName}: `
         }
         else if(form.role === 'system'){
             prefix = appendWhitespace(systemPrefix, seperator)
         }
-        resultString.push(prefix + name + form.content)
+        if(db.ooba.formating.useName){
+            resultString.push(prefix + name + form.content)
+        }
+        else{
+            resultString.push(prefix + form.content)
+        }
     }
     if(!continued){
-        if (suggesting){
-            resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
-        } else {
-            resultString.push(assistantPrefix + `${characterName}:`)
+        if(db.ooba.formating.useName){
+            if (suggesting){
+                resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
+            } else {
+                resultString.push(assistantPrefix + `${characterName}:`)
+            }
+        }
+        else{
+            if (suggesting){
+                resultString.push(appendWhitespace(assistantPrefix, seperator) + `\n` + db.autoSuggestPrefix)
+            } else {
+                resultString.push(assistantPrefix)
+            }
         }
     }
     return resultString.join(seperator)
