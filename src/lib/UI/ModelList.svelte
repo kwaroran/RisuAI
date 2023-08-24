@@ -1,6 +1,6 @@
 <script lang="ts">
     import { DataBase } from "src/ts/storage/database";
-    import { getHordeModels } from "src/ts/horde/getModels";
+    import { getHordeModels } from "src/ts/process/models/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
