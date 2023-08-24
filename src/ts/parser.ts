@@ -675,7 +675,8 @@ export function risuChatParser(da:string, arg:{
     db?:Database
     chara?:string|character|groupChat
     rmVar?:boolean,
-    var?:{[key:string]:string}
+    var?:{[key:string]:string},
+    mode?:'normal'|'send'
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -699,7 +700,7 @@ export function risuChatParser(da:string, arg:{
     let nested:string[] = [""]
     let pf = performance.now()
     let v = new Uint8Array(512)
-    let pureMode = false
+    let noSend = false
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -742,7 +743,7 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 const dat = nested.shift()
-                const mc = (pureMode) ? null :matcher(dat, matcherObj)
+                const mc = matcher(dat, matcherObj)
                 nested[0] += mc ?? `{{${dat}}}`
                 break
             }
@@ -752,16 +753,24 @@ export function risuChatParser(da:string, arg:{
                 }
                 const dat = nested.shift()
                 switch(dat){
-                    case 'Pure':{
-                        pureMode = true
+                    case 'NoSend':{
+                        nested.unshift('')
+                        v[nested.length] = 3
                         break
                     }
-                    case '/Pure':{
-                        pureMode = false
+                    case '/NoSend':{
+                        if(nested.length === 1 || v[nested.length] !== 3){
+                            nested[0] += dat
+                            break
+                        }
+                        const dat2 = nested.shift()
+                        if(arg.mode !== 'send'){
+                            nested[0] += dat2
+                        }
                         break
                     }
                     default:{
-                        const mc = (pureMode) ? null : smMatcher(dat, matcherObj)
+                        const mc = smMatcher(dat, matcherObj)
                         nested[0] += mc ?? `<${dat}>`
                         break
                     }
