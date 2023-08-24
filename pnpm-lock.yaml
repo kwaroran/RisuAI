@@ -8,6 +8,12 @@ dependencies:
   '@adobe/css-tools':
     specifier: 4.3.0-beta.2
     version: 4.3.0-beta.2
+  '@babylonjs/core':
+    specifier: ^6.18.0
+    version: 6.18.0
+  '@babylonjs/havok':
+    specifier: ^1.1.4
+    version: 1.1.4
   '@dqbd/tiktoken':
     specifier: ^1.0.7
     version: 1.0.7
@@ -23,6 +29,12 @@ dependencies:
   '@xenova/transformers':
     specifier: ^2.5.0
     version: 2.5.0
+  babylon-mmd:
+    specifier: ^0.24.0
+    version: 0.24.0(@babylonjs/core@6.18.0)
+  babylonjs:
+    specifier: ^6.18.0
+    version: 6.18.0
   blueimp-md5:
     specifier: ^2.19.0
     version: 2.19.0
@@ -229,6 +241,16 @@ packages:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.18
+
+  /@babylonjs/core@6.18.0:
+    resolution: {integrity: sha512-Tufbl8S0aNm5Czt6J2l7kPHkU6UYcK6o7zWtS76QDwIHE1yvNq1MwounTSuLc+u9vQR7Ml0HuACmePDmUNUSfw==}
+    dev: false
+
+  /@babylonjs/havok@1.1.4:
+    resolution: {integrity: sha512-mK/sgqv4LaI4BjoQgWYGxOBX45hVauZ8PopPkIUIB42DiVPgWkiCZbBQ9pL7r1tbLhThvV1RTokj4z5bVGBayw==}
+    dependencies:
+      '@types/emscripten': 1.39.7
+    dev: false
 
   /@dqbd/tiktoken@1.0.7:
     resolution: {integrity: sha512-bhR5k5W+8GLzysjk8zTMVygQZsgvf7W1F0IlL4ZQ5ugjo5rCyiwGM5d8DYriXspytfu98tv59niang3/T+FoDw==}
@@ -886,6 +908,10 @@ packages:
     resolution: {integrity: sha512-DIOOg+POSrYl+OlNRHQuIEqCd8DCtynG57H862UCce16nXJX7J8eWxNGgOcf8Eyge8zXeSs27mz1UcFu8L/L7g==}
     dev: false
 
+  /@types/emscripten@1.39.7:
+    resolution: {integrity: sha512-tLqYV94vuqDrXh515F/FOGtBcRMTPGvVV1LzLbtYDcQmmhtpf/gLYf+hikBbQk8MzOHNz37wpFfJbYAuSn8HqA==}
+    dev: false
+
   /@types/estree@1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
 
@@ -1046,6 +1072,19 @@ packages:
 
   /b4a@1.6.4:
     resolution: {integrity: sha512-fpWrvyVHEKyeEvbKZTVOeZF3VSKKWtJxFIxX/jaVPf+cLbGUSitjb49pHLqPV2BUNNZ0LcoeEGfE/YCpyDYHIw==}
+    dev: false
+
+  /babylon-mmd@0.24.0(@babylonjs/core@6.18.0):
+    resolution: {integrity: sha512-rrZ/z+pIOsRf4bqT24XHNB3MrbLrnlidAdVZgjaxiX0CW/MX5RTgH4rN5WzkU4WJYpbYbn7uiaOL8XkvWrFscg==}
+    peerDependencies:
+      '@babylonjs/core': ^6.16.0
+    dependencies:
+      '@babylonjs/core': 6.18.0
+    dev: false
+
+  /babylonjs@6.18.0:
+    resolution: {integrity: sha512-gr5bZstwimAFpUxfJ9q+CmdnJ64zK02hpDCBKFtZ0eODtDW7kcszTC/lCRnAoppaI1GbxO9vqK+kUDVbP95TsQ==}
+    requiresBuild: true
     dev: false
 
   /balanced-match@1.0.2:
