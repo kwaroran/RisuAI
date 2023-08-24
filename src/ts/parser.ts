@@ -753,7 +753,8 @@ export function risuChatParser(da:string, arg:{
                 }
                 const dat = nested.shift()
                 switch(dat){
-                    case 'NoSend':{
+                    case 'NoSend':
+                    case 'NoShow':{
                         nested.unshift('')
                         v[nested.length] = 3
                         break
@@ -765,6 +766,17 @@ export function risuChatParser(da:string, arg:{
                         }
                         const dat2 = nested.shift()
                         if(arg.mode !== 'send'){
+                            nested[0] += dat2
+                        }
+                        break
+                    }
+                    case '/NoShow':{
+                        if(nested.length === 1 || v[nested.length] !== 3){
+                            nested[0] += dat
+                            break
+                        }
+                        const dat2 = nested.shift()
+                        if(arg.mode === 'send'){
                             nested[0] += dat2
                         }
                         break
