@@ -1,4 +1,3 @@
-import { update } from "lodash"
 import * as BABYLON from '@babylonjs/core'
 import * as BABYLONMMD from 'babylon-mmd'
 
@@ -16,7 +15,7 @@ async function createEngine(node:HTMLCanvasElement) {
     return new BABYLON.Engine(node, true);
 }
 
-async function BabylonLoad(node:HTMLCanvasElement){
+export async function BabylonLoad(node:HTMLCanvasElement){
     const engine = await createEngine(node);
     const scene = new BABYLON.Scene(engine);
     const camera = new BABYLONMMD.MmdCamera("mmdCamera", new BABYLON.Vector3(0, 10, 0), scene);
@@ -38,6 +37,13 @@ async function BabylonLoad(node:HTMLCanvasElement){
     mmdModel.addAnimation(modelMotion);
     mmdModel.setAnimation("model_motion_1");
     mmdRuntime.setCamera(camera);
-    
-    return scene;
+    return {scene, mmdModel};
+}
+
+export async function changeBabylonAnimation(model:BABYLONMMD.MmdModel, animation:string) {
+    model.setAnimation(animation);
+}
+
+export async function UnloadBabylon(scene:BABYLON.Scene) {
+    scene.dispose();
 }
