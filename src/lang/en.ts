@@ -430,4 +430,5 @@ export const languageEnglish = {
     supporterThanksDesc: "Thank you for your support!",
     donatorPatreonDesc:"For default, it will not be shown in the list for privacy. if you want to show your nickname, go to RisuAI's patreon page and press the link button.",
     useNamePrefix: "Use Name Prefix",
+    loading: "Loading...",
 }
