@@ -206,13 +206,15 @@
 {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
 
     <span class="text-textcolor">NovelAI Bearer Token</span>
-    <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
+    <TextInput bind:value={$DataBase.novelai.token}/>
 
-    <!-- {#if !($DataBase.novelai.token)}
-        <div class="mb-2">
-            <Button on:click={novelLogin} size="sm">Login to NovelAI</Button>
-        </div>
-    {/if} -->
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.NAIadventure} name={language.textAdventureNAI}/>
+    </div>
+
+    <div class="flex items-center mt-2 mb-4">
+        <Check bind:check={$DataBase.NAIappendName} name={language.appendNameNAI}/>
+    </div>
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
@@ -363,6 +365,15 @@
     <span class="text-textcolor">Presence Penalty</span>
     <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.presencePenalty}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
+    <span class="text-textcolor">Mirostat LR</span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_lr}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_lr).toFixed(2)}</span>
+    <span class="text-textcolor">Mirostat Tau</span>
+    <SliderInput min={0} max={6} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_tau}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_tau).toFixed(2)}</span>
+    <span class="text-textcolor">Cfg Scale</span>
+    <SliderInput min={1} max={3} step={0.01} bind:value={$DataBase.NAIsettings.cfg_scale}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.cfg_scale).toFixed(2)}</span>
 
 {:else if $DataBase.aiModel.startsWith('novellist')}
     <span class="text-textcolor">Top P</span>
