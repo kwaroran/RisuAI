@@ -472,6 +472,8 @@ export interface Database{
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
     translatorType:'google'|'deepl'|'none',
+    NAIadventure?:boolean,
+    NAIappendName?:boolean,
     deeplOptions:{
         key:string,
         freeApi:boolean

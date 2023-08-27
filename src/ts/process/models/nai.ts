@@ -13,8 +13,6 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued:
     let starter = db.NAIsettings.starter.replaceAll("\\n","\n") || '***\n[conversation: start]'
     let resultString:string[] = []
 
-    console.log(formated)
-
     for(const form of formated){
         if(form.role === 'system'){
             if(form.memo === 'NewChatExample' || form.memo === 'NewChat' || form.content === "[Start a new chat]"){
@@ -25,10 +23,23 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued:
             }
         }
         else if(form.name || form.role === 'assistant'){
-            resultString.push((form.name ?? char) + ": " + form.content)
+            if(db.NAIappendName){
+                resultString.push(form.content)
+            }
+            else{
+                resultString.push((form.name ?? char) + ": " + form.content)
+            }
         }
         else if(form.role === 'user'){
-            resultString.push(db.username + ": " + form.content)
+            let res = ''
+            if(db.NAIadventure){
+                res += '> '
+            }
+            if(db.NAIappendName){
+                res += db.username + ": "
+            }
+            res += form.content
+            resultString.push(res)
         }
         else{
             resultString.push(form.content)
@@ -38,7 +49,7 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued:
     let res = resultString.join(seperator)
 
     if(!continued){
-        res += `\n\n${char}:`
+        res += `${seperator}${char}:`
     }
     return res
 }

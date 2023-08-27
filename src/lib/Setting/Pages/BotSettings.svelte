@@ -208,11 +208,13 @@
     <span class="text-textcolor">NovelAI Bearer Token</span>
     <TextInput marginBottom={true} bind:value={$DataBase.novelai.token}/>
 
-    <!-- {#if !($DataBase.novelai.token)}
-        <div class="mb-2">
-            <Button on:click={novelLogin} size="sm">Login to NovelAI</Button>
-        </div>
-    {/if} -->
+    <div class="flex items-center mt-2 mb-4">
+        <Check bind:check={$DataBase.NAIadventure} name={language.textAdventureNAI}/>
+    </div>
+
+    <div class="flex items-center mt-2 mb-4">
+        <Check bind:check={$DataBase.NAIappendName} name={language.appendNameNAI}/>
+    </div>
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
