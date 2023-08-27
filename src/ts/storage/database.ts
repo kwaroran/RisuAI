@@ -310,6 +310,11 @@ export function setDatabase(data:Database){
         key:'',
         freeApi: false
     }
+    data.NAIadventure ??= false
+    data.NAIappendName ??= true
+    data.NAIsettings.cfg_scale ??= 1
+    data.NAIsettings.mirostat_tau ??= 0
+    data.NAIsettings.mirostat_lr ??= 1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -638,6 +643,8 @@ export interface botPreset{
     autoSuggestPrefix?: string
     autoSuggestClean?: boolean
     promptTemplate?:Proompt[]
+    NAIadventure?: boolean
+    NAIappendName?: boolean
 }
 
 
@@ -808,7 +815,8 @@ export const presetTemplate:botPreset = {
     proxyKey: '',
     bias: [],
     ooba: cloneDeep(defaultOoba),
-    ainconfig: cloneDeep(defaultAIN)
+    ainconfig: cloneDeep(defaultAIN),
+
 }
 
 const defaultSdData:[string,string][] = [
@@ -857,7 +865,9 @@ export function saveCurrentPreset(){
         proxyRequestModel: db.proxyRequestModel,
         openrouterRequestModel: db.openrouterRequestModel,
         NAISettings: cloneDeep(db.NAIsettings),
-        promptTemplate: db.promptTemplate ?? null
+        promptTemplate: db.promptTemplate ?? null,
+        NAIadventure: db.NAIadventure ?? false,
+        NAIappendName: db.NAIappendName ?? false,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -917,6 +927,11 @@ export function setPreset(db:Database, newPres: botPreset){
     db.autoSuggestPrefix = newPres.autoSuggestPrefix ?? db.autoSuggestPrefix
     db.autoSuggestClean = newPres.autoSuggestClean ?? db.autoSuggestClean
     db.promptTemplate = newPres.promptTemplate
+    db.NAIadventure = newPres.NAIadventure
+    db.NAIappendName = newPres.NAIappendName
+    db.NAIsettings.cfg_scale ??= 1
+    db.NAIsettings.mirostat_tau ??= 0
+    db.NAIsettings.mirostat_lr ??= 1
     return db
 }
 

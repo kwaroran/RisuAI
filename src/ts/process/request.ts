@@ -406,13 +406,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 use_string: true,
                 return_full_text: false,
                 prefix: prefix,
-                order: [2, 3, 0, 4, 1],
+                order: [6, 2, 3, 0, 4, 1, 5, 8],
                 typical_p: gen.typicalp,
                 repetition_penalty_whitelist:[49256,49264,49231,49230,49287,85,49255,49399,49262,336,333,432,363,468,492,745,401,426,623,794,1096,2919,2072,7379,1259,2110,620,526,487,16562,603,805,761,2681,942,8917,653,3513,506,5301,562,5010,614,10942,539,2976,462,5189,567,2032,123,124,125,126,127,128,129,130,131,132,588,803,1040,49209,4,5,6,7,8,9,10,11,12],
                 stop_sequences: [[49287], [49405]],
                 bad_words_ids: NovelAIBadWordIds,
-                logit_bias_exp: logit_bias_exp
-                
+                logit_bias_exp: logit_bias_exp,
+                mirostat_lr: gen.mirostat_lr ?? 1,
+                mirostat_tau: gen.mirostat_tau ?? 0,
+                cfg_scale: gen.cfg_scale ?? 1,
+                cfg_uc: ""   
             }
 
             

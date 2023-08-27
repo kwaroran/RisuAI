@@ -264,7 +264,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset} = {
       {
         "type": "chat",
         "rangeStart": 0,
-        "rangeEnd": -9
+        "rangeEnd": -6
       },
       {
         "type": "plain",
@@ -274,19 +274,19 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset} = {
       },
       {
         "type": "persona",
-        "innerFormat": "description of {{user}}: {{slot}}\n***"
+        "innerFormat": "[description of {{user}}: {{slot}}]"
       },
       {
         "type": "description",
-        "innerFormat": "description of {{char}}: {{slot}}\n***"
+        "innerFormat": "[description of {{char}}: {{slot}}]"
       },
       {
         "type": "lorebook",
       },
       {
         "type": "chat",
-        "rangeStart": -9,
-        "rangeEnd": -3
+        "rangeStart": -6,
+        "rangeEnd": -2
       },
       {
         "type": "plain",
@@ -299,10 +299,12 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset} = {
       },
       {
         "type": "chat",
-        "rangeStart": -3,
+        "rangeStart": -2,
         "rangeEnd": "end"
       }
-    ]
+    ],
+    "NAIadventure": true,
+    "NAIappendName": true
   }
 }
 

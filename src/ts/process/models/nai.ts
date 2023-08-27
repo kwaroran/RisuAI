@@ -142,7 +142,21 @@ export interface NAISettings{
     presencePenalty: number
     typicalp:number
     starter:string
+    mirostat_lr?:number
+    mirostat_tau?:number
+    cfg_scale?:number
 }
+
+export const NovelAIROrder = [
+    "",
+    "",
+    "",
+    "",
+    "",
+
+
+
+]
 
 export const NovelAIBadWordIds = [
     [60],
