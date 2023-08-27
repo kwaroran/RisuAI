@@ -196,7 +196,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let risuIdentify = false
             if(replacerURL.startsWith("risu::")){
                 risuIdentify = true
-                replacerURL.replace("risu::", '')
+                replacerURL = replacerURL.replace("risu::", '')
             }
 
             if(aiModel === 'reverse_proxy'){
