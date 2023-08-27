@@ -18,7 +18,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-    import { openRouterModels } from "src/ts/model/openrouter";
+    import { openRouterModels } from "src/ts/process/models/openrouter";
     import { novelLogin } from "src/ts/process/models/nai";
   import { alertConfirm } from "src/ts/alert";
 

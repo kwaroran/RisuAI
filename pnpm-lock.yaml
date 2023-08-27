@@ -8,6 +8,12 @@ dependencies:
   '@adobe/css-tools':
     specifier: 4.3.0-beta.2
     version: 4.3.0-beta.2
+  '@babylonjs/core':
+    specifier: ^6.18.0
+    version: 6.18.0
+  '@babylonjs/havok':
+    specifier: ^1.1.4
+    version: 1.1.4
   '@dqbd/tiktoken':
     specifier: ^1.0.7
     version: 1.0.7
@@ -23,6 +29,12 @@ dependencies:
   '@xenova/transformers':
     specifier: ^2.5.0
     version: 2.5.0
+  babylon-mmd:
+    specifier: ^0.24.0
+    version: 0.24.0(@babylonjs/core@6.18.0)
+  babylonjs:
+    specifier: ^6.18.0
+    version: 6.18.0
   blueimp-md5:
     specifier: ^2.19.0
     version: 2.19.0
@@ -110,9 +122,6 @@ dependencies:
   sortablejs:
     specifier: ^1.15.0
     version: 1.15.0
-  three:
-    specifier: ^0.154.0
-    version: 0.154.0
   tippy.js:
     specifier: ^6.3.7
     version: 6.3.7
@@ -172,9 +181,6 @@ devDependencies:
   '@types/sortablejs':
     specifier: ^1.15.1
     version: 1.15.1
-  '@types/three':
-    specifier: ^0.154.0
-    version: 0.154.0
   '@types/uuid':
     specifier: ^9.0.2
     version: 9.0.2
@@ -235,6 +241,16 @@ packages:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.18
+
+  /@babylonjs/core@6.18.0:
+    resolution: {integrity: sha512-Tufbl8S0aNm5Czt6J2l7kPHkU6UYcK6o7zWtS76QDwIHE1yvNq1MwounTSuLc+u9vQR7Ml0HuACmePDmUNUSfw==}
+    dev: false
+
+  /@babylonjs/havok@1.1.4:
+    resolution: {integrity: sha512-mK/sgqv4LaI4BjoQgWYGxOBX45hVauZ8PopPkIUIB42DiVPgWkiCZbBQ9pL7r1tbLhThvV1RTokj4z5bVGBayw==}
+    dependencies:
+      '@types/emscripten': 1.39.7
+    dev: false
 
   /@dqbd/tiktoken@1.0.7:
     resolution: {integrity: sha512-bhR5k5W+8GLzysjk8zTMVygQZsgvf7W1F0IlL4ZQ5ugjo5rCyiwGM5d8DYriXspytfu98tv59niang3/T+FoDw==}
@@ -879,10 +895,6 @@ packages:
     resolution: {integrity: sha512-pYrtLtOwku/7r1i9AMONsJMVYAtk3hzOfiGNekhtq5tYBGA7unMve8RvUclKLMT3PrihvJqUmzsRGh0RP84hKg==}
     dev: true
 
-  /@tweenjs/tween.js@18.6.4:
-    resolution: {integrity: sha512-lB9lMjuqjtuJrx7/kOkqQBtllspPIN+96OvTCeJ2j5FEzinoAXTdAMFnDAQT1KVPRlnYfBrqxtqP66vDM40xxQ==}
-    dev: true
-
   /@types/blueimp-md5@2.18.0:
     resolution: {integrity: sha512-f4A+++lGZGJvVSgeyMkqA7BEf2BVQli6F+qEykKb49c5ieWQBkfpn6CP5c1IZr2Yi2Ofl6Fj+v0e1fN18Z8Cnw==}
     dev: true
@@ -894,6 +906,10 @@ packages:
 
   /@types/emscripten@1.39.5:
     resolution: {integrity: sha512-DIOOg+POSrYl+OlNRHQuIEqCd8DCtynG57H862UCce16nXJX7J8eWxNGgOcf8Eyge8zXeSs27mz1UcFu8L/L7g==}
+    dev: false
+
+  /@types/emscripten@1.39.7:
+    resolution: {integrity: sha512-tLqYV94vuqDrXh515F/FOGtBcRMTPGvVV1LzLbtYDcQmmhtpf/gLYf+hikBbQk8MzOHNz37wpFfJbYAuSn8HqA==}
     dev: false
 
   /@types/estree@1.0.1:
@@ -954,30 +970,11 @@ packages:
     resolution: {integrity: sha512-g/JwBNToh6oCTAwNS8UGVmjO7NLDKsejVhvE4x1eWiPTC3uCuNsa/TD4ssvX3du+MLiM+SHPNDuijp8y76JzLQ==}
     dev: true
 
-  /@types/stats.js@0.17.0:
-    resolution: {integrity: sha512-9w+a7bR8PeB0dCT/HBULU2fMqf6BAzvKbxFboYhmDtDkKPiyXYbjoe2auwsXlEFI7CFNMF1dCv3dFH5Poy9R1w==}
-    dev: true
-
-  /@types/three@0.154.0:
-    resolution: {integrity: sha512-IioqpGhch6FdLDh4zazRn3rXHj6Vn2nVOziJdXVbJFi9CaI65LtP9qqUtpzbsHK2Ezlox8NtsLNHSw3AQzucjA==}
-    dependencies:
-      '@tweenjs/tween.js': 18.6.4
-      '@types/stats.js': 0.17.0
-      '@types/webxr': 0.5.2
-      fflate: 0.6.10
-      lil-gui: 0.17.0
-      meshoptimizer: 0.18.1
-    dev: true
-
   /@types/trusted-types@2.0.3:
     resolution: {integrity: sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==}
 
   /@types/uuid@9.0.2:
     resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}
-    dev: true
-
-  /@types/webxr@0.5.2:
-    resolution: {integrity: sha512-szL74BnIcok9m7QwYtVmQ+EdIKwbjPANudfuvDrAF8Cljg9MKUlIoc1w5tjj9PMpeSH3U1Xnx//czQybJ0EfSw==}
     dev: true
 
   /@types/wicg-file-system-access@2020.9.6:
@@ -1075,6 +1072,19 @@ packages:
 
   /b4a@1.6.4:
     resolution: {integrity: sha512-fpWrvyVHEKyeEvbKZTVOeZF3VSKKWtJxFIxX/jaVPf+cLbGUSitjb49pHLqPV2BUNNZ0LcoeEGfE/YCpyDYHIw==}
+    dev: false
+
+  /babylon-mmd@0.24.0(@babylonjs/core@6.18.0):
+    resolution: {integrity: sha512-rrZ/z+pIOsRf4bqT24XHNB3MrbLrnlidAdVZgjaxiX0CW/MX5RTgH4rN5WzkU4WJYpbYbn7uiaOL8XkvWrFscg==}
+    peerDependencies:
+      '@babylonjs/core': ^6.16.0
+    dependencies:
+      '@babylonjs/core': 6.18.0
+    dev: false
+
+  /babylonjs@6.18.0:
+    resolution: {integrity: sha512-gr5bZstwimAFpUxfJ9q+CmdnJ64zK02hpDCBKFtZ0eODtDW7kcszTC/lCRnAoppaI1GbxO9vqK+kUDVbP95TsQ==}
+    requiresBuild: true
     dev: false
 
   /balanced-match@1.0.2:
@@ -1672,10 +1682,6 @@ packages:
       reusify: 1.0.4
     dev: true
 
-  /fflate@0.6.10:
-    resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
-    dev: true
-
   /fflate@0.8.0:
     resolution: {integrity: sha512-FAdS4qMuFjsJj6XHbBaZeXOgaypXp8iw/Tpyuq/w3XA41jjLHT8NPA+n7czH/DDhdncq0nAyDZmPeWXh2qmdIg==}
     dev: false
@@ -2098,10 +2104,6 @@ packages:
       immediate: 3.0.6
     dev: false
 
-  /lil-gui@0.17.0:
-    resolution: {integrity: sha512-MVBHmgY+uEbmJNApAaPbtvNh1RCAeMnKym82SBjtp5rODTYKWtM+MXHCifLe2H2Ti1HuBGBtK/5SyG4ShQ3pUQ==}
-    dev: true
-
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
     engines: {node: '>=10'}
@@ -2193,10 +2195,6 @@ packages:
   /merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
-    dev: true
-
-  /meshoptimizer@0.18.1:
-    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
     dev: true
 
   /methods@1.1.2:
@@ -3255,10 +3253,6 @@ packages:
     dependencies:
       any-promise: 1.3.0
     dev: true
-
-  /three@0.154.0:
-    resolution: {integrity: sha512-Uzz8C/5GesJzv8i+Y2prEMYUwodwZySPcNhuJUdsVMH2Yn4Nm8qlbQe6qRN5fOhg55XB0WiLfTPBxVHxpE60ug==}
-    dev: false
 
   /tippy.js@6.3.7:
     resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}

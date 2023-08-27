@@ -19,14 +19,17 @@
     let search = ''
     let menuOpen = false
     let nsfw = false
+    let loading = false
 
     async function getHub(){
+        loading = true
         charas = await getRisuHub({
             search: search,
             page: page,
             nsfw: nsfw,
             sort: sort
         })
+        loading = false
     }
 
     getHub()
@@ -77,11 +80,15 @@
     </button>
 </div>
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
+    {#if loading}
+        <span>{language.loading}</span>
+    {:else}
     {#key charas}
         {#each charas as chara}
             <RisuHubIcon onClick={() =>{openedData = chara}} chara={chara} />
         {/each}
     {/key}
+    {/if}
 </div>
 <div class="w-full flex justify-center">
     <div class="flex">

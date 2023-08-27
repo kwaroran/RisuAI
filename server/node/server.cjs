@@ -41,43 +41,48 @@ app.get('/', async (req, res, next) => {
 })
 
 const proxyFunc = async (req, res, next) => {
+    try{
+        const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
 
-    const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
-
-    if (!urlParam) {
-        res.status(400).send({
-            error:'URL has no param'
-        });
-        return;
+        if (!urlParam) {
+            res.status(400).send({
+                error:'URL has no param'
+            });
+            return;
+        }
+        const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
+    
+        let originalResponse;
+        try {
+            console.log(urlParam)
+            originalResponse = await fetch(urlParam, {
+                method: req.method,
+                headers: header,
+                body: JSON.stringify(req.body)
+            });
+    
+        } catch (err) {
+            next(err);
+            return;
+        }
+        const status = originalResponse.status;
+    
+        const originalBody = await originalResponse.text();
+        const head = originalResponse.headers
+        head.delete('content-security-policy');
+        head.delete('content-security-policy-report-only');
+        head.delete('clear-site-data');
+        head.delete('Cache-Control');
+        if(status < 200 || status >= 300){
+            res.status(status)
+        }
+        res.header(head)
+        res.send(originalBody);
     }
-    const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
-
-    let originalResponse;
-    try {
-        console.log(urlParam)
-        originalResponse = await fetch(urlParam, {
-            method: req.method,
-            headers: header,
-            body: JSON.stringify(req.body)
-        });
-
-    } catch (err) {
-        next(err);
-        return;
+    catch(err){
+        res.header('content-type', 'text/plain')
+        res.status(500).send(err.toString())
     }
-    const status = originalResponse.status;
-
-    const originalBody = await originalResponse.text();
-    const head = originalResponse.headers
-    head.delete('content-security-policy');
-    head.delete('content-security-policy-report-only');
-    head.delete('clear-site-data');
-    head.delete('Cache-Control');
-    if(status < 200 || status >= 300){
-        res.status(status)
-    }
-    res.header(head)
-    res.send(originalBody);
 }
 
 app.post('/proxy', proxyFunc);

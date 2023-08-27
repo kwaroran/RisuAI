@@ -200,31 +200,31 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             return chatObjects;
         }
 
-        unformated.main.push(...formatPrompt(risuChatParser(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), {chara: currentChar})))
+        unformated.main.push(...formatPrompt(risuChatParser(mainp + ((db.additionalPrompt === '' || (!db.promptPreprocess)) ? '' : `\n${db.additionalPrompt}`), {chara: currentChar, mode:'send'})))
     
         if(db.jailbreakToggle){
-            unformated.jailbreak.push(...formatPrompt(risuChatParser(db.jailbreak, {chara: currentChar})))
+            unformated.jailbreak.push(...formatPrompt(risuChatParser(db.jailbreak, {chara: currentChar, mode:'send'})))
         }
     
-        unformated.globalNote.push(...formatPrompt(risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', db.globalNote) || db.globalNote, {chara:currentChar})))
+        unformated.globalNote.push(...formatPrompt(risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', db.globalNote) || db.globalNote, {chara:currentChar, mode:'send'})))
     }
 
     if(currentChat.note){
         unformated.authorNote.push({
             role: 'system',
-            content: risuChatParser(currentChat.note, {chara: currentChar})
+            content: risuChatParser(currentChat.note, {chara: currentChar, mode:'send'})
         })
     }
 
     {
-        let description = risuChatParser((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, {chara: currentChar})
+        let description = risuChatParser((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, {chara: currentChar, mode:'send'})
 
         if(currentChar.personality){
-            description += risuChatParser("\n\nDescription of {{char}}: " + currentChar.personality, {chara: currentChar})
+            description += risuChatParser("\n\nDescription of {{char}}: " + currentChar.personality, {chara: currentChar, mode:'send'})
         }
 
         if(currentChar.scenario){
-            description += risuChatParser("\n\nCircumstances and context of the dialogue: " + currentChar.scenario, {chara: currentChar})
+            description += risuChatParser("\n\nCircumstances and context of the dialogue: " + currentChar.scenario, {chara: currentChar, mode:'send'})
         }
 
         unformated.description.push({
@@ -244,19 +244,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     const lorepmt = await loadLoreBookPrompt()
     unformated.lorebook.push({
         role: 'system',
-        content: risuChatParser(lorepmt.act, {chara: currentChar})
+        content: risuChatParser(lorepmt.act, {chara: currentChar, mode:'send'})
     })
     if(db.personaPrompt){
         unformated.personaPrompt.push({
             role: 'system',
-            content: risuChatParser(db.personaPrompt, {chara: currentChar})
+            content: risuChatParser(db.personaPrompt, {chara: currentChar, mode:'send'})
         })
     }
 
     if(lorepmt.special_act){
         unformated.postEverything.push({
             role: 'system',
-            content: risuChatParser(lorepmt.special_act, {chara: currentChar})
+            content: risuChatParser(lorepmt.special_act, {chara: currentChar, mode:'send'})
         })
     }
 
@@ -281,7 +281,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = cloneDeep(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar, mode:'send'}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -292,7 +292,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = cloneDeep(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar, mode:'send'}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -326,13 +326,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let content = card.text
 
                     if(card.type2 === 'globalNote'){
-                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar}))
+                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar, mode:'send'}))
                     }
                     else if(card.type2 === 'main'){
-                        content = (risuChatParser(content, {chara: currentChar}))
+                        content = (risuChatParser(content, {chara: currentChar, mode:'send'}))
                     }
                     else{
-                        content = risuChatParser(content, {chara: currentChar})
+                        content = risuChatParser(content, {chara: currentChar, mode:'send'})
                     }
 
                     const prompt:OpenAIChat ={
@@ -400,7 +400,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const chat:OpenAIChat = {
             role: 'assistant',
             content: processScript(nowChatroom,
-                risuChatParser(firstMsg, {chara: currentChar, rmVar: true}),
+                risuChatParser(firstMsg, {chara: currentChar, rmVar: true, mode:'send'}),
             'editprocess')
         }
         chats.push(chat)
@@ -417,7 +417,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     for(const msg of ms){
-        let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
+        let formedChat = processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true, mode:'send'}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
@@ -471,7 +471,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     let biases:[string,number][] = db.bias.concat(currentChar.bias).map((v) => {
-        return [risuChatParser(v[0].replaceAll("\\n","\n"), {chara: currentChar}),v[1]]
+        return [risuChatParser(v[0].replaceAll("\\n","\n"), {chara: currentChar, mode:'send'}),v[1]]
     })
 
 
@@ -554,7 +554,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = cloneDeep(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar, mode:'send'}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -565,7 +565,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = cloneDeep(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar, mode:'send'}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -599,13 +599,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let content = card.text
 
                     if(card.type2 === 'globalNote'){
-                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar}))
+                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar, mode:'send'}))
                     }
                     else if(card.type2 === 'main'){
-                        content = (risuChatParser(content, {chara: currentChar}))
+                        content = (risuChatParser(content, {chara: currentChar, mode:'send'}))
                     }
                     else{
-                        content = risuChatParser(content, {chara: currentChar})
+                        content = risuChatParser(content, {chara: currentChar, mode:'send'})
                     }
 
                     const prompt:OpenAIChat ={
