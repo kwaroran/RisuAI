@@ -14,7 +14,7 @@
     "runserver": "node server/node/server.cjs"
   },
   "dependencies": {
-    "@adobe/css-tools": "4.3.0-beta.2",
+    "@adobe/css-tools": "4.3.1",
     "@dqbd/tiktoken": "^1.0.7",
     "@mlc-ai/web-tokenizers": "^0.1.0",
     "@tauri-apps/api": "1.4.0",
