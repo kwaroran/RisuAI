@@ -370,7 +370,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "userPrefix": "",
         "assistantPrefix": "",
         "seperator": "\n",
-        "useName": false
+        "useName": true
       }
     },
     "ainconfig": {
@@ -418,7 +418,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "type2": "normal"
       },
       {
-        "type": "lorebook",
+        "type": "lorebook"
       },
       {
         "type": "chat",
@@ -427,11 +427,11 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       },
       {
         "type": "persona",
-        "innerFormat": "[{{slot}}]"
+        "innerFormat": "{{user}} Description: [{{slot}}]"
       },
       {
         "type": "description",
-        "innerFormat": "[{{slot}}]"
+        "innerFormat": "{{char}} Description:[{{slot}}]"
       },
       {
         "type": "chat",
@@ -441,7 +441,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       {
         "type": "plain",
         "text": "### Instruction:",
-        "role": "bot",
+        "role": "system",
         "type2": "normal"
       },
       {
@@ -452,7 +452,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       {
         "type": "plain",
         "text": "",
-        "role": "bot",
+        "role": "system",
         "type2": "globalNote"
       },
       {
@@ -463,7 +463,12 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       }
     ],
     "NAIadventure": false,
-    "NAIappendName": true
+    "NAIappendName": true,
+    "localStopStrings": [
+      "\\n{{user}}:",
+      "\\n### Instruction:",
+      "\\n### Response"
+    ]
   }
 }
 
