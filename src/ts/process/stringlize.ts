@@ -55,16 +55,20 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
         let name = form.name
         if(form.role === 'user'){
             prefix = appendWhitespace(suggesting ? assistantPrefix : userPrefix, seperator)
-            name ??= `${db.username}: `
+            name ??= `${db.username}`
+            name += ': '
         }
         else if(form.role === 'assistant'){
             prefix = appendWhitespace(suggesting ? userPrefix : assistantPrefix, seperator)
-            name ??= `${characterName}: `
+            name ??= `${characterName}`
+            name += ': '
         }
         else if(form.role === 'system'){
             prefix = appendWhitespace(systemPrefix, seperator)
+            name = ""
         }
         if(db.ooba.formating.useName){
+            console.log(name)
             resultString.push(prefix + name + form.content)
         }
         else{
