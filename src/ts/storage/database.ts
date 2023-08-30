@@ -483,6 +483,7 @@ export interface Database{
         key:string,
         freeApi:boolean
     }
+    localStopStrings?:string[]
 }
 
 export interface customscript{

@@ -29,6 +29,9 @@ export function stringlizeChat(formated:OpenAIChat[], char:string, continued:boo
 }
 
 function appendWhitespace(prefix:string, seperator:string=" ") {
+    if(!prefix){
+        return ""
+    }
     if(prefix && !"> \n".includes(prefix[prefix.length-1])){
         prefix += seperator.includes("\n\n") ? "\n" : " "
     }
@@ -37,18 +40,15 @@ function appendWhitespace(prefix:string, seperator:string=" ") {
 export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, suggesting:boolean, continued:boolean){
     const db = get(DataBase)
     let resultString:string[] = []
-    let { header, systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
-    header = header ?? ""
+    let { systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
     systemPrefix = systemPrefix ?? ""
     userPrefix = userPrefix ?? ""
     assistantPrefix = assistantPrefix ?? ""
-    seperator = seperator ?? "\n\n"
+    seperator = seperator ?? "\n"
 
-    if(header) {
-        resultString.push(header)
-    }
     for(const form of formated){
         if(form.content === "[Start a new chat]"){
+            resultString.push("<START>")
             continue
         }
         let prefix = ""
@@ -87,7 +87,8 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
             }
         }
     }
-    return resultString.join(seperator)
+    console.log(resultString)
+    return resultString.join(seperator).trim()
 }
 
 const userStrings = ["user", "human", "input", "inst", "instruction"]

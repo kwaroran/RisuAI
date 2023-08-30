@@ -11,6 +11,7 @@ import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { tokenizeNum } from "../tokenizer";
 import { runLocalModel } from "./models/local";
+import { risuChatParser } from "../parser";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -454,9 +455,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let bodyTemplate:any
             const suggesting = model === "submodel"
             const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
-            const stopStrings = getStopStrings(suggesting)
-            console.log(proompt)
-            console.log(stopStrings)
+            let stopStrings = getStopStrings(suggesting)
+            if(db.localStopStrings){
+                stopStrings = db.localStopStrings.map((v) => {
+                    return risuChatParser(v.replace(/\\n/g, "\n"))
+                })
+            }
             bodyTemplate = {
                 'max_new_tokens': db.maxResponse,
                 'do_sample': true,
