@@ -2,10 +2,12 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { sleep } from "src/ts/util";
 import * as path from "@tauri-apps/api/path";
-import { exists } from "@tauri-apps/api/fs";
+import { createDir, exists, readDir, readTextFile } from "@tauri-apps/api/fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
 import { get } from "svelte/store";
 import { DataBase } from "src/ts/storage/database";
+import { open } from '@tauri-apps/api/shell';
+
 let serverRunning = false;
 
 export function checkLocalModel():Promise<string>{
@@ -24,6 +26,17 @@ export async function checkLocalServerInstalled() {
     console.log(await path.appDataDir())
     const p = await path.join(await path.appDataDir(), 'local_server', 'key.txt')
     return await exists(p)
+}
+
+export async function getServerKey() {
+    if(!await checkLocalServerInstalled()){
+        console.log("no key")
+        return ''
+    }
+    const p = await path.join(await path.appDataDir(), 'local_server', 'key.txt')
+    const tx = await readTextFile(p)
+    console.log(tx)
+    return tx
 }
 
 export interface LocalLoaderItem {
@@ -80,7 +93,11 @@ interface LocalGeneratorItem {
 export async function checkServerRunning() {
     try {
         console.log("checking server")
-        const res = await fetch("http://localhost:7239/")
+        const res = await fetch("http://localhost:7239/", {
+            headers: {
+                'x-risu-key': await getServerKey()
+            }
+        })
         console.log(res)
         return res.ok   
     } catch (error) {
@@ -89,7 +106,7 @@ export async function checkServerRunning() {
 }
 
 
-export async function loadExllamaFull(){
+export async function loadExllamaFull(model:string){
 
     try {
         await startLocalModelServer()
@@ -104,7 +121,11 @@ export async function loadExllamaFull(){
             if(await checkLocalServerInstalled()){
                 await sleep(1000)
                 try {
-                    const res = await fetch("http://localhost:7239/")
+                    const res = await fetch("http://localhost:7239/", {
+                        headers: {
+                            'x-risu-key': await getServerKey()
+                        }
+                    })
                     if(res.status === 200){
                         break
                     }
@@ -113,43 +134,121 @@ export async function loadExllamaFull(){
             await sleep(1000)
         }
 
+        const modelPath = await path.join(await path.appDataDir(), 'local_models', model)
+
         const body:LocalLoaderItem = {
-            dir: "C:\\Users\\blueb\\Downloads\\model",
+            "dir": modelPath,
+            "max_seq_len": null,
+            "max_input_len": null,
+            "max_attention_size":null,
+            "compress_pos_emb": null,
+            "alpha_value": null,
+            "gpu_peer_fixed":null,
+            "auto_map": null,
+            "use_flash_attn_2": null,
+            "matmul_recons_thd": null,
+            "fused_mlp_thd": null,
+            "sdp_thd": null,
+            "fused_attn": null,
+            "matmul_fused_remap": null,
+            "rmsnorm_no_half2": null,
+            "rope_no_half2": null,
+            "matmul_no_half2": null,
+            "silu_no_half2": null,
+            "concurrent_streams": null
         }
     
         alertWait("Loading Local Model")
-        const res = await globalFetch("http://localhost:7239/load/", {
-            body: body
+        const res = await fetch("http://localhost:7239/load/", {
+            body: JSON.stringify(body),
+            headers: {
+                'x-risu-key': await getServerKey(),
+                'Content-Type': 'application/json'
+            },
+            method: "POST"
         })
-        alertClear()
+
+        if(res.status !== 200){
+            alertError("Error when loading Exllama: " + await res.text())
+        }
+        else{
+            alertClear()
+        }
     } catch (error) {
         alertError("Error when loading Exllama: " + error)     
     }
 
 }
 
+export async function getLocalModelList() {
+    const p = await path.join(await path.appDataDir(), 'local_models')
+    if(!await exists(p)){
+        await createDir(p, {
+            recursive: true
+        })
+    }
+    const dirContents = await readDir(p)
+    return dirContents.map(x => x.name)
+}
 
-export async function runLocalModel(prompt:string){
+export async function openLocalModelFolder(){
+    const p = await path.join(await path.appDataDir(), 'local_models')
+    if(!await exists(p)){
+        await createDir(p, {
+            recursive: true
+        })
+    }
+    await invoke('open_folder',{path:p})
+
+}
+
+interface runLocalModelParams extends LocalGeneratorItem {
+    model: string;
+}
+
+
+export async function runLocalModel(data:runLocalModelParams){
     const db = get(DataBase)
 
     if(!serverRunning){
-        await loadExllamaFull()
+        await loadExllamaFull(data.model)
     }
 
     const body:LocalGeneratorItem = {
-        prompt: prompt,
-        temperature: db.temperature,
-        top_k: db.ooba.top_k,
-        top_p: db.ooba.top_p,
-        typical: db.ooba.typical_p,
-        max_new_tokens: db.maxResponse
+        prompt: data.prompt ?? null,
+        temperature: data.temperature,
+        top_k: data.top_k ?? null,
+        top_p: data.top_p ?? null,
+        typical: data.typical ?? null,
+        max_new_tokens: data.max_new_tokens ?? null,
+        "min_p": data.min_p ?? null,
+        "token_repetition_penalty_max": data.token_repetition_penalty_max ?? null,
+        "token_repetition_penalty_sustain":data.token_repetition_penalty_sustain ?? null,
+        "token_repetition_penalty_decay":data.token_repetition_penalty_decay ?? null,
+        "beams":data.beams ?? null,
+        "beam_length":data.beam_length ?? null,
+        "disallowed_tokens": data.disallowed_tokens ?? null,
     }
 
     console.log("generating")
 
-    const gen = await globalFetch("http://localhost:7239/generate/", {
-        body: body
+    const gen = await fetch("http://localhost:7239/generate/", {
+        body: JSON.stringify(body),
+        headers: {
+            'x-risu-key': await getServerKey(),
+            'Content-Type': 'application/json'
+        },
+        method: "POST"
     })
 
-    console.log(gen)
+    if(gen.status !== 200){
+        alertError("Error when generating: " + await gen.text())
+    }
+
+    let res:string = await gen.json()
+
+    res = res.substring(prompt.length)
+
+    return res
+
 }

@@ -7,6 +7,7 @@ import { cloneDeep } from "lodash";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
 import { globalFetch } from "src/ts/storage/globalApi";
+import { runSummarizer } from "../embedding/transformers";
 
 export async function supaMemory(
         chats:OpenAIChat[],
@@ -145,6 +146,11 @@ export async function supaMemory(
 
         async function summarize(stringlizedChat:string){
 
+            if(db.supaMemoryType === 'distilbart66'){
+                const sum = await runSummarizer(stringlizedChat)
+                return sum[0].summary_text
+            }
+
             const supaPrompt = db.supaMemoryPrompt === '' ?
             "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
@@ -210,7 +216,7 @@ export async function supaMemory(
                 return self.indexOf(value) === index;
             }))
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
-            const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
+            const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), '', true))
             hypaResult = "past events: " + s.slice(0,3).join("\n")
             currentTokens += await tokenizer.tokenizeChat({
                 role: "assistant",
