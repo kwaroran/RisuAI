@@ -14,7 +14,7 @@ import type { Proompt } from '../process/proompt';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.49.0"
+export let appVer = "1.50.1"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -483,6 +483,7 @@ export interface Database{
         key:string,
         freeApi:boolean
     }
+    localStopStrings?:string[]
 }
 
 export interface customscript{
@@ -645,6 +646,7 @@ export interface botPreset{
     promptTemplate?:Proompt[]
     NAIadventure?: boolean
     NAIappendName?: boolean
+    localStopStrings?: string[]
 }
 
 
@@ -868,6 +870,7 @@ export function saveCurrentPreset(){
         promptTemplate: db.promptTemplate ?? null,
         NAIadventure: db.NAIadventure ?? false,
         NAIappendName: db.NAIappendName ?? false,
+        localStopStrings: db.localStopStrings
     }
     db.botPresets = pres
     setDatabase(db)
@@ -932,6 +935,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.NAIsettings.cfg_scale ??= 1
     db.NAIsettings.mirostat_tau ??= 0
     db.NAIsettings.mirostat_lr ??= 1
+    db.localStopStrings = newPres.localStopStrings
     return db
 }
 

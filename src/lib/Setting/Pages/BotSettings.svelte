@@ -269,7 +269,7 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer' || $DataBase.subModel.startsWith('local_')}
+{#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
@@ -303,9 +303,42 @@
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
     </div>
-    <div class="flex flex-col p-3 bg-darkbg mt-4">
-        <span class="text-textcolor">Header</span>
-        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.header} />
+    <div class="flex items-center mt-4">
+        <Check check={!!$DataBase.localStopStrings} name={language.customStopWords} onChange={() => {
+            if(!$DataBase.localStopStrings){
+                $DataBase.localStopStrings = []
+            }
+            else{
+                $DataBase.localStopStrings = null
+            }
+        }} />
+    </div>
+    {#if $DataBase.localStopStrings}
+        <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
+            <div class="p-2">
+                <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                    let localStopStrings = $DataBase.localStopStrings
+                    localStopStrings.push('')
+                    $DataBase.localStopStrings = localStopStrings
+                }}><PlusIcon /></button>
+            </div>
+            {#each $DataBase.localStopStrings as stopString, i}
+                <div class="flex w-full">
+                    <div class="flex-grow">
+                        <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
+                    </div>
+                    <div>
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                            let localStopStrings = $DataBase.localStopStrings
+                            localStopStrings.splice(i, 1)
+                            $DataBase.localStopStrings = localStopStrings
+                        }}><TrashIcon /></button>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {/if}
+    <div class="flex flex-col p-3 rounded-md border-selected border mt-4">
         <span class="text-textcolor">System Prefix</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
         <span class="text-textcolor">User Prefix</span>
@@ -419,7 +452,8 @@
         <DropList bind:list={$DataBase.formatingOrder} />
     {/if}
     <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
-    <table class="contain w-full max-w-full tabler mt-2">
+    <div class="p-2 border border-selected round mt-2 rounded-md">
+    <table class="contain w-full max-w-full tabler">
         <tr>
             <th class="font-medium w-1/2">Bias</th>
             <th class="font-medium w-1/3">{language.value}</th>
@@ -439,10 +473,10 @@
         {#each $DataBase.bias as bias, i}
             <tr>
                 <td class="font-medium truncate w-1/2">
-                    <TextInput marginBottom bind:value={$DataBase.bias[i][0]} fullwidth fullh/>
+                    <TextInput bind:value={$DataBase.bias[i][0]} size="lg" fullwidth/>
                 </td>
                 <td class="font-medium truncate w-1/3">
-                    <NumberInput marginBottom bind:value={$DataBase.bias[i][1]} max={100} min={-100} fullwidth fullh/>
+                    <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-100} size="lg" fullwidth/>
                 </td>
                 <td>
                     <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
@@ -454,6 +488,7 @@
             </tr>
         {/each}
     </table>
+    </div>
 
     {#if !$DataBase.promptTemplate}
         <div class="flex items-center mt-4">

@@ -28,6 +28,16 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
     else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'){
         const model = db.aiModel
         const submodel = db.subModel
+        const sel1 = parseInt(await alertSelect(["RolePlay (Recommended)", "Legacy"]))
+        if(sel1 === 0){
+            let pr = prebuiltPresets.oobaRp
+            pr.aiModel = model
+            pr.subModel = submodel
+            setDatabase(setPreset(db, pr))
+            return
+
+        }
+
         const sel = parseInt(await alertSelect(["Vicuna, WizardLM, Airoboros", "OpenChat V3.2", "Guanaco", "OpenAssistant", "Dolphin, Luna", "StableBeluga, Orca-Mini", "Others (Alpaca, Nous-Hermes, ...)"]))
         let pr = prebuiltPresets.ooba
         pr.aiModel = model

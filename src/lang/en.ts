@@ -432,5 +432,6 @@ export const languageEnglish = {
     useNamePrefix: "Use Name Prefix",
     textAdventureNAI: "Run as Text Adventure",
     appendNameNAI: "Append Name on NAI",
+    customStopWords: "Custom Stop Words",
     loading: "Loading...",
 }

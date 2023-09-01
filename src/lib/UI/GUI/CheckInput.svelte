@@ -2,7 +2,7 @@
     import { CheckIcon } from "lucide-svelte";
 
     export let check = false
-    export let onChange = (check) => {}
+    export let onChange = (check:boolean) => {}
     export let margin = true
     export let name = ''
     export let hiddenName = false
