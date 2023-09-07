@@ -51,7 +51,5 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     await loadTransformer()
     let extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     let result = await extractor(text, { pooling: 'mean', normalize: true });
-    console.log(result)
     return result?.data ?? null;
-
 }
