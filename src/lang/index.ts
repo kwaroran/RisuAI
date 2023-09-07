@@ -1,6 +1,6 @@
 import { cloneDeep, merge } from "lodash";
 import { languageChinese } from "./cn";
-import { languageChinese } from "./de";
+import { languageGerman } from "./de";
 import { languageEnglish } from "./en";
 import { languageKorean } from "./ko";
 

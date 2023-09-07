@@ -25,6 +25,11 @@
                 <h2>Choose the language</h2>
                 <div class="flex flex-col items-start ml-2">
                     <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        changeLanguage('de')
+                        $DataBase.language='de'
+                        step = 1
+                    }}>• Deutsch</button>
+                    <button class="hover:text-green-500 transition-colors" on:click={() => {
                         changeLanguage('en')
                         $DataBase.language='en'
                         step = 1
