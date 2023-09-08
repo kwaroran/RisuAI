@@ -25,6 +25,7 @@
     changeLanguage($DataBase.language)
     langChanged = true
 }}>
+    <OptionInput value="de" >Deutsch</OptionInput>
     <OptionInput value="en" >English</OptionInput>
     <OptionInput value="ko" >한국어</OptionInput>
     <OptionInput value="cn" >中文</OptionInput>

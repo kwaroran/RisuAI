@@ -76,7 +76,7 @@
 <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
 <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
     <OptionInput value="none" >None</OptionInput>
-    <OptionInput value="distilbart66" >Distilbart-cnn-6-6 (Free / Local)</OptionInput>
+    <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
     <OptionInput value="davinci" >OpenAI Davinci</OptionInput>
     <OptionInput value="curie" >OpenAI Curie</OptionInput>
     <OptionInput value="subModel" >{language.submodel} ({language.unrecommended})</OptionInput>

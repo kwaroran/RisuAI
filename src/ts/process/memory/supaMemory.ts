@@ -132,10 +132,39 @@ export async function supaMemory(
         }
 
 
+        let hypaResult = ""
+
+        if(arg.asHyper){
+            const hypa = new HypaProcesser(db.hypaModel)
+            hypa.oaikey = db.supaMemoryKey
+            hypa.vectors = []
+            hypaChunks = hypaChunks.filter((value) => value.length > 1)
+            if(hypaChunks.length > 0){
+                await hypa.addText(hypaChunks.filter((value, index, self) => {
+                    return self.indexOf(value) === index;
+                }))
+                const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
+                const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), char?.name ?? '', false))
+                hypaResult = "past events: " + s.slice(0,3).join("\n")
+                currentTokens += await tokenizer.tokenizeChat({
+                    role: "assistant",
+                    content: hypaResult,
+                    memo: "hypaMemory"
+                })
+                currentTokens += 10
+            }
+        }
+
         if(currentTokens < maxContextTokens){
             chats.unshift({
                 role: "system",
-                content: supaMemory
+                content: supaMemory,
+                memo: "supaMemory"
+            })
+            chats.unshift({
+                role: "system",
+                content: hypaResult,
+                memo: "hypaMemory"
             })
             return {
                 currentTokens: currentTokens,
@@ -145,12 +174,18 @@ export async function supaMemory(
 
 
         async function summarize(stringlizedChat:string){
-
-            if(db.supaMemoryType === 'distilbart66'){
-                const sum = await runSummarizer(stringlizedChat)
-                return sum[0].summary_text
+            if(db.supaMemoryType === 'distilbart'){
+                try {
+                    const sum =  await runSummarizer(stringlizedChat)
+                    return sum[0].summary_text
+                } catch (error) {
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "SupaMemory: Summarizer: " + `${error}`
+                    }
+                }
             }
-
             const supaPrompt = db.supaMemoryPrompt === '' ?
             "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
@@ -176,7 +211,15 @@ export async function supaMemory(
 
                 console.log(da)
     
-                result = (await da.data).choices[0].text.trim()
+                result = (await da.data)?.choices[0]?.text?.trim()
+
+                if(!result){
+                    return {
+                        currentTokens: currentTokens,
+                        chats: chats,
+                        error: "SupaMemory: HTTP: " + await da.data
+                    }
+                }
             }
             else {
                 const promptbody:OpenAIChat[] = [
@@ -203,27 +246,6 @@ export async function supaMemory(
                 result = da.result
             }
             return result
-        }
-
-        let hypaResult = ""
-
-        if(arg.asHyper){
-            const hypa = new HypaProcesser(db.hypaModel)
-            hypa.oaikey = db.supaMemoryKey
-            hypa.vectors = []
-            hypaChunks = hypaChunks.filter((value) => value.length > 1)
-            await hypa.addText(hypaChunks.filter((value, index, self) => {
-                return self.indexOf(value) === index;
-            }))
-            const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
-            const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), '', true))
-            hypaResult = "past events: " + s.slice(0,3).join("\n")
-            currentTokens += await tokenizer.tokenizeChat({
-                role: "assistant",
-                content: hypaResult,
-                memo: "hypaMemory"
-            })
-            currentTokens += 10
         }
 
         while(currentTokens > maxContextTokens){
@@ -328,8 +350,9 @@ export async function supaMemory(
         if(arg.asHyper){
             if(hypaResult !== ''){
                 chats.unshift({
-                    role: "assistant",
-                    content: hypaResult
+                    role: "system",
+                    content: hypaResult,
+                    memo: "hypaMemory"
                 })
             }
             
