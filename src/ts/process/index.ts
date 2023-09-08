@@ -23,6 +23,7 @@ export interface OpenAIChat{
     content: string
     memo?:string
     name?:string
+    removable?:boolean
 }
 
 export interface OpenAIChatFull extends OpenAIChat{
@@ -482,7 +483,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         chats.splice(chats.length - 1, 1)
     }
 
-    unformated.chats = chats
+    unformated.chats = chats.map((v) => {
+        if(v.memo !== 'supaMemory' && v.memo !== 'hypaMemory'){
+            v.removable = true
+        }
+        return v
+    })
 
 
     if(triggerResult){
@@ -659,6 +665,32 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         v.content = v.content.trim()
         return v
     })
+
+    {
+        //token rechecking
+        let tokens = 0
+        for(const chat of formated){
+            tokens += await tokenizer.tokenizeChat(chat)
+        }
+
+        if(tokens > maxContextTokens){
+            let pointer = 0
+            while(tokens > maxContextTokens){
+                if(pointer >= formated.length){
+                    alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + tokens)
+                    return false
+                }
+                if(formated[pointer].removable){
+                    tokens -= await tokenizer.tokenizeChat(formated[pointer])
+                    formated[pointer].content = ''
+                }
+                pointer++
+            }
+            formated = formated.filter((v) => {
+                return v.content !== ''
+            })
+        }
+    }
 
 
     const req = await requestChatData({
