@@ -1,6 +1,5 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
