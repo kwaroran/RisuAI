@@ -40,6 +40,8 @@
         <OptionInput value="description">{language.formating.description}</OptionInput>
         <OptionInput value="authornote">{language.formating.authorNote}</OptionInput>
         <OptionInput value="lorebook">{language.formating.lorebook}</OptionInput>
+        <OptionInput value="memory">{language.formating.memory}</OptionInput>
+
     </SelectInput>
 
     {#if proompt.type === 'plain' || proompt.type === 'jailbreak'}
@@ -81,10 +83,10 @@
         <span>{language.defaultPrompt}</span>
         <TextInput bind:value={proompt.defaultText} />
     {/if}
-    {#if proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'}
+    {#if proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote' || proompt.type === 'memory'}
         {#if !proompt.innerFormat}
             <CheckInput name={language.customInnerFormat} check={false} className="mt-2" onChange={() => {
-                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'){
+                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote' || proompt.type === 'memory'){
                     proompt.innerFormat = "{{slot}}"
                 }
             }} />
@@ -92,7 +94,7 @@
             <span>{language.innerFormat}</span>
             <TextAreaInput bind:value={proompt.innerFormat}/>
             <CheckInput name={language.customInnerFormat} check={true} className="mt-2" onChange={() => {
-                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'){
+                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote' || proompt.type === 'memory'){
                     proompt.innerFormat = null
                 }
             }} />

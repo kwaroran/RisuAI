@@ -263,6 +263,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     //await tokenize currernt
     let currentTokens = db.maxResponse
+    let supaMemoryCardUsed = false
     
     //for unexpected error
     currentTokens += 50
@@ -377,6 +378,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     await tokenizeChatArray(chats)
                     break
                 }
+                case 'memory':{
+                    supaMemoryCardUsed = true
+                    break
+                }
             }
         }
     }
@@ -388,7 +393,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
         }
     }
-
     
     const examples = exampleMessage(currentChar, db.username)
 
@@ -487,6 +491,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         return [risuChatParser(v[0].replaceAll("\\n","\n"), {chara: currentChar}),v[1]]
     })
 
+    let memories:OpenAIChat[] = []
 
 
 
@@ -499,7 +504,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(v.memo !== 'supaMemory' && v.memo !== 'hypaMemory'){
             v.removable = true
         }
+        else if(supaMemoryCardUsed){
+            memories.push(v)
+            return {
+                role: 'system',
+                content: '',
+            } as const
+        }
         return v
+    }).filter((v) => {
+        return v.content !== ''
     })
 
 
@@ -668,6 +682,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     const chats = unformated.chats.slice(start, end)
                     pushPrompts(chats)
                     break
+                }
+                case 'memory':{
+                    let pmt = cloneDeep(memories)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                        }
+                    }
+
+                    pushPrompts(pmt)
                 }
             }
         }

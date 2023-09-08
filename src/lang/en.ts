@@ -12,6 +12,7 @@ export const languageEnglish = {
         "description": "Character Description",
         'personaPrompt':'Persona Prompt',
         'plain': "Plain Prompt",
+        'memory': "Supa/HypaMemory"
     },
     errors:{
         toomuchtoken: 'Error: The minimum required token is greater than the Max Context Size.',
