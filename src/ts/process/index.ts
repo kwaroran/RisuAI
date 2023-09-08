@@ -529,6 +529,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             if(!chat.content){
                 continue
             }
+            if(!(db.aiModel.startsWith('gpt') || db.aiModel.startsWith('claude') || db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy')){
+                formated.push(chat)
+                continue
+            }
             if(chat.role === 'system'){
                 const endf = formated.at(-1)
                 if(endf && endf.role === 'system' && endf.memo === chat.memo && endf.name === chat.name){

@@ -29,6 +29,12 @@ body{
 
 }
 
+.x-risu-language-json{
+  overflow-x: hidden;
+  white-space: pre-wrap;
+
+}
+
 html, body{
   height: 100%
 }

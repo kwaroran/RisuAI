@@ -364,7 +364,7 @@
 {:else if $DataBase.aiModel.startsWith('novelai')}
     <div class="flex flex-col p-3 bg-darkbg mt-4">
         <span class="text-textcolor">Starter</span>
-        <TextInput bind:value={$DataBase.NAIsettings.starter} placeholder={'[conversation: start]\\n***'} />
+        <TextInput bind:value={$DataBase.NAIsettings.starter} placeholder={'⁂'} />
         <span class="text-textcolor">Seperator</span>
         <TextInput bind:value={$DataBase.NAIsettings.seperator} placeholder={"\\n"}/>
     </div>
