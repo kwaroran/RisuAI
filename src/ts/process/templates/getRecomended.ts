@@ -22,7 +22,7 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel.startsWith('novelai')){
-        const pr:botPreset = prebuiltPresets.NAI
+        const pr:botPreset = prebuiltPresets.NAI2
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'){

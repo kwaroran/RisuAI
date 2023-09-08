@@ -391,12 +391,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let chats:OpenAIChat[] = examples
 
-    
-    chats.push({
-        role: 'system',
-        content: '[Start a new chat]',
-        memo: "NewChat"
-    })
+    console.log(db.aiModel)
+    if(!db.aiModel.startsWith('novelai')){
+        chats.push({
+            role: 'system',
+            content: '[Start a new chat]',
+            memo: "NewChat"
+        })
+    }
 
     if(nowChatroom.type !== 'group'){
         const firstMsg = nowChatroom.firstMsgIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[nowChatroom.firstMsgIndex]
@@ -702,7 +704,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentChar: currentChar,
         useStreaming: true,
         isGroupChat: nowChatroom.type === 'group',
-        bias: {}
+        bias: {},
     }, 'model', abortSignal)
 
     let result = ''

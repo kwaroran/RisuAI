@@ -46,8 +46,6 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued:
         }
     }
 
-    console.log(resultString)
-
     let res = resultString.join(seperator)
 
     if(!continued){

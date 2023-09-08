@@ -360,6 +360,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         }
         case 'novelai':
         case 'novelai_kayra':{
+            console.log(arg.continue)
             const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '', arg.continue)
             let logit_bias_exp:{
                 sequence: number[], bias: number, ensure_sequence_finish: false, generate_once: true
