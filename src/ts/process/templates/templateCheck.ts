@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash'
 import type { Database } from 'src/ts/storage/database'
 
 export function templateCheck(db:Database){
@@ -71,7 +72,7 @@ export function templateCheck(db:Database){
     }
 
     if(unresolvedRanges.length > 0){
-        warnings.push('Unresolved chat ranges: ' + unresolvedRanges.join(', '))
+        warnings.push(`Chat are not connected: [${unresolvedRanges.join(', ')}]`)
     }
 
     return warnings
