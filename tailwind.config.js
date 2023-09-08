@@ -7,16 +7,26 @@ export default {
   theme: {
     extend: {
       colors:{
-          bgcolor: "#282a36",
-          darkbg: "#21222C",
-          borderc: "#6272a4",
-          selected: "#44475a",
-          draculared: "#ff5555"
+          bgcolor: "var(--risu-theme-bgcolor)",
+          darkbg: "var(--risu-theme-darkbg)",
+          borderc: "var(--risu-theme-borderc)",
+          selected: "var(--risu-theme-selected)",
+          draculared: "var(--risu-theme-draculared)",
+          textcolor: "var(--risu-theme-textcolor)",
+          textcolor2: "var(--risu-theme-textcolor2)",
+          darkborderc: "var(--risu-theme-darkborderc)",
+          darkbutton: "var(--risu-theme-darkbutton)",
       },
       minWidth: {
+        '2': '0.5rem',
+        '8': '2rem',
+        '12': '3rem',
         '20': '5rem',
         '14': '3.5rem',
-        'half': '50%'
+        'half': '50%',
+        '5': '1.25rem',
+        '6': '1.5rem',
+
       },
       maxWidth:{
         'half': '50%',
@@ -35,9 +45,12 @@ export default {
         '3xl': '72rem',
       },
       minHeight:{
+        '2': '0.5rem',
         '8': '2rem',
+        '5': '1.25rem',
         '14': '3.5rem',
         '20': '5rem',
+        '32': '9rem',
         '4': "0.75rem"
       }
     }

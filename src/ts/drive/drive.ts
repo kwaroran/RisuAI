@@ -109,6 +109,7 @@ let BackupDb:Database = null
 
 export async function syncDrive() {
     BackupDb = cloneDeep(get(DataBase))
+    return
     while(true){
         const maindb = get(DataBase)
         if(maindb?.account?.data?.access_token && maindb?.account?.data?.refresh_token && maindb?.account?.data?.expires_in){
@@ -274,8 +275,12 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
     const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
     let foragekeys:string[] = []
     let loadedForageKeys = false
+    let db = get(DataBase)
 
     async function checkImageExists(images:string) {
+        if(db?.account?.useSync){
+            return false
+        }
         if(isTauri){
             return await exists(`assets/` + images, {dir: BaseDirectory.AppData})
         }

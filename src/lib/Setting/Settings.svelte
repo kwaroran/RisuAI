@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -16,11 +16,15 @@
     import GlobalRegex from "./Pages/GlobalRegex.svelte";
     import LanguageSettings from "./Pages/LanguageSettings.svelte";
     import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
+    import PersonaSettings from "./Pages/PersonaSettings.svelte";
+  import PromptSettings from "./Pages/PromptSettings.svelte";
+  import { DataBase } from "src/ts/storage/database";
+  import ThanksPage from "./Pages/ThanksPage.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
     if(window.innerWidth >= 700){
-        selected = 0
+        selected = 1
     }
 
 </script>
@@ -29,114 +33,163 @@
         {#if window.innerWidth >= 700 || selected === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 0} on:click={() => {
-                    selected = 0
-                }}>
-                    <UserIcon />
-                    <span>{language.user}</span>
-                </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 1} on:click={() => {
-                    selected = 1
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 1 || selected === 13}
+                    class:text-textcolor2={selected !== 1 && selected !== 13}
+                    on:click={() => {
+                        selected = 1
+                        
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 2} on:click={() => {
-                    selected = 2
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 12}
+                    class:text-textcolor2={selected !== 12}
+                    on:click={() => {
+                        selected = 12
+                }}>
+                    <ContactIcon />
+                    <span>{language.persona}</span>
+                </button>
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 2}
+                    class:text-textcolor2={selected !== 2}
+                    on:click={() => {
+                        selected = 2
                 }}>
                     <Sailboat />
                     <span>{language.otherBots}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 3} on:click={() => {
-                    selected = 3
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 3}
+                    class:text-textcolor2={selected !== 3}
+                    on:click={() => {
+                        selected = 3
                 }}>
                     <MonitorIcon />
                     <span>{language.display}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 10} on:click={() => {
-                    selected = 10
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 10}
+                    class:text-textcolor2={selected !== 10}
+                    on:click={() => {
+                        selected = 10
                 }}>
                     <LanguagesIcon />
                     <span>{language.language}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 11} on:click={() => {
-                    selected = 11
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 11}
+                    class:text-textcolor2={selected !== 11}
+                    on:click={() => {
+                        selected = 11
                 }}>
                     <AccessibilityIcon />
                     <span>{language.accessibility}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 8} on:click={() => {
-                    selected = 8
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 8}
+                    class:text-textcolor2={selected !== 8}
+                    on:click={() => {
+                        selected = 8
                 }}>
                     <BookIcon />
                     <span>{language.globalLoreBook}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 9} on:click={() => {
-                    selected = 9
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 9}
+                    class:text-textcolor2={selected !== 9}
+                    on:click={() => {
+                        selected = 9
                 }}>
                     <AlignLeft />
                     <span>{language.globalRegexScript}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 4} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 4}
+                    class:text-textcolor2={selected !== 4}
+                    on:click={() => {
                     selected = 4
                 }}>
                     <CodeIcon />
                     <span>{language.plugin}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 5} on:click={() => {
-                    selected = 5
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 0}
+                    class:text-textcolor2={selected !== 0}
+                    on:click={() => {
+                        selected = 0
                 }}>
-                    <FolderIcon />
-                    <span>{language.files}</span>
+                    <UserIcon />
+                    <span>{language.account} & {language.files}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 6} on:click={() => {
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 6}
+                    class:text-textcolor2={selected !== 6}
+                    on:click={() => {
                     selected = 6
                 }}>
                     <ActivityIcon />
                     <span>{language.advancedSettings}</span>
                 </button>
-                <button class="text-gray-400 flex gap-2 items-center hover:text-gray-200" class:text-white={selected === 7} on:click={() => {
-                    selected = 7
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 77}
+                    class:text-textcolor2={selected !== 77}
+                    on:click={() => {
+                    selected = 77
                 }}>
                     <BoxIcon />
-                    <span>{language.community}</span>
+                    <span>{language.supporterThanks}</span>
                 </button>
                 {#if window.innerWidth < 700}
-                    <button class="absolute top-2 right-2 hover:text-green-500 text-white" on:click={() => {
+                    <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
                         settingsOpen.set(false)
                     }}> <XCircleIcon /> </button>
                 {/if}
             </div>
         {/if}
         {#if window.innerWidth >= 700 || selected !== -1}
-            <div class="flex-grow p-4 bg-bgcolor flex flex-col text-white overflow-y-auto relative">
-                {#if selected === 0}
-                    <UserSettings />
-                {:else if selected === 1}
-                    <BotSettings bind:openPresetList />
-                {:else if selected === 2}
-                    <OtherBotSettings />
-                {:else if selected === 3}
-                    <DisplaySettings />
-                {:else if selected === 4}
-                    <PluginSettings />
-                {:else if selected === 5}
-                    <FilesSettings />
-                {:else if selected === 6}
-                    <AdvancedSettings />
-                {:else if selected === 7}
-                    <Communities />
-                {:else if selected === 8}
-                    <GlobalLoreBookSettings bind:openLoreList />
-                {:else if selected === 9}
-                    <GlobalRegex/>
-                {:else if selected === 10}
-                    <LanguageSettings/>
-                {:else if selected === 11}
-                    <AccessibilitySettings/>
-                {/if}
+            {#key selected}
+                <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
+                    {#if selected === 0}
+                        <UserSettings />
+                    {:else if selected === 1}
+                        <BotSettings bind:openPresetList goPromptTemplate={() => {
+                            selected = 13
+                        }} />
+                    {:else if selected === 2}
+                        <OtherBotSettings />
+                    {:else if selected === 3}
+                        <DisplaySettings />
+                    {:else if selected === 4}
+                        <PluginSettings />
+                    {:else if selected === 5}
+                        <FilesSettings />
+                    {:else if selected === 6}
+                        <AdvancedSettings />
+                    {:else if selected === 7}
+                        <Communities />
+                    {:else if selected === 8}
+                        <GlobalLoreBookSettings bind:openLoreList />
+                    {:else if selected === 9}
+                        <GlobalRegex/>
+                    {:else if selected === 10}
+                        <LanguageSettings/>
+                    {:else if selected === 11}
+                        <AccessibilitySettings/>
+                    {:else if selected === 12}
+                        <PersonaSettings/>
+                    {:else if selected === 13}
+                        <PromptSettings onGoBack={() => {
+                            selected = 1
+                        }}/>
+                    {:else if selected === 77}
+                        <ThanksPage/>
+                    {/if}
             </div>
-            <button class="absolute top-2 right-2 hover:text-green-500 text-white" on:click={() => {
+            {/key}
+            <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
                 if(window.innerWidth >= 700){
                     settingsOpen.set(false)
                 }
@@ -157,7 +210,7 @@
 {/if}
 <style>
     .setting-bg{
-        background: linear-gradient(to right, #21222C 50%, #282a36 50%);
+        background: linear-gradient(to right, var(--risu-theme-darkbg) 50%, var(--risu-theme-bgcolor) 50%);
 
     }
 </style>

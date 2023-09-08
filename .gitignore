@@ -14,7 +14,8 @@ dist-web/
 dist-ssr
 *.local
 xplugin/
-
+src-others/
+/memo.txt
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -30,3 +31,9 @@ xplugin/
 /build/
 pycache/
 test.ts
+
+
+
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+raise.code-workspace

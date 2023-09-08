@@ -2,7 +2,7 @@
 	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
     import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
-    import { selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
     import { translate } from "src/ts/translator/translator";
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
@@ -15,7 +15,7 @@
 
     export let send: () => any;
     export let messageInput:(string:string) => any;
-    let suggestMessages:string[] = $DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages
+    let suggestMessages:string[] = $CurrentCharacter?.chats[$CurrentCharacter.chatPage]?.suggestMessages
     let suggestMessagesTranslated:string[]
     let toggleTranslate:boolean = $DataBase.autoTranslate
     let progress:boolean;
@@ -25,7 +25,7 @@
     $: {
         $selectedCharID
         //FIXME add selectedChatPage for optimize render
-        chatPage = $DataBase.characters[$selectedCharID].chatPage
+        chatPage = $CurrentCharacter.chatPage
         updateSuggestions()
     }
 
@@ -35,7 +35,7 @@
                 progress=false
                 abortController?.abort()
             }
-            let currentChar = $DataBase.characters[$selectedCharID];
+            let currentChar = $CurrentCharacter;
             suggestMessages = currentChar?.chats[currentChar.chatPage].suggestMessages
         }
     }
@@ -48,7 +48,7 @@
             suggestMessages = []
         }
         if(!v && $selectedCharID > -1 && (!suggestMessages || suggestMessages.length === 0) && !progress){
-            let currentChar:character|groupChat = $DataBase.characters[$selectedCharID];
+            let currentChar:character|groupChat = $CurrentCharacter;
             let messages:Message[] = []
             
             if(currentChar.type !== 'group'){
@@ -64,7 +64,7 @@
             let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)
                 return
-            const promptbody:OpenAIChat[] = [
+            let promptbody:OpenAIChat[] = [
             {
                 role:'system',
                 content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
@@ -75,6 +75,19 @@
             }
             ]
 
+            if($DataBase.subModel === "textgen_webui" || $DataBase.subModel === 'mancer' || $DataBase.subModel.startsWith('local_')){
+                promptbody = [
+                    {
+                        role: 'system',
+                        content: replacePlaceholders($DataBase.autoSuggestPrompt, currentChar.name)
+                    },
+                    ...lastMessages.map(({ role, data }) => ({
+                        role: role === "user" ? "user" as const : "assistant" as const,
+                        content: data,
+                    })),
+                ]
+            }
+
             progress = true
             progressChatPage = chatPage
             abortController = new AbortController()
@@ -83,7 +96,7 @@
                 bias: {},
                 currentChar : currentChar as character
             }, 'submodel', abortController.signal).then(rq2=>{
-                if(rq2.type !== 'fail' && rq2.type !== 'streaming' && progress){
+                if(rq2.type !== 'fail' && rq2.type !== 'streaming' && rq2.type !== 'multiline' && progress){
                     var suggestMessagesNew = rq2.result.split('\n').filter(msg => msg.startsWith('-')).map(msg => msg.replace('-','').trim())
                     const db:Database = get(DataBase);
                     db.characters[$selectedCharID].chats[currentChar.chatPage].suggestMessages = suggestMessagesNew
@@ -113,14 +126,14 @@
 
 <div class="ml-4 flex flex-wrap">
     {#if progress}
-        <div class="flex bg-gray-500 p-2 rounded-lg items-center">
+        <div class="flex bg-textcolor2 p-2 rounded-lg items-center">
             <div class="loadmove mx-2"/>
             <div>{language.creatingSuggestions}</div>
         </div>        
     {:else if !$doingChat}
         {#if $DataBase.translator !== ''}
             <div class="flex mr-2 mb-2">
-                <button class={"bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-white')}
+                <button class={"bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-textcolor')}
                     on:click={() => {
                         toggleTranslate = !toggleTranslate
                     }}
@@ -132,7 +145,7 @@
         
 
         <div class="flex mr-2 mb-2">
-            <button class="bg-gray-500 hover:bg-gray-700 font-bold py-2 px-4 rounded text-white"
+            <button class="bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded text-textcolor"
                 on:click={() => {
                     alertConfirm(language.askReRollAutoSuggestions).then((result) => {
                         if(result) {
@@ -148,7 +161,7 @@
         </div>
         {#each suggestMessages??[] as suggest, i}
             <div class="flex mr-2 mb-2">
-                <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded" on:click={() => {
                     suggestMessages = []
                     messageInput(suggest)
                     send()
@@ -157,7 +170,7 @@
                     {@html md}
                 {/await}
                 </button>
-                <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded ml-1" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" on:click={() => {
                     messageInput(suggest)
                 }}>
                     <CopyIcon/>
@@ -176,8 +189,8 @@
         border: 0.4rem solid rgba(0,0,0,0);
         width: 1rem;
         height: 1rem;
-        border-top: 0.4rem solid white;
-        border-left: 0.4rem solid white;
+        border-top: 0.4rem solid var(--risu-theme-textcolor);
+        border-left: 0.4rem solid var(--risu-theme-textcolor);
     }
 
     @keyframes spin {

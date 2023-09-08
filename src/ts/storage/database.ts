@@ -2,23 +2,27 @@ import { get, writable } from 'svelte/store';
 import { checkNullish, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
+import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
-import { cloneDeep } from 'lodash';
+import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal } from '../alert';
+import type { NAISettings } from '../process/models/nai';
+import { prebuiltNAIpresets } from '../process/templates/templates';
+import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
+import type { Proompt } from '../process/proompt';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = '1.27.4'
+export let appVer = "1.50.1"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
-    console.log(data)
     if(checkNullish(data.characters)){
         data.characters = []
     }
     if(checkNullish(data.apiType)){
-        data.apiType = 'gpt35'
+        data.apiType = 'gpt35_0301'
     }
     if(checkNullish(data.openAIKey)){
         data.openAIKey = ''
@@ -48,13 +52,13 @@ export function setDatabase(data:Database){
         data.PresensePenalty = 70
     }
     if(checkNullish(data.aiModel)){
-        data.aiModel = 'gpt35'
+        data.aiModel = 'gpt35_0301'
     }
     if(checkNullish(data.jailbreakToggle)){
         data.jailbreakToggle = false
     }
     if(checkNullish(data.formatingOrder)){
-        data.formatingOrder = ['main','description', 'chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
+        data.formatingOrder = ['main','description', 'personaPrompt','chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
     }
     if(checkNullish(data.loreBookDepth)){
         data.loreBookDepth = 5
@@ -104,8 +108,11 @@ export function setDatabase(data:Database){
     if(checkNullish(data.customBackground)){
         data.customBackground = ''
     }
-    if(checkNullish(data.textgenWebUIURL)){
-        data.textgenWebUIURL = 'http://127.0.0.1:7860/run/textgen'
+    if(checkNullish(data.textgenWebUIStreamURL)){
+        data.textgenWebUIStreamURL = 'wss://localhost/api/'
+    }
+    if(checkNullish(data.textgenWebUIBlockingURL)){
+        data.textgenWebUIBlockingURL = 'https://localhost/api/'
     }
     if(checkNullish(data.autoTranslate)){
         data.autoTranslate = false
@@ -123,7 +130,7 @@ export function setDatabase(data:Database){
         data.theme = ''
     }
     if(checkNullish(data.subModel)){
-        data.subModel = 'gpt35'
+        data.subModel = 'gpt35_0301'
     }
     if(checkNullish(data.timeOut)){
         data.timeOut = 120
@@ -139,6 +146,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.requester)){
         data.requester = "new"
+    }
+    if(checkNullish(data.proxyKey)){
+        data.proxyKey = ""
     }
     if(checkNullish(data.botPresets)){
         let defaultPreset = presetTemplate
@@ -260,160 +270,62 @@ export function setDatabase(data:Database){
     if(checkNullish(data.autoSuggestPrompt)){
         data.autoSuggestPrompt = defaultAutoSuggestPrompt
     }
+    if(checkNullish(data.autoSuggestPrefix)){
+        data.autoSuggestPrefix = ""
+    }
+    if(checkNullish(data.autoSuggestClean)){
+        data.autoSuggestClean = true
+    }
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
     }
-    if(checkNullish(data.classicMaxWidth)){
-        data.classicMaxWidth = false
+    if(!data.formatingOrder.includes('personaPrompt')){
+        data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
+    data.selectedPersona ??= 0
+    data.personaPrompt ??= ''
+    data.personas ??= [{
+        name: data.username,
+        personaPrompt: "",
+        icon: data.userIcon
+    }]
+    data.classicMaxWidth ??= false
+    data.ooba ??= cloneDeep(defaultOoba)
+    data.ainconfig ??= cloneDeep(defaultAIN)
+    data.openrouterKey ??= ''
+    data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
+    data.toggleConfirmRecommendedPreset ??= true
+    data.officialplugins ??= {}
+    data.NAIsettings ??= cloneDeep(prebuiltNAIpresets)
+    data.assetWidth ??= -1
+    data.animationSpeed ??= 0.4
+    data.colorScheme ??= cloneDeep(defaultColorScheme)
+    data.colorSchemeName ??= 'default'
+    data.NAIsettings.starter ??= ""
+    data.hypaModel ??= 'MiniLM'
+    data.mancerHeader ??= ''
+    data.emotionProcesser ??= 'submodel'
+    data.translatorType ??= 'google'
+    data.deeplOptions ??= {
+        key:'',
+        freeApi: false
+    }
+    data.NAIadventure ??= false
+    data.NAIappendName ??= true
+    data.NAIsettings.cfg_scale ??= 1
+    data.NAIsettings.mirostat_tau ??= 0
+    data.NAIsettings.mirostat_lr ??= 1
     changeLanguage(data.language)
     DataBase.set(data)
 }
 
-
-export interface customscript{
-    comment: string;
-    in:string
-    out:string
-    type:string
-    flag?:string
-    ableFlag?:boolean
-
-}
-
-export interface loreBook{
-    key:string
-    secondkey:string
-    insertorder: number
-    comment: string
-    content: string
-    mode: 'multiple'|'constant'|'normal',
-    alwaysActive: boolean
-    selective:boolean
-    extentions?:{
-        risu_case_sensitive:boolean
-    }
-    activationPercent?:number
-}
-
-export interface character{
-    type?:"character"
-    name:string
-    image?:string
-    firstMessage:string
-    desc:string
-    notes:string
-    chats:Chat[]
-    chatPage: number
-    viewScreen: 'emotion'|'none'|'imggen',
-    bias: [string, number][]
-    emotionImages: [string, string][]
-    globalLore: loreBook[]
-    chaId: string
-    sdData: [string, string][]
-    customscript: customscript[]
-    utilityBot: boolean
-    exampleMessage:string
-    removedQuotes?:boolean
-    creatorNotes:string
-    systemPrompt:string
-    postHistoryInstructions:string
-    alternateGreetings:string[]
-    tags:string[]
-    creator:string
-    characterVersion: string
-    personality:string
-    scenario:string
-    firstMsgIndex:number
-    loreSettings?:loreSettings
-    loreExt?:any
-    additionalData?: {
-        tag?:string[]
-        creator?:string
-        character_version?:string
-    }
-    ttsMode?:string
-    ttsSpeech?:string
-    voicevoxConfig?:{
-        speaker?: string
-        SPEED_SCALE?: number
-        PITCH_SCALE?: number
-        INTONATION_SCALE?: number
-        VOLUME_SCALE?: number
-    }
-    supaMemory?:boolean
-    additionalAssets?:[string, string, string][]
-    ttsReadOnlyQuoted?:boolean
-    replaceGlobalNote:string
-    backgroundHTML?:string
-}
-
-
-export interface loreSettings{
-    tokenBudget: number
-    scanDepth:number
-    recursiveScanning: boolean
-}
-
-
-export interface groupChat{
-    type: 'group'
-    image?:string
-    firstMessage:string
-    chats:Chat[]
-    chatPage: number
-    name:string
-    viewScreen: 'single'|'multiple'|'none'|'emp',
-    characters:string[]
-    characterTalks:number[]
-    characterActive:boolean[]
-    globalLore: loreBook[]
-    autoMode: boolean
-    useCharacterLore :boolean
-    emotionImages: [string, string][]
-    customscript: customscript[],
-    chaId: string
-    alternateGreetings?: string[]
-    creatorNotes?:string,
-    removedQuotes?:boolean
-    firstMsgIndex?:number,
-    loreSettings?:loreSettings
-    supaMemory?:boolean
-    ttsMode?:string
-    suggestMessages?:string[]
-    orderByOrder?:boolean
-    backgroundHTML?:string
-}
-
-export interface botPreset{
-    name:string
-    apiType: string
-    openAIKey: string
-    mainPrompt: string
-    jailbreak: string
-    globalNote:string
-    temperature: number
-    maxContext: number
-    maxResponse: number
-    frequencyPenalty: number
-    PresensePenalty: number
-    formatingOrder: FormatingOrderItem[]
-    aiModel: string
-    subModel:string
-    currentPluginProvider:string
-    textgenWebUIURL:string
-    forceReplaceUrl:string
-    forceReplaceUrl2:string
-    promptPreprocess: boolean,
-    bias: [string, number][]
-    koboldURL?: string
-}
 
 export interface Database{
     characters: (character|groupChat)[],
     apiType: string
     forceReplaceUrl2:string
     openAIKey: string
+    proxyKey:string
     mainPrompt: string
     jailbreak: string
     globalNote:string
@@ -442,11 +354,15 @@ export interface Database{
     language: string
     translator: string
     plugins: RisuPlugin[]
+    officialplugins: {
+        automark?: boolean
+    }
     currentPluginProvider: string
     zoomsize:number
     lastup:string
     customBackground:string
-    textgenWebUIURL:string
+    textgenWebUIStreamURL:string
+    textgenWebUIBlockingURL:string
     autoTranslate: boolean
     fullScreen:boolean
     playMessage:boolean
@@ -500,17 +416,20 @@ export interface Database{
     textScreenBorder?:string
     characterOrder:(string|folder)[]
     hordeConfig:hordeConfig,
+    toggleConfirmRecommendedPreset:boolean,
     novelai:{
         token:string,
         model:string
     }
-    globalscript: customscript[]
+    globalscript: customscript[],
     sendWithEnter:boolean
     clickToEdit: boolean
     koboldURL:string
     advancedBotSettings:boolean
     useAutoSuggestions:boolean
-    autoSuggestPrompt:string,
+    autoSuggestPrompt:string
+    autoSuggestPrefix:string
+    autoSuggestClean:boolean
     claudeAPIKey:string,
     useChatCopy:boolean,
     novellistAPI:string,
@@ -524,11 +443,212 @@ export interface Database{
             access_token?:string
             expires_in?: number
         }
+        useSync?:boolean
     },
     classicMaxWidth: boolean,
     useChatSticker:boolean,
     useAdditionalAssetsPreview:boolean,
+    usePlainFetch:boolean
+    hypaMemory:boolean
+    proxyRequestModel:string
+    ooba:OobaSettings
+    ainconfig: AINsettings
+    personaPrompt:string
+    openrouterRequestModel:string
+    openrouterKey:string
+    selectedPersona:number
+    personas:{
+        personaPrompt:string
+        name:string
+        icon:string
+    }[]
+    assetWidth:number
+    animationSpeed:number
+    botSettingAtStart:false
+    NAIsettings:NAISettings
+    hideRealm:boolean
+    colorScheme:ColorScheme
+    colorSchemeName:string
+    promptTemplate?:Proompt[]
+    forceProxyAsOpenAI?:boolean
+    hypaModel:'ada'|'MiniLM'
+    saveTime?:number
+    mancerHeader:string
+    emotionProcesser:'submodel'|'embedding',
+    showMenuChatList?:boolean,
+    translatorType:'google'|'deepl'|'none',
+    NAIadventure?:boolean,
+    NAIappendName?:boolean,
+    deeplOptions:{
+        key:string,
+        freeApi:boolean
+    }
+    localStopStrings?:string[]
 }
+
+export interface customscript{
+    comment: string;
+    in:string
+    out:string
+    type:string
+    flag?:string
+    ableFlag?:boolean
+
+}
+
+export type triggerscript = triggerscriptMain
+
+export interface loreBook{
+    key:string
+    secondkey:string
+    insertorder: number
+    comment: string
+    content: string
+    mode: 'multiple'|'constant'|'normal',
+    alwaysActive: boolean
+    selective:boolean
+    extentions?:{
+        risu_case_sensitive:boolean
+    }
+    activationPercent?:number
+}
+
+export interface character{
+    type?:"character"
+    name:string
+    image?:string
+    firstMessage:string
+    desc:string
+    notes:string
+    chats:Chat[]
+    chatPage: number
+    viewScreen: 'emotion'|'none'|'imggen',
+    bias: [string, number][]
+    emotionImages: [string, string][]
+    globalLore: loreBook[]
+    chaId: string
+    sdData: [string, string][]
+    customscript: customscript[]
+    triggerscript: triggerscript[]
+    utilityBot: boolean
+    exampleMessage:string
+    removedQuotes?:boolean
+    creatorNotes:string
+    systemPrompt:string
+    postHistoryInstructions:string
+    alternateGreetings:string[]
+    tags:string[]
+    creator:string
+    characterVersion: string
+    personality:string
+    scenario:string
+    firstMsgIndex:number
+    loreSettings?:loreSettings
+    loreExt?:any
+    additionalData?: {
+        tag?:string[]
+        creator?:string
+        character_version?:string
+    }
+    ttsMode?:string
+    ttsSpeech?:string
+    voicevoxConfig?:{
+        speaker?: string
+        SPEED_SCALE?: number
+        PITCH_SCALE?: number
+        INTONATION_SCALE?: number
+        VOLUME_SCALE?: number
+    }
+    supaMemory?:boolean
+    additionalAssets?:[string, string, string][]
+    ttsReadOnlyQuoted?:boolean
+    replaceGlobalNote:string
+    backgroundHTML?:string
+    reloadKeys?:number
+    backgroundCSS?:string
+    license?:string
+    private?:boolean
+}
+
+
+export interface loreSettings{
+    tokenBudget: number
+    scanDepth:number
+    recursiveScanning: boolean
+    fullWordMatching?: boolean
+}
+
+
+export interface groupChat{
+    type: 'group'
+    image?:string
+    firstMessage:string
+    chats:Chat[]
+    chatPage: number
+    name:string
+    viewScreen: 'single'|'multiple'|'none'|'emp',
+    characters:string[]
+    characterTalks:number[]
+    characterActive:boolean[]
+    globalLore: loreBook[]
+    autoMode: boolean
+    useCharacterLore :boolean
+    emotionImages: [string, string][]
+    customscript: customscript[],
+    chaId: string
+    alternateGreetings?: string[]
+    creatorNotes?:string,
+    removedQuotes?:boolean
+    firstMsgIndex?:number,
+    loreSettings?:loreSettings
+    supaMemory?:boolean
+    ttsMode?:string
+    suggestMessages?:string[]
+    orderByOrder?:boolean
+    backgroundHTML?:string,
+    reloadKeys?:number
+    backgroundCSS?:string
+    oneAtTime?:boolean
+}
+
+export interface botPreset{
+    name?:string
+    apiType?: string
+    openAIKey?: string
+    mainPrompt: string
+    jailbreak: string
+    globalNote:string
+    temperature: number
+    maxContext: number
+    maxResponse: number
+    frequencyPenalty: number
+    PresensePenalty: number
+    formatingOrder: FormatingOrderItem[]
+    aiModel?: string
+    subModel?:string
+    currentPluginProvider?:string
+    textgenWebUIStreamURL?:string
+    textgenWebUIBlockingURL?:string
+    forceReplaceUrl?:string
+    forceReplaceUrl2?:string
+    promptPreprocess: boolean,
+    bias: [string, number][]
+    proxyRequestModel?:string
+    openrouterRequestModel?:string
+    proxyKey?:string
+    ooba: OobaSettings
+    ainconfig: AINsettings
+    koboldURL?: string
+    NAISettings?: NAISettings
+    autoSuggestPrompt?: string
+    autoSuggestPrefix?: string
+    autoSuggestClean?: boolean
+    promptTemplate?:Proompt[]
+    NAIadventure?: boolean
+    NAIappendName?: boolean
+    localStopStrings?: string[]
+}
+
 
 interface hordeConfig{
     apiKey:string
@@ -555,7 +675,7 @@ interface sdConfig{
     hr_upscaler:string
 }
 
-export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'
+export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{
     message: Message[]
@@ -574,14 +694,108 @@ export interface Message{
     data: string
     saying?: string
     chatId?:string
+    time?: number
+}
+
+interface AINsettings{
+    top_p: number,
+    rep_pen: number,
+    top_a: number,
+    rep_pen_slope:number,
+    rep_pen_range: number,
+    typical_p:number
+    badwords:string
+    stoptokens:string
+    top_k:number
+}
+
+interface OobaSettings{
+    max_new_tokens: number,
+    do_sample: boolean,
+    temperature: number,
+    top_p: number,
+    typical_p: number,
+    repetition_penalty: number,
+    encoder_repetition_penalty: number,
+    top_k: number,
+    min_length: number,
+    no_repeat_ngram_size: number,
+    num_beams: number,
+    penalty_alpha: number,
+    length_penalty: number,
+    early_stopping: boolean,
+    seed: number,
+    add_bos_token: boolean,
+    truncation_length: number,
+    ban_eos_token: boolean,
+    skip_special_tokens: boolean,
+    top_a: number,
+    tfs: number,
+    epsilon_cutoff: number,
+    eta_cutoff: number,
+    formating:{
+        header:string,
+        systemPrefix:string,
+        userPrefix:string,
+        assistantPrefix:string
+        seperator:string
+        useName:boolean
+    }
 }
 
 
 export const saveImage = saveImageGlobal
 
+export const defaultAIN:AINsettings = {
+    top_p: 0.7,
+    rep_pen: 1.0625,
+    top_a: 0.08,
+    rep_pen_slope: 1.7,
+    rep_pen_range: 1024,
+    typical_p: 1.0,
+    badwords: '',
+    stoptokens: '',
+    top_k: 140
+}
+
+export const defaultOoba:OobaSettings = {
+    max_new_tokens: 180,
+    do_sample: true,
+    temperature: 0.7,
+    top_p: 0.9,
+    typical_p: 1,
+    repetition_penalty: 1.15,
+    encoder_repetition_penalty: 1,
+    top_k: 20,
+    min_length: 0,
+    no_repeat_ngram_size: 0,
+    num_beams: 1,
+    penalty_alpha: 0,
+    length_penalty: 1,
+    early_stopping: false,
+    seed: -1,
+    add_bos_token: true,
+    truncation_length: 4096,
+    ban_eos_token: false,
+    skip_special_tokens: true,
+    top_a: 0,
+    tfs: 1,
+    epsilon_cutoff: 0,
+    eta_cutoff: 0,
+    formating:{
+        header: "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+        systemPrefix: "### Instruction:",
+        userPrefix: "### Input:",
+        assistantPrefix: "### Response:",
+        seperator:"",
+        useName:false,
+    }
+}
+
+
 export const presetTemplate:botPreset = {
     name: "New Preset",
-    apiType: "gpt35",
+    apiType: "gpt35_0301",
     openAIKey: "",
     mainPrompt: defaultMainPrompt,
     jailbreak: defaultJailbreak,
@@ -591,15 +805,20 @@ export const presetTemplate:botPreset = {
     maxResponse: 300,
     frequencyPenalty: 70,
     PresensePenalty: 70,
-    formatingOrder: ['main', 'description', 'chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
-    aiModel: "gpt35",
-    subModel: "gpt35",
+    formatingOrder: ['main', 'description', 'personaPrompt','chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
+    aiModel: "gpt35_0301",
+    subModel: "gpt35_0301",
     currentPluginProvider: "",
-    textgenWebUIURL: '',
+    textgenWebUIStreamURL: '',
+    textgenWebUIBlockingURL: '',
     forceReplaceUrl: '',
     forceReplaceUrl2: '',
     promptPreprocess: false,
-    bias: []
+    proxyKey: '',
+    bias: [],
+    ooba: cloneDeep(defaultOoba),
+    ainconfig: cloneDeep(defaultAIN),
+
 }
 
 const defaultSdData:[string,string][] = [
@@ -614,37 +833,6 @@ const defaultSdData:[string,string][] = [
 
 export const defaultSdDataFunc = () =>{
     return cloneDeep(defaultSdData)
-}
-
-export function updateTextTheme(){
-    let db = get(DataBase)
-    const root = document.querySelector(':root') as HTMLElement;
-    if(!root){
-        return
-    }
-    switch(db.textTheme){
-        case "standard":{
-            root.style.setProperty('--FontColorStandard', '#fafafa');
-            root.style.setProperty('--FontColorItalic', '#8C8D93');
-            root.style.setProperty('--FontColorBold', '#fafafa');
-            root.style.setProperty('--FontColorItalicBold', '#8C8D93');
-            break
-        }
-        case "highcontrast":{
-            root.style.setProperty('--FontColorStandard', '#f8f8f2');
-            root.style.setProperty('--FontColorItalic', '#F1FA8C');
-            root.style.setProperty('--FontColorBold', '#8BE9FD');
-            root.style.setProperty('--FontColorItalicBold', '#FFB86C');
-            break
-        }
-        case "custom":{
-            root.style.setProperty('--FontColorStandard', db.customTextTheme.FontColorStandard);
-            root.style.setProperty('--FontColorItalic', db.customTextTheme.FontColorItalic);
-            root.style.setProperty('--FontColorBold', db.customTextTheme.FontColorBold);
-            root.style.setProperty('--FontColorItalicBold', db.customTextTheme.FontColorItalicBold);
-            break
-        }
-    }
 }
 
 export function saveCurrentPreset(){
@@ -666,16 +854,26 @@ export function saveCurrentPreset(){
         aiModel: db.aiModel,
         subModel: db.subModel,
         currentPluginProvider: db.currentPluginProvider,
-        textgenWebUIURL: db.textgenWebUIURL,
+        textgenWebUIStreamURL: db.textgenWebUIStreamURL,
+        textgenWebUIBlockingURL: db.textgenWebUIBlockingURL,
         forceReplaceUrl: db.forceReplaceUrl,
         forceReplaceUrl2: db.forceReplaceUrl2,
         promptPreprocess: db.promptPreprocess,
         bias: db.bias,
-        koboldURL: db.koboldURL
-
+        koboldURL: db.koboldURL,
+        proxyKey: db.proxyKey,
+        ooba: cloneDeep(db.ooba),
+        ainconfig: cloneDeep(db.ainconfig),
+        proxyRequestModel: db.proxyRequestModel,
+        openrouterRequestModel: db.openrouterRequestModel,
+        NAISettings: cloneDeep(db.NAIsettings),
+        promptTemplate: db.promptTemplate ?? null,
+        NAIadventure: db.NAIadventure ?? false,
+        NAIappendName: db.NAIappendName ?? false,
+        localStopStrings: db.localStopStrings
     }
     db.botPresets = pres
-    DataBase.set(db)
+    setDatabase(db)
 }
 
 export function copyPreset(id:number){
@@ -685,15 +883,22 @@ export function copyPreset(id:number){
     const newPres = cloneDeep(pres[id])
     newPres.name += " Copy"
     db.botPresets.push(newPres)
-    DataBase.set(db)
+    setDatabase(db)
 }
 
-export function changeToPreset(id =0){
-    saveCurrentPreset()
+export function changeToPreset(id =0, savecurrent = true){
+    if(savecurrent){
+        saveCurrentPreset()
+    }
     let db = get(DataBase)
     let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
+    db = setPreset(db, newPres)
+    setDatabase(db)
+}
+
+export function setPreset(db:Database, newPres: botPreset){
     db.apiType = newPres.apiType ?? db.apiType
     db.openAIKey = newPres.openAIKey ?? db.openAIKey
     db.mainPrompt = newPres.mainPrompt ?? db.mainPrompt
@@ -708,22 +913,43 @@ export function changeToPreset(id =0){
     db.aiModel = newPres.aiModel ?? db.aiModel
     db.subModel = newPres.subModel ?? db.subModel
     db.currentPluginProvider = newPres.currentPluginProvider ?? db.currentPluginProvider
-    db.textgenWebUIURL = newPres.textgenWebUIURL ?? db.textgenWebUIURL
+    db.textgenWebUIStreamURL = newPres.textgenWebUIStreamURL ?? db.textgenWebUIStreamURL
+    db.textgenWebUIBlockingURL = newPres.textgenWebUIBlockingURL ?? db.textgenWebUIBlockingURL
     db.forceReplaceUrl = newPres.forceReplaceUrl ?? db.forceReplaceUrl
     db.promptPreprocess = newPres.promptPreprocess ?? db.promptPreprocess
     db.forceReplaceUrl2 = newPres.forceReplaceUrl2 ?? db.forceReplaceUrl2
     db.bias = newPres.bias ?? db.bias
     db.koboldURL = newPres.koboldURL ?? db.koboldURL
-    DataBase.set(db)
+    db.proxyKey = newPres.proxyKey ?? db.proxyKey
+    db.ooba = cloneDeep(newPres.ooba ?? db.ooba)
+    db.ainconfig = cloneDeep(newPres.ainconfig ?? db.ainconfig)
+    db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
+    db.proxyRequestModel = newPres.proxyRequestModel ?? db.proxyRequestModel
+    db.NAIsettings = newPres.NAISettings ?? db.NAIsettings
+    db.autoSuggestPrompt = newPres.autoSuggestPrompt ?? db.autoSuggestPrompt
+    db.autoSuggestPrefix = newPres.autoSuggestPrefix ?? db.autoSuggestPrefix
+    db.autoSuggestClean = newPres.autoSuggestClean ?? db.autoSuggestClean
+    db.promptTemplate = newPres.promptTemplate
+    db.NAIadventure = newPres.NAIadventure
+    db.NAIappendName = newPres.NAIappendName
+    db.NAIsettings.cfg_scale ??= 1
+    db.NAIsettings.mirostat_tau ??= 0
+    db.NAIsettings.mirostat_lr ??= 1
+    db.localStopStrings = newPres.localStopStrings
+    return db
 }
 
 export function downloadPreset(id:number){
     saveCurrentPreset()
     let db = get(DataBase)
     let pres = cloneDeep(db.botPresets[id])
+    console.log(pres)
     pres.openAIKey = ''
     pres.forceReplaceUrl = ''
     pres.forceReplaceUrl2 = ''
+    pres.proxyKey = ''
+    pres.textgenWebUIStreamURL=  ''
+    pres.textgenWebUIBlockingURL=  ''
     downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
     alertNormal(language.successExport)
 }
@@ -737,5 +963,5 @@ export async function importPreset(){
     const pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
     pre.name ??= "Imported"
     db.botPresets.push(pre)
-    DataBase.set(db)
+    setDatabase(db)
 }

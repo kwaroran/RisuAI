@@ -1,18 +1,30 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
+import type { Tokenizer } from "@mlc-ai/web-tokenizers";
+
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
-import { tokenizeTransformers } from "./transformers/transformer";
 import type { OpenAIChat } from "./process";
 
-async function encode(data:string):Promise<(number[]|Uint32Array)>{
+async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
-    if(db.aiModel === 'novellist'){
-        return await tokenizeTransformers('naclbit/trin_tokenizer_v3',data)
+    if(db.aiModel.startsWith('novellist')){
+        const nv= await tokenizeWebTokenizers(data, 'novellist')
+        return nv
+    }
+    if(db.aiModel.startsWith('claude')){
+        return await tokenizeWebTokenizers(data, 'claude')
+    }
+    if(db.aiModel.startsWith('novelai')){
+        return await tokenizeWebTokenizers(data, 'novelai')
     }
     return await tikJS(data)
 }
 
+type tokenizerType = 'novellist'|'claude'|'novelai'
+
 let tikParser:Tiktoken = null
+let tokenizersTokenizer:Tokenizer = null
+let tokenizersType:tokenizerType = null
 
 async function tikJS(text:string) {
     if(!tikParser){
@@ -26,6 +38,32 @@ async function tikJS(text:string) {
         );
     }
     return tikParser.encode(text)
+}
+
+async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
+    if(type !== tokenizersType || !tokenizersTokenizer){
+        const webTokenizer = await import('@mlc-ai/web-tokenizers')
+        switch(type){
+            case "novellist":
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
+                    await (await fetch("/token/trin/spiece.model")
+                ).arrayBuffer())
+                break
+            case "claude":
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromJSON(
+                    await (await fetch("/token/claude/claude.json")
+                ).arrayBuffer())
+                break
+            case 'novelai':
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
+                    await (await fetch("/token/nai/nerdstash_v2.model")
+                ).arrayBuffer())
+                
+                break
+        }
+        tokenizersType = type
+    }
+    return (tokenizersTokenizer.encode(text))
 }
 
 export async function tokenizerChar(char:character) {
@@ -51,7 +89,7 @@ export class ChatTokenizer {
     async tokenizeChat(data:OpenAIChat) {
         let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
         if(data.name && this.useName ==='name'){
-            encoded += (await encode(data.name)).length
+            encoded += (await encode(data.name)).length + 1
         }
         return encoded
     }

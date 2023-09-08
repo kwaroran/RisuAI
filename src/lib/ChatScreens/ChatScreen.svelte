@@ -1,13 +1,14 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
-    import { CharEmotion, SizeStore, selectedCharID, sideBarStore } from "../../ts/stores";
+    import { CharEmotion, CurrentCharacter, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
     import ChatList from "../Others/ChatList.svelte";
     import TransitionImage from "./TransitionImage.svelte";
   import BackgroundDom from "./BackgroundDom.svelte";
+  import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     let openChatList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
@@ -28,10 +29,11 @@
 </script>
 {#if $DataBase.theme === ''}
     <div class="flex-grow h-full min-w-0 relative justify-center flex">
+        <SideBarArrow />
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
             {#if $selectedCharID >= 0}
-                {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+                {#if $CurrentCharacter.viewScreen !== 'none'}
                     <ResizeBox />
                 {/if}
             {/if}
@@ -39,27 +41,32 @@
         </div>
     </div>
 {:else if $DataBase.theme === 'waifu'}
-    <div class="flex-grow h-full flex justify-center relative" style="max-width:calc({$sideBarStore ? $SizeStore.w - 400 : $SizeStore.w}px);{bgImg.length < 4 ? wallPaper : bgImg}">
+    <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
+        <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            {#if $CurrentCharacter.viewScreen !== 'none'}
                 <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * ($DataBase.waifuWidth2 / 100)}rem">
                     <TransitionImage classType="waifu" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>
             {/if}
         {/if}
-        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}>
+        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
     </div>
 {:else if $DataBase.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
+        <SideBarArrow />
         <BackgroundDom />
-        <div class="w-full absolute z-10 bottom-0 left-0" class:per33={$selectedCharID >= 0}>
+        <div class="w-full absolute z-10 bottom-0 left-0"
+            class:per33={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}
+            class:h-full={!($selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none')}
+        >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
         </div>
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            {#if $CurrentCharacter.viewScreen !== 'none'}
                 <div class="h-full w-full absolute bottom-0 left-0 max-w-full">
                     <TransitionImage classType="mobile" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>

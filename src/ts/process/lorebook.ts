@@ -51,8 +51,8 @@ export function addLorebook(type:number) {
 }
 
 interface formatedLore{
-    keys:string[]|'always',
-    secondKey:string[]
+    keys:string[]|'always'|{type:'regex',regex:string},
+    secondKey:string[]|{type:'regex',regex:string}
     content: string
     order: number
     activatied: boolean
@@ -72,6 +72,7 @@ export async function loadLoreBookPrompt(){
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
 
     let activatiedPrompt: string[] = []
 
@@ -91,12 +92,14 @@ export async function loadLoreBookPrompt(){
                 }
 
                 formatedLore.push({
-                    keys: lore.alwaysActive ? 'always' : (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                        return a.length > 1
-                    }),
-                    secondKey: lore.selective ? (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                        return a.length > 1
-                    }) : [],
+                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.key.replace('@@@regex ','')}) :
+                        (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                            return a.length > 1
+                        }),
+                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.secondkey.replace('@@@regex ','')}) :
+                        (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
+                            return a.length > 1
+                        })) : [],
                     content: lore.content,
                     order: lore.insertorder,
                     activatied: false
@@ -118,6 +121,7 @@ export async function loadLoreBookPrompt(){
     while(loreListUpdated){
         loreListUpdated = false
         const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
+        const formatedChatList = fullWordMatching ? formatedChat.split(' ') : formatedChat
         for(let i=0;i<formatedLore.length;i++){
             const lore = formatedLore[i]
             if(lore.activatied){
@@ -136,28 +140,42 @@ export async function loadLoreBookPrompt(){
             }
     
             let firstKeyActivation = false
-            for(const key of lore.keys){
-                if(key){
-                    if(formatedChat.includes(key)){
-                        firstKeyActivation = true
-                        break
+            if(Array.isArray(lore.keys)){
+                for(const key of lore.keys){
+                    if(key){
+                        if(formatedChatList.includes(key)){
+                            firstKeyActivation = true
+                            break
+                        }
                     }
+                }
+            }
+            else{
+                if(formatedChat.match(new RegExp(lore.keys.regex,'g'))){
+                    firstKeyActivation = true
                 }
             }
     
             if(firstKeyActivation){
-                if(lore.secondKey.length === 0){
-                    activatiedPrompt.push(lore.content)
-                    lore.activatied = true
-                    loreListUpdated = true
-                    continue
-                }
-                for(const key of lore.secondKey){
-                    if(formatedChat.includes(key)){
+                if(Array.isArray(lore.secondKey)){
+                    if(lore.secondKey.length === 0){
                         activatiedPrompt.push(lore.content)
                         lore.activatied = true
                         loreListUpdated = true
-                        break
+                        continue
+                    }
+                    for(const key of lore.secondKey){
+                        if(formatedChatList.includes(key)){
+                            activatiedPrompt.push(lore.content)
+                            lore.activatied = true
+                            loreListUpdated = true
+                            break
+                        }
+                    }
+                }
+                else{
+                    if(formatedChat.match(new RegExp(lore.secondKey.regex,'g'))){
+                        firstKeyActivation = true
                     }
                 }
             }
@@ -167,7 +185,20 @@ export async function loadLoreBookPrompt(){
         }
     }
 
-    return activatiedPrompt.reverse().join('\n\n')
+
+    let sactivated:string[] = []
+    activatiedPrompt = activatiedPrompt.filter((v) => {
+        if(v.startsWith("@@@end")){
+            sactivated.push(v.replace('@@@end','').trim())
+            return false
+        }
+        return true
+    })
+
+    return {
+        act: activatiedPrompt.reverse().join('\n\n'),
+        special_act: sactivated.reverse().join('\n\n')
+    }
 }
 
 
@@ -179,7 +210,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
         mode === 'global' ? db.characters[selectedID].globalLore : 
         mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
         db.characters[selectedID].chats[page].localLore
-    const lorebook = (await selectSingleFile(['json'])).data
+    const lorebook = (await selectSingleFile(['json', 'lorebook'])).data
     if(!lorebook){
         return
     }
@@ -207,17 +238,27 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
                 entry:string
                 secondary_keys:string[]
                 selective:boolean
+                forceActivation:boolean
+                keys:string[]
+                displayName:string
+                text:string
+                contextConfig?: {
+                    budgetPriority:number
+                    prefix:string
+                    suffix:string
+                }
             }} = importedlore.entries
             for(const key in entries){
                 const currentLore = entries[key]
                 lore.push({
                     key: currentLore.key ? currentLore.key.join(', ') :
+                        currentLore.keys ? currentLore.keys.join(', ') :
                         currentLore.keywords ? currentLore.keywords.join(', ') : '',
-                    insertorder: currentLore.order ?? currentLore.priority ?? 0,
-                    comment: currentLore.comment || currentLore.name || '',
-                    content: currentLore.content || currentLore.entry || '',
+                    insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
+                    comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
+                    content: currentLore.content || currentLore.entry || currentLore.text || '',
                     mode: "normal",
-                    alwaysActive: currentLore.constant ?? false,
+                    alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
                     secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
                     selective: currentLore.selective ?? false
                 })

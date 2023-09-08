@@ -40,8 +40,9 @@ app.get('/', async (req, res, next) => {
     }
 })
 
-app.post('/proxy', async (req, res, next) => {
-    const urlParam = req.query.url;
+const proxyFunc = async (req, res, next) => {
+
+    const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
 
     if (!urlParam) {
         res.status(400).send({
@@ -67,12 +68,20 @@ app.post('/proxy', async (req, res, next) => {
     const status = originalResponse.status;
 
     const originalBody = await originalResponse.text();
-
+    const head = originalResponse.headers
+    head.delete('content-security-policy');
+    head.delete('content-security-policy-report-only');
+    head.delete('clear-site-data');
+    head.delete('Cache-Control');
     if(status < 200 || status >= 300){
         res.status(status)
     }
+    res.header(head)
     res.send(originalBody);
-});
+}
+
+app.post('/proxy', proxyFunc);
+app.post('/proxy2', proxyFunc);
 
 app.get('/api/password', async(req, res)=> {
     if(password === ''){

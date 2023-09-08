@@ -44,7 +44,9 @@ async function fetchProxy(request) {
         newResponseHeaders.delete('content-security-policy');
         newResponseHeaders.delete('content-security-policy-report-only');
         newResponseHeaders.delete('clear-site-data');
-		
+        newResponseHeaders.delete('Cache-Control');
+
+
         const originalBody = originalResponse.body
 		
         response = new Response(originalBody, {

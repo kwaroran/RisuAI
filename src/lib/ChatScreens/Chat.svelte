@@ -1,14 +1,13 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
-    import { ParseMarkdown } from "../../ts/parser";
-    import AutoresizeArea from "./AutoresizeArea.svelte";
+    import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
+    import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type character, type groupChat } from "../../ts/storage/database";
-    import { selectedCharID } from "../../ts/stores";
+    import { CurrentChat, selectedCharID } from "../../ts/stores";
     import { translate } from "../../ts/translator/translator";
-    import { replacePlaceholders } from "../../ts/util";
-    
+    import { risuChatParser } from "src/ts/process/scripts";
     export let message = ''
     export let name = ''
     export let isLastMemory:boolean
@@ -17,8 +16,7 @@
     export let rerollIcon = false
     export let onReroll = () => {}
     export let unReroll = () => {}
-    export let character:character|groupChat|null = null
-    let md:string
+    export let character:simpleCharacterArgument|string|null = null
     let translating = false
     let editMode = false
     let statusMessage:string = ''
@@ -26,52 +24,43 @@
 
     let msgDisplay = ''
     let msgTranslated = ''
-    let translated = false
-
+    let translated = false;
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
             if($DataBase.instantRemove){
                 const r = await alertConfirm(language.instantRemoveConfirm)
-                let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+                let msg = $CurrentChat.message
                 if(!r){
                     msg = msg.slice(0, idx)
                 }
                 else{
                     msg.splice(idx, 1)
                 }
-                $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+                $CurrentChat.message = msg
             }
             else{
-                let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+                let msg = $CurrentChat.message
                 msg.splice(idx, 1)
-                $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+                $CurrentChat.message = msg
             }
         }
     }
 
     async function edit(){
-        let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+        let msg = $CurrentChat.message
         msg[idx].data = message
-        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+        $CurrentChat.message = msg
     }
 
-    async function displaya(message:string, isStreaming:boolean = false){
+    async function displaya(message:string){
         if($DataBase.autoTranslate && $DataBase.translator !== ''){
-            if(msgTranslated==='')
-                msgDisplay = replacePlaceholders(message, name)
-            msgDisplay = await translate(replacePlaceholders(message, name), false)
-            msgTranslated = msgDisplay
-            translated = true;
+            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
+            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false)
+
         }
         else{
-            msgDisplay = replacePlaceholders(message, name)
-        }
-
-        if(!md || !isStreaming || isStreaming && idx === $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message.length - 1) {
-            ParseMarkdown(msgDisplay, character, 'normal').then(mdNew=>{
-                md = mdNew
-            })
+            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
         }
     }
 
@@ -83,21 +72,21 @@
         }, timeout)
     }
 
-    $: displaya(message, $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].isStreaming)
+    $: displaya(message)
 </script>
-<div class="flex max-w-full justify-center" class:bgc={isLastMemory}>
-    <div class="text-neutral-200 mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
+<div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
+    <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#await img}
-            <div class="shadow-lg bg-gray-500 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+            <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
             class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
         {:then m}
-            <div class="shadow-lg bg-gray-500 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+            <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
             class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
         {/await}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">
                 <span class="chat text-xl unmargin">{name}</span>
-                <div class="flex-grow flex items-center justify-end text-gray-500">
+                <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
                     {#if $DataBase.useChatCopy}
                         <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
@@ -131,22 +120,13 @@
                             if(translating){
                                 return
                             }
-                            if(!translated){
+                            if(msgDisplay === risuChatParser(message, {chara: name, chatID: idx, rmVar: true})){
                                 translating = true
-                                if(msgTranslated !== ''){
-                                    msgDisplay = msgTranslated
-                                    translating = false
-                                    translated = true
-                                    return
-                                }
-                                msgDisplay = (await translate(replacePlaceholders(message, name), false))
-                                msgTranslated = msgDisplay
+                                msgDisplay = risuChatParser(await translate(message, false), {chara: name, chatID: idx, rmVar: true}), false
                                 translating = false
-                                translated = true
                             }
                             else{
-                                msgDisplay = replacePlaceholders(message, name)
-                                translated = false
+                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
                             }
                         }}>
                             <LanguagesIcon />
@@ -170,17 +150,19 @@
             </div>
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
-            {:else if md}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
-                    if($DataBase.clickToEdit && idx > -1){
-                        editMode = true
-                        msgTranslated = ""
-                    }
-                }}
-                    style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
-                >{@html md}</span>
+            {:else}
+                {#await ParseMarkdown(msgDisplay, character, 'normal', idx) then md} 
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                        if($DataBase.clickToEdit && idx > -1){
+                            editMode = true
+                            msgTranslated = ""
+                        }
+                    }}
+                        style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
+                        style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                    >{@html md}</span>
+                {/await}
             {/if}
         </span>
 

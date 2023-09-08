@@ -5,7 +5,7 @@
     export let list = []
 </script>
 
-<div class="list flex flex-col bg-bgcolor rounded-md">
+<div class="list flex flex-col rounded-md  border border-selected">
     {#each list as n, i}
         <div class="w-full h-10 flex items-center">
             <span class="ml-2 flex-grow">{language.formating[n]}</span>
@@ -43,16 +43,7 @@
             }}><ChevronDown /></button>
         </div>
         {#if i !== (list.length - 1)}
-            <div class="seperator"></div>
+            <div class="border-t w-full border-selected"></div>
         {/if}
     {/each}
 </div>
-
-<style>
-    .seperator{
-        width: 100%;
-        border: none;
-        outline: 0;
-        border-bottom: 1px solid #6272a4;
-    }
-</style>

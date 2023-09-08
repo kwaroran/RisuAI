@@ -1,9 +1,10 @@
 <script lang="ts">
-    import Check from "src/lib/Others/Check.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
 
 </script>
+
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.accessibility}</h2>
 
 <div class="flex items-center mt-2">
@@ -24,4 +25,16 @@
 
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.clickToEdit} name={language.clickToEdit}/>
+</div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.botSettingAtStart} name={language.botSettingAtStart}/>
+</div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.toggleConfirmRecommendedPreset} name={language.toggleConfirmRecommendedPreset}/>
+</div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.showMenuChatList} name={language.showMenuChatList}/>
 </div>

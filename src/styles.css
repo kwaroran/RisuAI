@@ -6,16 +6,26 @@ body{
   margin: 0;
   padding: 0;
   margin-top: 0px;
-  background-color: #282a36;
+  background-color: var(--risu-theme-bgcolor);
   overflow-y: hidden;
   overflow-x: hidden;
 }
 
 :root{
   --FontColorStandard: #fafafa;
-  --FontColorBold : #fafafa;
+  --FontColorBold : ##e5e5e5;
   --FontColorItalic : #8C8D93;
   --FontColorItalicBold : #8C8D93;
+  --risu-animation-speed: 0.2s;
+  --risu-theme-bgcolor: #282a36;
+  --risu-theme-darkbg:  #21222c;
+  --risu-theme-borderc: #6272a4;
+  --risu-theme-selected: #44475a;
+  --risu-theme-draculared: #ff5555;
+  --risu-theme-textcolor: #f5f5f5;
+  --risu-theme-textcolor2: #64748b;
+  --risu-theme-darkborderc: #4b5563;
+  --risu-theme-darkbutton: #374151;
 
 }
 
@@ -28,7 +38,7 @@ html, body{
 }
 
 .chattext2 pre{
-  background-color: #282a36;
+  background-color: var(--risu-theme-bgcolor);
   padding: 0.5rem;
   overflow-x: auto;
 }
@@ -45,6 +55,10 @@ html, body{
   color: var(--FontColorItalicBold);
 }
 
+.chattext em strong{
+  color: var(--FontColorItalicBold);
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -57,12 +71,28 @@ html, body{
  
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: rgba(136, 136, 136, 0.5); 
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: rgba(85, 85, 85, 0.5); 
+}
+
+.n-scroll::-webkit-scrollbar-thumb {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.5s, opacity 0.5s linear;
+}
+
+.n-scroll:hover::-webkit-scrollbar-thumb {
+  visibility: visible;
+  opacity: 1;
+}
+
+.n-scroll:focus::-webkit-scrollbar-thumb {
+  visibility: visible;
+  opacity: 1;
 }
 
 *{
@@ -106,7 +136,7 @@ html, body{
 .input-text{
   border: none;
   outline: 0;
-  border-bottom: 1px solid #6272a4;
+  border-bottom: 1px solid var(--risu-theme-borderc);
 }
 
 .bgc{

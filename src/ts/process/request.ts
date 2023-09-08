@@ -3,14 +3,20 @@ import type { OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeChat, unstringlizeChat } from "./stringlize";
-import { globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
+import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { addFetchLog, globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
+import { hubURL } from "../characterCards";
+import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
+import { tokenizeNum } from "../tokenizer";
+import { runLocalModel } from "./models/local";
+import { risuChatParser } from "../parser";
 
 interface requestDataArgument{
     formated: OpenAIChat[]
     bias: {[key:number]:number}
+    biasString?: [string,number][]
     currentChar?: character
     temperature?: number
     maxTokens?:number
@@ -19,6 +25,7 @@ interface requestDataArgument{
     useStreaming?:boolean
     isGroupChat?:boolean
     useEmotion?:boolean
+    continue?:boolean
 }
 
 type requestDataResponse = {
@@ -31,6 +38,13 @@ type requestDataResponse = {
 }|{
     type: "streaming",
     result: ReadableStream<string>,
+    noRetry?: boolean,
+    special?: {
+        emotion?: string
+    }
+}|{
+    type: "multiline",
+    result: ['user'|'char',string][],
     noRetry?: boolean,
     special?: {
         emotion?: string
@@ -57,7 +71,7 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     let trys = 0
     while(true){
         const da = await requestChatDataMain(arg, model, abortSignal)
-        if(da.type === 'success' || da.type === 'streaming' || da.noRetry){
+        if(da.type !== 'fail' || da.noRetry){
             return da
         }
         
@@ -79,10 +93,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
-    const replacer = model === 'model' ? db.forceReplaceUrl : db.forceReplaceUrl2
-    const aiModel = model === 'model' ? db.aiModel : db.subModel
+    arg.continue = arg.continue ?? false
+    let biasString = arg.biasString ?? []
+    const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
 
-    switch(aiModel){
+    let raiModel = aiModel
+    if(aiModel === 'reverse_proxy'){
+        if(db.proxyRequestModel.startsWith('claude')){
+            raiModel = db.proxyRequestModel
+        }
+        if(db.forceProxyAsOpenAI){
+            raiModel = 'reverse_proxy'
+        }
+    }
+    switch(raiModel){
         case 'gpt35':
         case 'gpt35_0613':
         case 'gpt35_16k':
@@ -90,14 +114,27 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4':
         case 'gpt4_32k':
         case 'gpt4_0613':
-        case 'gpt4_32k_0613':{
-
+        case 'gpt4_32k_0613':
+        case 'gpt35_0301':
+        case 'gpt4_0301':
+        case 'openrouter':
+        case 'reverse_proxy':{
             for(let i=0;i<formated.length;i++){
                 if(formated[i].role !== 'function'){
                     if(arg.isGroupChat && formated[i].name){
                         formated[i].content = formated[i].name + ": " + formated[i].content
                     }
                     formated[i].name = undefined
+                    delete formated[i].memo
+                }
+            }
+
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                const tokens = await tokenizeNum(bia[0])
+        
+                for(const token of tokens){
+                    bias[token] = bia[1]
                 }
             }
 
@@ -130,52 +167,88 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
+            const requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
             const body = ({
-                model: aiModel ===  'gpt35' ? 'gpt-3.5-turbo'
-                    : aiModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
-                    : aiModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
-                    : aiModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
-                    : aiModel === 'gpt4' ? 'gpt-4'
-                    : aiModel === 'gpt4_32k' ? 'gpt-4-32k'
-                    : aiModel === "gpt4_0613" ? 'gpt-4-0613'
-                    : aiModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613' : '',
+                model: aiModel === 'openrouter' ? db.openrouterRequestModel :
+                    requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
+                    : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
+                    : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
+                    : requestModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
+                    : requestModel === 'gpt4' ? 'gpt-4'
+                    : requestModel === 'gpt4_32k' ? 'gpt-4-32k'
+                    : requestModel === "gpt4_0613" ? 'gpt-4-0613'
+                    : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
+                    : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
+                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
+                    : (!requestModel) ? 'gpt-3.5-turbo'
+                    : requestModel,
                 messages: formated,
                 temperature: temperature,
                 max_tokens: maxTokens,
-                presence_penalty: arg.PresensePenalty ?? (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false
             })
 
-            let replacerURL = replacer === '' ? 'https://api.openai.com/v1/chat/completions' : replacer
+            let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
+                (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')
 
-            if(replacerURL.endsWith('v1')){
-                replacerURL += '/chat/completions'
-            }
-            else if(replacerURL.endsWith('v1/')){
-                replacerURL += 'chat/completions'
-            }
-            else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
-                if(replacerURL.endsWith('/')){
-                    replacerURL += 'v1/chat/completions'
-                }
-                else{
-                    replacerURL += '/v1/chat/completions'
-                }
+            let risuIdentify = false
+            if(replacerURL.startsWith("risu::")){
+                risuIdentify = true
+                replacerURL = replacerURL.replace("risu::", '')
             }
 
+            if(aiModel === 'reverse_proxy'){
+                if(replacerURL.endsWith('v1')){
+                    replacerURL += '/chat/completions'
+                }
+                else if(replacerURL.endsWith('v1/')){
+                    replacerURL += 'chat/completions'
+                }
+                else if(!(replacerURL.endsWith('completions') || replacerURL.endsWith('completions/'))){
+                    if(replacerURL.endsWith('/')){
+                        replacerURL += 'v1/chat/completions'
+                    }
+                    else{
+                        replacerURL += '/v1/chat/completions'
+                    }
+                }
+            }
+
+            let headers = {
+                "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey)),
+                "Content-Type": "application/json"
+            }
+
+            if(aiModel === 'openrouter'){
+                headers["X-Title"] = 'RisuAI'
+                headers["HTTP-Referer"] = 'https://risuai.xyz'
+            }
+            if(risuIdentify){
+                headers["X-Proxy-Risu"] = 'RisuAI'
+            }
+            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
-                const da =  ((!isTauri) && (!isNodeServer))
-                    ? await fetch(`/proxy?url=${encodeURIComponent(replacerURL)}`, {
+                let urlHost = new URL(replacerURL).host
+                if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
+                    if(!isTauri){
+                        return {
+                            type: 'fail',
+                            result: 'You are trying local request on streaming. this is not allowed dude to browser/os security policy. turn off streaming.',
+                        }
+                    }
+                }
+                const da =  (throughProxi)
+                    ? await fetch(hubURL + `/proxy2`, {
                         body: JSON.stringify(body),
                         headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify({
-                                "Authorization": "Bearer " + db.openAIKey,
-                                "Content-Type": "application/json"
-                            })),
-                            "Content-Type": "application/json"
+                            "risu-header": encodeURIComponent(JSON.stringify(headers)),
+                            "risu-url": encodeURIComponent(replacerURL),
+                            "Content-Type": "application/json",
+                            "x-risu-tk": "use"
                         },
                         method: "POST",
                         signal: abortSignal
@@ -183,10 +256,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : await fetch(replacerURL, {
                         body: JSON.stringify(body),
                         method: "POST",
-                        headers: {
-                            "Authorization": "Bearer " + db.openAIKey,
-                            "Content-Type": "application/json"
-                        },
+                        headers: headers,
                         signal: abortSignal
                     })  
 
@@ -197,12 +267,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
-                if(da.headers.get('Content-Type') !== 'text/event-stream'){
+                if (!da.headers.get('Content-Type').includes('text/event-stream')){
                     return {
                         type: "fail",
                         result: await da.text()
                     }
                 }
+
+                addFetchLog({
+                    body: body,
+                    response: "Streaming",
+                    success: true,
+                    url: replacerURL,
+                })
 
                 let dataUint = new Uint8Array([])
 
@@ -244,10 +321,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const res = await globalFetch(replacerURL, {
                 body: body,
-                headers: {
-                    "Authorization": "Bearer " + db.openAIKey
-                },
-                abortSignal
+                headers: headers,
+                abortSignal,
+                useRisuToken:throughProxi
             })
 
             const dat = res.data as any
@@ -282,35 +358,78 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             break
         }
-        case 'novelai':{
-            if(!isTauri){
-                return{
-                    type: 'fail',
-                    result: "NovelAI doesn't work in web version."
+        case 'novelai':
+        case 'novelai_kayra':{
+            const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '', arg.continue)
+            let logit_bias_exp:{
+                sequence: number[], bias: number, ensure_sequence_finish: false, generate_once: true
+            }[] = []
+
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                const tokens = await tokenizeNum(bia[0])
+
+                const tokensInNumberArray:number[] = []
+    
+                for(const token of tokens){
+                    tokensInNumberArray.push(token)
                 }
+                logit_bias_exp.push({
+                    sequence: tokensInNumberArray,
+                    bias: bia[1],
+                    ensure_sequence_finish: false,
+                    generate_once: true
+                })
             }
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
-            const params = {
+
+            let prefix = 'vanilla'
+
+            if(db.NAIadventure){
+                prefix = 'theme_textadventure'
+            }
+
+            const gen = db.NAIsettings
+            const payload = {
+                temperature:temperature,
+                max_length: maxTokens,
+                min_length: 1,
+                top_k: gen.topK,
+                top_p: gen.topP,
+                top_a: gen.topA,
+                tail_free_sampling: gen.tailFreeSampling,
+                repetition_penalty: gen.repetitionPenalty,
+                repetition_penalty_range: gen.repetitionPenaltyRange,
+                repetition_penalty_slope: gen.repetitionPenaltySlope,
+                repetition_penalty_frequency: gen.frequencyPenalty,
+                repetition_penalty_presence: gen.presencePenalty,
+                generate_until_sentence: true,
+                use_cache: false,
+                use_string: true,
+                return_full_text: false,
+                prefix: prefix,
+                order: [6, 2, 3, 0, 4, 1, 5, 8],
+                typical_p: gen.typicalp,
+                repetition_penalty_whitelist:[49256,49264,49231,49230,49287,85,49255,49399,49262,336,333,432,363,468,492,745,401,426,623,794,1096,2919,2072,7379,1259,2110,620,526,487,16562,603,805,761,2681,942,8917,653,3513,506,5301,562,5010,614,10942,539,2976,462,5189,567,2032,123,124,125,126,127,128,129,130,131,132,588,803,1040,49209,4,5,6,7,8,9,10,11,12],
+                stop_sequences: [[49287], [49405]],
+                bad_words_ids: NovelAIBadWordIds,
+                logit_bias_exp: logit_bias_exp,
+                mirostat_lr: gen.mirostat_lr ?? 1,
+                mirostat_tau: gen.mirostat_tau ?? 0,
+                cfg_scale: gen.cfg_scale ?? 1,
+                cfg_uc: ""   
+            }
+
+            
+
+              
+            const body = {
                 "input": proompt,
-                "model":db.novelai.model,
-                "parameters":{
-                    "use_string":true,
-                    "temperature":1.7,
-                    "max_length":90,
-                    "min_length":1,
-                    "tail_free_sampling":0.6602,
-                    "repetition_penalty":1.0565,
-                    "repetition_penalty_range":340,
-                    "repetition_penalty_frequency":0,
-                    "repetition_penalty_presence":0,
-                    "use_cache":false,
-                    "return_full_text":false,
-                    "prefix":"vanilla",
-                "order":[3,0]}
+                "model": aiModel === 'novelai_kayra' ? 'kayra-v1' : 'clio-v1',
+                "parameters":payload
             }
 
             const da = await globalFetch("https://api.novelai.net/ai/generate", {
-                body: params,
+                body: body,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
                 },
@@ -329,76 +448,107 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
 
-        case "textgen_webui":{
-            let DURL = db.textgenWebUIURL
+        case "textgen_webui":
+        case 'mancer':{
+            let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
+            let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
-            const isNewAPI = DURL.includes('api')
-            const stopStrings = [`\nUser:`,`\nuser:`,`\n${db.username}:`]
+            const suggesting = model === "submodel"
+            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+            let stopStrings = getStopStrings(suggesting)
+            if(db.localStopStrings){
+                stopStrings = db.localStopStrings.map((v) => {
+                    return risuChatParser(v.replace(/\\n/g, "\n"))
+                })
+            }
+            bodyTemplate = {
+                'max_new_tokens': db.maxResponse,
+                'do_sample': true,
+                'temperature': (db.temperature / 100),
+                'top_p': db.ooba.top_p,
+                'typical_p': db.ooba.typical_p,
+                'repetition_penalty': db.ooba.repetition_penalty,
+                'encoder_repetition_penalty': db.ooba.encoder_repetition_penalty,
+                'top_k': db.ooba.top_k,
+                'min_length': db.ooba.min_length,
+                'no_repeat_ngram_size': db.ooba.no_repeat_ngram_size,
+                'num_beams': db.ooba.num_beams,
+                'penalty_alpha': db.ooba.penalty_alpha,
+                'length_penalty': db.ooba.length_penalty,
+                'early_stopping': false,
+                'truncation_length': maxTokens,
+                'ban_eos_token': false,
+                'stopping_strings': stopStrings,
+                'seed': -1,
+                add_bos_token: true,
+                prompt: proompt
+            }
 
-            if(isNewAPI){
-                bodyTemplate = {
-                    'max_new_tokens': db.maxResponse,
-                    'do_sample': true,
-                    'temperature': (db.temperature / 100),
-                    'top_p': 0.9,
-                    'typical_p': 1,
-                    'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
-                    'encoder_repetition_penalty': 1,
-                    'top_k': 100,
-                    'min_length': 0,
-                    'no_repeat_ngram_size': 0,
-                    'num_beams': 1,
-                    'penalty_alpha': 0,
-                    'length_penalty': 1,
-                    'early_stopping': false,
-                    'truncation_length': maxTokens,
-                    'ban_eos_token': false,
-                    'stopping_strings': stopStrings,
-                    'seed': -1,
-                    add_bos_token: true,
-                    prompt: proompt
+            const headers = (aiModel === 'textgen_webui') ? {} : {
+                'X-API-KEY': db.mancerHeader
+            }
+
+            if(db.useStreaming && arg.useStreaming){
+                const oobaboogaSocket = new WebSocket(streamUrl);
+                const statusCode = await new Promise((resolve) => {
+                    oobaboogaSocket.onopen = () => resolve(0)
+                    oobaboogaSocket.onerror = () => resolve(1001)
+                    oobaboogaSocket.onclose = ({ code }) => resolve(code)
+                })
+                if(abortSignal.aborted || statusCode !== 0) {
+                    oobaboogaSocket.close()
+                    return ({
+                        type: "fail",
+                        result: abortSignal.reason || `WebSocket connection failed to '${streamUrl}' failed!`,
+                    })
+                }
+
+                const close = () => {
+                    oobaboogaSocket.close()
+                }
+                const stream = new ReadableStream({
+                    start(controller){
+                        let readed = "";
+                        oobaboogaSocket.onmessage = async (event) => {
+                            const json = JSON.parse(event.data);
+                            if (json.event === "stream_end") {
+                                close()
+                                controller.close()
+                                return
+                            }
+                            if (json.event !== "text_stream") return
+                            readed += json.text
+                            controller.enqueue(readed)
+                        };
+                        oobaboogaSocket.send(JSON.stringify(bodyTemplate));
+                    },
+                    cancel(){
+                        close()
+                    }
+                })
+                oobaboogaSocket.onerror = close
+                oobaboogaSocket.onclose = close
+                abortSignal.addEventListener("abort", close)
+
+                return {
+                    type: 'streaming',
+                    result: stream
                 }
             }
-            else{
-                const payload = [
-                    proompt,
-                    {
-                        'max_new_tokens': 80,
-                        'do_sample': true,
-                        'temperature': (db.temperature / 100),
-                        'top_p': 0.9,
-                        'typical_p': 1,
-                        'repetition_penalty': db.PresensePenalty < 85 ? 0.85 : (db.PresensePenalty / 100),
-                        'encoder_repetition_penalty': 1,
-                        'top_k': 100,
-                        'min_length': 0,
-                        'no_repeat_ngram_size': 0,
-                        'num_beams': 1,
-                        'penalty_alpha': 0,
-                        'length_penalty': 1,
-                        'early_stopping': false,
-                        'truncation_length': maxTokens,
-                        'ban_eos_token': false,
-                        'custom_stopping_strings': stopStrings,
-                        'seed': -1,
-                        add_bos_token: true,
-                    }
-                ];
-    
-                bodyTemplate = { "data": [JSON.stringify(payload)] };
-    
-            }
-            const res = await globalFetch(DURL, {
+
+            const res = await globalFetch(blockingUrl, {
                 body: bodyTemplate,
-                headers: {},
+                headers: headers,
                 abortSignal
             })
             
             const dat = res.data as any
             if(res.ok){
                 try {
-                    let result:string = isNewAPI ? dat.results[0].text : dat.data[0].substring(proompt.length)
+                    let result:string = dat.results[0].text
+                    if(suggesting){
+                        result = "\n" + db.autoSuggestPrefix + result
+                    }
 
                     return {
                         type: 'success',
@@ -451,7 +601,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'palm2':{
             const body = {
                 "prompt": {
-                      "text": stringlizeChat(formated, currentChar?.name ?? '')
+                      "text": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
                 },
                 "safetySettings":[
                     {
@@ -522,7 +672,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case "kobold":{
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+            const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             const url = new URL(db.koboldURL)
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
@@ -555,28 +705,43 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 result: data.results[0].text
             }
         }
-        case "novellist":{
+        case "novellist":
+        case "novellist_damsel":{
             const auth_key = db.novellistAPI;
             const api_server_url = 'https://api.tringpt.com/';
-
+            const logit_bias:string[] = []
+            const logit_bias_values:string[] = []
+            for(let i=0;i<biasString.length;i++){
+                const bia = biasString[i]
+                logit_bias.push(bia[0])
+                logit_bias_values.push(bia[1].toString())
+            }
             const headers = {
                 'Authorization': `Bearer ${auth_key}`,
                 'Content-Type': 'application/json'
             };
-
+            
             const send_body = {
-                text: stringlizeChat(formated, currentChar?.name ?? ''),
+                text: stringlizeAINChat(formated, currentChar?.name ?? '', arg.continue),
                 length: maxTokens,
                 temperature: temperature,
-                top_p: 0.7,
-                tailfree: 1.0,
-                rep_pen: arg.frequencyPenalty ?? (db.frequencyPenalty / 100),
+                top_p: db.ainconfig.top_p,
+                top_k: db.ainconfig.top_k,
+                rep_pen: db.ainconfig.rep_pen,
+                top_a: db.ainconfig.top_a,
+                rep_pen_slope: db.ainconfig.rep_pen_slope,
+                rep_pen_range: db.ainconfig.rep_pen_range,
+                typical_p: db.ainconfig.typical_p,
+                badwords: db.ainconfig.badwords,
+                model: aiModel === 'novellist_damsel' ? 'damsel' : 'supertrin',
+                stoptokens: ["「"].join("<<|>>") + db.ainconfig.stoptokens,
+                logit_bias: (logit_bias.length > 0) ? logit_bias.join("<<|>>") : undefined,
+                logit_bias_values: (logit_bias_values.length > 0) ? logit_bias_values.join("|") : undefined,
             };
-
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
-                body: send_body,
+                body: send_body
             });
 
             if(!response.ok){
@@ -586,11 +751,18 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
-            const result = response.data.data[0];
+            if(response.data.error){
+                return {
+                    'type': 'fail',
+                    'result': `${response.data.error.replace("token", "api key")}`
+                }
+            }
 
+            const result = response.data.data[0];
+            const unstr = unstringlizeAIN(result, formated, currentChar?.name ?? '')
             return {
-                'type': 'success',
-                'result': unstringlizeChat(result, formated, currentChar?.name ?? '')
+                'type': 'multiline',
+                'result': unstr
             }
         }
         case "deepai":{
@@ -610,7 +782,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const response = await createDeep([{
                 role: 'user',
-                content: stringlizeChat(formated, currentChar?.name ?? '')
+                content: stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             }])
 
             if(!response.ok){
@@ -628,7 +800,27 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         default:{     
-            if(aiModel.startsWith('claude')){
+            if(raiModel.startsWith('claude')){
+
+                let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/complete')
+                let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
+                if(aiModel === 'reverse_proxy'){
+                    if(replacerURL.endsWith('v1')){
+                        replacerURL += '/complete'
+                    }
+                    else if(replacerURL.endsWith('v1/')){
+                        replacerURL += 'complete'
+                    }
+                    else if(!(replacerURL.endsWith('complete') || replacerURL.endsWith('complete/'))){
+                        if(replacerURL.endsWith('/')){
+                            replacerURL += 'v1/complete'
+                        }
+                        else{
+                            replacerURL += '/v1/complete'
+                        }
+                    }
+                }
+
                 for(let i=0;i<formated.length;i++){
                     if(arg.isGroupChat && formated[i].name){
                         formated[i].content = formated[i].name + ": " + formated[i].content
@@ -654,19 +846,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
 
-                const da = await globalFetch('https://api.anthropic.com/v1/complete', {
+                const da = await globalFetch(replacerURL, {
                     method: "POST",
                     body: {
                         prompt : "\n\nHuman: " + requestPrompt,
-                        model: aiModel,
+                        model: raiModel,
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
                     },
                     headers: {
                         "Content-Type": "application/json",
-                        "x-api-key": db.claudeAPIKey
-                    }
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                        "accept": "application/json"
+                    },
+                    useRisuToken: true
                 })
 
                 if((!da.ok) || (da.data.error)){
@@ -685,7 +880,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             }
             if(aiModel.startsWith("horde:::")){
-                const proompt = stringlizeChat(formated, currentChar?.name ?? '')
+                const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
 
                 const realModel = aiModel.split(":::")[1]
 
@@ -714,8 +909,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         ]
                     },
                     "trusted_workers": false,
-                    "slow_workers": true,
-                    "worker_blacklist": false,
+                    "workerslow_workers": true,
+                    "_blacklist": false,
                     "dry_run": false,
                     "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
                 }
@@ -778,6 +973,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
+            }
+            if(aiModel.startsWith('local_')){
+                console.log('running local model')
+                const suggesting = model === "submodel"
+                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const stopStrings = getStopStrings(suggesting)
+                await runLocalModel(proompt)
             }
             return {
                 type: 'fail',
