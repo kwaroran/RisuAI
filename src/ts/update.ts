@@ -46,6 +46,7 @@ export async function checkUpdate(){
 function versionStringToNumber(versionString:string):number {
     return Number(
       versionString
+        .split("-")[0]
         .split(".")
         .map((component) => component.padStart(4, "0"))
         .join("")
