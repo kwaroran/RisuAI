@@ -264,6 +264,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     //await tokenize currernt
     let currentTokens = db.maxResponse
     
+    //for unexpected error
+    currentTokens += 50
+    
 
     if(promptTemplate){
         const template = promptTemplate
