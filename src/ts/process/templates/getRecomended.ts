@@ -25,12 +25,20 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         const pr:botPreset = prebuiltPresets.NAI
         setDatabase(setPreset(db, pr))
     }
-    else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'){
+    else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'  || model.startsWith('local_')){
         const model = db.aiModel
         const submodel = db.subModel
-        const sel1 = parseInt(await alertSelect(["RolePlay (Recommended)", "Legacy"]))
+        const sel1 = parseInt(await alertSelect(["RolePlay (Recommended)","Pygmalion 2" , "Legacy (Not Recommended)"]))
         if(sel1 === 0){
             let pr = prebuiltPresets.oobaRp
+            pr.aiModel = model
+            pr.subModel = submodel
+            setDatabase(setPreset(db, pr))
+            return
+
+        }
+        if(sel1 === 1){
+            let pr = prebuiltPresets.pygmalion
             pr.aiModel = model
             pr.subModel = submodel
             setDatabase(setPreset(db, pr))
@@ -113,5 +121,5 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
 }
 
 export function recommendedPresetExist(model:string){
-    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui' || model.startsWith('novelai') || model === 'mancer'
+    return model.startsWith('gpt') || model === 'openrouter' || model === 'reverse_proxy' || model === 'textgen_webui' || model.startsWith('novelai') || model === 'mancer' || model.startsWith('local_')
 }
