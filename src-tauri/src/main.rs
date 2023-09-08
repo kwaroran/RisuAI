@@ -219,6 +219,28 @@ fn run_server_local(){
 
 }
 
+#[tauri::command]
+async fn open_folder(path: String){
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new("explorer");
+        cmd.arg(path);
+        cmd.spawn().unwrap();
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let mut cmd = Command::new("xdg-open");
+        cmd.arg(path);
+        cmd.spawn().unwrap();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let mut cmd = Command::new("open");
+        cmd.arg(path);
+        cmd.spawn().unwrap();
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -226,7 +248,8 @@ fn main() {
             native_request,
             check_auth,
             check_requirements_local,
-            run_server_local
+            run_server_local,
+            open_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

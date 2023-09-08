@@ -174,7 +174,6 @@ export async function supaMemory(
 
 
         async function summarize(stringlizedChat:string){
-
             if(db.supaMemoryType === 'distilbart'){
                 try {
                     const sum =  await runSummarizer(stringlizedChat)
@@ -187,9 +186,6 @@ export async function supaMemory(
                     }
                 }
             }
-
-            
-
             const supaPrompt = db.supaMemoryPrompt === '' ?
             "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
             : db.supaMemoryPrompt
@@ -251,7 +247,6 @@ export async function supaMemory(
             }
             return result
         }
-
 
         while(currentTokens > maxContextTokens){
             const beforeToken = currentTokens

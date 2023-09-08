@@ -979,7 +979,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 const suggesting = model === "submodel"
                 const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
                 const stopStrings = getStopStrings(suggesting)
-                await runLocalModel(proompt)
+                let localModelResult = await runLocalModel({
+                    prompt: proompt,
+                    model: aiModel.replace('local_', ''),
+                    max_new_tokens: maxTokens,
+                    temperature: temperature,
+                    top_p: db.ooba.top_p,
+                    typical: db.ooba.typical_p,
+                    top_k: db.ooba.top_k,
+                })
+                return {
+                    type: 'success',
+                    result: unstringlizeChat(localModelResult, formated, currentChar?.name ?? '')
+                }
             }
             return {
                 type: 'fail',
