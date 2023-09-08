@@ -19,7 +19,6 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     }
     if(db.aiModel.startsWith('local_') || db.aiModel === 'mancer' || db.aiModel === 'textgen_webui'){
         return await tokenizeWebTokenizers(data, 'llama')
-
     }
     return await tikJS(data)
 }
