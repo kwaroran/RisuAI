@@ -1,4 +1,4 @@
-export type Proompt = ProomptPlain|ProomptTyped|ProomptChat;
+export type Proompt = ProomptPlain|ProomptTyped|ProomptChat|ProomptAuthorNote;
 
 export interface ProomptPlain {
     type: 'plain'|'jailbreak';
@@ -8,8 +8,14 @@ export interface ProomptPlain {
 }
 
 export interface ProomptTyped {
-    type: 'persona'|'description'|'authornote'|'lorebook'|'postEverything'
+    type: 'persona'|'description'|'lorebook'|'postEverything'
     innerFormat?: string
+}
+
+export interface ProomptAuthorNote {
+    type : 'authornote'
+    innerFormat?: string
+    defaultText?: string
 }
 
 

@@ -77,10 +77,14 @@
             }} />
         {/if}
     {/if}
-    {#if proompt.type === 'persona' || proompt.type === 'description'}
+    {#if proompt.type === 'authornote'}
+        <span>{language.defaultPrompt}</span>
+        <TextInput bind:value={proompt.defaultText} />
+    {/if}
+    {#if proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'}
         {#if !proompt.innerFormat}
             <CheckInput name={language.customInnerFormat} check={false} className="mt-2" onChange={() => {
-                if(proompt.type === 'persona' || proompt.type === 'description'){
+                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'){
                     proompt.innerFormat = "{{slot}}"
                 }
             }} />
@@ -88,7 +92,7 @@
             <span>{language.innerFormat}</span>
             <TextAreaInput bind:value={proompt.innerFormat}/>
             <CheckInput name={language.customInnerFormat} check={true} className="mt-2" onChange={() => {
-                if(proompt.type === 'persona' || proompt.type === 'description'){
+                if(proompt.type === 'persona' || proompt.type === 'description' || proompt.type === 'authornote'){
                     proompt.innerFormat = null
                 }
             }} />

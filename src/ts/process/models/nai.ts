@@ -6,8 +6,6 @@ import { alertError, alertInput, alertNormal, alertWait } from "src/ts/alert"
 import { sleep } from "src/ts/util"
 
 export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued: boolean){
-
-    
     const db = get(DataBase)
     let seperator = db.NAIsettings.seperator.replaceAll("\\n","\n") || '\n'
     let starter = db.NAIsettings.starter.replaceAll("\\n","\n") || '⁂'

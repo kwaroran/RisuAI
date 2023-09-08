@@ -471,17 +471,17 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     ]
   },
   "NAI2": {
-    "name": "New Preset",
+    "name": "Carefree",
     "apiType": "gpt35",
     "openAIKey": "",
     "mainPrompt": "",
     "jailbreak": "",
     "globalNote": "",
-    "temperature": 136,
+    "temperature": 135,
     "maxContext": 4000,
     "maxResponse": 500,
     "frequencyPenalty": 70,
-    "PresensePenalty": 70,
+    "PresensePenalty": 0,
     "formatingOrder": [
       "main",
       "description",
@@ -501,32 +501,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     "forceReplaceUrl": "",
     "forceReplaceUrl2": "",
     "promptPreprocess": false,
-    "bias": [
-      [
-        "{{char}}:",
-        -10
-      ],
-      [
-        "{{user}}:",
-        -10
-      ],
-      [
-        "\\n{{char}}:",
-        -10
-      ],
-      [
-        "\\n{{user}}:",
-        -10
-      ],
-      [
-        "\\n{{char}} :",
-        -10
-      ],
-      [
-        "\\n{{user}} :",
-        -10
-      ]
-    ],
+    "bias": [],
     "koboldURL": null,
     "proxyKey": "",
     "ooba": {
@@ -576,7 +551,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     "proxyRequestModel": "",
     "openrouterRequestModel": "openai/gpt-3.5-turbo",
     "NAISettings": {
-      "topK": 12,
+      "topK": 15,
       "topP": 0.85,
       "topA": 0.1,
       "tailFreeSampling": 0.915,
@@ -585,9 +560,9 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       "repetitionPenaltySlope": 0.02,
       "repostitionPenaltyPresence": 0,
       "seperator": "",
-      "frequencyPenalty": 0.03,
+      "frequencyPenalty": 0.02,
       "presencePenalty": 0,
-      "typicalp": 0.81,
+      "typicalp": 1,
       "starter": "",
       "cfg_scale": 1,
       "mirostat_tau": 0,
@@ -611,21 +586,15 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "rangeEnd": -4
       },
       {
-        "type": "plain",
-        "text": "----",
-        "role": "system",
-        "type2": "normal"
-      },
-      {
         "type": "persona",
-        "innerFormat": null
+        "innerFormat": "----\n{{slot}}"
       },
       {
         "type": "lorebook"
       },
       {
         "type": "description",
-        "innerFormat": null
+        "innerFormat": "----\n{{slot}}"
       },
       {
         "type": "plain",
@@ -648,7 +617,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "rangeEnd": "end"
       }
     ],
-    "NAIadventure": true,
+    "NAIadventure": false,
     "NAIappendName": true
   }
 }

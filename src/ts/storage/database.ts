@@ -8,7 +8,7 @@ import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal } from '../alert';
 import type { NAISettings } from '../process/models/nai';
-import { prebuiltNAIpresets } from '../process/templates/templates';
+import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { Proompt } from '../process/proompt';
 
@@ -955,12 +955,36 @@ export function downloadPreset(id:number){
 }
 
 export async function importPreset(){
-    const f = await selectSingleFile(["json"])
+    const f = await selectSingleFile(["json", "preset"])
     if(!f){
         return
     }
     let db = get(DataBase)
     const pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
+    if(pre.presetVersion && pre.presetVersion >= 3){
+        //NAI preset
+        const pr = cloneDeep(prebuiltPresets.NAI2)
+        pr.temperature = pre.parameters.temperature * 100
+        pr.maxResponse = pre.parameters.max_length
+        pr.NAISettings.topK = pre.parameters.top_k
+        pr.NAISettings.topP = pre.parameters.top_p
+        pr.NAISettings.topA = pre.parameters.top_a
+        pr.NAISettings.typicalp = pre.parameters.typical_p
+        pr.NAISettings.tailFreeSampling = pre.parameters.tail_free_sampling
+        pr.NAISettings.repetitionPenalty = pre.parameters.repetition_penalty
+        pr.NAISettings.repetitionPenaltyRange = pre.parameters.repetition_penalty_range
+        pr.NAISettings.repetitionPenaltySlope = pre.parameters.repetition_penalty_slope
+        pr.NAISettings.frequencyPenalty = pre.parameters.repetition_penalty_frequency
+        pr.NAISettings.repostitionPenaltyPresence = pre.parameters.repetition_penalty_presence
+        pr.PresensePenalty = pre.parameters.repetition_penalty_presence * 100
+        pr.NAISettings.cfg_scale = pre.parameters.cfg_scale
+        pr.NAISettings.mirostat_lr = pre.parameters.mirostat_lr
+        pr.NAISettings.mirostat_tau = pre.parameters.mirostat_tau
+        pr.name = pre.name ?? "Imported"
+        db.botPresets.push(pr)
+        setDatabase(db)
+        return
+    }
     pre.name ??= "Imported"
     db.botPresets.push(pre)
     setDatabase(db)

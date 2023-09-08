@@ -9,7 +9,7 @@
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertError, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId, selectMultipleFile } from "../../ts/util";
+    import { findCharacterbyId, getAuthorNoteDefaultText, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual, cloneDeep} from 'lodash'
     import Help from "../Others/Help.svelte";
@@ -225,7 +225,12 @@
 
     {/if}
     <span class="text-textcolor">{language.authorNote} <Help key="chatNote"/></span>
-    <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].note}></TextAreaInput>
+    <TextAreaInput
+        margin="both"
+        autocomplete="off"
+        bind:value={currentChar.data.chats[currentChar.data.chatPage].note}
+        placeholder={getAuthorNoteDefaultText()}
+    />
     <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>

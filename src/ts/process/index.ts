@@ -304,7 +304,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'authornote':{
-                    await tokenizeChatArray(unformated.authorNote)
+                    let pmt = cloneDeep(unformated.authorNote)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                        }
+                    }
+
+                    await tokenizeChatArray(pmt)
                     break
                 }
                 case 'lorebook':{
@@ -588,7 +595,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'authornote':{
-                    pushPrompts(unformated.authorNote)
+                    let pmt = cloneDeep(unformated.authorNote)
+                    if(card.innerFormat && pmt.length > 0){
+                        for(let i=0;i<pmt.length;i++){
+                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                        }
+                    }
+
+                    pushPrompts(pmt)
                     break
                 }
                 case 'lorebook':{
@@ -705,6 +719,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         useStreaming: true,
         isGroupChat: nowChatroom.type === 'group',
         bias: {},
+        continue: arg.continue,
     }, 'model', abortSignal)
 
     let result = ''
