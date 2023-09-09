@@ -5,7 +5,7 @@ import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
-import { findCharacterbyId } from "../util";
+import { findCharacterbyId, getAuthorNoteDefaultText } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull, risuChatParser } from "./scripts";
@@ -214,6 +214,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         unformated.authorNote.push({
             role: 'system',
             content: risuChatParser(currentChat.note, {chara: currentChar})
+        })
+    }
+    else if(getAuthorNoteDefaultText() !== ''){
+        unformated.authorNote.push({
+            role: 'system',
+            content: risuChatParser(getAuthorNoteDefaultText(), {chara: currentChar})
         })
     }
 
