@@ -42,7 +42,7 @@ app.get('/', async (req, res, next) => {
 
 const proxyFunc = async (req, res, next) => {
 
-    const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
+    const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
 
     if (!urlParam) {
         res.status(400).send({
@@ -68,7 +68,12 @@ const proxyFunc = async (req, res, next) => {
     const status = originalResponse.status;
 
     const originalBody = await originalResponse.text();
-    const head = originalResponse.headers
+    const head = new Headers(originalResponse.headers);
+    const headObj = {};
+    for (let [k, v] of head) {
+        headObj[k] = v;
+    }
+    res.header(headObj);
     head.delete('content-security-policy');
     head.delete('content-security-policy-report-only');
     head.delete('clear-site-data');
