@@ -8,7 +8,7 @@ const fs = require('fs/promises')
 const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(bodyParser.json({ limit: 100000000 }));
-
+const {pipeline} = require('stream/promises')
 
 let password = ''
 
@@ -40,8 +40,7 @@ app.get('/', async (req, res, next) => {
     }
 })
 
-const proxyFunc = async (req, res, next) => {
-
+const reverseProxyFunc = async (req, res, next) => {
     const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
 
     if (!urlParam) {
@@ -51,41 +50,47 @@ const proxyFunc = async (req, res, next) => {
         return;
     }
     const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
-
+    if(!header['x-forwarded-for']){
+        header['x-forwarded-for'] = req.ip
+    }
     let originalResponse;
     try {
-        console.log(urlParam)
+        // make request to original server
         originalResponse = await fetch(urlParam, {
             method: req.method,
             headers: header,
             body: JSON.stringify(req.body)
         });
 
-    } catch (err) {
+        // get response body as stream
+        const originalBody = originalResponse.body;
+        // get response headers
+        const head = new Headers(originalResponse.headers);
+        head.delete('content-security-policy');
+        head.delete('content-security-policy-report-only');
+        head.delete('clear-site-data');
+        head.delete('Cache-Control');
+        const headObj = {};
+        for (let [k, v] of head) {
+            headObj[k] = v;
+        }
+        // send response headers to client
+        res.header(headObj);
+        // send response status to client
+        res.status(originalResponse.status);
+        // send response body to client
+        await pipeline(originalResponse.body, res);
+
+
+    }
+    catch (err) {
         next(err);
         return;
     }
-    const status = originalResponse.status;
-
-    const originalBody = await originalResponse.text();
-    const head = new Headers(originalResponse.headers);
-    head.delete('content-security-policy');
-    head.delete('content-security-policy-report-only');
-    head.delete('clear-site-data');
-    head.delete('Cache-Control');
-    const headObj = {};
-    for (let [k, v] of head) {
-        headObj[k] = v;
-    }
-    res.header(headObj);
-    if(status < 200 || status >= 300){
-        res.status(status)
-    }
-    res.send(originalBody);
 }
 
-app.post('/proxy', proxyFunc);
-app.post('/proxy2', proxyFunc);
+app.post('/proxy', reverseProxyFunc);
+app.post('/proxy2', reverseProxyFunc);
 
 app.get('/api/password', async(req, res)=> {
     if(password === ''){
