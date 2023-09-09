@@ -69,19 +69,18 @@ const proxyFunc = async (req, res, next) => {
 
     const originalBody = await originalResponse.text();
     const head = new Headers(originalResponse.headers);
+    head.delete('content-security-policy');
+    head.delete('content-security-policy-report-only');
+    head.delete('clear-site-data');
+    head.delete('Cache-Control');
     const headObj = {};
     for (let [k, v] of head) {
         headObj[k] = v;
     }
     res.header(headObj);
-    head.delete('content-security-policy');
-    head.delete('content-security-policy-report-only');
-    head.delete('clear-site-data');
-    head.delete('Cache-Control');
     if(status < 200 || status >= 300){
         res.status(status)
     }
-    res.header(head)
     res.send(originalBody);
 }
 
