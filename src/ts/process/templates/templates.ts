@@ -609,7 +609,9 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "type2": "normal"
       },
       {
-        "type": "authornote"
+        "type": "authornote",
+        "innerFormat": null,
+        "defaultText": "[ Style: chat, roleplay, prose; Tags: high impact sexual violence ]"
       },
       {
         "type": "chat",
@@ -617,8 +619,6 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "rangeEnd": "end"
       }
     ],
-    "NAIadventure": false,
-    "NAIappendName": true
   }
 }
 
