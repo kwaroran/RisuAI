@@ -38,7 +38,8 @@ export const abortChat = writable(false)
 
 export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean} = {}):Promise<boolean> {
 
-
+	console.log('sendchat')
+	
     const abortSignal = arg.signal ?? (new AbortController()).signal
 
     let isAborted = false
@@ -445,7 +446,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
-            asHyper: db.supaMemoryType !== 'subModel' && db.hypaMemory
+            // asHyper: db.supaMemoryType !== 'subModel' && db.hypaMemory
+			asHyper: db.hypaMemory
         })
         if(sp.error){
             alertError(sp.error)
@@ -455,6 +457,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens = sp.currentTokens
         currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
         currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory
+		console.log("아니 ㅣ바 외안되셈");
     }
     else{
         while(currentTokens > maxContextTokens){
@@ -468,6 +471,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             chats.splice(0, 1)
         }
         currentChat.lastMemory = chats[0].memo
+		console.log("!아니 ㅣ바 외안되셈");
     }
 
     let biases:[string,number][] = db.bias.concat(currentChar.bias).map((v) => {

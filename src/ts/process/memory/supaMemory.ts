@@ -183,10 +183,12 @@ export async function supaMemory(
                         content: supaPrompt
                     }
                 ]
+				
                 const da = await requestChatData({
                     formated: promptbody,
                     bias: {}
                 }, 'submodel')
+					
                 if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
                     return {
                         currentTokens: currentTokens,
@@ -211,7 +213,7 @@ export async function supaMemory(
             }))
             const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
             const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
-            hypaResult = "past events: " + s.slice(0,3).join("\n")
+            hypaResult = "This is part of a past event stored in the character's memory: " + s.slice(0,3).join("\n")
             currentTokens += await tokenizer.tokenizeChat({
                 role: "assistant",
                 content: hypaResult,
@@ -356,6 +358,100 @@ export async function supaMemory(
         }
 
     }
+	// else {
+	//커스텀 하이파의 시작
+	let hypaChunks:string[] = []
+	let HypaData:HypaData[] = []
+	
+	//54~ 긴빠이
+	if((!arg.asHyper)){
+		return {
+			currentTokens: currentTokens,
+			chats: chats,
+			error: "SupaMemory: Data saved in hypaMemory, loaded as SupaMemory."
+		}
+	}
+	HypaData = JSON.parse(data.trim())
+	if(!Array.isArray(HypaData)){
+		return {
+			currentTokens: currentTokens,
+			chats: chats,
+			error: "hypaMemory: hypaMemory isn't Array"
+		}
+	}
+	let indexSelected = -1
+	for(let j=0;j<HypaData.length;j++){
+		let i =0;
+		let countTokens  = currentTokens
+		let countChats = cloneDeep(chats)
+		while(true){
+			if(countChats.length === 0){
+				// break
+                            return {
+                                currentTokens: currentTokens,
+                                chats: chats,
+                                error: "return because countchats.length=0"
+                            }
+			}
+			if(countChats[0].memo === HypaData[j].id){
+				lastId = HypaData[j].id
+				currentTokens = countTokens
+				chats = countChats
+				indexSelected = j
+				// break
+                            return {
+                                currentTokens: currentTokens,
+                                chats: chats,
+                                error: "return because countchats.memo=id"
+                            }
+			}
+			countTokens -= await tokenizer.tokenizeChat(countChats[0])
+			countChats.splice(0, 1)
+			i += 1
+		}
+		if(indexSelected !== -1){
+			// break
+                            return {
+                                currentTokens: currentTokens,
+                                chats: chats,
+                                error: "return because indexselected != -1"
+                            }
+		}
+	}
+	if(indexSelected === -1){
+		return {
+			currentTokens: currentTokens,
+			chats: chats,
+			error: "hypaMemory: chat ID not found"
+		}
+	}
+
+	supaMemory = HypaData[indexSelected].supa
+	hypaChunks = HypaData[indexSelected].hypa
+	
+	//202~ 긴빠이
+	let hypaResult = ""
+
+	if(arg.asHyper){
+		const hypa = new HypaProcesser(db.hypaModel)
+		hypa.oaikey = db.supaMemoryKey
+		hypa.vectors = []
+		hypaChunks = hypaChunks.filter((value) => value.length > 1)
+		await hypa.addText(hypaChunks.filter((value, index, self) => {
+			return self.indexOf(value) === index;
+		}))
+		const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
+		const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4)))
+		hypaResult = "This is part of a past event stored in the character's memory:" + s.slice(0,3).join("\n")
+		currentTokens += await tokenizer.tokenizeChat({
+			role: "assistant",
+			content: hypaResult,
+			memo: "hypaMemory"
+		})
+		currentTokens += 10
+	}
+	// }
+	
     return {
         currentTokens: currentTokens,
         chats: chats

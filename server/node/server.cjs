@@ -41,8 +41,51 @@ app.get('/', async (req, res, next) => {
 })
 
 const proxyFunc = async (req, res, next) => {
+<<<<<<< Updated upstream
+    try{
+        const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
 
-    const urlParam = req.headers['risu-url'] ? JSON.parse(decodeURIComponent(req.headers['risu-url'])) : req.query.url;
+        if (!urlParam) {
+            res.status(400).send({
+                error:'URL has no param'
+            });
+            return;
+        }
+        const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
+    
+        let originalResponse;
+        try {
+            console.log(urlParam)
+            originalResponse = await fetch(urlParam, {
+                method: req.method,
+                headers: header,
+                body: JSON.stringify(req.body)
+            });
+    
+        } catch (err) {
+            next(err);
+            return;
+        }
+        const status = originalResponse.status;
+    
+        const originalBody = await originalResponse.text();
+        const head = originalResponse.headers
+        head.delete('content-security-policy');
+        head.delete('content-security-policy-report-only');
+        head.delete('clear-site-data');
+        head.delete('Cache-Control');
+        if(status < 200 || status >= 300){
+            res.status(status)
+        }
+        res.header(head)
+        res.send(originalBody);
+    }
+    catch(err){
+        res.header('content-type', 'text/plain')
+        res.status(500).send(err.toString())
+=======
+
+    const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
 
     if (!urlParam) {
         res.status(400).send({
@@ -62,21 +105,29 @@ const proxyFunc = async (req, res, next) => {
         });
 
     } catch (err) {
+		console.log('cannot urlParam')
         next(err);
         return;
+>>>>>>> Stashed changes
     }
-    const status = originalResponse.status;
+   const status = originalResponse.status;
 
     const originalBody = await originalResponse.text();
-    const head = originalResponse.headers
+	const head = new Headers(originalResponse.headers);
     head.delete('content-security-policy');
     head.delete('content-security-policy-report-only');
     head.delete('clear-site-data');
     head.delete('Cache-Control');
+	
+	const headObj = {};
+    for (let [k, v] of head) {
+        headObj[k] = v;
+    }
+    res.header(headObj);
+
     if(status < 200 || status >= 300){
         res.status(status)
     }
-    res.header(head)
     res.send(originalBody);
 }
 
