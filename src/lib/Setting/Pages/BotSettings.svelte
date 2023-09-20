@@ -183,7 +183,8 @@
         </SelectInput>
     {/await}
 {/if}
-{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')}
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')
+    || $DataBase.aiModel.startsWith('instructgpt') || $DataBase.subModel.startsWith('instructgpt')}
     <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
