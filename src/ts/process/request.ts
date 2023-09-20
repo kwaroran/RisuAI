@@ -471,15 +471,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }).join("") + `\n## Response\n`;
 
             const response = await globalFetch( "https://api.openai.com/v1/completions", {
-                rawResponse:false,
                 body: {
                     model: "gpt-3.5-turbo-instruct",
                     prompt: prompt,
                     max_tokens: maxTokens,
                     temperature: temperature,
                     top_p: 1,
-                    stream: false,
-                    stop:["\n### User:","### User:","User:"," User:", "user:", " user:",],
+                    stop:["User:"," User:", "user:", " user:"],
                     presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
                     frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 },
@@ -495,10 +493,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
                 }
             }
-            const text = response.data.choices[0].text
+            const text:string = response.data.choices[0].text
             return {
                 type: 'success',
-                result: text
+                result: text.replace(/##\n/g, '')
             }
         }
         case "textgen_webui":
