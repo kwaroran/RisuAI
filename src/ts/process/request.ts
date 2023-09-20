@@ -479,7 +479,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     temperature: temperature,
                     top_p: 1,
                     stream: false,
-                    stop:["\n### User:","### User:","User:"," User:"],
+                    stop:["\n### User:","### User:","User:"," User:", "user:", " user:",],
                     presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
                     frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 },
