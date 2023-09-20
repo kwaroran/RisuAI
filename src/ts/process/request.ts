@@ -450,6 +450,57 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
 
+        case 'instructgpt35':{
+            const prompt = formated.filter(m => m.content?.trim()).map(m => {
+                let author = '';
+        
+                if(m.role == 'system'){
+                    m.content = m.content.trim();
+                }
+        
+                console.log(m.role +":"+m.content);
+                switch (m.role) {
+                    case 'user': author = 'User'; break;
+                    case 'assistant': author = 'Assistant'; break;
+                    case 'system': author = 'Instruction'; break;
+                    default: author = m.role; break;
+                }
+        
+                return `\n## ${author}\n${m.content.trim()}`;
+                //return `\n\n${author}: ${m.content.trim()}`;
+            }).join("") + `\n## Response\n`;
+
+            const response = await globalFetch( "https://api.openai.com/v1/completions", {
+                rawResponse:false,
+                body: {
+                    model: "gpt-3.5-turbo-instruct",
+                    prompt: prompt,
+                    max_tokens: maxTokens,
+                    temperature: temperature,
+                    top_p: 1,
+                    stream: false,
+                    stop:["\n### User:","### User:","User:"," User:"],
+                    presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                    frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + db.openAIKey
+                },
+            });
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
+                }
+            }
+            const text = response.data.choices[0].text
+            return {
+                type: 'success',
+                result: text
+            }
+        }
         case "textgen_webui":
         case 'mancer':{
             let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
