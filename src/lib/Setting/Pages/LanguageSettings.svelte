@@ -29,6 +29,7 @@
     <OptionInput value="en" >English</OptionInput>
     <OptionInput value="ko" >한국어</OptionInput>
     <OptionInput value="cn" >中文</OptionInput>
+    <OptionInput value="vi" >Tiếng Việt</OptionInput>
     <OptionInput value="translang" >[Translate in your own language]</OptionInput>
 </SelectInput>
 {#if langChanged}
