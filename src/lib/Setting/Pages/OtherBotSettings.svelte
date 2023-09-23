@@ -77,11 +77,12 @@
 <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
     <OptionInput value="none" >None</OptionInput>
     <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
+    <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
     <OptionInput value="davinci" >OpenAI Davinci</OptionInput>
     <OptionInput value="curie" >OpenAI Curie</OptionInput>
     <OptionInput value="subModel" >{language.submodel} ({language.unrecommended})</OptionInput>
 </SelectInput>
-{#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie'}
+{#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
     <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
 {/if}

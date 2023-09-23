@@ -206,7 +206,9 @@ export async function supaMemory(
                     },
                     method: "POST",
                     body: {
-                        "model": db.supaMemoryType === 'curie' ? "text-curie-001" : "text-davinci-003",
+                        "model": db.supaMemoryType === 'curie' ? "text-curie-001"
+                            : db.supaMemoryType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
+                            : "text-davinci-003",
                         "prompt": promptbody,
                         "max_tokens": 600,
                         "temperature": 0
