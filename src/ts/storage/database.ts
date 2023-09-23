@@ -316,6 +316,7 @@ export function setDatabase(data:Database){
     data.NAIsettings.mirostat_tau ??= 0
     data.NAIsettings.mirostat_lr ??= 1
     data.autofillRequestUrl ??= true
+    data.customProxyRequestModel ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }

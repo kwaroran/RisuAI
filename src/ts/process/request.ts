@@ -168,7 +168,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
-            const requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
+            let requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
+
+            if(aiModel === 'reverse_proxy' && db.proxyRequestModel === 'custom'){
+                requestModel = db.customProxyRequestModel
+            }
             const body = ({
                 model: aiModel === 'openrouter' ? db.openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
