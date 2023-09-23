@@ -201,7 +201,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 replacerURL = replacerURL.replace("risu::", '')
             }
 
-            if(aiModel === 'reverse_proxy'){
+            if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
                 if(replacerURL.endsWith('v1')){
                     replacerURL += '/chat/completions'
                 }

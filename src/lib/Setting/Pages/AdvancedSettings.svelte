@@ -53,6 +53,9 @@
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
 </div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.autofillRequestUrl} name="Autofill Request URL"/>
+</div>
 <button
     on:click={async () => {
         alertMd(getRequestLog())
