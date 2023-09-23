@@ -151,17 +151,20 @@ function decodeStyle(text:string){
             const rules = ast?.stylesheet?.rules
             if(rules){
                 for(const rule of rules){
-                    if(rule.selectors){
-                        for(let i=0;i<rule.selectors.length;i++){
-                            let slt:string = rule.selectors[i]
-                            let selectors = slt.split(' ').map((v) => {
-                                if(v.startsWith('.')){
-                                    return ".x-risu-" + v.substring(1)
-                                }
-                                return v
-                            }).join(' ')
 
-                            rule.selectors[i] = ".chattext " + selectors
+                    if(rule.type === 'rule'){
+                        if(rule.selectors){
+                            for(let i=0;i<rule.selectors.length;i++){
+                                let slt:string = rule.selectors[i]
+                                let selectors = slt.split(' ').map((v) => {
+                                    if(v.startsWith('.')){
+                                        return ".x-risu-" + v.substring(1)
+                                    }
+                                    return v
+                                }).join(' ')
+    
+                                rule.selectors[i] = ".chattext " + selectors
+                            }
                         }
                     }
                 }
