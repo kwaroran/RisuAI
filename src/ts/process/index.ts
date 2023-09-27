@@ -229,6 +229,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
         const additionalInfo = await additionalInformations(currentChar, currentChat)
 
+        if(additionalInfo){
+            description += '\n\n' + risuChatParser(additionalInfo, {chara:currentChar})
+        }
 
         if(currentChar.personality){
             description += risuChatParser("\n\nDescription of {{char}}: " + currentChar.personality, {chara: currentChar})
