@@ -652,6 +652,7 @@ export interface botPreset{
     NAIadventure?: boolean
     NAIappendName?: boolean
     localStopStrings?: string[]
+    customProxyRequestModel?: string
 }
 
 
@@ -875,7 +876,9 @@ export function saveCurrentPreset(){
         promptTemplate: db.promptTemplate ?? null,
         NAIadventure: db.NAIadventure ?? false,
         NAIappendName: db.NAIappendName ?? false,
-        localStopStrings: db.localStopStrings
+        localStopStrings: db.localStopStrings,
+        autoSuggestPrompt: db.autoSuggestPrompt,
+        customProxyRequestModel: db.customProxyRequestModel,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -941,6 +944,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.NAIsettings.mirostat_tau ??= 0
     db.NAIsettings.mirostat_lr ??= 1
     db.localStopStrings = newPres.localStopStrings
+    db.customProxyRequestModel = newPres.customProxyRequestModel ?? ''
     return db
 }
 
