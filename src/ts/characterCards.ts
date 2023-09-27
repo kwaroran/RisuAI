@@ -185,6 +185,7 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         firstMsgIndex: -1,
         replaceGlobalNote: "",
         triggerscript: [],
+        additionalText: ''
     }
 }
 
@@ -346,7 +347,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         backgroundHTML: data?.extensions?.risuai?.backgroundHTML,
         license: data?.extensions?.risuai?.license,
         triggerscript: data?.extensions?.risuai?.triggerscript ?? [],
-        private: data?.extensions?.risuai?.private ?? false
+        private: data?.extensions?.risuai?.private ?? false,
+        additionalText: data?.extensions?.risuai?.additionalText ?? '',
     }
 
     db.characters.push(char)
@@ -424,7 +426,10 @@ async function createBaseV2(char:character) {
                     sdData: char.sdData,
                     additionalAssets: char.additionalAssets,
                     backgroundHTML: char.backgroundHTML,
-                    license: char.license
+                    license: char.license,
+                    triggerscript: char.triggerscript,
+                    additionalText: char.additionalText
+
                 }
             }
         }
@@ -462,6 +467,7 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
                 char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
             }
         }
+        
         
         if(type === 'json'){
             await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.json`, Buffer.from(JSON.stringify(card, null, 4), 'utf-8'))
@@ -693,6 +699,7 @@ type CharacterCardV2 = {
                 license?:string,
                 triggerscript?:triggerscript[]
                 private?:boolean
+                additionalText?:string
             }
         }
     }

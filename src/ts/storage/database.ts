@@ -572,6 +572,7 @@ export interface character{
     backgroundCSS?:string
     license?:string
     private?:boolean
+    additionalText:string
 }
 
 

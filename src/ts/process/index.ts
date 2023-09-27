@@ -17,6 +17,7 @@ import { clone, cloneDeep } from "lodash";
 import { groupOrder } from "./group";
 import { runTrigger, type additonalSysPrompt } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
+import { additionalInformations } from "./embedding/addinfo";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -225,6 +226,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     {
         let description = risuChatParser((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, {chara: currentChar})
+
+        const additionalInfo = await additionalInformations(currentChar, currentChat)
+
 
         if(currentChar.personality){
             description += risuChatParser("\n\nDescription of {{char}}: " + currentChar.personality, {chara: currentChar})

@@ -611,6 +611,9 @@
         <span class="text-textcolor">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></TextAreaInput>
 
+        <span class="text-textcolor mt-2">{language.additionalText} <Help key="additionalText" /></span>
+        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.additionalText}></TextAreaInput>
+
 
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
             <span class="text-textcolor">{language.SuperMemory}</span>

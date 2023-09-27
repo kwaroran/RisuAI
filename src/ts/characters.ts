@@ -289,6 +289,7 @@ export function characterFormatUpdate(index:number|character){
             cha.chats[cha.chatPage].note = cha.chats[cha.chatPage].note.trim()
             cha.postHistoryInstructions = null
         }
+        cha.additionalText ??= ''
 
     }
     else{
@@ -350,7 +351,8 @@ export function createBlankChar():character{
         scenario:"",
         firstMsgIndex: -1,
         replaceGlobalNote: "",
-        triggerscript: []
+        triggerscript: [],
+        additionalText: ''
     }
 }
 
