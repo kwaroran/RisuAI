@@ -57,7 +57,7 @@
             <button class="text-textcolor2 hover:text-red-500" on:click|stopPropagation={async () => {
                 const conf = await alertConfirm('Report this character?')
                 if(conf){
-                    const report = await alertInput('Write a report text that would be sent to the admin')
+                    const report = await alertInput('Write a report text that would be sent to the admin (for copywrite issues, use email)')
                     const da = await fetch(hubURL + '/hub/report', {
                         method: "POST",
                         body: JSON.stringify({
