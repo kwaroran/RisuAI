@@ -970,8 +970,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             ["content-type"]: "application/json",
                             ["accept"]: "application/json",
                             "anthropic-version": "2023-06-01",
-                        },
-                        useRisuToken: true
+                        }
                     })
 
                       
@@ -1005,7 +1004,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "anthropic-version": "2023-06-01",
                         "accept": "application/json"
                     },
-                    useRisuToken: true
+                    useRisuToken: aiModel === 'reverse_proxy'
                 })
 
                 if((!da.ok) || (da.data.error)){
