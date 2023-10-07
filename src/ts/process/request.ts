@@ -945,7 +945,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         headers: {
                           ["Host"]: host,
                           ["content-type"]: "application/json",
-                          ["accept"]: "*/*",
+                          ["accept"]: "application/json",
                           "anthropic-version": "2023-06-01",
                         },
                         body: JSON.stringify(params),
@@ -968,7 +968,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         headers: {
                             ["Host"]: host,
                             ["content-type"]: "application/json",
-                            ["accept"]: "*/*",
+                            ["accept"]: "application/json",
                             "anthropic-version": "2023-06-01",
                         },
                         useRisuToken: true
