@@ -12,6 +12,11 @@ import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { tokenizeNum } from "../tokenizer";
 import { runLocalModel } from "./models/local";
 import { risuChatParser } from "../parser";
+import { SignatureV4 } from "@smithy/signature-v4";
+import { HttpRequest } from "@smithy/protocol-http";
+import { Sha256 } from "@aws-crypto/sha256-js";
+
+
 
 interface requestDataArgument{
     formated: OpenAIChat[]
@@ -900,6 +905,90 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
+
+
+                //claude bedrock
+
+                //placeholders
+                const bedrock = false
+                const region = ''
+
+                const AMZ_HOST = "invoke-bedrock.%REGION%.amazonaws.com";
+                const host = AMZ_HOST.replace("%REGION%", region);
+
+                function getCredentialParts(key:string) {
+                    const [accessKeyId, secretAccessKey, region] = key.split(":");
+                  
+                    if (!accessKeyId || !secretAccessKey || !region) {
+                      throw new Error("The key assigned to this request is invalid.");
+                    }
+                  
+                    return { accessKeyId, secretAccessKey, region };
+                }
+
+                  
+                if(bedrock){
+                    const stream = false
+                    const url = `https://${host}/model/${model}/invoke${stream ? "-with-response-stream" : ""}`
+                    const params = {
+                        prompt : "\n\nHuman: " + requestPrompt,
+                        model: raiModel,
+                        max_tokens_to_sample: maxTokens,
+                        stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
+                        temperature: temperature,
+                    }
+                    const rq = new HttpRequest({
+                        method: "POST",
+                        protocol: "https:",
+                        hostname: host,
+                        path: `/model/${model}/invoke${stream ? "-with-response-stream" : ""}`,
+                        headers: {
+                          ["Host"]: host,
+                          ["content-type"]: "application/json",
+                          ["accept"]: "*/*",
+                          "anthropic-version": "2023-06-01",
+                        },
+                        body: JSON.stringify(params),
+                    });                    
+
+
+                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
+                    const signer = new SignatureV4({
+                        sha256: Sha256,
+                        credentials: { accessKeyId, secretAccessKey },
+                        region,
+                        service: "bedrock",
+                    });
+
+                    const signed = await signer.sign(rq);
+
+                    const da = await globalFetch(`${signed.protocol}//${signed.hostname}`, {
+                        method: "POST",
+                        body: params,
+                        headers: {
+                            ["Host"]: host,
+                            ["content-type"]: "application/json",
+                            ["accept"]: "*/*",
+                            "anthropic-version": "2023-06-01",
+                        },
+                        useRisuToken: true
+                    })
+
+                      
+                    if((!da.ok) || (da.data.error)){
+                        return {
+                            type: 'fail',
+                            result: `${JSON.stringify(da.data)}`
+                        }
+                    }
+    
+                    const res = da.data
+    
+                    return {
+                        type: "success",
+                        result: res.completion,
+                    }
+                }
 
                 const da = await globalFetch(replacerURL, {
                     method: "POST",
