@@ -342,6 +342,7 @@ export interface Database{
     jailbreakToggle:boolean
     loreBookDepth: number
     loreBookToken: number,
+    cipherChat: boolean,
     loreBook: {
         name:string
         data:loreBook[]

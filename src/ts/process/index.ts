@@ -18,6 +18,7 @@ import { groupOrder } from "./group";
 import { runTrigger, type additonalSysPrompt } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
+import { cipherChat, decipherChat } from "./cipherChat";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -722,6 +723,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         return v
     })
 
+    if(db.cipherChat){
+        formated = cipherChat(formated)
+    }
+
     {
         //token rechecking
         let tokens = 0
@@ -745,7 +750,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             formated = formated.filter((v) => {
                 return v.content !== ''
             })
-        }
+    }
     }
 
 
@@ -790,6 +795,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             const readed = (await reader.read())
             if(readed.value){
                 result = readed.value
+                if(db.cipherChat){
+                    result = decipherChat(result)
+                }
                 const result2 = processScriptFull(nowChatroom, reformatContent(prefix + result), 'editoutput', msgIndex)
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
                 emoChanged = result2.emoChanged
@@ -818,13 +826,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     : (req.type === 'multiline') ? req.result
                     : []
         for(let i=0;i<msgs.length;i++){
-            const msg = msgs[i]
+            let msg = msgs[i]
+            let mess = msg[1]
+            if(db.cipherChat){
+                mess = decipherChat(result)
+            }
             let msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
-            let result2 = processScriptFull(nowChatroom, reformatContent(msg[1]), 'editoutput', msgIndex)
+            let result2 = processScriptFull(nowChatroom, reformatContent(mess), 'editoutput', msgIndex)
             if(i === 0 && arg.continue){
                 msgIndex -= 1
                 let beforeChat = db.characters[selectedChar].chats[selectedChat].message[msgIndex]
-                result2 = processScriptFull(nowChatroom, reformatContent(beforeChat.data + msg[1]), 'editoutput', msgIndex)
+                result2 = processScriptFull(nowChatroom, reformatContent(beforeChat.data + mess), 'editoutput', msgIndex)
             }
             result = result2.data
             emoChanged = result2.emoChanged
