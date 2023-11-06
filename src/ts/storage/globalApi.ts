@@ -1031,6 +1031,9 @@ export function getModelMaxContext(model:string):number|undefined{
         return 4000
     }
     if(model.startsWith('gpt4')){
+        if(model.includes('turbo')){
+            return 128000 
+        }
         if(model.includes('32k')){
             return 32000
         }

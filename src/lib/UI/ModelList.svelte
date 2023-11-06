@@ -37,6 +37,10 @@
                 return "GPT-4 0613"
             case "gpt4_32k_0613":
                 return "GPT-4 32k 0613"
+            case "gpt4_1106":
+                return "GPT-4 Turbo 1106"
+            case "gpt35_1106":
+                return "GPT-3.5 Turbo 1106"
             case 'local_gptq':
                 return 'Local Model GPTQ'
             case "palm2":
@@ -98,12 +102,14 @@
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
                 {#if openAdv}
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_1106')}}>GPT-4 Turbo 1106</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0301')}}>GPT-4 0301</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k_0613')}}>GPT-4 32K 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_1106')}}>GPT-3.5 Turbo 1106</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0301')}}>GPT-3.5 Turbo 0301</button>
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0301')}}>GPT-4 0301</button>
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">

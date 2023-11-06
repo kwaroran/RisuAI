@@ -120,6 +120,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_32k':
         case 'gpt4_0613':
         case 'gpt4_32k_0613':
+        case 'gpt4_1106':
+        case 'gpt35_1106':
         case 'gpt35_0301':
         case 'gpt4_0301':
         case 'openrouter':
@@ -178,6 +180,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(aiModel === 'reverse_proxy' && db.proxyRequestModel === 'custom'){
                 requestModel = db.customProxyRequestModel
             }
+
+
+            db.cipherChat = false
             const body = ({
                 model: aiModel === 'openrouter' ? db.openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
@@ -188,6 +193,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4_32k' ? 'gpt-4-32k'
                     : requestModel === "gpt4_0613" ? 'gpt-4-0613'
                     : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
+                    : requestModel === "gpt4_1106" ? 'gpt-4-1106-preview'
+                    : requestModel === "gpt35_1106" ? 'gpt-3.5-turbo-1106'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
                     : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
                     : (!requestModel) ? 'gpt-3.5-turbo'
