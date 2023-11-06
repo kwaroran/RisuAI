@@ -183,7 +183,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             db.cipherChat = false
-            const body = ({
+            let body = ({
                 model: aiModel === 'openrouter' ? db.openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
@@ -205,8 +205,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
-                stream: false
+                stream: false,
+                seed: db.generationSeed
             })
+
+            if(body.seed === -1){
+                delete body.seed
+            }
 
             let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
                 (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')

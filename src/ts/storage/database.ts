@@ -317,6 +317,7 @@ export function setDatabase(data:Database){
     data.NAIsettings.mirostat_lr ??= 1
     data.autofillRequestUrl ??= true
     data.customProxyRequestModel ??= ''
+    data.generationSeed ??= -1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -489,6 +490,7 @@ export interface Database{
     localStopStrings?:string[]
     autofillRequestUrl:boolean
     customProxyRequestModel:string
+    generationSeed:number
 }
 
 export interface customscript{

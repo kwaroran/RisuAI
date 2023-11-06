@@ -267,6 +267,11 @@
     <span class="text-textcolor">{language.maxResponseSize}</span>
     <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.maxResponse}/>
 
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter'}
+<span class="text-textcolor">{language.seed}</span>
+
+<NumberInput bind:value={$DataBase.generationSeed} marginBottom={true}/>
+{/if}
 <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
 
 {#if $DataBase.aiModel.startsWith("novelai")}

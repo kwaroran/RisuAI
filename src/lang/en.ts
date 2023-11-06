@@ -437,4 +437,5 @@ export const languageEnglish = {
     customStopWords: "Custom Stop Words",
     defaultPrompt: "Default Prompt",
     additionalText: 'Additional Description',
+    seed: "Seed",
 }
