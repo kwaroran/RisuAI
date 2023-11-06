@@ -132,7 +132,7 @@ export async function sayTTS(character:character,text:string) {
                     alertError((language.errors.httpError + `${dat.error.message}`))
                 }
                 else{                    
-                    alertError((language.errors.httpError + `${JSON.stringify(res.data)}`))
+                    alertError((language.errors.httpError + `${Buffer.from(res.data).toString()}`))
                 }
             }
 
