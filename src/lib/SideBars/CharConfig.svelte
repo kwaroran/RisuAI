@@ -15,7 +15,7 @@
     import Help from "../Others/Help.svelte";
     import RegexData from "./Scripts/RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
-    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices } from "src/ts/process/tts";
+    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import RealmUpload from "../UI/Realm/RealmUpload.svelte";
@@ -529,6 +529,7 @@
             <OptionInput value="elevenlab">ElevenLabs</OptionInput>
             <OptionInput value="webspeech">Web Speech</OptionInput>
             <OptionInput value="VOICEVOX">VOICEVOX</OptionInput>
+            <OptionInput value="openai">OpenAI</OptionInput>
         </SelectInput>
         
 
@@ -587,6 +588,15 @@
                 <span class="text-textcolor">Intonation scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
                 <span class="text-sm mb-2 text-textcolor2">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
+        {/if}
+        {#if currentChar.data.ttsMode === 'openai'}
+        <span class="text-textcolor">OpenAI TTS uses your OpenAI key on the chat model section</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.oaiVoice}>
+                <OptionInput value="">Unset</OptionInput>
+                {#each oaiVoices as voice}
+                    <OptionInput value={voice}>{voice}</OptionInput>
+                {/each}
+            </SelectInput>
         {/if}
         {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
             <div class="flex items-center mt-2">

@@ -574,6 +574,7 @@ export interface character{
     license?:string
     private?:boolean
     additionalText:string
+    oaiVoice?:string
 }
 
 

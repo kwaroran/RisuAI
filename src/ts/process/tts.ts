@@ -2,6 +2,8 @@ import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../storage/database";
 import { translateVox } from "../translator/translator";
+import { globalFetch } from "../storage/globalApi";
+import { language } from "src/lang";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -94,9 +96,54 @@ export async function sayTTS(character:character,text:string) {
                 }
             }
         }
+        case 'openai':{
+            const key = db.openAIKey
+            const res = await globalFetch('https://api.openai.com/v1/audio/speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + key,
+                },
+                body: {
+                    model: 'tts-1',
+                    input: text,
+                    voice: character.oaiVoice,
+                    
+                },
+                rawResponse: true,
+            })
+            const dat = res.data
+
+            if(res.ok){
+                try {
+                    const audio = Buffer.from(dat).buffer
+                    const audioContext = new AudioContext();
+                    const audioBuffer = await audioContext.decodeAudioData(audio)
+                    sourceNode = audioContext.createBufferSource();
+                    sourceNode.buffer = audioBuffer;
+                    sourceNode.connect(audioContext.destination);
+                    sourceNode.start();
+                } catch (error) {                    
+                    alertError(language.errors.httpError + `${error}`)
+                }
+            }
+            else{
+                if(dat.error && dat.error.message){                    
+                    alertError((language.errors.httpError + `${dat.error.message}`))
+                }
+                else{                    
+                    alertError((language.errors.httpError + `${JSON.stringify(res.data)}`))
+                }
+            }
+
+        }
     }
 
 }
+
+export const oaiVoices = [
+    'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'
+]
 
 export function stopTTS(){
     if(sourceNode){
