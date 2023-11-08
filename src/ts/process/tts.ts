@@ -60,6 +60,7 @@ export async function sayTTS(character:character,text:string) {
             else{
                 alertError(await da.text())
             }
+            break
         }
         case "VOICEVOX": {
             const jpText = await translateVox(text)
@@ -95,6 +96,7 @@ export async function sayTTS(character:character,text:string) {
                     sourceNode.start();
                 }
             }
+            break
         }
         case 'openai':{
             const key = db.openAIKey
