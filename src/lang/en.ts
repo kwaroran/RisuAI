@@ -95,7 +95,7 @@ export const languageEnglish = {
             + "\n\n Additionaly, you can use these with additional assets:"
             + "\n - `{{bg::<asset name>}}`: inject the background as asset",
         additionalText: "The text that would be added to Character Description only when ai thinks its needed, so you can put long texts here. seperate with double newlines.",
-        charjs: "A javascript code that would run with character. for example, you can check `getCharacter()` function in the source code.",
+        charjs: "A javascript code that would run with character. for example, you can check `https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js`",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
