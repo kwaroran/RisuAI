@@ -349,6 +349,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         triggerscript: data?.extensions?.risuai?.triggerscript ?? [],
         private: data?.extensions?.risuai?.private ?? false,
         additionalText: data?.extensions?.risuai?.additionalText ?? '',
+        virtualscript: data?.extensions?.risuai?.virtualscript ?? '',
     }
 
     db.characters.push(char)
@@ -428,8 +429,8 @@ async function createBaseV2(char:character) {
                     backgroundHTML: char.backgroundHTML,
                     license: char.license,
                     triggerscript: char.triggerscript,
-                    additionalText: char.additionalText
-
+                    additionalText: char.additionalText,
+                    virtualscript: char.virtualscript,
                 }
             }
         }
@@ -700,6 +701,7 @@ type CharacterCardV2 = {
                 triggerscript?:triggerscript[]
                 private?:boolean
                 additionalText?:string
+                virtualscript?:string
             }
         }
     }
