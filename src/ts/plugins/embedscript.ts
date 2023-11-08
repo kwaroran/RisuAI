@@ -1,6 +1,6 @@
 import { get } from 'svelte/store'
 import type { ScriptMode } from '../process/scripts'
-import myWorkerUrl from './embedworker?worker&url'
+import WorkerUrl from './embedworker?worker&url'
 import { DataBase, type Chat, type character, type Message } from '../storage/database'
 import { selectedCharID } from '../stores'
 import { add, cloneDeep } from 'lodash'
@@ -8,7 +8,7 @@ import { sleep } from '../util'
 import { characterFormatUpdate } from '../characters'
 import { setDatabase } from '../storage/database'
 
-let worker = new Worker(myWorkerUrl, {type: 'module'})
+let worker = new Worker(WorkerUrl, {type: 'module'})
 
 let results:{
     id: string,
@@ -60,7 +60,7 @@ function runVirtualJS(code:string){
         clearInterval(interval)
         //restart worker
         worker.terminate()
-        worker = new Worker(new URL('./worker.ts', import.meta.url), {type: 'module'})
+        worker = new Worker(WorkerUrl, {type: 'module'})
         reject('timeout')
       }
     },10)
