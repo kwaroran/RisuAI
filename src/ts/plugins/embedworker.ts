@@ -71,20 +71,27 @@ const whitelist = [
     "Request",
     "Response",
     "Blob",
-    "postMessage"
+    "postMessage",
+    "Node",
+    "Element",
+    "Text",
+    "Comment",
 ]
 
-const evaluation = global.eval
+const evaluation = globaly.eval
 
-Object.getOwnPropertyNames( global ).forEach( function( prop ) {
-    if( !whitelist.includes(prop) ) {
-        Object.defineProperty( global, prop, {
-            get : function() {
-                throw "Security Exception: cannot access "+prop;
-                return 1;
-            }, 
-            configurable : false
-        });    
+Object.getOwnPropertyNames( globaly ).forEach( function( prop ) {
+    if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) && (!prop.startsWith('XML')) ) {
+        try {
+            Object.defineProperty( globaly, prop, {
+                get : function() {
+                    throw "Security Exception: cannot access "+prop;
+                    return 1;
+                }, 
+                configurable : false
+            });     
+        } catch (error) {
+        }  
     }
 });
 
@@ -92,6 +99,7 @@ let workerResults:{
     id: string,
     result: any
 }[] = []
+
 
 self.onmessage = async (event) => {
     const da = event.data
@@ -101,7 +109,7 @@ self.onmessage = async (event) => {
     }
     if(da.type === 'api'){
         //add api
-        Object.defineProperty( global, da.name, {
+        Object.defineProperty( globaly, da.name, {
             get : function() {
                 return function (...args:any[]) {
                     return new Promise((resolve)=>{
@@ -118,7 +126,7 @@ self.onmessage = async (event) => {
                                 clearInterval(interval)
                                 resolve(result.result)
                             }
-                        },100)
+                        },10)
                     })
                 }
             }

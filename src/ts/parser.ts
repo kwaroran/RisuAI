@@ -45,13 +45,17 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
 });
 
 DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-    if(data.attrName === 'style'){
-        data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
-    }
-    if(data.attrName === 'class'){
-        data.attrValue = data.attrValue.split(' ').map((v) => {
-            return "x-risu-" + v
-        }).join(' ')
+    switch(data.attrName){
+        case 'style':{
+            data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
+            break
+        }
+        case 'class':{
+            data.attrValue = data.attrValue.split(' ').map((v) => {
+                return "x-risu-" + v
+            }).join(' ')
+            break
+        }
     }
 })
 
@@ -123,7 +127,7 @@ export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgumen
     }
     return decodeStyle(DOMPurify.sanitize(mconverted.parse(encodeStyle(data)), {
         ADD_TAGS: ["iframe", "style", "risu-style"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
         FORBID_ATTR: ["href"]
     }))
 }

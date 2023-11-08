@@ -578,6 +578,7 @@ export interface character{
     additionalText:string
     oaiVoice?:string
     virtualscript?:string
+    scriptstate?:{[key:string]:string|number|boolean}
 }
 
 
@@ -699,6 +700,7 @@ export interface Chat{
     lastMemory?:string
     suggestMessages?:string[]
     isStreaming?:boolean
+    scriptstate?:{[key:string]:string|number|boolean}
 }
 
 export interface Message{
