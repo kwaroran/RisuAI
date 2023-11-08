@@ -155,5 +155,5 @@ export async function translateVox(text:string) {
 
 
 async function jaTrans(text:string) {
-    return await runTranslator(text,false, 'en','ja')
+    return await runTranslator(text, true, 'en','ja')
 }
