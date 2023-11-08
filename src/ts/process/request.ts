@@ -206,10 +206,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
-                seed: db.generationSeed
+                seed: db.generationSeed || -1
             })
 
-            if(body.seed === -1){
+            body.seed = db.generationSeed
+            if(body.seed === -1 || (!body.seed) || (body.seed < 0)){
                 delete body.seed
             }
 
