@@ -4,7 +4,7 @@ import { Marked } from 'marked';
 
 import { DataBase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
-import { processScript, processScriptFull } from './process/scripts';
+import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
@@ -102,6 +102,7 @@ export interface simpleCharacterArgument{
     additionalAssets?: [string, string, string][]
     customscript: customscript[]
     chaId: string,
+    virtualscript?: string
 }
 
 
@@ -115,7 +116,7 @@ export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgumen
         firstParsed = data
     }
     if(char){
-        data = processScriptFull(char, data, 'editdisplay', chatID).data
+        data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode)

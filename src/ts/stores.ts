@@ -46,7 +46,8 @@ function createSimpleCharacter(char:character|groupChat){
         type: "simple",
         customscript: cloneDeep(char.customscript),
         chaId: char.chaId,
-        additionalAssets: char.additionalAssets
+        additionalAssets: char.additionalAssets,
+        virtualscript: char.virtualscript,
     }
 
     return simpleChar

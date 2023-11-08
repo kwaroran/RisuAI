@@ -41,7 +41,7 @@
     }
     
 
-    const unsub = doingChat.subscribe((v) => {
+    const unsub = doingChat.subscribe(async (v) => {
         if(v) {
             progress=false
             abortController?.abort()
@@ -55,7 +55,7 @@
                 const firstMsg:string = currentChar.firstMsgIndex === -1 ? currentChar.firstMessage : currentChar.alternateGreetings[currentChar.firstMsgIndex]
                 messages.push({
                     role: 'char',
-                    data: processScript(currentChar,
+                    data: await processScript(currentChar,
                         replacePlaceholders(firstMsg, currentChar.name),
                     'editprocess')
                 })

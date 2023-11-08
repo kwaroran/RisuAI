@@ -7,14 +7,15 @@ import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { autoMarkPlugin } from "../plugins/automark";
+import { runCharacterJS } from "../plugins/embedscript";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
 
-type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
+export type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
 
-export function processScript(char:character|groupChat, data:string, mode:ScriptMode){
-    return processScriptFull(char, data, mode).data
+export async function processScript(char:character|groupChat, data:string, mode:ScriptMode){
+    return (await processScriptFull(char, data, mode)).data
 }
 
 export function exportRegex(){
@@ -54,12 +55,19 @@ export async function importRegex(){
     }
 }
 
-export function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
+export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript)
     if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
+    }
+    if(char.virtualscript){
+        data = await runCharacterJS({
+            code: char.virtualscript,
+            mode,
+            data,
+        })
     }
     if(scripts.length === 0){
         return {data, emoChanged}

@@ -577,6 +577,7 @@ export interface character{
     private?:boolean
     additionalText:string
     oaiVoice?:string
+    virtualscript?:string
 }
 
 
@@ -618,6 +619,7 @@ export interface groupChat{
     reloadKeys?:number
     backgroundCSS?:string
     oneAtTime?:boolean
+    virtualscript?:string
 }
 
 export interface botPreset{

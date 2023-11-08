@@ -77,7 +77,7 @@
 
                 cha.push({
                     role: 'user',
-                    data: processScript(char,messageInput,'editinput'),
+                    data: await processScript(char,messageInput,'editinput'),
                     time: Date.now()
                 })
             }
