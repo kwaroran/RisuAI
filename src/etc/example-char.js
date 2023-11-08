@@ -1,137 +1,101 @@
+//The @use comment tells the program what callable functions exist. If you omit this, the function will not be called.
+
 //@use editInput
 //@use editOutput
 //@use editProcess
 //@use editDisplay
 //@use onButtonClick
 
+
+
 async function editInput(text){
+    //editInput is a callable function that is called when the user inputs text into the input box.
+    //the first argument is the text that the user input.
+    //the text would replaced to return value, which would change the real value.
     return text;
 }
 
 async function editOutput(text){
+    //editOutput is a callable function that is called when bot outputs text.
+    //the first argument is the text that the bot outputs.
+    //the text would replaced to return value, which would change the real value.
     return text;
 }
 
 async function editProcess(text){
+    //editOutput is a callable function that is called when before request.
+    //the first argument is the original text.
+    //the text would replaced to return value and used in request, but it would not change the real value.
     return text;
-}
-
-async function onButtonClick(code){
-    let fm = await getCharacterFirstMessage()
-
-    if(code === 'calculate'){
-        fm = calculateString(fm)
-    }
-    else if(code === 'clearResult'){
-        fm = '0';
-    }
-    else if(code.startsWith("click")){
-        fm += code.substring(5);
-    }
-    else{
-        fm += code;
-    }
-    setCharacterFirstMessage(fm);
-
-}
-
-
-function calculateString(input) {
-    let numbers = input.split(/\+|\-|\*|\//).map(Number);
-    let operators = input.split(/[0-9]+/).filter(Boolean);
-  
-    let result = numbers[0];
-  
-    for (let i = 0; i < operators.length; i++) {
-        switch (operators[i]) {
-            case '+':
-                result += numbers[i + 1];
-                break;
-            case '-':
-                result -= numbers[i + 1];
-                break;
-            case '*':
-                result *= numbers[i + 1];
-                break;
-            case '/':
-                result /= numbers[i + 1];
-                break;
-            default:
-                return "Error: Invalid operator";
-        }
-    }
-      return result.toFixed(1);
 }
 
 async function editDisplay(text){
-    return `
-<div class="calculator">
-        <div class="result" id="result">${text}</div>
-        <button class="btn" risu-btn="click7">7</button>
-        <button class="btn" risu-btn="click8">8</button>
-        <button class="btn" risu-btn="click9">9</button>
-        <button class="btn operator" risu-btn="+">+</button>
-        <button class="btn" risu-btn="click4">4</button>
-        <button class="btn" risu-btn="click5">5</button>
-        <button class="btn" risu-btn="click6">6</button>
-        <button class="btn operator" risu-btn="-">-</button>
-        <button class="btn" risu-btn="click1">1</button>
-        <button class="btn" risu-btn="click2">2</button>
-        <button class="btn" risu-btn="click3">3</button>
-        <button class="btn operator" risu-btn="*">*</button>
-        <button class="btn" risu-btn="click0">0</button>
-        <button class="btn" onclick="clearResult">C</button>
-        <button class="btn operator" risu-btn="calculate">=</button>
-        <button class="btn operator" risu-btn="/">/</button>
-    </div>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-    
-      .calculator {
-        max-width: 300px;
-        margin: 0 auto;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
-        background-color: #f9f9f9;
-      }
-    
-      .result {
-        font-size: 24px;
-        text-align: right;
-        margin-bottom: 10px;
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        width: 100%;
-      }
-    
-      .btn {
-        font-size: 18px;
-        padding: 10px;
-        margin: 5px;
-        width: 45px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        cursor: pointer;
-        color:black;
-      }
-    
-      .btn:hover {
-        background-color: #ddd;
-      }
-    
-      .btn.operator {
-        background-color: #ff9800;
-        color: #fff;
-      }
-    </style>
-    `;
+    //editDisplay is a callable function that is called when before display.
+    //the first argument is the original text.
+    //the text would replaced to return value and be displayed, but it would not change the real value.
+    return text
 }
 
-async function edit(text){
-    return text;
+async function onButtonClick(code){
+    //onButtonClick is a callable function that is called when the user clicks the button.
+    //a button is a html element that has the attribute "risu-btn".
+    //the first argument is the code of the button.
+    //example: <button risu-btn="example-char">button</button> uses "example-char" as the code.
+    //return value is not used.
+    return
+}
+
+
+function showcase(){
+    //this is a function for just introducing the apis.
+    
+
+    //getChat() returns the chat object.
+    const chat = await getChat()
+
+    //setChat(chat) sets the chat object.
+    //must be a valid chat object.
+    //returns true if success, false if failed.
+    await setChat(chat)
+
+    //getName() returns the name of the character.
+    const name = await getName()
+
+    //setName(name) sets the name of the character.
+    //must be a valid string.
+    //returns true if success, false if failed.
+    await setName(name)
+
+    //getDescription() returns the description of the character.
+    const description = await getDescription()
+
+    //setDescription(description) sets the description of the character.
+    //must be a valid string.
+    //returns true if success, false if failed.
+    await setDescription(description)
+
+    //getCharacterFirstMessage() returns the first message of the character.
+    const firstMessage = await getCharacterFirstMessage()
+
+    //setCharacterFirstMessage(firstMessage) sets the first message of the character.
+    //must be a valid string.
+    //returns true if success, false if failed.
+    await setCharacterFirstMessage(firstMessage)
+
+
+
+    //setState(stateName, data) sets the states of the character.
+    //states are used to store data, because the data would be lost every time when function is called.
+    //stateName must be a valid string.
+    //data must be a valid string, number or boolean.
+    //returns true if success, false if failed.
+    await setState("somedata", "data")
+    await setState("anotherdata", 123)
+
+    //getState(stateName) returns the state of the character.
+    //stateName must be a valid string.
+    //returns the data if success, null if failed.
+    const data = await getState("somedata")
+    const anotherdata = await getState("anotherdata")
 
 }
