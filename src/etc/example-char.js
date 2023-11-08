@@ -97,5 +97,4 @@ function showcase(){
     //returns the data if success, null if failed.
     const data = await getState("somedata")
     const anotherdata = await getState("anotherdata")
-
 }
