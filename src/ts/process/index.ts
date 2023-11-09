@@ -728,7 +728,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
 
-    if(currentChar.depth_prompt && currentChar.depth_prompt.prompt.length > 0){
+    if(currentChar.depth_prompt && currentChar.depth_prompt.prompt && currentChar.depth_prompt.prompt.length > 0){
         //depth_prompt
         const depthPrompt = currentChar.depth_prompt
         formated.splice(formated.length - depthPrompt.depth, 0, {
