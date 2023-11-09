@@ -46,7 +46,7 @@ async function onButtonClick(code){
 }
 
 
-function showcase(){
+async function showcase(){
     //this is a function for just introducing the apis.
     
 
@@ -86,6 +86,7 @@ function showcase(){
 
     //setState(stateName, data) sets the states of the character.
     //states are used to store data, because the data would be lost every time when function is called.
+    //if data is string, it must be less or equal to 100000 characters.
     //stateName must be a valid string.
     //data must be a valid string, number or boolean.
     //returns true if success, false if failed.
