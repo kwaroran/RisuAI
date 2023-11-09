@@ -190,8 +190,14 @@ addWorkerFunction('setState', async (statename, data) => {
     if(typeof data !== 'string' && typeof data !== 'number' && typeof data !== 'boolean'){
         return false
     }
+    if(typeof data === 'string' && data.length > 100000){
+        return false
+    }
     if(!chat.scriptstate){
         chat.scriptstate = {}
+    }
+    if(Object.keys(chat.scriptstate).length > 50){
+        return false
     }
     chat.scriptstate[statename] = data
     char.chats[char.chatPage] = chat
