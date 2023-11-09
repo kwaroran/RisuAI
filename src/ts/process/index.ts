@@ -488,10 +488,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
         }
 
-        unformated.postEverything.push({
-            role: 'system',
-            content: `user and assistant are chatting with romanized ${r.mostUsed}, but always respond with ${r.mostUsed} with ${r.mostUsed} letters.`
-        })
+        if(r.mostUsed !== 'roman'){
+
+            unformated.postEverything.push({
+                role: 'system',
+                content: `user and assistant are chatting with romanized ${r.mostUsed}, but always respond with ${r.mostUsed} with ${r.mostUsed} letters.`
+            })
+        }
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
