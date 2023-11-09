@@ -105,7 +105,6 @@ prop.push(
 prop.forEach( function( prop ) {
     if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) ) {
         try {
-            console.log(prop)
             Object.defineProperty( globaly, prop, {
                 get : function() {
                     throw "Security Exception: cannot access "+prop;
@@ -117,7 +116,6 @@ prop.forEach( function( prop ) {
         }  
     }
     else{
-        console.log(`allow ${prop}`)
     }
 });
 
