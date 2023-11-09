@@ -43,7 +43,6 @@ const whitelist = [
     "Uint8ClampedArray",
     "WeakMap",
     "WeakSet",
-    "WebAssembly",
     "console",
     "decodeURI",
     "decodeURIComponent",
@@ -80,19 +79,45 @@ const whitelist = [
 
 const evaluation = globaly.eval
 
-Object.getOwnPropertyNames( globaly ).forEach( function( prop ) {
-    if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) && (!prop.startsWith('XML')) ) {
+const prop = Object.getOwnPropertyNames( globaly )
+prop.push(
+    //unsafe apis
+    'open',
+    'close',
+    'alert',
+    'confirm',
+    'prompt',
+    'print',
+    'fetch',
+    'navigator',
+    'Worker',
+    'WebSocket',
+    'XMLHttpRequest',
+    'localStorage',
+    'sessionStorage',
+    'importScripts',
+    'indexedDB',
+    'crypto',
+    'WebAssembly',
+    'WebSqlDatabase',
+)
+
+prop.forEach( function( prop ) {
+    if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) ) {
         try {
+            console.log(prop)
             Object.defineProperty( globaly, prop, {
                 get : function() {
                     throw "Security Exception: cannot access "+prop;
                     return 1;
                 }, 
                 configurable : false
-            });
+            });     
         } catch (error) {
-
         }  
+    }
+    else{
+        console.log(`allow ${prop}`)
     }
 });
 
@@ -101,106 +126,6 @@ let workerResults:{
     result: any
 }[] = []
 
-const globalRemover = `
-let globaly = globalThis
-
-const whitelist = [
-    "Array",
-    "ArrayBuffer",
-    "BigInt",
-    "BigInt64Array",
-    "BigUint64Array",
-    "Boolean",
-    "DataView",
-    "Date",
-    "Error",
-    "EvalError",
-    "Float32Array",
-    "Float64Array",
-    "Function",
-    "Infinity",
-    "Int16Array",
-    "Int32Array",
-    "Int8Array",
-    "JSON",
-    "Map",
-    "Math",
-    "NaN",
-    "Number",
-    "Object",
-    "Promise",
-    "Proxy",
-    "RangeError",
-    "ReferenceError",
-    "Reflect",
-    "RegExp",
-    "Set",
-    "SharedArrayBuffer",
-    "String",
-    "Symbol",
-    "SyntaxError",
-    "TypeError",
-    "URIError",
-    "Uint16Array",
-    "Uint32Array",
-    "Uint8Array",
-    "Uint8ClampedArray",
-    "WeakMap",
-    "WeakSet",
-    "WebAssembly",
-    "console",
-    "decodeURI",
-    "decodeURIComponent",
-    "encodeURI",
-    "encodeURIComponent",
-    "escape",
-    "globalThis",
-    "isFinite",
-    "isNaN",
-    "null",
-    "parseFloat",
-    "parseInt",
-    "undefined",
-    "unescape",
-    "queueMicrotask",
-    "setTimeout",
-    "clearTimeout",
-    "setInterval",
-    "clearInterval",
-    "setImmediate",
-    "clearImmediate",
-    "atob",
-    "btoa",
-    "Headers",
-    "Request",
-    "Response",
-    "Blob",
-    "postMessage",
-    "Node",
-    "Element",
-    "Text",
-    "Comment",
-]
-
-const evaluation = globaly.eval
-
-Object.getOwnPropertyNames( globaly ).forEach( function( prop ) {
-    if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) && (!prop.startsWith('XML')) ) {
-        try {
-            Object.defineProperty( globaly, prop, {
-                get : function() {
-                    throw "Security Exception: cannot access "+prop;
-                    return 1;
-                }, 
-                configurable : false
-            });
-        } catch (error) {
-
-        }  
-    }
-});
-
-`
 
 self.onmessage = async (event) => {
     const da = event.data
@@ -235,7 +160,7 @@ self.onmessage = async (event) => {
         return
     }
     try{
-        const d = await evaluation(globalRemover+da.code)
+        const d = await evaluation(da.code)
         self.postMessage({
             id: da.id,
             result: d
