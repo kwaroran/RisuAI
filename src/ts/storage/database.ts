@@ -579,6 +579,8 @@ export interface character{
     oaiVoice?:string
     virtualscript?:string
     scriptstate?:{[key:string]:string|number|boolean}
+    depth_prompt?: { depth: number, prompt: string }
+    extentions?:{[key:string]:any}
 }
 
 

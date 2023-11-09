@@ -727,6 +727,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         formated = cipherChat(formated)
     }
 
+
+    if(currentChar.depth_prompt && currentChar.depth_prompt.prompt.length > 0){
+        //depth_prompt
+        const depthPrompt = currentChar.depth_prompt
+        formated.splice(formated.length - depthPrompt.depth, 0, {
+            role: 'system',
+            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+        })
+    }
+
     {
         //token rechecking
         let tokens = 0

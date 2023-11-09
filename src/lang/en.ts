@@ -439,5 +439,6 @@ export const languageEnglish = {
     defaultPrompt: "Default Prompt",
     additionalText: 'Additional Description',
     seed: "Seed",
-    charjs: "CharacterJS"
+    charjs: "CharacterJS",
+    depthPrompt: "Depth Prompt"
 }

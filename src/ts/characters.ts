@@ -290,7 +290,10 @@ export function characterFormatUpdate(index:number|character){
             cha.postHistoryInstructions = null
         }
         cha.additionalText ??= ''
-
+        cha.depth_prompt ??= {
+            depth: 0,
+            prompt: ''
+        }
     }
     else{
         if((!cha.characterTalks) || cha.characterTalks.length !== cha.characters.length){

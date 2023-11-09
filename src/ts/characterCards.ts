@@ -301,6 +301,16 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
 
     }
 
+    let ext = cloneDeep(data?.extensions ?? {})
+
+    for(const key in ext){
+        if(key === 'risuai'){
+            delete ext[key]
+        }
+        if(key === 'depth_prompt'){
+            delete ext[key]
+        }
+    }
 
     let char:character = {
         name: data.name ?? '',
@@ -350,6 +360,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         private: data?.extensions?.risuai?.private ?? false,
         additionalText: data?.extensions?.risuai?.additionalText ?? '',
         virtualscript: data?.extensions?.risuai?.virtualscript ?? '',
+        extentions: ext ?? {}
     }
 
     db.characters.push(char)
@@ -431,11 +442,20 @@ async function createBaseV2(char:character) {
                     triggerscript: char.triggerscript,
                     additionalText: char.additionalText,
                     virtualscript: char.virtualscript,
-                }
+                },
+                depth_prompt: char.depth_prompt
             }
         }
     }
-    console.log(card)
+
+    if(char.extentions){
+        for(const key in char.extentions){
+            if(key === 'risuai' || key === 'depth_prompt'){
+                continue
+            }
+            card.data.extensions[key] = char.extentions[key]
+        }
+    }
     return card
 }
 
@@ -703,6 +723,7 @@ type CharacterCardV2 = {
                 additionalText?:string
                 virtualscript?:string
             }
+            depth_prompt?: { depth: number, prompt: string }
         }
     }
 }  

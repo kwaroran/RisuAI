@@ -650,6 +650,12 @@
         <span class="text-textcolor">{language.CharVersion}</span>
         <TextInput size="sm" bind:value={currentChar.data.additionalData.character_version}/>
 
+        <span class="text-textcolor">{language.depthPrompt}</span>
+        <div class="flex justify-center items-center">
+            <NumberInput size="sm" bind:value={currentChar.data.depth_prompt.depth} additionalClass="w-12"/>
+            <TextInput size="sm" bind:value={currentChar.data.depth_prompt.prompt} additionalClass="flex-1"/>
+        </div>
+
         <span class="text-textcolor mt-2">{language.altGreet}</span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
             <table class="contain w-full max-w-full tabler mt-2">
