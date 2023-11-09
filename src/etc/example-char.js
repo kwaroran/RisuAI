@@ -99,3 +99,9 @@ async function showcase(){
     const data = await getState("somedata")
     const anotherdata = await getState("anotherdata")
 }
+
+
+// --- additional notes
+// the code are parsed everytime, so complex codes would slow down the program.
+// the function must be return in 400ms, or it would be timeout.
+// for security reasons, you can only access limited apis.
