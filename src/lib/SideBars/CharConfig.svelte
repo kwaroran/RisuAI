@@ -283,13 +283,19 @@
         {#if currentChar.data.image === ''}
             <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
         {:else}
-            {#await getCharImage(currentChar.data.image, 'css')}
+            {#await getCharImage(currentChar.data.image, (currentChar.type === 'character' && currentChar.data.largePortrait) ? 'lgcss' : 'css')}
                 <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
             {:then im}
-                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />     
             {/await}
         {/if}
     </button>
+
+    {#if currentChar.type === 'character' && currentChar.data.image !== ''}
+        <div class="flex items-center mt-4">
+            <Check bind:check={currentChar.data.largePortrait} name={language.largePortrait}/>
+        </div>
+    {/if}
 
     {#if currentChar.type === 'group'}
         <button

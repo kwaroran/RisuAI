@@ -450,6 +450,7 @@
                             unReroll={unReroll}
                             isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                             character={$CurrentSimpleCharacter}
+                            largePortrait={$CurrentCharacter.largePortrait}
                         />
                     {:else}
                         <Chat
@@ -462,6 +463,7 @@
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
                             isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                             character={chat.saying}
+                            largePortrait={findCharacterbyId(chat.saying).largePortrait}
                         />
                     {/if}
                 {:else}
@@ -485,6 +487,7 @@
                         img={getCharImage($CurrentCharacter.image, 'css')}
                         idx={-1}
                         altGreeting={$CurrentCharacter.alternateGreetings.length > 0}
+                        largePortrait={$CurrentCharacter.largePortrait}
                         onReroll={() => {
                             const cha = $CurrentCharacter
                             if(cha.type !== 'group'){

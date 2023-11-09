@@ -10,6 +10,7 @@
     import { risuChatParser } from "src/ts/process/scripts";
     export let message = ''
     export let name = ''
+    export let largePortrait = false
     export let isLastMemory:boolean
     export let img:string|Promise<string> = ''
     export let idx = -1
@@ -80,8 +81,13 @@
             <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
             class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
         {:then m}
-            <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+            {#if largePortrait && (!$DataBase.roundIcons)}
+                <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+            {:else}
+                <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+            {/if}
         {/await}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">

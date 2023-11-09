@@ -46,7 +46,7 @@ export function createNewGroup(){
     return db.characters.length - 1
 }
 
-export async function getCharImage(loc:string, type:'plain'|'css'|'contain') {
+export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgcss') {
     if(!loc || loc === ''){
         if(type ==='css'){
             return ''
@@ -60,6 +60,11 @@ export async function getCharImage(loc:string, type:'plain'|'css'|'contain') {
     else if(type ==='css'){
         return `background: url("${filesrc}");background-size: cover;`
     }
+    else if(type ='lgcss'){
+        return `background: url("${filesrc}");background-size: cover;height: 10.66rem;`
+
+    }
+
     else{
         return `background: url("${filesrc}");background-size: contain;background-repeat: no-repeat;background-position: center;`
     }

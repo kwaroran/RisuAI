@@ -360,7 +360,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         private: data?.extensions?.risuai?.private ?? false,
         additionalText: data?.extensions?.risuai?.additionalText ?? '',
         virtualscript: data?.extensions?.risuai?.virtualscript ?? '',
-        extentions: ext ?? {}
+        extentions: ext ?? {},
+        largePortrait: data?.extensions?.risuai?.largePortrait ?? (!data?.extensions?.risuai),
     }
 
     db.characters.push(char)
@@ -442,6 +443,7 @@ async function createBaseV2(char:character) {
                     triggerscript: char.triggerscript,
                     additionalText: char.additionalText,
                     virtualscript: char.virtualscript,
+                    largePortrait: char.largePortrait,
                 },
                 depth_prompt: char.depth_prompt
             }
@@ -722,6 +724,7 @@ type CharacterCardV2 = {
                 private?:boolean
                 additionalText?:string
                 virtualscript?:string
+                largePortrait?:boolean
             }
             depth_prompt?: { depth: number, prompt: string }
         }
