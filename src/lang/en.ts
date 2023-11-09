@@ -441,5 +441,5 @@ export const languageEnglish = {
     seed: "Seed",
     charjs: "CharacterJS",
     depthPrompt: "Depth Prompt",
-    largePortrait: "Large Portrait"
+    largePortrait: "Portrait"
 }
