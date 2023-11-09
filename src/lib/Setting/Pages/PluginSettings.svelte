@@ -9,6 +9,7 @@
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
   import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+  import Help from "src/lib/Others/Help.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
@@ -22,6 +23,12 @@
     </div>
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.officialplugins.automark} name={language.able}/>
+    </div>
+    <div class="flex">
+        <span class="font-bold flex-grow">Romanizer <Help key="romanizer" /> <span class="text-green-500 italic">(Official Plugin)</span></span>
+    </div>
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.officialplugins.romanizer} name={language.able}/>
     </div>
     {#each $DataBase.plugins as plugin, i}
         <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>

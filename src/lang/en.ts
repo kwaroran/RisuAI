@@ -96,6 +96,7 @@ export const languageEnglish = {
             + "\n - `{{bg::<asset name>}}`: inject the background as asset",
         additionalText: "The text that would be added to Character Description only when ai thinks its needed, so you can put long texts here. seperate with double newlines.",
         charjs: "A javascript code that would run with character. for example, you can check `https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js`",
+        romanizer: "Romanizer is a plugin that converts non-roman characters to roman characters to reduce tokens when using non-roman characters while requesting data.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",

@@ -360,6 +360,7 @@ export interface Database{
     plugins: RisuPlugin[]
     officialplugins: {
         automark?: boolean
+        romanizer?: boolean
     }
     currentPluginProvider: string
     zoomsize:number
