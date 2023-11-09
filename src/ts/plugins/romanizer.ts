@@ -27,6 +27,7 @@ export function romanizer(texts:string[]){
                     text += koreanDict.jong[code[2]]
                 }
                 language.korean++
+                result += text
                 continue
             }
 
@@ -50,6 +51,8 @@ export function romanizer(texts:string[]){
                 language.roman++
                 continue
             }
+
+            result += char
         }
         fullResult.push(result)
     }
