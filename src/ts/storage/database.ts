@@ -318,6 +318,7 @@ export function setDatabase(data:Database){
     data.autofillRequestUrl ??= true
     data.customProxyRequestModel ??= ''
     data.generationSeed ??= -1
+    data.newOAIHandle ??= true
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -492,6 +493,7 @@ export interface Database{
     autofillRequestUrl:boolean
     customProxyRequestModel:string
     generationSeed:number
+    newOAIHandle:boolean
 }
 
 export interface customscript{
@@ -920,7 +922,6 @@ export function changeToPreset(id =0, savecurrent = true){
 
 export function setPreset(db:Database, newPres: botPreset){
     db.apiType = newPres.apiType ?? db.apiType
-    db.openAIKey = newPres.openAIKey ?? db.openAIKey
     db.mainPrompt = newPres.mainPrompt ?? db.mainPrompt
     db.jailbreak = newPres.jailbreak ?? db.jailbreak
     db.globalNote = newPres.globalNote ?? db.globalNote

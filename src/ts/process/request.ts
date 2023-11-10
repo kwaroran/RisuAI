@@ -15,6 +15,7 @@ import { risuChatParser } from "../parser";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
+import { v4 } from "uuid";
 
 
 
@@ -130,11 +131,23 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 if(formated[i].role !== 'function'){
                     if(arg.isGroupChat && formated[i].name){
                         formated[i].content = formated[i].name + ": " + formated[i].content
+                        formated[i].name = undefined
                     }
-                    formated[i].name = undefined
+                    if(!(formated[i].name && formated[i].name.startsWith('example_') && db.newOAIHandle)){
+                        formated[i].name = undefined
+                    }
+                    if(db.newOAIHandle && formated[i].memo && formated[i].memo.startsWith('NewChat')){
+                        formated[i].content === ''
+                    }
                     delete formated[i].memo
                     delete formated[i].removable
                 }
+            }
+
+            if(db.newOAIHandle){
+                formated = formated.filter(m => {
+                    return m.content !== ''
+                })
             }
 
             for(let i=0;i<biasString.length;i++){
@@ -211,6 +224,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(db.generationSeed > 0){
                 // @ts-ignore
                 body.seed = db.generationSeed
+            }
+
+            if(db.newOAIHandle){
+                // @ts-ignore
+                body.user = getOpenUserString()
             }
 
             let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
@@ -1142,4 +1160,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
     }
+}
+
+
+let userString = ''
+let requestedTimes = 999
+let refreshTime = 0
+function getOpenUserString(){
+    if(refreshTime < Date.now() && requestedTimes > 2 ){
+        refreshTime = Date.now() + (300000 * Math.random()) + 60000
+        userString = v4()
+        requestedTimes = 0
+    }
+    requestedTimes += 1
+    console.log(userString)
+    return userString
 }
