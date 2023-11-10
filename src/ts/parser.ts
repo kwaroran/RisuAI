@@ -63,7 +63,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 const assetRegex = /{{(raw|img|video|audio|bg)::(.+?)}}/g
 
-async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back'){
+async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
@@ -99,7 +99,11 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             return ''
         })
     }
+    return data
+}
 
+async function parseInlayImages(data:string){
+    const db = get(DataBase)
     if(db.inlayImage){
         const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
         if(inlayMatch){
@@ -112,7 +116,6 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
         }
     }
-
     return data
 }
 
@@ -131,15 +134,16 @@ export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgumen
 
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
     if(char && char.type !== 'group'){
-        data = await parseAdditionalAssets(data, char, mode)
+        data = await parseAdditionalAssets(data, char, mode, 'pre')
         firstParsed = data
     }
     if(char){
         data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
-        data = await parseAdditionalAssets(data, char, mode)
+        data = await parseAdditionalAssets(data, char, mode, 'post')
     }
+    data = await parseInlayImages(data)
     return decodeStyle(DOMPurify.sanitize(mconverted.parse(encodeStyle(data)), {
         ADD_TAGS: ["iframe", "style", "risu-style"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
