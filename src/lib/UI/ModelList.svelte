@@ -65,6 +65,8 @@
                 return "Reverse Proxy"
             case 'openrouter':
                 return "OpenRouter"
+            case 'gptvi4_1106':
+                return "GPT-4 Turbo 1106 Vision"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
