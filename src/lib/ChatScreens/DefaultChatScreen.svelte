@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -21,6 +21,7 @@
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
+  import { postInlayImage } from 'src/ts/image';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -589,6 +590,19 @@
                         <CameraIcon />
                         <span class="ml-2">{language.screenshot}</span>
                     </div>
+
+                    {#if $DataBase.inlayImage}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
+                            const imgid = await postInlayImage()
+                            if(imgid){
+                                messageInput += imgid
+                                updateInputSizeAll()
+                            }
+                        }}>
+                            <ImagePlusIcon />
+                            <span class="ml-2">{language.postImage}</span>
+                        </div>
+                    {/if}
 
 
                     <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {

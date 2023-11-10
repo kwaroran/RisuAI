@@ -19,6 +19,7 @@ import { runTrigger, type additonalSysPrompt } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
+import { getInlayImage, supportsInlayImage } from "../image";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -33,7 +34,6 @@ export interface OpenAIChatFull extends OpenAIChat{
         name: string
         arguments:string
     }
-
 }
 
 export const doingChat = writable(false)
@@ -464,6 +464,35 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(!msg.chatId){
             msg.chatId = v4()
         }
+        let inlays:string[] = []
+        if(db.inlayImage){
+            const inlayMatch = formedChat.match(/{{inlay::(.+?)}}/g)
+            if(inlayMatch){
+                for(const inlay of inlayMatch){
+                    inlays.push(inlay)
+                }
+            }
+        }
+
+        if(inlays.length > 0){
+            for(const inlay of inlays){
+                const inlayName = inlay.replace('{{inlay::', '').replace('}}', '')
+                const inlayData = await getInlayImage(inlayName)
+                if(inlayData){
+                    if(supportsInlayImage()){
+                        const imgchat = {
+                            role: msg.role === 'user' ? 'user' : 'assistant',
+                            content: inlayData.data,
+                            memo: `inlayImage-${inlayData.height}-${inlayData.width}`,
+                        } as const
+                        chats.push(imgchat)
+                        currentTokens += await tokenizer.tokenizeChat(imgchat)
+                    }
+                }
+                formedChat = formedChat.replace(inlay, '')
+            }
+        }
+
         const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formedChat,
@@ -785,7 +814,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             })
     }
     }
-
 
     const req = await requestChatData({
         formated: formated,

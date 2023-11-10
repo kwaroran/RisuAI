@@ -10,6 +10,7 @@ import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
+import { getInlayImage } from './image';
 
 const convertora = new showdown.Converter({
     simpleLineBreaks: true,
@@ -93,9 +94,23 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                     if(mode === 'back'){
                         return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path}); background-size: cover;"></div>`
                     }
+                    break
             }
             return ''
         })
+    }
+
+    if(db.inlayImage){
+        const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
+        if(inlayMatch){
+            for(const inlay of inlayMatch){
+                const id = inlay.substring(9, inlay.length - 2)
+                const img = await getInlayImage(id)
+                if(img){
+                    data = data.replace(inlay, `<img src="${img.data}"/>`)
+                }
+            }
+        }
     }
 
     return data

@@ -319,6 +319,7 @@ export function setDatabase(data:Database){
     data.customProxyRequestModel ??= ''
     data.generationSeed ??= -1
     data.newOAIHandle ??= true
+    data.gptVisionQuality ??= 'low'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -494,6 +495,9 @@ export interface Database{
     customProxyRequestModel:string
     generationSeed:number
     newOAIHandle:boolean
+    putUserOpen: boolean
+    inlayImage:boolean
+    gptVisionQuality:string
 }
 
 export interface customscript{

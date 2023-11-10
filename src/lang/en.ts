@@ -97,6 +97,8 @@ export const languageEnglish = {
         additionalText: "The text that would be added to Character Description only when ai thinks its needed, so you can put long texts here. seperate with double newlines.",
         charjs: "A javascript code that would run with character. for example, you can check `https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js`",
         romanizer: "Romanizer is a plugin that converts non-roman characters to roman characters to reduce tokens when using non-roman characters while requesting data. this can result diffrent output from the original model. it is not recommended to use this plugin when using roman characters on chat.",
+        oaiRandomUser: "If enabled, random uuid would be put on user parameter on request, and would be changed on refresh. this can be used to prevent AI from identifying user.",
+        inlayImages: "If enabled, images could be inlayed to the chat and AIs can see it if they support it.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -442,5 +444,6 @@ export const languageEnglish = {
     seed: "Seed",
     charjs: "CharacterJS",
     depthPrompt: "Depth Prompt",
-    largePortrait: "Portrait"
+    largePortrait: "Portrait",
+    postImage: "Post Image",
 }

@@ -16,6 +16,8 @@ import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
+import { cloneDeep } from "lodash";
+import { supportsInlayImage } from "../image";
 
 
 
@@ -88,13 +90,34 @@ export async function requestChatData(arg:requestDataArgument, model:'model'|'su
     }
 }
 
+interface OpenAITextContents {
+    type: 'text'
+    text: string
+}
 
+interface OpenAIImageContents {
+    type: 'image'
+    image_url: {
+        url: string
+        detail: string
+    }
+}
+
+type OpenAIContents = OpenAITextContents|OpenAIImageContents
+
+export interface OpenAIChatExtra {
+    role: 'system'|'user'|'assistant'|'function'
+    content: string|OpenAIContents[]
+    memo?:string
+    name?:string
+    removable?:boolean
+}
 
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let result = ''
-    let formated = arg.formated
+    let formated = cloneDeep(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
@@ -125,27 +148,66 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt35_1106':
         case 'gpt35_0301':
         case 'gpt4_0301':
+        case 'gptvi4_1106':
         case 'openrouter':
         case 'reverse_proxy':{
-            for(let i=0;i<formated.length;i++){
-                if(formated[i].role !== 'function'){
-                    if(arg.isGroupChat && formated[i].name){
-                        formated[i].content = formated[i].name + ": " + formated[i].content
-                        formated[i].name = undefined
+            let formatedChat:OpenAIChatExtra[] = []
+
+            if(db.inlayImage){
+                let pendingImages:OpenAIImageContents[] = []
+                for(let i=0;i<formated.length;i++){
+                    const m = formated[i]
+                    if(m.memo && m.memo.startsWith('inlayImage')){
+                        pendingImages.push({
+                            "type": "image",
+                            "image_url": {
+                                "url": m.content,
+                                "detail": db.gptVisionQuality
+                            }
+                        })
                     }
-                    if(!(formated[i].name && formated[i].name.startsWith('example_') && db.newOAIHandle)){
-                        formated[i].name = undefined
+                    else{
+                        if(pendingImages.length > 0 && m.role === 'user'){
+                            let v:OpenAIChatExtra = cloneDeep(m)
+                            let contents:OpenAIContents[] = pendingImages
+                            contents.push({
+                                "type": "text",
+                                "text": m.content
+                            })
+                            v.content = contents
+                            formatedChat.push(v)
+                            pendingImages = []
+                        }
+                        else{
+                            formatedChat.push(m)
+                        }
                     }
-                    if(db.newOAIHandle && formated[i].memo && formated[i].memo.startsWith('NewChat')){
-                        formated[i].content === ''
+                }
+            }
+            else{
+                formatedChat = formated
+            }
+            
+            for(let i=0;i<formatedChat.length;i++){
+                if(formatedChat[i].role !== 'function'){
+                    if(arg.isGroupChat && formatedChat[i].name){
+                        formatedChat[i].content = formatedChat[i].name + ": " + formatedChat[i].content
+                        formatedChat[i].name = undefined
                     }
-                    delete formated[i].memo
-                    delete formated[i].removable
+                    if(!(formatedChat[i].name && formatedChat[i].name.startsWith('example_') && db.newOAIHandle)){
+                        formatedChat[i].name = undefined
+                    }
+                    if(db.newOAIHandle && formatedChat[i].memo && formatedChat[i].memo.startsWith('NewChat')){
+                        formatedChat[i].content = ''
+                    }
+                    delete formatedChat[i].memo
+                    delete formatedChat[i].removable
                 }
             }
 
+
             if(db.newOAIHandle){
-                formated = formated.filter(m => {
+                formatedChat = formatedChat.filter(m => {
                     return m.content !== ''
                 })
             }
@@ -195,6 +257,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
 
+            console.log(bias)
             db.cipherChat = false
             let body = ({
                 model: aiModel === 'openrouter' ? db.openrouterRequestModel :
@@ -207,12 +270,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === "gpt4_0613" ? 'gpt-4-0613'
                     : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
                     : requestModel === "gpt4_1106" ? 'gpt-4-1106-preview'
+                    : requestModel === "gptvi4_1106" ? 'gpt-4-vision-preview'
                     : requestModel === "gpt35_1106" ? 'gpt-3.5-turbo-1106'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
                     : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
-                messages: formated,
+                messages: formatedChat,
                 temperature: temperature,
                 max_tokens: maxTokens,
                 presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
@@ -226,9 +290,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.seed = db.generationSeed
             }
 
-            if(db.newOAIHandle){
+            if(db.putUserOpen){
                 // @ts-ignore
                 body.user = getOpenUserString()
+            }
+
+            if(supportsInlayImage()){
+                // inlay models doesn't support logit_bias
+                // @ts-ignore
+                delete body.logit_bias
             }
 
             let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :

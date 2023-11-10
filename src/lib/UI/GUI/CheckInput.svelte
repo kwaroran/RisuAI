@@ -34,6 +34,6 @@
         {/if}
     </span>
     {#if !hiddenName}
-        <span>{name}</span>
+        <span>{name}<slot /></span>
     {/if}
 </label>

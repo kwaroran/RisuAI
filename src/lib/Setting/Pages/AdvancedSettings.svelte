@@ -8,6 +8,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+  import Help from "src/lib/Others/Help.svelte";
 
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
@@ -35,6 +36,14 @@
     <OptionInput value="old">Tauri</OptionInput>
 </SelectInput>
 
+<span class="text-textcolor mt-4">GPT Vision Quality</span>
+{#if $DataBase.inlayImage}
+    <SelectInput bind:value={$DataBase.gptVisionQuality}>
+        <OptionInput value="low">Low</OptionInput>
+        <OptionInput value="high">High</OptionInput>
+    </SelectInput>
+{/if}
+
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>
 </div>
@@ -55,6 +64,19 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.autofillRequestUrl} name="Autofill Request URL"/>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.newOAIHandle} name="New OpenAI Handling"/>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.putUserOpen} name="Put OAI Random User">
+        <Help key="experimental"/><Help key="oaiRandomUser"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.inlayImage} name="Inlay Image Feature">
+        <Help key="experimental"/><Help key="inlayImages"/>
+    </Check>
 </div>
 <button
     on:click={async () => {

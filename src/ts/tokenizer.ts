@@ -3,6 +3,7 @@ import type { Tokenizer } from "@mlc-ai/web-tokenizers";
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
+import { supportsInlayImage } from "./image";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
@@ -94,6 +95,46 @@ export class ChatTokenizer {
         this.useName = useName
     }
     async tokenizeChat(data:OpenAIChat) {
+        if(data.memo && data.memo.startsWith('inlayImage')){
+            const db = get(DataBase)
+            if(!supportsInlayImage()){
+                return this.chatAdditonalTokens
+            }
+            if(db.gptVisionQuality === 'low'){
+                return 87
+            }
+
+            let encoded = this.chatAdditonalTokens
+            const memo = data.memo.split('-')
+            let height = parseInt(memo[1])
+            let width = parseInt(memo[2])
+
+            if(height === width){
+                if(height > 768){
+                    height = 768
+                    width = 768
+                }
+            }
+            else if(height > width){
+                if(width > 768){
+                    width = 768
+                    height = height * (768 / width)
+                }
+            }
+            else{
+                if(height > 768){
+                    height = 768
+                    width = width * (768 / height)
+                }
+            }
+
+            const chunkSize = Math.ceil(width / 512) * Math.ceil(height / 512)
+            encoded += chunkSize * 2
+            encoded += 85
+
+            return encoded
+        }
+
         let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
         if(data.name && this.useName ==='name'){
             encoded += (await encode(data.name)).length + 1
