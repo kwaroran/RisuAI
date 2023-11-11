@@ -363,6 +363,7 @@ export interface Database{
     officialplugins: {
         automark?: boolean
         romanizer?: boolean
+        metrica?: boolean
     }
     currentPluginProvider: string
     zoomsize:number

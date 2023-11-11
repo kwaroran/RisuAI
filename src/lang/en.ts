@@ -99,6 +99,7 @@ export const languageEnglish = {
         romanizer: "Romanizer is a plugin that converts non-roman characters to roman characters to reduce tokens when using non-roman characters while requesting data. this can result diffrent output from the original model. it is not recommended to use this plugin when using roman characters on chat.",
         oaiRandomUser: "If enabled, random uuid would be put on user parameter on request, and would be changed on refresh. this can be used to prevent AI from identifying user.",
         inlayImages: "If enabled, images could be inlayed to the chat and AIs can see it if they support it.",
+        metrica: 'Metric Systemizer is a plugin that converts metrics to imperial units when request, and vice versa on output to show user metric system while using imperial for performace. it is not recommended to use this plugin when using imperial units on chat.',
     },
     setup: {
         chooseProvider: "Choose AI Provider",

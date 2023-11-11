@@ -8,6 +8,7 @@ import { selectSingleFile } from "../util";
 import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
+import { metricaPlugin } from "../plugins/metrica";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -61,6 +62,12 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     const scripts = (db.globalscript ?? []).concat(char.customscript)
     if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
+    }
+    if(db.officialplugins.metrica && mode === 'editdisplay'){
+        data = metricaPlugin(data, 'metrics')
+    }
+    if(db.officialplugins.metrica && (mode === 'editinput' || mode === 'editoutput')){
+        data = metricaPlugin(data, 'imperial')
     }
     data = await runCharacterJS({
         code: char.virtualscript ?? null,

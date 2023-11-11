@@ -30,6 +30,12 @@
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.officialplugins.romanizer} name={language.able}/>
     </div>
+    <div class="flex">
+        <span class="font-bold flex-grow">Metric Systemizer <Help key="metrica" /> <span class="text-green-500 italic">(Official Plugin)</span></span>
+    </div>
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.officialplugins.metrica} name={language.able}/>
+    </div>
     {#each $DataBase.plugins as plugin, i}
         <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
         <div class="flex">
