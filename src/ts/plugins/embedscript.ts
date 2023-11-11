@@ -10,6 +10,17 @@ import { setDatabase } from '../storage/database'
 
 let worker = new Worker(WorkerUrl, {type: 'module'})
 
+let additionalCharaJS:string[] = []
+
+export function addAdditionalCharaJS(code:string, position:'front'|'back' = 'back'){
+    if(position === 'front'){
+        additionalCharaJS.unshift(code)
+    }
+    else{
+        additionalCharaJS.push(code)
+    }
+}
+
 let results:{
     id: string,
     result: any
@@ -208,8 +219,7 @@ addWorkerFunction('setState', async (statename, data) => {
 
 
 
-let lastCode = ''
-let lastModeList:string[] = []
+let compCode:{[key:string]:string[]} = {}
 
 export async function runCharacterJS(arg:{
     code: string|null,
@@ -230,30 +240,51 @@ export async function runCharacterJS(arg:{
             'onButtonClick': "onButtonClick"
         } as const
 
-        if(lastCode !== arg.code){
-            lastModeList = []
-            const codesplit = arg.code.split('\n')
-            for(let i = 0; i < codesplit.length; i++){
-                const line = codesplit[i]
-                if(line.startsWith('//@use')){
-                    lastModeList.push(line.replace('//@use','').trim())
+        let runCodes = [...additionalCharaJS, arg.code]
+
+        let r = arg.data
+
+        for(const code of runCodes){
+            if(!code){
+                continue
+            }   
+            if(!compCode[code]){
+                let modeList:string[] = []
+                const codesplit = code.split('\n')
+                for(let i = 0; i < codesplit.length; i++){
+                    const line = codesplit[i].trim()
+                    if(line.startsWith('//@use')){
+                        modeList.push(line.replace('//@use','').trim())
+                    }
+                }
+                compCode[code] = modeList
+                // compcode length max 100
+                if(Object.keys(compCode).length > 100){
+                    delete compCode[Object.keys(compCode)[50]]
                 }
             }
-            lastCode = arg.code
-        }
 
-        const runCode = codes[arg.mode]
+            const runCode = codes[arg.mode]
 
-        if(!lastModeList.includes(runCode)){
-            return arg.data
-        }
-        const result = await runVirtualJS(`${arg.code}\n${runCode}(${JSON.stringify(arg.data)})`)
+            console.log(compCode[code])
 
-        if(!result){
-            return arg.data
+            if(!compCode[code].includes(runCode)){
+                continue
+            }
+            const result = await runVirtualJS(`${code}\n${runCode}(${JSON.stringify(r)})`)
+
+            if(!result){
+                continue
+            }
+        
+            r = result.toString()
+
+            if(runCode === 'onButtonClick'){
+                return r
+            }
         }
-    
-        return result.toString()   
+        return r
+ 
     } catch (error) {
         if(arg.mode !== 'editprocess'){
             return `Error: ${error}`

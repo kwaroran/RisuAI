@@ -62,13 +62,11 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
     }
-    if(char.virtualscript){
-        data = await runCharacterJS({
-            code: char.virtualscript,
-            mode,
-            data,
-        })
-    }
+    data = await runCharacterJS({
+        code: char.virtualscript ?? null,
+        mode,
+        data,
+    })
     if(scripts.length === 0){
         return {data, emoChanged}
     }

@@ -119,6 +119,17 @@
             body: char
         })
     }
+
+    function addCharaJs(code:Function, position:'front'|'back' = 'back'){
+        const codeString = code.toString().replace(/.+?\{/, '{')
+        postMessage({
+            type: 'addCharaJs',
+            body: {
+                code: codeString,
+                position: position
+            }
+        })
+    }
     
     async function handleOnmessage(data:{type:string,body:any}) {
         if(!data.type){

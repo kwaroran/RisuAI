@@ -6,6 +6,7 @@ import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process";
 import { globalFetch } from "../storage/globalApi";
 import { selectedCharID } from "../stores";
+import { addAdditionalCharaJS } from "./embedscript";
 
 export const customProviderStore = writable([] as string[])
 
@@ -204,6 +205,15 @@ export async function loadPlugins() {
                         id: data.body.id,
                         data: await globalFetch(data.body.url, data.body.arg)
                     })
+                    break
+                }
+                case 'addCharaJs': {
+                    let c:string = data.body.code
+                    c.trim()
+                    if(c.startsWith('{') && c.endsWith('}')){
+                        c = c.slice(1, -1)
+                    }
+                    addAdditionalCharaJS(c, data.body.position)
                     break
                 }
                 case "getArg":{

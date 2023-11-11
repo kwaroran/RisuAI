@@ -173,6 +173,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
             body: char
         });
     }
+    function addCharaJs(code, position) {
+        if (position === void 0) { position = 'back'; }
+        var codeString = code.toString().replace(/.+?\{/, '{');
+        postMessage({
+            type: 'addCharaJs',
+            body: {
+                code: codeString,
+                position: position
+            }
+        });
+    }
     function handleOnmessage(data) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, body, providers, providerfunc, _i, providers_1, provider, _b, error_1;
