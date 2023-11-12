@@ -10,6 +10,9 @@ export function multiChatReplacer(){
 export function stringlizeChat(formated:OpenAIChat[], char:string, continued:boolean){
     let resultString:string[] = []
     for(const form of formated){
+        if(form.memo?.startsWith('inlayImage')){
+            continue
+        }
         if(form.role === 'system'){
             resultString.push("system: " + form.content)
         }
