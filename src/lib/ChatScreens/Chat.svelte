@@ -4,10 +4,11 @@
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, type character, type groupChat } from "../../ts/storage/database";
+    import { DataBase, type groupChat } from "../../ts/storage/database";
     import { CurrentChat, selectedCharID } from "../../ts/stores";
-    import { translate } from "../../ts/translator/translator";
+    import { translate, translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
+    import { get } from "svelte/store";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -24,8 +25,7 @@
     export let altGreeting = false
 
     let msgDisplay = ''
-    let msgTranslated = ''
-    let translated = false;
+    let translated = get(DataBase).autoTranslate
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
@@ -55,14 +55,7 @@
     }
 
     async function displaya(message:string){
-        if($DataBase.autoTranslate && $DataBase.translator !== ''){
-            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
-            msgDisplay = await translate(risuChatParser(message, {chara: name, chatID: idx, rmVar: true}), false)
-
-        }
-        else{
-            msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
-        }
+        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
     }
 
     const setStatusMessage = (message:string, timeout:number = 0)=>{
@@ -71,6 +64,20 @@
         setTimeout(() => {
             statusMessage = ''
         }, timeout)
+    }
+
+    let lastParsed = ''
+
+    const markParsing = async (data: string, charArg?: string | groupChat | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean) => {
+        const marked = await ParseMarkdown(data, charArg, mode, chatID)
+        lastParsed = marked
+        if(translateText){
+            translating = true
+            const translated = await translateHTML(marked, false)
+            translating = false
+            return translated
+        }
+        return marked
     }
 
     $: displaya(message)
@@ -107,11 +114,9 @@
                         <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
                                 editMode = true
-                                msgTranslated = ""
                             }
                             else{
                                 editMode = false
-                                msgTranslated = ""
                                 edit()
                             }
                         }}>
@@ -123,17 +128,7 @@
                     {/if}
                     {#if $DataBase.translator !== ''}
                         <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} on:click={async () => {
-                            if(translating){
-                                return
-                            }
-                            if(msgDisplay === risuChatParser(message, {chara: name, chatID: idx, rmVar: true})){
-                                translating = true
-                                msgDisplay = risuChatParser(await translate(message, false), {chara: name, chatID: idx, rmVar: true}), false
-                                translating = false
-                            }
-                            else{
-                                msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
-                            }
+                            translated = !translated
                         }}>
                             <LanguagesIcon />
                         </button>
@@ -157,18 +152,21 @@
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
             {:else}
-                {#await ParseMarkdown(msgDisplay, character, 'normal', idx) then md} 
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
-                        if($DataBase.clickToEdit && idx > -1){
-                            editMode = true
-                            msgTranslated = ""
-                        }
-                    }}
-                        style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                        style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
-                    >{@html md}</span>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                    if($DataBase.clickToEdit && idx > -1){
+                        editMode = true
+                    }
+                }}
+                    style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
+                    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                >
+                {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                    {@html lastParsed}
+                {:then md}
+                    {@html md}
                 {/await}
+                </span>
             {/if}
         </span>
 

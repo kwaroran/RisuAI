@@ -157,3 +157,34 @@ export async function translateVox(text:string) {
 async function jaTrans(text:string) {
     return await runTranslator(text, true, 'en','ja')
 }
+
+
+
+export async function translateHTML(html: string, reverse:boolean): Promise<string> {
+    const dom = new DOMParser().parseFromString(html, 'text/html');
+
+    // Recursive function to translate all text nodes
+    async function translateNode(node: Node): Promise<void> {
+        if (node.nodeType === Node.TEXT_NODE) {
+            // Translate the text content of the node
+            if(node.textContent){
+                node.textContent = await translate(node.textContent || '', reverse);
+            }
+        } else {
+            // Translate child nodes
+            for (const child of Array.from(node.childNodes)) {
+                await translateNode(child);
+            }
+        }
+    }
+
+    // Start translation from the body element
+    await translateNode(dom.body);
+
+    // Serialize the DOM back to HTML
+    const serializer = new XMLSerializer();
+    const translatedHTML = serializer.serializeToString(dom.body);
+
+    // Return the translated HTML, excluding the outer <body> tags if needed
+    return translatedHTML
+}
