@@ -141,6 +141,8 @@
         <OptionInput value="gpt35_16k">GPT 3.5 16k</OptionInput>
         <OptionInput value="gpt4">GPT-4</OptionInput>
         <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
+        <OptionInput value="gpt4_1106">GPT-4 Turbo 1106</OptionInput>
+        <OptionInput value="gptvi4_1106">GPT-4 Turbo 1106 Vision</OptionInput>
         <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
         <OptionInput value="gpt4_0301">GPT-4 0301</OptionInput>
         <OptionInput value="gpt35_0613">GPT-3.5 0613</OptionInput>
