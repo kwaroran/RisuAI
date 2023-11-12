@@ -9,6 +9,7 @@
     import { translate, translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
+  import { isEqual } from "lodash";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -67,19 +68,30 @@
     }
 
     let lastParsed = ''
+    let lastCharArg:string|simpleCharacterArgument = null
+    let lastChatId = -10
 
-    const markParsing = async (data: string, charArg?: string | groupChat | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean) => {
+    const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean) => {
+        if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
+            lastParsed = ''
+            lastCharArg = charArg
+            lastChatId = chatID
+            translateText = false
+            translated = false
+        }
         if(translateText){
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
             translating = true
             const translated = await translateHTML(marked, false)
             translating = false
             lastParsed = translated
+            lastCharArg = charArg
             return translated
         }
         else{
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
             lastParsed = marked
+            lastCharArg = charArg
             return marked
         }
     }
