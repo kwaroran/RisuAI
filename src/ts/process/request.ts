@@ -623,7 +623,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             bodyTemplate = {
                 'max_new_tokens': db.maxResponse,
-                'do_sample': true,
+                'do_sample': db.ooba.do_sample,
                 'temperature': (db.temperature / 100),
                 'top_p': db.ooba.top_p,
                 'typical_p': db.ooba.typical_p,
@@ -637,10 +637,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'length_penalty': db.ooba.length_penalty,
                 'early_stopping': false,
                 'truncation_length': maxTokens,
-                'ban_eos_token': false,
+                'ban_eos_token': db.ooba.ban_eos_token,
                 'stopping_strings': stopStrings,
                 'seed': -1,
-                add_bos_token: true,
+                add_bos_token: db.ooba.add_bos_token,
                 prompt: proompt
             }
 
