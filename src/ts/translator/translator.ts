@@ -168,9 +168,10 @@ export async function translateHTML(html: string, reverse:boolean): Promise<stri
         if (node.nodeType === Node.TEXT_NODE) {
             // Translate the text content of the node
             if(node.textContent){
+                console.log(node.nodeName,node.textContent)
                 node.textContent = await translate(node.textContent || '', reverse);
             }
-        } else {
+        } else if(node.nodeType === Node.ELEMENT_NODE) {
             // Translate child nodes
             for (const child of Array.from(node.childNodes)) {
                 await translateNode(child);

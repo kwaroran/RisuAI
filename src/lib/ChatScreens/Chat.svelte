@@ -69,15 +69,19 @@
     let lastParsed = ''
 
     const markParsing = async (data: string, charArg?: string | groupChat | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean) => {
-        const marked = await ParseMarkdown(data, charArg, mode, chatID)
-        lastParsed = marked
         if(translateText){
+            const marked = await ParseMarkdown(data, charArg, mode, chatID)
             translating = true
             const translated = await translateHTML(marked, false)
             translating = false
+            lastParsed = translated
             return translated
         }
-        return marked
+        else{
+            const marked = await ParseMarkdown(data, charArg, mode, chatID)
+            lastParsed = marked
+            return marked
+        }
     }
 
     $: displaya(message)
