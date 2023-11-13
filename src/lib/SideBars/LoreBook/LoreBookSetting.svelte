@@ -36,7 +36,7 @@
     {#if !globalMode}
         <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? $CurrentCharacter.type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     {/if}
-    <LoreBookList bind:globalMode bind:submenu lorePlus={$CurrentCharacter.lorePlus} />
+    <LoreBookList bind:globalMode bind:submenu lorePlus={(!globalMode) && $CurrentCharacter.lorePlus} />
 {:else}
     {#if $CurrentCharacter.loreSettings}
         <div class="flex items-center mt-4">
