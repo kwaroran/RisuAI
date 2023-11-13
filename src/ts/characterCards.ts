@@ -295,7 +295,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                 alwaysActive: book.constant ?? false,
                 selective: book.selective ?? false,
                 extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
-                activationPercent: book.extensions?.risu_activationPercent
+                activationPercent: book.extensions?.risu_activationPercent,
+                loreCache: book.extensions?.risu_loreCache ?? null,
             })
         }
 
@@ -362,6 +363,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         virtualscript: data?.extensions?.risuai?.virtualscript ?? '',
         extentions: ext ?? {},
         largePortrait: data?.extensions?.risuai?.largePortrait ?? (!data?.extensions?.risuai),
+        lorePlus: data?.extensions?.risuai?.lorePlus ?? false,
     }
 
     db.characters.push(char)
@@ -382,10 +384,15 @@ async function createBaseV2(char:character) {
         let ext:{
             risu_case_sensitive?: boolean;
             risu_activationPercent?: number
+            risu_loreCache?: {
+                key:string
+                data:string[]
+            }
         } = cloneDeep(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
+        ext.risu_loreCache = lore.loreCache
 
         charBook.push({
             keys: lore.key.split(',').map(r => r.trim()),
@@ -444,6 +451,7 @@ async function createBaseV2(char:character) {
                     additionalText: char.additionalText,
                     virtualscript: char.virtualscript,
                     largePortrait: char.largePortrait,
+                    lorePlus: char.lorePlus,
                 },
                 depth_prompt: char.depth_prompt
             }
@@ -725,6 +733,7 @@ type CharacterCardV2 = {
                 additionalText?:string
                 virtualscript?:string
                 largePortrait?:boolean
+                lorePlus?:boolean
             }
             depth_prompt?: { depth: number, prompt: string }
         }
