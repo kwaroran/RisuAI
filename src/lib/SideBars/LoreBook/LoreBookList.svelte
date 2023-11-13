@@ -8,6 +8,7 @@
 
     export let globalMode = false
     export let submenu = 0
+    export let lorePlus = false
     let stb: Sortable = null
     let ele: HTMLDivElement
     let sorted = 0
@@ -94,7 +95,7 @@
                         let lore  = $CurrentCharacter.globalLore
                         lore.splice(i, 1)
                         $CurrentCharacter.globalLore = lore
-                    }} onOpen={onOpen} onClose={onClose}/>
+                    }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
                 {/each}
             {/if}
         {:else if submenu === 1}
@@ -106,7 +107,7 @@
                         let lore  = $CurrentChat.localLore
                         lore.splice(i, 1)
                         $CurrentChat.localLore = lore
-                    }} onOpen={onOpen} onClose={onClose}/>
+                    }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
                 {/each}
             {/if}
         {/if}

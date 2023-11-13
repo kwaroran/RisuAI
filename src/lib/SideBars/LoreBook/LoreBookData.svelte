@@ -12,6 +12,7 @@
     export let onRemove: () => void = () => {}
     export let onClose: () => void = () => {}
     export let onOpen: () => void = () => {}
+    export let lorePlus = false
 
     export let idx:number
     let open = false
@@ -47,47 +48,57 @@
         <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
             <span class="text-textcolor mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
-            {#if !value.alwaysActive}
-                <span class="text-textcolor mt-6">{language.activationKeys} <Help key="loreActivationKey"/></span>
-                <span class="text-xs text-textcolor2">{language.activationKeysInfo}</span>
-                <TextInput size="sm" bind:value={value.key}/>
-
-                {#if value.selective}
-                    <span class="text-textcolor mt-6">{language.SecondaryKeys}</span>
+            {#if !lorePlus}
+                {#if !value.alwaysActive}
+                    <span class="text-textcolor mt-6">{language.activationKeys} <Help key="loreActivationKey"/></span>
                     <span class="text-xs text-textcolor2">{language.activationKeysInfo}</span>
-                    <TextInput size="sm" bind:value={value.secondkey}/>
+                    <TextInput size="sm" bind:value={value.key}/>
+
+                    {#if value.selective}
+                        <span class="text-textcolor mt-6">{language.SecondaryKeys}</span>
+                        <span class="text-xs text-textcolor2">{language.activationKeysInfo}</span>
+                        <TextInput size="sm" bind:value={value.secondkey}/>
+                    {/if}
                 {/if}
             {/if}
-            {#if !(value.activationPercent === undefined || value.activationPercent === null)}
-                <span class="text-textcolor mt-6">{language.activationProbability}</span>
-                <NumberInput size="sm" bind:value={value.activationPercent} onChange={() => {
-                    if(isNaN(value.activationPercent) || !value.activationPercent || value.activationPercent < 0){
-                        value.activationPercent = 0
-                    }
-                    if(value.activationPercent > 100){
-                        value.activationPercent = 100
-                    }
-                }} />
+            {#if !lorePlus}
+                {#if !(value.activationPercent === undefined || value.activationPercent === null)}
+                    <span class="text-textcolor mt-6">{language.activationProbability}</span>
+                    <NumberInput size="sm" bind:value={value.activationPercent} onChange={() => {
+                        if(isNaN(value.activationPercent) || !value.activationPercent || value.activationPercent < 0){
+                            value.activationPercent = 0
+                        }
+                        if(value.activationPercent > 100){
+                            value.activationPercent = 100
+                        }
+                    }} />
+                {/if}
             {/if}
-            <span class="text-textcolor mt-4">{language.insertOrder} <Help key="loreorder"/></span>
-            <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
+            {#if !lorePlus}
+                <span class="text-textcolor mt-4">{language.insertOrder} <Help key="loreorder"/></span>
+                <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
+            {/if}
             <span class="text-textcolor mt-4 mb-2">{language.prompt}</span>
             <TextAreaInput autocomplete="off" bind:value={value.content} />
             <div class="flex items-center mt-4">
                 <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>
-            <div class="flex items-center mt-2">
-                <Check bind:check={value.selective} name={language.selective}/>
-                <Help key="loreSelective" name={language.selective}/>
-            </div>
-            <div class="flex items-center mt-2 mb-6">
-                {#if value.activationPercent === undefined || value.activationPercent === null}
-                    <Check name={language.loreRandomActivation} check={false} onChange={() => {value.activationPercent = 50}}/>
-                {:else}
-                    <Check name={language.loreRandomActivation} check={true} onChange={() => {value.activationPercent = null}}/>
-                {/if}
-                <span><Help name={language.loreRandomActivation} key="loreRandomActivation"/></span>
-            </div>
+            {#if !lorePlus}
+                <div class="flex items-center mt-2">
+                    <Check bind:check={value.selective} name={language.selective}/>
+                    <Help key="loreSelective" name={language.selective}/>
+                </div>
+            {/if}
+            {#if !lorePlus}
+                <div class="flex items-center mt-2 mb-6">
+                    {#if value.activationPercent === undefined || value.activationPercent === null}
+                        <Check name={language.loreRandomActivation} check={false} onChange={() => {value.activationPercent = 50}}/>
+                    {:else}
+                        <Check name={language.loreRandomActivation} check={true} onChange={() => {value.activationPercent = null}}/>
+                    {/if}
+                    <span><Help name={language.loreRandomActivation} key="loreRandomActivation"/></span>
+                </div>
+            {/if}
         </div>
     {/if}
 </div>

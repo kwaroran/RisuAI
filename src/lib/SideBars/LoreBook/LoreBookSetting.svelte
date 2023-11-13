@@ -7,6 +7,7 @@
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
+  import Help from "src/lib/Others/Help.svelte";
 
     let submenu = 0
     export let globalMode = false
@@ -35,7 +36,7 @@
     {#if !globalMode}
         <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? $CurrentCharacter.type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     {/if}
-    <LoreBookList bind:globalMode bind:submenu />
+    <LoreBookList bind:globalMode bind:submenu lorePlus={$CurrentCharacter.lorePlus} />
 {:else}
     {#if $CurrentCharacter.loreSettings}
         <div class="flex items-center mt-4">
@@ -68,6 +69,11 @@
             />
         </div>
     {/if}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$CurrentCharacter.lorePlus}
+            name={language.lorePlus}
+        ><Help key="lorePlus"></Help><Help key="experimental"></Help></Check>
+    </div>
 {/if}
 {#if submenu !== 2}
 

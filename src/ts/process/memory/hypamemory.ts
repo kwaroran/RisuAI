@@ -79,7 +79,15 @@ export class HypaProcesser{
         return result
     }
 
-
+    async testText(text:string){
+        const forageResult:number[] = await this.forage.getItem(text)
+        if(forageResult){
+            return forageResult
+        }
+        const vec = (await this.embedDocuments([text]))[0]
+        await this.forage.setItem(text, vec)
+        return vec
+    }
     
     async addText(texts:string[]) {
 
@@ -147,7 +155,11 @@ export class HypaProcesser{
           ]);
       
           return result;
-      }
+    }
+
+    similarityCheck(query1:number[],query2: number[]) {
+        return similarity.cosine(query1, query2)
+    }
 }
 
 

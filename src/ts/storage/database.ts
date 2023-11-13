@@ -526,6 +526,10 @@ export interface loreBook{
         risu_case_sensitive:boolean
     }
     activationPercent?:number
+    loreCache?:{
+        key:string
+        data:string[]
+    }
 }
 
 export interface character{
@@ -590,6 +594,7 @@ export interface character{
     depth_prompt?: { depth: number, prompt: string }
     extentions?:{[key:string]:any}
     largePortrait?:boolean
+    lorePlus?:boolean
 }
 
 
@@ -632,6 +637,7 @@ export interface groupChat{
     backgroundCSS?:string
     oneAtTime?:boolean
     virtualscript?:string
+    lorePlus?:boolean
 }
 
 export interface botPreset{

@@ -6,6 +6,7 @@ import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../storage/globalApi";
+import { HypaProcesser } from "./memory/hypamemory";
 
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
@@ -61,6 +62,8 @@ interface formatedLore{
 const rmRegex = / |\n/g
 
 export async function loadLoreBookPrompt(){
+    
+
     const selectedID = get(selectedCharID)
     const db = get(DataBase)
     const char = db.characters[selectedID]
@@ -73,6 +76,10 @@ export async function loadLoreBookPrompt(){
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
     const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
+
+    if(char.lorePlus){
+        return await loadLoreBookPlusPrompt()
+    }
 
     let activatiedPrompt: string[] = []
 
@@ -201,6 +208,94 @@ export async function loadLoreBookPrompt(){
     }
 }
 
+export async function loadLoreBookPlusPrompt(){
+    const selectedID = get(selectedCharID)
+    const db = get(DataBase)
+    const char = db.characters[selectedID]
+    const page = char.chatPage
+    const characterLore = char.globalLore ?? []
+    const chatLore = char.chats[page].localLore ?? []
+    const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
+    const fullLore = characterLore.concat(chatLore.concat(globalLore)).filter((v) => { return v.content })
+    const currentChat = char.chats[page].message
+    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+
+    interface formatedLorePlus{
+        content: string
+        simularity:number
+    }
+
+    let formatedLores:formatedLorePlus[] = []
+    let activatiedPrompt: string[] = []
+    const hypaProcesser = new HypaProcesser('MiniLM')
+
+    
+    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
+        return msg.data
+    }).join('||').replace(rmRegex,'').toLocaleLowerCase()
+    const chatVec = await hypaProcesser.testText(formatedChatMain)
+
+
+    for(const lore of fullLore){
+        let key = (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',')
+        key.push(lore.comment)
+
+        let vec:number[]
+
+        if(lore.loreCache && lore.loreCache.key === lore.content){
+            const vect = lore.loreCache.data[0]
+            const v = Buffer.from(vect, 'base64')
+            const f = new Float32Array(v.buffer)
+            vec = Array.from(f)
+        }
+        else{
+            vec = await hypaProcesser.testText(lore.content)
+            lore.loreCache = {
+                key: lore.content,
+                data: [Buffer.from(new Float32Array(vec).buffer).toString('base64')]
+            }
+        }
+
+        
+
+        formatedLores.push({
+            content: lore.content,
+            simularity: hypaProcesser.similarityCheck(chatVec, vec)
+        })
+    }
+
+    formatedLores.sort((a, b) => {
+        return b.simularity - a.simularity
+    })
+
+    let i=0;
+    while(i < formatedLores.length){
+        const lore = formatedLores[i]
+        const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
+        if(totalTokens > loreToken){
+            break
+        }
+        activatiedPrompt.push(lore.content)
+        i++
+    }
+
+
+    let sactivated:string[] = []
+    activatiedPrompt = activatiedPrompt.filter((v) => {
+        if(v.startsWith("@@@end")){
+            sactivated.push(v.replace('@@@end','').trim())
+            return false
+        }
+        return true
+    })
+
+    return {
+        act: activatiedPrompt.reverse().join('\n\n'),
+        special_act: sactivated.reverse().join('\n\n')
+    }
+    
+}
 
 export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const selectedID = get(selectedCharID)
