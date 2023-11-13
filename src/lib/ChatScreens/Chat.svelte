@@ -77,7 +77,7 @@
             lastCharArg = charArg
             lastChatId = chatID
             translateText = false
-            translated = false
+            translated = get(DataBase).autoTranslate
         }
         if(translateText){
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
