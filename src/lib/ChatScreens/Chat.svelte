@@ -20,7 +20,7 @@
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
-    let translating = false
+    let translating = (!!$DataBase.autoTranslate)
     let editMode = false
     let statusMessage:string = ''
     export let altGreeting = false
@@ -76,7 +76,7 @@
             lastParsed = ''
             lastCharArg = charArg
             lastChatId = chatID
-            translating = false
+            translating = (!!$DataBase.autoTranslate)
             translated = false
         }
         if(translateText){
