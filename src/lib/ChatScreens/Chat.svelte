@@ -79,7 +79,7 @@
             translating = false
             translated = false
         }
-        if((!translateText) !== (!get(DataBase)?.autoTranslate)){
+        if(translateText){
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
             translating = true
             const translated = await translateHTML(marked, false)
