@@ -77,6 +77,7 @@
             lastCharArg = charArg
             lastChatId = chatID
             translating = (!!$DataBase.autoTranslate)
+            translateText = translating
             translated = false
         }
         if(translateText){
