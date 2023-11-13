@@ -26,7 +26,7 @@
     export let altGreeting = false
 
     let msgDisplay = ''
-    let translated = get(DataBase).autoTranslate
+    let translated = false
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
@@ -76,10 +76,10 @@
             lastParsed = ''
             lastCharArg = charArg
             lastChatId = chatID
-            translateText = false
-            translated = get(DataBase).autoTranslate
+            translating = false
+            translated = false
         }
-        if(translateText){
+        if(translateText !== get(DataBase).autoTranslate){
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
             translating = true
             const translated = await translateHTML(marked, false)
