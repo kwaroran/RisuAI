@@ -52,9 +52,11 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
             break
         }
         case 'class':{
-            data.attrValue = data.attrValue.split(' ').map((v) => {
-                return "x-risu-" + v
-            }).join(' ')
+            if(data.attrValue){
+                data.attrValue = data.attrValue.split(' ').map((v) => {
+                    return "x-risu-" + v
+                }).join(' ')
+            }
             break
         }
     }
@@ -180,14 +182,16 @@ function decodeStyle(text:string){
                         if(rule.selectors){
                             for(let i=0;i<rule.selectors.length;i++){
                                 let slt:string = rule.selectors[i]
-                                let selectors = slt.split(' ').map((v) => {
-                                    if(v.startsWith('.')){
-                                        return ".x-risu-" + v.substring(1)
-                                    }
-                                    return v
-                                }).join(' ')
-    
-                                rule.selectors[i] = ".chattext " + selectors
+                                if(slt){
+                                    let selectors = (slt.split(' ') ?? []).map((v) => {
+                                        if(v.startsWith('.')){
+                                            return ".x-risu-" + v.substring(1)
+                                        }
+                                        return v
+                                    }).join(' ')
+        
+                                    rule.selectors[i] = ".chattext " + selectors
+                                }
                             }
                         }
                     }

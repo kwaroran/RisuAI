@@ -88,25 +88,26 @@
                 }
             } catch (error) {}
         }
-        if(translateText){
-            const marked = await ParseMarkdown(data, charArg, mode, chatID)
-            translating = true
-            const translated = await translateHTML(marked, false)
-            translating = false
-            lastParsed = translated
-            lastCharArg = charArg
-            return translated
-        }
-        else{
-            const marked = await ParseMarkdown(data, charArg, mode, chatID)
-            lastParsed = marked
-            lastCharArg = charArg
-            return marked
-        }   
+            if(translateText){
+                const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                translating = true
+                const translated = await translateHTML(marked, false)
+                translating = false
+                lastParsed = translated
+                lastCharArg = charArg
+                return translated
+            }
+            else{
+                const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                lastParsed = marked
+                lastCharArg = charArg
+                return marked
+            }   
         } catch (error) {
             //retry
             if(tries > 2){
-                alertError(`Error while parsing chat message: ${error}`)
+
+                alertError(`Error while parsing chat message: ${translateText}, ${error.message}`)
                 return data
             }
             return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
@@ -194,11 +195,11 @@
                     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
                     style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
                 >
-                {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                    {@html lastParsed}
-                {:then md}
-                    {@html md}
-                {/await}
+                    {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                        {@html lastParsed}
+                    {:then md}
+                        {@html md}
+                    {/await}
                 </span>
             {/if}
         </span>
