@@ -140,6 +140,10 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
     }
 
+    if((!res[0]) || res[0].length === 0){
+        return text
+    }
+
     const result = (res[0].map((s) => s[0]).filter(Boolean).join('') as string).replace(/\* ([^*]+)\*/g, '*$1*').replace(/\*([^*]+) \*/g, '*$1*');
     return result
 }
