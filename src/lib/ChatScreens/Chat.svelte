@@ -2,7 +2,7 @@
     import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertConfirm } from "../../ts/alert";
+    import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type groupChat } from "../../ts/storage/database";
     import { CurrentChat, selectedCharID } from "../../ts/stores";
@@ -20,13 +20,16 @@
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
-    let translating = (!!$DataBase.autoTranslate)
+    let translating = false
+    try {
+        translating = get(DataBase).autoTranslate                
+    } catch (error) {}
     let editMode = false
     let statusMessage:string = ''
     export let altGreeting = false
 
     let msgDisplay = ''
-    let translated = false
+    let translated = get(DataBase).autoTranslate
     async function rm(){
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
@@ -55,7 +58,7 @@
         $CurrentChat.message = msg
     }
 
-    async function displaya(message:string){
+    function displaya(message:string){
         msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
     }
 
@@ -71,14 +74,19 @@
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
 
-    const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean) => {
-        if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
+    const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
+        try {
+            if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
             lastParsed = ''
             lastCharArg = charArg
             lastChatId = chatID
-            translating = (!!$DataBase.autoTranslate)
-            translateText = translating
-            translated = false
+            translateText = false
+            try {
+                translated = get(DataBase).autoTranslate
+                if(translated){
+                    translateText = true
+                }
+            } catch (error) {}
         }
         if(translateText){
             const marked = await ParseMarkdown(data, charArg, mode, chatID)
@@ -94,6 +102,14 @@
             lastParsed = marked
             lastCharArg = charArg
             return marked
+        }   
+        } catch (error) {
+            //retry
+            if(tries > 2){
+                alertError(`Error while parsing chat message: ${error}`)
+                return data
+            }
+            return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
         }
     }
 

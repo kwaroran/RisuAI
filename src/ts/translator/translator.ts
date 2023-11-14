@@ -162,29 +162,57 @@ async function jaTrans(text:string) {
 
 export async function translateHTML(html: string, reverse:boolean): Promise<string> {
     const dom = new DOMParser().parseFromString(html, 'text/html');
+    console.log(html)
+
+    let promises: Promise<void>[] = [];
+
+    async function translateNodeText(node:Node) {
+        if(node.textContent.trim().length !== 0){
+            node.textContent = await translate(node.textContent || '', reverse);
+        }
+    }
 
     // Recursive function to translate all text nodes
-    async function translateNode(node: Node): Promise<void> {
+    async function translateNode(node: Node, parent?: Node): Promise<void> {
         if (node.nodeType === Node.TEXT_NODE) {
             // Translate the text content of the node
-            if(node.textContent){
-                node.textContent = await translate(node.textContent || '', reverse);
+            if(node.textContent && parent){
+                const parentName = parent.nodeName.toLowerCase();
+                if(parentName === 'script' || parentName === 'style'){
+                    return
+                }
+                if(promises.length > 10){
+                    await Promise.all(promises)
+                    promises = []
+                }
+                promises.push(translateNodeText(node))
             }
         } else if(node.nodeType === Node.ELEMENT_NODE) {
             // Translate child nodes
+            //skip if it's a script or style tag
+            if(node.nodeName.toLowerCase() === 'script' || node.nodeName.toLowerCase() === 'style'){
+                return
+            }
+
             for (const child of Array.from(node.childNodes)) {
-                await translateNode(child);
+                await translateNode(child, node);
             }
         }
     }
+    
 
     // Start translation from the body element
     await translateNode(dom.body);
 
+    await Promise.all(promises)
     // Serialize the DOM back to HTML
     const serializer = new XMLSerializer();
-    const translatedHTML = serializer.serializeToString(dom.body);
+    let translatedHTML = serializer.serializeToString(dom);
+    // Remove the outer <body> tags
+    translatedHTML = translatedHTML.replace(/^<body[^>]*>|<\/body>$/g, '');
 
+    // console.log(html)
+    // console.log(translatedHTML)
     // Return the translated HTML, excluding the outer <body> tags if needed
     return translatedHTML
 }
