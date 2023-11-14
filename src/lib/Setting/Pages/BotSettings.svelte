@@ -248,6 +248,7 @@
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
+    <span class="text-draculared text-xs mb-2">Warning: For Ooba version over 1.7, use "Reverse Proxy" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
 {/if}
 {#if advancedBotSettings}
     {#if !$DataBase.promptTemplate}
