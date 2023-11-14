@@ -56,7 +56,6 @@ export const languageChinese = {
 		"chatNote": "强烈影响模型行为的聊天注释。嵌入到当前聊天中。也被称为记忆或ujb。",
 		"personality": "关于角色个性的简短描述。\n\n**不建议使用此选项。改为在角色描述中进行描述。**",
 		"scenario": "关于角色情境的简短描述。\n\n**不建议使用此选项。改为在角色描述中进行描述。**",
-		"utilityBot": "激活后，它会忽略主要提示。\n\n**不建议使用此选项。改为修改系统提示词。**",
 		"loreSelective": "如果切换选择性的，则激活键和次要键都应有匹配项才能激活lorebook。",
 		"loreRandomActivation": "如果启用了概率条件，那么当lorebook的其他条件都已满足时，每次发送聊天时lorebook将以“概率”设置的概率被激活。",
 		"additionalAssets": "在你的聊天中显示的额外资源。\n\n - 使用`{{raw::<asset name>}}`作为路径\n - 使用`{{img::<asset name>}}`作为图片\n - 使用`{{video::<asset name>}}`作为视频\n - 使用`{{audio::<asset name>}}` 作为音频\n    - 建议放在背景 HTML中",
