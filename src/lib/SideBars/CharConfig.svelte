@@ -773,12 +773,10 @@
             </table>
         </div>
 
-        {#if $DataBase.showUnrecommended || currentChar.data.utilityBot}
-            <div class="flex items-center mt-4">
-                <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
-                <span> <Help key="utilityBot" unrecommended name={language.utilityBot}/></span>
-            </div>
-        {/if}
+        <div class="flex items-center mt-4">
+            <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
+            <span> <Help key="utilityBot" name={language.utilityBot}/></span>
+        </div>
 
         {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
             && currentChar.data.license !== 'CC BY-SA 4.0'

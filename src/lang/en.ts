@@ -82,7 +82,7 @@ export const languageEnglish = {
         chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory or ujb.",
         personality: "A brief description about character's personality. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
         scenario: "A brief description about character's scenario. \n\n**It is not recommended to use this option. Describe it in character description instead.**",
-        utilityBot: "When activated, it ignores main prompt. \n\n**It is not recommended to use this option. Modifiy system prompt instead.**",
+        utilityBot: "When activated, it ignores main prompt, jailbreak and other prompts. used for bot made for utility, not for roleplay.",
         loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
         loreRandomActivation: "If Use Probability Condition is abled, if the lore's other conditions are all met, the lore will be activated with a set probability which is set by 'Probability' each time a chat is sent.",
         additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",

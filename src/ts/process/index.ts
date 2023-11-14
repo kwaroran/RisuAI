@@ -173,11 +173,41 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         'personaPrompt':([] as OpenAIChat[])
     }
 
-    const promptTemplate = cloneDeep(db.promptTemplate)
+    let promptTemplate = cloneDeep(db.promptTemplate)
     if(promptTemplate){
         promptTemplate.push({
             type: 'postEverything'
         })
+    }
+    if(currentChar.utilityBot){
+        promptTemplate = [
+            {
+              "type": "plain",
+              "text": "",
+              "role": "system",
+              "type2": "main"
+            },
+            {
+              "type": "description",
+            },
+            {
+              "type": "lorebook",
+            },
+            {
+              "type": "chat",
+              "rangeStart": 0,
+              "rangeEnd": "end"
+            },
+            {
+              "type": "plain",
+              "text": "",
+              "role": "system",
+              "type2": "globalNote"
+            },
+            {
+                'type': "postEverything"
+            }
+        ]
     }
 
     if((!currentChar.utilityBot) && (!promptTemplate)){

@@ -57,7 +57,6 @@ export const LanguageVietnamese = {
       "chatNote": "một lưu ý có ảnh hưởng mạnh mẽ đến hành vi của mô hình. được nhúng vào cuộc trò chuyện hiện tại. còn được gọi là bộ nhớ hoặc ujb.",
       "personality": "Mô tả ngắn gọn về tính cách nhân vật.\n\n**Không nên sử dụng tùy chọn này. Thay vào đó hãy mô tả nó bằng phần mô tả nhân vật.**",
       "scenario": "Một mô tả ngắn gọn về kịch bản của nhân vật.\n\n**Không nên sử dụng tùy chọn này. Thay vào đó hãy mô tả nó bằng phần mô tả nhân vật.**",
-      "utilityBot": "Khi được kích hoạt, nó sẽ bỏ qua lời nhắc chính.\n\n**Không nên sử dụng tùy chọn này. Thay vào đó, hãy sửa đổi lời nhắc của hệ thống.**",
       "loreSelective": "Nếu chế độ Chọn lọc được bật, cả Khóa kích hoạt và Khóa phụ phải khớp nhau để kích hoạt truyền thuyết.",
       "loreRandomActivation": "Nếu Điều kiện Xác suất Sử dụng được kích hoạt, nếu tất cả các điều kiện khác của truyền thuyết đều được đáp ứng, truyền thuyết sẽ được kích hoạt với một xác suất đã đặt được đặt bởi 'Xác suất' mỗi lần trò chuyện được gửi.",
       "additionalAssets": "Nội dung bổ sung để hiển thị trong cuộc trò chuyện của bạn.\n\n - sử dụng `{{raw::<asset name>}}` để dùng làm đường dẫn.\n - sử dụng `{{img::<asset name>}}` để sử dụng làm hình ảnh\n - sử dụng `{{video::<asset name>}}` để sử dụng làm video\n - sử dụng `{{audio::<asset name>}}` để sử dụng làm âm thanh\n    - nên đặt HTML nền",
