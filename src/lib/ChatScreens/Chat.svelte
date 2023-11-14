@@ -107,7 +107,7 @@
             //retry
             if(tries > 2){
 
-                alertError(`Error while parsing chat message: ${translateText}, ${error.message}`)
+                alertError(`Error while parsing chat message: ${translateText}, ${error.message}, ${error.stack}`)
                 return data
             }
             return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
