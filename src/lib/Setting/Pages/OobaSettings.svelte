@@ -105,12 +105,7 @@
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.custom_token_bans} />
     <span class="text-textcolor">grammar_string</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.grammar_string} />
-
-    <span class="text-textcolor">custom_token_bans</span>
-    <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.custom_token_bans} />
-    <span class="text-textcolor">grammar_string</span>
-    <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.grammar_string} />
-
+    
     <span class="text-textcolor">temperature_last</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.temperature_last} boolMode />
     <span class="text-textcolor">do_sample</span>

@@ -683,6 +683,8 @@ export interface botPreset{
     NAIappendName?: boolean
     localStopStrings?: string[]
     customProxyRequestModel?: string
+    reverseProxyOobaArgs?: OobaChatCompletionRequestParams
+
 }
 
 
@@ -855,6 +857,9 @@ export const presetTemplate:botPreset = {
     bias: [],
     ooba: cloneDeep(defaultOoba),
     ainconfig: cloneDeep(defaultAIN),
+    reverseProxyOobaArgs: {
+        mode: 'instruct'
+    }
 
 }
 
@@ -910,6 +915,7 @@ export function saveCurrentPreset(){
         localStopStrings: db.localStopStrings,
         autoSuggestPrompt: db.autoSuggestPrompt,
         customProxyRequestModel: db.customProxyRequestModel,
+        reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null
     }
     db.botPresets = pres
     setDatabase(db)
@@ -975,6 +981,9 @@ export function setPreset(db:Database, newPres: botPreset){
     db.NAIsettings.mirostat_lr ??= 1
     db.localStopStrings = newPres.localStopStrings
     db.customProxyRequestModel = newPres.customProxyRequestModel ?? ''
+    db.reverseProxyOobaArgs = cloneDeep(newPres.reverseProxyOobaArgs) ?? {
+        mode: 'instruct'
+    }
     return db
 }
 
