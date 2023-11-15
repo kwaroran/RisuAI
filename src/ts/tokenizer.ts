@@ -17,9 +17,10 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     if(db.aiModel.startsWith('novelai')){
         return await tokenizeWebTokenizers(data, 'novelai')
     }
-    if(db.aiModel.startsWith('local_') || db.aiModel === 'mancer' || db.aiModel === 'textgen_webui'){
+    if(db.aiModel.startsWith('local_') || db.aiModel === 'mancer' || db.aiModel === 'textgen_webui' || (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
         return await tokenizeWebTokenizers(data, 'llama')
     }
+
     return await tikJS(data)
 }
 

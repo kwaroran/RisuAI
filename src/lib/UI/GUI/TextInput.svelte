@@ -16,11 +16,13 @@
     class:mt-4={marginTop}
     class:w-full={fullwidth}
     class:h-full={fullh}
+    class:text-textcolor2={disabled}
     {autocomplete}
     {placeholder}
     id={id}
     type="text"
     bind:value
+    disabled={disabled}
     on:input={onInput}
 />
 
@@ -38,4 +40,5 @@
     export let fullwidth = false
     export let fullh = false
     export let additionalClass = ''
+    export let disabled = false
 </script>

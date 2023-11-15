@@ -11,6 +11,7 @@ import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { Proompt } from '../process/proompt';
+import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
@@ -320,6 +321,9 @@ export function setDatabase(data:Database){
     data.generationSeed ??= -1
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
+    data.reverseProxyOobaArgs ??= {
+        mode: 'instruct'
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -499,6 +503,8 @@ export interface Database{
     putUserOpen: boolean
     inlayImage:boolean
     gptVisionQuality:string
+    reverseProxyOobaMode:boolean
+    reverseProxyOobaArgs: OobaChatCompletionRequestParams
 }
 
 export interface customscript{

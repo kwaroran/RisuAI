@@ -21,6 +21,7 @@
     import { openRouterModels } from "src/ts/model/openrouter";
     import { novelLogin } from "src/ts/process/models/nai";
   import { alertConfirm } from "src/ts/alert";
+  import OobaSettings from "./OobaSettings.svelte";
 
     let tokens = {
         mainPrompt: 0,
@@ -160,6 +161,9 @@
     {:else}
         <div class="mb-4"></div>
     {/if}
+    <div class="flex items-center mt-2 mb-4">
+        <Check bind:check={$DataBase.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
+    </div>
 {/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
     <span class="text-textcolor mt-4">Openrouter Key</span>
@@ -459,6 +463,9 @@
 {/if}
 {/if}
 
+{#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy')}
+    <OobaSettings />
+{/if}
 
 
 {#if advancedBotSettings}

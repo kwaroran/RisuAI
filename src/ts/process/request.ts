@@ -295,6 +295,18 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.user = getOpenUserString()
             }
 
+            if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
+                const OobaBodyTemplate = db.reverseProxyOobaArgs
+
+                const keys = Object.keys(OobaBodyTemplate)
+                for(const key of keys){
+                    if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                        // @ts-ignore
+                        body[key] = OobaBodyTemplate[key]
+                    }
+                }
+            }
+
             if(supportsInlayImage()){
                 // inlay models doesn't support logit_bias
                 // @ts-ignore
