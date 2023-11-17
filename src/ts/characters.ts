@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./storage/globalApi";
 import * as yuso from 'yuso'
+import { reencodeImage } from "./image";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -71,13 +72,13 @@ export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgc
 }
 
 export async function selectCharImg(charId:number) {
-    const selected = await selectSingleFile(['png'])
+    const selected = await selectSingleFile(['png', 'webp', 'gif', 'jpg', 'jpeg'])
     if(!selected){
         return
     }
     const img = selected.data
     let db = get(DataBase)
-    const imgp = await saveImage(img)
+    const imgp = await saveImage(await reencodeImage(img))
     db.characters[charId].image = imgp
     setDatabase(db)
 }
@@ -492,7 +493,7 @@ export async function addDefaultCharacters() {
         }
 
         char.chatPage = 0
-        char.image = await saveImage(yuso.trim(Buffer.from(imgBuffer)))
+        char.image = await saveImage(await reencodeImage(Buffer.from(imgBuffer)))
         char.chaId = uuidv4()
         db.characters.push(characterFormatUpdate(char))
         setDatabase(db)

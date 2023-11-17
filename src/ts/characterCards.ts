@@ -1,5 +1,5 @@
 import { get, writable, type Writable } from "svelte/store"
-import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS } from "./alert"
+import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
 import { checkNullish, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
@@ -10,6 +10,7 @@ import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage } from "./parser"
 import * as yuso from 'yuso'
+import { reencodeImage } from "./image"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -68,7 +69,7 @@ async function importCharacterProcess(f:{
         }
     }
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
-    const imgp = await saveAsset(yuso.trim(img))
+    const imgp = await saveAsset(await reencodeImage(img))
     let db = get(DataBase)
     db.characters.push(convertOldTavernAndJSON(charaData, imgp))
     DataBase.set(db)
@@ -105,6 +106,7 @@ export async function characterURLImport() {
     const charPath = (new URLSearchParams(location.search)).get('charahub')
     try {
         if(charPath){
+            alertWait('Loading from Chub...')
             const url = new URL(location.href);
             url.searchParams.delete('charahub');
             window.history.pushState(null, '', url.toString());
@@ -120,26 +122,10 @@ export async function characterURLImport() {
                 }
             })
             const img = new Uint8Array(await chara.arrayBuffer())
-    
-            const readed = (yuso.decode(img, "chara"))
-            {
-                const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
-                if(await importSpecv2(charaData, img)){
-                    checkCharOrder()
-                    return
-                }
-            }
-            {
-                const imgp = await saveAsset(yuso.trim(img))
-                let db = get(DataBase)
-                const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))    
-                db.characters.push(convertOldTavernAndJSON(charaData, imgp))
-    
-                DataBase.set(db)
-                checkCharOrder()
-                alertNormal(language.importedCharacter)
-                return
-            }
+            await importCharacterProcess({
+                name: 'charahub.png',
+                data: img
+            })
         }
     } catch (error) {
         alertError(language.errors.noData)
@@ -221,7 +207,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
     }
 
     const data = card.data
-    const im = img ? await saveAsset(yuso.trim(img)) : undefined
+    const im = img ? await saveAsset(await reencodeImage(img)) : undefined
     let db = get(DataBase)
 
     const risuext = cloneDeep(data.extensions.risuai)
@@ -513,6 +499,7 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
 
         await sleep(10)
 
+        img = await reencodeImage(img)
         img = yuso.encode(img, "chara",Buffer.from(JSON.stringify(card)).toString('base64'))
 
         alertStore.set({

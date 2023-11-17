@@ -6,6 +6,7 @@ import * as yuso from 'yuso'
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
 import { cloneDeep } from "lodash"
+import { reencodeImage } from "./image"
 
 export async function selectUserImg() {
     const selected = await selectSingleFile(['png'])
@@ -80,7 +81,7 @@ export async function exportUserPersona(){
 
     await sleep(10)
 
-    img = yuso.encode(yuso.trim(img), "persona",Buffer.from(JSON.stringify(card)).toString('base64'))
+    img = yuso.encode(await reencodeImage(img), "persona",Buffer.from(JSON.stringify(card)).toString('base64'))
 
     alertStore.set({
         type: 'wait',
@@ -102,7 +103,7 @@ export async function importUserPersona(){
             let db = get(DataBase)
             db.personas.push({
                 name: data.name,
-                icon: await saveImage(yuso.trim(v.data)),
+                icon: await saveImage(await reencodeImage(v.data)),
                 personaPrompt: data.personaPrompt
             })
             setDatabase(db)
