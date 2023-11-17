@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
+import { alertError, alertErrorWait, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { DataBase, setDatabase, type Database } from "../storage/database";
 import { forageStorage, getUnpargeables, isNodeServer, isTauri, openURL } from "../storage/globalApi";
 import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
@@ -221,7 +221,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            const formatedKey = formatKeys(key)
+            const formatedKey = newFormatKeys(key)
             if(!fileNames.includes(formatedKey)){
                 await createFileInFolder(ACCESS_TOKEN, formatedKey, await readBinaryFile(asset.path))
             }
@@ -239,7 +239,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
             if(!key.endsWith('.png')){
                 continue
             }
-            const formatedKey = formatKeys(key)
+            const formatedKey = newFormatKeys(key)
             if(!fileNames.includes(formatedKey)){
                 await createFileInFolder(ACCESS_TOKEN, formatedKey, await forageStorage.getItem(key))
             }
@@ -366,48 +366,55 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
         localStorage.setItem('risu_lastsaved', `${lastSaved}`)
         const requiredImages = (getUnpargeables(db))
         let ind = 0;
+        let errorLogs:string[] = []
         for(const images of requiredImages){
             ind += 1
-            const formatedImage = formatKeys(images)
-            if(mode === 'sync'){
-                alertStore.set({
-                    type: "wait",
-                    msg: `Sync Files... (${ind} / ${requiredImages.length})`
-                })
-            }
-            else{
-                alertStore.set({
-                    type: "wait",
-                    msg: `Loading Backup... (${ind} / ${requiredImages.length})`
-                })
-            }
-            if(await checkImageExists(images)){
-                //skip process
-            }
-            else{
-                if(formatedImage.length >= 7){
-                    if(fileNames.includes(formatedImage)){
-                        for(const file of files){
-                            if(file.name === formatedImage){
-                                const fData = await getFileData(ACCESS_TOKEN, file.id)
-                                if(isTauri){
-                                    await writeBinaryFile(`assets/` + images, fData ,{dir: BaseDirectory.AppData})
-    
-                                }
-                                else{
-                                    await forageStorage.setItem('assets/' + images, fData)
+            for(let tries=0;tries<3;tries++){
+                const formatedImage = tries === 0 ? newFormatKeys(images) : formatKeys(images)
+                if(mode === 'sync'){
+                    alertStore.set({
+                        type: "wait",
+                        msg: `Sync Files... (${ind} / ${requiredImages.length})`
+                    })
+                }
+                else{
+                    alertStore.set({
+                        type: "wait",
+                        msg: `Loading Backup... (${ind} / ${requiredImages.length})`
+                    })
+                }
+                if(await checkImageExists(images)){
+                    //skip process
+                }
+                else{
+                    if(formatedImage.length >= 7){
+                        if(fileNames.includes(formatedImage)){
+                            for(const file of files){
+                                if(file.name === formatedImage){
+                                    const fData = await getFileData(ACCESS_TOKEN, file.id)
+                                    if(isTauri){
+                                        await writeBinaryFile(`assets/` + images, fData ,{dir: BaseDirectory.AppData})
+        
+                                    }
+                                    else{
+                                        await forageStorage.setItem('assets/' + images, fData)
+                                    }
                                 }
                             }
                         }
-                    }
-                    else{
-                        throw `cannot find file in drive: ${formatedImage}`
+                        else{
+                            errorLogs.push(`Missing ${images}, skipping...`)
+                        }
                     }
                 }
             }
         }
         db.didFirstSetup = true
         const dbData = encodeRisuSave(db, 'compression')
+
+        if(errorLogs.length !== 0){
+            await alertErrorWait(`Errors: ${errorLogs.join('\n')}`)
+        }
 
         if(isTauri){
             await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
@@ -438,6 +445,12 @@ function checkImageExist(image:string){
 
 function formatKeys(name:string) {
     return getBasename(name).replace(/\_/g, '__').replace(/\./g,'_d').replace(/\//,'_s') + '.png'
+}
+
+function newFormatKeys(name:string) {
+    let n = getBasename(name)
+    const bf = Buffer.from(n).toString('hex')
+    return n + '.bin'
 }
 
 async function getFilesInFolder(ACCESS_TOKEN:string, nextPageToken=''): Promise<DriveFile[]> {

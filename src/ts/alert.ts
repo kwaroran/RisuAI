@@ -60,6 +60,19 @@ export async function alertSelect(msg:string[]){
     return get(alertStore).msg
 }
 
+export async function alertErrorWait(msg:string){
+    alertStore.set({
+        'type': 'wait2',
+        'msg': msg
+    })
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+}
+
 export function alertMd(msg:string){
     alertStore.set({
         'type': 'markdown',
