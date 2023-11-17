@@ -734,6 +734,12 @@ export interface Message{
     saying?: string
     chatId?:string
     time?: number
+    generationInfo?: MessageGenerationInfo
+}
+
+export interface MessageGenerationInfo{
+    model?: string
+    generationId?: string
 }
 
 interface AINsettings{

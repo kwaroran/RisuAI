@@ -20,6 +20,7 @@ import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
 import { getInlayImage, supportsInlayImage } from "../image";
+import { getGenerationModelString } from "./models/modelString";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -861,6 +862,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(abortSignal.aborted === true){
         return false
     }
+    const generationId = v4()
+    const generationModel = getGenerationModelString()
     if(req.type === 'fail'){
         alertError(req.result)
         return false
@@ -878,7 +881,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 role: 'char',
                 data: "",
                 saying: currentChar.chaId,
-                time: Date.now()
+                time: Date.now(),
+                generationInfo: {
+                    model: generationModel,
+                    generationId: generationId,
+                }
             })
         }
         db.characters[selectedChar].chats[selectedChat].isStreaming = true
@@ -936,7 +943,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     role: 'char',
                     data: result,
                     saying: currentChar.chaId,
-                    time: Date.now()
+                    time: Date.now(),
+                    generationInfo: {
+                        model: generationModel,
+                        generationId: generationId,
+                    }
                 }
             }
             else{
@@ -944,7 +955,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     role: msg[0],
                     data: result,
                     saying: currentChar.chaId,
-                    time: Date.now()
+                    time: Date.now(),
+                    generationInfo: {
+                        model: generationModel,
+                        generationId: generationId,
+                    }
                 })
             }
             db.characters[selectedChar].reloadKeys += 1
