@@ -305,6 +305,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body[key] = OobaBodyTemplate[key]
                     }
                 }
+                arg.useStreaming = false
             }
 
             if(supportsInlayImage()){
