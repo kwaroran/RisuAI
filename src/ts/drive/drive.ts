@@ -399,11 +399,16 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
                                     else{
                                         await forageStorage.setItem('assets/' + images, fData)
                                     }
+                                    tries = 3
                                 }
                             }
                         }
                         else{
-                            errorLogs.push(`Missing ${images}, skipping...`)
+                            alertStore.set({
+                                type: "wait",
+                                msg: `Loading Backup... (${ind} / ${requiredImages.length}) (Error in ${formatedImage})`
+                            })
+                            await sleep(1000)
                         }
                     }
                 }
@@ -411,10 +416,6 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
         }
         db.didFirstSetup = true
         const dbData = encodeRisuSave(db, 'compression')
-
-        if(errorLogs.length !== 0){
-            await alertErrorWait(`Errors: ${errorLogs.join('\n')}`)
-        }
 
         if(isTauri){
             await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
