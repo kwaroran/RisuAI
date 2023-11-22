@@ -25,9 +25,14 @@ export async function createMultiuserRoom(){
         roomId + "-risuai-multiuser"
     )
 
+    alertWait("Waiting for peerserver to connect...")
+    let open = false
+    peer.on('open', function(id) {
+        open = true
+    });
     peer.on('connection', function(conn) {
         connections.push(conn)
-        console.log("new connection")
+        console.log("new connection", conn)
         function requestChar(){
             const db = get(DataBase)
             const selectedCharId = get(selectedCharID)
@@ -41,7 +46,6 @@ export async function createMultiuserRoom(){
                 data: char
             });
         }
-        requestChar()
 
         conn.on('data', function(data:ReciveData) {
             if(data.type === 'request-char'){
@@ -60,6 +64,9 @@ export async function createMultiuserRoom(){
             }
         });
     });
+    while(!open){
+        await sleep(100)
+    }
 
     
     alertNormal("Room ID: " + roomId)
@@ -86,37 +93,42 @@ export async function joinMultiuserRoom(){
         v4() + "-risuai-multiuser-join"
     )
 
-    conn = peer.connect(roomId + '-risuai-multiuser');
-
-    alertWait("Waiting for host to accept connection")
+    alertWait("Waiting for peerserver to connect...")
 
     let open = false
     conn.on('open', function() {
-        conn.on('data', function(data:ReciveData) {
-            switch(data.type){
-                case 'receive-char':{
-                    //create temp character
-                    const db = get(DataBase)
-                    const cha = data.data
-                    cha.chaId = '§temp'
-                    cha.chatPage = 0
-                    const ind = findCharacterIndexbyId('§temp')
-                    const selectedcharIndex = get(selectedCharID)
-                    if(ind === -1){
-                        db.characters.push(cha)
-                    }
-                    else{
-                        db.characters[ind] = cha
-                    }
-                    const tempInd = findCharacterIndexbyId('§temp')
-                    if(selectedcharIndex !== tempInd){
-                        selectedCharID.set(tempInd)
-                    }
-                    setDatabase(db)
-                    break
+        alertWait("Waiting for host to accept connection")
+        conn = peer.connect(roomId + '-risuai-multiuser');
+        open = true
+        conn.send({
+            type: 'request-char'
+        })
+    });
+    
+    conn.on('data', function(data:ReciveData) {
+        switch(data.type){
+            case 'receive-char':{
+                //create temp character
+                const db = get(DataBase)
+                const cha = data.data
+                cha.chaId = '§temp'
+                cha.chatPage = 0
+                const ind = findCharacterIndexbyId('§temp')
+                const selectedcharIndex = get(selectedCharID)
+                if(ind === -1){
+                    db.characters.push(cha)
                 }
+                else{
+                    db.characters[ind] = cha
+                }
+                const tempInd = findCharacterIndexbyId('§temp')
+                if(selectedcharIndex !== tempInd){
+                    selectedCharID.set(tempInd)
+                }
+                setDatabase(db)
+                break
             }
-        });
+        }
     });
 
     let waitTime = 0
@@ -128,6 +140,7 @@ export async function joinMultiuserRoom(){
             return
         }
     }        
+    alertNormal("Connected")
 
     return {
         peer, roomId, conn
