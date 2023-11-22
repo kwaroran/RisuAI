@@ -85,7 +85,6 @@ type ReciveData = ReciveFirst|RequestFirst
 
 export async function joinMultiuserRoom(){
 
-    const roomId = await alertInput("Enter room id")
     //join a room with webrtc
     alertWait("Loading...")
     const peerJS = await importPeerJS();
@@ -93,58 +92,57 @@ export async function joinMultiuserRoom(){
         v4() + "-risuai-multiuser-join"
     )
 
-    alertWait("Waiting for peerserver to connect...")
-
-    let open = false
-    conn.on('open', function() {
-        alertWait("Waiting for host to accept connection")
-        conn = peer.connect(roomId + '-risuai-multiuser');
-        open = true
-        conn.send({
-            type: 'request-char'
-        })
-    });
+    peer.on('open', async (id) => {
+        const roomId = await alertInput("Enter room id")
+        alertWait("Waiting for peerserver to connect...")
     
-    conn.on('data', function(data:ReciveData) {
-        switch(data.type){
-            case 'receive-char':{
-                //create temp character
-                const db = get(DataBase)
-                const cha = data.data
-                cha.chaId = '§temp'
-                cha.chatPage = 0
-                const ind = findCharacterIndexbyId('§temp')
-                const selectedcharIndex = get(selectedCharID)
-                if(ind === -1){
-                    db.characters.push(cha)
+        let open = false
+        conn.on('open', function() {
+            alertWait("Waiting for host to accept connection")
+            conn = peer.connect(roomId + '-risuai-multiuser');
+            open = true
+            conn.send({
+                type: 'request-char'
+            })
+        });
+        
+        conn.on('data', function(data:ReciveData) {
+            switch(data.type){
+                case 'receive-char':{
+                    //create temp character
+                    const db = get(DataBase)
+                    const cha = data.data
+                    cha.chaId = '§temp'
+                    cha.chatPage = 0
+                    const ind = findCharacterIndexbyId('§temp')
+                    const selectedcharIndex = get(selectedCharID)
+                    if(ind === -1){
+                        db.characters.push(cha)
+                    }
+                    else{
+                        db.characters[ind] = cha
+                    }
+                    const tempInd = findCharacterIndexbyId('§temp')
+                    if(selectedcharIndex !== tempInd){
+                        selectedCharID.set(tempInd)
+                    }
+                    setDatabase(db)
+                    break
                 }
-                else{
-                    db.characters[ind] = cha
-                }
-                const tempInd = findCharacterIndexbyId('§temp')
-                if(selectedcharIndex !== tempInd){
-                    selectedCharID.set(tempInd)
-                }
-                setDatabase(db)
-                break
             }
-        }
+        });
+    
+        let waitTime = 0
+        while(!open){
+            await sleep(100)
+            waitTime += 100
+            if(waitTime > 10000){
+                alertError("Connection timed out")
+                return
+            }
+        }        
+        alertNormal("Connected")
     });
-
-    let waitTime = 0
-    while(!open){
-        await sleep(100)
-        waitTime += 100
-        if(waitTime > 10000){
-            alertError("Connection timed out")
-            return
-        }
-    }        
-    alertNormal("Connected")
-
-    return {
-        peer, roomId, conn
-    }
     
 }
 
