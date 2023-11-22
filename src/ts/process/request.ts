@@ -188,6 +188,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 formatedChat = formated
             }
             
+            let oobaSystemPrompts:string[] = []
             for(let i=0;i<formatedChat.length;i++){
                 if(formatedChat[i].role !== 'function'){
                     if(arg.isGroupChat && formatedChat[i].name){
@@ -203,6 +204,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     delete formatedChat[i].memo
                     delete formatedChat[i].removable
                 }
+                if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
+                    const cont = formatedChat[i].content
+                    if(typeof(cont) === 'string'){
+                        oobaSystemPrompts.push(cont)
+                        formatedChat[i].content = ''
+                    }
+                }
+            }
+
+            if(oobaSystemPrompts.length > 0){
+                formatedChat.push({
+                    role: 'system',
+                    content: oobaSystemPrompts.join('\n')
+                })
             }
 
 
@@ -220,6 +235,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     bias[token] = bia[1]
                 }
             }
+
 
 
 
@@ -305,7 +321,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         body[key] = OobaBodyTemplate[key]
                     }
                 }
-                arg.useStreaming = false
+
             }
 
             if(supportsInlayImage()){
