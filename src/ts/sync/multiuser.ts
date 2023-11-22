@@ -27,19 +27,25 @@ export async function createMultiuserRoom(){
 
     peer.on('connection', function(conn) {
         connections.push(conn)
+        console.log("new connection")
+        function requestChar(){
+            const db = get(DataBase)
+            const selectedCharId = get(selectedCharID)
+            const char = cloneDeep(db.characters[selectedCharId])
+            if(char.type === 'group'){
+                return
+            }
+            char.chats = [char.chats[char.chatPage]]
+            conn.send({
+                type: 'receive-char',
+                data: char
+            });
+        }
+        requestChar()
+
         conn.on('data', function(data:ReciveData) {
             if(data.type === 'request-char'){
-                const db = get(DataBase)
-                const selectedCharId = get(selectedCharID)
-                const char = cloneDeep(db.characters[selectedCharId])
-                if(char.type === 'group'){
-                    return
-                }
-                char.chats = [char.chats[char.chatPage]]
-                conn.send({
-                    type: 'receive-char',
-                    data: char
-                });
+                requestChar()
             }
             if(data.type === 'receive-char'){
                 const db = get(DataBase)
@@ -86,10 +92,6 @@ export async function joinMultiuserRoom(){
 
     let open = false
     conn.on('open', function() {
-        open = true
-        conn.send({
-            type: 'request-char',
-        });
         conn.on('data', function(data:ReciveData) {
             switch(data.type){
                 case 'receive-char':{
