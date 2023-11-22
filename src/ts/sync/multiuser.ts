@@ -35,6 +35,7 @@ export async function createMultiuserRoom(){
     peer.on('connection', function(conn) {
         connections.push(conn)
         console.log("new connection", conn)
+
         function requestChar(){
             const db = get(DataBase)
             const selectedCharId = get(selectedCharID)
@@ -65,6 +66,15 @@ export async function createMultiuserRoom(){
                 sendPeerChar()
             }
         });
+
+        conn.on('close', function() {
+            for(let i = 0; i < connections.length; i++){
+                if(connections[i].connectionId === conn.connectionId){
+                    connections.splice(i, 1)
+                    break
+                }
+            }
+        })
     });
     while(!open){
         await sleep(100)
