@@ -922,7 +922,9 @@ export function checkCharOrder() {
         const charId = db.characters[i].chaId
         charIdList.push(charId)
         if(!ordered.includes(charId)){
-            db.characterOrder.push(charId)
+            if(charId !== '§temp'){
+                db.characterOrder.push(charId)
+            }
         }
     }
 

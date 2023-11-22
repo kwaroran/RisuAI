@@ -505,6 +505,7 @@ export interface Database{
     gptVisionQuality:string
     reverseProxyOobaMode:boolean
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
+    tpo?:boolean
 }
 
 export interface customscript{
@@ -601,6 +602,7 @@ export interface character{
     extentions?:{[key:string]:any}
     largePortrait?:boolean
     lorePlus?:boolean
+    
 }
 
 

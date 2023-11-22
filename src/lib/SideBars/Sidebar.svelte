@@ -20,6 +20,7 @@
     FolderIcon,
     FolderOpenIcon,
     HomeIcon,
+    MilestoneIcon,
   } from "lucide-svelte";
   import {
     characterFormatUpdate,
@@ -45,6 +46,7 @@
   import { fly } from "svelte/transition";
   import { alertInput, alertSelect } from "src/ts/alert";
   import SideChatList from "./SideChatList.svelte";
+  import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -583,6 +585,17 @@
         ></BaseRoundedButton
       >
     </div>
+    {#if $DataBase.tpo}
+      <div class="flex flex-col items-center space-y-2 px-2 mt-2 mb-2">
+        <BaseRoundedButton
+          onClick={() => {
+            reseter()
+            sideBarMode = sideBarMode === 2 ? 0 : 2
+          }}
+          ><MilestoneIcon size="24" /></BaseRoundedButton
+        >
+      </div>
+    {/if}
   </div>
 </div>
 <div
@@ -654,6 +667,13 @@
       className="mt-2"
     >
       {language.createBotwithAI}
+    </Button>
+  {:else if sideBarMode === 2}
+    <Button
+      on:click={joinMultiuserRoom}
+      className="mt-2"
+    >
+      {language.joinMultiUserRoom}
     </Button>
   {/if}
 </div>

@@ -2,13 +2,14 @@
     import type { character, groupChat } from "src/ts/storage/database";
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../UI/GUI/TextInput.svelte";
-    import { DownloadIcon, EditIcon, FolderUpIcon, TrashIcon } from "lucide-svelte";
+    import { DownloadIcon, EditIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
     import { exportChat, importChat } from "src/ts/characters";
-    import { alertConfirm, alertError } from "src/ts/alert";
+    import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
     import { findCharacterbyId } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
+  import { createMultiuserRoom } from "src/ts/sync/multiuser";
     export let chara:character|groupChat
     let editMode = false
 </script>
@@ -47,6 +48,16 @@
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
+                {#if $DataBase.tpo}
+                    <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async () => {
+                        const multiuser = parseInt(await alertSelect(["Open Multiuser Room"]))
+                        if(multiuser === 0){
+                            createMultiuserRoom()
+                        }
+                    }}>
+                        <MenuIcon size={18}/>
+                    </button>
+                {/if}
                 <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
                     editMode = !editMode
                 }}>

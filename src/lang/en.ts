@@ -449,5 +449,6 @@ export const languageEnglish = {
     largePortrait: "Portrait",
     postImage: "Post Image",
     lorePlus: "LoreBook+",
-    reverseProxyOobaMode: "Reverse Proxy Ooba Mode"
+    reverseProxyOobaMode: "Reverse Proxy Ooba Mode",
+    joinMultiUserRoom: "Join MultiUser Room",
 }
