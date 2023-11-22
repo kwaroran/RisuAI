@@ -1,12 +1,12 @@
 import { get, writable } from 'svelte/store';
-import { checkNullish, selectSingleFile } from '../util';
+import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
 import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
 import { clone, cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
-import { alertNormal } from '../alert';
+import { alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
@@ -995,7 +995,10 @@ export function setPreset(db:Database, newPres: botPreset){
     return db
 }
 
-export function downloadPreset(id:number){
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
+import * as fflate from "fflate";
+
+export async function downloadPreset(id:number){
     saveCurrentPreset()
     let db = get(DataBase)
     let pres = cloneDeep(db.botPresets[id])
@@ -1006,17 +1009,41 @@ export function downloadPreset(id:number){
     pres.proxyKey = ''
     pres.textgenWebUIStreamURL=  ''
     pres.textgenWebUIBlockingURL=  ''
-    downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
+    const sel = parseInt(await alertSelect(['RISUPRESET (recommended)','JSON']))
+    if(sel === 1){
+        downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
+    }
+    else{
+        downloadFile(pres.name + "_preset.risupreset", fflate.compressSync(encodeMsgpack({
+            presetVersion: 0,
+            type: 'preset',
+            pres: await encryptBuffer(
+                encodeMsgpack(pres),
+                'risupreset'
+            )
+        })))
+    }
     alertNormal(language.successExport)
 }
 
+
 export async function importPreset(){
-    const f = await selectSingleFile(["json", "preset"])
+    const f = await selectSingleFile(["json", "preset", "risupreset"])
     if(!f){
         return
     }
+    let pre:any
+    if(f.name.endsWith('.risupreset')){
+        const decoded = await decodeMsgpack(fflate.decompressSync(f.data))
+        console.log(decoded)
+        if(decoded.presetVersion === 0 && decoded.type === 'preset'){
+            pre = decodeMsgpack(Buffer.from(await decryptBuffer(decoded.pres, 'risupreset')))
+        }
+    }
+    else{
+        pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
+    }
     let db = get(DataBase)
-    const pre = (JSON.parse(Buffer.from(f.data).toString('utf-8')))
     if(pre.presetVersion && pre.presetVersion >= 3){
         //NAI preset
         const pr = cloneDeep(prebuiltPresets.NAI2)
