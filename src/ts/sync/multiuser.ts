@@ -20,7 +20,7 @@ export async function createMultiuserRoom(){
     alertWait("Loading...")
 
     const peerJS = await importPeerJS();
-    const roomId = v4();
+    let roomId = v4();
     peer = new peerJS.Peer(
         roomId + "-risuai-multiuser"
     )
@@ -29,6 +29,7 @@ export async function createMultiuserRoom(){
     let open = false
     peer.on('open', function(id) {
         open = true
+        roomId = id
     });
     peer.on('connection', function(conn) {
         connections.push(conn)
@@ -99,7 +100,7 @@ export async function joinMultiuserRoom(){
         let open = false
         conn.on('open', function() {
             alertWait("Waiting for host to accept connection")
-            conn = peer.connect(roomId + '-risuai-multiuser');
+            conn = peer.connect(roomId);
             open = true
             conn.send({
                 type: 'request-char'
