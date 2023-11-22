@@ -21,6 +21,7 @@ import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
 import { getInlayImage, supportsInlayImage } from "../image";
 import { getGenerationModelString } from "./models/modelString";
+import { sendPeerChar } from "../sync/multiuser";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -975,6 +976,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             setDatabase(db)
         }
     }
+
+    sendPeerChar()
 
     if(req.special){
         if(req.special.emotion){

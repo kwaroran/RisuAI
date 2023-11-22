@@ -14,6 +14,7 @@ async function importPeerJS(){
 let conn:DataConnection
 let peer:Peer
 let connections:DataConnection[] = []
+let connectionOpen = false
 
 export async function createMultiuserRoom(){
     //create a room with webrtc
@@ -69,7 +70,7 @@ export async function createMultiuserRoom(){
         await sleep(100)
     }
 
-    
+    connectionOpen = true
     alertNormal("Room ID: " + roomId)
     return
 }
@@ -98,9 +99,10 @@ export async function joinMultiuserRoom(){
         alertWait("Waiting for peerserver to connect...")
     
         let open = false
+        conn = peer.connect(roomId);
+
         conn.on('open', function() {
             alertWait("Waiting for host to accept connection")
-            conn = peer.connect(roomId);
             open = true
             conn.send({
                 type: 'request-char'
@@ -142,6 +144,7 @@ export async function joinMultiuserRoom(){
                 return
             }
         }        
+        connectionOpen = true
         alertNormal("Connected")
     });
     
@@ -149,6 +152,9 @@ export async function joinMultiuserRoom(){
 
 
 export function sendPeerChar(){
+    if(!connectionOpen){
+        return
+    }
     if(!conn){
         // host user
         for(const connection of connections){
