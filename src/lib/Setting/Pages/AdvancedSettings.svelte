@@ -83,6 +83,7 @@
         // access code is "tendo"
         // I just put it on source code so it's not really a secret
         // well, if you are reading this, you are a developer, so you can use this feature
+        // this is for testing 2.0 in real environment, but it's not ready yet
 
         const accessCode = 'tendo'
         if(prompt("Access Code") === accessCode){
