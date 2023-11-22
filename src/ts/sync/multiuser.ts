@@ -23,7 +23,7 @@ export async function createMultiuserRoom(){
     const peerJS = await importPeerJS();
     let roomId = v4();
     peer = new peerJS.Peer(
-        roomId + "-risuai-multiuser"
+        roomId + "-rmh"
     )
 
     alertWait("Waiting for peerserver to connect...")
