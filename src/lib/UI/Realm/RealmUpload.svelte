@@ -26,7 +26,7 @@
         <span class="text-textcolor">{language.tags}</span>
         <span class="text-textcolor2 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
         <TextInput placeholder="" bind:value={tags} on:input={() => {
-            tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase()
+            tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase().replace(/ /g, '')
         }} />
 
         {#if char.license !== 'CC BY-NC-SA 4.0' && char.license !== 'CC BY-SA 4.0'}
