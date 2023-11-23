@@ -792,36 +792,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 "prompt": {
                       "text": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
                 },
-                "safetySettings":[
-                    {
-                        "category": "HARM_CATEGORY_UNSPECIFIED",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DEROGATORY",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_TOXICITY",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_VIOLENCE",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_SEXUAL",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_MEDICAL",
-                        "threshold": "BLOCK_NONE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DANGEROUS",
-                        "threshold": "BLOCK_NONE"
-                    }
-                ],
                 "temperature": arg.temperature,
                 "maxOutputTokens": arg.maxTokens,
                 "candidate_count": 1
