@@ -12,6 +12,7 @@ import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
 import { getInlayImage } from './image';
 import { cloneDeep } from 'lodash';
+import { autoMarkNew } from './plugins/automark';
 
 const convertora = new showdown.Converter({
     simpleLineBreaks: true,
@@ -134,7 +135,7 @@ export interface simpleCharacterArgument{
 export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
     let firstParsed = ''
     const orgDat = data
-
+    const db = get(DataBase)
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
     if(char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, mode, 'pre')
@@ -147,11 +148,31 @@ export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgumen
         data = await parseAdditionalAssets(data, char, mode, 'post')
     }
     data = await parseInlayImages(data)
-    return decodeStyle(DOMPurify.sanitize(mconverted.parse(encodeStyle(data)), {
-        ADD_TAGS: ["iframe", "style", "risu-style"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-        FORBID_ATTR: ["href"]
-    }))
+    if(db.automark){
+        // data = autoMarkNew(DOMPurify.sanitize(data, {
+        //     ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+        //     ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
+        //     FORBID_ATTR: ["href"]
+        // }))
+        // return data
+        // data = autoMarkNew(data)
+        // data = encodeStyle(data)
+        // data = mconverted.parse(data)
+        return (DOMPurify.sanitize(autoMarkNew(data), {
+            ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
+            FORBID_ATTR: ["href"]
+        }))
+    }
+    else{
+        data = encodeStyle(data)
+        data = mconverted.parse(data)
+        return decodeStyle(DOMPurify.sanitize(data, {
+            ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
+            FORBID_ATTR: ["href"]
+        }))
+    }
 }
 
 export function parseMarkdownSafe(data:string) {

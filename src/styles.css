@@ -65,6 +65,12 @@ html, body{
   color: var(--FontColorItalicBold);
 }
 
+.chattext x-em{
+  color: var(--FontColorItalicBold);
+  font-style: italic;
+  font-weight: bold;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

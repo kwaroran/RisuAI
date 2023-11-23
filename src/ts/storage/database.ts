@@ -506,6 +506,7 @@ export interface Database{
     reverseProxyOobaMode:boolean
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
     tpo?:boolean
+    automark?:boolean
 }
 
 export interface customscript{

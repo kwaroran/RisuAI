@@ -79,6 +79,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.automark} name="Experimental Native Automark">
+        <Help key="experimental"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check check={$DataBase.tpo} name="2.0 Alpha Web-DevMode" onChange={() => {
         // access code is "tendo"
         // I just put it on source code so it's not really a secret
