@@ -4,6 +4,8 @@ import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
 import { supportsInlayImage } from "./image";
+import { risuChatParser } from "./parser";
+import type { Proompt } from "./process/proompt";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
@@ -81,6 +83,14 @@ export async function tokenizerChar(char:character) {
 }
 
 export async function tokenize(data:string) {
+    const encoded = await encode(data)
+    return encoded.length
+}
+
+export async function tokenizeAccurate(data:string) {
+    data = risuChatParser(data.replace('{{slot}}',''), {
+        tokenizeAccurate: true
+    })
     const encoded = await encode(data)
     return encoded.length
 }

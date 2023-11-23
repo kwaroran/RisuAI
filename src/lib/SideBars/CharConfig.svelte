@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "../../lang";
-    import { tokenize } from "../../ts/tokenizer";
+    import { tokenize, tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBraces, Volume2Icon, XIcon } from 'lucide-svelte'
@@ -51,17 +51,17 @@
             if(lasttokens.desc !== cha.desc){
                 if(cha.desc){
                     lasttokens.desc = cha.desc
-                    tokens.desc = await tokenize(cha.desc)
+                    tokens.desc = await tokenizeAccurate(cha.desc)
                 }
             }
             if(lasttokens.firstMsg !==chara.firstMessage){
                 lasttokens.firstMsg = chara.firstMessage
-                tokens.firstMsg = await tokenize(chara.firstMessage)
+                tokens.firstMsg = await tokenizeAccurate(chara.firstMessage)
             }
         }
         if(lasttokens.localNote !== currentChar.data.chats[currentChar.data.chatPage].note){
             lasttokens.localNote = currentChar.data.chats[currentChar.data.chatPage].note
-            tokens.localNote = await tokenize(currentChar.data.chats[currentChar.data.chatPage].note)
+            tokens.localNote = await tokenizeAccurate(currentChar.data.chats[currentChar.data.chatPage].note)
         
         }
 

@@ -2,7 +2,7 @@
     import { ArrowLeft, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import ProomptItem from "src/lib/UI/ProomptItem.svelte";
-    import type { Proompt } from "src/ts/process/proompt";
+    import { tokenizePreset, type Proompt } from "src/ts/process/proompt";
     import { templateCheck } from "src/ts/process/templates/templateCheck";
     import { DataBase } from "src/ts/storage/database";
 
@@ -10,8 +10,15 @@
     let opened = 0
     let warns: string[] = []
     export let onGoBack: () => void = () => {}
+    let tokens = 0
+    executeTokenize($DataBase.promptTemplate)
+
+    async function executeTokenize(prest: Proompt[]){
+        tokens = await tokenizePreset(prest)
+    }
 
     $: warns = templateCheck($DataBase)
+    $: executeTokenize($DataBase.promptTemplate)
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
@@ -72,3 +79,5 @@
     })
     $DataBase.promptTemplate = value
 }}><PlusIcon /></button>
+
+<span class="text-textcolor2 mb-6 text-sm mt-2">{tokens} {language.tokens}</span>

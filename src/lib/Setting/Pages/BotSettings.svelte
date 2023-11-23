@@ -5,7 +5,7 @@
     import { DataBase } from "src/ts/storage/database";
     import { customProviderStore, getCurrentPluginMax } from "src/ts/plugins/plugins";
     import { getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
-    import { tokenize } from "src/ts/tokenizer";
+    import { tokenize, tokenizeAccurate } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
@@ -40,10 +40,10 @@
     export let goPromptTemplate = () => {}
 
     async function loadTokenize(){
-        tokens.mainPrompt = await tokenize($DataBase.mainPrompt)
-        tokens.jailbreak = await tokenize($DataBase.jailbreak)
-        tokens.globalNote = await tokenize($DataBase.globalNote)
-        tokens.autoSuggest = await tokenize($DataBase.autoSuggestPrompt)
+        tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt)
+        tokens.jailbreak = await tokenizeAccurate($DataBase.jailbreak)
+        tokens.globalNote = await tokenizeAccurate($DataBase.globalNote)
+        tokens.autoSuggest = await tokenizeAccurate($DataBase.autoSuggestPrompt)
     }
 
     let advancedBotSettings = false

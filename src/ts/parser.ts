@@ -11,6 +11,7 @@ import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
 import { getInlayImage } from './image';
+import { cloneDeep } from 'lodash';
 
 const convertora = new showdown.Converter({
     simpleLineBreaks: true,
@@ -346,7 +347,14 @@ function wppParser(data:string){
 
 
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
-type matcherArg = {chatID:number,db:Database,chara:character|string,rmVar:boolean,var?:{[key:string]:string}}
+type matcherArg = {
+    chatID:number,
+    db:Database,
+    chara:character|string,
+    rmVar:boolean,
+    var?:{[key:string]:string}
+    tokenizeAccurate?:boolean
+}
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 10000){
         return ''
@@ -390,7 +398,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         case 'bot':{
             let selectedChar = get(selectedCharID)
             let currentChar = db.characters[selectedChar]
-            if(currentChar.type !== 'group'){
+            if(currentChar && currentChar.type !== 'group'){
                 return currentChar.name
             }
             if(chara){
@@ -484,6 +492,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return ''
         }
         case 'time':{
+            if(matcherArg.tokenizeAccurate){
+                return `00:00:00`
+            }
             if(chatID === -1){
                 return "[Cannot get time]"
             }
@@ -499,6 +510,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return date.toLocaleTimeString()
         }
         case 'date':{
+            if(matcherArg.tokenizeAccurate){
+                return `00:00:00`
+            }
             if(chatID === -1){
                 return "[Cannot get time]"
             }
@@ -513,6 +527,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return date.toLocaleDateString()
         }
         case 'idle_duration':{
+            if(matcherArg.tokenizeAccurate){
+                return `00:00:00`
+            }
             if(chatID === -1){
                 return "[Cannot get time]"
             }
@@ -622,11 +639,17 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.startsWith('random')){
         if(p1.startsWith('random::')){
             const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
+            if(matcherArg.tokenizeAccurate){
+                return arra[0]
+            }
             return arra[randomIndex]
         }
         else{
             const arr = p1.split(/\:|\,/g)
             const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+            if(matcherArg.tokenizeAccurate){
+                return arra[0]
+            }
             return arr[randomIndex]
         }
     }
@@ -656,7 +679,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
         case 'bot':{
             let selectedChar = get(selectedCharID)
             let currentChar = db.characters[selectedChar]
-            if(currentChar.type !== 'group'){
+            if(currentChar && currentChar.type !== 'group'){
                 return currentChar.name
             }
             if(chara){
@@ -707,6 +730,7 @@ export function risuChatParser(da:string, arg:{
     chara?:string|character|groupChat
     rmVar?:boolean,
     var?:{[key:string]:string}
+    tokenizeAccurate?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -724,6 +748,13 @@ export function risuChatParser(da:string, arg:{
             chara = aChara
         }
     }
+    if(arg.tokenizeAccurate){
+        const db = arg.db ?? get(DataBase)
+        const selchar = chara ?? db.characters[get(selectedCharID)]
+        if(!selchar){
+            chara = 'bot'
+        }
+    }
 
     
     let pointer = 0;
@@ -731,12 +762,16 @@ export function risuChatParser(da:string, arg:{
     let pf = performance.now()
     let v = new Uint8Array(512)
     let pureMode = false
+    let commentMode = false
+    let commentLatest:string[] = [""]
+    let commentV = new Uint8Array(512)
     const matcherObj = {
         chatID: chatID,
         chara: chara,
         rmVar: arg.rmVar ?? false,
         db: db,
-        var: arg.var ?? null
+        var: arg.var ?? null,
+        tokenizeAccurate: arg.tokenizeAccurate ?? false
     }
     while(pointer < da.length){
         switch(da[pointer]){
@@ -789,6 +824,25 @@ export function risuChatParser(da:string, arg:{
                     }
                     case '/Pure':{
                         pureMode = false
+                        break
+                    }
+                    case 'Comment':{
+                        if(!commentMode){
+                            commentMode = true
+                            commentLatest = nested.map((f) => f)
+                            if(commentLatest[0].endsWith('\n')){
+                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
+                            }
+                            commentV = new Uint8Array(v)
+                        }
+                        break
+                    }
+                    case '/Comment':{
+                        if(commentMode){
+                            nested = commentLatest
+                            v = commentV
+                            commentMode = false
+                        }
                         break
                     }
                     default:{
