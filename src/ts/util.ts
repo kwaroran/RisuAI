@@ -110,7 +110,13 @@ function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single
         fileInput.multiple = multiple === 'multiple';
     
         if (allowedExtensions && allowedExtensions.length) {
-            fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
+            //check is iphone
+            if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+                fileInput.accept = '*/*';
+            }
+            else{
+                fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
+            }
         }
     
         fileInput.addEventListener('change', (event) => {
