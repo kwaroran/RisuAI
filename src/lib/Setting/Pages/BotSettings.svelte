@@ -40,10 +40,10 @@
     export let goPromptTemplate = () => {}
 
     async function loadTokenize(){
-        tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt)
-        tokens.jailbreak = await tokenizeAccurate($DataBase.jailbreak)
-        tokens.globalNote = await tokenizeAccurate($DataBase.globalNote)
-        tokens.autoSuggest = await tokenizeAccurate($DataBase.autoSuggestPrompt)
+        tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt, true)
+        tokens.jailbreak = await tokenizeAccurate($DataBase.jailbreak, true)
+        tokens.globalNote = await tokenizeAccurate($DataBase.globalNote, true)
+        tokens.autoSuggest = await tokenizeAccurate($DataBase.autoSuggestPrompt, true)
     }
 
     let advancedBotSettings = false

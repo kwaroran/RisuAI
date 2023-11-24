@@ -33,7 +33,7 @@ export async function tokenizePreset(proompts:Proompt[]){
         switch(proompt.type){
             case 'plain':
             case 'jailbreak':{
-                total += await tokenizeAccurate(proompt.text)
+                total += await tokenizeAccurate(proompt.text, true)
                 break
             }
             case 'persona':
@@ -43,7 +43,7 @@ export async function tokenizePreset(proompts:Proompt[]){
             case 'authornote':
             case 'memory':{
                 if(proompt.innerFormat){
-                    total += await tokenizeAccurate(proompt.innerFormat)
+                    total += await tokenizeAccurate(proompt.innerFormat, true)
                 }
                 break
             }

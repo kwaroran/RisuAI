@@ -375,6 +375,7 @@ type matcherArg = {
     rmVar:boolean,
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
+    consistantChar?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 10000){
@@ -417,6 +418,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         }
         case 'char':
         case 'bot':{
+            if(matcherArg.consistantChar){
+                return 'botname'
+            }
             let selectedChar = get(selectedCharID)
             let currentChar = db.characters[selectedChar]
             if(currentChar && currentChar.type !== 'group'){
@@ -433,6 +437,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return currentChar.name
         }
         case 'user':{
+            if(matcherArg.consistantChar){
+                return 'username'
+            }
             return db.username
         }
         case 'personality':
@@ -698,6 +705,9 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
     switch(lowerCased){
         case 'char':
         case 'bot':{
+            if(matcherArg.consistantChar){
+                return 'botname'
+            }
             let selectedChar = get(selectedCharID)
             let currentChar = db.characters[selectedChar]
             if(currentChar && currentChar.type !== 'group'){
@@ -714,6 +724,9 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
             return currentChar.name
         }
         case 'user':{
+            if(matcherArg.consistantChar){
+                return 'username'
+            }
             return db.username
         }
     }
@@ -752,6 +765,7 @@ export function risuChatParser(da:string, arg:{
     rmVar?:boolean,
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
+    consistantChar?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
