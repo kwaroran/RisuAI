@@ -27,13 +27,13 @@ export interface ProomptChat {
     rangeEnd: number|'end';
 }
 
-export async function tokenizePreset(proompts:Proompt[]){
+export async function tokenizePreset(proompts:Proompt[], consti:boolean = false){
     let total = 0
     for(const proompt of proompts){
         switch(proompt.type){
             case 'plain':
             case 'jailbreak':{
-                total += await tokenizeAccurate(proompt.text, true)
+                total += await tokenizeAccurate(proompt.text, consti)
                 break
             }
             case 'persona':
@@ -43,7 +43,7 @@ export async function tokenizePreset(proompts:Proompt[]){
             case 'authornote':
             case 'memory':{
                 if(proompt.innerFormat){
-                    total += await tokenizeAccurate(proompt.innerFormat, true)
+                    total += await tokenizeAccurate(proompt.innerFormat, consti)
                 }
                 break
             }

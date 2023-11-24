@@ -451,4 +451,6 @@ export const languageEnglish = {
     lorePlus: "LoreBook+",
     reverseProxyOobaMode: "Reverse Proxy Ooba Mode",
     joinMultiUserRoom: "Join MultiUser Room",
+    exactTokens: "Exact Tokens",
+    fixedTokens: "Approximate Tokens",
 }

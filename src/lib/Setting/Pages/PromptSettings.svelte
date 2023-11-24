@@ -11,10 +11,12 @@
     let warns: string[] = []
     export let onGoBack: () => void = () => {}
     let tokens = 0
+    let extokens = 0
     executeTokenize($DataBase.promptTemplate)
 
     async function executeTokenize(prest: Proompt[]){
-        tokens = await tokenizePreset(prest)
+        tokens = await tokenizePreset(prest, true)
+        extokens = await tokenizePreset(prest, false)
     }
 
     $: warns = templateCheck($DataBase)
@@ -80,4 +82,5 @@
     $DataBase.promptTemplate = value
 }}><PlusIcon /></button>
 
-<span class="text-textcolor2 mb-6 text-sm mt-2">{tokens} {language.tokens}</span>
+<span class="text-textcolor2 mb-6 text-sm mt-2">{tokens} {language.fixedTokens}</span>
+<span class="text-textcolor2 mb-6 text-sm mt-2">{extokens} {language.exactTokens}</span>
