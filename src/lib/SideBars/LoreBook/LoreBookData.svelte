@@ -8,6 +8,7 @@
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
+    import { tokenizeAccurate } from "src/ts/tokenizer";
     export let value:loreBook
     export let onRemove: () => void = () => {}
     export let onClose: () => void = () => {}
@@ -16,6 +17,12 @@
 
     export let idx:number
     let open = false
+
+    async function getTokens(data:string){
+        tokens = await tokenizeAccurate(data)
+        return tokens
+    }
+    let tokens = 0
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
@@ -80,6 +87,11 @@
             {/if}
             <span class="text-textcolor mt-4 mb-2">{language.prompt}</span>
             <TextAreaInput autocomplete="off" bind:value={value.content} />
+            {#await getTokens(value.content)}
+                <span class="text-textcolor2 mt-2 mb-2 text-sm">{tokens} {language.tokens}</span>
+            {:then e}
+                <span class="text-textcolor2 mt-2 mb-2 text-sm">{e} {language.tokens}</span>
+            {/await}
             <div class="flex items-center mt-4">
                 <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>
