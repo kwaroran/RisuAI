@@ -78,6 +78,18 @@ const colorShemes = {
         darkBorderc: "#457b9d",
         darkbutton: "#2d6a4f",
         type:'dark'
+    },
+    "realblack": {
+        bgcolor: "#000000",
+        darkbg: "#000000",
+        borderc: "#6272a4",
+        selected: "#44475a",
+        draculared: "#ff5555",
+        textcolor: "#f8f8f2",
+        textcolor2: "#64748b",
+        darkBorderc: "#4b5563",
+        darkbutton: "#374151",
+        type:'dark'
     }
 
 } as const
