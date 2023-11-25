@@ -87,7 +87,7 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check check={$DataBase.tpo} name="2.0 Alpha Web-DevMode" onChange={() => {
+    <Check check={$DataBase.tpo} name="Alpha DevMode" onChange={() => {
         // access code is "tendo"
         // I just put it on source code so it's not really a secret
         // well, if you are reading this, you are a developer, so you can use this feature
