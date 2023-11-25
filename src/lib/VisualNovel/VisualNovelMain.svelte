@@ -1,0 +1,26 @@
+<script lang="ts">
+    import { getCustomBackground, getEmotion } from "../../ts/util";
+    import { DataBase } from "../../ts/storage/database";
+    import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
+    import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
+    import defaultWallpaper from '../../etc/bg.jpg'
+    import VisualNovelChat from "./VisualNovelChat.svelte";
+
+    const wallPaper = `background: url(${defaultWallpaper})`
+
+    let bgImg= ''
+    let lastBg = ''
+    $: (async () =>{
+        if($DataBase.customBackground !== lastBg){
+            lastBg = $DataBase.customBackground
+            bgImg = await getCustomBackground($DataBase.customBackground)
+        }
+    })()
+</script>
+<div class="flex-grow h-full min-w-0 relative justify-center flex">
+    <SideBarArrow />
+    <BackgroundDom />
+    <div style={wallPaper} class="h-full w-full">
+        <VisualNovelChat />
+    </div>
+</div>

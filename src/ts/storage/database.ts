@@ -549,7 +549,7 @@ export interface character{
     notes:string
     chats:Chat[]
     chatPage: number
-    viewScreen: 'emotion'|'none'|'imggen',
+    viewScreen: 'emotion'|'none'|'imggen'|'vn',
     bias: [string, number][]
     emotionImages: [string, string][]
     globalLore: loreBook[]

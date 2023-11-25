@@ -1,14 +1,15 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
-    import { CharEmotion, CurrentCharacter, selectedCharID } from "../../ts/stores";
+    import { CharEmotion, CurrentCharacter, ShowVN, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
     import ChatList from "../Others/ChatList.svelte";
     import TransitionImage from "./TransitionImage.svelte";
-  import BackgroundDom from "./BackgroundDom.svelte";
-  import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
+    import BackgroundDom from "./BackgroundDom.svelte";
+    import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
+    import VisualNovelMain from "../VisualNovel/VisualNovelMain.svelte";
     let openChatList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
@@ -19,7 +20,6 @@
         +   ($DataBase.textScreenBorder ? `border: 0.3rem solid ${$DataBase.textScreenBorder};` : '')
     let bgImg= ''
     let lastBg = ''
-
     $: (async () =>{
         if($DataBase.customBackground !== lastBg){
             lastBg = $DataBase.customBackground
@@ -27,7 +27,10 @@
         }
     })()
 </script>
-{#if $DataBase.theme === ''}
+
+{#if $ShowVN}
+    <VisualNovelMain />
+{:else if $DataBase.theme === ''}
     <div class="flex-grow h-full min-w-0 relative justify-center flex">
         <SideBarArrow />
         <BackgroundDom />

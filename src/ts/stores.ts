@@ -36,6 +36,7 @@ export const CurrentChat = writable(cloneDeep(currentChat))
 export const CurrentUsername = writable(db.username)
 export const CurrentUserIcon = writable(db.userIcon)
 export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
+export const ShowVN = writable(false)
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
@@ -56,6 +57,7 @@ function createSimpleCharacter(char:character|groupChat){
 
 
 function updateCurrentCharacter(){
+    
     const db = get(DataBase)
     if(!db.characters){
         CurrentCharacter.set(null)
@@ -69,6 +71,8 @@ function updateCurrentCharacter(){
     if(isEqual(gotCharacter, currentChar)){
         return
     }
+    ShowVN.set(currentChar?.viewScreen === 'vn')   
+
     console.log("Character updated")
     CurrentCharacter.set(cloneDeep(currentChar))
     const simp = createSimpleCharacter(currentChar)
@@ -107,7 +111,8 @@ DataBase.subscribe((data) => {
     }
 })
 
-selectedCharID.subscribe((id) => {  
+selectedCharID.subscribe((id) => {
+
     updateCurrentCharacter()
 })
 

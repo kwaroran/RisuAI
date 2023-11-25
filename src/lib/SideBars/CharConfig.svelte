@@ -314,15 +314,18 @@
             <OptionInput value="none">{language.none}</OptionInput>
             <OptionInput value="emotion">{language.emotionImage}</OptionInput>
             <OptionInput value="imggen">{language.imageGeneration}</OptionInput>
+            {#if $DataBase.tpo}
+                <OptionInput value="vn">VN test</OptionInput>
+            {/if}
         </SelectInput>
     {:else}
-    <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen}>
-        <OptionInput value="none">{language.none}</OptionInput>
-        <OptionInput value="single">{language.singleView}</OptionInput>
-        <OptionInput value="multiple">{language.SpacedView}</OptionInput>
-        <OptionInput value="emp">{language.emphasizedView}</OptionInput>
+        <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen}>
+            <OptionInput value="none">{language.none}</OptionInput>
+            <OptionInput value="single">{language.singleView}</OptionInput>
+            <OptionInput value="multiple">{language.SpacedView}</OptionInput>
+            <OptionInput value="emp">{language.emphasizedView}</OptionInput>
 
-    </SelectInput>
+        </SelectInput>
     {/if}
 
     {#if currentChar.data.viewScreen === 'emotion'}
