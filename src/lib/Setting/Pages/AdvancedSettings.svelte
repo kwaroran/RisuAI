@@ -69,6 +69,9 @@
     <Check bind:check={$DataBase.newOAIHandle} name="New OpenAI Handling"/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.allowAllExtentionFiles} name="Allow all in file select"/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.putUserOpen} name="Put OAI Random User">
         <Help key="experimental"/><Help key="oaiRandomUser"/>
     </Check>
@@ -91,6 +94,7 @@
         // this is for testing 2.0 in real environment, but it's not ready yet
 
         const accessCode = 'tendo'
+        $DataBase.tpo = $DataBase.tpo
         if(prompt("Access Code") === accessCode){
             $DataBase.tpo = !$DataBase.tpo
         }

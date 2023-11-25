@@ -507,6 +507,8 @@ export interface Database{
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
     tpo?:boolean
     automark?:boolean
+
+    allowAllExtentionFiles?:boolean
 }
 
 export interface customscript{
@@ -603,7 +605,6 @@ export interface character{
     extentions?:{[key:string]:any}
     largePortrait?:boolean
     lorePlus?:boolean
-    
 }
 
 

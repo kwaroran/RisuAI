@@ -112,16 +112,12 @@ function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single
         fileInput.type = 'file';
         fileInput.multiple = multiple === 'multiple';
     
-        if (allowedExtensions && allowedExtensions.length) {
-            //check is iphone
-            if(checkIsIos()){
-                //allow all
-                fileInput.accept = '*/*';
-            }
-            else{
+        if(!(get(DataBase).allowAllExtentionFiles || checkIsIos())){
+            if (allowedExtensions && allowedExtensions.length) {
                 fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
             }
         }
+
     
         fileInput.addEventListener('change', (event) => {
             if (fileInput.files.length === 0) {
