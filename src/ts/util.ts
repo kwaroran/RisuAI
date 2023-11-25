@@ -103,6 +103,9 @@ export const replacePlaceholders = (msg:string, name:string) => {
                 .replace(/(\{\{((set)|(get))var::.+?\}\})/gu,'')
 }
 
+export function checkIsIos(){
+    return /(iPad|iPhone|iPod)/g.test(navigator.userAgent)
+}
 function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single' = 'single') {
     return new Promise<null|File[]>((resolve) => {
         const fileInput = document.createElement('input');
@@ -111,7 +114,8 @@ function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single
     
         if (allowedExtensions && allowedExtensions.length) {
             //check is iphone
-            if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+            if(checkIsIos()){
+                //allow all
                 fileInput.accept = '*/*';
             }
             else{
