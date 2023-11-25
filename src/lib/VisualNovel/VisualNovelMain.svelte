@@ -3,10 +3,10 @@
     import { DataBase } from "../../ts/storage/database";
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
-    import defaultWallpaper from '../../etc/bg.jpg'
+    import defaultWallpaper from './test.png'
     import VisualNovelChat from "./VisualNovelChat.svelte";
 
-    const wallPaper = `background: url(${defaultWallpaper})`
+    const wallPaper = `background-image: url(${defaultWallpaper})`
 
     let bgImg= ''
     let lastBg = ''
@@ -20,7 +20,7 @@
 <div class="flex-grow h-full min-w-0 relative justify-center flex">
     <SideBarArrow />
     <BackgroundDom />
-    <div style={wallPaper} class="h-full w-full">
+    <div style={wallPaper} class="h-full w-full bg-cover">
         <VisualNovelChat />
     </div>
 </div>
