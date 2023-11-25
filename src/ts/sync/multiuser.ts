@@ -1,11 +1,12 @@
 import { v4 } from 'uuid';
 import { alertError, alertInput, alertNormal, alertWait } from '../alert';
 import { get } from 'svelte/store';
-import { DataBase, setDatabase, type character } from '../storage/database';
+import { DataBase, setDatabase, type character, saveImage } from '../storage/database';
 import { selectedCharID } from '../stores';
 import { cloneDeep } from 'lodash';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
+import { readImage } from '../storage/globalApi';
 
 async function importPeerJS(){
     return await import('peerjs');
@@ -36,7 +37,7 @@ export async function createMultiuserRoom(){
         connections.push(conn)
         console.log("new connection", conn)
 
-        function requestChar(){
+        async function requestChar(excludeAssets:string[]|null = null){
             const db = get(DataBase)
             const selectedCharId = get(selectedCharID)
             const char = cloneDeep(db.characters[selectedCharId])
@@ -48,6 +49,36 @@ export async function createMultiuserRoom(){
                 type: 'receive-char',
                 data: char
             });
+            if(excludeAssets !== null){
+                if(char.additionalAssets){
+                    const ass = char.additionalAssets.filter((asset) => {
+                        return !excludeAssets.includes(asset[1])
+                    })
+
+                    for(const a of ass){
+                        conn.send({
+                            type: 'receive-asset',
+                            id: a[1],
+                            data: await readImage(a[1])
+                        })
+                    }
+                    
+                }
+                if(char.emotionImages){
+                    const ass = char.emotionImages.filter((asset) => {
+                        return !excludeAssets.includes(asset[1])
+                    })
+                    
+                    for(const a of ass){
+                        conn.send({
+                            type: 'receive-asset',
+                            id: a[1],
+                            data: await readImage(a[1])
+                        })
+                    }
+                }
+
+            }
         }
 
         conn.on('data', function(data:ReciveData) {
@@ -92,8 +123,13 @@ interface ReciveFirst{
 interface RequestFirst{
     type: 'request-char'
 }
+interface ReciveAsset{
+    type: 'receive-asset',
+    id: string,
+    data: Uint8Array
+}
 
-type ReciveData = ReciveFirst|RequestFirst
+type ReciveData = ReciveFirst|RequestFirst|ReciveAsset
 
 export async function joinMultiuserRoom(){
 
@@ -142,8 +178,17 @@ export async function joinMultiuserRoom(){
                     setDatabase(db)
                     break
                 }
+                case 'receive-asset':{
+                    saveImage(data.data, data.id)
+                }
             }
         });
+
+        conn.on('close', function() {
+            alertError("Connection closed")
+            connectionOpen = false
+            selectedCharID.set(-1)
+        })
     
         let waitTime = 0
         while(!open){
