@@ -92,10 +92,13 @@
     <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
     <span class="text-textcolor">CFG scale</span>
     <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
-    <span class="text-textcolor">Use SMEA</span>
-    <Check bind:check={$DataBase.NAIImgConfig.sm}/>
-    <span class="text-textcolor">Use DYN</span>
-    <Check bind:check={$DataBase.NAIImgConfig.sm_dyn}/>
+
+    {#if !$DataBase.NAII2I}
+        <span class="text-textcolor">Use SMEA</span>
+        <Check bind:check={$DataBase.NAIImgConfig.sm}/>
+        <span class="text-textcolor">Use DYN</span>
+        <Check bind:check={$DataBase.NAIImgConfig.sm_dyn}/>
+    {/if}
 {/if}
 
 <span class="text-textcolor mt-4 text-lg font-bold">TTS</span>
