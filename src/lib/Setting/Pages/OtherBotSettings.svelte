@@ -8,7 +8,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-    import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+    import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -66,6 +66,21 @@
 
     <span class="text-textcolor">Model</span>
     <TextInput size="sm" marginBottom placeholder="nai-diffusion-3" bind:value={$DataBase.NAIImgModel}/>
+
+    <span class="text-textcolor">Enable I2I</span>
+    <Check bind:check={$DataBase.NAII2I}/>
+
+
+    {#if $DataBase.NAII2I}
+
+        <span class="text-textcolor">strength</span>
+        <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.strength}/>
+        <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.strength}</span>
+        <span class="text-textcolor">noise</span>
+        <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.noise}/>
+        <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
+
+    {/if}
 
     <span class="text-textcolor">Width</span>
     <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.width}/>

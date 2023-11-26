@@ -31,9 +31,6 @@ async function fetchProxy(request) {
         const header = JSON.parse(decodeURIComponent(request.headers.get('risu-header') ?? 'null')) ?? request.headers
         let requestHeaders = new Headers(header);
 
-        console.log(urlParam)
-        console.log(requestHeaders)
-        console.log(request.body)
         let originalResponse = await fetch(urlParam, {
             method: method,
             headers: requestHeaders,

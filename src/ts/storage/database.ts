@@ -175,13 +175,16 @@ export function setDatabase(data:Database){
         data.sdCFG = 7
     }
     if(checkNullish(data.NAIImgUrl)){
-        data.NAIImgUrl = 'https://api.novelai.net'
+        data.NAIImgUrl = 'https://api.novelai.net/ai/generate-image'
     }
     if(checkNullish(data.NAIApiKey)){
         data.NAIApiKey = ''
     }
     if(checkNullish(data.NAIImgModel)){
         data.NAIImgModel = 'nai-diffusion-3'
+    }
+    if(checkNullish(data.NAII2I)){
+        data.NAII2I = true
     }
     if(checkNullish(data.textTheme)){
         data.textTheme = "standard"
@@ -248,7 +251,9 @@ export function setDatabase(data:Database){
             steps:28,
             scale:5,
             sm:true,
-            sm_dyn:true
+            sm_dyn:true,
+            noise:0.0,
+            strength:0.3
         }
     }
     if(checkNullish(data.customTextTheme)){
@@ -417,6 +422,7 @@ export interface Database{
     NAIImgUrl:string
     NAIApiKey:string
     NAIImgModel:string
+    NAII2I:boolean
     NAIImgConfig:NAIImgConfig
     runpodKey:string
     promptPreprocess:boolean
@@ -748,7 +754,9 @@ interface NAIImgConfig{
     steps:number,
     scale:number,
     sm:boolean,
-    sm_dyn:boolean
+    sm_dyn:boolean,
+    noise:number,
+    strength:number
 }
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
