@@ -8,6 +8,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -18,6 +19,7 @@
 <SelectInput className="mt-2 mb-4" bind:value={$DataBase.sdProvider}>
     <OptionInput value="" >None</OptionInput>
     <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
+    <OptionInput value="novelai" >Novel AI</OptionInput>
     <!-- TODO -->
     <!-- <OptionInput value="runpod" >Runpod Serverless</OptionInput> -->
 </SelectInput>
@@ -56,6 +58,30 @@
     {/if}
 {/if}
 
+{#if $DataBase.sdProvider === 'novelai'}
+    <span class="text-textcolor mt-2">Novel AI {language.providerURL}</span>
+    <TextInput size="sm" marginBottom placeholder="https://api.novelai.net" bind:value={$DataBase.NAIImgUrl}/>
+    <span class="text-textcolor">API Key</span>
+    <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
+
+    <span class="text-textcolor">Model</span>
+    <TextInput size="sm" marginBottom placeholder="nai-diffusion-3" bind:value={$DataBase.NAIImgModel}/>
+
+    <span class="text-textcolor">Width</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.width}/>
+    <span class="text-textcolor">Height</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.height}/>
+    <span class="text-textcolor">Sampler</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.NAIImgConfig.sampler}/>
+    <span class="text-textcolor">steps</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
+    <span class="text-textcolor">CFG scale</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
+    <span class="text-textcolor">Use SMEA</span>
+    <Check bind:check={$DataBase.NAIImgConfig.sm}/>
+    <span class="text-textcolor">Use DYN</span>
+    <Check bind:check={$DataBase.NAIImgConfig.sm_dyn}/>
+{/if}
 
 <span class="text-textcolor mt-4 text-lg font-bold">TTS</span>
 <span class="text-textcolor mt-2">ElevenLabs API key</span>

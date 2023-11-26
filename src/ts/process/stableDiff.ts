@@ -129,7 +129,7 @@ export async function stableDiff(currentChar:character,prompt:string){
                     "cfg_scale": db.sdCFG,
                     "prompt": prompts.join(','),
                     "negative_prompt": neg,
-                    'sampler_name': db.sdConfig.sampler_name,
+                    "sampler_name": db.sdConfig.sampler_name,
                     "enable_hr": db.sdConfig.enable_hr,
                     "denoising_strength": db.sdConfig.denoising_strength,
                     "hr_scale": db.sdConfig.hr_scale,
@@ -161,6 +161,69 @@ export async function stableDiff(currentChar:character,prompt:string){
             return false   
         }
     }
+    if(db.sdProvider === 'novelai'){
 
+        let prompts:string[] = []
+        let neg = ''
+        for(let i=0;i<currentSd.length;i++){
+            if(currentSd[i][0] !== 'negative'){
+                prompts.push(currentSd[i][1])
+            }
+            else{
+                neg = currentSd[i][1]
+            }
+        }
+
+
+        const uri = new URL(db.NAIImgUrl)
+        uri.pathname = '/ai/generate-image'
+        const reqlist = {
+            body: {
+                "input": prompts.join(','),
+                "model": db.NAIImgModel,
+                "parameters": {
+                    "width": db.NAIImgConfig.width,
+                    "height": db.NAIImgConfig.height,
+                    "sampler": db.NAIImgConfig.sampler,
+                    "steps": db.NAIImgConfig.steps,
+                    "scale": db.NAIImgConfig.scale,
+                    "negative_prompt": neg,
+                    "sm": db.NAIImgConfig.sm,
+                    "sm_dyn": db.NAIImgConfig.sm_dyn
+                }
+            },
+            headers:{
+                'Authorization:': 'Bearer ' + db.NAIApiKey,
+                'Content-Type': 'application/json'
+            }
+        }
+
+        console.log(uri)
+        console.log(reqlist)
+        try {
+            const da = await globalFetch(uri.toString(), reqlist)   
+
+            console.log(da)
+            if(da.ok){
+                let charemotions = get(CharEmotion)
+                const img = `data:image/png;base64,${da.data.images[0]}`
+                console.log(img)
+                const emos:[string, string,number][] = [[img, img, Date.now()]]
+                charemotions[currentChar.chaId] = emos
+                CharEmotion.set(charemotions)
+            }
+            else{
+                alertError(JSON.stringify(da.data))
+                return false   
+            }
+
+            return returnSdData
+
+
+        } catch (error) {
+            alertError(error)
+            return false   
+        }
+    }
     return ''
 }

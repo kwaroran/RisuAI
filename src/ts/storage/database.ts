@@ -174,6 +174,15 @@ export function setDatabase(data:Database){
     if(checkNullish(data.sdCFG)){
         data.sdCFG = 7
     }
+    if(checkNullish(data.NAIImgUrl)){
+        data.NAIImgUrl = 'https://api.novelai.net'
+    }
+    if(checkNullish(data.NAIApiKey)){
+        data.NAIApiKey = ''
+    }
+    if(checkNullish(data.NAIImgModel)){
+        data.NAIImgModel = 'nai-diffusion-3'
+    }
     if(checkNullish(data.textTheme)){
         data.textTheme = "standard"
     }
@@ -229,6 +238,17 @@ export function setDatabase(data:Database){
             enable_hr:false,
             hr_scale:1.25,
             hr_upscaler:"Latent"
+        }
+    }
+    if(checkNullish(data.NAIImgConfig)){
+        data.NAIImgConfig = {
+            width:512,
+            height:768,
+            sampler:"k_dpmpp_sde",
+            steps:28,
+            scale:5,
+            sm:true,
+            sm_dyn:true
         }
     }
     if(checkNullish(data.customTextTheme)){
@@ -394,6 +414,10 @@ export interface Database{
     sdSteps:number
     sdCFG:number
     sdConfig:sdConfig
+    NAIImgUrl:string
+    NAIApiKey:string
+    NAIImgModel:string
+    NAIImgConfig:NAIImgConfig
     runpodKey:string
     promptPreprocess:boolean
     bias: [string, number][]
@@ -717,6 +741,15 @@ interface sdConfig{
     hr_upscaler:string
 }
 
+interface NAIImgConfig{
+    width:number,
+    height:number,
+    sampler:string,
+    steps:number,
+    scale:number,
+    sm:boolean,
+    sm_dyn:boolean
+}
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{
