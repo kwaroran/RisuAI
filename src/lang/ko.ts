@@ -389,6 +389,8 @@ export const languageKorean = {
     showMenuChatList: "메뉴에서 채팅 리스트 보이기",
     translatorLanguage: "번역기 언어",
     translatorType: "번역기 타입",
+	"llmprompt": "LLM 프롬프트",
+	"llmserver": "LLM 서버",
     deeplKey: "deepL API 키",
     deeplFreeKey: "deepL 무료 API 키",
     exportPersona: "페르소나 엑스포트",

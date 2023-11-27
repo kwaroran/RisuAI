@@ -390,6 +390,8 @@ export const LanguageVietnamese = {
     "showMenuChatList": "Hiển thị Menu Danh sách Trò chuyện",
     "translatorLanguage": "Ngôn ngữ dịch",
     "translatorType": "Loại dịch giả",
+    "llmprompt": "Lời nhắc LLM",
+    "llmserver": "máy chủ LLM",
     "deeplKey": "Khóa API deepL",
     "deeplFreeKey": "Khóa API miễn phí deepL",
     "exportPersona": "Xuất khẩu nhân vật",

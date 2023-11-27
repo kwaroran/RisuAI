@@ -419,6 +419,8 @@ export const languageGerman = {
     showMenuChatList: "Menü-Chatliste anzeigen",
     translatorLanguage: "Übersetzer-Sprache",
     translatorType: "Übersetzer-Typ",
+	"llmprompt": "LLM Eingabeaufforderung",
+	"llmserver": "LLM server",
     deeplKey: "DeepL API-Schlüssel",
     deeplFreeKey: "DeepL Gratis API-Schlüssel",
     exportPersona: "Profil exportieren",

@@ -337,6 +337,11 @@ export function setDatabase(data:Database){
         key:'',
         freeApi: false
     }
+    data.llmoption ??= {
+        prompt: 'Translate {text} from {from} language to {to} language like a 20-year-old female college student speaks.',
+        server: '',
+        key: '',
+    }
     data.NAIadventure ??= false
     data.NAIappendName ??= true
     data.NAIsettings.cfg_scale ??= 1
@@ -519,12 +524,17 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none',
+    translatorType:'google'|'deepl'|'LLM'|'none',
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
         key:string,
         freeApi:boolean
+    }
+    llmoption:{
+        prompt:string,
+        server:string,
+        key:string
     }
     localStopStrings?:string[]
     autofillRequestUrl:boolean

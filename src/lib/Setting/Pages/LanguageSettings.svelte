@@ -56,6 +56,7 @@
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
+        <OptionInput value="LLM" >LLM</OptionInput>
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
@@ -66,6 +67,19 @@
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
+
+    {/if}
+
+    {#if $DataBase.translatorType === 'LLM'}
+
+        <span class="text-textcolor mt-4">{language.llmprompt}</span>
+        <TextInput bind:value={$DataBase.llmoption.prompt} />
+
+        <span class="text-textcolor mt-4">{language.llmserver}</span>
+        <TextInput bind:value={$DataBase.llmoption.server} />
+
+        <span class="text-textcolor mt-4">{language.llmkey}</span>
+        <TextInput bind:value={$DataBase.llmoption.key} />
 
     {/if}
 

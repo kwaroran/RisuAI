@@ -117,6 +117,40 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         }
         return f.data.translations[0].text
 
+    } else if(db.translatorType === 'LLM'){
+        // 번역 코드 by libra-0
+        
+        let url = db.llmoption.server == "" ? "https://api.openai.com/v1/chat/completions" : db.llmoption.server;
+        let prompt = (db.llmoption.prompt).replace('{text}', text).replace('{from}', arg.from).replace('{to}', arg.to)
+        const res = await globalFetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${db.llmoption.key == "" ? db.openAIKey : db.llmoption.key}`,
+            },
+            body: {
+                "model": "gpt-3.5-turbo",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You have to translate the sentences as I want."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            }
+        });
+
+        if(!res.ok){
+            return 'ERR::LLM API Error' + (await res.data)
+        }
+
+        if(res.data.choices[0].finish_reason == "stop"){
+            return res.data.choices[0].message.content;
+        } else {
+            return "ERR::LLM API Error " + res.data.choices[0].finish_reason;
+        }
     }
 
 

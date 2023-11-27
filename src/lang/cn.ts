@@ -389,6 +389,8 @@ export const languageChinese = {
 	"showMenuChatList": "显示聊天菜单列表",
 	"translatorLanguage": "翻译语言",
 	"translatorType": "翻译类型",
+	"llmprompt": "LLM提示",
+	"llmserver": "LLM服务器",
 	"deeplKey": "deepl API密钥",
 	"deeplFreeKey": "deepl 免费 API密钥",
 	"exportPersona": "导出角色",
