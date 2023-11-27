@@ -116,6 +116,14 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         let reqlist= {}
 
         if(db.NAII2I){
+            genPrompt = genPrompt
+                .replaceAll('\\(', "♧")
+                .replaceAll('\\)', "♤")
+                .replaceAll('(','{')
+                .replaceAll(')','}')
+                .replaceAll('♧','(')
+                .replaceAll('♤',')')
+
             let base64img = ''
             if(db.NAIImgConfig.image === ''){
                 const charimg = currentChar.image;
