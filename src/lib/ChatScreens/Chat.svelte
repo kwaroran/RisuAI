@@ -5,7 +5,7 @@
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type groupChat } from "../../ts/storage/database";
-    import { CurrentChat, selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, selectedCharID } from "../../ts/stores";
     import { translate, translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
@@ -146,11 +146,13 @@
                         </button>    
                     {/if}
                     {#if idx > -1}
-                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
-                            return sayTTS(null, message)
-                        }}>
-                            <Volume2Icon size={20}/>
-                        </button>
+                        {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.ttsMode !== 'none'}
+                            <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
+                                return sayTTS(null, message)
+                            }}>
+                                <Volume2Icon size={20}/>
+                            </button>
+                        {/if}
 
                         <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
