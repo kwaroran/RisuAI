@@ -128,6 +128,9 @@
 <span class="text-textcolor mt-2">VOICEVOX URL</span>
 <TextInput size="sm" marginBottom bind:value={$DataBase.voicevoxUrl}/>
 
+<span class="text-textcolor mt-2">NovelAI API key</span>
+<TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
+
 <span class="text-textcolor mt-4 text-lg font-bold">{language.emotionImage}</span>
 
 <span class="text-textcolor mt-2">{language.emotionMethod}</span>

@@ -619,6 +619,11 @@ export interface character{
         INTONATION_SCALE?: number
         VOLUME_SCALE?: number
     }
+    naittsConfig?:{
+        customvoice?: boolean
+        voice?: string
+        version?: string
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean

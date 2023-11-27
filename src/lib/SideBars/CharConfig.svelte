@@ -15,7 +15,7 @@
     import Help from "../Others/Help.svelte";
     import RegexData from "./Scripts/RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
-    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices } from "src/ts/process/tts";
+    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import RealmUpload from "../UI/Realm/RealmUpload.svelte";
@@ -27,6 +27,7 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import RegexList from "./Scripts/RegexList.svelte";
     import TriggerList from "./Scripts/TriggerList.svelte";
+    
 
     let subMenu = 0
     let openHubUpload = false
@@ -130,12 +131,20 @@
                 }
             }
         }
+        
     }
 
     onDestroy(unsub);
 
 
     $:licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
+    $: if (currentChar.data.ttsMode === 'novelai' && (currentChar.data as character).naittsConfig === undefined) {
+        (currentChar.data as character).naittsConfig = {
+            customvoice: false,
+            voice: 'Aini',
+            version: 'v2'
+        };
+    }
 </script>
 
 {#if licensed !== 'private'}
@@ -542,6 +551,7 @@
             <OptionInput value="webspeech">Web Speech</OptionInput>
             <OptionInput value="VOICEVOX">VOICEVOX</OptionInput>
             <OptionInput value="openai">OpenAI</OptionInput>
+            <OptionInput value="novelai">NovelAI</OptionInput>
         </SelectInput>
         
 
@@ -600,6 +610,31 @@
                 <span class="text-textcolor">Intonation scale</span>
                 <NumberInput size={"sm"} marginBottom bind:value={currentChar.data.voicevoxConfig.INTONATION_SCALE}/>
                 <span class="text-sm mb-2 text-textcolor2">To use VOICEVOX, you need to run a colab and put the localtunnel URL in "Settings → Other Bots". https://colab.research.google.com/drive/1tyeXJSklNfjW-aZJAib1JfgOMFarAwze</span>
+        {:else if currentChar.data.ttsMode === 'novelai'}
+            <span class="text-textcolor">Custom Voice Seed</span>
+            <Check bind:check={currentChar.data.naittsConfig.customvoice}/>
+            {#if !currentChar.data.naittsConfig.customvoice}
+                <span class="text-textcolor">Voice</span>
+                <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.naittsConfig.voice}>
+                    {#await getNovelAIVoices() then voices}
+                        {#each voices as voiceGroup}
+                            <optgroup label={voiceGroup.gender} class="bg-darkbg appearance-none">
+                                {#each voiceGroup.voices as voice}
+                                    <OptionInput value={voice} selected={currentChar.data.naittsConfig.voice === voice}>{voice}</OptionInput>
+                                {/each}
+                            </optgroup>
+                        {/each}
+                    {/await}
+                </SelectInput>
+            {:else}
+                <span class="text-textcolor">Voice</span>
+                <TextInput size={"sm"} bind:value={currentChar.data.naittsConfig.voice}/>
+            {/if}
+            <span class="text-textcolor">Version</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.naittsConfig.version}>
+                <OptionInput value="v1">v1</OptionInput>
+                <OptionInput value="v2">v2</OptionInput>
+            </SelectInput>
         {/if}
         {#if currentChar.data.ttsMode === 'openai'}
         <span class="text-textcolor">OpenAI TTS uses your OpenAI key on the chat model section</span>
@@ -610,7 +645,7 @@
                 {/each}
             </SelectInput>
         {/if}
-        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX'}
+        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX' || currentChar.data.ttsMode === 'novelai'}
             <div class="flex items-center mt-2">
                 <Check bind:check={currentChar.data.ttsReadOnlyQuoted} name={language.ttsReadOnlyQuoted}/>
             </div>
