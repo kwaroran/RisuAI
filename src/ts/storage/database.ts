@@ -347,6 +347,7 @@ export function setDatabase(data:Database){
     data.generationSeed ??= -1
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
+    data.huggingfaceKey ??= ''
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
@@ -538,7 +539,7 @@ export interface Database{
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
     tpo?:boolean
     automark?:boolean
-
+    huggingfaceKey:string
     allowAllExtentionFiles?:boolean
 }
 
@@ -648,6 +649,10 @@ export interface character{
     largePortrait?:boolean
     lorePlus?:boolean
     inlayViewScreen?:boolean
+    hfTTS?: {
+        model: string
+        language: string
+    }
 }
 
 

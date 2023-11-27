@@ -301,6 +301,10 @@ export function characterFormatUpdate(index:number|character){
             depth: 0,
             prompt: ''
         }
+        cha.hfTTS = {
+            model: '',
+            language: 'en'
+        }
         if(!cha.newGenData){
             cha = updateInlayScreen(cha)
         }

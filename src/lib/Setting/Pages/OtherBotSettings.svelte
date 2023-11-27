@@ -133,10 +133,15 @@
     <span class="text-textcolor mt-2">VOICEVOX URL</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.voicevoxUrl}/>
     
+    <span class="text-textcolor">OpenAI Key</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.openAIKey}/>
+
     <span class="text-textcolor mt-2">NovelAI API key</span>
     <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
     
-    
+    <span class="text-textcolor">Huggingface Key</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.huggingfaceKey} placeholder="hf_..."/>
+
 </Arcodion>
 
 <Arcodion name={language.emotionImage} styled>

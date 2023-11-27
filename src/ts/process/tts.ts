@@ -4,6 +4,7 @@ import { DataBase, type character } from "../storage/database";
 import { translateVox } from "../translator/translator";
 import { globalFetch } from "../storage/globalApi";
 import { language } from "src/lang";
+import { sleep } from "../util";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -160,6 +161,45 @@ export async function sayTTS(character:character,text:string) {
                 alertError("Error fetching or decoding audio data");
             }
             break;
+        }
+        case 'huggingface': {
+            while(true){
+                const audioContext = new AudioContext();
+                const response = await fetch(`https://api-inference.huggingface.co/models/${character.hfTTS.model}`, {
+                    method: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + db.huggingfaceKey,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        inputs: text,
+                    })
+                });
+    
+                if(response.status === 503 && response.headers.get('content-type') === 'application/json'){
+                    const json = await response.json()
+                    if(json.estimated_time){
+                        await sleep(json.estimated_time * 1000)
+                        continue
+                    }
+                }
+                else if(response.status >= 400){
+                    alertError(language.errors.httpError + `${await response.text()}`)
+                    return
+                }
+                else if (response.status === 200) {
+                    const audioBuffer = await response.arrayBuffer();
+                    audioContext.decodeAudioData(audioBuffer, (decodedData) => {
+                        const sourceNode = audioContext.createBufferSource();
+                        sourceNode.buffer = decodedData;
+                        sourceNode.connect(audioContext.destination);
+                        sourceNode.start();
+                    });
+                } else {
+                    alertError("Error fetching or decoding audio data");
+                }
+                return
+            }
         }
     }
 }
