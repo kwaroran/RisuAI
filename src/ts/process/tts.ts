@@ -159,7 +159,6 @@ export async function sayTTS(character:character,text:string) {
                 });
             } else {
                 alertError("Error fetching or decoding audio data");
-                console.log(response);
             }
             break;
         }

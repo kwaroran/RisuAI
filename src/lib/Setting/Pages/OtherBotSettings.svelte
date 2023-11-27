@@ -95,7 +95,7 @@
         <span class="text-textcolor">CFG scale</span>
         <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
     
-        {#if !$DataBase.NAII2I}
+        {#if !$DataBase.NAII2I || $DataBase.NAIImgConfig.sampler === 'ddim_v3'}
             <Check bind:check={$DataBase.NAIImgConfig.sm} name="Use SMEA"/>
             <Check bind:check={$DataBase.NAIImgConfig.sm_dyn} name='Use DYN'/>
         {/if}
