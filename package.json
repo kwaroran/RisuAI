@@ -36,6 +36,7 @@
     "gpt3-tokenizer": "^1.1.5",
     "html-to-image": "^1.11.11",
     "isomorphic-dompurify": "^1.8.0",
+    "jszip": "^3.10.1",
     "libsodium-wrappers-sumo": "^0.7.11",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",

@@ -2,11 +2,13 @@ import { get } from "svelte/store"
 import { DataBase, type character } from "../storage/database"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
-import { globalFetch } from "../storage/globalApi"
+import { globalFetch, readImage } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
 import type { OpenAIChat } from "."
-
-
+import { processZip } from "./processzip"
+import { convertToBase64 } from "./uinttobase64" 
+import type { List } from "lodash"
+import { generateRandomSeed } from "./generateSeed"
 export async function stableDiff(currentChar:character,prompt:string){
     const mainPrompt = "assistant is a chat analyzer.\nuser will input a data of situation with key and values before chat, and a chat of a user and character.\nView the status of the chat and change the data.\nif data's key starts with $, it must change it every time.\nif data value is none, it must change it."
     let db = get(DataBase)
@@ -129,7 +131,7 @@ export async function stableDiff(currentChar:character,prompt:string){
                     "cfg_scale": db.sdCFG,
                     "prompt": prompts.join(','),
                     "negative_prompt": neg,
-                    'sampler_name': db.sdConfig.sampler_name,
+                    "sampler_name": db.sdConfig.sampler_name,
                     "enable_hr": db.sdConfig.enable_hr,
                     "denoising_strength": db.sdConfig.denoising_strength,
                     "hr_scale": db.sdConfig.hr_scale,
@@ -161,6 +163,113 @@ export async function stableDiff(currentChar:character,prompt:string){
             return false   
         }
     }
+    if(db.sdProvider === 'novelai'){
 
+        let prompts:string[] = []
+        let neg = ''
+        for(let i=0;i<currentSd.length;i++){
+            if(currentSd[i][0] !== 'negative'){
+                prompts.push(currentSd[i][1])
+            }
+            else{
+                neg = currentSd[i][1]
+            }
+        }
+
+
+
+        let reqlist= {}
+
+        if(db.NAII2I){
+            let base64img = ''
+            if(db.NAIImgConfig.image === ''){
+                const charimg = currentChar.image;
+                
+                const img = await readImage(charimg)
+                const base64 = await convertToBase64(img);
+                base64img = base64.split('base64,')[1];
+            }else{
+                base64img = db.NAIImgConfig.image.split('base64,')[1];
+            }
+            
+            let randomseed = generateRandomSeed(10);
+            let seed = parseInt(randomseed, 10);
+            reqlist = {
+                body: {
+                    "action": "img2img",
+                    "input": prompts.join(','),
+                    "model": db.NAIImgModel,
+                    "parameters": {
+                        "seed": seed,
+                        "extra_noise_seed": seed,
+                        "add_original_image": false,
+                        "cfg_rescale": 0,
+                        "controlnet_strength": 1,
+                        "dynamic_threshold": false,
+                        "n_samples": 1,
+                        "width": db.NAIImgConfig.width,
+                        "height": db.NAIImgConfig.height,
+                        "sampler": db.NAIImgConfig.sampler,
+                        "steps": db.NAIImgConfig.steps,
+                        "scale": db.NAIImgConfig.scale,
+                        "negative_prompt": neg,
+                        "sm": false,
+                        "sm_dyn": false,
+                        "noise": db.NAIImgConfig.noise,
+                        "noise_schedule": "native",
+                        "strength": db.NAIImgConfig.strength,
+                        "image": base64img,
+                        "ucPreset": 2,
+                        "uncond_scale": 1
+                    }
+                },
+                headers:{
+                    "Authorization": "Bearer " + db.NAIApiKey
+                }
+            }
+        }else{
+            reqlist = {
+                body: {
+                    "input": prompts.join(','),
+                    "model": db.NAIImgModel,
+                    "parameters": {
+                        "width": db.NAIImgConfig.width,
+                        "height": db.NAIImgConfig.height,
+                        "sampler": db.NAIImgConfig.sampler,
+                        "steps": db.NAIImgConfig.steps,
+                        "scale": db.NAIImgConfig.scale,
+                        "negative_prompt": neg,
+                        "sm": db.NAIImgConfig.sm,
+                        "sm_dyn": db.NAIImgConfig.sm_dyn
+                    }
+                },
+                headers:{
+                    "Authorization": "Bearer " + db.NAIApiKey
+                }
+            }
+        }
+        try {
+            const da = await globalFetch(db.NAIImgUrl, reqlist)   
+
+            if(da){
+                let charemotions = get(CharEmotion)
+                const img = await processZip(da.data);
+                const emos:[string, string,number][] = [[img, img, Date.now()]]
+                charemotions[currentChar.chaId] = emos
+                CharEmotion.set(charemotions)
+            }
+            else{
+                alertError(JSON.stringify(da.data))
+                return false   
+            }
+
+            return returnSdData
+
+
+        } catch (error) {
+            alertError(error)
+            return false   
+        }
+    }
     return ''
 }

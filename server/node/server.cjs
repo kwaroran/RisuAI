@@ -61,7 +61,6 @@ const reverseProxyFunc = async (req, res, next) => {
             headers: header,
             body: JSON.stringify(req.body)
         });
-
         // get response body as stream
         const originalBody = originalResponse.body;
         // get response headers
