@@ -685,16 +685,6 @@ export async function globalFetch(url:string, arg:{
                         headers: headers,
                         method: method
                     })
-                    if(da.headers.get('content-type')?.includes('application/x-zip-compressed')){
-                        const daText = await da.blob()
-                        
-                        addFetchLog(daText, da.ok && da.status >= 200 && da.status < 300)
-                        return {
-                            ok: da.ok && da.status >= 200 && da.status < 300,
-                            data: daText,
-                            headers: Object.fromEntries(da.headers)
-                        }   
-                    }
                     const daText = await da.text()
                     try {
                         const dat = JSON.parse(daText)

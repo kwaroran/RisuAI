@@ -6,8 +6,6 @@ import { globalFetch, readImage } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
 import type { OpenAIChat } from "."
 import { processZip } from "./processzip"
-import type { List } from "lodash"
-import { generateRandomSeed } from "./generateSeed"
 export async function stableDiff(currentChar:character,prompt:string){
     const mainPrompt = "assistant is a chat analyzer.\nuser will input a data of situation with key and values before chat, and a chat of a user and character.\nView the status of the chat and change the data.\nif data's key starts with $, it must change it every time.\nif data value is none, it must change it."
     let db = get(DataBase)
@@ -190,8 +188,7 @@ export async function stableDiff(currentChar:character,prompt:string){
                 base64img = Buffer.from(await readImage(db.NAIImgConfig.image)).toString('base64');
             }
             
-            let randomseed = generateRandomSeed(10);
-            let seed = parseInt(randomseed, 10);
+            let seed = Math.floor(Math.random() * 100000000000)
             reqlist = {
                 body: {
                     "action": "img2img",
@@ -223,7 +220,8 @@ export async function stableDiff(currentChar:character,prompt:string){
                 },
                 headers:{
                     "Authorization": "Bearer " + db.NAIApiKey
-                }
+                },
+                rawResponse: true
             }
         }else{
             reqlist = {
@@ -243,13 +241,15 @@ export async function stableDiff(currentChar:character,prompt:string){
                 },
                 headers:{
                     "Authorization": "Bearer " + db.NAIApiKey
-                }
+                },
+                rawResponse: true
+
             }
         }
         try {
             const da = await globalFetch(db.NAIImgUrl, reqlist)   
 
-            if(da){
+            if(da.ok){
                 let charemotions = get(CharEmotion)
                 const img = await processZip(da.data);
                 const emos:[string, string,number][] = [[img, img, Date.now()]]
@@ -257,7 +257,7 @@ export async function stableDiff(currentChar:character,prompt:string){
                 CharEmotion.set(charemotions)
             }
             else{
-                alertError(JSON.stringify(da.data))
+                alertError(Buffer.from(da.data).toString())
                 return false   
             }
 
