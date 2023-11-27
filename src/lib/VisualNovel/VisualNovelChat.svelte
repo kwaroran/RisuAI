@@ -1,14 +1,45 @@
 <script lang="ts">
-  import { getFileSrc } from "src/ts/storage/globalApi";
+    import { getFileSrc } from "src/ts/storage/globalApi";
     import { CurrentCharacter } from "src/ts/stores";
+    import { sleep } from "src/ts/util";
+    import { onDestroy, onMount } from "svelte";
 
-    const style:number = 1    
+    const style:number = 1
+    export let text:string = "Hello World, this is a test, so I can see if this works. I hope it does, because I don't want to have to rewrite this. I hope this is long enough to test the text wrapping. Lonnnnnng String "
+    let renderedText = ''
+    let alive = true
+
+    export const forceRender = () => {
+        renderedText = text
+    }
+
+    onMount(async () => {
+        while(alive){
+            if(renderedText.length >= text.length){
+                if(renderedText !== text){
+                    renderedText = ''
+                }
+                else{
+                    renderedText = text
+                }
+            }
+            if(renderedText.length < text.length){
+                renderedText += text[renderedText.length]
+            }
+            await sleep(10)
+        }
+    })
+
+    onDestroy(() => {
+        renderedText = ''
+        alive = false
+    })
 </script>
 
 {#if $CurrentCharacter.type === 'character' && $CurrentCharacter.emotionImages[0]}
     {#await getFileSrc($CurrentCharacter.emotionImages[0][1]) then imglink}
         <div class="w-full absolute top-0 h-full bottom-0 justify-center flex">
-            <img src={imglink}>
+            <img src={imglink} alt="character">
         </div>
     {/await}
 {/if}
@@ -37,8 +68,8 @@
             </div>
             <div class="bg-neutral-200 h-40 rounded-lg border-pink-900 border-1 w-full">
                 <div class="border-pink-300 border-4 h-full rounded-lg">
-                    <div class="border-pink-900 border-1 text-justify px-4 pt-6 pb-4 h-full rounded-lg">
-                        Hmm... What should I say now?
+                    <div class="border-pink-900 border-1 px-4 pt-6 pb-4 h-full rounded-lg tracking-normal text-clip">
+                        {renderedText}
                     </div>
                 </div>
             </div>

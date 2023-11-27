@@ -7,7 +7,7 @@
     import VisualNovelChat from "./VisualNovelChat.svelte";
 
     const wallPaper = `background-image: url(${defaultWallpaper})`
-
+    export let forceRender:() => void
     let bgImg= ''
     let lastBg = ''
     $: (async () =>{
@@ -20,7 +20,9 @@
 <div class="flex-grow h-full min-w-0 relative justify-center flex">
     <SideBarArrow />
     <BackgroundDom />
-    <div style={wallPaper} class="h-full w-full bg-cover">
-        <VisualNovelChat />
+    <div style={wallPaper} class="h-full w-full bg-cover" on:click={() => {
+        forceRender()
+    }}>
+        <VisualNovelChat bind:forceRender />
     </div>
 </div>
