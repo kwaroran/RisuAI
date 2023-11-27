@@ -27,6 +27,8 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import RegexList from "./Scripts/RegexList.svelte";
     import TriggerList from "./Scripts/TriggerList.svelte";
+  import CheckInput from "../UI/GUI/CheckInput.svelte";
+  import { updateInlayScreen } from "src/ts/process/inlayScreen";
     
 
     let subMenu = 0
@@ -319,7 +321,11 @@
     <!-- svelte-ignore empty-block -->
 
     {#if currentChar.type !== 'group'}
-        <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen}>
+        <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen} on:change={() => {
+            if(currentChar.type === 'character'){
+                currentChar.data = updateInlayScreen(currentChar.data)
+            }
+        }}>
             <OptionInput value="none">{language.none}</OptionInput>
             <OptionInput value="emotion">{language.emotionImage}</OptionInput>
             <OptionInput value="imggen">{language.imageGeneration}</OptionInput>
@@ -383,73 +389,34 @@
                 <span>Loading...</span>
             {/if}
         </div>
+
+        {#if currentChar.data.inlayViewScreen}
+            <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
+            <TextAreaInput bind:value={currentChar.data.newGenData.emotionInstructions} />
+        {/if}
+
+        <CheckInput bind:check={currentChar.data.inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
+            if(currentChar.type === 'character'){
+                currentChar.data = updateInlayScreen(currentChar.data)
+            }
+        }}/>
     {/if}
     {#if currentChar.data.viewScreen === 'imggen'}
         <span class="text-textcolor mt-6">{language.imageGeneration} <Help key="imggen"/></span>
         <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
         
-        <div class="w-full max-w-full border border-selected rounded-md p-2">
-            <table class="w-full max-w-full tabler">
-                <tr>
-                    <th class="font-medium w-1/3">{language.key}</th>
-                    <th class="font-medium w-1/2">{language.value}</th>
-                    <th class="font-medium"></th>
-                </tr>
-                {#if currentChar.data.sdData.length === 0}
-                    <tr>
-                        <div class="text-textcolor2">{language.noData}</div>
-                    </tr>
-                {/if}
-                {#each currentChar.data.sdData as emo, i}
-                    <tr>
-                        <td class="font-medium truncate w-1/3">
-                            <TextInput size="sm" marginBottom bind:value={currentChar.data.sdData[i][0]} />
-                        </td>
-                        <td class="font-medium truncate w-1/2">
-                            <TextInput size="sm" marginBottom bind:value={currentChar.data.sdData[i][1]} />
-                        </td>
-                        {#if (!['always','negative'].includes(currentChar.data.sdData[i][0]))}
-                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500" on:click={() => {
-                                let db = ($DataBase)
-                                let charId = $selectedCharID
-                                let dbChar = db.characters[charId]
-                                if(dbChar.type !== 'group'){
-                                    dbChar.sdData.splice(i, 1)
-                                    db.characters[charId] = dbChar
-                                }
-                                $DataBase = (db)
-                        }}><TrashIcon /></button>
-                        {:else}
-                        <td></td>
-                        {/if}
-                    </tr>
-                {/each}
-            </table>
-        </div>
-        <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
-            {#if !$addingEmotion}
-                <button class="cursor-pointer hover:text-green-500" on:click={() => {
-                    let db = ($DataBase)
-                    let charId = $selectedCharID
-                    let dbChar = db.characters[charId]
-                    if(dbChar.type !== 'group'){
-                        dbChar.sdData.push(['', ''])
-                        db.characters[charId] = dbChar
-                    }
-                    $DataBase = (db)
-                }}>
-                    <PlusIcon />
-                </button>
-            {:else}
-                <span>Loading...</span>
-            {/if}
-        </div>
-        <span class="text-textcolor mt-6">{language.currentImageGeneration}</span>
-        {#if currentChar.data.chats[currentChar.data.chatPage].sdData}
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].sdData}></TextAreaInput>
-        {:else}
-            <span><div class="text-textcolor2">{language.noData}</div></span>
-        {/if}
+        <span class="text-textcolor mt-2">{language.imgGenPrompt}</span>
+        <TextAreaInput bind:value={currentChar.data.newGenData.prompt} />
+        <span class="text-textcolor mt-2">{language.imgGenNegatives}</span>
+        <TextAreaInput bind:value={currentChar.data.newGenData.negative} />
+        <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
+        <TextAreaInput bind:value={currentChar.data.newGenData.instructions} />
+
+        <CheckInput bind:check={currentChar.data.inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
+            if(currentChar.type === 'character'){
+                currentChar.data = updateInlayScreen(currentChar.data)
+            }
+        }}/>
     {/if}
 {:else if subMenu === 3}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>

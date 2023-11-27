@@ -36,7 +36,7 @@
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
             {#if $selectedCharID >= 0}
-                {#if $CurrentCharacter.viewScreen !== 'none'}
+                {#if $CurrentCharacter.viewScreen !== 'none' && ($CurrentCharacter.type === 'group' || (!$CurrentCharacter.inlayViewScreen))}
                     <ResizeBox />
                 {/if}
             {/if}

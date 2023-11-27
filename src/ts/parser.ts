@@ -65,7 +65,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 })
 
 
-const assetRegex = /{{(raw|img|video|audio|bg)::(.+?)}}/g
+const assetRegex = /{{(raw|img|video|audio|bg|emotion)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
@@ -74,13 +74,28 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     if(char.additionalAssets){
 
         let assetPaths:{[key:string]:string} = {}
+        let emoPaths:{[key:string]:string} = {}
 
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
             assetPaths[asset[0].toLocaleLowerCase()] = assetPath
         }
+        if(char.emotionImages){
+            for(const emo of char.emotionImages){
+                const emoPath = await getFileSrc(emo[1])
+                emoPaths[emo[0].toLocaleLowerCase()] = emoPath
+            }
+        }
         data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
             name = name.toLocaleLowerCase()
+            if(type === 'emotion'){
+                console.log(emoPaths, name)
+                const path = emoPaths[name]
+                if(!path){
+                    return ''
+                }
+                return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+            }
             const path = assetPaths[name]
             if(!path){
                 return ''
@@ -129,6 +144,7 @@ export interface simpleCharacterArgument{
     customscript: customscript[]
     chaId: string,
     virtualscript?: string
+    emotionImages?: [string, string][]
 }
 
 

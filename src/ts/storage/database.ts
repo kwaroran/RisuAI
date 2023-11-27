@@ -15,7 +15,7 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.59.9"
+export let appVer = "1.60.1"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -588,6 +588,12 @@ export interface character{
     globalLore: loreBook[]
     chaId: string
     sdData: [string, string][]
+    newGenData?: {
+        prompt: string,
+        negative: string,
+        instructions: string,
+        emotionInstructions: string,
+    }
     customscript: customscript[]
     triggerscript: triggerscript[]
     utilityBot: boolean
@@ -641,6 +647,7 @@ export interface character{
     extentions?:{[key:string]:any}
     largePortrait?:boolean
     lorePlus?:boolean
+    inlayViewScreen?:boolean
 }
 
 

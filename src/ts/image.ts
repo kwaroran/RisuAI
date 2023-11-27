@@ -24,12 +24,21 @@ export async function postInlayImage(){
 
     const extention = img.name.split('.').at(-1)
 
-    //darw in canvas to convert to png
+    const imgObj = new Image()
+    imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
+
+    return await writeInlayImage(imgObj, {
+        name: img.name,
+        ext: extention
+    })
+}
+
+export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string, ext?:string} = {}) {
+
+    let drawHeight = 0
+    let drawWidth = 0
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
-    const imgObj = new Image()
-    let drawHeight, drawWidth = 0
-    imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
     await new Promise((resolve) => {
         imgObj.onload = () => {
             drawHeight = imgObj.height
@@ -59,9 +68,9 @@ export async function postInlayImage(){
     const imgid = v4()
 
     await inlayStorage.setItem(imgid, {
-        name: img.name,
+        name: arg.name ?? imgid,
         data: dataURI,
-        ext: extention,
+        ext: arg.ext ?? 'png',
         height: drawHeight,
         width: drawWidth
     })

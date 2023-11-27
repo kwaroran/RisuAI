@@ -49,6 +49,7 @@ function createSimpleCharacter(char:character|groupChat){
         chaId: char.chaId,
         additionalAssets: char.additionalAssets,
         virtualscript: char.virtualscript,
+        emotionImages: char.emotionImages,
     }
 
     return simpleChar
@@ -71,7 +72,9 @@ function updateCurrentCharacter(){
     if(isEqual(gotCharacter, currentChar)){
         return
     }
-    ShowVN.set(currentChar?.viewScreen === 'vn')   
+    if((currentChar?.viewScreen === 'vn') !== get(ShowVN)){
+        ShowVN.set(currentChar?.viewScreen === 'vn')   
+    }
 
     console.log("Character updated")
     CurrentCharacter.set(cloneDeep(currentChar))

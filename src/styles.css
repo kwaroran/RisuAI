@@ -71,6 +71,11 @@ html, body{
   font-weight: bold;
 }
 
+.strokeme {
+  color: #000;
+  text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
