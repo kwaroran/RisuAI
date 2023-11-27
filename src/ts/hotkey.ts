@@ -70,7 +70,7 @@ function changeToPreset(num:number){
         let db = get(DataBase)
         let pres = db.botPresets
         if(pres.length > num){
-            alertToast(`Changed to Preset ${num+1}`)
+            alertToast(`Changed to Preset: ${pres[num].name}`)
             changeToPreset2(num)
         }
     }
