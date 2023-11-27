@@ -118,8 +118,6 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return f.data.translations[0].text
 
     } else if(db.translatorType === 'LLM'){
-        // 번역 코드 by libra-0
-        
         let url = db.llmoption.server == "" ? "https://api.openai.com/v1/chat/completions" : db.llmoption.server;
         let prompt = (db.llmoption.prompt).replace('{text}', text).replace('{from}', arg.from).replace('{to}', arg.to)
         const res = await globalFetch(url, {
