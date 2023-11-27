@@ -70,13 +70,26 @@
     <span class="text-textcolor">Model</span>
     <TextInput size="sm" marginBottom placeholder="nai-diffusion-3" bind:value={$DataBase.NAIImgModel}/>
 
-    <span class="text-textcolor">Enable I2I</span>
-    <Check bind:check={$DataBase.NAII2I}/>
+    <span class="text-textcolor">Width</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.width}/>
+    <span class="text-textcolor">Height</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.height}/>
+    <span class="text-textcolor">Sampler</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.NAIImgConfig.sampler}/>
+    <span class="text-textcolor">steps</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
+    <span class="text-textcolor">CFG scale</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
 
+    {#if !$DataBase.NAII2I}
+        <Check bind:check={$DataBase.NAIImgConfig.sm} name="Use SMEA"/>
+        <Check bind:check={$DataBase.NAIImgConfig.sm_dyn} name='Use DYN'/>
+    {/if}
+    <Check bind:check={$DataBase.NAII2I} name="Enable I2I"/>
 
     {#if $DataBase.NAII2I}
 
-        <span class="text-textcolor">strength</span>
+        <span class="text-textcolor mt-4">strength</span>
         <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.strength}/>
         <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.strength}</span>
         <span class="text-textcolor">noise</span>
@@ -108,24 +121,6 @@
             {/if}
         </button>
 
-    {/if}
-
-    <span class="text-textcolor">Width</span>
-    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.width}/>
-    <span class="text-textcolor">Height</span>
-    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.height}/>
-    <span class="text-textcolor">Sampler</span>
-    <TextInput size="sm" marginBottom bind:value={$DataBase.NAIImgConfig.sampler}/>
-    <span class="text-textcolor">steps</span>
-    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
-    <span class="text-textcolor">CFG scale</span>
-    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
-
-    {#if !$DataBase.NAII2I}
-        <span class="text-textcolor">Use SMEA</span>
-        <Check bind:check={$DataBase.NAIImgConfig.sm}/>
-        <span class="text-textcolor">Use DYN</span>
-        <Check bind:check={$DataBase.NAIImgConfig.sm_dyn}/>
     {/if}
 {/if}
 
