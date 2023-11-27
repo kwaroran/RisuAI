@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, EditIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError } from "../../ts/alert";
@@ -154,7 +154,7 @@
                                 edit()
                             }
                         }}>
-                            <EditIcon size={20}/>
+                            <PencilIcon size={20}/>
                         </button>
                         <button class="ml-2 hover:text-green-500 transition-colors" on:click={rm}>
                             <TrashIcon size={20}/>

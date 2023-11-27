@@ -453,4 +453,8 @@ export const languageEnglish = {
     joinMultiUserRoom: "Join MultiUser Room",
     exactTokens: "Exact Tokens",
     fixedTokens: "Approximate Tokens",
+    inlayViewScreen: "Inlay Screen",
+    imgGenPrompt: "Image Generation Prompt",
+    imgGenNegatives: "Image Generation Negative Prompt",
+    imgGenInstructions: "Image Generation Instructions",
 }

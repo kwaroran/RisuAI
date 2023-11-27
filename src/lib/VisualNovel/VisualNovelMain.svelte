@@ -7,7 +7,7 @@
     import VisualNovelChat from "./VisualNovelChat.svelte";
 
     const wallPaper = `background-image: url(${defaultWallpaper})`
-    export let forceRender:() => void
+    let forceRender:() => void
     let bgImg= ''
     let lastBg = ''
     $: (async () =>{

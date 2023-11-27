@@ -22,6 +22,7 @@ import { cipherChat, decipherChat } from "./cipherChat";
 import { getInlayImage, supportsInlayImage } from "../image";
 import { getGenerationModelString } from "./models/modelString";
 import { sendPeerChar } from "../sync/multiuser";
+import { runInlayScreen } from "./inlayScreen";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -299,6 +300,21 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             content: risuChatParser(db.personaPrompt, {chara: currentChar})
         })
     }
+    
+    if(currentChar.inlayViewScreen){
+        if(currentChar.viewScreen === 'emotion'){
+            unformated.postEverything.push({
+                role: 'system',
+                content: currentChar.newGenData.emotionInstructions.replaceAll('{{slot}}', currentChar.emotionImages.map((v) => v[0]).join(', '))
+            })
+        }
+        if(currentChar.viewScreen === 'imggen'){
+            unformated.postEverything.push({
+                role: 'system',
+                content: currentChar.newGenData.instructions
+            })
+        }
+    }
 
     if(lorepmt.special_act){
         unformated.postEverything.push({
@@ -498,10 +514,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
         let inlays:string[] = []
         if(db.inlayImage){
-            const inlayMatch = formedChat.match(/{{inlay::(.+?)}}/g)
-            if(inlayMatch){
-                for(const inlay of inlayMatch){
-                    inlays.push(inlay)
+            if(msg.role === 'char'){
+                formedChat = formedChat.replace(/{{inlay::(.+?)}}/g, '')
+            }
+            else{
+                const inlayMatch = formedChat.match(/{{inlay::(.+?)}}/g)
+                if(inlayMatch){
+                    for(const inlay of inlayMatch){
+                        inlays.push(inlay)
+                    }
                 }
             }
         }
@@ -652,7 +673,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             content: '[Continue the last response]'
         })
     }
-
 
     function pushPrompts(cha:OpenAIChat[]){
         for(const chat of cha){
@@ -913,9 +933,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
         currentChat = db.characters[selectedChar].chats[selectedChat]        
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
-        console.log(triggerResult)
         if(triggerResult && triggerResult.chat){
-            db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
+            currentChat = triggerResult.chat
+        }
+        const inlayr = runInlayScreen(currentChar, currentChat.message[msgIndex].data)
+        currentChat.message[msgIndex].data = inlayr.text
+        db.characters[selectedChar].chats[selectedChat] = currentChat
+        setDatabase(db)
+        if(inlayr.promise){
+            const t = await inlayr.promise
+            currentChat.message[msgIndex].data = t
+            db.characters[selectedChar].chats[selectedChat] = currentChat
             setDatabase(db)
         }
         await sayTTS(currentChar, result)
@@ -938,6 +966,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 result2 = await processScriptFull(nowChatroom, reformatContent(beforeChat.data + mess), 'editoutput', msgIndex)
             }
             result = result2.data
+            const inlayResult = runInlayScreen(currentChar, result)
+            result = inlayResult.text
             emoChanged = result2.emoChanged
             if(i === 0 && arg.continue){
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex] = {
@@ -949,6 +979,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         model: generationModel,
                         generationId: generationId,
                     }
+                }       
+                if(inlayResult.promise){
+                    const p = await inlayResult.promise
+                    db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = p
                 }
             }
             else{
@@ -962,6 +996,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         generationId: generationId,
                     }
                 })
+                const ind = db.characters[selectedChar].chats[selectedChat].message.length - 1
+                if(inlayResult.promise){
+                    const p = await inlayResult.promise
+                    db.characters[selectedChar].chats[selectedChat].message[ind].data = p
+                }
             }
             db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)
@@ -1005,154 +1044,144 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    if(currentChar.viewScreen === 'emotion' && (!emoChanged) && (abortSignal.aborted === false)){
+    if(!currentChar.inlayViewScreen){
+        if(currentChar.viewScreen === 'emotion' && (!emoChanged) && (abortSignal.aborted === false)){
 
-        let currentEmotion = currentChar.emotionImages
-        let emotionList = currentEmotion.map((a) => {
-            return a[0]
-        })
-        let charemotions = get(CharEmotion)
-
-        let tempEmotion = charemotions[currentChar.chaId]
-        if(!tempEmotion){
-            tempEmotion = []
-        }
-        if(tempEmotion.length > 4){
-            tempEmotion.splice(0, 1)
-        }
-
-        if(db.emotionProcesser === 'embedding'){
-            const hypaProcesser = new HypaProcesser('MiniLM')
-            await hypaProcesser.addText(emotionList.map((v) => 'emotion:' + v))
-            let searched = (await hypaProcesser.similaritySearchScored(result)).map((v) => {
-                v[0] = v[0].replace("emotion:",'')
-                return v
-            })
-
-            //give panaltys
-            for(let i =0;i<tempEmotion.length;i++){
-                const emo = tempEmotion[i]
-                //give panalty index
-                const index = searched.findIndex((v) => {
-                    return v[0] === emo[0]
-                })
-
-                const modifier = ((5 - ((tempEmotion.length - (i + 1))))) / 200
-
-                if(index !== -1){
-                    searched[index][1] -= modifier
-                }
-            }
-
-            //make a sorted array by score
-            const emoresult = searched.sort((a,b) => {
-                return b[1] - a[1]
-            }).map((v) => {
-                return v[0]
-            })
-
-            console.log(searched)
-
-            for(const emo of currentEmotion){
-                if(emo[0] === emoresult[0]){
-                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
-                    tempEmotion.push(emos)
-                    charemotions[currentChar.chaId] = tempEmotion
-                    CharEmotion.set(charemotions)
-                    break
-                }
-            }
-
-            
-
-            return true
-        }
-
-        function shuffleArray(array:string[]) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array
-        }
-
-        let emobias:{[key:number]:number} = {}
-
-        for(const emo of emotionList){
-            const tokens = await tokenizeNum(emo)
-            for(const token of tokens){
-                emobias[token] = 10
-            }
-        }
-
-        for(let i =0;i<tempEmotion.length;i++){
-            const emo = tempEmotion[i]
-
-            const tokens = await tokenizeNum(emo[0])
-            const modifier = 20 - ((tempEmotion.length - (i + 1)) * (20/4))
-
-            for(const token of tokens){
-                emobias[token] -= modifier
-                if(emobias[token] < -100){
-                    emobias[token] = -100
-                }
-            }
-        }        
-
-        const promptbody:OpenAIChat[] = [
-            {
-                role:'system',
-                content: `${db.emotionPrompt2 || "From the list below, choose a word that best represents a character's outfit description, action, or emotion in their dialogue. Prioritize selecting words related to outfit first, then action, and lastly emotion. Print out the chosen word."}\n\n list: ${shuffleArray(emotionList).join(', ')} \noutput only one word.`
-            },
-            {
-                role: 'user',
-                content: `"Good morning, Master! Is there anything I can do for you today?"`
-            },
-            {
-                role: 'assistant',
-                content: 'happy'
-            },
-            {
-                role: 'user',
-                content: result
-            },
-        ]
-
-        const rq = await requestChatData({
-            formated: promptbody,
-            bias: emobias,
-            currentChar: currentChar,
-            temperature: 0.4,
-            maxTokens: 30,
-        }, 'submodel', abortSignal)
-
-        if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
-            if(abortSignal.aborted){
-                return true
-            }
-            alertError(`${rq.result}`)
-            return true
-        }
-        else{
-            emotionList = currentEmotion.map((a) => {
+            let currentEmotion = currentChar.emotionImages
+            let emotionList = currentEmotion.map((a) => {
                 return a[0]
             })
-            try {
-                const emotion:string = rq.result.replace(/ |\n/g,'').trim().toLocaleLowerCase()
-                let emotionSelected = false
+            let charemotions = get(CharEmotion)
+
+            let tempEmotion = charemotions[currentChar.chaId]
+            if(!tempEmotion){
+                tempEmotion = []
+            }
+            if(tempEmotion.length > 4){
+                tempEmotion.splice(0, 1)
+            }
+
+            if(db.emotionProcesser === 'embedding'){
+                const hypaProcesser = new HypaProcesser('MiniLM')
+                await hypaProcesser.addText(emotionList.map((v) => 'emotion:' + v))
+                let searched = (await hypaProcesser.similaritySearchScored(result)).map((v) => {
+                    v[0] = v[0].replace("emotion:",'')
+                    return v
+                })
+
+                //give panaltys
+                for(let i =0;i<tempEmotion.length;i++){
+                    const emo = tempEmotion[i]
+                    //give panalty index
+                    const index = searched.findIndex((v) => {
+                        return v[0] === emo[0]
+                    })
+
+                    const modifier = ((5 - ((tempEmotion.length - (i + 1))))) / 200
+
+                    if(index !== -1){
+                        searched[index][1] -= modifier
+                    }
+                }
+
+                //make a sorted array by score
+                const emoresult = searched.sort((a,b) => {
+                    return b[1] - a[1]
+                }).map((v) => {
+                    return v[0]
+                })
+
+                console.log(searched)
+
                 for(const emo of currentEmotion){
-                    if(emo[0] === emotion){
+                    if(emo[0] === emoresult[0]){
                         const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
                         tempEmotion.push(emos)
                         charemotions[currentChar.chaId] = tempEmotion
                         CharEmotion.set(charemotions)
-                        emotionSelected = true
                         break
                     }
                 }
-                if(!emotionSelected){
+
+                
+
+                return true
+            }
+
+            function shuffleArray(array:string[]) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array
+            }
+
+            let emobias:{[key:number]:number} = {}
+
+            for(const emo of emotionList){
+                const tokens = await tokenizeNum(emo)
+                for(const token of tokens){
+                    emobias[token] = 10
+                }
+            }
+
+            for(let i =0;i<tempEmotion.length;i++){
+                const emo = tempEmotion[i]
+
+                const tokens = await tokenizeNum(emo[0])
+                const modifier = 20 - ((tempEmotion.length - (i + 1)) * (20/4))
+
+                for(const token of tokens){
+                    emobias[token] -= modifier
+                    if(emobias[token] < -100){
+                        emobias[token] = -100
+                    }
+                }
+            }        
+
+            const promptbody:OpenAIChat[] = [
+                {
+                    role:'system',
+                    content: `${db.emotionPrompt2 || "From the list below, choose a word that best represents a character's outfit description, action, or emotion in their dialogue. Prioritize selecting words related to outfit first, then action, and lastly emotion. Print out the chosen word."}\n\n list: ${shuffleArray(emotionList).join(', ')} \noutput only one word.`
+                },
+                {
+                    role: 'user',
+                    content: `"Good morning, Master! Is there anything I can do for you today?"`
+                },
+                {
+                    role: 'assistant',
+                    content: 'happy'
+                },
+                {
+                    role: 'user',
+                    content: result
+                },
+            ]
+
+            const rq = await requestChatData({
+                formated: promptbody,
+                bias: emobias,
+                currentChar: currentChar,
+                temperature: 0.4,
+                maxTokens: 30,
+            }, 'submodel', abortSignal)
+
+            if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
+                if(abortSignal.aborted){
+                    return true
+                }
+                alertError(`${rq.result}`)
+                return true
+            }
+            else{
+                emotionList = currentEmotion.map((a) => {
+                    return a[0]
+                })
+                try {
+                    const emotion:string = rq.result.replace(/ |\n/g,'').trim().toLocaleLowerCase()
+                    let emotionSelected = false
                     for(const emo of currentEmotion){
-                        if(emotion.includes(emo[0])){
+                        if(emo[0] === emotion){
                             const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
                             tempEmotion.push(emos)
                             charemotions[currentChar.chaId] = tempEmotion
@@ -1161,47 +1190,55 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                             break
                         }
                     }
+                    if(!emotionSelected){
+                        for(const emo of currentEmotion){
+                            if(emotion.includes(emo[0])){
+                                const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                                tempEmotion.push(emos)
+                                charemotions[currentChar.chaId] = tempEmotion
+                                CharEmotion.set(charemotions)
+                                emotionSelected = true
+                                break
+                            }
+                        }
+                    }
+                    if(!emotionSelected && emotionList.includes('neutral')){
+                        const emo = currentEmotion[emotionList.indexOf('neutral')]
+                        const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
+                        tempEmotion.push(emos)
+                        charemotions[currentChar.chaId] = tempEmotion
+                        CharEmotion.set(charemotions)
+                        emotionSelected = true
+                    }
+                } catch (error) {
+                    alertError(language.errors.httpError + `${error}`)
+                    return true
                 }
-                if(!emotionSelected && emotionList.includes('neutral')){
-                    const emo = currentEmotion[emotionList.indexOf('neutral')]
-                    const emos:[string, string,number] = [emo[0], emo[1], Date.now()]
-                    tempEmotion.push(emos)
-                    charemotions[currentChar.chaId] = tempEmotion
-                    CharEmotion.set(charemotions)
-                    emotionSelected = true
+            }
+            
+            return true
+
+
+        }
+        else if(currentChar.viewScreen === 'imggen'){
+            if(chatProcessIndex !== -1){
+                alertError("Stable diffusion in group chat is not supported")
+            }
+
+            const msgs = db.characters[selectedChar].chats[selectedChat].message
+            let msgStr = ''
+            for(let i = (msgs.length - 1);i>=0;i--){
+                if(msgs[i].role === 'char'){
+                    msgStr = `character: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
                 }
-            } catch (error) {
-                alertError(language.errors.httpError + `${error}`)
-                return true
+                else{
+                    msgStr = `user: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
+                    break
+                }
             }
-        }
-        
-        return true
 
 
-    }
-    else if(currentChar.viewScreen === 'imggen'){
-        if(chatProcessIndex !== -1){
-            alertError("Stable diffusion in group chat is not supported")
-        }
-
-        const msgs = db.characters[selectedChar].chats[selectedChat].message
-        let msgStr = ''
-        for(let i = (msgs.length - 1);i>=0;i--){
-            if(msgs[i].role === 'char'){
-                msgStr = `character: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
-            }
-            else{
-                msgStr = `user: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
-                break
-            }
-        }
-
-
-        const ch = await stableDiff(currentChar, msgStr)
-        if(ch){
-            db.characters[selectedChar].chats[selectedChat].sdData = ch
-            setDatabase(db)
+            await stableDiff(currentChar, msgStr)
         }
     }
 

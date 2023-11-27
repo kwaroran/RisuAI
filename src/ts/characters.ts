@@ -9,6 +9,7 @@ import { selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./storage/globalApi";
 import * as yuso from 'yuso'
 import { reencodeImage } from "./image";
+import { updateInlayScreen } from "./process/inlayScreen";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -299,6 +300,9 @@ export function characterFormatUpdate(index:number|character){
         cha.depth_prompt ??= {
             depth: 0,
             prompt: ''
+        }
+        if(!cha.newGenData){
+            cha = updateInlayScreen(cha)
         }
     }
     else{
