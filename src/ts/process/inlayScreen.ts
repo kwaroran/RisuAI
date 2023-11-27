@@ -2,39 +2,44 @@ import { writeInlayImage } from "../image";
 import type { character } from "../storage/database";
 import { generateAIImage } from "./stableDiff";
 
+const imggenRegex = [/<ImgGen="(.+?)">/gi, /{{ImgGen="(.+?)"}}/gi] as const
+
 export function runInlayScreen(char:character, data:string):{text:string, promise?:Promise<string>} {
     if(char.inlayViewScreen){      
         if(char.viewScreen === 'emotion'){
-            return {text: data.replace(/<Emotion="(.+?)">/g, '{{emotion::$1}}')}
+            return {text: data.replace(/<Emotion="(.+?)">/gi, '{{emotion::$1}}')}
         }
         if(char.viewScreen === 'imggen'){
             return {
-                text: data.replace(/<ImgGen="(.+?)">/g,'[Generating...]'),
+                text: data.replace(imggenRegex[0],'[Generating...]').replace(imggenRegex[1],'[Generating...]'),
                 promise : (async () => {
-                    const promises:Promise<string|false>[] = [];
-                    const neg = char.newGenData.negative
-                    data.replace(/<ImgGen="(.+?)">/g, (match, p1) => {
-                        const prompt = char.newGenData.prompt.replaceAll('{{slot}}', p1)
-                        promises.push((async () => {
-                            const v = await generateAIImage(prompt, char, neg, 'inlay')
-                            if(!v){
+                    for(const regex of imggenRegex){
+                        const promises:Promise<string|false>[] = [];
+                        const neg = char.newGenData.negative
+                        data.replace(regex, (match, p1) => {
+                            const prompt = char.newGenData.prompt.replaceAll('{{slot}}', p1)
+                            promises.push((async () => {
+                                const v = await generateAIImage(prompt, char, neg, 'inlay')
+                                if(!v){
+                                    return ''
+                                }
+                                const imgHTML = new Image()
+                                imgHTML.src = v
+                                const inlay = await writeInlayImage(imgHTML)
+                                return inlay
+                            })())
+                            return match
+                        })
+                        const d = await Promise.all(promises)
+                        data = data.replace(regex, () => {
+                            const result = d.shift()
+                            if(result === false){
                                 return ''
                             }
-                            const imgHTML = new Image()
-                            imgHTML.src = v
-                            const inlay = await writeInlayImage(imgHTML)
-                            return inlay
-                        })())
-                        return match
-                    })
-                    const d = await Promise.all(promises)
-                    return data.replace(/<ImgGen="(.+?)">/g, () => {
-                        const result = d.shift()
-                        if(result === false){
-                            return ''
-                        }
-                        return result
-                    })
+                            return result
+                        })
+                    }
+                    return data
                 })()
             }
         }
