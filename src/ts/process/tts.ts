@@ -139,8 +139,29 @@ export async function sayTTS(character:character,text:string) {
             }
 
         }
+        case 'novelai': {
+            const audioContext = new AudioContext();
+            const response = await fetch(`https://api.novelai.net/ai/generate-voice?text=${text}&voice=-1&seed=${character.naittsConfig.voice}&opus=false&version=${character.naittsConfig.version}`, {
+                method: 'GET',
+                headers: {
+                    "Authorization": "Bearer " + db.NAIApiKey,
+                }
+            });
+        
+            if (response.status === 200 && response.headers.get('content-type') === 'audio/mpeg') {
+                const audioBuffer = await response.arrayBuffer();
+                audioContext.decodeAudioData(audioBuffer, (decodedData) => {
+                    const sourceNode = audioContext.createBufferSource();
+                    sourceNode.buffer = decodedData;
+                    sourceNode.connect(audioContext.destination);
+                    sourceNode.start();
+                });
+            } else {
+                alertError("Error fetching or decoding audio data");
+            }
+            break;
+        }
     }
-
 }
 
 export const oaiVoices = [
@@ -189,4 +210,29 @@ export async function getVOICEVOXVoices() {
     })
     speakersInfo.unshift({ name: "None", list: null})
     return speakersInfo;
+}
+
+export async function getNovelAIVoices(){
+    return [
+        {
+            gender: "UNISEX",
+            voices: ['Anananan']
+        },
+        {
+            gender: "FEMALE",
+            voices: ['Aini', 'Orea', 'Claea', 'Lim', 'Aurae', 'Naia']
+        },
+        {
+            gender: "MALE",
+            voices: ['Aulon', 'Elei', 'Ogma', 'Raid', 'Pega', 'Lam']
+        }
+    ];
+}
+
+export async function FixNAITTS(data:character){
+    if (data.naittsConfig === undefined){
+        data.naittsConfig.voice = 'Anananan'
+    }
+
+    return data
 }

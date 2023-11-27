@@ -174,6 +174,18 @@ export function setDatabase(data:Database){
     if(checkNullish(data.sdCFG)){
         data.sdCFG = 7
     }
+    if(checkNullish(data.NAIImgUrl)){
+        data.NAIImgUrl = 'https://api.novelai.net/ai/generate-image'
+    }
+    if(checkNullish(data.NAIApiKey)){
+        data.NAIApiKey = ''
+    }
+    if(checkNullish(data.NAIImgModel)){
+        data.NAIImgModel = 'nai-diffusion-3'
+    }
+    if(checkNullish(data.NAII2I)){
+        data.NAII2I = true
+    }
     if(checkNullish(data.textTheme)){
         data.textTheme = "standard"
     }
@@ -229,6 +241,20 @@ export function setDatabase(data:Database){
             enable_hr:false,
             hr_scale:1.25,
             hr_upscaler:"Latent"
+        }
+    }
+    if(checkNullish(data.NAIImgConfig)){
+        data.NAIImgConfig = {
+            width:512,
+            height:768,
+            sampler:"k_dpmpp_sde",
+            steps:28,
+            scale:5,
+            sm:true,
+            sm_dyn:true,
+            noise:0.0,
+            strength:0.3,
+            image:""
         }
     }
     if(checkNullish(data.customTextTheme)){
@@ -394,6 +420,11 @@ export interface Database{
     sdSteps:number
     sdCFG:number
     sdConfig:sdConfig
+    NAIImgUrl:string
+    NAIApiKey:string
+    NAIImgModel:string
+    NAII2I:boolean
+    NAIImgConfig:NAIImgConfig
     runpodKey:string
     promptPreprocess:boolean
     bias: [string, number][]
@@ -588,6 +619,11 @@ export interface character{
         INTONATION_SCALE?: number
         VOLUME_SCALE?: number
     }
+    naittsConfig?:{
+        customvoice?: boolean
+        voice?: string
+        version?: string
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean
@@ -717,6 +753,18 @@ interface sdConfig{
     hr_upscaler:string
 }
 
+interface NAIImgConfig{
+    width:number,
+    height:number,
+    sampler:string,
+    steps:number,
+    scale:number,
+    sm:boolean,
+    sm_dyn:boolean,
+    noise:number,
+    strength:number,
+    image:string
+}
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{

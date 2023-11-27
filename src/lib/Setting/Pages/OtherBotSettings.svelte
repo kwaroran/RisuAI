@@ -2,12 +2,16 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
+    import { selectSingleFile } from "src/ts/util";
     import { DataBase } from "src/ts/storage/database";
     import { isTauri } from "src/ts/storage/globalApi";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { convertToBase64 } from "src/ts/process/uinttobase64";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -18,6 +22,7 @@
 <SelectInput className="mt-2 mb-4" bind:value={$DataBase.sdProvider}>
     <OptionInput value="" >None</OptionInput>
     <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
+    <OptionInput value="novelai" >Novel AI</OptionInput>
     <!-- TODO -->
     <!-- <OptionInput value="runpod" >Runpod Serverless</OptionInput> -->
 </SelectInput>
@@ -56,6 +61,65 @@
     {/if}
 {/if}
 
+{#if $DataBase.sdProvider === 'novelai'}
+    <span class="text-textcolor mt-2">Novel AI {language.providerURL}</span>
+    <TextInput size="sm" marginBottom placeholder="https://api.novelai.net" bind:value={$DataBase.NAIImgUrl}/>
+    <span class="text-textcolor">API Key</span>
+    <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
+
+    <span class="text-textcolor">Model</span>
+    <TextInput size="sm" marginBottom placeholder="nai-diffusion-3" bind:value={$DataBase.NAIImgModel}/>
+
+    <span class="text-textcolor">Enable I2I</span>
+    <Check bind:check={$DataBase.NAII2I}/>
+
+
+    {#if $DataBase.NAII2I}
+
+        <span class="text-textcolor">strength</span>
+        <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.strength}/>
+        <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.strength}</span>
+        <span class="text-textcolor">noise</span>
+        <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.noise}/>
+        <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
+
+        <span class="text-textcolor">base image</span>
+        <TextInput size="sm" marginBottom placeholder="If empty, a profile picture is sent." bind:value={$DataBase.NAIImgConfig.image}/>
+        <span class="text-textcolor">If empty, a profile picture is sent.</span>
+        
+        <Button on:click={async () => {
+            const img = await selectSingleFile([
+                'jpg',
+                'jpeg',
+                'png',
+                'webp'
+            ])
+            if(!img){
+                return null
+            }
+            const base64 = await convertToBase64(img.data)
+            $DataBase.NAIImgConfig.image = base64
+        }}>Select Image</Button>
+    {/if}
+
+    <span class="text-textcolor">Width</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.width}/>
+    <span class="text-textcolor">Height</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.height}/>
+    <span class="text-textcolor">Sampler</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.NAIImgConfig.sampler}/>
+    <span class="text-textcolor">steps</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
+    <span class="text-textcolor">CFG scale</span>
+    <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
+
+    {#if !$DataBase.NAII2I}
+        <span class="text-textcolor">Use SMEA</span>
+        <Check bind:check={$DataBase.NAIImgConfig.sm}/>
+        <span class="text-textcolor">Use DYN</span>
+        <Check bind:check={$DataBase.NAIImgConfig.sm_dyn}/>
+    {/if}
+{/if}
 
 <span class="text-textcolor mt-4 text-lg font-bold">TTS</span>
 <span class="text-textcolor mt-2">ElevenLabs API key</span>
@@ -63,6 +127,9 @@
 
 <span class="text-textcolor mt-2">VOICEVOX URL</span>
 <TextInput size="sm" marginBottom bind:value={$DataBase.voicevoxUrl}/>
+
+<span class="text-textcolor mt-2">NovelAI API key</span>
+<TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
 
 <span class="text-textcolor mt-4 text-lg font-bold">{language.emotionImage}</span>
 
