@@ -105,17 +105,18 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return translateLLM(text, {to: tr})
     }
     if(db.translatorType === 'deepl'){
+        const body = {
+            text: [text],
+            source_lang: arg.from.toLocaleUpperCase(),
+            target_lang: arg.to.toLocaleUpperCase(),
+        }
         let url = db.deeplOptions.freeApi ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate"
         const f = await globalFetch(url, {
             headers: {
                 "Authorization": "DeepL-Auth-Key " + db.deeplOptions.key,
                 "Content-Type": "application/json"
             },
-            body: {
-                text: text,
-                source_lang: arg.from.toLocaleUpperCase(),
-                target_lang: arg.to.toLocaleUpperCase(),
-            }
+            body: body
         })
 
         if(!f.ok){
