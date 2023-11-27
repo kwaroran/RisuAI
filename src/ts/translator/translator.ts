@@ -3,6 +3,8 @@ import { translatorPlugin } from "../plugins/plugins"
 import { DataBase } from "../storage/database"
 import { globalFetch } from "../storage/globalApi"
 import { alertError } from "../alert"
+import type { OpenAIChat } from "../process"
+import { requestChatData } from "../process/request"
 
 let cache={
     origin: [''],
@@ -120,7 +122,39 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
     }
 
+    if(db.translatorType === 'submodel'){
 
+        const defaulttranslateprompt = `You need to translate the entered sentence from ${arg.from.toLocaleUpperCase()} to ${arg.to.toLocaleUpperCase()}. You must not write any words other than the translated sentence.`
+
+        const translateprompt = (db.translatorprompt === '')? defaulttranslateprompt : db.translatorprompt
+
+        const promptbody:OpenAIChat[] = [
+            {
+                role:'system',
+                content: translateprompt
+            },
+            {
+                role: 'user',
+                content: text
+            },
+        ]
+        const rq = await requestChatData({
+            formated: promptbody,
+            temperature: 0.2,
+            maxTokens: 500,
+            bias: {}
+        }, 'submodel')
+
+        if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
+            alertError(`${rq.result}`)
+            return false
+        }
+    
+        const r = rq.result
+        console.log(r)
+
+        return r
+    }
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
 

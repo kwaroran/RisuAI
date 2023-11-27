@@ -3,14 +3,14 @@
     import { changeLanguage, language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
-    import Help from "src/lib/Others/Help.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import { alertNormal } from "src/ts/alert";
     import { downloadFile } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     let langChanged = false
+
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
@@ -56,6 +56,7 @@
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
+        <OptionInput value="submodel" >Use submodel</OptionInput>
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
@@ -67,6 +68,11 @@
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
 
+    {:else if $DataBase.translatorType === 'submodel'}
+        <span class="text-textcolor mt-4">Translate Prompt</span>
+        <TextInput bind:value={$DataBase.translatorprompt} placeholder="If empty, use the default prompt."/>
+        <span class="text-draculared text-xs mb-2">Response streaming is disabled when using submodels.</span>
+        <span class="text-draculared text-xs mb-2">Translation sends a lot of requests at once, so don't use it at reverse proxy.</span>
     {/if}
 
 
