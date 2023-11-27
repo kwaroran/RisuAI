@@ -177,18 +177,21 @@ export async function stableDiff(currentChar:character,prompt:string){
         }
 
 
-        const charimg = currentChar.image; // Uint8Array 형태의 이미지 데이터
-        console.log("charimg:" + charimg);
-        
-        const img = await readImage(charimg)
-        console.log("img:" + img);
-        const base64 = await convertToBase64(img);
-        const base64img = base64.split('base64,')[1];
-        
-        console.log("base64img:" + base64img);
+
         let reqlist= {}
 
         if(db.NAII2I){
+            let base64img = ''
+            if(db.NAIImgConfig.image === ''){
+                const charimg = currentChar.image;
+                
+                const img = await readImage(charimg)
+                const base64 = await convertToBase64(img);
+                base64img = base64.split('base64,')[1];
+            }else{
+                base64img = db.NAIImgConfig.image.split('base64,')[1];
+            }
+            
             let randomseed = generateRandomSeed(10);
             let seed = parseInt(randomseed, 10);
             reqlist = {

@@ -2,6 +2,7 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
+    import { selectSingleFile } from "src/ts/util";
     import { DataBase } from "src/ts/storage/database";
     import { isTauri } from "src/ts/storage/globalApi";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
@@ -9,6 +10,8 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { convertToBase64 } from "src/ts/process/uinttobase64";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -80,6 +83,23 @@
         <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.noise}/>
         <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
 
+        <span class="text-textcolor">base image</span>
+        <TextInput size="sm" marginBottom placeholder="If empty, a profile picture is sent." bind:value={$DataBase.NAIImgConfig.image}/>
+        <span class="text-textcolor">If empty, a profile picture is sent.</span>
+        
+        <Button on:click={async () => {
+            const img = await selectSingleFile([
+                'jpg',
+                'jpeg',
+                'png',
+                'webp'
+            ])
+            if(!img){
+                return null
+            }
+            const base64 = await convertToBase64(img.data)
+            $DataBase.NAIImgConfig.image = base64
+        }}>Select Image</Button>
     {/if}
 
     <span class="text-textcolor">Width</span>

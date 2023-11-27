@@ -253,7 +253,8 @@ export function setDatabase(data:Database){
             sm:true,
             sm_dyn:true,
             noise:0.0,
-            strength:0.3
+            strength:0.3,
+            image:""
         }
     }
     if(checkNullish(data.customTextTheme)){
@@ -756,7 +757,8 @@ interface NAIImgConfig{
     sm:boolean,
     sm_dyn:boolean,
     noise:number,
-    strength:number
+    strength:number,
+    image:string
 }
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
