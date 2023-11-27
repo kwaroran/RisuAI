@@ -10,6 +10,7 @@
     import { downloadFile } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     let langChanged = false
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
@@ -56,6 +57,7 @@
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
+        <OptionInput value="llm" >Ax. Model</OptionInput>
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
@@ -67,6 +69,11 @@
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
 
+    {/if}
+
+    {#if $DataBase.translatorType === 'llm'}
+        <span class="text-textcolor mt-4">{language.translationPrompt}</span>
+        <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
 

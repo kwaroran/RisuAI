@@ -457,4 +457,5 @@ export const languageEnglish = {
     imgGenPrompt: "Image Generation Prompt",
     imgGenNegatives: "Image Generation Negative Prompt",
     imgGenInstructions: "Image Generation Instructions",
+    translationPrompt: "Translation Prompt",
 }

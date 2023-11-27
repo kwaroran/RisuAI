@@ -520,7 +520,7 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none',
+    translatorType:'google'|'deepl'|'none'|'llm',
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
@@ -541,6 +541,7 @@ export interface Database{
     automark?:boolean
     huggingfaceKey:string
     allowAllExtentionFiles?:boolean
+    translatorPrompt:string
 }
 
 export interface customscript{
