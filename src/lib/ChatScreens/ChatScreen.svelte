@@ -12,11 +12,11 @@
     import VisualNovelMain from "../VisualNovel/VisualNovelMain.svelte";
     let openChatList = false
 
-    $:{
-        if ($DataBase.translatorType === 'submodel'){
-            $DataBase.useStreaming = false
-        }
+
+    if ($DataBase.translatorType === 'submodel'){
+        $DataBase.useStreaming = false
     }
+
     const wallPaper = `background: url(${defaultWallpaper})`
     const externalStyles = 
             ("background: " + ($DataBase.textScreenColor ? ($DataBase.textScreenColor + '80') : "rgba(0,0,0,0.8)") + ';\n')
