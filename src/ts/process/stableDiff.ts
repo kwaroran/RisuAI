@@ -6,7 +6,6 @@ import { globalFetch, readImage } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
 import type { OpenAIChat } from "."
 import { processZip } from "./processzip"
-import { convertToBase64 } from "./uinttobase64" 
 import type { List } from "lodash"
 import { generateRandomSeed } from "./generateSeed"
 export async function stableDiff(currentChar:character,prompt:string){
@@ -186,10 +185,9 @@ export async function stableDiff(currentChar:character,prompt:string){
                 const charimg = currentChar.image;
                 
                 const img = await readImage(charimg)
-                const base64 = await convertToBase64(img);
-                base64img = base64.split('base64,')[1];
-            }else{
-                base64img = db.NAIImgConfig.image.split('base64,')[1];
+                base64img = Buffer.from(img).toString('base64');
+            }   else{
+                base64img = Buffer.from(await readImage(db.NAIImgConfig.image)).toString('base64');
             }
             
             let randomseed = generateRandomSeed(10);

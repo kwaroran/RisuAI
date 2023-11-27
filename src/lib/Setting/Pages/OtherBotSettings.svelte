@@ -4,14 +4,14 @@
     import Help from "src/lib/Others/Help.svelte";
     import { selectSingleFile } from "src/ts/util";
     import { DataBase } from "src/ts/storage/database";
-    import { isTauri } from "src/ts/storage/globalApi";
+    import { isTauri, saveAsset } from "src/ts/storage/globalApi";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
     import Button from "src/lib/UI/GUI/Button.svelte";
-    import { convertToBase64 } from "src/ts/process/uinttobase64";
+  import { getCharImage } from "src/ts/characters";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -83,11 +83,8 @@
         <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.noise}/>
         <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
 
-        <span class="text-textcolor">base image</span>
-        <TextInput size="sm" marginBottom placeholder="If empty, a profile picture is sent." bind:value={$DataBase.NAIImgConfig.image}/>
-        <span class="text-textcolor">If empty, a profile picture is sent.</span>
-        
-        <Button on:click={async () => {
+        <span class="text-textcolor">Base image</span>
+        <button on:click={async () => {
             const img = await selectSingleFile([
                 'jpg',
                 'jpeg',
@@ -97,9 +94,20 @@
             if(!img){
                 return null
             }
-            const base64 = await convertToBase64(img.data)
-            $DataBase.NAIImgConfig.image = base64
-        }}>Select Image</Button>
+            const saveId = await saveAsset(img.data)
+            $DataBase.NAIImgConfig.image = saveId
+        }}>
+            {#if $DataBase.NAIImgConfig.image === ''}
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+            {:else}
+                {#await getCharImage($DataBase.NAIImgConfig.image, 'css')}
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                {:then im} 
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                {/await}
+            {/if}
+        </button>
+
     {/if}
 
     <span class="text-textcolor">Width</span>
