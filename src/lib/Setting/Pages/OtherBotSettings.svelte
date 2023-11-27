@@ -13,7 +13,12 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-
+    $:{
+        if ($DataBase.NAIImgConfig.sampler === 'ddim_v3'){
+            $DataBase.NAIImgConfig.sm = false
+            $DataBase.NAIImgConfig.sm_dyn = false
+        }
+    }
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
 
@@ -76,7 +81,15 @@
         <span class="text-textcolor">Height</span>
         <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.height}/>
         <span class="text-textcolor">Sampler</span>
-        <TextInput size="sm" marginBottom bind:value={$DataBase.NAIImgConfig.sampler}/>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.NAIImgConfig.sampler}>
+            <OptionInput value="k_euler" >Euler</OptionInput>
+            <OptionInput value="k_euler_ancestral" >Euler Ancestral</OptionInput>
+            <OptionInput value="k_dpmpp_2s_ancestral" >DPM++ 2S Ancestral</OptionInput>
+            <OptionInput value="k_dpmpp_2m" >DPM++ 2M</OptionInput>
+            <OptionInput value="k_dpmpp_sde" >DPM++ SDE</OptionInput>
+            <OptionInput value="k_dpmpp_2s" >DPM++ 2S</OptionInput>
+            <OptionInput value="ddim_v3" >DDIM</OptionInput>
+        </SelectInput>
         <span class="text-textcolor">steps</span>
         <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.steps}/>
         <span class="text-textcolor">CFG scale</span>
