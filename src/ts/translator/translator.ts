@@ -33,7 +33,7 @@ export async function translate(text:string, reverse:boolean) {
     return runTranslator(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'ja' : 'en')
 }
 
-async function runTranslator(text:string, reverse:boolean, from:string,target:'en'|'ja') {
+export async function runTranslator(text:string, reverse:boolean, from:string,target:string) {
     const arg = {
 
         from: reverse ? from : target,

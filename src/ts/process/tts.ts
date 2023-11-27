@@ -1,14 +1,21 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../storage/database";
-import { translateVox } from "../translator/translator";
+import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch } from "../storage/globalApi";
 import { language } from "src/lang";
-import { sleep } from "../util";
+import { getCurrentCharacter, sleep } from "../util";
 
 let sourceNode:AudioBufferSourceNode = null
 
 export async function sayTTS(character:character,text:string) {
+    if(!character){
+        const v = getCurrentCharacter()
+        if(v.type === 'group'){
+            return
+        }
+        character = v
+    }
 
     let db = get(DataBase)
     text = text.replace(/\*/g,'')
@@ -164,6 +171,9 @@ export async function sayTTS(character:character,text:string) {
         }
         case 'huggingface': {
             while(true){
+                if(character.hfTTS.language !== 'en'){
+                    text = await runTranslator(text, false, 'en', character.hfTTS.language)
+                }
                 const audioContext = new AudioContext();
                 const response = await fetch(`https://api-inference.huggingface.co/models/${character.hfTTS.model}`, {
                     method: 'POST',

@@ -301,7 +301,7 @@ export function characterFormatUpdate(index:number|character){
             depth: 0,
             prompt: ''
         }
-        cha.hfTTS = {
+        cha.hfTTS ??= {
             model: '',
             language: 'en'
         }
