@@ -100,6 +100,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     let db = get(DataBase)
 
     if(db.translatorType === 'deepl'){
+        //deepl raise error 525 because of cloudflare
         let url = db.deeplOptions.freeApi ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate"
         const f = await globalFetch(url, {
             headers: {
