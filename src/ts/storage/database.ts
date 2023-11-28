@@ -309,9 +309,6 @@ export function setDatabase(data:Database){
     if(!data.formatingOrder.includes('personaPrompt')){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
-    if(checkNullish(data.translatorprompt)){
-        data.translatorprompt = ""
-    }
     data.selectedPersona ??= 0
     data.personaPrompt ??= ''
     data.personas ??= [{
@@ -530,7 +527,6 @@ export interface Database{
         key:string,
         freeApi:boolean
     }
-    translatorprompt:string
     localStopStrings?:string[]
     autofillRequestUrl:boolean
     customProxyRequestModel:string

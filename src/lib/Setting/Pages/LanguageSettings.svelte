@@ -69,13 +69,6 @@
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
 
-    {:else if $DataBase.translatorType === 'submodel'}
-        <span class="text-textcolor mt-4">Translate Prompt</span>
-        <TextInput bind:value={$DataBase.translatorprompt} placeholder="If empty, use the default prompt."/>
-        <span class="text-draculared text-xs mb-2">Response streaming is disabled when using submodels.</span>
-        <span class="text-draculared text-xs mb-2">Translation sends a lot of requests at once, so don't use it at reverse proxy.</span>
-    {/if}
-
     {#if $DataBase.translatorType === 'llm'}
         <span class="text-textcolor mt-4">{language.translationPrompt}</span>
         <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
