@@ -6,7 +6,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import { alertNormal } from "src/ts/alert";
-    import { downloadFile } from "src/ts/storage/globalApi";
+    import { downloadFile, isTauri } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
@@ -61,7 +61,9 @@
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
-
+        {#if !isTauri}
+            <span class="text-draculared text-xs ml-2">{language.webdeeplwarn}</span>
+        {/if}
         <span class="text-textcolor mt-4">{language.deeplKey}</span>
         <TextInput bind:value={$DataBase.deeplOptions.key} />
 
