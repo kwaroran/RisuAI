@@ -6,6 +6,7 @@
     export let numberMode = false
     export let boolMode = false
     export let marginBottom = false
+    export let placeholder: string = undefined;
     const valToggle = () => {
             value = !value
     }
@@ -34,7 +35,7 @@
     {#if (value === null || value === undefined)}
         <TextInput value={"Using default"}  additionalClass="flex-1" disabled/>
     {:else if typeof(value) === 'string'}
-        <TextInput bind:value={value}  additionalClass="flex-1"/>
+        <TextInput bind:value={value}  placeholder={placeholder} additionalClass="flex-1"/>
     {:else if typeof(value) === 'number'}
         <NumberInput bind:value={value}  additionalClass="flex-1"/>
     {:else if typeof(value) === 'boolean'}

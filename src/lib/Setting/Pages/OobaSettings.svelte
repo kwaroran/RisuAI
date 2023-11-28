@@ -1,6 +1,4 @@
 <script lang="ts">
-    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import OptionalInput from "src/lib/UI/GUI/OptionalInput.svelte";
@@ -8,6 +6,31 @@
     let openOobaSettings = false
     const toggleOobaSettings = () => {
         openOobaSettings = !openOobaSettings
+    }
+    let temp:string = $DataBase.reverseProxyOobaArgs.stop === undefined? undefined : $DataBase.reverseProxyOobaArgs.stop.join(', ')
+
+    $: if (temp) {
+        saveToDatabase();
+    }
+
+    $: if (temp === null || temp === undefined || temp.trim() === '') {
+        $DataBase.reverseProxyOobaArgs.stop = undefined;
+    }
+    function processInput(input: string): string[] | undefined {
+        if (input.trim() === '') {
+            return undefined;
+        }
+
+        const splitInput = input.replace(/[()"]/g, '').split(/,\s*/);
+
+        return splitInput.filter(item => item.trim() !== '');
+    }
+
+
+
+    function saveToDatabase() {
+        const processedInput = processInput(temp);
+        $DataBase.reverseProxyOobaArgs.stop = processedInput;
     }
 </script>
 
@@ -57,6 +80,8 @@
         <span class="text-textcolor">chat_instruct_command</span>
         <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
     {/if}
+    <span class="text-textcolor">top_p</span>
+    <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.top_p} numberMode />
     <span class="text-textcolor">min_p</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.min_p} numberMode />
     <span class="text-textcolor">top_k</span>
@@ -121,5 +146,7 @@
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.add_bos_token} boolMode />
     <span class="text-textcolor">skip_special_tokens</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.skip_special_tokens} boolMode />
+    <span class="text-textcolor">stopString</span>
+    <OptionalInput marginBottom={true} bind:value={temp} placeholder='Separate each object with a comma.' />
 {/if}
 </div>

@@ -43,5 +43,6 @@ export interface OobaChatCompletionRequestParams {
     add_bos_token?: boolean; 
     skip_special_tokens?: boolean;
     grammar_string?: string;
-    
+    top_p?: number;
+    stop?: string[];
 }
