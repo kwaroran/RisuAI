@@ -474,5 +474,5 @@ export const NovelAIBadWordIds = [
     [26523],
     [41471],
     [2936],
-    [23]
+    [23],
 ]
