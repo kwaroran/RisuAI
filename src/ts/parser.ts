@@ -148,7 +148,7 @@ export interface simpleCharacterArgument{
 }
 
 
-export async function ParseMarkdown(data:string, charArg:(simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
+export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
     let firstParsed = ''
     const orgDat = data
     const db = get(DataBase)
