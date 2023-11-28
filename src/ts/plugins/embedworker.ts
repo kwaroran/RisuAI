@@ -75,6 +75,7 @@ const whitelist = [
     "Element",
     "Text",
     "Comment",
+    'onmessage'
 ]
 
 const evaluation = globaly.eval
