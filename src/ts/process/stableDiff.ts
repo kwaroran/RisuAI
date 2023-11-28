@@ -134,7 +134,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 base64img = Buffer.from(await readImage(db.NAIImgConfig.image)).toString('base64');
             }
             
-            let seed = Math.floor(Math.random() * 100000000000)
+            let seed = Math.floor(Math.random() * 10000000000)
             reqlist = {
                 body: {
                     "action": "img2img",

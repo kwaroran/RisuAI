@@ -107,7 +107,6 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     if(db.translatorType === 'deepl'){
         const body = {
             text: [text],
-            source_lang: arg.from.toLocaleUpperCase(),
             target_lang: arg.to.toLocaleUpperCase(),
         }
         let url = db.deeplOptions.freeApi ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate"
@@ -125,8 +124,6 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return f.data.translations[0].text
 
     }
-
-
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
 

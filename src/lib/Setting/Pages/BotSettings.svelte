@@ -20,8 +20,8 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { openRouterModels } from "src/ts/model/openrouter";
     import { novelLogin } from "src/ts/process/models/nai";
-  import { alertConfirm } from "src/ts/alert";
-  import OobaSettings from "./OobaSettings.svelte";
+    import { alertConfirm } from "src/ts/alert";
+    import OobaSettings from "./OobaSettings.svelte";
 
     let tokens = {
         mainPrompt: 0,

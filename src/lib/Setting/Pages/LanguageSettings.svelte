@@ -3,15 +3,15 @@
     import { changeLanguage, language } from "src/lang";
     import { DataBase } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
-    import Help from "src/lib/Others/Help.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import { alertNormal } from "src/ts/alert";
-    import { downloadFile } from "src/ts/storage/globalApi";
+    import { downloadFile, isTauri } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     let langChanged = false
+
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
@@ -61,16 +61,17 @@
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
-
+        {#if !isTauri}
+            <span class="text-draculared text-xs ml-2">{language.webdeeplwarn}</span>
+        {/if}
         <span class="text-textcolor mt-4">{language.deeplKey}</span>
         <TextInput bind:value={$DataBase.deeplOptions.key} />
 
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
-
     {/if}
-
+    
     {#if $DataBase.translatorType === 'llm'}
         <span class="text-textcolor mt-4">{language.translationPrompt}</span>
         <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
