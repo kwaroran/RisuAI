@@ -989,7 +989,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
 
-                let requestPrompt = formated.map((v) => {
+                let requestPrompt = formated.map((v, i) => {
                     let prefix = ''
                     switch (v.role){
                         case "assistant":
@@ -1001,6 +1001,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         case "system":
                             prefix = "\n\nSystem: "
                             break
+                    }
+                    if(raiModel.startsWith('claude-2') && (!raiModel.startsWith('claude-2.0'))){
+                        if(v.role === 'system' && i === 0){
+                            prefix = ''
+                        }
                     }
                     return prefix + v.content
                 }).join('') + '\n\nAssistant: '
