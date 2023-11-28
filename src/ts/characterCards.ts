@@ -708,7 +708,7 @@ type CharacterCardV2 = {
             risuai?:{
                 emotions?:[string, string][]
                 bias?:[string, number][],
-                viewScreen?: "none" | "emotion" | "imggen",
+                viewScreen?: any,
                 customScripts?:customscript[]
                 utilityBot?: boolean,
                 sdData?:[string,string][],
