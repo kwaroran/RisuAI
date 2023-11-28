@@ -15,4 +15,5 @@ const app = new App({
 loadData()
 initHotkey()
 watchParamButton()
+
 export default app;
