@@ -80,7 +80,8 @@ const whitelist = [
 
 const evaluation = globaly.eval
 
-const prop = Object.getOwnPropertyNames( globaly ).concat( Object.getOwnPropertyNames( this ))
+const propa = Object.getOwnPropertyNames( this ?? {} )
+const prop = Object.getOwnPropertyNames( globaly ).concat( propa)
 prop.push(
     //unsafe apis
     'open',
