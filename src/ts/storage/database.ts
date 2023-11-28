@@ -253,7 +253,7 @@ export function setDatabase(data:Database){
             sm:true,
             sm_dyn:true,
             noise:0.0,
-            strength:0.3,
+            strength:0.6,
             image:""
         }
     }

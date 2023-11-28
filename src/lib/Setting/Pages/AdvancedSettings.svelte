@@ -61,6 +61,9 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
+    {#if $DataBase.usePlainFetch}
+        <span class="text-draculared text-xs ml-2">{language.usePlainFetchWarn}</span>
+    {/if}
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.autofillRequestUrl} name="Autofill Request URL"/>

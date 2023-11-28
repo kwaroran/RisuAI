@@ -149,15 +149,20 @@ export async function sayTTS(character:character,text:string) {
         }
         case 'novelai': {
             const audioContext = new AudioContext();
-            const response = await fetch(`https://api.novelai.net/ai/generate-voice?text=${text}&voice=-1&seed=${character.naittsConfig.voice}&opus=false&version=${character.naittsConfig.version}`, {
+            if(text === ''){
+                alertError(language.errors.emptyText);
+                break;
+            }
+            const response = await globalFetch(`https://api.novelai.net/ai/generate-voice?text=${text}&voice=-1&seed=${character.naittsConfig.voice}&opus=false&version=${character.naittsConfig.version}`, {
                 method: 'GET',
                 headers: {
                     "Authorization": "Bearer " + db.NAIApiKey,
-                }
+                },
+                rawResponse: true
             });
         
-            if (response.status === 200 && response.headers.get('content-type') === 'audio/mpeg') {
-                const audioBuffer = await response.arrayBuffer();
+            if (response.ok) {
+                const audioBuffer = response.data.buffer;
                 audioContext.decodeAudioData(audioBuffer, (decodedData) => {
                     const sourceNode = audioContext.createBufferSource();
                     sourceNode.buffer = decodedData;
