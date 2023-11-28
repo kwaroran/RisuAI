@@ -22,6 +22,7 @@ export const languageEnglish = {
         onlyOneChat: 'There must be least one chat',
         alreadyCharInGroup: "There is already a character with the same name in the group.",
         noUserIcon: "You must set your icon first.",
+        emptyText: "Text is empty.",
     },
     showHelp: "Show Help",
     help:{
