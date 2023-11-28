@@ -397,9 +397,9 @@
 
         <CheckInput bind:check={currentChar.data.inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
             if(currentChar.type === 'character'){
-                if(currentChar.data.inlayViewScreen || currentChar.data.additionalAssets === undefined){
+                if(currentChar.data.inlayViewScreen && currentChar.data.additionalAssets === undefined){
                     currentChar.data.additionalAssets = []
-                }else if(!currentChar.data.inlayViewScreen || currentChar.data.additionalAssets.length === 0){
+                }else if(!currentChar.data.inlayViewScreen && currentChar.data.additionalAssets.length === 0){
                     currentChar.data.additionalAssets = undefined
                 }
                 
