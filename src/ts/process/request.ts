@@ -573,7 +573,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
                 },
-                abortSignal
+                abortSignal,
+                plainFetchForce: db.usePlainFetchNAI
             })
 
             if((!da.ok )|| (!da.data.output)){

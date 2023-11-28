@@ -66,6 +66,9 @@
     {/if}
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.usePlainFetchNAI} name="Novel AI Forch Plain Fetch"/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.autofillRequestUrl} name="Autofill Request URL"/>
 </div>
 <div class="flex items-center mt-4">

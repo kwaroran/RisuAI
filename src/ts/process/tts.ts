@@ -157,7 +157,8 @@ export async function sayTTS(character:character,text:string) {
                 headers: {
                     "Authorization": "Bearer " + db.NAIApiKey,
                 },
-                rawResponse: true
+                rawResponse: true,
+                plainFetchForce: db.usePlainFetchNAI
             });
         
             if (response.ok) {

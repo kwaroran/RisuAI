@@ -496,6 +496,7 @@ export interface Database{
     useChatSticker:boolean,
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
+    usePlainFetchNAI:boolean
     hypaMemory:boolean
     proxyRequestModel:string
     ooba:OobaSettings

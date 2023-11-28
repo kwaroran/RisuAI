@@ -513,7 +513,7 @@ export async function globalFetch(url:string, arg:{
         }
     
         const urlHost = (new URL(url)).hostname
-        let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch || arg.plainFetchForce
+        let forcePlainFetch = arg.plainFetchForce === true || (typeof arg.plainFetchForce === 'undefined' && ((knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch));
         //check if the url is a local url like localhost
         if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
             if((!isTauri) && (!isNodeServer)){

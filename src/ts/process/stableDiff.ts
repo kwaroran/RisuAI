@@ -188,7 +188,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 headers:{
                     "Authorization": "Bearer " + db.NAIApiKey
                 },
-                rawResponse: true
+                rawResponse: true,
+                plainFetchForce: db.usePlainFetchNAI
 
             }
         }
