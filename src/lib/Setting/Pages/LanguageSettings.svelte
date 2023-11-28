@@ -68,7 +68,8 @@
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
-
+    {/if}
+    
     {#if $DataBase.translatorType === 'llm'}
         <span class="text-textcolor mt-4">{language.translationPrompt}</span>
         <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
