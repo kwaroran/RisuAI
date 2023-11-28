@@ -23,6 +23,7 @@
     import { alertConfirm } from "src/ts/alert";
     import OobaSettings from "./OobaSettings.svelte";
 
+
     let tokens = {
         mainPrompt: 0,
         jailbreak: 0,
@@ -60,6 +61,39 @@
 
     $: if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
         $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
+    }
+
+    function exportToJsonFile(biasData) {
+        let dataStr = JSON.stringify(biasData);
+        let dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+        let exportFileDefaultName = 'biasData.json';
+
+        let linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
+
+    function importFromJsonFile(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target.result;
+                if (typeof result === 'string') {
+                    const biasData = JSON.parse(result);
+                    $DataBase.bias = biasData;
+                } else {
+                    console.error('File content is not a string');
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    function changeshowbias(e: MouseEvent): void {
+        $DataBase.showbias = !$DataBase.showbias
     }
 </script>
 
@@ -475,44 +509,51 @@
         <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
         <DropList bind:list={$DataBase.formatingOrder} />
     {/if}
-    <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
+    <span class="text-textcolor mt-2">Bias <Help key="bias"/><Button on:click={changeshowbias} size="sm" className="ml-2">Hide/Show Bias</Button></span>
     <div class="p-2 border border-selected round mt-2 rounded-md">
-    <table class="contain w-full max-w-full tabler">
-        <tr>
-            <th class="font-medium w-1/2">Bias</th>
-            <th class="font-medium w-1/3">{language.value}</th>
-            <th>
-                <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
-                    let bia = $DataBase.bias
-                    bia.push(['', 0])
-                    $DataBase.bias = bia
-                }}><PlusIcon /></button>
-            </th>
-        </tr>
-        {#if $DataBase.bias.length === 0}
+    {#if $DataBase.showbias}
+        <table class="contain w-full max-w-full tabler">
             <tr>
-                <div class="text-textcolor2">{language.noBias}</div>
-            </tr>
-        {/if}
-        {#each $DataBase.bias as bias, i}
-            <tr>
-                <td class="font-medium truncate w-1/2">
-                    <TextInput bind:value={$DataBase.bias[i][0]} size="lg" fullwidth/>
-                </td>
-                <td class="font-medium truncate w-1/3">
-                    <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-100} size="lg" fullwidth/>
-                </td>
-                <td>
-                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                <th class="font-medium w-1/2">Bias</th>
+                <th class="font-medium w-1/3">{language.value}</th>
+                <th>
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
                         let bia = $DataBase.bias
-                        bia.splice(i, 1)
+                        bia.push(['', 0])
                         $DataBase.bias = bia
-                    }}><TrashIcon /></button>
-                </td>
+                    }}><PlusIcon /></button>
+                </th>
             </tr>
-        {/each}
-    </table>
-    </div>
+            {#if $DataBase.bias.length === 0}
+                <tr>
+                    <div class="text-textcolor2">{language.noBias}</div>
+                </tr>
+            {/if}
+            {#each $DataBase.bias as bias, i}
+                <tr>
+                    <td class="font-medium truncate w-1/2">
+                        <TextInput bind:value={$DataBase.bias[i][0]} size="lg" fullwidth/>
+                    </td>
+                    <td class="font-medium truncate w-1/3">
+                        <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-100} size="lg" fullwidth/>
+                    </td>
+                    <td>
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                            let bia = $DataBase.bias
+                            bia.splice(i, 1)
+                            $DataBase.bias = bia
+                        }}><TrashIcon /></button>
+                    </td>
+                </tr>
+            {/each}
+        </table>
+        <Button on:click={() => exportToJsonFile($DataBase.bias)} size="sm" className="mt-4">Export Bias</Button>
+        <input type="file" id="fileInput" on:change={importFromJsonFile} style="display:none;">
+        <Button on:click={() => document.getElementById('fileInput').click()} size="sm" className="mt-4">Import Bias</Button>
+        {:else}
+        <div class="text-textcolor2">Bias is hidden.</div>
+        {/if}
+        </div>
 
     {#if !$DataBase.promptTemplate}
         <div class="flex items-center mt-4">

@@ -306,6 +306,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.imageCompression)){
         data.imageCompression = true
     }
+    if(checkNullish(data.showbias)){
+        data.showbias = true
+    }
     if(!data.formatingOrder.includes('personaPrompt')){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
@@ -542,6 +545,7 @@ export interface Database{
     huggingfaceKey:string
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
+    showbias:boolean
 }
 
 export interface customscript{
