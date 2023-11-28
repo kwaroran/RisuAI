@@ -12,6 +12,7 @@ const app = new App({
   target: document.getElementById("app"),
 });
 
+
 loadData()
 initHotkey()
 watchParamButton()
