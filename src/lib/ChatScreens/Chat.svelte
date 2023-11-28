@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError } from "../../ts/alert";
@@ -10,6 +10,7 @@
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
   import { isEqual } from "lodash";
+  import { sayTTS } from "src/ts/process/tts";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -145,6 +146,12 @@
                         </button>    
                     {/if}
                     {#if idx > -1}
+                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
+                            return sayTTS(null, message)
+                        }}>
+                            <Volume2Icon size={20}/>
+                        </button>
+
                         <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
                             if(!editMode){
                                 editMode = true

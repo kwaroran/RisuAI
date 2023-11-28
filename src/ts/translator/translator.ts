@@ -3,8 +3,8 @@ import { translatorPlugin } from "../plugins/plugins"
 import { DataBase } from "../storage/database"
 import { globalFetch } from "../storage/globalApi"
 import { alertError } from "../alert"
-import type { OpenAIChat } from "../process"
 import { requestChatData } from "../process/request"
+import { doingChat } from "../process"
 
 let cache={
     origin: [''],
@@ -35,7 +35,7 @@ export async function translate(text:string, reverse:boolean) {
     return runTranslator(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'ja' : 'en')
 }
 
-async function runTranslator(text:string, reverse:boolean, from:string,target:'en'|'ja') {
+export async function runTranslator(text:string, reverse:boolean, from:string,target:string) {
     const arg = {
 
         from: reverse ? from : target,
@@ -100,19 +100,23 @@ async function runTranslator(text:string, reverse:boolean, from:string,target:'e
 
 async function translateMain(text:string, arg:{from:string, to:string, host:string}){
     let db = get(DataBase)
-
+    if(db.translatorType === 'llm'){
+        const tr = db.translator || 'en'
+        return translateLLM(text, {to: tr})
+    }
     if(db.translatorType === 'deepl'){
-        //deepl raise error 525 because of cloudflare
+        const body = {
+            text: [text],
+            source_lang: arg.from.toLocaleUpperCase(),
+            target_lang: arg.to.toLocaleUpperCase(),
+        }
         let url = db.deeplOptions.freeApi ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate"
         const f = await globalFetch(url, {
             headers: {
                 "Authorization": "DeepL-Auth-Key " + db.deeplOptions.key,
+                "Content-Type": "application/json"
             },
-            body: {
-                text: text,
-                source_lang: arg.from.toLocaleUpperCase(),
-                target_lang: arg.to.toLocaleUpperCase(),
-            }
+            body: body
         })
 
         if(!f.ok){
@@ -197,9 +201,23 @@ async function jaTrans(text:string) {
     return await runTranslator(text, true, 'en','ja')
 }
 
-
+export function isExpTranslator(){
+    const db = get(DataBase)
+    return db.translatorType === 'llm' || db.translatorType === 'deepl'
+}
 
 export async function translateHTML(html: string, reverse:boolean): Promise<string> {
+    let db = get(DataBase)
+    let DoingChat = get(doingChat)
+    if(DoingChat){
+        if(isExpTranslator()){
+            return html
+        }
+    }
+    if(db.translatorType === 'llm'){
+        const tr = db.translator || 'en'
+        return translateLLM(html, {to: tr})
+    }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
 
@@ -254,4 +272,35 @@ export async function translateHTML(html: string, reverse:boolean): Promise<stri
     // console.log(translatedHTML)
     // Return the translated HTML, excluding the outer <body> tags if needed
     return translatedHTML
+}
+
+let llmCache = new Map<string, string>()
+async function translateLLM(text:string, arg:{to:string}){
+    if(llmCache.has(text)){
+        return llmCache.get(text)
+    }
+    const db = get(DataBase)
+    let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
+    prompt = prompt.replace('{{slot}}', arg.to)
+    const rq = await requestChatData({
+        formated: [
+            {
+                'role': 'system',
+                'content': prompt
+            },
+            {
+                'role': 'user',
+                'content': text
+            }
+        ],
+        bias: {},
+        useStreaming: false,
+    }, 'submodel')
+
+    if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
+        alertError(`${rq.result}`)
+        return text
+    }
+    llmCache.set(text, rq.result)
+    return rq.result
 }

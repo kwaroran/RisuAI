@@ -53,3 +53,10 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     let result = await extractor(text, { pooling: 'mean', normalize: true });
     return result?.data ?? null;
 }
+
+export const runTTS = async (text: string) => {
+    let speaker_embeddings = 'https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/speaker_embeddings.bin';
+    let synthesizer = await pipeline('text-to-speech', 'Xenova/speecht5_tts', { local_files_only: true });
+    let out = await synthesizer(text, { speaker_embeddings });
+    return out
+}

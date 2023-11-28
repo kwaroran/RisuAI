@@ -8,7 +8,7 @@
     import { doingChat, sendChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
-    import { translate } from "../../ts/translator/translator";
+    import { isExpTranslator, translate } from "../../ts/translator/translator";
     import { alertError, alertNormal, alertWait } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import {cloneDeep} from 'lodash'
@@ -251,7 +251,33 @@
 
     $: updateInputSizeAll()
 
-    function updateInputTransateMessage(reverse: boolean) {
+    async function updateInputTransateMessage(reverse: boolean) {
+        if(isExpTranslator()){
+            if(!reverse){
+                messageInputTranslate = ''
+                return
+            }
+            if(messageInputTranslate === '') {
+                messageInput = ''
+                return
+            }
+            const lastMessageInputTranslate = messageInputTranslate
+            await sleep(1500)
+            if(lastMessageInputTranslate === messageInputTranslate){
+                console.log(lastMessageInputTranslate === messageInputTranslate)
+                console.log(lastMessageInputTranslate, messageInputTranslate)
+                translate(reverse ? messageInputTranslate : messageInput, reverse).then((translatedMessage) => {
+                    if(translatedMessage){
+                        if(reverse)
+                            messageInput = translatedMessage
+                        else
+                            messageInputTranslate = translatedMessage
+                    }
+                })
+            }
+            return
+
+        }
         if(reverse && messageInputTranslate === '') {
             messageInput = ''
             return

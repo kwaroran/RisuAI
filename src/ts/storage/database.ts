@@ -15,7 +15,7 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.60.1"
+export let appVer = "1.61.0"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -350,6 +350,7 @@ export function setDatabase(data:Database){
     data.generationSeed ??= -1
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
+    data.huggingfaceKey ??= ''
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
@@ -522,7 +523,7 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'submodel'|'none',
+    translatorType:'google'|'deepl'|'none'|'llm',
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
@@ -542,8 +543,9 @@ export interface Database{
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
     tpo?:boolean
     automark?:boolean
-
+    huggingfaceKey:string
     allowAllExtentionFiles?:boolean
+    translatorPrompt:string
 }
 
 export interface customscript{
@@ -652,6 +654,10 @@ export interface character{
     largePortrait?:boolean
     lorePlus?:boolean
     inlayViewScreen?:boolean
+    hfTTS?: {
+        model: string
+        language: string
+    }
 }
 
 

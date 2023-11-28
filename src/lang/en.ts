@@ -450,6 +450,6 @@ export const languageEnglish = {
     imgGenPrompt: "Image Generation Prompt",
     imgGenNegatives: "Image Generation Negative Prompt",
     imgGenInstructions: "Image Generation Instructions",
-    usePlainFetchWarn: "Please disable this option when using NovelAI, as it can cause CORS errors when using NovelAI."
-
+    usePlainFetchWarn: "Please disable this option when using NovelAI, as it can cause CORS errors when using NovelAI.",
+    translationPrompt: "Translation Prompt",
 }

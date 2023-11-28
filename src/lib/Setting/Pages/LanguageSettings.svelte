@@ -9,6 +9,7 @@
     import { downloadFile } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     let langChanged = false
 
 </script>
@@ -56,7 +57,7 @@
     <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
-        <OptionInput value="submodel" >Use submodel</OptionInput>
+        <OptionInput value="llm" >Ax. Model</OptionInput>
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
@@ -73,6 +74,11 @@
         <TextInput bind:value={$DataBase.translatorprompt} placeholder="If empty, use the default prompt."/>
         <span class="text-draculared text-xs mb-2">Response streaming is disabled when using submodels.</span>
         <span class="text-draculared text-xs mb-2">Translation sends a lot of requests at once, so don't use it at reverse proxy.</span>
+    {/if}
+
+    {#if $DataBase.translatorType === 'llm'}
+        <span class="text-textcolor mt-4">{language.translationPrompt}</span>
+        <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
 

@@ -519,6 +519,7 @@
             <OptionInput value="VOICEVOX">VOICEVOX</OptionInput>
             <OptionInput value="openai">OpenAI</OptionInput>
             <OptionInput value="novelai">NovelAI</OptionInput>
+            <OptionInput value="huggingface">Huggingface</OptionInput>
         </SelectInput>
         
 
@@ -604,7 +605,6 @@
             </SelectInput>
         {/if}
         {#if currentChar.data.ttsMode === 'openai'}
-        <span class="text-textcolor">OpenAI TTS uses your OpenAI key on the chat model section</span>
             <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.oaiVoice}>
                 <OptionInput value="">Unset</OptionInput>
                 {#each oaiVoices as voice}
@@ -612,7 +612,19 @@
                 {/each}
             </SelectInput>
         {/if}
-        {#if currentChar.data.ttsMode === 'webspeech' || currentChar.data.ttsMode === 'elevenlab' || currentChar.data.ttsMode === 'VOICEVOX' || currentChar.data.ttsMode === 'novelai'}
+        {#if currentChar.data.ttsMode === 'huggingface'}
+            <span class="text-textcolor">Model</span>
+            <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.model} />
+
+            <span class="text-textcolor">Language</span>
+            <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
+        {/if}
+        {#if currentChar.data.ttsMode === 'webspeech' ||
+            currentChar.data.ttsMode === 'elevenlab' ||
+            currentChar.data.ttsMode === 'VOICEVOX' ||
+            currentChar.data.ttsMode === 'huggingface' ||
+            currentChar.data.ttsMode === 'openai' ||
+            currentChar.data.ttsMode === 'novelai'}
             <div class="flex items-center mt-2">
                 <Check bind:check={currentChar.data.ttsReadOnlyQuoted} name={language.ttsReadOnlyQuoted}/>
             </div>

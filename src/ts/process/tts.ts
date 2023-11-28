@@ -1,13 +1,21 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../storage/database";
-import { translateVox } from "../translator/translator";
+import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch } from "../storage/globalApi";
 import { language } from "src/lang";
+import { getCurrentCharacter, sleep } from "../util";
 
 let sourceNode:AudioBufferSourceNode = null
 
 export async function sayTTS(character:character,text:string) {
+    if(!character){
+        const v = getCurrentCharacter()
+        if(v.type === 'group'){
+            return
+        }
+        character = v
+    }
 
     let db = get(DataBase)
     text = text.replace(/\*/g,'')
@@ -161,6 +169,48 @@ export async function sayTTS(character:character,text:string) {
                 alertError("Error fetching or decoding audio data");
             }
             break;
+        }
+        case 'huggingface': {
+            while(true){
+                if(character.hfTTS.language !== 'en'){
+                    text = await runTranslator(text, false, 'en', character.hfTTS.language)
+                }
+                const audioContext = new AudioContext();
+                const response = await fetch(`https://api-inference.huggingface.co/models/${character.hfTTS.model}`, {
+                    method: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + db.huggingfaceKey,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        inputs: text,
+                    })
+                });
+    
+                if(response.status === 503 && response.headers.get('content-type') === 'application/json'){
+                    const json = await response.json()
+                    if(json.estimated_time){
+                        await sleep(json.estimated_time * 1000)
+                        continue
+                    }
+                }
+                else if(response.status >= 400){
+                    alertError(language.errors.httpError + `${await response.text()}`)
+                    return
+                }
+                else if (response.status === 200) {
+                    const audioBuffer = await response.arrayBuffer();
+                    audioContext.decodeAudioData(audioBuffer, (decodedData) => {
+                        const sourceNode = audioContext.createBufferSource();
+                        sourceNode.buffer = decodedData;
+                        sourceNode.connect(audioContext.destination);
+                        sourceNode.start();
+                    });
+                } else {
+                    alertError("Error fetching or decoding audio data");
+                }
+                return
+            }
         }
     }
 }

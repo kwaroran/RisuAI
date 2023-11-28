@@ -1,5 +1,6 @@
 import { get } from 'svelte/store'
 import type { ScriptMode } from '../process/scripts'
+//@ts-ignore
 import WorkerUrl from './embedworker?worker&url'
 import { DataBase, type Chat, type character, type Message } from '../storage/database'
 import { selectedCharID } from '../stores'
