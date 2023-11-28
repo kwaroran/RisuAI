@@ -79,7 +79,7 @@ const whitelist = [
 
 const evaluation = globaly.eval
 
-const prop = Object.getOwnPropertyNames( globaly )
+const prop = Object.getOwnPropertyNames( globaly ).concat( Object.getOwnPropertyNames( this ))
 prop.push(
     //unsafe apis
     'open',
@@ -106,6 +106,16 @@ prop.forEach( function( prop ) {
     if( (!whitelist.includes(prop)) && (!prop.startsWith('HTML')) ) {
         try {
             Object.defineProperty( globaly, prop, {
+                get : function() {
+                    throw "Security Exception: cannot access "+prop;
+                    return 1;
+                }, 
+                configurable : false
+            });     
+        } catch (error) {
+        }  
+        try {
+            Object.defineProperty( this, prop, {
                 get : function() {
                     throw "Security Exception: cannot access "+prop;
                     return 1;
