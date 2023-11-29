@@ -309,9 +309,16 @@ export function setDatabase(data:Database){
     if(checkNullish(data.showbias)){
         data.showbias = true
     }
+    if(checkNullish(data.usePlainFetch)){
+        data.usePlainFetch = false
+    }
+    if(checkNullish(data.usePlainFetchNAI)){
+        data.usePlainFetchNAI = false
+    }
     if(!data.formatingOrder.includes('personaPrompt')){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
+    
     data.selectedPersona ??= 0
     data.personaPrompt ??= ''
     data.personas ??= [{

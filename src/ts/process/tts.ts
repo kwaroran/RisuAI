@@ -152,7 +152,14 @@ export async function sayTTS(character:character,text:string) {
             if(text === ''){
                 break;
             }
-            const response = await globalFetch(`https://api.novelai.net/ai/generate-voice?text=${text}&voice=-1&seed=${character.naittsConfig.voice}&opus=false&version=${character.naittsConfig.version}`, {
+            // URL 인코딩을 적용
+            const encodedText = encodeURIComponent(text);
+            const encodedSeed = encodeURIComponent(character.naittsConfig.voice);
+
+            // 인코딩된 값을 사용하여 URL 생성
+            const url = `https://api.novelai.net/ai/generate-voice?text=${encodedText}&voice=-1&seed=${encodedSeed}&opus=false&version=${character.naittsConfig.version}`;
+
+            const response = await globalFetch(url, {
                 method: 'GET',
                 headers: {
                     "Authorization": "Bearer " + db.NAIApiKey,
