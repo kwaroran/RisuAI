@@ -97,13 +97,13 @@ addWorkerFunction('setChat', async (data:Message[]) => {
         if(typeof dat.data !== 'string'){
             return false
         }
-        if(typeof dat.saying !== 'string'){
+        if(typeof dat.saying !== 'string' && dat.saying !== null && dat.saying !== undefined){
             return false
         }
-        if(typeof dat.time !== 'number'){
+        if(typeof dat.time !== 'number' && dat.time !== null && dat.time !== undefined){
             return false
         }
-        if(typeof dat.chatId !== 'string'){
+        if(typeof dat.chatId !== 'string' && dat.chatId !== null && dat.chatId !== undefined){
             return false
         }
         newChat.push({

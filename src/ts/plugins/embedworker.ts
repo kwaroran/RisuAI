@@ -75,7 +75,23 @@ const whitelist = [
     "Element",
     "Text",
     "Comment",
-    'onmessage'
+    'onmessage',
+    "DOMParser",
+    "XMLSerializer",
+    "TextEncoder",
+    "TextDecoder",
+    "AbortController",
+    "AbortSignal",
+    "Event",
+    "CustomEvent",
+    "EventTarget",
+    "OffscreenCanvas",
+    "ImageBitmap",
+    "ImageBitmapRenderingContext",
+    "createImageBitmap",
+    "OffScreenCanvasRenderingContext2D",
+    "WebGL2RenderingContext",
+    "WebGLRenderingContext",
 ]
 
 const evaluation = globaly.eval
