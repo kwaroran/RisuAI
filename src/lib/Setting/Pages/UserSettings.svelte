@@ -44,7 +44,7 @@
         }
     }}
     class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
-    {language.savebackup} (Local)
+    {language.saveBackupLocal} (Local)
 </button>
 
 <button
@@ -54,7 +54,7 @@
         }
     }}
     class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm mb-4">
-    {language.loadbackup} (Local)
+    {language.loadBackupLocal} (Local)
 </button>
 
 <button

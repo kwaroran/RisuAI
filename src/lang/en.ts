@@ -454,4 +454,6 @@ export const languageEnglish = {
     usePlainFetchWarn: "Please disable this option when using NovelAI, as it can cause CORS errors when using NovelAI.",
     translationPrompt: "Translation Prompt",
     webdeeplwarn: "This option is not recommended for use with web version, as it can cause CORS errors.",
+    saveBackupLocal: "Save Backup Locally",
+    loadBackupLocal: "Load Backup Locally",
 }
