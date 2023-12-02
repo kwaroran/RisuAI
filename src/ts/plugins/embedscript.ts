@@ -278,6 +278,17 @@ export async function runCharacterJS(arg:{
             if(!result){
                 continue
             }
+
+            if(arg.mode !== 'modifyRequestChat'){
+                if(typeof result !== 'string'){
+                    continue
+                }
+            }
+            else{
+                if(!Array.isArray(result)){
+                    continue
+                }
+            }
         
             r = result
 
