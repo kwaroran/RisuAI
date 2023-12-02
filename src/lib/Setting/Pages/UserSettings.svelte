@@ -8,6 +8,7 @@
     import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
+  import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -36,6 +37,25 @@
 }}></svelte:window>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
+<button
+    on:click={async () => {
+        if(await alertConfirm(language.backupConfirm)){
+            SaveLocalBackup()
+        }
+    }}
+    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+    {language.savebackup} (Local)
+</button>
+
+<button
+    on:click={async () => {
+        if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
+            LoadLocalBackup()
+        }
+    }}
+    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm mb-4">
+    {language.loadbackup} (Local)
+</button>
 
 <button
     on:click={async () => {
