@@ -82,5 +82,5 @@
     $DataBase.promptTemplate = value
 }}><PlusIcon /></button>
 
-<span class="text-textcolor2 mb-6 text-sm mt-2">{tokens} {language.fixedTokens}</span>
+<span class="text-textcolor2 text-sm mt-2">{tokens} {language.fixedTokens}</span>
 <span class="text-textcolor2 mb-6 text-sm mt-2">{extokens} {language.exactTokens}</span>
