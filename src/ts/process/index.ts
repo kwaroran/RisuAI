@@ -23,6 +23,7 @@ import { getInlayImage, supportsInlayImage } from "../image";
 import { getGenerationModelString } from "./models/modelString";
 import { sendPeerChar } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
+import { runCharacterJS } from "../plugins/embedscript";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -840,6 +841,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
         })
     }
+
+    formated = await runCharacterJS({
+        code: null,
+        mode: 'modifyRequestChat',
+        data: formated
+    })
 
     {
         //token rechecking

@@ -224,9 +224,9 @@ let compCode:{[key:string]:string[]} = {}
 
 export async function runCharacterJS(arg:{
     code: string|null,
-    mode: ScriptMode|'onButtonClick'
-    data: string
-}):Promise<string>{
+    mode: ScriptMode|'onButtonClick'|'modifyRequestChat'
+    data: any
+}):Promise<any>{
     try {
         if(arg.code === null){
             const db = get(DataBase)
@@ -238,7 +238,8 @@ export async function runCharacterJS(arg:{
             "editoutput": 'editOutput',
             "editprocess": 'editProcess',
             "editdisplay": 'editDisplay',
-            'onButtonClick': "onButtonClick"
+            'onButtonClick': "onButtonClick",
+            'modifyRequestChat': 'modifyRequestChat'
         } as const
 
         let runCodes = [...additionalCharaJS, arg.code]
@@ -278,7 +279,7 @@ export async function runCharacterJS(arg:{
                 continue
             }
         
-            r = result.toString()
+            r = result
 
             if(runCode === 'onButtonClick'){
                 return r
