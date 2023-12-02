@@ -104,6 +104,9 @@ export async function SaveLocalBackup(){
                 continue
             }
             await writer.write(key, await forageStorage.getItem(key))
+            if(forageStorage.isAccount){
+                await sleep(1000)
+            }
         }
     }
 
@@ -174,6 +177,9 @@ export async function LoadLocalBackup(){
                         await forageStorage.setItem('assets/' + name, data)
                     }
                     await sleep(10)
+                    if(forageStorage.isAccount){
+                        await sleep(1000)
+                    }
                 }
             }
             reader.readAsArrayBuffer(file)
