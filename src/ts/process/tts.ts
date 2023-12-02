@@ -145,6 +145,7 @@ export async function sayTTS(character:character,text:string) {
                     alertError((language.errors.httpError + `${Buffer.from(res.data).toString()}`))
                 }
             }
+            break;
 
         }
         case 'novelai': {
