@@ -778,7 +778,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 max_tokens: maxTokens,
                 stop: stopStrings,
                 temperature: temperature,
-                topP: db.top_p,
+                top_p: db.top_p,
             }
 
             const url = new URL(db.textgenWebUIBlockingURL)
