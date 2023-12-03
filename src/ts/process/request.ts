@@ -299,7 +299,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
-                topP: db.top_p,
+                top_p: db.top_p,
 
             })
 
