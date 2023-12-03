@@ -52,8 +52,8 @@ class LocalWriter{
             return true
         }
 
-        if(showOpenFilePicker){
-            const handle = await showOpenFilePicker({
+        if(showSaveFilePicker){
+            const handle = await showSaveFilePicker({
                 types: [{
                     description: 'Binary',
                     accept: {'application/octet-stream': ['.bin']}
