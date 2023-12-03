@@ -402,5 +402,10 @@ export const languageKorean = {
     charjs: "캐릭터JS",
     depthPrompt: "깊이 프롬프트",
     largePortrait: "세로 이미지",
-    usePlainFetchWarn: "NovelAI 사용 시 CORS 오류가 발생할 수 있으므로, NovelAI를 사용할 때는 이 옵션을 비활성화해 주세요."
+    usePlainFetchWarn: "NovelAI 사용 시 CORS 오류가 발생할 수 있으므로, NovelAI를 사용할 때는 이 옵션을 비활성화해 주세요.",
+    translationPrompt: "번역 프롬프트",
+    webdeeplwarn: "이 옵션은 웹에서는 제대로 작동하지 않을 수 있습니다.",
+    saveBackupLocal: "로컬 백업 저장",
+    loadBackupLocal: "로컬 백업 불러오기",
+    topP: "Top P",
 }
