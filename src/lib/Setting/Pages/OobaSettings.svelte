@@ -8,6 +8,7 @@
   import { language } from "src/lang";
   import { PlusIcon, TrashIcon } from "lucide-svelte";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import Arcodion from "src/lib/UI/Arcodion.svelte";
     let openOobaSettings = false
     const toggleOobaSettings = () => {
         openOobaSettings = !openOobaSettings
@@ -15,20 +16,7 @@
     export let instructionMode = false
 </script>
 
-<div class="border-darkborderc border px-2 flex flex-col py-4 rounded-md">
-
-{#if !openOobaSettings}
-    <button on:click={toggleOobaSettings}>
-        ⮞ Ooba Settings
-    </button>
-{:else}
-    <button on:click={toggleOobaSettings}> 
-        ⮟ Ooba Settings
-    </button>
-
-    <div class="border-b border-b-darkborderc mt-4 mb-4">
-
-    </div>
+<Arcodion name="Ooba Settings" styled>
     {#if instructionMode}
         <span class="text-textcolor">System Prefix</span>
         <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
@@ -176,5 +164,4 @@
             </div>
         {/if}
     {/if}
-{/if}
-</div>
+</Arcodion>
