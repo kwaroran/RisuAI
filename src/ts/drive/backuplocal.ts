@@ -51,6 +51,19 @@ class LocalWriter{
             this.writer = new TauriWriter(filePath)
             return true
         }
+
+        if(showOpenFilePicker){
+            const handle = await showOpenFilePicker({
+                types: [{
+                    description: 'Binary',
+                    accept: {'application/octet-stream': ['.bin']}
+                }]
+            })
+            const writable = await handle[0].createWritable()
+            this.writableStream = writable
+            this.writer = writable.getWriter()
+            return true
+        }
         const streamSaver = await import('streamsaver')
         this.writableStream = streamSaver.createWriteStream('risu-backup.bin')
         this.writer = this.writableStream.getWriter()
@@ -117,6 +130,8 @@ export async function SaveLocalBackup(){
     await writer.write('database.risudat', dbData)
 
     alertNormal('Success')
+
+    await writer.close()
 }
 
 export async function LoadLocalBackup(){
