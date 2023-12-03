@@ -482,7 +482,7 @@
         <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
         <DropList bind:list={$DataBase.formatingOrder} />
     {/if}
-    <Arcodion styled name="Bias">
+    <Arcodion styled name="Bias" help="bias">
         <table class="contain w-full max-w-full tabler">
             <tr>
                 <th class="font-medium w-1/2">Bias</th>

@@ -1,7 +1,12 @@
 <script lang="ts">
+    import type { language } from "src/lang";
+  import Help from "../Others/Help.svelte";
+
     export let name = ""
     let open = false
     export let styled = false
+    export let help: (keyof (typeof language.help))|'' = ''
+
 </script>
 
 {#if styled}
@@ -12,7 +17,9 @@
             on:click={() => {
                 open = !open
             }}
-        >{name}</button>
+        >{name}{#if help}
+            <Help key={help} />
+        {/if}</button>
         {#if open}
             <div class="flex flex-col border border-selected p-2 rounded-b-md">
                 <slot></slot>
