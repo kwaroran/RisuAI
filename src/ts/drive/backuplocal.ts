@@ -53,16 +53,18 @@ class LocalWriter{
         }
 
         if(showSaveFilePicker){
-            const handle = await showSaveFilePicker({
-                types: [{
-                    description: 'Binary',
-                    accept: {'application/octet-stream': ['.bin']}
-                }]
-            })
-            const writable = await handle.createWritable()
-            this.writableStream = writable
-            this.writer = writable.getWriter()
-            return true
+            try {
+                const handle = await showSaveFilePicker({
+                    types: [{
+                        description: 'Binary',
+                        accept: {'application/octet-stream': ['.bin']}
+                    }]
+                })
+                const writable = await handle.createWritable()
+                this.writableStream = writable
+                this.writer = writable.getWriter()
+                return true   
+            } catch (error) {}
         }
         const streamSaver = await import('streamsaver')
         this.writableStream = streamSaver.createWriteStream('risu-backup.bin')
