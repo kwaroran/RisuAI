@@ -146,7 +146,7 @@
                         </button>    
                     {/if}
                     {#if idx > -1}
-                        {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.ttsMode !== 'none'}
+                        {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.ttsMode !== 'none' && ($CurrentCharacter.ttsMode)}
                             <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
                                 return sayTTS(null, message)
                             }}>
