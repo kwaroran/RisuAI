@@ -254,7 +254,11 @@
     {#if !isTauri}
         <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
     {/if}
-    <span class="text-draculared text-xs mb-2">Warning: For Ooba version over 1.7, use "Reverse Proxy" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
+    <span class="text-draculared text-xs mb-2">Warning: For Ooba version over 1.7, use "Ooba" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
+{/if}
+{#if $DataBase.aiModel === 'ooba' || $DataBase.subModel === 'ooba'}
+    <span class="text-textcolor mt-2">Ooba {language.providerURL}</span>
+    <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
 {/if}
 {#if advancedBotSettings}
     {#if !$DataBase.promptTemplate}
@@ -465,8 +469,8 @@
 {/if}
 {/if}
 
-{#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy')}
-    <OobaSettings />
+{#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy') || ($DataBase.aiModel === 'ooba')}
+    <OobaSettings instructionMode={$DataBase.aiModel === 'ooba'} />
 {/if}
 
 

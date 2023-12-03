@@ -1,6 +1,5 @@
 <script lang="ts">
-    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import OptionalInput from "src/lib/UI/GUI/OptionalInput.svelte";
@@ -9,6 +8,7 @@
     const toggleOobaSettings = () => {
         openOobaSettings = !openOobaSettings
     }
+    export let instructionMode = false
 </script>
 
 <div class="border-darkborderc border px-2 flex flex-col py-4 rounded-md">
@@ -25,37 +25,49 @@
     <div class="border-b border-b-darkborderc mt-4 mb-4">
 
     </div>
-    <span class="text-textcolor">Ooba Mode</span>
-    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>
-        <OptionInput value="instruct">Instruct</OptionInput>
-        <OptionInput value="chat">Chat</OptionInput>
-        <OptionInput value="chat-instruct">Chat-Instruct</OptionInput>
-    </SelectInput>
-    <!-- name1 = user | name2 = bot --->
+    {#if instructionMode}
+        <span class="text-textcolor">System Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
+        <span class="text-textcolor">User Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
+        <span class="text-textcolor">Assistant Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
+        <span class="text-textcolor">Seperator</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
 
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'instruct'}
-        <span class="text-textcolor">user prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1_instruct} />
-        <span class="text-textcolor">bot prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2_instruct} />
-        <span class="text-textcolor">system prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context_instruct} />
-        <span class="text-textcolor">system message</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.system_message} />
-    {/if}
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'chat' || $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
-        <span class="text-textcolor">user prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1} />
-        <span class="text-textcolor">bot prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2} />
-        <span class="text-textcolor">system prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context} />
-        <span class="text-textcolor">start message</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.greeting} />
-    {/if}
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
-        <span class="text-textcolor">chat_instruct_command</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
+    {:else}
+        <span class="text-textcolor">Ooba Mode</span>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>
+            <OptionInput value="instruct">Instruct</OptionInput>
+            <OptionInput value="chat">Chat</OptionInput>
+            <OptionInput value="chat-instruct">Chat-Instruct</OptionInput>
+        </SelectInput>
+        <!-- name1 = user | name2 = bot --->
+
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'instruct'}
+            <span class="text-textcolor">user prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1_instruct} />
+            <span class="text-textcolor">bot prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2_instruct} />
+            <span class="text-textcolor">system prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context_instruct} />
+            <span class="text-textcolor">system message</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.system_message} />
+        {/if}
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'chat' || $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
+            <span class="text-textcolor">user prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1} />
+            <span class="text-textcolor">bot prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2} />
+            <span class="text-textcolor">system prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context} />
+            <span class="text-textcolor">start message</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.greeting} />
+        {/if}
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
+            <span class="text-textcolor">chat_instruct_command</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
+        {/if}
     {/if}
     <span class="text-textcolor">min_p</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.min_p} numberMode />

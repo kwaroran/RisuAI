@@ -758,6 +758,56 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         
+        case 'ooba': {
+            const suggesting = model === "submodel"
+            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+            let stopStrings = getStopStrings(suggesting)
+            if(db.localStopStrings){
+                stopStrings = db.localStopStrings.map((v) => {
+                    return risuChatParser(v.replace(/\\n/g, "\n"))
+                })
+            }
+            let bodyTemplate:Record<string, any> = {
+                'prompt': proompt,
+                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                logit_bias: bias,
+                max_tokens: maxTokens,
+                stop: stopStrings,
+                temperature: temperature,
+                top_p: db.topP
+            }
+
+            const url = new URL(db.textgenWebUIBlockingURL)
+            url.pathname = "/v1/chat/completions"
+            const urlStr = url.toString()
+
+            const OobaBodyTemplate = db.reverseProxyOobaArgs
+            const keys = Object.keys(OobaBodyTemplate)
+            for(const key of keys){
+                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                    bodyTemplate[key] = OobaBodyTemplate[key]
+                }
+            }
+
+            const response = await globalFetch(urlStr, {
+                body: bodyTemplate,
+            })
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
+                }
+            }
+            const text:string = response.data.choices[0].text
+            return {
+                type: 'success',
+                result: text.replace(/##\n/g, '')
+            }
+            
+        }
+
         case 'custom':{
             const d = await pluginProcess({
                 bias: bias,
