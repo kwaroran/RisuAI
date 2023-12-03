@@ -59,7 +59,7 @@ class LocalWriter{
                     accept: {'application/octet-stream': ['.bin']}
                 }]
             })
-            const writable = await handle[0].createWritable()
+            const writable = await handle.createWritable()
             this.writableStream = writable
             this.writer = writable.getWriter()
             return true
