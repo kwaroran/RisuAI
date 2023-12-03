@@ -4,6 +4,10 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import OptionalInput from "src/lib/UI/GUI/OptionalInput.svelte";
     import { DataBase } from "src/ts/storage/database";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+  import { language } from "src/lang";
+  import { PlusIcon, TrashIcon } from "lucide-svelte";
+  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     let openOobaSettings = false
     const toggleOobaSettings = () => {
         openOobaSettings = !openOobaSettings
@@ -133,5 +137,44 @@
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.add_bos_token} boolMode />
     <span class="text-textcolor">skip_special_tokens</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.skip_special_tokens} boolMode />
+
+    
+    {#if instructionMode}
+        <div class="flex items-center mt-4">
+            <CheckInput check={!!$DataBase.localStopStrings} name={language.customStopWords} onChange={() => {
+                if(!$DataBase.localStopStrings){
+                    $DataBase.localStopStrings = []
+                }
+                else{
+                    $DataBase.localStopStrings = null
+                }
+            }} />
+        </div>
+        {#if $DataBase.localStopStrings}
+            <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
+                <div class="p-2">
+                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                        let localStopStrings = $DataBase.localStopStrings
+                        localStopStrings.push('')
+                        $DataBase.localStopStrings = localStopStrings
+                    }}><PlusIcon /></button>
+                </div>
+                {#each $DataBase.localStopStrings as stopString, i}
+                    <div class="flex w-full">
+                        <div class="flex-grow">
+                            <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
+                        </div>
+                        <div>
+                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                                let localStopStrings = $DataBase.localStopStrings
+                                localStopStrings.splice(i, 1)
+                                $DataBase.localStopStrings = localStopStrings
+                            }}><TrashIcon /></button>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+    {/if}
 {/if}
 </div>
