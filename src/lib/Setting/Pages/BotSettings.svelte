@@ -293,9 +293,12 @@
 {:else}
     <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
 {/if}
-<SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.top_p}/>
-
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
+
+<span class="text-textcolor">Top P <Help key="topP"/></span>
+<SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
+
+<span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
 
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>

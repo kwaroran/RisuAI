@@ -94,7 +94,8 @@ export const languageEnglish = {
         oaiRandomUser: "If enabled, random uuid would be put on user parameter on request, and would be changed on refresh. this can be used to prevent AI from identifying user.",
         inlayImages: "If enabled, images could be inlayed to the chat and AIs can see it if they support it.",
         metrica: 'Metric Systemizer is a plugin that converts metrics to imperial units when request, and vice versa on output to show user metric system while using imperial for performace. it is not recommended to use this plugin when using imperial units on chat.',
-        lorePlus: "LoreBook+ is a experimental feature that uses vectordb instead of just string matching for better bot making experience and better matching performace."
+        lorePlus: "LoreBook+ is a experimental feature that uses vectordb instead of just string matching for better bot making experience and better matching performace.",
+        topP: "Top P is a probability threshold for nucleus sampling. model considers the results of the tokens with top_p probability mass.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -456,4 +457,5 @@ export const languageEnglish = {
     webdeeplwarn: "This option is not recommended for use with web version, as it can cause CORS errors.",
     saveBackupLocal: "Save Backup Locally",
     loadBackupLocal: "Load Backup Locally",
+    topP: "Top P",
 }
