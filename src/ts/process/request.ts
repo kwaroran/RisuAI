@@ -299,6 +299,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
+                topP: db.top_p,
+
             })
 
             if(db.generationSeed > 0){
@@ -670,6 +672,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'stopping_strings': stopStrings,
                 'seed': -1,
                 add_bos_token: db.ooba.add_bos_token,
+                topP: db.top_p,
                 prompt: proompt
             }
 
@@ -775,7 +778,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 max_tokens: maxTokens,
                 stop: stopStrings,
                 temperature: temperature,
-                top_p: db.topP
+                topP: db.top_p,
             }
 
             const url = new URL(db.textgenWebUIBlockingURL)

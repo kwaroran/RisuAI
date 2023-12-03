@@ -351,6 +351,7 @@ export function setDatabase(data:Database){
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
+    data.top_p ??= 1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -542,6 +543,7 @@ export interface Database{
     huggingfaceKey:string
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
+    top_p: number,
 }
 
 export interface customscript{
@@ -737,6 +739,7 @@ export interface botPreset{
     localStopStrings?: string[]
     customProxyRequestModel?: string
     reverseProxyOobaArgs?: OobaChatCompletionRequestParams
+    top_p?: number
 
 }
 
@@ -930,7 +933,8 @@ export const presetTemplate:botPreset = {
     ainconfig: cloneDeep(defaultAIN),
     reverseProxyOobaArgs: {
         mode: 'instruct'
-    }
+    },
+    top_p: 1
 
 }
 
@@ -986,7 +990,8 @@ export function saveCurrentPreset(){
         localStopStrings: db.localStopStrings,
         autoSuggestPrompt: db.autoSuggestPrompt,
         customProxyRequestModel: db.customProxyRequestModel,
-        reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null
+        reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null,
+        top_p: db.top_p ?? 1
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1055,6 +1060,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.reverseProxyOobaArgs = cloneDeep(newPres.reverseProxyOobaArgs) ?? {
         mode: 'instruct'
     }
+    db.top_p = newPres.top_p ?? 1
     return db
 }
 
