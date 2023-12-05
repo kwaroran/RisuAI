@@ -16,7 +16,7 @@ export function metricaPlugin(data:string, toSystem:'metrics'|'imperial'){
     const c = convertion.sort((a,b) => b[0].length - a[0].length);    
     for(let i = 0; i < c.length; i++){
         let [from, to, ratio] = c[i];
-        if(toSystem === 'imperial'){
+        if(toSystem !== 'imperial'){
             [from, to] = [to, from];
             ratio = 1 / ratio;
         }
