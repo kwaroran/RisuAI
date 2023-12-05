@@ -165,15 +165,6 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     }
     data = await parseInlayImages(data)
     if(db.automark){
-        // data = autoMarkNew(DOMPurify.sanitize(data, {
-        //     ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        //     ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-        //     FORBID_ATTR: ["href"]
-        // }))
-        // return data
-        // data = autoMarkNew(data)
-        // data = encodeStyle(data)
-        // data = mconverted.parse(data)
         return (DOMPurify.sanitize(autoMarkNew(data), {
             ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
             ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
