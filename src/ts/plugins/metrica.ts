@@ -27,6 +27,12 @@ export function metricaPlugin(data:string, toSystem:'metrics'|'imperial'){
         }
         const reg = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*${from}`, 'g');
         data = data.replace(reg, (_, value) => {
+            // if value is integer, parse it as integer
+            if(value.indexOf('.') === -1){
+                const result = parseInt(value) * ratio
+                return `${result.toFixed(0)} ${to}`;
+            }
+
             const result = parseFloat(value) * ratio;
             return `${result.toFixed(2)} ${to}`;
         });
