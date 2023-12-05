@@ -38,11 +38,13 @@ export function metricaPlugin(data:string, toSystem:'metrics'|'imperial'){
         });
     }
     //convert height like 5' 11'' to 180 cm
-    const reg = /(\d+)'\s*(\d+)"/g;
-    data = data.replace(reg, (_, feet, inch) => {
-        const result = parseFloat(feet) * 30.48 + parseFloat(inch) * 2.54;
-        return `${result.toFixed(2)} cm`;
-    });
+    if(toSystem === 'metrics'){
+        const reg = /(\d+)'\s*(\d+)"/g;
+        data = data.replace(reg, (_, feet, inch) => {
+            const result = parseFloat(feet) * 30.48 + parseFloat(inch) * 2.54;
+            return `${result.toFixed(2)} cm`;
+        });
+    }
     
     return data
 }
