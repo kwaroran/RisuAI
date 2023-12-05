@@ -38,7 +38,7 @@
     </div>
     {#if $DataBase.officialplugins.oaiFix}
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.officialplugins.oaiFix} name={"Remove Emdash"}/>
+            <Check bind:check={$DataBase.officialplugins.oaiFixEmdash} name={"Remove Emdash"}/>
         </div>
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.officialplugins.oaiFixLetters} name={"Fix Letters"}/>
