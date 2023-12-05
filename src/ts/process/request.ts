@@ -18,6 +18,7 @@ import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { supportsInlayImage } from "../image";
+import { OaifixEmdash } from "../plugins/fixer";
 
 
 
@@ -236,6 +237,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
+            if(db.officialplugins.oaiFix && db.officialplugins.oaiFixEmdash){
+                if(raiModel.startsWith('gpt35') || raiModel.startsWith('gpt4')){
+                    bias = OaifixEmdash(bias)
+                }
+            }
+
 
 
 
@@ -273,7 +280,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
 
-            console.log(bias)
             db.cipherChat = false
             let body = ({
                 model: aiModel === 'openrouter' ? db.openrouterRequestModel :

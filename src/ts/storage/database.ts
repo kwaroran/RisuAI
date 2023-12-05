@@ -396,6 +396,9 @@ export interface Database{
         automark?: boolean
         romanizer?: boolean
         metrica?: boolean
+        oaiFix?: boolean
+        oaiFixEmdash?: boolean
+        oaiFixLetters?: boolean
     }
     currentPluginProvider: string
     zoomsize:number

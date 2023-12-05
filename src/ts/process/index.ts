@@ -557,29 +557,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
-    if(db.officialplugins.romanizer){
-        const romanizer = await import('../plugins/romanizer')
-        const r = romanizer.romanizer(chats.map((v) => {
-            return v.content   
-        }))
-
-        for(let i=0;i<chats.length;i++){
-            const pchat = cloneDeep(chats[i])
-            pchat.content = r.result[i]
-            if(await tokenizer.tokenizeChat(chats[i]) > await tokenizer.tokenizeChat(pchat)){
-                chats[i] = pchat
-            }
-        }
-
-        if(r.mostUsed !== 'roman'){
-
-            unformated.postEverything.push({
-                role: 'system',
-                content: `user and assistant are chatting with romanized ${r.mostUsed}, but always respond with ${r.mostUsed} with ${r.mostUsed} letters.`
-            })
-        }
-    }
-
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
             asHyper: db.supaMemoryType !== 'subModel' && db.hypaMemory

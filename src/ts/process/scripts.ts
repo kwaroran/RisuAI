@@ -9,6 +9,7 @@ import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } fro
 import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
 import { metricaPlugin } from "../plugins/metrica";
+import { OaiFixKorean } from "../plugins/fixer";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -68,6 +69,9 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     }
     if(db.officialplugins.metrica && (mode === 'editinput' || mode === 'editoutput' || mode === 'editprocess')){
         data = metricaPlugin(data, 'imperial')
+    }
+    if(db.officialplugins.oaiFixLetters && db.officialplugins.oaiFix && (mode === 'editoutput' || mode === 'editdisplay')){
+        data = OaiFixKorean(data)
     }
     data = await runCharacterJS({
         code: char.virtualscript ?? null,
