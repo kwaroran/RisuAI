@@ -66,7 +66,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     if(db.officialplugins.metrica && mode === 'editdisplay'){
         data = metricaPlugin(data, 'metrics')
     }
-    if(db.officialplugins.metrica && (mode === 'editinput' || mode === 'editoutput')){
+    if(db.officialplugins.metrica && (mode === 'editinput' || mode === 'editoutput' || mode === 'editprocess')){
         data = metricaPlugin(data, 'imperial')
     }
     data = await runCharacterJS({
