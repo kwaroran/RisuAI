@@ -67,6 +67,8 @@
                 return "OpenRouter"
             case 'gptvi4_1106':
                 return "GPT-4 Turbo 1106 Vision"
+            case 'palm2_unicorn':
+                return "PaLM2 Unicorn"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -144,6 +146,7 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             {#if showUnrec}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Google PaLM2 Unicorn</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}
             <Arcodion name="Novellist">

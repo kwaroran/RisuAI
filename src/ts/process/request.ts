@@ -894,6 +894,64 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
         }
+        case 'palm2_unicorn':{
+            const bodyData = {
+                "instances": [
+                    {
+                        "content": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+                    }
+                ],
+                "parameters": {
+                    "candidateCount": 1,
+                    "maxOutputTokens": maxTokens,
+                    "stopSequences": [
+                        "system:", "user:", "assistant:"
+                    ],
+                    "temperature": temperature,
+                }
+            };
+
+            const API_ENDPOINT="us-central1-aiplatform.googleapis.com"
+            const PROJECT_ID=db.google.projectId
+            const MODEL_ID="text-unicorn"
+            const LOCATION_ID="us-central1"
+
+            const url = `https://${API_ENDPOINT}/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/publishers/google/models/${MODEL_ID}:predict`;
+            const res = await globalFetch(url, {
+                body: bodyData,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + db.google.accessToken
+                },
+                abortSignal
+            })
+            if(res.ok){
+                console.log(res.data)
+                if(res.data.predictions){
+                    let output:string = res.data.predictions[0].content
+                    const ind = output.search(/(system note)|(user)|(assistant):/gi)
+                    if(ind >= 0){
+                        output = output.substring(0, ind)
+                    }
+                    return {
+                        type: 'success',
+                        result: output
+                    }
+                }
+                else{
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(res.data)}`
+                    }
+                }
+            }
+            else{
+                return {
+                    type: 'fail',
+                    result: `${JSON.stringify(res.data)}`
+                }
+            }
+        }
         case "kobold":{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             const url = new URL(db.koboldURL)

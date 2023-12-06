@@ -352,6 +352,10 @@ export function setDatabase(data:Database){
         mode: 'instruct'
     }
     data.top_p ??= 1
+    //@ts-ignore
+    data.google ??= {}
+    data.google.accessToken ??= ''
+    data.google.projectId ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -547,6 +551,10 @@ export interface Database{
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
     top_p: number,
+    google: {
+        accessToken: string
+        projectId: string
+    }
 }
 
 export interface customscript{
@@ -937,7 +945,7 @@ export const presetTemplate:botPreset = {
     reverseProxyOobaArgs: {
         mode: 'instruct'
     },
-    top_p: 1
+    top_p: 1,
 
 }
 
