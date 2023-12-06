@@ -295,11 +295,6 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-<span class="text-textcolor">Top P <Help key="topP"/></span>
-<SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
-
-<span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
-
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
@@ -462,6 +457,10 @@
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.typical_p}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
 {:else}
+    <span class="text-textcolor">Top P <Help key="topP"/></span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
+
     <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
     <SliderInput min={0} max={100} bind:value={$DataBase.frequencyPenalty} />
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
