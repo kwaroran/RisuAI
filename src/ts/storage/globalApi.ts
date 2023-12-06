@@ -225,11 +225,16 @@ export async function saveDb(){
                     await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
                 }
                 else{
-                    await forageStorage.setItem('database/database.bin', dbData)
                     if(!forageStorage.isAccount){
+                        await forageStorage.setItem('database/database.bin', dbData)
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
                     if(forageStorage.isAccount){
+                        const dbData = encodeRisuSave(db, 'compression')
+                        const z:Database = decodeRisuSave(dbData)
+                        if(z.formatversion){
+                            await forageStorage.setItem('database/database.bin', dbData)
+                        }
                         await sleep(5000);
                     }
                 }

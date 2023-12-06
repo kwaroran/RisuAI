@@ -4,9 +4,9 @@ import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertConfirm, alertSelect, alertStore } from "../alert"
 import { get } from "svelte/store"
-import { DataBase } from "./database"
+import { DataBase, type Database } from "./database"
 import { AccountStorage } from "./accountStorage"
-import { encodeRisuSave } from "./risuSave";
+import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { language } from "src/lang"
 
 export class AutoStorage{
@@ -80,8 +80,15 @@ export class AutoStorage{
             }
 
             const dba = replaceDbResources(db, replaced)
-            await accountStorage.setItem('database/database.bin', encodeRisuSave(dba))
-
+            const comp = encodeRisuSave(dba, 'compression')
+            //try decoding
+            try {
+                const z:Database = decodeRisuSave(comp)
+                if(z.formatversion){
+                    await accountStorage.setItem('database/database.bin', comp)
+                }
+                
+            } catch (error) {}
             this.realStorage = accountStorage
             alertStore.set({
                 type: "none",
