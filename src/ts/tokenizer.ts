@@ -190,7 +190,14 @@ export async function strongBan(data:string, bias:{[key:number]:number}) {
     }
 
 
+
     for(const char of banChars){
+        const encoded = await tokenizeNum(char)
+        if(encoded.length > 0){
+            if(!unbanChars.includes(encoded[0])){
+                bias[encoded[0]] = -100
+            }
+        }
         for(const alt of charAlt){
             let fchar = char
 
