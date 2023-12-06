@@ -9,7 +9,7 @@ import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
-import { tokenizeNum } from "../tokenizer";
+import { strongBan, tokenizeNum } from "../tokenizer";
 import { runLocalModel } from "./models/local";
 import { risuChatParser } from "../parser";
 import { SignatureV4 } from "@smithy/signature-v4";
@@ -230,10 +230,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             for(let i=0;i<biasString.length;i++){
                 const bia = biasString[i]
+                if(bia[1] === -101){
+                    bias = await strongBan(bia[0], bias)
+                    continue
+                }
                 const tokens = await tokenizeNum(bia[0])
         
                 for(const token of tokens){
                     bias[token] = bia[1]
+
                 }
             }
 
@@ -780,7 +785,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'prompt': proompt,
                 presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
-                logit_bias: bias,
+                logit_bias: {},
                 max_tokens: maxTokens,
                 stop: stopStrings,
                 temperature: temperature,

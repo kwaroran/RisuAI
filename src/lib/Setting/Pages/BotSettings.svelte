@@ -484,11 +484,11 @@
         <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
         <DropList bind:list={$DataBase.formatingOrder} />
     {/if}
-    <Arcodion styled name="Bias" help="bias">
+    <Arcodion styled name="Bias " help="bias">
         <table class="contain w-full max-w-full tabler">
             <tr>
-                <th class="font-medium w-1/2">Bias</th>
-                <th class="font-medium w-1/3">{language.value}</th>
+                <th class="font-medium">Bias</th>
+                <th class="font-medium">{language.value}</th>
                 <th>
                     <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
                         let bia = $DataBase.bias
@@ -504,11 +504,11 @@
             {/if}
             {#each $DataBase.bias as bias, i}
                 <tr>
-                    <td class="font-medium truncate w-1/2">
+                    <td class="font-medium truncate">
                         <TextInput bind:value={$DataBase.bias[i][0]} size="lg" fullwidth/>
                     </td>
-                    <td class="font-medium truncate w-1/3">
-                        <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-100} size="lg" fullwidth/>
+                    <td class="font-medium truncate">
+                        <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-101} size="lg" fullwidth/>
                     </td>
                     <td>
                         <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
@@ -521,6 +521,7 @@
             {/each}
         </table>
     </Arcodion>
+
 
     {#if !$DataBase.promptTemplate}
         <div class="flex items-center mt-4">
