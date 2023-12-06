@@ -115,11 +115,7 @@
         <Button size="sm" className="mb-2" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</Button>
     </div>
 {/if}
-{#if $DataBase.aiModel === 'palm2' || $DataBase.subModel === 'palm2'}
-    <span class="text-textcolor">Palm2 {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.palmAPI}/>
-{/if}
-{#if $DataBase.aiModel === 'palm2_unicorn' || $DataBase.subModel === 'palm2_unicorn'}
+{#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2')}
     <span class="text-textcolor">Google Bearer Token</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.accessToken}/>
 

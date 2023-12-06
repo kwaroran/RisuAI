@@ -42,7 +42,7 @@
             case 'local_gptq':
                 return 'Local Model GPTQ'
             case "palm2":
-                return "PaLM2"
+                return "PaLM2 Bison"
             case "textgen_webui":
                 return "Oobabooga Legacy"
             case 'ooba':
@@ -145,8 +145,10 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             {#if showUnrec}
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Google PaLM2 Unicorn</button>
+                <Arcodion name="Google Palm2">
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Unicorn</button>
+                </Arcodion>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}
             <Arcodion name="Novellist">

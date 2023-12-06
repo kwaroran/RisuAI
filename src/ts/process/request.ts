@@ -851,49 +851,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             break
         }
-        case 'palm2':{
-            const body = {
-                "prompt": {
-                      "text": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
-                },
-                "temperature": arg.temperature,
-                "maxOutputTokens": arg.maxTokens,
-                "candidate_count": 1
-            }
-            const res = await globalFetch(`https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText?key=${db.palmAPI}`, {
-                body: body,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                abortSignal
-            })
-
-            if(res.ok){
-                if(res.data.candidates){
-                    let output:string = res.data.candidates[0].output
-                    const ind = output.search(/(system note)|(user)|(assistant):/gi)
-                    if(ind >= 0){
-                        output = output.substring(0, ind)
-                    }
-                    return {
-                        type: 'success',
-                        result: output
-                    }
-                }
-                else{
-                    return {
-                        type: 'fail',
-                        result: `${JSON.stringify(res.data)}`
-                    }
-                }
-            }
-            else{
-                return {
-                    type: 'fail',
-                    result: `${JSON.stringify(res.data)}`
-                }
-            }
-        }
+        case 'palm2':
         case 'palm2_unicorn':{
             const bodyData = {
                 "instances": [
@@ -913,7 +871,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const API_ENDPOINT="us-central1-aiplatform.googleapis.com"
             const PROJECT_ID=db.google.projectId
-            const MODEL_ID="text-unicorn"
+            const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
+                                        'palm2_unicorn' ? 'text-unicorn' : 
+                                        ''
             const LOCATION_ID="us-central1"
 
             const url = `https://${API_ENDPOINT}/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/publishers/google/models/${MODEL_ID}:predict`;
