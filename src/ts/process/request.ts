@@ -47,14 +47,12 @@ type requestDataResponse = {
 }|{
     type: "streaming",
     result: ReadableStream<string>,
-    noRetry?: boolean,
     special?: {
         emotion?: string
     }
 }|{
     type: "multiline",
     result: ['user'|'char',string][],
-    noRetry?: boolean,
     special?: {
         emotion?: string
     }
@@ -117,7 +115,6 @@ export interface OpenAIChatExtra {
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
-    let result = ''
     let formated = cloneDeep(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)

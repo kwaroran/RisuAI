@@ -1,12 +1,12 @@
 import { get, writable } from "svelte/store";
 import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc } from "./storage/database";
-import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
+import { alertError, alertNormal, alertSelect, alertStore } from "./alert";
 import { language } from "../lang";
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
+import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
-import { checkCharOrder, downloadFile, getFileSrc, readImage } from "./storage/globalApi";
+import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
 import * as yuso from 'yuso'
 import { reencodeImage } from "./image";
 import { updateInlayScreen } from "./process/inlayScreen";

@@ -11,14 +11,7 @@ import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
 import { getInlayImage } from './image';
-import { cloneDeep } from 'lodash';
 import { autoMarkNew } from './plugins/automark';
-
-const convertora = new showdown.Converter({
-    simpleLineBreaks: true,
-    strikethrough: true,
-    tables: true
-})
 
 const mconverted = new Marked({
     gfm: true,

@@ -5,7 +5,6 @@ import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
 import { supportsInlayImage } from "./image";
 import { risuChatParser } from "./parser";
-import type { Proompt } from "./process/proompt";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)

@@ -1,6 +1,5 @@
 import { get } from "svelte/store";
 import type { OpenAIChat } from ".";
-import { tokenize } from "../tokenizer";
 import { DataBase } from "../storage/database";
 
 export function multiChatReplacer(){

@@ -9,7 +9,7 @@ const isOldDomain = location.hostname.includes('pages.dev')
 
 export async function checkUpdate(){
     try {
-        let db = get(DataBase)
+         let db = get(DataBase)
         const da = await fetch('https://raw.githubusercontent.com/kwaroran/RisuAI-release/main/version.json')
         //@ts-ignore
         const v:string = da.data.version
