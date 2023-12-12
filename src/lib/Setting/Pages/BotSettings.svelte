@@ -296,27 +296,27 @@
 {:else}
     <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
 {/if}
-<span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100)?.toFixed(2)}</span>
+<span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
     <span class="text-textcolor">Length Penalty</span>
     <SliderInput min={-5} max={5} step={0.05} bind:value={$DataBase.ooba.length_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.length_penalty)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
     <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.ooba.top_k} />
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
     <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_p)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
     <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.typical_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.typical_p)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
     <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_a)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
     <span class="text-textcolor">No Repeat n-gram Size</span>
     <SliderInput min={0} max={20} step={1} bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
@@ -399,77 +399,77 @@
     </div>
     <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topP)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
     <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
     <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topA}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topA)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topA).toFixed(2)}</span>
     <span class="text-textcolor">Tailfree Sampling</span>
     <SliderInput min={0} max={1} step={0.001} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
     <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.typicalp}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.typicalp)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.typicalp).toFixed(2)}</span>
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={0} max={3} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
     <span class="text-textcolor">Repetition Penalty Range</span>
     <SliderInput min={0} max={8192} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
     <span class="text-textcolor">Repetition Penalty Slope</span>
     <SliderInput min={0} max={10} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope).toFixed(2)}</span>
     <span class="text-textcolor">Frequency Penalty</span>
     <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty).toFixed(2)}</span>
     <span class="text-textcolor">Presence Penalty</span>
     <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.presencePenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
     <span class="text-textcolor">Mirostat LR</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_lr}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_lr)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_lr).toFixed(2)}</span>
     <span class="text-textcolor">Mirostat Tau</span>
     <SliderInput min={0} max={6} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_tau}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_tau)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_tau).toFixed(2)}</span>
     <span class="text-textcolor">Cfg Scale</span>
     <SliderInput min={1} max={3} step={0.01} bind:value={$DataBase.NAIsettings.cfg_scale}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.cfg_scale)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.cfg_scale).toFixed(2)}</span>
 
 {:else if $DataBase.aiModel.startsWith('novellist')}
     <span class="text-textcolor">Top P</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_p)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span>
     <span class="text-textcolor">Reputation Penalty</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.rep_pen}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
     <span class="text-textcolor">Reputation Penalty Range</span>
     <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.ainconfig.rep_pen_range}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range).toFixed(2)}</span>
     <span class="text-textcolor">Reputation Penalty Slope</span>
     <SliderInput min={0} max={10} step={0.1} bind:value={$DataBase.ainconfig.rep_pen_slope}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope).toFixed(2)}</span>
     <span class="text-textcolor">Top K</span>
     <SliderInput min={1} max={500} step={1} bind:value={$DataBase.ainconfig.top_k}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_k)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_k).toFixed(2)}</span>
     <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_a)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_a).toFixed(2)}</span>
     <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.typical_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
 {:else}
     <span class="text-textcolor">Top P <Help key="topP"/></span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
 
     <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
     <SliderInput min={0} max={100} bind:value={$DataBase.frequencyPenalty} />
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.frequencyPenalty / 100)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
     <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
     <SliderInput min={0} max={100} bind:value={$DataBase.PresensePenalty} />
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.PresensePenalty / 100)?.toFixed(2)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
     <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
