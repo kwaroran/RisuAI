@@ -352,6 +352,10 @@ export function setDatabase(data:Database){
         mode: 'instruct'
     }
     data.top_p ??= 1
+    if(typeof(data.top_p) !== 'number'){
+        //idk why type changes, but it does so this is a fix
+        data.top_p = 1
+    }
     //@ts-ignore
     data.google ??= {}
     data.google.accessToken ??= ''
