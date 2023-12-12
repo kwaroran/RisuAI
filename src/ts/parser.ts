@@ -989,3 +989,20 @@ export function getVarChat(targetIndex = -1, chara:character|groupChat = null){
     }
     return vars
 }
+
+
+async function editDisplay(text){
+    let rt = ""
+    if(!text.includes("<obs>")){
+        return text
+    }
+
+    for(let i=0;i<text.length;i++){
+        const obfiEffect = "!@#$%^&*"
+        if(Math.random() < 0.4){
+            rt += obfiEffect[Math.floor(Math.random() * obfiEffect.length)]
+        }
+        rt += text[i]
+    }
+    return rt
+}
