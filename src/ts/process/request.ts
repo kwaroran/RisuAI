@@ -286,11 +286,55 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(aiModel.startsWith('mistral')){
                 requestModel = aiModel
+
+                let reformatedChat:OpenAIChatExtra[] = []
+
+                for(let i=0;i<formatedChat.length;i++){
+                    const chat = formatedChat[i]
+                    if(i === 0){
+                        if(chat.role === 'user' || chat.role === 'system'){
+                            reformatedChat.push({
+                                role: chat.role,
+                                content: chat.content
+                            })
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: 'system',
+                                content:  chat.role + ':' + chat.content
+                            })
+                        }
+                    }
+                    else{
+                        const prevChat = reformatedChat[i-1]
+                        if(prevChat.role === chat.role){
+                            reformatedChat[i-1].content += '\n' + chat.content
+                            continue
+                        }
+                        else if(chat.role === 'system'){
+                            if(prevChat.role === 'user'){
+                                reformatedChat[i-1].content += '\nSystem:' + chat.content
+                            }
+                            else{
+                                reformatedChat.push({
+                                    role: 'user',
+                                    content: 'System:' + chat.content
+                                })
+                            }
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: chat.role,
+                                content: chat.content
+                            })
+                        }
+                    }
+                }
             
                 const res = await globalFetch("https://api.mistral.ai/v1/chat/completions", {
                     body: {
                         model: requestModel,
-                        messages: formatedChat,
+                        messages: reformatedChat,
                         temperature: temperature,
                         max_tokens: maxTokens,
                         top_p: db.top_p,
