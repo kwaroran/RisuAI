@@ -75,6 +75,8 @@
                 return "Mistral Small"
             case 'mistral-medium':
                 return "Mistral Medium"
+            case 'gemini-pro':
+                return "Gemini Pro"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -159,6 +161,10 @@
                 <Arcodion name="Google Palm2">
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Unicorn</button>
+                </Arcodion>
+                <Arcodion name="Google Gemini">
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro-vision')}}>Gemini Pro Vision</button>
                 </Arcodion>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}

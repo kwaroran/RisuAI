@@ -115,7 +115,7 @@
         <Button size="sm" className="mb-2" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</Button>
     </div>
 {/if}
-{#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2')}
+{#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
     <span class="text-textcolor">Google Bearer Token</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.accessToken}/>
 

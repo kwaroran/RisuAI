@@ -306,14 +306,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     }
                     else{
-                        const prevChat = reformatedChat[i-1]
+                        const prevChat = reformatedChat[reformatedChat.length-1]
                         if(prevChat.role === chat.role){
-                            reformatedChat[i-1].content += '\n' + chat.content
+                            reformatedChat[reformatedChat.length-1].content += '\n' + chat.content
                             continue
                         }
                         else if(chat.role === 'system'){
                             if(prevChat.role === 'user'){
-                                reformatedChat[i-1].content += '\nSystem:' + chat.content
+                                reformatedChat[reformatedChat.length-1].content += '\nSystem:' + chat.content
                             }
                             else{
                                 reformatedChat.push({
@@ -321,6 +321,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     content: 'System:' + chat.content
                                 })
                             }
+                        }
+                        else if(chat.role === 'function'){
+                            reformatedChat.push({
+                                role: 'user',
+                                content: chat.content
+                            })
                         }
                         else{
                             reformatedChat.push({
@@ -1002,6 +1008,202 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     result: `${JSON.stringify(res.data)}`
                 }
             }
+        }
+        case 'gemini-pro':
+        case 'gemini-pro-vision':{
+            interface GeminiPart{
+                text?:string
+                "inlineData"?: {
+                    "mimeType": string,
+                    "data": string
+                },
+            }
+            
+            interface GeminiChat {
+                role: "USER"|"MODEL"
+                parts:|GeminiPart[]
+            }
+
+
+            let reformatedChat:GeminiChat[] = []
+            let pendingImage = ''
+
+            for(let i=0;i<formated.length;i++){
+                const chat = formated[i]
+                if(chat.memo && chat.memo.startsWith('inlayImage')){
+                    pendingImage = chat.content
+                    continue
+                }
+                if(i === 0){
+                    if(chat.role === 'user' || chat.role === 'assistant'){
+                        reformatedChat.push({
+                            role: chat.role === 'user' ? 'USER' : 'MODEL',
+                            parts: [{
+                                text: chat.content
+                            }]
+                        })
+                    }
+                    else{
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [{
+                                text: chat.role + ':' + chat.content
+                            }]
+                        })
+                    }
+                }
+                else{
+                    const prevChat = reformatedChat[reformatedChat.length-1]
+                    const qRole = 
+                        chat.role === 'user' ? 'USER' :
+                        chat.role === 'assistant' ? 'MODEL' :
+                        chat.role
+
+                    if(prevChat.role === qRole){
+                        reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
+                        continue
+                    }
+                    else if(chat.role === 'system'){
+                        if(prevChat.role === 'USER'){
+                            reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: "USER",
+                                parts: [{
+                                    text: chat.role + ':' + chat.content
+                                }]
+                            })
+                        }
+                    }
+                    else if(chat.role === 'user' && pendingImage !== ''){
+                        //conver image to jpeg so it can be inlined
+                        const canv = document.createElement('canvas')
+                        const img = new Image()
+                        img.src = pendingImage  
+                        await img.decode()
+                        canv.width = img.width
+                        canv.height = img.height
+                        const ctx = canv.getContext('2d')
+                        ctx.drawImage(img, 0, 0)
+                        const base64 = canv.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, "")
+                        const mimeType = 'image/jpeg'
+                        pendingImage = ''
+                        canv.remove()
+                        img.remove()
+
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [
+                            {
+                                text: chat.content,
+                            },
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64
+                                }
+                            }]
+                        })
+                    }
+                    else if(chat.role === 'assistant' || chat.role === 'user'){
+                        reformatedChat.push({
+                            role: chat.role === 'user' ? 'USER' : 'MODEL',
+                            parts: [{
+                                text: chat.content
+                            }]
+                        })
+                    }
+                    else{
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [{
+                                text: chat.role + ':' + chat.content
+                            }]
+                        })
+                    }
+                }
+            }
+
+            const uncensoredCatagory = [
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE"
+                },
+            ]
+
+
+            const body = {
+                contents: reformatedChat,
+                generation_config: {
+                    "maxOutputTokens": maxTokens,
+                    "temperature": temperature,
+                    "topP": db.top_p,
+                },
+                safetySettings: uncensoredCatagory
+            }
+
+
+            const PROJECT_ID=db.google.projectId
+            const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
+                                        'palm2_unicorn' ? 'text-unicorn' : 
+                                        ''
+            const REGION="us-central1"
+            
+            const url = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${aiModel}:streamGenerateContent`
+            const res = await globalFetch(url, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + db.google.accessToken
+                },
+                body: body,
+            })
+
+            if(!res.ok){
+                return {
+                    type: 'fail',
+                    result: `${JSON.stringify(res.data)}`
+                }
+            }
+
+            let fullRes = ''
+
+            for(const data of res.data){
+
+                if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
+                    fullRes += data.candidates[0].content.parts[0].text
+                }
+                else if(data?.errors){
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(data.errors)}`
+                    }
+                }
+                else{
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(data)}`
+                    }
+                }
+            }
+
+            return {
+                type: 'success',
+                result: fullRes
+            }
+
         }
         case "kobold":{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)

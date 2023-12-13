@@ -94,7 +94,7 @@ export async function getInlayImage(id: string){
 
 export function supportsInlayImage(){
     const db = get(DataBase)
-    return db.aiModel.startsWith('gptv') || (db.aiModel === 'reverse_proxy' && db.proxyRequestModel?.startsWith('gptv'))
+    return db.aiModel.startsWith('gptv') || (db.aiModel === 'reverse_proxy' && db.proxyRequestModel?.startsWith('gptv')) || db.aiModel === 'gemini-pro-vision'
 }
 
 export async function reencodeImage(img:Uint8Array){
