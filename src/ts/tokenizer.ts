@@ -18,6 +18,9 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     if(db.aiModel.startsWith('novelai')){
         return await tokenizeWebTokenizers(data, 'novelai')
     }
+    if(db.aiModel.startsWith('mistral')){
+        return await tokenizeWebTokenizers(data, 'mistral')
+    }
     if(db.aiModel.startsWith('local_') ||
         db.aiModel === 'mancer' ||
         db.aiModel === 'textgen_webui' ||
@@ -29,7 +32,7 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     return await tikJS(data)
 }
 
-type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'
+type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'
 
 let tikParser:Tiktoken = null
 let tokenizersTokenizer:Tokenizer = null
@@ -73,6 +76,12 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
                     await (await fetch("/token/llama/llama.model")
                 ).arrayBuffer())
+                break
+            case 'mistral':
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
+                    await (await fetch("/token/mistral/tokenizer.model")
+                ).arrayBuffer())
+                break
 
         }
         tokenizersType = type

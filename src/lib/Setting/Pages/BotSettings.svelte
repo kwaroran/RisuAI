@@ -134,6 +134,10 @@
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
 {/if}
+{#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
+    <span class="text-textcolor">Mistral {language.apiKey}</span>
+    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
+{/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
     <span class="text-textcolor mt-2">{language.forceReplaceUrl} URL <Help key="forceUrl"/></span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />

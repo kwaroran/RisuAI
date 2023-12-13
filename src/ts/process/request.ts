@@ -148,6 +148,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_0301':
         case 'gptvi4_1106':
         case 'openrouter':
+        case 'mistral-tiny':
+        case 'mistral-small':
+        case 'mistral-medium':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
 
@@ -281,6 +284,53 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 requestModel = db.customProxyRequestModel
             }
 
+            if(aiModel.startsWith('mistral')){
+                requestModel = aiModel
+            
+                const res = await globalFetch("https://api.mistral.ai/v1/chat/completions", {
+                    body: {
+                        model: requestModel,
+                        messages: formatedChat,
+                        temperature: temperature,
+                        max_tokens: maxTokens,
+                        top_p: db.top_p,
+                    },
+                    headers: {
+                        "Authorization": "Bearer " + db.mistralKey,
+                    },
+                    abortSignal,
+                })
+    
+                const dat = res.data as any
+                if(res.ok){
+                    try {
+                        const msg:OpenAIChatFull = (dat.choices[0].message)
+                        return {
+                            type: 'success',
+                            result: msg.content
+                        }
+                    } catch (error) {                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${JSON.stringify(dat)}`)
+                        }
+                    }
+                }
+                else{
+                    if(dat.error && dat.error.message){                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${dat.error.message}`)
+                        }
+                    }
+                    else{                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${JSON.stringify(res.data)}`)
+                        }
+                    }
+                }
+            }
 
             db.cipherChat = false
             let body = ({

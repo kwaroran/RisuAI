@@ -69,6 +69,12 @@
                 return "GPT-4 Turbo 1106 Vision"
             case 'palm2_unicorn':
                 return "PaLM2 Unicorn"
+            case 'mistral-tiny':
+                return "Mistral Tiny"
+            case 'mistral-small':
+                return "Mistral Small"
+            case 'mistral-medium':
+                return "Mistral Medium"
             default:
                 if(name.startsWith("horde:::")){
                     return name.replace(":::", " ")
@@ -144,6 +150,11 @@
             {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
+            <Arcodion name="Mistral API">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-tiny')}}>Mistral Tiny</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small')}}>Mistral Small</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium')}}>Mistral Medium</button>
+            </Arcodion>
             {#if showUnrec}
                 <Arcodion name="Google Palm2">
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>

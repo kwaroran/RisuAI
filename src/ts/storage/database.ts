@@ -559,6 +559,7 @@ export interface Database{
         accessToken: string
         projectId: string
     }
+    mistralKey?:string
 }
 
 export interface customscript{
