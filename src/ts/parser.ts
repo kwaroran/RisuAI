@@ -278,11 +278,11 @@ async function resizeAndConvert(imageData: Uint8Array): Promise<Buffer> {
             context.drawImage(image, 0, 0, width, height);
 
             // Try to convert to WebP
-            let base64 = canvas.toDataURL('image/webp', 90);
+            let base64 = canvas.toDataURL('image/webp', 75);
 
             // If WebP is not supported, convert to JPEG
             if (base64.indexOf('data:image/webp') != 0) {
-                base64 = canvas.toDataURL('image/jpeg', 90);
+                base64 = canvas.toDataURL('image/jpeg', 75);
             }
 
             // Convert it to Uint8Array
