@@ -560,6 +560,7 @@ export interface Database{
         projectId: string
     }
     mistralKey?:string
+    chainOfThought?:boolean
 }
 
 export interface customscript{

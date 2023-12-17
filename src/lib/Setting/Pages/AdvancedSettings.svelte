@@ -90,6 +90,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.chainOfThought} name="Chain of Thoughts">
+        <Help key="experimental"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check check={$DataBase.tpo} name="Alpha DevMode" onChange={() => {
         // access code is "tendo"
         // I just put it on source code so it's not really a secret

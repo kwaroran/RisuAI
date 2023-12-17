@@ -259,6 +259,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         })
     }
 
+    if(db.chainOfThought){
+        unformated.postEverything.push({
+            role: 'system',
+            content: `<instruction>before responding everything, Think step by step how would you respond inside <Thoughts> xml tag.</instruction>`
+        })
+    }
+
     {
         let description = risuChatParser((db.promptPreprocess ? db.descriptionPrefix: '') + currentChar.desc, {chara: currentChar})
 

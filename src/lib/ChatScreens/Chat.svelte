@@ -60,7 +60,7 @@
     }
 
     function displaya(message:string){
-        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
+        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
     }
 
     const setStatusMessage = (message:string, timeout:number = 0)=>{

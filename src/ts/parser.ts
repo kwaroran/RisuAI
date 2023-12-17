@@ -766,10 +766,12 @@ export function risuChatParser(da:string, arg:{
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
     consistantChar?:boolean
+    visualize?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
+    const visualize = arg.visualize ?? false
     let chara:character|string = null
 
     if(aChara){
@@ -873,6 +875,33 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                     case '/Comment':{
+                        if(commentMode){
+                            nested = commentLatest
+                            v = commentV
+                            commentMode = false
+                        }
+                        break
+                    }
+                    case 'Thoughts':{
+                        if(!visualize){
+                            nested[0] += `<${dat}>`
+                            break
+                        }
+                        if(!commentMode){
+                            commentMode = true
+                            commentLatest = nested.map((f) => f)
+                            if(commentLatest[0].endsWith('\n')){
+                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
+                            }
+                            commentV = new Uint8Array(v)
+                        }
+                        break
+                    }
+                    case '/Thoughts':{
+                        if(!visualize){
+                            nested[0] += `<${dat}>`
+                            break
+                        }
                         if(commentMode){
                             nested = commentLatest
                             v = commentV
