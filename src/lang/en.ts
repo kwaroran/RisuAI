@@ -458,4 +458,5 @@ export const languageEnglish = {
     saveBackupLocal: "Save Backup Locally",
     loadBackupLocal: "Load Backup Locally",
     topP: "Top P",
+    genTimes: "Generation Choices",
 }

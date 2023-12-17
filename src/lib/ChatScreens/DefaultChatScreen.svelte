@@ -22,6 +22,7 @@
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
   import { postInlayImage } from 'src/ts/image';
+  import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -45,7 +46,6 @@
 
     async function sendMain(continueResponse:boolean) {
         let selectedChar = $selectedCharID
-        console.log('send')
         if($doingChat){
             return
         }
@@ -108,6 +108,14 @@
             rerolls = []
             rerollid = -1
         }
+        const genId = $CurrentChat.message.at(-1)?.generationInfo?.generationId
+        if(genId){
+            const r = Prereroll(genId)
+            if(r){
+                $CurrentChat.message[$CurrentChat.message.length - 1].data = r
+                return
+            }
+        }
         if(rerollid < rerolls.length - 1){
             if(Array.isArray(rerolls[rerollid + 1])){
                 let db = $DataBase
@@ -150,14 +158,22 @@
     }
 
     async function unReroll() {
-        if(rerollid <= 0){
+        if($doingChat){
             return
         }
         if(lastCharId !== $selectedCharID){
             rerolls = []
             rerollid = -1
         }
-        if($doingChat){
+        const genId = $CurrentChat.message.at(-1)?.generationInfo?.generationId
+        if(genId){
+            const r = PreUnreroll(genId)
+            if(r){
+                $CurrentChat.message[$CurrentChat.message.length - 1].data = r
+                return
+            }
+        }
+        if(rerollid <= 0){
             return
         }
         if(Array.isArray(rerolls[rerollid - 1])){

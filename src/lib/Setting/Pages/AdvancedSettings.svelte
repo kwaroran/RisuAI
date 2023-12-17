@@ -30,6 +30,9 @@
 <span class="text-textcolor">{language.requestretrys}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
+<span class="text-textcolor">{language.genTimes} <Help key="experimental"/></span>
+<NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.genTime}/>
+
 <span class="text-textcolor">Request Lib</span>
 <SelectInput bind:value={$DataBase.requester}>
     <OptionInput value="new">Reqwest</OptionInput>

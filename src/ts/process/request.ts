@@ -478,6 +478,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(risuIdentify){
                 headers["X-Proxy-Risu"] = 'RisuAI'
             }
+            const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt'))
+            if(multiGen){
+                // @ts-ignore
+                body.n = db.genTime
+            }
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
@@ -578,6 +583,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
+                    if(multiGen && dat.choices){
+                        return {
+                            type: 'multiline',
+                            result: dat.choices.map((v) => {
+                                return ["char",v.message.content]
+                            })
+                        }
+
+                    }
                     const msg:OpenAIChatFull = (dat.choices[0].message)
                     return {
                         type: 'success',

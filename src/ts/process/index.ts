@@ -24,6 +24,7 @@ import { getGenerationModelString } from "./models/modelString";
 import { sendPeerChar } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
 import { runCharacterJS } from "../plugins/embedscript";
+import { addRerolls } from "./prereroll";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -943,6 +944,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const msgs = (req.type === 'success') ? [['char',req.result]] as const 
                     : (req.type === 'multiline') ? req.result
                     : []
+        let mrerolls:string[] = []
         for(let i=0;i<msgs.length;i++){
             let msg = msgs[i]
             let mess = msg[1]
@@ -976,7 +978,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = p
                 }
             }
-            else{
+            else if(i===0){
                 db.characters[selectedChar].chats[selectedChat].message.push({
                     role: msg[0],
                     data: result,
@@ -993,9 +995,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     db.characters[selectedChar].chats[selectedChat].message[ind].data = p
                 }
             }
+            else{
+                mrerolls.push(result)
+            }
             db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)
             setDatabase(db)
+        }
+
+        if(mrerolls.length > 0){
+            addRerolls(generationId, mrerolls)
         }
 
         currentChat = db.characters[selectedChar].chats[selectedChat]        

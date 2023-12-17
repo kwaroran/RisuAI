@@ -360,6 +360,7 @@ export function setDatabase(data:Database){
     data.google ??= {}
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
+    data.genTime ??= 1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -561,6 +562,7 @@ export interface Database{
     }
     mistralKey?:string
     chainOfThought?:boolean
+    genTime:number
 }
 
 export interface customscript{
