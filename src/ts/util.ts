@@ -17,7 +17,7 @@ export function messageForm(arg:Message[], loadPages:number){
     let db = get(DataBase)
     let selectedChar = get(selectedCharID)
     function reformatContent(data:string){
-        return data.trim().replace(`${db.characters[selectedChar].name}:`, '').trim()
+        return data.trim()
     }
 
     let a:Messagec[] = []

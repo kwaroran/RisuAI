@@ -67,7 +67,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(chatProcessIndex === -1){
             return data.trim()
         }
-        return data.trim().replace(`${currentChar.name}:`, '').trim()
+        return data.trim()
     }
 
     let isDoing = get(doingChat)
