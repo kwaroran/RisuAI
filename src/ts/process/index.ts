@@ -1004,7 +1004,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             setDatabase(db)
         }
 
-        if(mrerolls.length >10){
+        if(mrerolls.length >1){
             addRerolls(generationId, mrerolls)
         }
 

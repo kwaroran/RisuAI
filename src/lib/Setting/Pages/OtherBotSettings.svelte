@@ -166,7 +166,7 @@
     </SelectInput>
 </Arcodion>
 
-<Arcodion name="superMemory" styled>
+<Arcodion name={language.SuperMemory} styled>
     <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
     <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
         <OptionInput value="none" >None</OptionInput>
