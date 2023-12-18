@@ -994,6 +994,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     const p = await inlayResult.promise
                     db.characters[selectedChar].chats[selectedChat].message[ind].data = p
                 }
+                mrerolls.push(result)
             }
             else{
                 mrerolls.push(result)
@@ -1003,7 +1004,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             setDatabase(db)
         }
 
-        if(mrerolls.length > 0){
+        if(mrerolls.length >10){
             addRerolls(generationId, mrerolls)
         }
 
