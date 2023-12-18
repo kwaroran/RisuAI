@@ -416,4 +416,5 @@ export const languageKorean = {
     inlayImage: "인레이 이미지",
     nativeAutomark: "실험적 네이티브 오토마크 사용",
     additionalAssets:"추가 에셋",
+    genTimes: "생성 횟수",
 }
