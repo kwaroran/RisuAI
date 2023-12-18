@@ -802,6 +802,7 @@ export function risuChatParser(da:string, arg:{
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
+    let thinkingMode = false
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -865,6 +866,7 @@ export function risuChatParser(da:string, arg:{
                     }
                     case 'Comment':{
                         if(!commentMode){
+                            thinkingMode = false
                             commentMode = true
                             commentLatest = nested.map((f) => f)
                             if(commentLatest[0].endsWith('\n')){
@@ -888,6 +890,7 @@ export function risuChatParser(da:string, arg:{
                             break
                         }
                         if(!commentMode){
+                            thinkingMode = true
                             commentMode = true
                             commentLatest = nested.map((f) => f)
                             if(commentLatest[0].endsWith('\n')){
@@ -923,6 +926,14 @@ export function risuChatParser(da:string, arg:{
             }
         }
         pointer++
+    }
+    if(commentMode){
+        nested = commentLatest
+        v = commentV
+        if(thinkingMode){
+            nested[0] += `<div>Thinking...</div>`
+        }
+        commentMode = false
     }
     if(nested.length === 1){
         return nested[0]

@@ -263,7 +263,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(db.chainOfThought){
         unformated.postEverything.push({
             role: 'system',
-            content: `<instruction>before responding everything, Think step by step how would you respond inside <Thoughts> xml tag.</instruction>`
+            content: `<instruction>before respond everything, Think step by step as a ai assistant how would you respond inside <Thoughts> xml tag.</instruction>`
         })
     }
 
