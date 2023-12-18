@@ -478,13 +478,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(risuIdentify){
                 headers["X-Proxy-Risu"] = 'RisuAI'
             }
-            const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt'))
+            const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt') && (!arg.continue))
             if(multiGen){
                 // @ts-ignore
                 body.n = db.genTime
             }
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
-            if(db.useStreaming && arg.useStreaming){
+            if(db.useStreaming && arg.useStreaming && (!multiGen)){
                 body.stream = true
                 let urlHost = new URL(replacerURL).host
                 if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
