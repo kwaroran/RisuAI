@@ -408,4 +408,12 @@ export const languageKorean = {
     saveBackupLocal: "로컬 백업 저장",
     loadBackupLocal: "로컬 백업 불러오기",
     topP: "Top P",
+    cot: "생각의 사슬",
+    forcePlainFetch: "직접 요청 보내기",
+    autoFillRequestURL: "요청 URL 자동 채우기",
+    newOAIHandle: "새로운 OpenAI 방식 적용",
+    oaiRandomUser: "OAI 랜덤 유저 사용",
+    inlayImage: "인레이 이미지",
+    nativeAutomark: "실험적 네이티브 오토마크 사용",
+    additionalAssets:"추가 에셋",
 }

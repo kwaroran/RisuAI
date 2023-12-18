@@ -459,4 +459,11 @@ export const languageEnglish = {
     loadBackupLocal: "Load Backup Locally",
     topP: "Top P",
     genTimes: "Generation Choices",
+    cot: "Chain of Thoughts",
+    forcePlainFetch: "Force Plain Fetch",
+    autoFillRequestURL: "Autofill Request URL",
+    newOAIHandle: "New OpenAI Handling",
+    oaiRandomUser: "Put OAI Random User",
+    inlayImage: "Inlay Image Feature",
+    nativeAutomark: "Experimental Native Automark"
 }

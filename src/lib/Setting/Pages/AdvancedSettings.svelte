@@ -63,37 +63,37 @@
     <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}/>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.usePlainFetch} name="Force Plain Fetch"/>
+    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}/>
     {#if $DataBase.usePlainFetch}
         <span class="text-draculared text-xs ml-2">{language.usePlainFetchWarn}</span>
     {/if}
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.autofillRequestUrl} name="Autofill Request URL"/>
+    <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}/>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.newOAIHandle} name="New OpenAI Handling"/>
+    <Check bind:check={$DataBase.newOAIHandle} name={language.newOAIHandle}/>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.allowAllExtentionFiles} name="Allow all in file select"/>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.putUserOpen} name="Put OAI Random User">
+    <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
         <Help key="experimental"/><Help key="oaiRandomUser"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.inlayImage} name="Inlay Image Feature">
+    <Check bind:check={$DataBase.inlayImage} name={language.inlayImage}>
         <Help key="experimental"/><Help key="inlayImages"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.automark} name="Experimental Native Automark">
+    <Check bind:check={$DataBase.automark} name={language.nativeAutomark}>
         <Help key="experimental"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.chainOfThought} name="Chain of Thoughts">
+    <Check bind:check={$DataBase.chainOfThought} name={language.cot}>
         <Help key="experimental"/>
     </Check>
 </div>
