@@ -9,7 +9,7 @@
     let iconAnimation = 0
     let clicks = 0
     let score = 0
-    let time = 10
+    let time = 20
     let miniGameStart = false
 
 </script>
@@ -36,7 +36,7 @@
 {#if clicks >= 5}
     <div class="bg-black w-full p-3 mt-4 mb-4 rounded-md max-w-2xl">
         <span class="font-semibold text-lg">Score: {score}</span><br>
-        <span class="font-semibold text-lg">Time: {time.toFixed(1)}</span>
+        <span class="font-semibold text-lg">Time: {time.toFixed(0)}</span>
         <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         <img src="./santa.png" alt="santa"
             style:margin-left={iconAnimation + 'rem'}
@@ -45,11 +45,11 @@
                 iconAnimation = Math.random() * 30
                 if(!miniGameStart){
                     if(time === 0){
-                        time = 10
+                        time = 20
                         iconAnimation = 0
                         return
                     }
-                    time = 10
+                    time = 20
                     score = 1
                     miniGameStart = true
                     const timer = setInterval(() => {
@@ -58,7 +58,7 @@
                             miniGameStart = false
                             clearInterval(timer)
                         }
-                    }, 1000)
+                    }, 700)
                 }
                 else{
                     score++
