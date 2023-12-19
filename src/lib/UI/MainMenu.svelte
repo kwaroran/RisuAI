@@ -8,11 +8,13 @@
   import { language } from "src/lang";
   import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
+  import Title from "./Title.svelte";
   let openHub = false
+
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !openHub}
-      <h2 class="text-4xl text-textcolor mb-0 mt-6 font-black">RisuAI</h2>
+      <Title />
       {#if (!isTauri) && (!isNodeServer)}
         <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
       {:else}
