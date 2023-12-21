@@ -1169,19 +1169,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 safetySettings: uncensoredCatagory
             }
 
+            let headers:{[key:string]:string} = {}
 
             const PROJECT_ID=db.google.projectId
-            const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
-                                        'palm2_unicorn' ? 'text-unicorn' : 
-                                        ''
             const REGION="us-central1"
-            
-            const url = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${aiModel}:streamGenerateContent`
+            if(PROJECT_ID !== 'aigoogle'){
+                headers['Authorization'] = "Bearer " + db.google.accessToken
+            }
+
+            const url = PROJECT_ID !== 'aigoogle' ?
+                `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${aiModel}:streamGenerateContent`
+                : `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${db.google.accessToken}`
             const res = await globalFetch(url, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + db.google.accessToken
-                },
+                headers: headers,
                 body: body,
             })
 

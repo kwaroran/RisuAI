@@ -119,8 +119,19 @@
     <span class="text-textcolor">Google Bearer Token</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.accessToken}/>
 
-    <span class="text-textcolor">Google Project ID</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.projectId}/>
+    {#if $DataBase.google.projectId !== 'aigoogle'}
+        <span class="text-textcolor">Google Project ID</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.projectId}/>
+    {/if}
+
+    <Check check={$DataBase.google.projectId !== 'aigoogle'} className="mb-2" name={'Use Vertex AI'} onChange={(v) => {
+        if(!v){
+            $DataBase.google.projectId = 'aigoogle'
+        }
+        else{
+            $DataBase.google.projectId = ''
+        }
+    }}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
     <span class="text-textcolor">NovelList {language.apiKey}</span>
