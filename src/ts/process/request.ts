@@ -904,7 +904,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             const url = new URL(db.textgenWebUIBlockingURL)
-            url.pathname = "/v1/chat/completions"
+            url.pathname = "/v1/completions"
             const urlStr = url.toString()
 
             const OobaBodyTemplate = db.reverseProxyOobaArgs
