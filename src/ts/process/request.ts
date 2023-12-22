@@ -1194,8 +1194,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             let fullRes = ''
 
-            for(const data of res.data){
-
+            const processDataItem = (data:any) => {
                 if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
                     fullRes += data.candidates[0].content.parts[0].text
                 }
@@ -1211,6 +1210,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         result: `${JSON.stringify(data)}`
                     }
                 }
+            }
+
+            // traverse responded data if it contains multipart contents
+            if (typeof (res.data)[Symbol.iterator] === 'function') {
+                for(const data of res.data){
+                    processDataItem(data)
+                }
+            } else {
+                processDataItem(res.data)
             }
 
             return {
