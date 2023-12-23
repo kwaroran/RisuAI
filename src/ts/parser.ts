@@ -378,7 +378,7 @@ type matcherArg = {
     consistantChar?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
-    if(p1.length > 10000){
+    if(p1.length > 30000){
         return ''
     }
     const lowerCased = p1.toLocaleLowerCase()
