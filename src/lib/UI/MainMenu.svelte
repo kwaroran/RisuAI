@@ -9,7 +9,11 @@
   import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
   import Title from "./Title.svelte";
+  import { getPatchNote } from "src/etc/updateLog";
+  import { parseMarkdownSafe } from "src/ts/parser";
   let openHub = false
+  const patch = getPatchNote(appVer)
+  let patchNodeHidden = true
 
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
@@ -35,6 +39,15 @@
           <h1 class="text-2xl font-bold text-start">{language.officialDiscord}</h1>
           <span class="mt-2 text-textcolor2 text-start">{language.officialDiscordDesc}</span>
         </button>
+        {#if patch}
+          <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow col-span-2 overflow-y-hidden shadow-inner"
+            on:click={() => {patchNodeHidden = false}}
+            class:max-h-40={patchNodeHidden}>
+              <div class="prose prose-invert">
+                {@html parseMarkdownSafe(patch)}
+              </div>
+          </div>
+        {/if}
       </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
       <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
