@@ -455,7 +455,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     }
                     let chats = unformated.chats.slice(start, end)
 
-                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem){
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
                         chats = systemizeChat(chats)
                     }
                     await tokenizeChatArray(chats)
@@ -809,7 +809,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     }
 
                     let chats = unformated.chats.slice(start, end)
-                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem){
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
                         chats = systemizeChat(chats)
                     }
                     pushPrompts(chats)

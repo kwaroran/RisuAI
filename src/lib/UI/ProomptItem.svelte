@@ -8,6 +8,7 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
   import TextInput from "./GUI/TextInput.svelte";
+  import { DataBase } from "src/ts/storage/database";
     export let proompt:Proompt
     export let onRemove:() => void = () => {}
     export let moveUp:() => void = () => {}
@@ -77,6 +78,9 @@
                     proompt.rangeEnd = 'end'
                 }
             }} />
+        {/if}
+        {#if $DataBase.proomptSettings.sendChatAsSystem}
+            <CheckInput name={language.chatAsOriginalOnSystem} bind:check={proompt.chatAsOriginalOnSystem}/>
         {/if}
     {/if}
     {#if proompt.type === 'authornote'}
