@@ -109,6 +109,6 @@
     <TextInput bind:value={$DataBase.proomptSettings.postEndInnerFormat}/>
 
     <Check bind:check={$DataBase.proomptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
-    <!-- <Check bind:check={$DataBase.proomptSettings.sendName} name={language.sendName} className="mt-4"/> -->
+    <Check bind:check={$DataBase.proomptSettings.sendName} name={language.sendName} className="mt-4"/>
     <Check bind:check={$DataBase.proomptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
 {/if}

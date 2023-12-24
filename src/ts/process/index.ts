@@ -569,7 +569,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
         let attr:string[] = []
 
-        if(nowChatroom.type === 'group'){
+        if(nowChatroom.type === 'group' || (usingPromptTemplate && db.proomptSettings.sendName)){
             formedChat = name + ': ' + formedChat
             attr.push('nameAdded')
         }
