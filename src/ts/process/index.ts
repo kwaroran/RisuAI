@@ -503,6 +503,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 risuChatParser(firstMsg, {chara: currentChar, rmVar: true}),
             'editprocess'))
         }
+
+        if(usingPromptTemplate && db.proomptSettings.sendName){
+            chat.content = `${currentChar.name}: ${chat.content}`
+            chat.attr = ['nameAdded']
+        }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
