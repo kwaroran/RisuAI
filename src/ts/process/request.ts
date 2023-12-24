@@ -153,7 +153,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-medium':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
-
+            console.log(formated)
             if(db.inlayImage){
                 let pendingImages:OpenAIImageContents[] = []
                 for(let i=0;i<formated.length;i++){
