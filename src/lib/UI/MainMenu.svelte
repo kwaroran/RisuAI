@@ -25,6 +25,17 @@
         <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
       {/if}
       <GithubStars />
+      {#if patch}
+        <div class="w-full max-w-4xl pl-4 pr-4 pt-4">
+          <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
+            on:click={() => {patchNodeHidden = false}}
+            class:max-h-40={patchNodeHidden}>
+              <div class="prose prose-invert">
+                {@html parseMarkdownSafe(patch)}
+              </div>
+          </div>
+        </div>
+      {/if}
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !openHub}
@@ -39,15 +50,6 @@
           <h1 class="text-2xl font-bold text-start">{language.officialDiscord}</h1>
           <span class="mt-2 text-textcolor2 text-start">{language.officialDiscordDesc}</span>
         </button>
-        {#if patch}
-          <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow col-span-2 overflow-y-hidden shadow-inner"
-            on:click={() => {patchNodeHidden = false}}
-            class:max-h-40={patchNodeHidden}>
-              <div class="prose prose-invert">
-                {@html parseMarkdownSafe(patch)}
-              </div>
-          </div>
-        {/if}
       </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
       <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
