@@ -11,7 +11,6 @@ export function polyfill() {
         testDom.remove()
         
         if((!supports) || isIos){
-          console.log('polyfiled dragdrop')
           globalThis.polyfilledDragDrop = true
           dragPolyfill({
             // use this to make use of the scroll behaviour
@@ -19,9 +18,6 @@ export function polyfill() {
             // holdToDrag: 400,
             forceApply: true
           });
-        }
-        else{
-          console.log("supports dragdrop")
         }
     } catch (error) {
         

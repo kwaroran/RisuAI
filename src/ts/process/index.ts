@@ -32,6 +32,7 @@ export interface OpenAIChat{
     memo?:string
     name?:string
     removable?:boolean
+    attr?:string[]
 }
 
 export interface OpenAIChatFull extends OpenAIChat{
@@ -566,11 +567,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
         }
 
+        let attr:string[] = []
+
+        if(nowChatroom.type === 'group'){
+            formedChat = name + ': ' + formedChat
+            attr.push('nameAdded')
+        }
+
         const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formedChat,
             memo: msg.chatId,
-            name: name
+            attr: attr
         }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
@@ -1269,8 +1277,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 function systemizeChat(chat:OpenAIChat[]){
     for(let i=0;i<chat.length;i++){
         if(chat[i].role === 'user' || chat[i].role === 'assistant'){
-            chat[i].content = chat[i].role + ': ' + chat[i].content
+            const attr = chat[i].attr ?? []
+            if(!attr.includes('nameAdded')){
+                chat[i].content = chat[i].role + ': ' + chat[i].content
+            }
             chat[i].role = 'system'
+            delete chat[i].memo
+            delete chat[i].name
         }
     }
     return chat

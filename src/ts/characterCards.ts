@@ -625,6 +625,7 @@ export async function getRisuHub(arg?:{
     page?:number,
     nsfw?:boolean
     sort?:string
+    updateData?:boolean
 }):Promise<hubType[]> {
     try {
         const da = await fetch(hubURL + '/hub/list', {

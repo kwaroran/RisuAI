@@ -110,6 +110,7 @@ export interface OpenAIChatExtra {
     memo?:string
     name?:string
     removable?:boolean
+    attr?:string[]
 }
 
 
@@ -133,6 +134,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             raiModel = 'reverse_proxy'
         }
     }
+    console.log(formated)
     switch(raiModel){
         case 'gpt35':
         case 'gpt35_0613':
@@ -153,7 +155,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-medium':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
-            console.log(formated)
             if(db.inlayImage){
                 let pendingImages:OpenAIImageContents[] = []
                 for(let i=0;i<formated.length;i++){
@@ -192,10 +193,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let oobaSystemPrompts:string[] = []
             for(let i=0;i<formatedChat.length;i++){
                 if(formatedChat[i].role !== 'function'){
-                    if(arg.isGroupChat && formatedChat[i].name){
-                        formatedChat[i].content = formatedChat[i].name + ": " + formatedChat[i].content
-                        formatedChat[i].name = undefined
-                    }
                     if(!(formatedChat[i].name && formatedChat[i].name.startsWith('example_') && db.newOAIHandle)){
                         formatedChat[i].name = undefined
                     }
@@ -204,6 +201,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                     delete formatedChat[i].memo
                     delete formatedChat[i].removable
+                    delete formatedChat[i].attr
                 }
                 if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
                     const cont = formatedChat[i].content

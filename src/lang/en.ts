@@ -469,7 +469,7 @@ export const languageEnglish = {
     assistantPrefill: "Assistant Prefill",
     postEndInnerFormat: "Post End",
     sendChatAsSystem: "Send Chat as System",
-    sendName: "Send Name",
+    sendName: "Send Name on Non-group Chat",
     utilOverride: "Utility Override",
     template: "Template",
 
