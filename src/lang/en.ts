@@ -465,5 +465,12 @@ export const languageEnglish = {
     newOAIHandle: "New OpenAI Handling",
     oaiRandomUser: "Put OAI Random User",
     inlayImage: "Inlay Image Feature",
-    nativeAutomark: "Experimental Native Automark"
+    nativeAutomark: "Experimental Native Automark",
+    assistantPrefill: "Assistant Prefill",
+    postEndInnerFormat: "Post End",
+    sendChatAsSystem: "Send Chat as System",
+    sendName: "Send Name",
+    utilOverride: "Utility Override",
+    template: "Template",
+
 }

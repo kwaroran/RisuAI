@@ -179,12 +179,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     let promptTemplate = cloneDeep(db.promptTemplate)
+    const usingPromptTemplate = !!promptTemplate
     if(promptTemplate){
         promptTemplate.push({
             type: 'postEverything'
         })
     }
-    if(currentChar.utilityBot){
+    if(currentChar.utilityBot && (!(usingPromptTemplate && db.proomptSettings.utilOverride))){
         promptTemplate = [
             {
               "type": "plain",
@@ -392,6 +393,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     await tokenizeChatArray(unformated.postEverything)
+                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                        await tokenizeChatArray([{
+                            role: 'system',
+                            content: db.proomptSettings.postEndInnerFormat
+                        }])
+                    }
                     break
                 }
                 case 'plain':
@@ -445,7 +452,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     if(start >= end){
                         break
                     }
-                    const chats = unformated.chats.slice(start, end)
+                    let chats = unformated.chats.slice(start, end)
+
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem){
+                        chats = systemizeChat(chats)
+                    }
                     await tokenizeChatArray(chats)
                     break
                 }
@@ -729,6 +740,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     pushPrompts(unformated.postEverything)
+                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                        pushPrompts([{
+                            role: 'system',
+                            content: db.proomptSettings.postEndInnerFormat
+                        }])
+                    }
                     break
                 }
                 case 'plain':
@@ -783,7 +800,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         break
                     }
 
-                    const chats = unformated.chats.slice(start, end)
+                    let chats = unformated.chats.slice(start, end)
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem){
+                        chats = systemizeChat(chats)
+                    }
                     pushPrompts(chats)
                     break
                 }
@@ -1244,4 +1264,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     return true
+}
+
+function systemizeChat(chat:OpenAIChat[]){
+    for(let i=0;i<chat.length;i++){
+        if(chat[i].role === 'user' || chat[i].role === 'assistant'){
+            chat[i].content = chat[i].role + ': ' + chat[i].content
+            chat[i].role = 'system'
+        }
+    }
+    return chat
 }

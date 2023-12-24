@@ -10,7 +10,7 @@ import { alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
-import type { Proompt } from '../process/proompt';
+import type { Proompt, ProomptSettings } from '../process/proompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
@@ -361,6 +361,14 @@ export function setDatabase(data:Database){
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
     data.genTime ??= 1
+    data.proomptSettings ??= {
+        assistantPrefill: '',
+        postEndInnerFormat: '',
+        sendChatAsSystem: false,
+        sendName: false,
+        utilOverride: false
+    }
+
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -563,6 +571,7 @@ export interface Database{
     mistralKey?:string
     chainOfThought?:boolean
     genTime:number
+    proomptSettings: ProomptSettings
 }
 
 export interface customscript{
@@ -759,6 +768,7 @@ export interface botPreset{
     customProxyRequestModel?: string
     reverseProxyOobaArgs?: OobaChatCompletionRequestParams
     top_p?: number
+    proomptSettings?: ProomptSettings
 
 }
 
@@ -1010,7 +1020,8 @@ export function saveCurrentPreset(){
         autoSuggestPrompt: db.autoSuggestPrompt,
         customProxyRequestModel: db.customProxyRequestModel,
         reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null,
-        top_p: db.top_p ?? 1
+        top_p: db.top_p ?? 1,
+        proomptSettings: cloneDeep(db.proomptSettings) ?? null
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1080,6 +1091,13 @@ export function setPreset(db:Database, newPres: botPreset){
         mode: 'instruct'
     }
     db.top_p = newPres.top_p ?? 1
+    db.proomptSettings = cloneDeep(newPres.proomptSettings) ?? {
+        assistantPrefill: '',
+        postEndInnerFormat: '',
+        sendChatAsSystem: false,
+        sendName: false,
+        utilOverride: false
+    }
     return db
 }
 

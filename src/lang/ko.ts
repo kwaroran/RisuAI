@@ -417,4 +417,5 @@ export const languageKorean = {
     nativeAutomark: "실험적 네이티브 오토마크 사용",
     additionalAssets:"추가 에셋",
     genTimes: "생성 횟수",
+    template: "템플릿",
 }

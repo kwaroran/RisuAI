@@ -1,6 +1,14 @@
 import { tokenizeAccurate } from "../tokenizer";
 
 export type Proompt = ProomptPlain|ProomptTyped|ProomptChat|ProomptAuthorNote;
+export type ProomptType = Proompt['type'];
+export type ProomptSettings = {
+    assistantPrefill: string
+    postEndInnerFormat: string
+    sendChatAsSystem: boolean
+    sendName: boolean
+    utilOverride: boolean
+}
 
 export interface ProomptPlain {
     type: 'plain'|'jailbreak';
