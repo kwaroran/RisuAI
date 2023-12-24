@@ -1283,7 +1283,10 @@ function systemizeChat(chat:OpenAIChat[]){
     for(let i=0;i<chat.length;i++){
         if(chat[i].role === 'user' || chat[i].role === 'assistant'){
             const attr = chat[i].attr ?? []
-            if(!attr.includes('nameAdded')){
+            if(chat[i].name?.startsWith('example_')){
+                chat[i].content = chat[i].name + ': ' + chat[i].content
+            }
+            else if(!attr.includes('nameAdded')){
                 chat[i].content = chat[i].role + ': ' + chat[i].content
             }
             chat[i].role = 'system'
