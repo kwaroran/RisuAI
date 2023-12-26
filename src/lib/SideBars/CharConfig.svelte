@@ -805,6 +805,7 @@
             && currentChar.data.license !== 'CC BY-SA 4.0'
             && currentChar.data.license !== 'CC BY-ND 4.0'
             && currentChar.data.license !== 'CC BY-NC-ND 4.0'
+            || $DataBase.tpo
         }
             <Button size="lg" on:click={async () => {
                 exportChar($selectedCharID)
