@@ -1,8 +1,8 @@
 export const patchNote = {
-    version: "1.69.1",
+    version: "1.69.0",
     content: 
 `
-# Update 1.69.1
+# Update 1.69.0
 - Added Patch Note
 - Added Added Send Name on Non-group Chat option
 - Added Send original role option
