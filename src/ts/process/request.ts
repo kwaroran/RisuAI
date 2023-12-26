@@ -141,6 +141,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt35_16k':
         case 'gpt35_16k_0613':
         case 'gpt4':
+        case 'gpt45':
         case 'gpt4_32k':
         case 'gpt4_0613':
         case 'gpt4_32k_0613':
@@ -388,6 +389,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
                     : requestModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
                     : requestModel === 'gpt4' ? 'gpt-4'
+                    : requestModel === 'gpt45' ? 'gpt-4.5-preview'
                     : requestModel === 'gpt4_32k' ? 'gpt-4-32k'
                     : requestModel === "gpt4_0613" ? 'gpt-4-0613'
                     : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
