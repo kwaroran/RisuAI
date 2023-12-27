@@ -27,6 +27,9 @@
 <span class="text-textcolor">{language.emotionPrompt}</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.emotionPrompt2} placeholder="Leave it blank to use default"/>
 
+<span class="text-textcolor">Kei Server URL</span>
+<TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.keiServerURL} placeholder="Leave it blank to use default"/>
+
 <span class="text-textcolor">{language.requestretrys}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
