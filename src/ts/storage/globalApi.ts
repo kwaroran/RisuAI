@@ -22,6 +22,7 @@ import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
 import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
+import { saveDbKei } from "../kei/backup";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -243,6 +244,7 @@ export async function saveDb(){
                 }
                 savetrys = 0
             }
+            await saveDbKei()
             await sleep(500)
         } catch (error) {
             if(savetrys > 4){

@@ -4,11 +4,13 @@
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-    import { alertConfirm } from "src/ts/alert";
+    import { alertConfirm, alertNormal } from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
-  import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
+    import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { autoServerBackup } from "src/ts/kei/backup";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -120,7 +122,6 @@
                 {/if}
             </div>
         {/if}
-
     {:else}
         <span>{language.notLoggedIn}</span>
         <button class="bg-selected p-2 rounded-md mt-2 hover:bg-green-500 transition-colors" on:click={() => {
@@ -130,6 +131,8 @@
             Login
         </button>
     {/if}
+    <Button on:click={autoServerBackup}>Auto Server Backups</Button>
+
 </div>
 {#if openIframe}
     <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
