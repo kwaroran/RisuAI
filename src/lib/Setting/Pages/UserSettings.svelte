@@ -105,7 +105,11 @@
         {#if !isTauri}
             <div class="flex items-center mt-2">
                 {#if $DataBase.account.useSync || forageStorage.isAccount}
-                    <span>{language.dataSavingInAccount}</span>
+                    <Check check={true} name={language.SaveDataInAccount} onChange={(v) => {
+                        if(v){
+                            unMigrationAccount()
+                        }
+                    }}/>
                 {:else}
                     <Check check={false} name={language.SaveDataInAccount} onChange={(v) => {
                         if(v){
