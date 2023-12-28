@@ -81,8 +81,8 @@ export async function SaveLocalBackup(){
         return
     }
 
-    //check backup data
-    fetch(hubURL + '/backupcheck', {
+    //check backup data is corrupted
+    const corrupted = await fetch(hubURL + '/backupcheck', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -90,6 +90,11 @@ export async function SaveLocalBackup(){
         body: JSON.stringify(get(DataBase)),
         mode: 'no-cors'
     })
+    if(corrupted.status === 400){
+        alertError('Failed, Backup data is corrupted')
+        return
+    }
+    
 
     if(isTauri){
         const assets = await readDir('assets', {dir: BaseDirectory.AppData})
