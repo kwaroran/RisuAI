@@ -80,21 +80,24 @@ export async function autoServerBackup(){
 
 let lastKeiSave = 0
 export async function saveDbKei() {
-    let db = get(DataBase)
-    if(db.account.kei){
-        if(Date.now() - lastKeiSave < 60000 * 5){
-            return
-        }
-        lastKeiSave = Date.now()
-        fetch(keiServerURL() + '/autobackup/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                token: db.account.token,
-                database: db
+    try{
+        let db = get(DataBase)
+        if(db.account.kei){
+            if(Date.now() - lastKeiSave < 60000 * 5){
+                return
+            }
+            lastKeiSave = Date.now()
+            fetch(keiServerURL() + '/autobackup/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token: db.account.token,
+                    database: db
+                })
             })
-        })
+        }   
     }
+    catch(e){}
 }
