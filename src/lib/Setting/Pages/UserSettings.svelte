@@ -131,7 +131,7 @@
             Login
         </button>
     {/if}
-    <Button on:click={autoServerBackup}>Auto Server Backups</Button>
+    <!-- <Button on:click={autoServerBackup}>Auto Server Backups</Button> -->
 
 </div>
 {#if openIframe}
