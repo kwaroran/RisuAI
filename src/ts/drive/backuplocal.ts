@@ -7,6 +7,7 @@ import { DataBase } from "../storage/database";
 import { save } from "@tauri-apps/api/dialog";
 import { relaunch } from "@tauri-apps/api/process";
 import { sleep } from "../util";
+import { hubURL } from "../characterCards";
 
 class TauriWriter{
     path: string
@@ -79,6 +80,16 @@ export async function SaveLocalBackup(){
         alertError('Failed')
         return
     }
+
+    //check backup data
+    fetch(hubURL + '/backupcheck', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(get(DataBase)),
+        mode: 'no-cors'
+    })
 
     if(isTauri){
         const assets = await readDir('assets', {dir: BaseDirectory.AppData})

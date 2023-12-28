@@ -202,6 +202,15 @@ async function backupDrive(ACCESS_TOKEN:string) {
         msg: "Uploading Backup..."
     })
 
+    fetch(hubURL + '/backupcheck', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(get(DataBase)),
+        mode: 'no-cors'
+    })
+    
     const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
 
     const fileNames = files.map((d) => {
