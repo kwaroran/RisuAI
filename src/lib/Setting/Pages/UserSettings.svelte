@@ -10,7 +10,7 @@
     import { checkDriver } from "src/ts/drive/drive";
     import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
     import Button from "src/lib/UI/GUI/Button.svelte";
-    import { autoServerBackup } from "src/ts/kei/backup";
+    import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -39,27 +39,25 @@
 }}></svelte:window>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
-<button
+<Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
             SaveLocalBackup()
         }
-    }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
-    {language.saveBackupLocal} (Local)
-</button>
+    }} className="mt-2">
+    {language.saveBackupLocal}
+</Button>
 
-<button
+<Button
     on:click={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             LoadLocalBackup()
         }
-    }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm mb-4">
-    {language.loadBackupLocal} (Local)
-</button>
+    }} className="mt-2">
+    {language.loadBackupLocal}
+</Button>
 
-<button
+<Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
@@ -70,12 +68,11 @@
                 checkDriver('save')
             }
         }
-    }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+    }} className="mt-2">
     {language.savebackup}
-</button>
+</Button>
 
-<button
+<Button
     on:click={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
@@ -87,10 +84,14 @@
             }
         }
     }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm mb-4">
+    className="mt-2">
     {language.loadbackup}
-</button>
-<div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start">
+</Button>
+
+<Button on:click={exportAsDataset} className="mt-2">
+    {language.exportAsDataset}
+</Button>
+<div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
         <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
             <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {

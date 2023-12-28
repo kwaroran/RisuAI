@@ -472,5 +472,6 @@ export const languageEnglish = {
     sendName: "Send Name on Non-group Chat",
     utilOverride: "Utility Override",
     template: "Template",
-    chatAsOriginalOnSystem: "Send as original role"
+    chatAsOriginalOnSystem: "Send as original role",
+    exportAsDataset: "Export Save as Dataset",
 }
