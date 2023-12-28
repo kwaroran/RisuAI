@@ -15,9 +15,10 @@ export async function exportAsDataset(){
         for(const chat of char.chats){
             
             dataset.push({
-                character: char.name,
+                name: char.name,
                 description: char.desc,
                 chats: chat.message,
+                lorebook: char.globalLore
             })
         }
     }
