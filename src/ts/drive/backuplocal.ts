@@ -88,7 +88,6 @@ export async function SaveLocalBackup(){
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(get(DataBase)),
-        mode: 'no-cors'
     })
     if(corrupted.status === 400){
         alertError('Failed, Backup data is corrupted')
