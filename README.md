@@ -4,7 +4,7 @@
   <img alt="text" src="https://github.com/kwaroran/RisuAI/assets/116663078/bc28e5a3-c6da-4a42-bfc1-f3ab3debdf65">
 </picture>
 
-RisuAI, shortly Risu is a frontend or a full ai service with powerful features like Multiple API supports, Assets on chat, Regex functions and more.
+RisuAI, shortly Risu is a AI chatting frontend with powerful features like Multiple API supports, Assets on chat, Regex functions and more.
 
 # Screenshots
 |![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe) | ![image](https://github.com/kwaroran/RisuAI/assets/116663078/30d29f85-1380-4c73-9b82-1a40f2c5d2ea) |
