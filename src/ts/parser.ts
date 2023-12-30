@@ -22,12 +22,22 @@ const mconverted = new Marked({
     }
 })
 
-const safeConvertor = new showdown.Converter({
-    simpleLineBreaks: true,
-    strikethrough: true,
-    tables: true,
-    backslashEscapesHTMLTags: true
-})
+mconverted.use({
+    tokenizer: {
+        del(src) {
+            const cap = /^~~+(?=\S)([\s\S]*?\S)~~+/.exec(src);
+            if (cap) {
+                return {
+                    type: 'del',
+                    raw: cap[0],
+                    text: cap[2],
+                    tokens: []
+                };
+            }
+            return false;
+        }
+    }
+});
 
 
 
@@ -176,7 +186,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(safeConvertor.makeHtml(data), {
+    return DOMPurify.sanitize(mconverted.parse(data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
