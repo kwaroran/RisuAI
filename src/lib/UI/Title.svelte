@@ -26,8 +26,8 @@
                 const markdown = `
 # Happy New Year!
 You've had:
-- Sent over ${db.statistics.newYear2024.messages} messages
-- Played over ${db.statistics.newYear2024.chats} chats
+- Sent over ${db.statistics.newYear2024.messages.toLocaleString()} messages
+- Played over ${db.statistics.newYear2024.chats.toLocaleString()} chats
 *Statistics are approximate*
                 `
                 alertMd(markdown)
@@ -42,8 +42,8 @@ You've had:
             const markdown = `
 # Happy New Year!
 You've had:
-- Sent over ${messages} messages
-- Played over ${chats} chats
+- Sent over ${messages.toLocaleString()} messages
+- Played over ${chats.toLocaleString()} chats
 *Statistics are approximate*
             `
             db.statistics.newYear2024 = {
