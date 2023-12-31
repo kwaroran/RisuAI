@@ -8,7 +8,7 @@
     if (today.getMonth() === 11 && today.getDate() >= 19 && today.getDate() <= 25) {
         specialDay = 'christmas'
     }
-    if( today.getMonth() === 1 && today.getDate() < 4){
+    if( today.getMonth() === 0 && today.getDate() < 4){
         specialDay = 'newYear'
     }
     let iconAnimation = 0
