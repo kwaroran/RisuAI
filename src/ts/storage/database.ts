@@ -348,6 +348,7 @@ export function setDatabase(data:Database){
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
     data.huggingfaceKey ??= ''
+    data.statistics ??= {}
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
@@ -575,6 +576,12 @@ export interface Database{
     genTime:number
     proomptSettings: ProomptSettings
     keiServerURL:string
+    statistics: {
+        newYear2024?: {
+            messages: number
+            chats: number
+        }
+    }
 }
 
 export interface customscript{

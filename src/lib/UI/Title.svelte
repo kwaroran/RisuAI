@@ -1,10 +1,16 @@
 <script lang="ts">
+  import { alertMd, alertNormal } from "src/ts/alert";
+  import { DataBase } from "src/ts/storage/database";
     import { openURL } from "src/ts/storage/globalApi";
 
     let specialDay = ''
+    specialDay = 'newYear' // for testing
     const today = new Date()
     if (today.getMonth() === 11 && today.getDate() >= 19 && today.getDate() <= 25) {
         specialDay = 'christmas'
+    }
+    if( today.getMonth() === 1 && today.getDate() < 4){
+        specialDay = 'newYear'
     }
     let iconAnimation = 0
     let clicks = 0
@@ -12,9 +18,45 @@
     let time = 20
     let miniGameStart = false
 
+    const onClick = () => {
+        if(specialDay === 'newYear'){
+            const db = $DataBase
+            let messages = 0
+            let chats = 0
+            if(db.statistics?.newYear2024){
+                const markdown = `
+# Happy New Year!
+You've had:
+- Sent over ${db.statistics.newYear2024.messages} messages
+- Played over ${db.statistics.newYear2024.chats} chats
+                `
+                alertMd(markdown)
+                return
+            }
+            db.characters.map((c) => {
+                c.chats.map((chat) => {
+                    messages += chat.message.length
+                })
+                chats += c.chats.length
+            })
+            const markdown = `
+# Happy New Year!
+You've had:
+- Sent over ${messages} messages
+- Played over ${chats} chats
+            `
+            db.statistics.newYear2024 = {
+                messages,
+                chats
+            }
+            alertMd(markdown)
+        }
+    }
+
 </script>
 
-<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative">RisuAI
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} on:click={onClick}>RisuAI
     {#if specialDay === 'christmas'}
         <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         {#if clicks < 5}
@@ -30,6 +72,14 @@
                 }}
             >
         {/if}
+    {/if}
+    {#if specialDay === 'newYear'}
+        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <img src="./sun.webp" alt="sun" class="absolute -z-10"
+            style:top={'-50px'}
+            style:right={'0px'}
+            on:click={onClick}
+        >
     {/if}
 </h2>
 
