@@ -4,7 +4,6 @@
     import { openURL } from "src/ts/storage/globalApi";
 
     let specialDay = ''
-    specialDay = 'newYear' // for testing
     const today = new Date()
     if (today.getMonth() === 11 && today.getDate() >= 19 && today.getDate() <= 25) {
         specialDay = 'christmas'
