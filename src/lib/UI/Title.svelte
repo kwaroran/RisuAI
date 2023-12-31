@@ -28,6 +28,7 @@
 You've had:
 - Sent over ${db.statistics.newYear2024.messages} messages
 - Played over ${db.statistics.newYear2024.chats} chats
+*Statistics are approximate*
                 `
                 alertMd(markdown)
                 return
@@ -43,6 +44,7 @@ You've had:
 You've had:
 - Sent over ${messages} messages
 - Played over ${chats} chats
+*Statistics are approximate*
             `
             db.statistics.newYear2024 = {
                 messages,
