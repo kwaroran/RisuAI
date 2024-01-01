@@ -23,6 +23,8 @@ import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
 import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
 import { saveDbKei } from "../kei/backup";
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import * as CapFS from '@capacitor/filesystem'
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -70,6 +72,18 @@ let fileCache:{
 let pathCache:{[key:string]:string} = {}
 let checkedPaths:string[] = []
 
+async function checkCapFileExists(getUriOptions: CapFS.GetUriOptions): Promise<boolean> {
+    try {
+      await CapFS.Filesystem.stat(getUriOptions);
+      return true;
+    } catch (checkDirException) {
+      if (checkDirException.message === 'File does not exist') {
+        return false;
+      } else {
+        throw checkDirException;
+      }
+    }
+  }
 export async function getFileSrc(loc:string) {
     if(isTauri){
         if(loc.startsWith('assets')){
@@ -88,8 +102,20 @@ export async function getFileSrc(loc:string) {
         }
         return convertFileSrc(loc)
     }
+    if(Capacitor.isNativePlatform()){
+        if(!await checkCapFileExists({
+            path: loc,
+            directory: CapFS.Directory.External
+        })){
+            return ''
+        }
+        const uri = await CapFS.Filesystem.getUri({
+            path: loc,
+            directory: CapFS.Directory.External
+        })
+        return Capacitor.convertFileSrc(uri.uri)
+    }
     try {
-
         if(forageStorage.isAccount && loc.startsWith('assets')){
             return hubURL + `/rs/` + loc
         }
@@ -193,6 +219,16 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
     if(isTauri){
         await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
         return `assets/${id}.${fileExtension}`
+    }
+    else if(Capacitor.isNativePlatform()){
+        const path = `assets/${id}.${fileExtension}`
+        await CapFS.Filesystem.writeFile({
+            path: path,
+            data: Buffer.from(data).toString('base64'),
+            directory: CapFS.Directory.External,
+            recursive: true,
+        })
+        return path
     }
     else{
         let form = `assets/${id}.${fileExtension}`
@@ -403,7 +439,7 @@ export async function loadData() {
                 if(isDriverMode){
                     return
                 }
-                if(navigator.serviceWorker){
+                if(navigator.serviceWorker && (!Capacitor.isNativePlatform())){
                     usingSw = true
                     await navigator.serviceWorker.register("/sw.js", {
                         scope: "/"
@@ -630,6 +666,42 @@ export async function globalFetch(url:string, arg:{
                     data: result.data,
                     headers: result.headers
                 }
+            }
+        }
+        else if (Capacitor.isNativePlatform()){
+            const body = arg.body
+            const headers = arg.headers ?? {}
+            if(arg.body instanceof URLSearchParams){
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/x-www-form-urlencoded`
+                }
+            }
+            else{
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/json`
+                }
+            }
+            const res = await CapacitorHttp.request({
+                url: url,
+                method: method,
+                headers: headers,
+                data: body,
+                responseType: arg.rawResponse ? 'arraybuffer' : 'json'
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", true)
+                return {
+                    ok: true,
+                    data: new Uint8Array(res.data as ArrayBuffer),
+                    headers: res.headers
+                }
+            }
+            addFetchLog(res.data, true)
+            return {
+                ok: true,
+                data: res.data,
+                headers: res.headers
             }
         }
         else{

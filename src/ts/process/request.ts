@@ -19,6 +19,7 @@ import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { supportsInlayImage } from "../image";
 import { OaifixEmdash } from "../plugins/fixer";
+import { Capacitor } from "@capacitor/core";
 
 
 
@@ -483,7 +484,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 // @ts-ignore
                 body.n = db.genTime
             }
-            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
+            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
             if(db.useStreaming && arg.useStreaming && (!multiGen)){
                 body.stream = true
                 let urlHost = new URL(replacerURL).host
