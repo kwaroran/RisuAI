@@ -32,6 +32,7 @@
     "buffer": "^6.0.3",
     "core-js": "^3.33.3",
     "cors": "^2.8.5",
+    "crc": "^4.3.2",
     "dompurify": "^3.0.6",
     "exifr": "^7.1.3",
     "express": "^4.18.2",
@@ -63,8 +64,7 @@
     "tippy.js": "^6.3.7",
     "uuid": "^9.0.1",
     "wasmoon": "^1.15.1",
-    "web-streams-polyfill": "^3.2.1",
-    "yuso": "^0.1.3"
+    "web-streams-polyfill": "^3.2.1"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.4",

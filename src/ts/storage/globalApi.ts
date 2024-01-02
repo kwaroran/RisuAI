@@ -1195,13 +1195,16 @@ export class LocalWriter{
         this.writer = writableStream.getWriter()
         return true
     }
-    async write(name:string,data: Uint8Array){
+    async writeBackup(name:string,data: Uint8Array){
         const encodedName = new TextEncoder().encode(getBasename(name))
         const nameLength = new Uint32Array([encodedName.byteLength])
         await this.writer.write(new Uint8Array(nameLength.buffer))
         await this.writer.write(encodedName)
         const dataLength = new Uint32Array([data.byteLength])
         await this.writer.write(new Uint8Array(dataLength.buffer))
+        await this.writer.write(data)
+    }
+    async write(data:Uint8Array) {
         await this.writer.write(data)
     }
     async close(){

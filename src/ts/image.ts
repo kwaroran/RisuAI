@@ -98,6 +98,7 @@ export function supportsInlayImage(){
 }
 
 export async function reencodeImage(img:Uint8Array){
+
     const canvas = document.createElement('canvas')
     const imgObj = new Image()
     imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/png`}))

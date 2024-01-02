@@ -50,7 +50,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.write(key, await readBinaryFile(asset.path))
+            await writer.writeBackup(key, await readBinaryFile(asset.path))
         }
     }
     else{
@@ -63,7 +63,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.write(key, await forageStorage.getItem(key))
+            await writer.writeBackup(key, await forageStorage.getItem(key))
             if(forageStorage.isAccount){
                 await sleep(1000)
             }
@@ -74,7 +74,7 @@ export async function SaveLocalBackup(){
 
     alertWait(`Saving local Backup... (Saving database)`)
 
-    await writer.write('database.risudat', dbData)
+    await writer.writeBackup('database.risudat', dbData)
 
     alertNormal('Success')
 

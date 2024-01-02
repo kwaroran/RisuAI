@@ -9,8 +9,9 @@ import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/gl
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage } from "./parser"
-import * as yuso from 'yuso'
+
 import { reencodeImage } from "./image"
+import { PngChunk } from "./pngChunk"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -60,7 +61,11 @@ async function importCharacterProcess(f:{
     await sleep(10)
     const img = f.data
     
-    const readed = yuso.decode(img, 'chara')
+    const readed = PngChunk.read(img, ['chara'])?.['chara']
+    if(!readed){
+        alertError(language.errors.noData)
+        return
+    }
     {
         const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
         if(await importSpecv2(charaData, img)){
@@ -504,13 +509,16 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
         await sleep(10)
 
         img = await reencodeImage(img)
-        img = yuso.encode(img, "chara",Buffer.from(JSON.stringify(card)).toString('base64'))
 
         alertStore.set({
             type: 'wait',
             msg: 'Loading... (Writing)'
         })
         
+        img = (await PngChunk.write(img, {
+            "chara":Buffer.from(JSON.stringify(card)).toString('base64')
+        })) as Uint8Array
+
         char.image = ''
         await sleep(10)
         await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.png`, img)
@@ -519,6 +527,7 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
 
     }
     catch(e){
+        console.error(e, e.stack)
         alertError(`${e}`)
     }
 }

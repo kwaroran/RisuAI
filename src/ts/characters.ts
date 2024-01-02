@@ -7,9 +7,9 @@ import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, 
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
-import * as yuso from 'yuso'
 import { reencodeImage } from "./image";
 import { updateInlayScreen } from "./process/inlayScreen";
+import { PngChunk } from "./pngChunk";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -473,7 +473,7 @@ export async function addDefaultCharacters() {
 
     for(const img of imgs){
         const imgBuffer = await (await img).arrayBuffer()
-        const readed = yuso.decode(Buffer.from(imgBuffer), "risuai")
+        const readed = PngChunk.read(Buffer.from(imgBuffer), ["risuai"])?.risuai
         await sleep(10)
         const va = decodeMsgpack(Buffer.from(readed,'base64')) as any
         if(va.type !== 101){
