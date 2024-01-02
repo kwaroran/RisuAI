@@ -16,9 +16,9 @@
     let gridOpen = false
 
     DataBase.subscribe(db => {
-        if(db.didFirstSetup !== didFirstSetup){
-            didFirstSetup = db.didFirstSetup || false
-        }
+        // if(db.didFirstSetup !== didFirstSetup){
+        //     didFirstSetup = db.didFirstSetup || false
+        // }
     })
 
 </script>
