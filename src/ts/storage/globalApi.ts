@@ -102,6 +102,9 @@ export async function getFileSrc(loc:string) {
         }
         return convertFileSrc(loc)
     }
+    if(forageStorage.isAccount && loc.startsWith('assets')){
+        return hubURL + `/rs/` + loc
+    }
     if(Capacitor.isNativePlatform()){
         if(!await checkCapFileExists({
             path: loc,
@@ -116,9 +119,6 @@ export async function getFileSrc(loc:string) {
         return Capacitor.convertFileSrc(uri.uri)
     }
     try {
-        if(forageStorage.isAccount && loc.startsWith('assets')){
-            return hubURL + `/rs/` + loc
-        }
         if(usingSw){
             const encoded = Buffer.from(loc,'utf-8').toString('hex')
             let ind = fileCache.origin.indexOf(loc)
@@ -219,16 +219,6 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
     if(isTauri){
         await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
         return `assets/${id}.${fileExtension}`
-    }
-    else if(Capacitor.isNativePlatform()){
-        const path = `assets/${id}.${fileExtension}`
-        await CapFS.Filesystem.writeFile({
-            path: path,
-            data: Buffer.from(data).toString('base64'),
-            directory: CapFS.Directory.External,
-            recursive: true,
-        })
-        return path
     }
     else{
         let form = `assets/${id}.${fileExtension}`
