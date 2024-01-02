@@ -25,6 +25,7 @@ import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
 import { saveDbKei } from "../kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
+import { save } from "@tauri-apps/api/dialog";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -1112,4 +1113,98 @@ export function getModelMaxContext(model:string):number|undefined{
     }
 
     return undefined
+}
+
+class TauriWriter{
+    path: string
+    firstWrite: boolean = true
+    constructor(path: string){
+        this.path = path
+    }
+
+    async write(data:Uint8Array) {
+        await writeBinaryFile(this.path, data, {
+            append: !this.firstWrite
+        })
+        this.firstWrite = false
+    }
+
+    async close(){
+        // do nothing
+    }
+}
+
+class MobileWriter{
+    path: string
+    firstWrite: boolean = true
+    constructor(path: string){
+        this.path = path
+    }
+
+    async write(data:Uint8Array) {
+        if(this.firstWrite){
+            if(!await CapFS.Filesystem.checkPermissions()){
+                await CapFS.Filesystem.requestPermissions()
+            }
+            await CapFS.Filesystem.writeFile({
+                path: this.path,
+                data: Buffer.from(data).toString('base64'),
+                recursive: true,
+                directory: CapFS.Directory.Documents
+            })
+        }
+        else{
+            await CapFS.Filesystem.appendFile({
+                path: this.path,
+                data: Buffer.from(data).toString('base64'),
+                directory: CapFS.Directory.Documents
+            })
+        }
+        
+        this.firstWrite = false
+    }
+
+    async close(){
+        // do nothing
+    }
+}
+
+
+export class LocalWriter{
+    writer: WritableStreamDefaultWriter|TauriWriter|MobileWriter
+    async init() {
+        if(isTauri){
+            const filePath = await save({
+                filters: [{
+                  name: 'Binary',
+                  extensions: ['bin']
+                }]
+            });
+            if(!filePath){
+                return false
+            }
+            this.writer = new TauriWriter(filePath)
+            return true
+        }
+        if(Capacitor.isNativePlatform()){
+            this.writer = new MobileWriter('risu-backup.bin')
+            return true
+        }
+        const streamSaver = await import('streamsaver')
+        const writableStream = streamSaver.createWriteStream('risu-backup.bin')
+        this.writer = writableStream.getWriter()
+        return true
+    }
+    async write(name:string,data: Uint8Array){
+        const encodedName = new TextEncoder().encode(getBasename(name))
+        const nameLength = new Uint32Array([encodedName.byteLength])
+        await this.writer.write(new Uint8Array(nameLength.buffer))
+        await this.writer.write(encodedName)
+        const dataLength = new Uint32Array([data.byteLength])
+        await this.writer.write(new Uint8Array(dataLength.buffer))
+        await this.writer.write(data)
+    }
+    async close(){
+        await this.writer.close()
+    }
 }

@@ -1,6 +1,6 @@
 import { BaseDirectory, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { alertError, alertNormal, alertStore, alertWait } from "../alert";
-import { forageStorage, isTauri } from "../storage/globalApi";
+import { LocalWriter, forageStorage, isTauri } from "../storage/globalApi";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
 import { get } from "svelte/store";
 import { DataBase } from "../storage/database";
@@ -9,66 +9,11 @@ import { relaunch } from "@tauri-apps/api/process";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 
-class TauriWriter{
-    path: string
-    firstWrite: boolean = true
-    constructor(path: string){
-        this.path = path
-    }
-
-    async write(data:Uint8Array) {
-        await writeBinaryFile(this.path, data, {
-            append: !this.firstWrite
-        })
-        this.firstWrite = false
-    }
-
-    async close(){
-        // do nothing
-    }
-}
-
 function getBasename(data:string){
     const baseNameRegex = /\\/g
     const splited = data.replace(baseNameRegex, '/').split('/')
     const lasts = splited[splited.length-1]
     return lasts
-}
-
-class LocalWriter{
-    writableStream: WritableStream
-    writer: WritableStreamDefaultWriter|TauriWriter
-    async init() {
-        if(isTauri){
-            const filePath = await save({
-                filters: [{
-                  name: 'Binary',
-                  extensions: ['bin']
-                }]
-            });
-            if(!filePath){
-                return false
-            }
-            this.writer = new TauriWriter(filePath)
-            return true
-        }
-        const streamSaver = await import('streamsaver')
-        this.writableStream = streamSaver.createWriteStream('risu-backup.bin')
-        this.writer = this.writableStream.getWriter()
-        return true
-    }
-    async write(name:string,data: Uint8Array){
-        const encodedName = new TextEncoder().encode(getBasename(name))
-        const nameLength = new Uint32Array([encodedName.byteLength])
-        await this.writer.write(new Uint8Array(nameLength.buffer))
-        await this.writer.write(encodedName)
-        const dataLength = new Uint32Array([data.byteLength])
-        await this.writer.write(new Uint8Array(dataLength.buffer))
-        await this.writer.write(data)
-    }
-    async close(){
-        await this.writer.close()
-    }
 }
 
 
