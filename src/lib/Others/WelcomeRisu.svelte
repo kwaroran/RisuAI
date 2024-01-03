@@ -2,11 +2,9 @@
 
     import { ArrowBigLeftIcon, Send } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
-    import { addDefaultCharacters } from "src/ts/characters";
-    import { DataBase } from "src/ts/storage/database";
-    import { sleep } from "src/ts/util";
-    import TextInput from "../UI/GUI/TextInput.svelte";
+    import { DataBase, setPreset } from "src/ts/storage/database";
     import Chat from "../ChatScreens/Chat.svelte";
+  import { prebuiltPresets } from "src/ts/process/templates/templates";
 
     let step = 0
     let provider = ''
@@ -15,7 +13,7 @@
     if(step === 0){
         const browserLang = navigator.language
         const browserLangShort = browserLang.split('-')[0]
-        const usableLangs = ['de', 'en', 'ko', 'cn']
+        const usableLangs = ['de', 'en', 'ko', 'cn', 'vi']
         if(usableLangs.includes(browserLangShort)){
             changeLanguage(browserLangShort)
             $DataBase.language = browserLangShort
@@ -30,6 +28,7 @@
                 if(input.length > 0){
                     $DataBase.username = input
                     step = 2
+                    input = ''
                 }
                 break
             }
@@ -37,10 +36,46 @@
                 if(['openai','openrouter','horde','later'].includes(input.toLocaleLowerCase())){
                     provider = input.toLocaleLowerCase()
                     step = 3
+                    input = ''
                 }
                 break
             }
+            case 3:{
+                if(provider === 'openai'){
+                    if(input.length > 0 && input.startsWith('sk-')){
+                        $DataBase.openAIKey = input
+                        step = 10
+                        input = ''
+                    }
+                }
+                if(provider === 'openrouter'){
+                    if(input.length > 0 && input.startsWith('sk-')){
+                        $DataBase.openrouterKey = input
+                        step = 10
+                        input = ''
+                    }
+                }
+            }
         }
+    }
+
+    $: {
+        if(step === 10){
+            setTimeout(() => {
+                $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)
+                if(provider === 'openrouter'){
+                    $DataBase.aiModel = 'openrouter'
+                    $DataBase.subModel = 'openrouter'
+                    $DataBase.openrouterRequestModel = 'openrouter/auto'
+                }
+                if(provider === 'horde'){
+                    $DataBase.aiModel = 'horde:::auto'
+                    $DataBase.subModel = 'horde:::auto'
+                }
+                $DataBase.didFirstSetup = true
+            }, 1000);
+        }
+
     }
 </script>
 
@@ -94,6 +129,13 @@
                                 <h1 class="text-2xl font-bold text-start">OpenAI</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIProvider}</span>
                             </button>
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                                provider = 'horde'
+                                step = 5
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">Horde</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
+                            </button>
                             <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
                                 provider = 'openrouter'
                                 step = 3
@@ -101,26 +143,26 @@
                                 <h1 class="text-2xl font-bold text-start">OpenRouter</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openrouterProvider}</span>
                             </button>
-                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-                                provider = 'horde'
-                                step = 3
-                            }}>
-                                <h1 class="text-2xl font-bold text-start">Horde</h1>
-                                <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
-                            </button>
                             <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
                                 provider = 'later'
-                                step = 3
+                                step = 5
                             }}>
                                 <h1 class="text-2xl font-bold text-start">Setup Later</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.setProviderLater}</span>
                             </button>
                         </div>
                     {/if}
-                    {#if step === 3}
+                    {#if step >= 3}
                         <Chat name={$DataBase.username} message={provider} isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', $DataBase.username)} isLastMemory={false} />
-
+                        {#if provider === 'openai'}
+                            <Chat name="Risu" message={language.setup.setupOpenAI} isLastMemory={false} />
+                        {/if}
+                        {#if provider === 'openrouter'}
+                            <Chat name="Risu" message={language.setup.setupOpenrouter} isLastMemory={false} />
+                        {/if}
+                    {/if}
+                    {#if step === 10}
+                        <Chat name="Risu" message={language.setup.allDone} isLastMemory={false} />
                     {/if}
                     <div class="flex items-end mb-2 w-full mt-auto ">
                         <input class="flex-grow text-textcolor p-2 min-w-0 bg-transparent input-text text-xl ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
@@ -128,6 +170,7 @@
                             on:keydown={(e) => {
                                 if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                                     e.preventDefault()
+                                    send()
                                 }
                             }}
                             style:height={'44px'}

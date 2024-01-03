@@ -64,6 +64,14 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
             }
             break
         }
+        case 'href':{
+            if(data.attrValue.startsWith('http://') || data.attrValue.startsWith('https://')){
+                node.setAttribute('target', '_blank')
+                break
+            }
+            data.attrValue = ''
+            break
+        }
     }
 })
 
@@ -171,7 +179,6 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         return (DOMPurify.sanitize(autoMarkNew(data), {
             ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
             ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-            FORBID_ATTR: ["href"]
         }))
     }
     else{
@@ -180,7 +187,6 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         return decodeStyle(DOMPurify.sanitize(data, {
             ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
             ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-            FORBID_ATTR: ["href"]
         }))
     }
 }
