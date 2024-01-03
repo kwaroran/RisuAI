@@ -5,7 +5,7 @@ import { checkNullish, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
+import { checkCharOrder, downloadFile, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage } from "./parser"
@@ -61,19 +61,38 @@ async function importCharacterProcess(f:{
     await sleep(10)
     const img = f.data
     
-    const readed = PngChunk.read(img, ['chara'])?.['chara']
-    if(!readed){
+    // const readed = PngChunk.read(img, ['chara'])?.['chara']
+    let readedChara = ''
+    const readGenerator = PngChunk.readGenerator(img)
+    const assets:{[key:string]:string} = {}
+    for await(const chunk of readGenerator){
+        if(!chunk){
+            break
+        }
+        if(chunk.key === 'chara'){
+            readedChara = chunk.value
+            break
+        }
+        if(chunk.key.startsWith('chara-ext-asset_')){
+            const assetIndex = (chunk.key.replace('chara-ext-asset_', ''))
+            alertWait('Loading... (Reading Asset ' + assetIndex + ')' )
+            const assetData = Buffer.from(chunk.value, 'base64')
+            const assetId = await saveAsset(assetData)
+            assets[assetIndex] = assetId
+        }
+    }
+    if(!readedChara){
         alertError(language.errors.noData)
         return
     }
     {
-        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
-        if(await importSpecv2(charaData, img)){
+        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        if(await importSpecv2(charaData, img, "normal", assets)){
             let db = get(DataBase)
             return db.characters.length - 1
         }
     }
-    const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
+    const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
     const imgp = await saveAsset(await reencodeImage(img))
     let db = get(DataBase)
     db.characters.push(convertOldTavernAndJSON(charaData, imgp))
@@ -203,12 +222,9 @@ export async function exportChar(charaID:number) {
 }
 
 
-async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'normal'):Promise<boolean>{
+async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}):Promise<boolean>{
     if(!card ||card.spec !== 'chara_card_v2'){
         return false
-    }
-    if(!mode){
-        mode = 'normal'
     }
 
     const data = card.data
@@ -232,6 +248,15 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                     msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
                 })
                 await sleep(10)
+                if(risuext.emotions[i][1].startsWith('__asset:')){
+                    const key = risuext.emotions[i][1].replace('__asset:', '')
+                    const imgp = assetDict[key]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + key + ' not found')
+                    }
+                    emotions.push([risuext.emotions[i][0],imgp])
+                    continue
+                }
                 const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.emotions[i][1])) : Buffer.from(risuext.emotions[i][1], 'base64'))
                 emotions.push([risuext.emotions[i][0],imgp])
             }
@@ -246,6 +271,15 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                 let fileName = ''
                 if(risuext.additionalAssets[i].length >= 3)
                     fileName = risuext.additionalAssets[i][2]
+                if(risuext.additionalAssets[i][1].startsWith('__asset:')){
+                    const key = risuext.additionalAssets[i][1].replace('__asset:', '')
+                    const imgp = assetDict[key]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + key + ' not found')
+                    }
+                    extAssets.push([risuext.additionalAssets[i][0],imgp,fileName])
+                    continue
+                }
                 const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.additionalAssets[i][1])) :Buffer.from(risuext.additionalAssets[i][1], 'base64'), '', fileName)
                 extAssets.push([risuext.additionalAssets[i][0],imgp,fileName])
             }
@@ -469,16 +503,26 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
     let img = await readImage(char.image)
 
     try{
+        char.image = ''
         const card = await createBaseV2(char)
-
+        img = await reencodeImage(img)
+        const localWriter = new LocalWriter()
+        await localWriter.init(`Image file`, ['png'])
+        const writer = new PngChunk.streamWriter(img, localWriter)
+        await writer.init()
+        let assetIndex = 0
         if(card.data.extensions.risuai.emotions && card.data.extensions.risuai.emotions.length > 0){
             for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
                 alertStore.set({
                     type: 'wait',
                     msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
                 })
-                const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
-                char.emotionImages[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
+                const key = card.data.extensions.risuai.emotions[i][1]
+                const rData = await readImage(key)
+                const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                assetIndex++
+                card.data.extensions.risuai.emotions[i][1] = `__asset:${assetIndex}`
+                await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
             }
         }
 
@@ -489,39 +533,31 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
                     type: 'wait',
                     msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
                 })
-                const rData = await readImage(card.data.extensions.risuai.additionalAssets[i][1])
-                char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
+                const key = card.data.extensions.risuai.additionalAssets[i][1]
+                const rData = await readImage(key)
+                const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                assetIndex++
+                card.data.extensions.risuai.additionalAssets[i][1] = `__asset:${assetIndex}`
+                await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
             }
         }
-        
-        
+
         if(type === 'json'){
             await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.json`, Buffer.from(JSON.stringify(card, null, 4), 'utf-8'))
             alertNormal(language.successExport)
             return
         }
 
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Writing Exif)'
-        })
-
         await sleep(10)
-
-        img = await reencodeImage(img)
-
         alertStore.set({
             type: 'wait',
             msg: 'Loading... (Writing)'
         })
-        
-        img = (await PngChunk.write(img, {
-            "chara":Buffer.from(JSON.stringify(card)).toString('base64')
-        })) as Uint8Array
+        await writer.write("chara", Buffer.from(JSON.stringify(card)).toString('base64'))
 
-        char.image = ''
+        await writer.end()
+
         await sleep(10)
-        await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.png`, img)
 
         alertNormal(language.successExport)
 

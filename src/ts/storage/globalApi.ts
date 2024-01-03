@@ -1172,12 +1172,12 @@ class MobileWriter{
 
 export class LocalWriter{
     writer: WritableStreamDefaultWriter|TauriWriter|MobileWriter
-    async init() {
+    async init(name = 'Binary', ext = ['bin']) {
         if(isTauri){
             const filePath = await save({
                 filters: [{
-                  name: 'Binary',
-                  extensions: ['bin']
+                  name: name,
+                  extensions: ext
                 }]
             });
             if(!filePath){
