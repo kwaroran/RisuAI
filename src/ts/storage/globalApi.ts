@@ -1187,11 +1187,11 @@ export class LocalWriter{
             return true
         }
         if(Capacitor.isNativePlatform()){
-            this.writer = new MobileWriter('risu-backup.bin')
+            this.writer = new MobileWriter(name)
             return true
         }
         const streamSaver = await import('streamsaver')
-        const writableStream = streamSaver.createWriteStream('risu-backup.bin')
+        const writableStream = streamSaver.createWriteStream(name)
         this.writer = writableStream.getWriter()
         return true
     }
