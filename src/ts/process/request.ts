@@ -1563,12 +1563,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     delete argument.models
                 }
 
+                let apiKey = '0000000000'
+                if(db.hordeConfig.apiKey.length > 2){
+                    apiKey = db.hordeConfig.apiKey
+                }
+
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
                     body: JSON.stringify(argument),
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
-                        "apikey": db.hordeConfig.apiKey
+                        "apikey": apiKey
                     },
                     signal: abortSignal
                 })
