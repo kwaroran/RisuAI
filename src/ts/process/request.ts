@@ -20,6 +20,7 @@ import { cloneDeep } from "lodash";
 import { supportsInlayImage } from "../image";
 import { OaifixEmdash } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
+import { getFreeOpenRouterModel } from "../model/openrouter";
 
 
 
@@ -279,9 +280,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
             let requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
-
+            let openrouterRequestModel = db.openrouterRequestModel
             if(aiModel === 'reverse_proxy' && db.proxyRequestModel === 'custom'){
                 requestModel = db.customProxyRequestModel
+            }
+
+            if(aiModel === 'openrouter' && db.openrouterRequestModel === 'risu/free'){
+                openrouterRequestModel = await getFreeOpenRouterModel()
             }
 
             if(aiModel.startsWith('mistral')){
@@ -384,7 +389,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             db.cipherChat = false
             let body = ({
-                model: aiModel === 'openrouter' ? db.openrouterRequestModel :
+                model: aiModel === 'openrouter' ? openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
                     : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'

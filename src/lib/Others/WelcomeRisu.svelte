@@ -66,7 +66,8 @@
                 if(provider === 'openrouter'){
                     $DataBase.aiModel = 'openrouter'
                     $DataBase.subModel = 'openrouter'
-                    $DataBase.openrouterRequestModel = 'openrouter/auto'
+                    $DataBase.openrouterRequestModel = 'risu/free'
+                    $DataBase.maxContext = 6000
                 }
                 if(provider === 'horde'){
                     $DataBase.aiModel = 'horde:::auto'

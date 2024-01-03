@@ -209,8 +209,10 @@
                 <OptionInput value="anthropic/claude-v1-100k">Claude v1 100k</OptionInput>
                 <OptionInput value="anthropic/claude-1.2">Claude v1.2</OptionInput>
             {:else}
+                <OptionInput value={"risu/free"}>Free Auto</OptionInput>
+                <OptionInput value={"openrouter/auto"}>Openrouter Auto</OptionInput>
                 {#each m as model}
-                    <OptionInput value={model}>{model}</OptionInput>
+                    <OptionInput value={model.id}>{model.name}</OptionInput>
                 {/each}
             {/if}
         </SelectInput>

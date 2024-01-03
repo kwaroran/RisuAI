@@ -370,6 +370,7 @@ export function setDatabase(data:Database){
         utilOverride: false
     }
     data.keiServerURL ??= ''
+    data.top_k ??= 0
 
     changeLanguage(data.language)
     DataBase.set(data)
