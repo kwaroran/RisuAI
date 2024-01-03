@@ -107,7 +107,7 @@
     </div>
     {#if $DataBase.account}
         <span class="mb-4 text-textcolor2">ID: {$DataBase.account.id}</span>
-        {#if !isTauri}
+        {#if !isTauri && (!Capacitor.isNativePlatform())}
             <div class="flex items-center mt-2">
                 {#if $DataBase.account.useSync || forageStorage.isAccount}
                     <Check check={true} name={language.SaveDataInAccount} onChange={(v) => {
