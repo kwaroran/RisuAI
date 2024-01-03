@@ -483,4 +483,5 @@ export const languageEnglish = {
     template: "Template",
     chatAsOriginalOnSystem: "Send as original role",
     exportAsDataset: "Export Save as Dataset",
+    editTranslationDisplay: "Edit Translation Display",
 }

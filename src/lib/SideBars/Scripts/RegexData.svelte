@@ -52,6 +52,7 @@
                 <OptionInput value="editoutput">{language.editOutput}</OptionInput>
                 <OptionInput value="editprocess">{language.editProcess}</OptionInput>
                 <OptionInput value="editdisplay">{language.editDisplay}</OptionInput>
+                <OptionInput value="edittrans">{language.editTranslationDisplay}</OptionInput>
             </SelectInput>
             <span class="text-textcolor mt-6">IN:</span>
             <TextInput size="sm" bind:value={value.in} />
