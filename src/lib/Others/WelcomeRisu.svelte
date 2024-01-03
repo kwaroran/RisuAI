@@ -73,6 +73,10 @@
                     $DataBase.aiModel = 'horde:::auto'
                     $DataBase.subModel = 'horde:::auto'
                 }
+
+                if(provider === 'openai'){
+                    $DataBase.maxContext = 4000
+                }
                 $DataBase.didFirstSetup = true
             }, 1000);
         }
