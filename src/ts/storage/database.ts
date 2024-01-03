@@ -581,7 +581,8 @@ export interface Database{
             messages: number
             chats: number
         }
-    }
+    },
+    top_k:number
 }
 
 export interface customscript{

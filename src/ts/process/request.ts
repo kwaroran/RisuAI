@@ -422,6 +422,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.user = getOpenUserString()
             }
 
+            if(aiModel === 'openrouter'){
+                if(db.top_k !== 0){
+                    //@ts-ignore
+                    body.top_k = db.top_k
+                }
+            }
+
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
                 const OobaBodyTemplate = db.reverseProxyOobaArgs
 

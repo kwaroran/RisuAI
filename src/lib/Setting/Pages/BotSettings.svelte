@@ -313,6 +313,12 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
+{#if $DataBase.aiModel.startsWith('openrouter')}
+    <span class="text-textcolor">Top K</span>
+    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.top_k}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_k).toFixed(0)}</span>
+{/if}
+
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
     <span class="text-textcolor">Repetition Penalty</span>
     <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
