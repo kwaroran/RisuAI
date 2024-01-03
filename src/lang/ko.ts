@@ -205,7 +205,16 @@ export const languageKorean = {
         themeDescWifulike: "모바일에 적합하지 않습니다",
         themeDescWifuCut: "모바일 환경에 적합합니다",
         texttheme: "텍스트 색상을 선택해주세요",
-        inputName: "마지막으로, 닉네임을 입력해 주세요"
+        inputName: "마지막으로, 닉네임을 입력해 주세요",
+        welcome: "리스AI에 오신 것을 환영합니다! 저는 셋업 도우미 입니다. 먼저 닉네임을 입력해 주세요.",
+        welcome2: "{username}님 안녕하세요! 시작하기 전에, 몇가지 설정만 하면 됩니다. 먼저, Ai 제공자를 선택해 주세요.",
+        openAIProvider: "OpenAI GPT는 가장 좋은 모델이지만, 유료고 검열이 있습니다.",
+        openrouterProvider: "Openrouter는 여러 무료/유료 모델이 있습니다. 기본적으로 무료로 설정됩니다.",
+        hordeProvider: "Horde는 특별한 설정이 필요없는 무료 모델입니다. 하지만, 성능이 좋지 않습니다.",
+        setProviderLater: "다른 설정을 먼저 하고, 나중에 설정해도 됩니다.",
+        setupOpenAI: "OpenAI를 사용하려면, API키가 필요합니다 \n1. https://beta.openai.com/ 에 접속해주세요. \n2. 로그인 또는 회원가입 해주세요. \n3. https://beta.openai.com/account/api-keys 에 접속해주세요. \n4. 'Create New API Key'를 눌러주세요. \n5. 키 이름은 아무거나 하셔도 괜찮습니다. \n6.생성된 키를 복사해주세요.\n7. 리스AI로 돌아와 주세요.\n8. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.",
+        setupOpenrouter: "Openrouter를 사용하려면, API키가 필요합니다. \n1. https://openrouter.ai/keys 에 접속하고 로그인 또는 회원가입 해주세요.\n2. 'Create Key'를 눌러주세요. \n3. 키 이름은 아무거나 하셔도 괜찮습니다.\n4. 생성된 키를 복사해주세요.\n5. 리스AI로 돌아와주세요.\n6. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.",
+        allDone: "모든 설정이 완료되었습니다! 잠시만 기다려주세요.",
     },
     confirm: "확인",
     goback: "뒤로",
@@ -418,4 +427,5 @@ export const languageKorean = {
     additionalAssets:"추가 에셋",
     genTimes: "생성 횟수",
     template: "템플릿",
+    editTranslationDisplay: "번역문 수정",
 }
