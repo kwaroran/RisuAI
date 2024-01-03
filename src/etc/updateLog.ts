@@ -1,9 +1,15 @@
 export const patchNote = {
-    version: "1.69.0",
+    version: "1.70.0",
     content: 
 `
-# Update 1.69.4
-- Added Export as Dataset feature
+# Update 1.70.0
+- Added new welcome page
+- Added Edit Translation Display in Regex
+- Added stabler character card format
+- Improved Openrouter support
+- Improved Horde support
+- Horde isn't unrecommended anymore
+- Minor bug fixes
 `
 }
 
