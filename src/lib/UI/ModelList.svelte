@@ -79,9 +79,12 @@
                 return "Mistral Medium"
             case 'gemini-pro':
                 return "Gemini Pro"
+            case 'horde:::auto':
+                return 'Horde Auto Model'
             default:
                 if(name.startsWith("horde:::")){
-                    return name.replace(":::", " ")
+                    const split = name.split(":::")
+                    return `Horde ${split[1]}`
                 }
                 return name
         }
@@ -178,20 +181,22 @@
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai_kayra')}}>NovelAI Kayra</button>
             </Arcodion>
-            {#if showUnrec}
-            {#if isTauri ||isNodeServer}
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('deepai')}}>DeepAI</button>
-            {/if}
-                <Arcodion name="Horde">
-                    {#await getHordeModels()}
-                        <button class="p-2">Loading...</button>
-                    {:then models}
-                        {#each models as model}
-                            <button on:click={() => {changeModel("horde:::" + model)}} class="p-2 hover:text-green-500">{model.trim()}</button>
-                        {/each}
-                    {/await}
+            <Arcodion name="Horde">
+                {#await getHordeModels()}
+                    <button class="p-2">Loading...</button>
+                {:then models}
+                    <button on:click={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500">
+                        Auto Model
+                        <br><span class="text-textcolor2 text-sm">Performace: Auto</span>
+                    </button>
+                    {#each models as model}
+                        <button on:click={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500">
+                            {model.name.trim()}
+                            <br><span class="text-textcolor2 text-sm">Performace: {model.performance.toFixed(1)}</span>
+                        </button>
+                    {/each}
+                {/await}
                 </Arcodion>
-            {/if}
             {#if $DataBase.plugins.length > 0}
                 <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}

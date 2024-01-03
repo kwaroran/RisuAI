@@ -1,20 +1,30 @@
 import { sleep } from "../util"
 
-let modelList:string[]|'loading' = null
+interface HordeModel {
+    "performance": number,
+    "queued": number,
+    "jobs": number,
+    "eta": Number,
+    "type": "text",
+    "name": "aphrodite\/Undi95\/Toppy-M-7B",
+    "count": number
+}
+
+
+let modelList:HordeModel[]|'loading' = null
 
 //until horde is ready
 // modelList = []
 
-export async function getHordeModels():Promise<string[]> {
+export async function getHordeModels():Promise<HordeModel[]> {
     
     if(modelList === null){
         try {
             modelList = 'loading'
             const models = await fetch("https://stablehorde.net/api/v2/status/models?type=text")
-            modelList = ((await models.json()).map((a) => {
-                return a.name
-            }) as string[])
-            return modelList
+            const res = await models.json()
+            modelList = res
+            return res
         } catch (error) {
             modelList = null
             return []        

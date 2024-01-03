@@ -1540,31 +1540,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "prompt": proompt,
                     "params": {
                         "n": 1,
-                        "frmtadsnsp": false,
-                        "frmtrmblln": false,
-                        "frmtrmspch": false,
-                        "frmttriminc": false,
                         "max_context_length": db.maxContext + 100,
                         "max_length": db.maxResponse,
-                        "rep_pen": 3,
-                        "rep_pen_range": 0,
-                        "rep_pen_slope": 10,
                         "singleline": false,
                         "temperature": db.temperature / 100,
-                        "tfs": 1,
-                        "top_a": 1,
-                        "top_k": 100,
-                        "top_p": 1,
-                        "typical": 1,
-                        "sampler_order": [
-                            0
-                        ]
+                        "top_k": db.top_k,
+                        "top_p": db.top_p,
                     },
                     "trusted_workers": false,
                     "workerslow_workers": true,
                     "_blacklist": false,
                     "dry_run": false,
                     "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
+                }
+
+                if(realModel === 'auto'){
+                    delete argument.models
                 }
 
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
