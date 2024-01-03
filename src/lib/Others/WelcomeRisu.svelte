@@ -5,6 +5,7 @@
     import { DataBase, setPreset } from "src/ts/storage/database";
     import Chat from "../ChatScreens/Chat.svelte";
   import { prebuiltPresets } from "src/ts/process/templates/templates";
+  import { updateTextTheme } from "src/ts/gui/colorscheme";
 
     let step = 0
     let provider = ''
@@ -63,6 +64,8 @@
         if(step === 10){
             setTimeout(() => {
                 $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)
+                $DataBase.textTheme = 'highcontrast'
+                updateTextTheme()
                 if(provider === 'openrouter'){
                     $DataBase.aiModel = 'openrouter'
                     $DataBase.subModel = 'openrouter'

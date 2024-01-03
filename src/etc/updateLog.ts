@@ -6,6 +6,7 @@ export const patchNote = {
 - Added new welcome page
 - Added Edit Translation Display in Regex
 - Added stabler character card format
+- Improved default prompt
 - Improved Openrouter support
 - Improved Horde support
 - Horde isn't unrecommended anymore
