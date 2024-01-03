@@ -10,6 +10,7 @@ export const patchNote = {
 - Improved Openrouter support
 - Improved Horde support
 - Horde isn't unrecommended anymore
+- Changed high contrast italic color
 - Minor bug fixes
 `
 }
