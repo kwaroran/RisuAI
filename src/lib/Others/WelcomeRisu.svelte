@@ -139,7 +139,7 @@
                             </button>
                             <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
                                 provider = 'horde'
-                                step = 5
+                                step = 10
                             }}>
                                 <h1 class="text-2xl font-bold text-start">Horde</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
@@ -153,7 +153,7 @@
                             </button>
                             <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
                                 provider = 'later'
-                                step = 5
+                                step = 10
                             }}>
                                 <h1 class="text-2xl font-bold text-start">Setup Later</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.setProviderLater}</span>
