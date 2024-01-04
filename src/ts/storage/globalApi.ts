@@ -1187,11 +1187,11 @@ export class LocalWriter{
             return true
         }
         if(Capacitor.isNativePlatform()){
-            this.writer = new MobileWriter(name)
+            this.writer = new MobileWriter(name + '.' + ext[0])
             return true
         }
         const streamSaver = await import('streamsaver')
-        const writableStream = streamSaver.createWriteStream(name)
+        const writableStream = streamSaver.createWriteStream(name + '.' + ext[0])
         this.writer = writableStream.getWriter()
         return true
     }
