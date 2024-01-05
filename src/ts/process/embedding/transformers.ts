@@ -47,9 +47,12 @@ export const runSummarizer = async (text: string) => {
     return v
 }
 
+let extractor:Pipeline = null
 export const runEmbedding = async (text: string):Promise<Float32Array> => {
     await loadTransformer()
-    let extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    if(!extractor){
+        extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    }
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/all-MiniLM-L6-v2');
     const tokens = tokenizer.encode(text)
     if (tokens.length > 256) {
