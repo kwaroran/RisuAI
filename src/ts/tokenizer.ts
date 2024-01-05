@@ -24,9 +24,19 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     if(db.aiModel.startsWith('local_') ||
         db.aiModel === 'mancer' ||
         db.aiModel === 'textgen_webui' ||
-        (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode ||
-        db.aiModel === 'ooba')){
+        (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
         return await tokenizeWebTokenizers(data, 'llama')
+    }
+    if(db.aiModel === 'ooba'){
+        if(db.reverseProxyOobaArgs.tokenizer === 'mixtral' || db.reverseProxyOobaArgs.tokenizer === 'mistral'){
+            return await tokenizeWebTokenizers(data, 'mistral')
+        }
+        else if(db.reverseProxyOobaArgs.tokenizer === 'llama'){
+            return await tokenizeWebTokenizers(data, 'llama')
+        }
+        else{
+            return await tokenizeWebTokenizers(data, 'llama')
+        }
     }
 
     return await tikJS(data)

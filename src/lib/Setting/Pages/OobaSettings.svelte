@@ -61,6 +61,8 @@
             <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
         {/if}
     {/if}
+    <span class="text-textcolor">tokenizer</span>
+    <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.tokenizer} />
     <span class="text-textcolor">min_p</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.min_p} numberMode />
     <span class="text-textcolor">top_k</span>
