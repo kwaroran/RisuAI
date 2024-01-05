@@ -241,10 +241,10 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             const db = get(DataBase)
             const charId = get(selectedCharID)
             const char = db.characters[charId]
-            scripts = (db.globalscript ?? []).concat(char.customscript)
+            scripts = (db.globalscript ?? []).concat(char?.customscript ?? [])
         }
         else{
-            scripts = (db.globalscript ?? []).concat(charArg.customscript)
+            scripts = (db.globalscript ?? []).concat(charArg?.customscript ?? [])
 
         }
         for(const script of scripts){
