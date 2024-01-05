@@ -2,29 +2,6 @@ import transformers, { AutoTokenizer, pipeline, type SummarizationOutput } from 
 
 transformers.env.localModelPath = "https://sv.risuai.xyz/transformers/"
 
-type TransformersBodyType = {
-    max_new_tokens: number,
-    do_sample: boolean,
-    temperature: number,
-    top_p: number,
-    typical_p: number,
-    repetition_penalty: number,
-    encoder_repetition_penalty: number,
-    top_k: number,
-    min_length: number,
-    no_repeat_ngram_size: number,
-    num_beams: number,
-    penalty_alpha: number,
-    length_penalty: number,
-    early_stopping: boolean,
-    truncation_length: number,
-    ban_eos_token: boolean,
-    stopping_strings: number,
-    seed: number,
-    add_bos_token: boolean,
-}
-
-
 export const runTransformers = async (baseText:string, model:string,config:transformers.TextGenerationConfig = {}) => {
     let text = baseText
     let generator = await pipeline('text-generation', model);
