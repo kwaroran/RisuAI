@@ -26,7 +26,7 @@
     "@tauri-apps/api": "1.5.1",
     "@types/marked": "^5.0.2",
     "@types/streamsaver": "^2.0.4",
-    "@xenova/transformers": "^2.9.0",
+    "@xenova/transformers": "^2.13.4",
     "blueimp-md5": "^2.19.0",
     "body-parser": "^1.20.2",
     "buffer": "^6.0.3",

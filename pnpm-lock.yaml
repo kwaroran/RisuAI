@@ -42,8 +42,8 @@ dependencies:
     specifier: ^2.0.4
     version: 2.0.4
   '@xenova/transformers':
-    specifier: ^2.9.0
-    version: 2.9.0
+    specifier: ^2.13.4
+    version: 2.13.4
   blueimp-md5:
     specifier: ^2.19.0
     version: 2.19.0
@@ -671,6 +671,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@huggingface/jinja@0.1.2:
+    resolution: {integrity: sha512-x5mpbfJt1nKmVep5WNP5VjNsjWApWNj8pPYI+uYMkBWH9bWUJmQmHt2lbf0VCoQd54Oq3XuFEh/UyoVh7rPxmg==}
+    engines: {node: '>=18'}
+    dev: false
 
   /@hutson/parse-repository-url@3.0.2:
     resolution: {integrity: sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==}
@@ -1523,9 +1528,10 @@ packages:
     resolution: {integrity: sha512-ggMz8nOygG7d/stpH40WVaNvBwuyYLnrg5Mbyf6bmsj/8+gb6Ei4ZZ9/4PNpcPNTT8th9Q8sM8wYmWGjMWLX/A==}
     dev: true
 
-  /@xenova/transformers@2.9.0:
-    resolution: {integrity: sha512-wzSjIMpkVaD+bIgIVxlXDeeKawr233t+1pPb5AhpYeTAPFdOaVUVdT4vIKqmmszApBFYYUpOqv5LoJ4lOAm6Ug==}
+  /@xenova/transformers@2.13.4:
+    resolution: {integrity: sha512-yk8yDvQaCTEZJsasoUj+FWEM9dVcNdDXlushzJ0KjFe2oUOJ3XqICAJz1Htz/vWtM20ErGt509EKogACGYlpxA==}
     dependencies:
+      '@huggingface/jinja': 0.1.2
       onnxruntime-web: 1.14.0
       sharp: 0.32.6
     optionalDependencies:
