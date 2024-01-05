@@ -1,4 +1,4 @@
-import transformers, { AutoTokenizer, Pipeline, pipeline, type DataArray, type SummarizationOutput } from '@xenova/transformers';
+import transformers, { AutoTokenizer, pipeline, type SummarizationOutput } from '@xenova/transformers';
 
 transformers.env.localModelPath = "https://sv.risuai.xyz/transformers/"
 
@@ -25,10 +25,10 @@ type TransformersBodyType = {
 }
 
 
-export const runTransformers = async (baseText:string, model:string,bodyTemplate:TransformersBodyType) => {
+export const runTransformers = async (baseText:string, model:string,config:transformers.TextGenerationConfig = {}) => {
     let text = baseText
     let generator = await pipeline('text-generation', model);
-    let output = await generator(text) as transformers.TextGenerationOutput
+    let output = await generator(text, config) as transformers.TextGenerationOutput
     const outputOne = output[0]
     return outputOne
 }
