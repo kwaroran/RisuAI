@@ -1,11 +1,11 @@
-import transformers, { AutoTokenizer, pipeline, type SummarizationOutput } from '@xenova/transformers';
+import {env, AutoTokenizer, pipeline, VitsModel, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline } from '@xenova/transformers';
 
-transformers.env.localModelPath = "https://sv.risuai.xyz/transformers/"
+env.localModelPath = "https://sv.risuai.xyz/transformers/"
 
-export const runTransformers = async (baseText:string, model:string,config:transformers.TextGenerationConfig = {}) => {
+export const runTransformers = async (baseText:string, model:string,config:TextGenerationConfig = {}) => {
     let text = baseText
     let generator = await pipeline('text-generation', model);
-    let output = await generator(text, config) as transformers.TextGenerationOutput
+    let output = await generator(text, config) as TextGenerationOutput
     const outputOne = output[0]
     return outputOne
 }
@@ -16,7 +16,7 @@ export const runSummarizer = async (text: string) => {
     return v[0].summary_text
 }
 
-let extractor:transformers.FeatureExtractionPipeline = null
+let extractor:FeatureExtractionPipeline = null
 export const runEmbedding = async (text: string):Promise<Float32Array> => {
     if(!extractor){
         extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
@@ -59,9 +59,22 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     return (result?.data as Float32Array) ?? null;
 }
 
-export const runTTS = async (text: string) => {
-    let speaker_embeddings = 'https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/speaker_embeddings.bin';
-    let synthesizer = await pipeline('text-to-speech', 'Xenova/speecht5_tts', { local_files_only: true });
-    let out = await synthesizer(text, { speaker_embeddings });
-    return out
+let synthesizer:TextToAudioPipeline = null
+let lastSynth:string = null
+export const runVITS = async (text: string, model:string = 'Xenova/mms-tts-eng') => {
+    const {WaveFile} = await import('wavefile')
+    if((!synthesizer) || (lastSynth !== model)){
+        lastSynth = model
+        synthesizer = await pipeline('text-to-speech', model);
+    }
+    let out = await synthesizer(text, {});
+    const wav = new WaveFile();
+    wav.fromScratch(1, out.sampling_rate, '32f', out.audio);
+    const audioContext = new AudioContext();
+    audioContext.decodeAudioData(wav.toBuffer().buffer, (decodedData) => {
+        const sourceNode = audioContext.createBufferSource();
+        sourceNode.buffer = decodedData;
+        sourceNode.connect(audioContext.destination);
+        sourceNode.start();
+    });
 }

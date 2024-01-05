@@ -526,6 +526,7 @@
             <OptionInput value="openai">OpenAI</OptionInput>
             <OptionInput value="novelai">NovelAI</OptionInput>
             <OptionInput value="huggingface">Huggingface</OptionInput>
+            <OptionInput value="vits">VITS</OptionInput>
         </SelectInput>
         
 
@@ -625,12 +626,7 @@
             <span class="text-textcolor">Language</span>
             <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
         {/if}
-        {#if currentChar.data.ttsMode === 'webspeech' ||
-            currentChar.data.ttsMode === 'elevenlab' ||
-            currentChar.data.ttsMode === 'VOICEVOX' ||
-            currentChar.data.ttsMode === 'huggingface' ||
-            currentChar.data.ttsMode === 'openai' ||
-            currentChar.data.ttsMode === 'novelai'}
+        {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
                 <Check bind:check={currentChar.data.ttsReadOnlyQuoted} name={language.ttsReadOnlyQuoted}/>
             </div>

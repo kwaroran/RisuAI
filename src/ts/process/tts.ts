@@ -5,6 +5,7 @@ import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch } from "../storage/globalApi";
 import { language } from "src/lang";
 import { getCurrentCharacter, sleep } from "../util";
+import { runVITS } from "./embedding/transformers";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -220,6 +221,9 @@ export async function sayTTS(character:character,text:string) {
                 }
                 return
             }
+        }
+        case 'vits':{
+            await runVITS(text)
         }
     }
 }

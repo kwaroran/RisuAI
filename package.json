@@ -64,6 +64,7 @@
     "tippy.js": "^6.3.7",
     "uuid": "^9.0.1",
     "wasmoon": "^1.15.1",
+    "wavefile": "^11.0.0",
     "web-streams-polyfill": "^3.2.1"
   },
   "devDependencies": {
