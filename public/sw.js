@@ -7,7 +7,13 @@ self.addEventListener('fetch', (event) => {
         try {
             switch (path[2]){
                 case "check":{
-                    event.respondWith(checkCache(url))
+                    let targetUrl = url
+                    const headers = event.request.headers
+                    const headerUrl = headers.get('x-register-url')
+                    if(headerUrl){
+                        targetUrl.pathname = decodeURIComponent(headerUrl)
+                    }
+                    event.respondWith(checkCache(targetUrl))
                     break
                 }
                 case "img": {
@@ -15,20 +21,20 @@ self.addEventListener('fetch', (event) => {
                     break
                 }
                 case "register": {
-                    let targerUrl = url
+                    let targetUrl = url
                     const headers = event.request.headers
                     const headerUrl = headers.get('x-register-url')
                     if(headerUrl){
-                        targerUrl = new URL(headerUrl)
+                        targetUrl.pathname = decodeURIComponent(headerUrl)
                     }
                     const noContentType = headers.get('x-no-content-type') === 'true'
                     event.respondWith(
-                        registerCache(targerUrl, event.request.arrayBuffer(), noContentType)
+                        registerCache(targetUrl, event.request.arrayBuffer(), noContentType)
                     )
                     break
                 }
                 case "init":{
-                    event.respondWith(new Response("true"))
+                    event.respondWith(new Response("v2"))
                 }
                 default: {
                     event.respondWith(new Response(
@@ -74,9 +80,11 @@ async function check(){
 async function registerCache(urlr, buffer, noContentType = false){
     const cache = await caches.open('risuCache')
     const url = new URL(urlr)
-    let path = url.pathname.split('/')
-    path[2] = 'img'
-    url.pathname = path.join('/')
+    if(!noContentType){
+        let path = url.pathname.split('/')
+        path[2] = 'img'
+        url.pathname = path.join('/')
+    }
     const buf = new Uint8Array(await buffer)
     let headers = {
         "cache-control": "max-age=604800",

@@ -29,6 +29,7 @@
     import TriggerList from "./Scripts/TriggerList.svelte";
   import CheckInput from "../UI/GUI/CheckInput.svelte";
   import { updateInlayScreen } from "src/ts/process/inlayScreen";
+  import { registerOnnxModel } from "src/ts/process/embedding/transformers";
     
 
     let subMenu = 0
@@ -625,6 +626,19 @@
 
             <span class="text-textcolor">Language</span>
             <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
+        {/if}
+        {#if currentChar.data.ttsMode === 'vits'}
+            {#if currentChar.data.vits}
+                <span class="text-textcolor">{currentChar.data.vits.name ?? 'Unnamed VitsModel'}</span>
+            {:else}
+                <span class="text-textcolor">No Model</span>
+            {/if}
+            <Button on:click={async () => {
+                const model = await registerOnnxModel()
+                if(model && currentChar.type === 'character'){
+                    currentChar.data.vits = model
+                }
+            }}>{language.selectModel}</Button>
         {/if}
         {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
