@@ -25,7 +25,13 @@ async function initTransformers(){
             if(typeof url === 'string'){
                 if(url.startsWith('/tf/Xenova/')){
                     const newURL = 'https://sv.risuai.xyz/transformers/' + url.substring(11)
-                    await tfCache.add(newURL)
+                    const v = await tfCache.match(newURL)
+                    if(v){
+                        return v
+                    }
+                    const response = await fetch(newURL)
+                    await tfCache.put(newURL, response.clone())
+                    return response
                 }
                 if(Object.keys(tfMap).includes(url)){
                     const assetId = tfMap[url]
