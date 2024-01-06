@@ -6,6 +6,7 @@ import { v4 } from 'uuid';
 
 let tfCache:Cache = null
 let tfLoaded = false
+let tfMap:{[key:string]:string} = {}
 async function initTransformers(){
     if(tfLoaded){
         return
@@ -25,6 +26,10 @@ async function initTransformers(){
                 if(url.startsWith('/tf/Xenova/')){
                     const newURL = 'https://sv.risuai.xyz/transformers/' + url.substring(11)
                     await tfCache.add(newURL)
+                }
+                if(Object.keys(tfMap).includes(url)){
+                    const assetId = tfMap[url]
+                    return new Response(await loadAsset(assetId))
                 }
             }
             return await tfCache.match(url)
@@ -120,11 +125,9 @@ export const runVITS = async (text: string, modelData:string|OnnxModelFiles = 'X
             const files = modelData.files
             const keys = Object.keys(files)
             for(const key of keys){
-                const ast = new Response(await loadAsset(files[key]))
-                tfCache.put(key,ast.clone())
-                tfCache.put(location.origin + key, ast.clone())
-                console.log('put', key)
-                console.log('put', location.origin + key)
+                const fileURL = '/tf/' + modelData.id + '/' + key
+                tfMap[fileURL] = files[key]
+                tfMap[location.origin + fileURL] = files[key]
             }
             lastSynth = modelData.id
             synthesizer = await pipeline('text-to-speech', modelData.id);
