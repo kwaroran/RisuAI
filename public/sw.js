@@ -53,7 +53,11 @@ self.addEventListener('fetch', (event) => {
             if(res){
                 return res
             }else{
-                return await fetch(event.request)
+                url.host = "https://sv.risuai.xyz"
+                return await fetch(url, {
+                    headers: event.request.headers,
+                    method: event.request.method
+                })
             }
         })())
     }
