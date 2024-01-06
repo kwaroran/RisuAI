@@ -12,7 +12,7 @@ async function initTransformers(){
         return
     }
     tfCache = await caches.open('transformers')
-    env.localModelPath = "/tf/"
+    env.localModelPath = "https://sv.risuai.xyz/transformers/"
     env.useBrowserCache = false
     env.useFSCache = false
     env.useCustomCache = true
