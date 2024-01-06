@@ -25,15 +25,21 @@ async function initTransformers(){
                 if(url.startsWith('/tf/Xenova/')){
                     try {
                         const newURL = 'https://sv.risuai.xyz/transformers/' + url.substring(11)
-                        const v = await tfCache.match(newURL)
-                        if(v){
-                            return v
-                        }
                         const response = await fetch(newURL)
-                        await tfCache.put(newURL, response.clone())
-                        return response   
+                        if(response.status<200 || response.status>=400){
+                            return new Response("Not found", {status: 404, 
+                                headers: {
+                                    'Content-Type': 'text/plain'
+                                }
+                            })
+                        }
+                        return response
                     } catch (error) {
-                        return await tfCache.match(url)
+                        return new Response("Not found", {status: 404, 
+                            headers: {
+                                'Content-Type': 'text/plain'
+                            }
+                        })
                     }
                 }
                 if(Object.keys(tfMap).includes(url)){
