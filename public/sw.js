@@ -61,6 +61,11 @@ self.addEventListener('fetch', (event) => {
             }
         })())
     }
+    if(path[1] === 'tf'){{
+        event.respondWith(new Response("Cannot find resource from cache", {
+            status: 404
+        }))
+    }}
 })
 
 
