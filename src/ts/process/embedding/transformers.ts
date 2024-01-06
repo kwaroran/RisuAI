@@ -21,6 +21,12 @@ async function initTransformers(){
         },
         match: async (url:URL|string) => {
             console.log('match', url)
+            if(typeof url === 'string'){
+                if(url.startsWith('/tf/Xenova/')){
+                    const newURL = 'https://sv.risuai.xyz/transformers/' + url.substring(11)
+                    await tfCache.add(newURL)
+                }
+            }
             return await tfCache.match(url)
         }
     }
