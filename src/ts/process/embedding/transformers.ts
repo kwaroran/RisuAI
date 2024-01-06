@@ -22,26 +22,6 @@ async function initTransformers(){
         },
         match: async (url:URL|string) => {
             if(typeof url === 'string'){
-                if(url.startsWith('/tf/Xenova/')){
-                    try {
-                        const newURL = 'https://sv.risuai.xyz/transformers/' + url.substring(11)
-                        const response = await fetch(newURL)
-                        if(response.status<200 || response.status>=400){
-                            return new Response("Not found", {status: 404, 
-                                headers: {
-                                    'Content-Type': 'text/plain'
-                                }
-                            })
-                        }
-                        return response
-                    } catch (error) {
-                        return new Response("Not found", {status: 404, 
-                            headers: {
-                                'Content-Type': 'text/plain'
-                            }
-                        })
-                    }
-                }
                 if(Object.keys(tfMap).includes(url)){
                     const assetId = tfMap[url]
                     return new Response(await loadAsset(assetId))
