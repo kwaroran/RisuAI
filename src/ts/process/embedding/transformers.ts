@@ -4,8 +4,7 @@ import { loadAsset, saveAsset } from 'src/ts/storage/globalApi';
 import { selectSingleFile } from 'src/ts/util';
 import { v4 } from 'uuid';
 
-env.localModelPath = "/transformers/"
-env.remoteHost = "https://sv.risuai.xyz/transformers/"
+env.localModelPath = "https://sv.risuai.xyz/transformers/"
 
 export const runTransformers = async (baseText:string, model:string,config:TextGenerationConfig = {}) => {
     let text = baseText
