@@ -120,7 +120,7 @@ export const runVITS = async (text: string, modelData:string|OnnxModelFiles = 'X
             const files = modelData.files
             const keys = Object.keys(files)
             for(const key of keys){
-                const fileURL = '/tf/' + modelData.id + '/' + key
+                const fileURL = env.localModelPath + modelData.id + '/' + key
                 tfMap[fileURL] = files[key]
                 tfMap[location.origin + fileURL] = files[key]
             }
