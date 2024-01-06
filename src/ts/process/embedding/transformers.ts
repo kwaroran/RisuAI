@@ -12,9 +12,20 @@ async function initTransformers(){
     }
     tfCache = await caches.open('transformers')
     env.localModelPath = "/tf/"
-    env.remoteHost = "https://sv.risuai.xyz/transformers/"
-    env.customCache = tfCache
+    env.useBrowserCache = false
+    env.useFSCache = false
+    env.useCustomCache = true
+    env.customCache = {
+        put: async (url:URL|string, response:Response) => {
+            await tfCache.put(url, response)
+        },
+        match: async (url:URL|string) => {
+            console.log('match', url)
+            return await tfCache.match(url)
+        }
+    }
     tfLoaded = true
+    console.log('transformers loaded')
 }
 
 export const runTransformers = async (baseText:string, model:string,config:TextGenerationConfig = {}) => {
@@ -103,7 +114,11 @@ export const runVITS = async (text: string, modelData:string|OnnxModelFiles = 'X
             const files = modelData.files
             const keys = Object.keys(files)
             for(const key of keys){
-                tfCache.put(key, new Response(await loadAsset(files[key])))
+                const ast = new Response(await loadAsset(files[key]))
+                tfCache.put(key,ast.clone())
+                tfCache.put(location.origin + key, ast.clone())
+                console.log('put', key)
+                console.log('put', location.origin + key)
             }
             lastSynth = modelData.id
             synthesizer = await pipeline('text-to-speech', modelData.id);
@@ -157,7 +172,6 @@ export const registerOnnxModel = async ():Promise<OnnxModelFiles> => {
         if(url.startsWith('/')){
             url = url.substring(1)
         }
-        url = '/tf/' + id +'/' + url
         fileIdMapped[url] = fid
     }
 

@@ -46,21 +46,6 @@ self.addEventListener('fetch', (event) => {
             event.respondWith(new Response(`${error}`))
         }
     }
-    if(path[1] === 'transformers'){
-        event.respondWith((async () => {
-            const cache = await caches.open('risuCache')
-            const res = await cache.match(url)
-            if(res){
-                return res
-            }else{
-                url.host = "https://sv.risuai.xyz"
-                return await fetch(url, {
-                    headers: event.request.headers,
-                    method: event.request.method
-                })
-            }
-        })())
-    }
     if(path[1] === 'tf'){{
         event.respondWith(new Response("Cannot find resource from cache", {
             status: 404
