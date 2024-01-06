@@ -4,16 +4,16 @@ import { loadAsset, saveAsset } from 'src/ts/storage/globalApi';
 import { selectSingleFile } from 'src/ts/util';
 import { v4 } from 'uuid';
 
-const tfCache = new Cache()
+let tfCache:Cache = null
 let tfLoaded = false
 async function initTransformers(){
     if(tfLoaded){
         return
     }
-    const tfCache = new Cache()
+    tfCache = await caches.open('transformers')
     env.localModelPath = "/tf/"
     env.remoteHost = "https://sv.risuai.xyz/transformers/"
-    env.customCache = await caches.open('transformers')
+    env.customCache = tfCache
     tfLoaded = true
 }
 
