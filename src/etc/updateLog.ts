@@ -1,17 +1,11 @@
 export const patchNote = {
-    version: "1.70.0",
+    version: "1.71",
     content: 
 `
-# Update 1.70.0
-- Added new welcome page
-- Added Edit Translation Display in Regex
-- Added stabler character card format
-- Improved default prompt
-- Improved Openrouter support
-- Improved Horde support
-- Horde isn't unrecommended anymore
-- Changed high contrast italic color
-- Minor bug fixes
+# Update 1.71
+- Added VITS support
+ - Added VITS model import/export
+- Bug fixes
 `
 }
 
