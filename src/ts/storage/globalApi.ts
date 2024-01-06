@@ -378,7 +378,6 @@ export async function loadData() {
                         throw "Your save file is corrupted"
                     }
                 }
-                await registerSw()
                 await checkUpdate()
                 await changeFullscreen()
     
