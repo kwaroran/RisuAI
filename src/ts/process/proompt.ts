@@ -8,10 +8,12 @@ export type ProomptSettings = {
     sendChatAsSystem: boolean
     sendName: boolean
     utilOverride: boolean
+    customChainOfThought?: boolean
+    maxThoughtTagDepth?: number
 }
 
 export interface ProomptPlain {
-    type: 'plain'|'jailbreak';
+    type: 'plain'|'jailbreak'|'cot';
     type2: 'normal'|'globalNote'|'main'
     text: string;
     role: 'user'|'bot'|'system';

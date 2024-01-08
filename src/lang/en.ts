@@ -485,4 +485,7 @@ export const languageEnglish = {
     exportAsDataset: "Export Save as Dataset",
     editTranslationDisplay: "Edit Translation Display",
     selectModel: "Select Model",
+    autoRemoveThoughtTag: "Remove Thought Tag",
+    customChainOfThought: "Custom Chain of Thoughts",
+    maxThoughtTagDepth: "Max Thought Tag Depth",
 }

@@ -3,7 +3,6 @@ import { unzip } from 'fflate';
 import { loadAsset, saveAsset } from 'src/ts/storage/globalApi';
 import { selectSingleFile } from 'src/ts/util';
 import { v4 } from 'uuid';
-
 let tfCache:Cache = null
 let tfLoaded = false
 let tfMap:{[key:string]:string} = {}

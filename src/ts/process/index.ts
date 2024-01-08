@@ -262,7 +262,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         })
     }
 
-    if(db.chainOfThought){
+    if(db.chainOfThought && (!(usingPromptTemplate && db.proomptSettings.customChainOfThought))){
         unformated.postEverything.push({
             role: 'system',
             content: `<instruction> - before respond everything, Think step by step as a ai assistant how would you respond inside <Thoughts> xml tag. this must be less than 5 paragraphs.</instruction>`
@@ -403,8 +403,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'plain':
-                case 'jailbreak':{
+                case 'jailbreak':
+                case 'cot':{
                     if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+                    if((!db.chainOfThought) && (card.type === 'cot')){
                         continue
                     }
 
@@ -521,8 +525,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += triggerResult.tokens
     }
 
+    let index = 0
     for(const msg of ms){
-        let formedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
+        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
@@ -541,10 +546,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         let inlays:string[] = []
         if(db.inlayImage){
             if(msg.role === 'char'){
-                formedChat = formedChat.replace(/{{inlay::(.+?)}}/g, '')
+                formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
             }
             else{
-                const inlayMatch = formedChat.match(/{{inlay::(.+?)}}/g)
+                const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
                 if(inlayMatch){
                     for(const inlay of inlayMatch){
                         inlays.push(inlay)
@@ -568,25 +573,32 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         currentTokens += await tokenizer.tokenizeChat(imgchat)
                     }
                 }
-                formedChat = formedChat.replace(inlay, '')
+                formatedChat = formatedChat.replace(inlay, '')
             }
         }
 
         let attr:string[] = []
 
         if(nowChatroom.type === 'group' || (usingPromptTemplate && db.proomptSettings.sendName)){
-            formedChat = name + ': ' + formedChat
+            formatedChat = name + ': ' + formatedChat
             attr.push('nameAdded')
+        }
+        if(usingPromptTemplate && db.proomptSettings.customChainOfThought && db.proomptSettings.maxThoughtTagDepth !== -1){
+            const depth = ms.length - index
+            if(depth >= db.proomptSettings.maxThoughtTagDepth){
+                formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
+            }
         }
 
         const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
-            content: formedChat,
+            content: formatedChat,
             memo: msg.chatId,
             attr: attr
         }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
+        index++
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
@@ -762,8 +774,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     break
                 }
                 case 'plain':
-                case 'jailbreak':{
+                case 'jailbreak':
+                case 'cot':{
                     if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+                    if((!db.chainOfThought) && (card.type === 'cot')){
                         continue
                     }
 

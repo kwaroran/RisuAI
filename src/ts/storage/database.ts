@@ -367,10 +367,13 @@ export function setDatabase(data:Database){
         postEndInnerFormat: '',
         sendChatAsSystem: false,
         sendName: false,
-        utilOverride: false
+        utilOverride: false,
+        customChainOfThought: false,
+        maxThoughtTagDepth: -1
     }
     data.keiServerURL ??= ''
     data.top_k ??= 0
+    data.proomptSettings.maxThoughtTagDepth ??= -1
 
     changeLanguage(data.language)
     DataBase.set(data)

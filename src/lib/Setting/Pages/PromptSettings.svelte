@@ -7,6 +7,7 @@
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
   import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
 
     let sorted = 0
     let opened = 0
@@ -111,4 +112,9 @@
     <Check bind:check={$DataBase.proomptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
     <Check bind:check={$DataBase.proomptSettings.sendName} name={language.sendName} className="mt-4"/>
     <Check bind:check={$DataBase.proomptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
+    <Check bind:check={$DataBase.proomptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4"/>
+    {#if $DataBase.proomptSettings.customChainOfThought}
+        <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
+        <NumberInput bind:value={$DataBase.proomptSettings.maxThoughtTagDepth}/>
+    {/if}
 {/if}
