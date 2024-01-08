@@ -488,4 +488,6 @@ export const languageEnglish = {
     autoRemoveThoughtTag: "Remove Thought Tag",
     customChainOfThought: "Custom Chain of Thoughts",
     maxThoughtTagDepth: "Max Thought Tag Depth",
+    openrouterFallback: "Openrouter Fallback",
+    openrouterMiddleOut: "Openrouter Middle Out",
 }
