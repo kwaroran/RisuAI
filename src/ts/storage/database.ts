@@ -374,6 +374,8 @@ export function setDatabase(data:Database){
     data.keiServerURL ??= ''
     data.top_k ??= 0
     data.proomptSettings.maxThoughtTagDepth ??= -1
+    data.openrouterFallback ??= true
+    data.openrouterMiddleOut ??= false
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -528,6 +530,8 @@ export interface Database{
     personaPrompt:string
     openrouterRequestModel:string
     openrouterKey:string
+    openrouterMiddleOut:boolean
+    openrouterFallback:boolean
     selectedPersona:number
     personas:{
         personaPrompt:string

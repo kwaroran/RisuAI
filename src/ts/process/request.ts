@@ -432,6 +432,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     //@ts-ignore
                     body.top_k = db.top_k
                 }
+                if(db.openrouterFallback){
+                    //@ts-ignore
+                    body.route = "fallback"
+                }
+                //@ts-ignore
+                body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
             }
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
