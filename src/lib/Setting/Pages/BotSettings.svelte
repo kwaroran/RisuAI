@@ -229,6 +229,14 @@
         <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
     </div>
 {/if}
+{#if $DataBase.aiModel.startsWith('openrouter')}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.openrouterFallback} name={language.openrouterFallback}/>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.openrouterMiddleOut} name={language.openrouterMiddleOut}/>
+    </div>
+{/if}
 
 {#if $DataBase.aiModel === 'custom' || $DataBase.subModel === 'custom'}
     <span class="text-textcolor mt-2">{language.plugin}</span>
@@ -319,12 +327,6 @@
     <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.top_k}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_k).toFixed(0)}</span>
-    <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.openrouterFallback} name={language.openrouterFallback}/>
-    </div>
-    <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.openrouterMiddleOut} name={language.openrouterMiddleOut}/>
-    </div>
 {/if}
 
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_')}
