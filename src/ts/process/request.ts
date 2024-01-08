@@ -21,6 +21,7 @@ import { supportsInlayImage } from "../image";
 import { OaifixEmdash } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
+import { runTransformers } from "./embedding/transformers";
 
 
 
@@ -1632,6 +1633,23 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
+            }
+            if(aiModel.startsWith('hf:::')){
+                const realModel = aiModel.split(":::")[1]
+                const suggesting = model === "submodel"
+                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const v = await runTransformers(proompt, realModel, {
+                    temperature: temperature,
+                    max_new_tokens: maxTokens,
+                    top_k: db.ooba.top_k,
+                    top_p: db.ooba.top_p,
+                    repetition_penalty: db.ooba.repetition_penalty,
+                    typical_p: db.ooba.typical_p,
+                })
+                return {
+                    type: 'success',
+                    result: unstringlizeChat(v.generated_text, formated, currentChar?.name ?? '')
+                }
             }
             if(aiModel.startsWith('local_')){
                 console.log('running local model')

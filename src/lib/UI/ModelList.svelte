@@ -3,7 +3,6 @@
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
-    import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import Help from "../Others/Help.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
 
@@ -85,6 +84,10 @@
                 if(name.startsWith("horde:::")){
                     const split = name.split(":::")
                     return `Horde ${split[1]}`
+                }
+                if(name.startsWith('tf:::')){
+                    const split = name.split(":::")
+                    return `${split[1]}`
                 }
                 return name
         }
@@ -190,7 +193,14 @@
                         </button>
                     {/each}
                 {/await}
-                </Arcodion>
+            </Arcodion>
+            {#if showUnrec}
+            <Arcodion name="WebLLM Local">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/opt-350m')}}>opt-350m</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/tiny-random-mistral')}}>tiny-random-mistral</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/gpt2-large-conversational')}}>gpt2-large-conversational</button>
+            </Arcodion>
+            {/if}
             {#if $DataBase.plugins.length > 0}
                 <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}

@@ -1,6 +1,6 @@
 import {env, AutoTokenizer, pipeline, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline } from '@xenova/transformers';
 import { unzip } from 'fflate';
-import { loadAsset, saveAsset } from 'src/ts/storage/globalApi';
+import { globalFetch, loadAsset, saveAsset } from 'src/ts/storage/globalApi';
 import { selectSingleFile } from 'src/ts/util';
 import { v4 } from 'uuid';
 let tfCache:Cache = null
