@@ -1,10 +1,10 @@
-
+// [from, to, ratio, isMetrica]
 const convertion:[string,string,number, boolean][] = [
     ['kg', 'lbs', 2.20462, true],
     ['m', 'ft', 3.28084, true],
     ['cm', 'inch', 0.393701, false],
     ['mm', 'inch', 0.0393701, false],
-    ['km', 'mi', 0.621371, true],
+    ['km', 'mi', 0.621371, false],
     ['killogram', 'pound', 2.20462, true],
     ['meter', 'foot', 3.28084, true],
     ['centimeter', 'inch', 0.393701, true],
@@ -22,7 +22,8 @@ export function metricaPlugin(data:string, toSystem:'metrics'|'imperial'){
         }
         if(!c[i][3]){
             if(toSystem === 'metrics'){
-                continue;
+                from = from + ' '
+                to = to + ' '
             }
         }
         const reg = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*${from}`, 'g');
