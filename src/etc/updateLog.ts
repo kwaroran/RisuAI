@@ -1,11 +1,12 @@
 export const patchNote = {
-    version: "1.71",
+    version: "1.72",
     content: 
 `
-# Update 1.71
-- Added VITS support
- - Added VITS model import/export
-- Bug fixes
+# Update 1.72
+- Added custom chain of thoughts
+- Added thought tag depth
+- Added Openrouter fallback option
+- Added Openrouter middle-out option
 `
 }
 
