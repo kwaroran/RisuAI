@@ -116,7 +116,13 @@
     </div>
 {/if}
 {#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
-    <span class="text-textcolor">Google Bearer Token</span>
+    <span class="text-textcolor">
+        {#if $DataBase.google.projectId === 'aigoogle'}
+            GoogleAI API Key
+        {:else}
+            Google Bearer Token
+        {/if}
+    </span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.accessToken}/>
 
     {#if $DataBase.google.projectId !== 'aigoogle'}

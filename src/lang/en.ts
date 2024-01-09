@@ -490,4 +490,5 @@ export const languageEnglish = {
     maxThoughtTagDepth: "Max Thought Tag Depth",
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
+    geminiApiKey: "Gemini API Key",
 }
