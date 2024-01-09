@@ -149,7 +149,7 @@ export function updateTextTheme(){
         case "highcontrast":{
             if(db.colorScheme.type === 'dark'){
                 root.style.setProperty('--FontColorStandard', '#f8f8f2');
-                root.style.setProperty('--FontColorItalic', '#f0abfc');
+                root.style.setProperty('--FontColorItalic', '#eab308');
                 root.style.setProperty('--FontColorBold', '#8BE9FD');
                 root.style.setProperty('--FontColorItalicBold', '#FFB86C');
             }
