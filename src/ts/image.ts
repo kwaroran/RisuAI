@@ -3,8 +3,7 @@ import { selectSingleFile } from "./util";
 import { v4 } from "uuid";
 import { DataBase } from "./storage/database";
 import { get } from "svelte/store";
-import { checkImageType, isAPNG } from "./parser";
-import { PngChunk } from "./pngChunk";
+import { checkImageType } from "./parser";
 
 const inlayStorage = localforage.createInstance({
     name: 'inlay',

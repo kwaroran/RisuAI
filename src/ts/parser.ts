@@ -253,9 +253,6 @@ export async function convertImage(data:Uint8Array) {
     }
     const type = checkImageType(data)
     if(type !== 'Unknown' && type !== 'WEBP' && type !== 'AVIF'){
-        if(type === 'PNG' && isAPNG(data)){
-            return data
-        }
         return await resizeAndConvert(data)
     }
     return data
@@ -326,22 +323,6 @@ export function checkImageType(arr:Uint8Array):ImageType {
     if (isAVIF) return "AVIF";
     if (isWEBP) return "WEBP";
     return "Unknown";
-}
-
-export function isAPNG(pngData: Uint8Array): boolean {
-    const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-    const acTL = [0x61, 0x63, 0x54, 0x4C];
-  
-    if (!pngData.slice(0, pngSignature.length).every((v, i) => v === pngSignature[i])) {
-      throw new Error('Invalid PNG data');
-    }
-  
-    for (let i = pngSignature.length; i < pngData.length - 12; i += 4) {
-      if (pngData.slice(i + 4, i + 8).every((v, j) => v === acTL[j])) {
-        return true;
-      }
-    }
-    return false;
 }
 
 function wppParser(data:string){
