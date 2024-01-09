@@ -47,7 +47,7 @@
         {/if}
     </SelectInput>
 
-    {#if proompt.type === 'plain' || proompt.type === 'jailbreak'}
+    {#if proompt.type === 'plain' || proompt.type === 'jailbreak' || proompt.type === 'cot'}
         <span>{language.specialType}</span>
         <SelectInput bind:value={proompt.type2}>
             <OptionInput value="normal">{language.noSpecialType}</OptionInput>
