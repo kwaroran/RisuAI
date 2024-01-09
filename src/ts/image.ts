@@ -3,7 +3,7 @@ import { selectSingleFile } from "./util";
 import { v4 } from "uuid";
 import { DataBase } from "./storage/database";
 import { get } from "svelte/store";
-import { isAPNG } from "./parser";
+import { checkImageType, isAPNG } from "./parser";
 import { PngChunk } from "./pngChunk";
 
 const inlayStorage = localforage.createInstance({
@@ -100,8 +100,8 @@ export function supportsInlayImage(){
 }
 
 export async function reencodeImage(img:Uint8Array){
-    if(isAPNG(img)){
-        return PngChunk.write(img, {}) as Promise<Buffer>
+    if(checkImageType(img) === 'PNG'){
+        return img
     }
     const canvas = document.createElement('canvas')
     const imgObj = new Image()
