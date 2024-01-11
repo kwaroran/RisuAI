@@ -18,7 +18,7 @@ import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
 import { supportsInlayImage } from "../image";
-import { OaifixEmdash } from "../plugins/fixer";
+import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./embedding/transformers";
@@ -243,10 +243,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 }
             }
-
-            if(db.officialplugins.oaiFix && db.officialplugins.oaiFixEmdash){
-                if(raiModel.startsWith('gpt35') || raiModel.startsWith('gpt4')){
-                    bias = OaifixEmdash(bias)
+            if(raiModel.startsWith('gpt')){
+                if(db.officialplugins.oaiFix){
+                    bias = OaifixBias(bias)
                 }
             }
 

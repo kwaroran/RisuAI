@@ -1,4 +1,8 @@
-export function OaifixEmdash(bias:{[key:number]:number}){
+import { get } from "svelte/store"
+import { DataBase } from "../storage/database"
+
+export function OaifixBias(bias:{[key:number]:number}){
+    const db = get(DataBase)
     const emdashes = [
         2001,  2345,  8713, 16620, 17223,
        22416, 29096, 29472, 30697, 35192,
@@ -11,8 +15,15 @@ export function OaifixEmdash(bias:{[key:number]:number}){
        90863, 93830, 96197, 99563
     ]
 
-    for (const emdash of emdashes) {
-        bias[emdash] = -100
+    const biases = []
+
+    if(db.officialplugins.oaiFixEmdash){
+        biases.push(...emdashes)
+    }
+    
+
+    for (const key of biases) {
+        bias[key] = -100
     }
 
     return bias
