@@ -239,10 +239,10 @@
     </div>
 {/if}
 {#if $DataBase.aiModel.startsWith('openrouter')}
-    <div class="flex items-center mt-4">
+    <div class="flex items-center">
         <Check bind:check={$DataBase.openrouterFallback} name={language.openrouterFallback}/>
     </div>
-    <div class="flex items-center mt-4">
+    <div class="flex items-center">
         <Check bind:check={$DataBase.openrouterMiddleOut} name={language.openrouterMiddleOut}/>
     </div>
 {/if}
