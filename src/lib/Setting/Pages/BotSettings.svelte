@@ -150,6 +150,9 @@
 {#if $DataBase.aiModel.startsWith('claude') || $DataBase.subModel.startsWith('claude')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
+    {#if $DataBase.useExperimental}
+        <Check name="Claude Aws" bind:check={$DataBase.claudeAws}> <Help key="experimental" /></Check>
+    {/if}
 {/if}
 {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
     <span class="text-textcolor">Mistral {language.apiKey}</span>

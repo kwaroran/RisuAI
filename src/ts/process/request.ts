@@ -1427,27 +1427,23 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }).join('') + '\n\nAssistant: '
 
 
-                //claude bedrock
-
-                //placeholders
-                const bedrock = false
-                const region = ''
-
-                const AMZ_HOST = "invoke-bedrock.%REGION%.amazonaws.com";
-                const host = AMZ_HOST.replace("%REGION%", region);
-
-                function getCredentialParts(key:string) {
-                    const [accessKeyId, secretAccessKey, region] = key.split(":");
-                  
-                    if (!accessKeyId || !secretAccessKey || !region) {
-                      throw new Error("The key assigned to this request is invalid.");
-                    }
-                  
-                    return { accessKeyId, secretAccessKey, region };
-                }
-
+                const bedrock = db.claudeAws
                   
                 if(bedrock){
+                    function getCredentialParts(key:string) {
+                        const [accessKeyId, secretAccessKey, region] = key.split(":");
+                      
+                        if (!accessKeyId || !secretAccessKey || !region) {
+                          throw new Error("The key assigned to this request is invalid.");
+                        }
+                      
+                        return { accessKeyId, secretAccessKey, region };
+                    }
+                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
+
+                    const AMZ_HOST = "invoke-bedrock.%REGION%.amazonaws.com";
+                    const host = AMZ_HOST.replace("%REGION%", region);
+
                     const stream = false
                     const url = `https://${host}/model/${model}/invoke${stream ? "-with-response-stream" : ""}`
                     const params = {
@@ -1472,7 +1468,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     });                    
 
 
-                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
                     const signer = new SignatureV4({
                         sha256: Sha256,
                         credentials: { accessKeyId, secretAccessKey },

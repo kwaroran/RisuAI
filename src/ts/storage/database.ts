@@ -591,6 +591,7 @@ export interface Database{
         }
     },
     top_k:number
+    claudeAws:boolean
 }
 
 export interface customscript{
