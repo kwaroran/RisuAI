@@ -6,6 +6,7 @@ import { exists } from "@tauri-apps/api/fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
 import { get } from "svelte/store";
 import { DataBase } from "src/ts/storage/database";
+import { resolveResource } from '@tauri-apps/api/path'
 let serverRunning = false;
 
 export function checkLocalModel():Promise<string>{
@@ -157,6 +158,7 @@ export async function runLocalModel(prompt:string){
 export async function installPython(){
     const appDir = await path.appDataDir()
     const completedPath = await path.join(appDir, 'python', 'completed.txt')
+    console.log(await resolveResource('/src-python/'))
     if(await exists(completedPath)){
         alertMd("Python is already installed")
         return

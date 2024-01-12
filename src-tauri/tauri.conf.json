@@ -29,7 +29,7 @@
       },
       "fs":{
         "all": true,
-        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*"]
+        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*", "$RESOURCE/*"]
       },
       "path":{
         "all": true
@@ -87,7 +87,10 @@
         "icons/icon.ico"
       ],
       "identifier": "co.aiclient.risu",
-      "targets": "all"
+      "targets": "all",
+      "resources": [
+        "src-python/*"
+      ]
     },
     "security": {
       "csp": null
