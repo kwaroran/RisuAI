@@ -153,3 +153,28 @@ export async function runLocalModel(prompt:string){
 
     console.log(gen)
 }
+
+export async function installPython(){
+    const appDir = await path.appDataDir()
+    const completedPath = await path.join(appDir, 'python', 'completed.txt')
+    if(await exists(completedPath)){
+        alertMd("Python is already installed")
+        return
+    }
+
+    alertWait("Installing Python")
+    await invoke("install_python", {
+        path: appDir
+    })
+    alertWait("Installing Pip")
+    await invoke("install_pip", {
+        path: appDir
+    })
+    alertWait("Rewriting requirements")
+    await invoke('post_py_install', {
+        path: appDir
+    })
+    alertClear()
+
+
+}

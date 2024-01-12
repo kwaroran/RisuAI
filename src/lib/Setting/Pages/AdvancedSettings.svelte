@@ -9,6 +9,7 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
   import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
   import Help from "src/lib/Others/Help.svelte";
+  import { installPython } from "src/ts/process/models/local";
 
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
@@ -123,3 +124,12 @@
     class="drop-shadow-lg p-3 border-borderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
     {language.ShowLog}
 </button>
+{#if $DataBase.tpo}
+    <button
+        on:click={async () => {
+            installPython()
+        }}
+        class="drop-shadow-lg p-3 border-borderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+        Test Python
+    </button>
+{/if}
