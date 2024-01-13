@@ -1501,7 +1501,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                           //"anthropic-version": "2023-06-01",
                         },
                         body: JSON.stringify(params),
-                        plainFetchForce: true
                     });                    
 
 
@@ -1518,6 +1517,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         method: "POST",
                         body: params,
                         headers: signed.headers,
+                        plainFetchForce: true
                     })
 
                       
