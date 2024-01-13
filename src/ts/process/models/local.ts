@@ -158,7 +158,6 @@ export async function runLocalModel(prompt:string){
 export async function installPython(){
     const appDir = await path.appDataDir()
     const completedPath = await path.join(appDir, 'python', 'completed.txt')
-    console.log(await resolveResource('/src-python/'))
     if(await exists(completedPath)){
         alertMd("Python is already installed")
         return
@@ -176,7 +175,11 @@ export async function installPython(){
     await invoke('post_py_install', {
         path: appDir
     })
+    const srvPath = await resolveResource('/src-python/')
+    await invoke('run_py_server', {
+        path: srvPath
+       
+    })
+
     alertClear()
-
-
 }

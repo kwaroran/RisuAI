@@ -951,10 +951,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             })
         }
         db.characters[selectedChar].chats[selectedChat].isStreaming = true
+        let lastResponseChunk:{[key:string]:string} = {}
         while(abortSignal.aborted === false){
             const readed = (await reader.read())
             if(readed.value){
-                result = readed.value
+                console.log(lastResponseChunk)
+
+                lastResponseChunk = readed.value
+                const firstChunkKey = Object.keys(lastResponseChunk)[0]
+                result = lastResponseChunk[firstChunkKey]
                 if(db.cipherChat){
                     result = decipherChat(result)
                 }
@@ -971,6 +976,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 break
             }   
         }
+
+        console.log(lastResponseChunk)
+        addRerolls(generationId, Object.values(lastResponseChunk))
 
         currentChat = db.characters[selectedChar].chats[selectedChat]        
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})

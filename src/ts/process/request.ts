@@ -49,7 +49,7 @@ type requestDataResponse = {
     }
 }|{
     type: "streaming",
-    result: ReadableStream<string>,
+    result: ReadableStream<StreamResponseChunk>,
     special?: {
         emotion?: string
     }
@@ -60,6 +60,8 @@ type requestDataResponse = {
         emotion?: string
     }
 }
+
+interface StreamResponseChunk{[key:string]:string}
 
 interface OaiFunctions {
     name: string;
@@ -503,7 +505,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.n = db.genTime
             }
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
-            if(db.useStreaming && arg.useStreaming && (!multiGen)){
+            if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 let urlHost = new URL(replacerURL).host
                 if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
@@ -556,12 +558,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 let dataUint = new Uint8Array([])
 
-                const transtream = new TransformStream<Uint8Array, string>(  {
+                const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
                     async transform(chunk, control) {
                         dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
                         try {
                             const datas = dataUint.toString().split('\n')
-                            let readed = ''
+                            let readed:{[key:string]:string} = {}
                             for(const data of datas){
                                 if(data.startsWith("data: ")){
                                     try {
@@ -570,9 +572,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                             control.enqueue(readed)
                                             return
                                         }
-                                        const chunk = JSON.parse(rawChunk).choices[0].delta.content
-                                        if(chunk){
-                                            readed += chunk
+                                        const choices = JSON.parse(rawChunk).choices
+                                        for(const choice of choices){
+                                            const chunk = choice.delta.content
+                                            const ind = choice.index.toString()
+                                            if(chunk){
+                                                if(!readed[ind]){
+                                                    readed[ind] = ""
+                                                }
+                                                readed[ind] += chunk
+                                            }
                                         }
                                     } catch (error) {}
                                 }
