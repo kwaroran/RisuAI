@@ -1438,7 +1438,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 const bedrock = db.claudeAws
                   
-                if(bedrock){
+                if(bedrock && aiModel !== 'reverse_proxy'){
                     function getCredentialParts(key:string) {
                         const [accessKeyId, secretAccessKey, region] = key.split(":");
                       
@@ -1450,14 +1450,41 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                     const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
 
-                    const AMZ_HOST = "invoke-bedrock.%REGION%.amazonaws.com";
+                    const AMZ_HOST = "bedrock-runtime.%REGION%.amazonaws.com";
                     const host = AMZ_HOST.replace("%REGION%", region);
 
                     const stream = false
-                    const url = `https://${host}/model/${model}/invoke${stream ? "-with-response-stream" : ""}`
+
+                    const LATEST_AWS_V2_MINOR_VERSION = 1;
+                    let awsModel = `anthropic.claude-v2:${LATEST_AWS_V2_MINOR_VERSION}`;
+
+                    const pattern = /^(claude-)?(instant-)?(v)?(\d+)(\.(\d+))?(-\d+k)?$/i;
+                    const match = raiModel.match(pattern);
+                  
+                    if (match) {
+                        const [, , instant, , major, , minor] = match;
+                    
+                        if (instant) {
+                            awsModel = "anthropic.claude-instant-v1";
+                        }
+                    
+                        // There's only one v1 model
+                        if (major === "1") {
+                            awsModel = "anthropic.claude-v1";
+                        }
+                    
+                        // Try to map Anthropic API v2 models to AWS v2 models
+                        if (major === "2") {
+                            if (minor === "0") {
+                                awsModel = "anthropic.claude-v2";
+                            }
+                        }                    
+                    }
+
+                    const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
                     const params = {
-                        prompt : "\n\nHuman: " + requestPrompt,
-                        model: raiModel,
+                        prompt : requestPrompt.startsWith("\n\nHuman: ") ? requestPrompt : "\n\nHuman: " + requestPrompt,
+                        //model: raiModel,
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
@@ -1466,12 +1493,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         method: "POST",
                         protocol: "https:",
                         hostname: host,
-                        path: `/model/${model}/invoke${stream ? "-with-response-stream" : ""}`,
+                        path: `/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`,
                         headers: {
                           ["Host"]: host,
-                          ["content-type"]: "application/json",
+                          ["Content-Type"]: "application/json",
                           ["accept"]: "application/json",
-                          "anthropic-version": "2023-06-01",
+                          //"anthropic-version": "2023-06-01",
                         },
                         body: JSON.stringify(params),
                     });                    
@@ -1486,15 +1513,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                     const signed = await signer.sign(rq);
 
-                    const da = await globalFetch(`${signed.protocol}//${signed.hostname}`, {
+                    const da = await globalFetch(url, {
                         method: "POST",
                         body: params,
-                        headers: {
-                            ["Host"]: host,
-                            ["content-type"]: "application/json",
-                            ["accept"]: "application/json",
-                            "anthropic-version": "2023-06-01",
-                        }
+                        headers: signed.headers,
                     })
 
                       
