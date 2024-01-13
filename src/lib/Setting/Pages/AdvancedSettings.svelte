@@ -34,7 +34,7 @@
 <span class="text-textcolor">{language.requestretrys}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
-<span class="text-textcolor">{language.genTimes} <Help key="experimental"/></span>
+<span class="text-textcolor">{language.genTimes}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.genTime}/>
 
 <span class="text-textcolor">Request Lib</span>
