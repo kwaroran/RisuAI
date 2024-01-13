@@ -159,7 +159,29 @@ export async function installPython(){
     const appDir = await path.appDataDir()
     const completedPath = await path.join(appDir, 'python', 'completed.txt')
     if(await exists(completedPath)){
-        alertMd("Python is already installed")
+        const dependencies = [
+            'pydantic',
+            'scikit-build',
+            'scikit-build-core',
+            'pyproject_metadata',
+            'pathspec',
+            'llama-cpp-python',
+            'uvicorn[standard]',
+            'fastapi'
+        ]
+        for(const dep of dependencies){
+            alertWait("Installing Python Dependencies (" + dep + ")")
+            await invoke('install_py_dependencies', {
+                path: appDir,
+                dependency: dep
+            })
+        }
+
+        const srvPath = await resolveResource('/src-python/')
+        await invoke('run_py_server', {
+            pyPath: appDir,
+        })
+        alertMd("Python Server is running at: " + srvPath)
         return
     }
 
@@ -174,11 +196,6 @@ export async function installPython(){
     alertWait("Rewriting requirements")
     await invoke('post_py_install', {
         path: appDir
-    })
-    const srvPath = await resolveResource('/src-python/')
-    await invoke('run_py_server', {
-        path: srvPath
-       
     })
 
     alertClear()

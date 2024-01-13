@@ -279,6 +279,43 @@ fn post_py_install(path:String){
     std::fs::write(&completed_path, "python311").unwrap();
 }
 
+
+#[tauri::command]
+fn install_py_dependencies(path:String, dependency:String) -> Result<(), String>{
+    println!("installing {}", dependency);
+    let py_path = Path::new(&path).join("python");
+    let py_exec_path = py_path.join("python.exe");
+    let mut py = Command::new(py_exec_path);
+    let output = py.arg("-m").arg("pip").arg("install").arg(dependency).output();
+    match output {
+        Ok(o) => {
+            let res = String::from_utf8(o.stdout).unwrap();
+            println!("{}", res);
+            return Ok(())
+        },
+        Err(e) => {
+            println!("{}", e);
+            return Err(e.to_string())
+        }
+    }
+}
+
+#[tauri::command]
+fn run_py_server(handle: tauri::AppHandle, py_path:String){
+    let py_exec_path = Path::new(&py_path).join("python").join("python.exe");
+    let server_path = handle.path_resolver().resolve_resource("src-python/run.py").expect("failed to resolve resource");
+
+    let mut py_server = Command::new(&py_exec_path);
+    //set working directory to server path
+    py_server.current_dir(server_path.parent().unwrap());
+
+    println!("server_path: {}", server_path.display());
+    println!("py_exec_path: {}", py_exec_path.display());
+    let mut _child = py_server.arg("-m").arg("uvicorn").arg("--port").arg("10026").arg("main:app").spawn().expect("failed to execute process");
+    println!("server started");
+    return
+}
+
 #[tauri::command]
 fn run_server_local(){
     let app_base_path = tauri::api::path::data_dir().unwrap().join("co.aiclient.risu");
@@ -347,7 +384,9 @@ fn main() {
             run_server_local,
             install_python,
             install_pip,
-            post_py_install
+            post_py_install,
+            run_py_server,
+            install_py_dependencies
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
