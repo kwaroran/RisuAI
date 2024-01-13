@@ -1,14 +1,13 @@
 export const patchNote = {
-    version: "1.73",
+    version: "1.74",
     content: 
 `
-# Update 1.73
-- Added WebLLM Local
- - WebLLM Local is a option for users who want to use LLM directly on their computer, without sending any data to the server.
- - WebLLM Local is experimental, and may not work on all devices.
- - Currently WebLLM Local only supports three models, but more will be added in the future.
- - Also, in future updates, You may be able to use WebLLM Local with any transformer model.
- - Currently WebLLM Local only supports CPU, but GPU support with WebGPU will be added in the future.
+# Update 1.74
+- Added (?) button on many settings
+- Hypamemory isn't marked as experimental anymore
+- Generation Times isn't marked as experimental anymore
+- Generation Times will work with streamed responses now
+- Removed unused settings
 `
 }
 
