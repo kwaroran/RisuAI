@@ -1469,12 +1469,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     
                         // There's only one v1 model
-                        if (major === "1") {
+                        else if (major === "1") {
                             awsModel = "anthropic.claude-v1";
                         }
                     
                         // Try to map Anthropic API v2 models to AWS v2 models
-                        if (major === "2") {
+                        else if (major === "2") {
                             if (minor === "0") {
                                 awsModel = "anthropic.claude-v2";
                             } else if (!v && !dot && !minor) {
