@@ -37,12 +37,6 @@
 <span class="text-textcolor">{language.genTimes} <Help key="genTimes"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.genTime}/>
 
-<span class="text-textcolor">Request Lib</span>
-<SelectInput bind:value={$DataBase.requester}>
-    <OptionInput value="new">Reqwest</OptionInput>
-    <OptionInput value="old">Tauri</OptionInput>
-</SelectInput>
-
 <span class="text-textcolor mt-4">GPT Vision Quality <Help key="gptVisionQuality"/></span>
 {#if $DataBase.inlayImage}
     <SelectInput bind:value={$DataBase.gptVisionQuality}>
