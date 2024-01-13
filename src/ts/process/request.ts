@@ -1462,7 +1462,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     const match = raiModel.match(pattern);
                   
                     if (match) {
-                        const [, , instant, , major, , minor] = match;
+                        const [, , instant, v, major, dot, minor] = match;
                     
                         if (instant) {
                             awsModel = "anthropic.claude-instant-v1";
@@ -1477,7 +1477,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         if (major === "2") {
                             if (minor === "0") {
                                 awsModel = "anthropic.claude-v2";
-                            }
+                            } else if (!v && !dot && !minor) {
+                                awsModel = "anthropic.claude-v2";
+                            } 
                         }                    
                     }
 
@@ -1488,6 +1490,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
+                        top_p: db.top_p,
                     }
                     const rq = new HttpRequest({
                         method: "POST",
