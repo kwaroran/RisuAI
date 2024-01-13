@@ -25,16 +25,16 @@
 <span class="text-textcolor">{language.descriptionPrefix}</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.descriptionPrefix}/>
 
-<span class="text-textcolor">{language.emotionPrompt}</span>
+<span class="text-textcolor">{language.emotionPrompt} <Help key="emotionPrompt"/></span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.emotionPrompt2} placeholder="Leave it blank to use default"/>
 
 <span class="text-textcolor">Kei Server URL</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.keiServerURL} placeholder="Leave it blank to use default"/>
 
-<span class="text-textcolor">{language.requestretrys}</span>
+<span class="text-textcolor">{language.requestretrys} <Help key="requestretrys"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={$DataBase.requestRetrys}/>
 
-<span class="text-textcolor">{language.genTimes}</span>
+<span class="text-textcolor">{language.genTimes} <Help key="genTimes"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.genTime}/>
 
 <span class="text-textcolor">Request Lib</span>
@@ -43,7 +43,7 @@
     <OptionInput value="old">Tauri</OptionInput>
 </SelectInput>
 
-<span class="text-textcolor mt-4">GPT Vision Quality</span>
+<span class="text-textcolor mt-4">GPT Vision Quality <Help key="gptVisionQuality"/></span>
 {#if $DataBase.inlayImage}
     <SelectInput bind:value={$DataBase.gptVisionQuality}>
         <OptionInput value="low">Low</OptionInput>
@@ -52,28 +52,25 @@
 {/if}
 
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}/>
+    <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}> <Help key="sayNothing"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.showUnrecommended} name={language.showUnrecommended}/>
+    <Check bind:check={$DataBase.showUnrecommended} name={language.showUnrecommended}> <Help key="showUnrecommended"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.imageCompression} name={language.imageCompression}/>
+    <Check bind:check={$DataBase.imageCompression} name={language.imageCompression}> <Help key="imageCompression"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}/>
+    <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}> <Help key="useExperimental"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}/>
+    <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}/>
-    {#if $DataBase.usePlainFetch}
-        <span class="text-draculared text-xs ml-2">{language.usePlainFetchWarn}</span>
-    {/if}
+    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}/>
+    <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}> <Help key="autoFillRequestURL"/></Check>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.newOAIHandle} name={language.newOAIHandle}/>
@@ -98,7 +95,7 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.chainOfThought} name={language.cot}>
-        <Help key="experimental"/>
+        <Help key="chainOfThought"/><Help key="experimental"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">
