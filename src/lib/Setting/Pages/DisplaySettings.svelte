@@ -183,4 +183,8 @@
         <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
         <Help key="experimental" name={language.useChatSticker}/>
     </div>
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.largePersonaPortrait} name={language.largePersonaPortrait}/>
+        <Help key="experimental" name={language.largePersonaPortrait}/>
+    </div>
 {/if}

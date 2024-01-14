@@ -69,7 +69,7 @@
             {#if $DataBase.userIcon === ''}
                 <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
             {:else}
-                {#await getCharImage($DataBase.userIcon, 'css')}
+                {#await getCharImage($DataBase.userIcon, $DataBase.largePersonaPortrait ? 'lgcss' : 'css')}
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
                 {:then im} 
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                

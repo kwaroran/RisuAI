@@ -504,4 +504,5 @@ export const languageEnglish = {
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
+    largePersonaPortrait: "Persona Portrait",
 }

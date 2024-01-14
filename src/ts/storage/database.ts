@@ -592,6 +592,7 @@ export interface Database{
     },
     top_k:number
     claudeAws:boolean
+    largePersonaPortrait:boolean
 }
 
 export interface customscript{
