@@ -893,7 +893,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             let pointer = 0
             while(tokens > maxContextTokens){
                 if(pointer >= formated.length){
-                    alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + tokens)
+                    alertError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + tokens)
                     return false
                 }
                 if(formated[pointer].removable){
