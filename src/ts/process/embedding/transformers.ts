@@ -57,7 +57,7 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     }
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/all-MiniLM-L6-v2');
     const tokens = tokenizer.encode(text)
-    if (tokens.length > 256) {
+    if (tokens.length > 1024) {
         let chunks:string[] = []
         let chunk:number[] = []
         for (let i = 0; i < tokens.length; i++) {

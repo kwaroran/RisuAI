@@ -178,7 +178,7 @@ export async function supaMemory(
             if(db.supaMemoryType === 'distilbart'){
                 try {
                     const sum =  await runSummarizer(stringlizedChat)
-                    return sum[0].summary_text
+                    return sum
                 } catch (error) {
                     return {
                         currentTokens: currentTokens,
@@ -274,7 +274,7 @@ export async function supaMemory(
                             return {
                                 currentTokens: currentTokens,
                                 chats: chats,
-                                error: "Not Enough Tokens"
+                                error: "Not Enough Tokens to summarize in SupaMemory"
                             }
                         }
                         maxChunkSize = maxChunkSize * 0.7
