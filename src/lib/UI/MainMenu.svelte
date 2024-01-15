@@ -9,7 +9,7 @@
   import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
   import Title from "./Title.svelte";
-  import { getPatchNote } from "src/etc/updateLog";
+  import { getPatchNote } from "src/etc/patchNote";
   import { parseMarkdownSafe } from "src/ts/parser";
   let openHub = false
   const patch = getPatchNote(appVer)
