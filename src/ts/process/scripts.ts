@@ -86,7 +86,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
 
             let outScript2 = script.out.replaceAll("$n", "\n")
             let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})
-            let flag = script.ableFlag ? script.flag : 'g'
+            let flag = (script.ableFlag ? script.flag : 'g') || ''
             if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
             }
@@ -130,7 +130,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                             console.log(matched)
                             if(matched){
                                 const inData = matched[0]
-                                let out = outScript.split(' ', 2)[1]
+                                let out = outScript.replace('@@move_top ', '').replace('@@move_bottom ', '')
                                     .replace(/(?<!\$)\$[0-9]+/g, (v)=>{
                                         const index = parseInt(v.substring(1))
                                         if(index < matched.length){
@@ -146,11 +146,12 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                                         }
                                         return v
                                     })
+                                console.log(out)
                                 if(outScript.startsWith('@@move_top')){
-                                    data = out + data
+                                    data = out + '\n' +data
                                 }
                                 else{
-                                    data = data + out
+                                    data = data + '\n' + out
                                 }
                             }
                         }
