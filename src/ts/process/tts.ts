@@ -18,6 +18,10 @@ export async function sayTTS(character:character,text:string) {
             }
             character = v
         }
+
+        if(!text){
+            return
+        }
     
         let db = get(DataBase)
         text = text.replace(/\*/g,'')
