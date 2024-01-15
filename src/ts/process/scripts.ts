@@ -86,9 +86,18 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
 
             let outScript2 = script.out.replaceAll("$n", "\n")
             let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})
-            let flag = (script.ableFlag ? script.flag : 'g') || ''
+            let flag = 'g'
+            if(script.ableFlag){
+                flag = script.flag || 'g'
+            }
             if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
+            }
+            //remove unsupported flag
+            flag = flag.replace(/[^gimuy]/g, '')
+
+            if(flag.length === 0){
+                flag = 'u'
             }
 
             const reg = new RegExp(script.in, flag)
