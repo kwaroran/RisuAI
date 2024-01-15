@@ -6,8 +6,8 @@ export const patchNote = {
 - Added @@move_top and @@move_bottom in regex script
 - Added @@end, @@assistant, @@user, @@system
 - depercated @@@end, @@@assistant, @@@user, @@@system for consistency
- - Use newly added two @ version instead
- - deprecated commands could be removed in future update
+  - Use newly added two @ version instead
+  - deprecated commands could be removed in future update
 - Added {{br}}, used for line break
 - sendChat error message changed
 - fix AWS claude (by @bangonicdd)
