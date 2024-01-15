@@ -25,13 +25,21 @@
         <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
       {/if}
       <GithubStars />
-      {#if patch}
-        <div class="w-full max-w-4xl pl-4 pr-4 pt-4">
+      {#if patch.content}
+        <div class="w-full max-w-4xl pl-4 pr-4 pt-4 relative">
+          {#if patch.version !== $DataBase.lastPatchNoteCheckVersion}
+            <div class="absolute inline-flex items-center justify-center p-1 text-sm font-bold text-white bg-red-500 border-2 border-red-600 rounded-full top-2 start-2 ">
+              Update
+            </div>
+          {/if}
           <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
-            on:click={() => {patchNodeHidden = false}}
+            on:click={() => {
+              patchNodeHidden = false
+              $DataBase.lastPatchNoteCheckVersion = patch.version
+            }}
             class:max-h-40={patchNodeHidden}>
               <div class="prose prose-invert">
-                {@html parseMarkdownSafe(patch)}
+                {@html parseMarkdownSafe(patch.content)}
               </div>
           </div>
         </div>

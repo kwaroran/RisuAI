@@ -592,6 +592,7 @@ export interface Database{
     },
     top_k:number
     claudeAws:boolean
+    lastPatchNoteCheckVersion?:string
 }
 
 export interface customscript{
