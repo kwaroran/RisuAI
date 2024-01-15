@@ -83,11 +83,15 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     }
     for (const script of scripts){
         if(script.type === mode){
-            
-            const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
+
             let outScript2 = script.out.replaceAll("$n", "\n")
             let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})
+            let flag = script.ableFlag ? script.flag : 'g'
+            if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
+                flag = flag.replace('g', '') //temperary fix
+            }
 
+            const reg = new RegExp(script.in, flag)
             if(outScript.startsWith('@@')){
                 if(reg.test(data)){
                     if(outScript.startsWith('@@emo ')){
@@ -118,15 +122,38 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         selchar.chats[selchar.chatPage].message[chatID].data = data
                         data = data.replace(reg, "")
                     }
-                    if(outScript.startsWith('@@move_top')){
-                        const out = outScript.split(' ', 2)[1]
-                        data.replace(reg, '')
-                        data = out + data
-                    }
-                    if(outScript.startsWith('@@move_bottom')){
-                        const out = outScript.split(' ', 2)[1]
-                        data.replace(reg, '')
-                        data = data + out
+                    if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
+                        const isGlobal = flag.includes('g')
+                        const matchAll = isGlobal ? data.matchAll(reg) : [data.match(reg)]
+                        data = data.replace(reg, "")
+                        for(const matched of matchAll){
+                            console.log(matched)
+                            if(matched){
+                                const inData = matched[0]
+                                let out = outScript.split(' ', 2)[1]
+                                    .replace(/(?<!\$)\$[0-9]+/g, (v)=>{
+                                        const index = parseInt(v.substring(1))
+                                        if(index < matched.length){
+                                            return matched[index]
+                                        }
+                                        return v
+                                    })
+                                    .replace(/\$\&/g, inData)
+                                    .replace(/(?<!\$)\$<([^>]+)>/g, (v) => {
+                                        const groupName = parseInt(v.substring(2, v.length - 1))
+                                        if(matched.groups && matched.groups[groupName]){
+                                            return matched.groups[groupName]
+                                        }
+                                        return v
+                                    })
+                                if(outScript.startsWith('@@move_top')){
+                                    data = out + data
+                                }
+                                else{
+                                    data = data + out
+                                }
+                            }
+                        }
                     }
                 }
                 else{
