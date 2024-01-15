@@ -21,10 +21,8 @@ export function metricaPlugin(data:string, toSystem:'metrics'|'imperial'){
             ratio = 1 / ratio;
         }
         if(!c[i][3]){
-            if(toSystem === 'metrics'){
-                from = from + ' '
-                to = to + ' '
-            }
+            from = from + ' '
+            to = to + ' '
         }
         const reg = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*${from}`, 'g');
         data = data.replace(reg, (_, value) => {
