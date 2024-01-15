@@ -222,10 +222,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
 
         function formatPrompt(data:string){
-            if(!data.startsWith('@@@')){
-                data = "@@@system\n" + data
+            if(!data.startsWith('@@')){
+                data = "@@system\n" + data
             }
-            const parts = data.split(/@@@(user|assistant|system)\n/);
+            const parts = data.split(/@@@?(user|assistant|system)\n/);
   
             // Initialize empty array for the chat objects
             const chatObjects: OpenAIChat[] = [];

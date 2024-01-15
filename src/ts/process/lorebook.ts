@@ -98,12 +98,15 @@ export async function loadLoreBookPrompt(){
                     }
                 }
 
+                if(lore.key?.startsWith('@@@')){
+                    lore.key = lore.key.replace('@@@','@@')
+                }
                 formatedLore.push({
-                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.key.replace('@@@regex ','')}) :
+                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("@@regex ")) ? ({type:'regex',regex:lore.key.replace('@@regex ','')}) :
                         (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                             return a.length > 1
                         }),
-                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("@@@regex ")) ? ({type:'regex',regex:lore.secondkey.replace('@@@regex ','')}) :
+                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("@@regex ")) ? ({type:'regex',regex:lore.secondkey.replace('@@regex ','')}) :
                         (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
                             return a.length > 1
                         })) : [],
@@ -195,8 +198,13 @@ export async function loadLoreBookPrompt(){
 
     let sactivated:string[] = []
     activatiedPrompt = activatiedPrompt.filter((v) => {
+        //deprecated three @ for special prompt
         if(v.startsWith("@@@end")){
             sactivated.push(v.replace('@@@end','').trim())
+            return false
+        }
+        if(v.startsWith('@@end')){
+            sactivated.push(v.replace('@@end','').trim())
             return false
         }
         return true
@@ -283,8 +291,13 @@ export async function loadLoreBookPlusPrompt(){
 
     let sactivated:string[] = []
     activatiedPrompt = activatiedPrompt.filter((v) => {
+        //deprecated three @ for special prompt
         if(v.startsWith("@@@end")){
             sactivated.push(v.replace('@@@end','').trim())
+            return false
+        }
+        if(v.startsWith('@@end')){
+            sactivated.push(v.replace('@@end','').trim())
             return false
         }
         return true
