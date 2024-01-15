@@ -6,13 +6,8 @@ import { internalIpV4 } from 'internal-ip'
 import topLevelAwait from "vite-plugin-top-level-await";
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => {
-  
-  const host = await internalIpV4()
-
-  return {
+export default defineConfig({
     plugins: [
-      
       svelte({
         preprocess: [
           sveltePreprocess({
@@ -39,7 +34,6 @@ export default defineConfig(async () => {
       strictPort: true,
       hmr: {
         protocol: 'ws',
-        host,
         port: 5184,
       },
     },
@@ -68,4 +62,4 @@ export default defineConfig(async () => {
         'modules': '/modules'
       }
     }
-}});
+});
