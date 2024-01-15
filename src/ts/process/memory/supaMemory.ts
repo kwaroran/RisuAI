@@ -142,6 +142,11 @@ export async function supaMemory(
             if(hypaChunks.length > 0){
                 await hypa.addText(hypaChunks.filter((value, index, self) => {
                     return self.indexOf(value) === index;
+                }).map((value) => {
+                    if(db.removePunctuationHypa){
+                        value = value.replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+                    }
+                    return value
                 }))
                 const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
                 const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), char?.name ?? '', false))

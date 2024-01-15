@@ -109,6 +109,7 @@ export const languageEnglish = {
         genTimes: "This option is used to set the number of responses to generate on support models. other then first response will be act as cached reroll. this can reduce the cost of the model, but it can also increase the cost if you use it without reroll.",
         requestretrys: "This option is used to set the number of request retrys when request fails.",
         emotionPrompt: "This option is used to set the prompt that is used to detect emotion. if it is blank, it will use the default prompt.",
+        removePunctuationHypa: "If enabled, it will remove punctuation before executing HypaMemory.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -504,4 +505,5 @@ export const languageEnglish = {
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
+    removePunctuationHypa: "Remove Punctuation for HypaMemory",
 }
