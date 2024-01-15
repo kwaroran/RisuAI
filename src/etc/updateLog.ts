@@ -1,13 +1,17 @@
 export const patchNote = {
-    version: "1.74",
+    version: "1.75",
     content: 
 `
-# Update 1.74
-- Added (?) button on many settings
-- Hypamemory isn't marked as experimental anymore
-- Generation Times isn't marked as experimental anymore
-- Generation Times will work with streamed responses now
-- Removed unused settings
+# Update 1.75
+- Added @@move_top and @@move_bottom in regex script
+- Added @@end, @@assistant, @@user, @@system
+- depercated @@@end, @@@assistant, @@@user, @@@system for consistency
+ - Use newly added two @ version instead
+ - deprecated commands could be removed in future update
+- Added {{br}}, used for line break
+- sendChat error message changed
+- fix AWS claude (by @bangonicdd)
+- fix TTS replace error when empty string
 `
 }
 
