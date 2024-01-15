@@ -118,6 +118,16 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         selchar.chats[selchar.chatPage].message[chatID].data = data
                         data = data.replace(reg, "")
                     }
+                    if(outScript.startsWith('@@move_top')){
+                        const out = outScript.split(' ', 2)[1]
+                        data.replace(reg, '')
+                        data = out + data
+                    }
+                    if(outScript.startsWith('@@move_bottom')){
+                        const out = outScript.split(' ', 2)[1]
+                        data.replace(reg, '')
+                        data = data + out
+                    }
                 }
                 else{
                     if(outScript.startsWith('@@repeat_back')  && chatID !== -1){
