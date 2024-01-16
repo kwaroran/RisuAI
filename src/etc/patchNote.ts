@@ -17,6 +17,7 @@ export const patchNote = {
   - /del: Delete the recent text
   - Most of them are SilyTavern compatible
 - Memory Punctuation Removal is now on by default
+- Minor fixes
 `
 }
 
