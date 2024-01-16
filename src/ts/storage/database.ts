@@ -288,24 +288,12 @@ export function setDatabase(data:Database){
     if(checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage){
         data.loreBookPage = 0
     }
-    if(checkNullish(data.globalscript)){
-        data.globalscript = []
-    }
-    if(checkNullish(data.sendWithEnter)){
-        data.sendWithEnter = true
-    }
-    if(checkNullish(data.autoSuggestPrompt)){
-        data.autoSuggestPrompt = defaultAutoSuggestPrompt
-    }
-    if(checkNullish(data.autoSuggestPrefix)){
-        data.autoSuggestPrefix = ""
-    }
-    if(checkNullish(data.autoSuggestClean)){
-        data.autoSuggestClean = true
-    }
-    if(checkNullish(data.imageCompression)){
-        data.imageCompression = true
-    }
+    data.globalscript ??= []
+    data.sendWithEnter ??= true
+    data.autoSuggestPrompt ??= defaultAutoSuggestPrompt
+    data.autoSuggestPrefix ??= ""
+    data.autoSuggestClean ??= true
+    data.imageCompression ??= true
     if(!data.formatingOrder.includes('personaPrompt')){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
