@@ -10,7 +10,7 @@ import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenizeNum } from "../tokenizer";
-import { runLocalModel } from "./models/local";
+import { runGGUFModel } from "./models/local";
 import { risuChatParser } from "../parser";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
@@ -1685,7 +1685,36 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 const suggesting = model === "submodel"
                 const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
                 const stopStrings = getStopStrings(suggesting)
-                await runLocalModel(proompt)
+                const modelPath = aiModel.replace('local_', '')
+                const res = await runGGUFModel({
+                    prompt: proompt,
+                    modelPath: modelPath,
+                    temperature: temperature,
+                    top_p: db.top_p,
+                    top_k: db.top_k,
+                    maxTokens: maxTokens,
+                    presencePenalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                    frequencyPenalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                    repeatPenalty: 0,
+                    maxContext: db.maxContext,
+                    stop: stopStrings,
+                })
+                let decoded = ''
+                const transtream = new TransformStream<Uint8Array, StreamResponseChunk>({
+                    async transform(chunk, control) {
+                        const decodedChunk = new TextDecoder().decode(chunk)
+                        decoded += decodedChunk
+                        control.enqueue({
+                            "0": decoded
+                        })
+                    }
+                })
+                res.pipeTo(transtream.writable)
+
+                return {
+                    type: 'streaming',
+                    result: transtream.readable
+                }
             }
             return {
                 type: 'fail',

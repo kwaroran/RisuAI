@@ -5,6 +5,7 @@ import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
 import { supportsInlayImage } from "./image";
 import { risuChatParser } from "./parser";
+import { tokenizeGGUFModel } from "./process/models/local";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
@@ -21,11 +22,13 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     if(db.aiModel.startsWith('mistral')){
         return await tokenizeWebTokenizers(data, 'mistral')
     }
-    if(db.aiModel.startsWith('local_') ||
-        db.aiModel === 'mancer' ||
+    if(db.aiModel === 'mancer' ||
         db.aiModel === 'textgen_webui' ||
         (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
         return await tokenizeWebTokenizers(data, 'llama')
+    }
+    if(db.aiModel.startsWith('local_')){
+        return await tokenizeGGUFModel(data)
     }
     if(db.aiModel === 'ooba'){
         if(db.reverseProxyOobaArgs.tokenizer === 'mixtral' || db.reverseProxyOobaArgs.tokenizer === 'mistral'){

@@ -145,8 +145,8 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
             {#if import.meta.env.DEV}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
-                    changeModel('local_gptq')
-                }}>Local Model GPTQ <Help key="experimental"/> </button>
+                    changeModel('local_') // TODO: Fix this
+                }}>Local GGUF Model <Help key="experimental"/> </button>
             {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('ooba')}}>Oobabooga</button>
             {#if showUnrec}
