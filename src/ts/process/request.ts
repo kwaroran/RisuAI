@@ -1685,6 +1685,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 const suggesting = model === "submodel"
                 const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
                 const stopStrings = getStopStrings(suggesting)
+                console.log(stopStrings)
                 const modelPath = aiModel.replace('local_', '')
                 const res = await runGGUFModel({
                     prompt: proompt,

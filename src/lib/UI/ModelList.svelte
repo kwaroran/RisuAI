@@ -5,6 +5,8 @@
     import { language } from "src/lang";
     import Help from "../Others/Help.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
+    import { isTauri } from "src/ts/storage/globalApi";
+    import {open} from '@tauri-apps/api/dialog'
 
     export let value = ""
     export let onChange: (v:string) => void = (v) => {}
@@ -89,6 +91,10 @@
                     const split = name.split(":::")
                     return `${split[1]}`
                 }
+                if(name.startsWith('local_')){
+                    const realName = name.replace('local_', '').split(/(\\|\/)/g).at(-1)
+                    return `GGUF ${realName}`
+                }
                 return name
         }
     }
@@ -143,9 +149,17 @@
                 {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
-            {#if import.meta.env.DEV}
+            {#if $DataBase.tpo && isTauri}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
-                    changeModel('local_') // TODO: Fix this
+                    const selected = await open({
+                        filters: [{
+                            name: 'Model File',
+                            extensions: ['gguf']
+                        }]
+                    });
+                    if(selected){
+                        changeModel('local_' + selected)
+                    }
                 }}>Local GGUF Model <Help key="experimental"/> </button>
             {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('ooba')}}>Oobabooga</button>
