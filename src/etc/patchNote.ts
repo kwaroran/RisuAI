@@ -1,17 +1,22 @@
 export const patchNote = {
-    version: "1.75",
+    version: "1.76",
     content: 
 `
-# Update 1.75
-- Added @@move_top and @@move_bottom in regex script
-- Added @@end, @@assistant, @@user, @@system
-- depercated @@@end, @@@assistant, @@@user, @@@system for consistency
-  - Use newly added two @ version instead
-  - deprecated commands could be removed in future update
-- Added {{br}}, used for line break
-- sendChat error message changed
-- fix AWS claude (by @bangonicdd)
-- fix TTS replace error when empty string
+# Update 1.76
+- Added Commands
+  - /input: Show input dialog and return inputted text
+  - /echo: Show toast message
+  - /popup: Show popup message
+  - /pass: Pass the pipe
+  - /buttons: Show button dialog and return selected button
+  - /speak: Speak text as TTS
+  - /send: Send text to chat as user, without sending to LLM
+  - /sendas: Send text to chat as character, with sending to LLM
+  - /comment: Adds comment to chat
+  - /cut: Cut the text
+  - /del: Delete the recent text
+  - Most of them are SilyTavern compatible
+- Memory Punctuation Removal is now on by default
 `
 }
 
