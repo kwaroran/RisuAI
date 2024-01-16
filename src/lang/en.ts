@@ -505,5 +505,5 @@ export const languageEnglish = {
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
-    removePunctuationHypa: "Remove Punctuation for HypaMemory",
+    removePunctuationHypa: "Memory Punctuation Removal",
 }

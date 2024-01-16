@@ -94,7 +94,7 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.removePunctuationHypa} name={language.removePunctuationHypa}>
-        <Help key="removePunctuationHypa"/><Help key="experimental"/>
+        <Help key="removePunctuationHypa"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">

@@ -376,6 +376,7 @@ export function setDatabase(data:Database){
     data.proomptSettings.maxThoughtTagDepth ??= -1
     data.openrouterFallback ??= true
     data.openrouterMiddleOut ??= false
+    data.removePunctuationHypa ??= true
 
     changeLanguage(data.language)
     DataBase.set(data)

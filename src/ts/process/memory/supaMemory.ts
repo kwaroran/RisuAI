@@ -125,7 +125,11 @@ export async function supaMemory(
                         i += 1
                     }
         
+
                     supaMemory = data
+                    if(db.removePunctuationHypa){
+                        supaMemory = supaMemory.replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+                    }
                     currentTokens += await tokenize(supaMemory)
                 }
             }
