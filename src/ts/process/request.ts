@@ -575,12 +575,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                         const choices = JSON.parse(rawChunk).choices
                                         for(const choice of choices){
                                             const chunk = choice.delta.content
-                                            const ind = choice.index.toString()
                                             if(chunk){
-                                                if(!readed[ind]){
-                                                    readed[ind] = ""
+                                                if(multiGen){
+                                                    const ind = choice.index.toString()
+                                                    if(!readed[ind]){
+                                                        readed[ind] = ""
+                                                    }
+                                                    readed[ind] += chunk
                                                 }
-                                                readed[ind] += chunk
+                                                else{
+                                                    if(!readed["0"]){
+                                                        readed["0"] = ""
+                                                    }
+                                                    readed["0"] += chunk
+                                                }
                                             }
                                         }
                                     } catch (error) {}
