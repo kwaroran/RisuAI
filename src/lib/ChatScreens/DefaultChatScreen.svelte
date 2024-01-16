@@ -21,8 +21,9 @@
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
-  import { postInlayImage } from 'src/ts/image';
-  import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
+    import { postInlayImage } from 'src/ts/image';
+    import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
+    import { processMultiCommand } from 'src/ts/process/command';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -55,6 +56,15 @@
         }
 
         let cha = $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message
+
+        if(messageInput.startsWith('/')){
+            const commandProcessed = await processMultiCommand(messageInput)
+            if(commandProcessed !== false){
+                messageInput = ''
+                return
+            }
+        }
+
 
         if(messageInput === ''){
             if($DataBase.characters[selectedChar].type !== 'group'){
