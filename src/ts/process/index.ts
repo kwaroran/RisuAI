@@ -955,11 +955,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         while(abortSignal.aborted === false){
             const readed = (await reader.read())
             if(readed.value){
-                console.log(lastResponseChunk)
-
                 lastResponseChunk = readed.value
                 const firstChunkKey = Object.keys(lastResponseChunk)[0]
                 result = lastResponseChunk[firstChunkKey]
+                if(!result){
+                    result = ''
+                }
                 if(db.cipherChat){
                     result = decipherChat(result)
                 }
