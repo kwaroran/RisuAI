@@ -307,10 +307,12 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'n
                 risuext.vits[key] = imgp
             }
 
-            vits = {
-                name: "Imported VITS",
-                files: risuext.vits,
-                id: uuidv4().replace(/-/g, '')
+            if(keys.length > 0){
+                vits = {
+                    name: "Imported VITS",
+                    files: risuext.vits,
+                    id: uuidv4().replace(/-/g, '')
+                }
             }
 
 
