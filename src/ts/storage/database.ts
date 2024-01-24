@@ -365,6 +365,7 @@ export function setDatabase(data:Database){
     data.openrouterFallback ??= true
     data.openrouterMiddleOut ??= false
     data.removePunctuationHypa ??= true
+    data.memoryLimitThickness ??= 1
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -583,6 +584,7 @@ export interface Database{
     claudeAws:boolean
     lastPatchNoteCheckVersion?:string,
     removePunctuationHypa?:boolean
+    memoryLimitThickness?:number
 }
 
 export interface customscript{
