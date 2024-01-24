@@ -119,7 +119,6 @@
 
     $: {
         document.documentElement.style.setProperty('--memory-limit-thickness', $DataBase.memoryLimitThickness + 'px');
-        console.log($DataBase.memoryLimitThickness)
     }
 </script>
 <div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
