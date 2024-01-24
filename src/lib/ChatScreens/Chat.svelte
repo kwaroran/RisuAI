@@ -116,10 +116,6 @@
     }
 
     $: displaya(message)
-
-    $: {
-        document.documentElement.style.setProperty('--memory-limit-thickness', $DataBase.memoryLimitThickness + 'px');
-    }
 </script>
 <div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
