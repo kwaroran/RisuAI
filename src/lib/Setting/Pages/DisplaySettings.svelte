@@ -90,7 +90,7 @@
 
 {#if $DataBase.showMemoryLimit}
     <span class="text-textcolor">{language.memoryLimitThickness}</span>
-    <SliderInput min={1} max={100} step={1} bind:value={$DataBase.memoryLimitThickness} />
+    <SliderInput min={1} max={500} step={1} bind:value={$DataBase.memoryLimitThickness} />
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.memoryLimitThickness)}px</span>
 {/if}
 
