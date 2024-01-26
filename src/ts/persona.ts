@@ -20,7 +20,8 @@ export async function selectUserImg() {
     db.personas[db.selectedPersona] = {
         name: db.username,
         icon: db.userIcon,
-        personaPrompt: db.personaPrompt
+        personaPrompt: db.personaPrompt,
+        largePersonaPortrait: db.largePersonaPortrait
     }
     setDatabase(db)
 }
@@ -30,7 +31,8 @@ export function saveUserPersona() {
     db.personas[db.selectedPersona] = {
         name: db.username,
         icon: db.userIcon,
-        personaPrompt: db.personaPrompt
+        personaPrompt: db.personaPrompt,
+        largePersonaPortrait: db.largePersonaPortrait
     }
     setDatabase(db)
 }
@@ -45,6 +47,7 @@ export function changeUserPersona(id:number, save:'save'|'noSave' = 'save') {
     db.username = pr.name,
     db.userIcon = pr.icon
     db.selectedPersona = id
+    db.largePersonaPortrait = pr.largePersonaPortrait
     setDatabase(db)
 }
 
@@ -111,7 +114,8 @@ export async function importUserPersona(){
             db.personas.push({
                 name: data.name,
                 icon: await saveImage(await reencodeImage(v.data)),
-                personaPrompt: data.personaPrompt
+                personaPrompt: data.personaPrompt,
+                largePersonaPortrait: false
             })
             setDatabase(db)
             alertNormal(language.successImport)

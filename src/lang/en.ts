@@ -506,4 +506,5 @@ export const languageEnglish = {
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
     removePunctuationHypa: "Memory Punctuation Removal",
+    largePersonaPortrait: "Persona Portrait",
 }

@@ -428,4 +428,5 @@ export const languageKorean = {
     genTimes: "생성 횟수",
     template: "템플릿",
     editTranslationDisplay: "번역문 수정",
+    largePersonaPortrait: "페르소나 세로 이미지",
 }

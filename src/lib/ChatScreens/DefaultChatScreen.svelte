@@ -527,6 +527,7 @@
                         message={chat.data}
                         img={getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                        largePortrait={$DataBase.largePersonaPortrait}
                     />
                 {/if}
             {/each}

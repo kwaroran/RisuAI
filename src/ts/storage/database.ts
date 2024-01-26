@@ -302,7 +302,8 @@ export function setDatabase(data:Database){
     data.personas ??= [{
         name: data.username,
         personaPrompt: "",
-        icon: data.userIcon
+        icon: data.userIcon,
+        largePersonaPortrait: false
     }]
     data.classicMaxWidth ??= false
     data.ooba ??= cloneDeep(defaultOoba)
@@ -526,6 +527,7 @@ export interface Database{
         personaPrompt:string
         name:string
         icon:string
+        largePersonaPortrait?:boolean
     }[]
     assetWidth:number
     animationSpeed:number
@@ -583,6 +585,7 @@ export interface Database{
     claudeAws:boolean
     lastPatchNoteCheckVersion?:string,
     removePunctuationHypa?:boolean
+    largePersonaPortrait?:boolean
 }
 
 export interface customscript{
