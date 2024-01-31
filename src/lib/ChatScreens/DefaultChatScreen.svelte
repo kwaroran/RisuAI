@@ -378,9 +378,6 @@
     $: {
         currentCharacter = $CurrentCharacter
     }
-    $: {
-        document.documentElement.style.setProperty('--memory-limit-thickness', $DataBase.memoryLimitThickness + 'px');
-    }
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="w-full h-full" style={customStyle} on:click={() => {

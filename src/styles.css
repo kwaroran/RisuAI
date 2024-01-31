@@ -157,7 +157,7 @@ html, body{
 }
 
 .bgc{
-  border-top: var(--memory-limit-thickness) solid rgba(98, 114, 164, 0.7);
+  border-top: 1px solid rgba(98, 114, 164, 0.7);
 }
 
 .text-bordered{
