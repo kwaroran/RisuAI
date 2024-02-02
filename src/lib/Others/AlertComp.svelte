@@ -7,12 +7,19 @@
     import BarIcon from '../SideBars/BarIcon.svelte';
     import { User } from 'lucide-svelte';
     import { hubURL } from 'src/ts/characterCards';
-  import TextInput from '../UI/GUI/TextInput.svelte';
-  import { openURL } from 'src/ts/storage/globalApi';
-  import Button from '../UI/GUI/Button.svelte';
+    import TextInput from '../UI/GUI/TextInput.svelte';
+    import { openURL } from 'src/ts/storage/globalApi';
+    import Button from '../UI/GUI/Button.svelte';
+    import { XIcon } from "lucide-svelte";
+    import SelectInput from "../UI/GUI/SelectInput.svelte";
+    import { CCLicenseData } from "src/ts/creation/license";
+    import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import { language } from 'src/lang';
     let btn
     let input = ''
-
+    let cardExportType = ''
+    let cardExportPassword = ''
+    let cardLicense = ''
     $: (() => {
         if(btn){
             btn.focus()
@@ -40,7 +47,7 @@
     }
 }}></svelte:window>
 
-{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast'}
+{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport'}
     <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
@@ -160,6 +167,63 @@
             {/if}
         </div>
     </div>
+
+{:else if $alertStore.type === 'cardexport'}
+    <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" on:click={close}>
+        <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" on:click|stopPropagation>
+            <h1 class="font-bold text-2xl w-full">
+                <span>
+                    Export Character
+                </span>
+                <button class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                    alertStore.set({
+                        type: 'none',
+                        msg: JSON.stringify({
+                            type: 'cancel',
+                            password: cardExportPassword,
+                            license: cardLicense
+                        })
+                    })
+                }}>
+                    <XIcon />
+                </button>
+            </h1>
+            <span class="text-textcolor mt-4">Type</span>
+            {#if cardExportType === ''}
+                <span class="text-textcolor2 text-sm">{language.ccv2Desc}</span>
+            {:else}
+                <span class="text-textcolor2 text-sm">{language.rccDesc}</span>
+            {/if}
+            <div class="flex items-center flex-wrap mt-2">
+                <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Character Card V2</button>
+                <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'rcc'} on:click={() => {cardExportType = 'rcc'}}>Risu RCC</button>
+            </div>
+            {#if cardExportType === 'rcc'}
+                <span class="text-textcolor mt-4">{language.password}</span>
+                <span class="text-textcolor2 text-sm">{language.passwordDesc}</span>
+                <TextInput placeholder="" bind:value={cardExportPassword} />
+                <span class="text-textcolor mt-4">{language.license}</span>
+                <span class="text-textcolor2 text-sm">{language.licenseDesc}</span>
+                <SelectInput bind:value={cardLicense}>
+                    <OptionInput value="">None</OptionInput>
+                    {#each Object.keys(CCLicenseData) as ccl}
+                        <OptionInput value={ccl}>{CCLicenseData[ccl][2]} ({CCLicenseData[ccl][1]})</OptionInput>
+                    {/each}
+                </SelectInput>
+            {/if}
+            <Button className="mt-4" on:click={() => {
+                alertStore.set({
+                    type: 'none',
+                    msg: JSON.stringify({
+                        type: cardExportType,
+                        password: cardExportPassword,
+                        license: cardLicense
+                    })
+                })
+            }}>{language.export}</Button>
+        </div>
+    </div>
+
 {:else if $alertStore.type === 'toast'}
     <div class="toast-anime absolute right-0 bottom-0 bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-11/12 overflow-y-auto z-50 text-textcolor"
         on:animationend={() => {
