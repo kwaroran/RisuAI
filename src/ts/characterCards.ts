@@ -1,14 +1,14 @@
 import { get, writable, type Writable } from "svelte/store"
-import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
+import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
-import { checkNullish, selectMultipleFile, sleep } from "./util"
+import { checkNullish, decryptBuffer, encryptBuffer, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
-import { convertImage } from "./parser"
+import { convertImage, hasher } from "./parser"
 
 import { reencodeImage } from "./image"
 import { PngChunk } from "./pngChunk"
@@ -71,7 +71,10 @@ async function importCharacterProcess(f:{
             break
         }
         if(chunk.key === 'chara'){
-            readedChara = chunk.value
+            //For memory reason, limit to 2MB
+            if(readedChara.length < 2 * 1024 * 1024){
+                readedChara = chunk.value.replaceAll('\0', '')
+            }
             break
         }
         if(chunk.key.startsWith('chara-ext-asset_')){
@@ -86,7 +89,63 @@ async function importCharacterProcess(f:{
         alertError(language.errors.noData)
         return
     }
-    {
+
+    if(readedChara.startsWith('rcc||')){
+        const parts = readedChara.split('||')
+        const type = parts[1]
+        if(type === 'rccv1'){
+            if(parts.length !== 5){
+                alertError(language.errors.noData)
+                return
+            }
+            const encrypted = Buffer.from(parts[2], 'base64')
+            const hashed = await hasher(encrypted)
+            if(hashed !== parts[3]){
+                alertError(language.errors.noData)
+                return
+            }
+            console.log(parts[4])
+            const metaData:RccCardMetaData = JSON.parse(Buffer.from(parts[4], 'base64').toString('utf-8'))
+            console.log(metaData)
+            if(metaData.usePassword){
+                const password = await alertInput(language.inputCardPassword)
+                if(!password){
+                    return
+                }
+                else{
+                    try {
+                        const decrypted = await decryptBuffer(encrypted, password)         
+                        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
+                        if(await importSpecv2(charaData, img, "normal", assets)){
+                            let db = get(DataBase)
+                            return db.characters.length - 1
+                        }
+                        else{
+                            throw new Error('Error while importing')
+                        }
+                    } catch (error) {
+                        alertError(language.errors.wrongPassword)
+                        return
+                    }
+                }
+            }
+            else{
+                const decrypted = await decryptBuffer(encrypted, 'RISU_NONE')
+                try {
+                    const charaData:CharacterCardV2 = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
+                    if(await importSpecv2(charaData, img, "normal", assets)){
+                        let db = get(DataBase)
+                        return db.characters.length - 1
+                    }   
+                } catch (error) {
+                    alertError(language.errors.noData)
+                    return
+                }
+            }
+
+        }
+    }
+    else {
         const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
         if(await importSpecv2(charaData, img, "normal", assets)){
             let db = get(DataBase)
@@ -217,8 +276,17 @@ export async function exportChar(charaID:number) {
         return
     }
 
-    const sel = await alertSelect(['Export as PNG', 'Export as JSON'])
-    exportSpecV2(char, sel === '1' ? 'json' : 'png')
+    const option = await alertCardExport()
+    if(option.type === 'cancel'){
+        return
+    }
+    else if(option.type === 'rcc'){
+        char.license = option.license
+        exportSpecV2(char, 'rcc', {password:option.password})
+    }
+    else{
+        exportSpecV2(char,'png')
+    }
     return
 }
 
@@ -535,7 +603,7 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
+export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'png', rcc:{password?:string} = {}) {
     let img = await readImage(char.image)
 
     try{
@@ -605,7 +673,22 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
             type: 'wait',
             msg: 'Loading... (Writing)'
         })
-        await writer.write("chara", Buffer.from(JSON.stringify(card)).toString('base64'))
+
+        if(type === 'rcc'){
+            const password = rcc.password || 'RISU_NONE'
+            const json = JSON.stringify(card)
+            const encrypted = Buffer.from(await encryptBuffer(Buffer.from(json, 'utf-8'), password))
+            const hashed = await hasher(encrypted)
+            const metaData:RccCardMetaData = {}
+            if(password !== 'RISU_NONE'){
+                metaData.usePassword = true
+            }
+            const rccString = 'rcc||rccv1||' + encrypted.toString('base64') + '||' + hashed + '||' + Buffer.from(JSON.stringify(metaData)).toString('base64')
+            await writer.write("chara", rccString)
+        }
+        else{
+            await writer.write("chara", Buffer.from(JSON.stringify(card)).toString('base64'))
+        }
 
         await writer.end()
 
@@ -879,4 +962,8 @@ interface charBookEntry{
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
+}
+
+interface RccCardMetaData{
+    usePassword?: boolean
 }

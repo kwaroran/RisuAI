@@ -3,7 +3,7 @@ import { sleep } from "./util"
 import { language } from "../lang"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'
     msg: string
 }
 
@@ -100,6 +100,7 @@ export function alertWait(msg:string){
 
 }
 
+
 export function alertClear(){
     alertStore.set({
         'type': 'none',
@@ -138,6 +139,27 @@ export async function alertConfirm(msg:string){
     }
 
     return get(alertStore).msg === 'yes'
+}
+
+export async function alertCardExport(){
+
+    alertStore.set({
+        'type': 'cardexport',
+        'msg': ''
+    })
+
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+
+    return JSON.parse(get(alertStore).msg) as {
+        type: string,
+        password: string,
+        license: string
+    }
 }
 
 export async function alertTOS(){

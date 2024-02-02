@@ -23,6 +23,7 @@ export const languageEnglish = {
         alreadyCharInGroup: "There is already a character with the same name in the group.",
         noUserIcon: "You must set your icon first.",
         emptyText: "Text is empty.",
+        wrongPassword: "Wrong Password",
     },
     showHelp: "Show Help",
     help:{
@@ -506,4 +507,11 @@ export const languageEnglish = {
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
     removePunctuationHypa: "Memory Punctuation Removal",
+    inputCardPassword: "Input Card Password",
+    ccv2Desc: 'Character Card V2 is is a format widely used in chatbot programs.',
+    rccDesc: 'Risu Refined Character Card is a format with additional features like password, integrity check and etc.',
+    password: "Password",
+    license: "License",
+    licenseDesc: "You can choose license for the downloaders to limit the usages of your card's prompt.",
+    passwordDesc: "You can set a password to protect your card from unauthorized access.",
 }
