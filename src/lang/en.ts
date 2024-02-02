@@ -507,6 +507,7 @@ export const languageEnglish = {
     openrouterMiddleOut: "Openrouter Middle Out",
     geminiApiKey: "Gemini API Key",
     removePunctuationHypa: "Memory Punctuation Removal",
+    memoryLimitThickness: "Memory Limit Thickness",
     inputCardPassword: "Input Card Password",
     ccv2Desc: 'Character Card V2 is is a format widely used in chatbot programs.',
     rccDesc: 'Risu Refined Character Card is a format with additional features like password, integrity check and etc.',

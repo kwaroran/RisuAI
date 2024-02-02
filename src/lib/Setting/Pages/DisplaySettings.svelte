@@ -88,6 +88,12 @@
 <SliderInput min={0} max={1} step={0.05} bind:value={$DataBase.animationSpeed} on:change={updateAnimationSpeed} />
 <span class="text-textcolor2 mb-6 text-sm">{(`${($DataBase.animationSpeed).toFixed(2)}s`)}</span>
 
+{#if $DataBase.showMemoryLimit}
+    <span class="text-textcolor">{language.memoryLimitThickness}</span>
+    <SliderInput min={1} max={500} step={1} bind:value={$DataBase.memoryLimitThickness} />
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.memoryLimitThickness)}px</span>
+{/if}
+
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
 </div>
