@@ -1,22 +1,12 @@
 export const patchNote = {
-    version: "1.76",
+    version: "1.77",
     content: 
 `
-# Update 1.76
-- Added Commands
-  - /input: Show input dialog and return inputted text
-  - /echo: Show toast message
-  - /popup: Show popup message
-  - /pass: Pass the pipe
-  - /buttons: Show button dialog and return selected button
-  - /speak: Speak text as TTS
-  - /send: Send text to chat as user, without sending to LLM
-  - /sendas: Send text to chat as character, with sending to LLM
-  - /comment: Adds comment to chat
-  - /cut: Cut the text
-  - /del: Delete the recent text
-  - Most of them are SilyTavern compatible
-- Memory Punctuation Removal is now on by default
+# Update 1.77
+- Added Risu RCC export
+  - Added password protection
+  - Added license for file export
+- Added memory limit border thickness (#286)
 - Minor fixes
 `
 }
