@@ -800,18 +800,16 @@ export type hubType = {
     authorname?:string
 }
 
-export async function getRisuHub(arg?:{
-    search?:string,
-    page?:number,
-    nsfw?:boolean
-    sort?:string
-    updateData?:boolean
+export async function getRisuHub(arg:{
+    search:string,
+    page:number,
+    nsfw:boolean
+    sort:string
 }):Promise<hubType[]> {
     try {
-        const da = await fetch(hubURL + '/hub/list', {
-            method: "POST",
-            body: JSON.stringify(arg ?? {})
-        })
+        const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}`
+
+        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
         if(da.status !== 200){
             return []
         }
