@@ -31,7 +31,7 @@ export function saveUserPersona() {
         name: db.username,
         icon: db.userIcon,
         personaPrompt: db.personaPrompt,
-        largePortrait: db.personas[db.selectedPersona].largePortrait,
+        largePortrait: db.personas[db.selectedPersona]?.largePortrait,
     }
     setDatabase(db)
 }
