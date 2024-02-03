@@ -515,4 +515,5 @@ export const languageEnglish = {
     license: "License",
     licenseDesc: "You can choose license for the downloaders to limit the usages of your card's prompt.",
     passwordDesc: "You can set a password to protect your card from unauthorized access.",
+    largePersonaPortrait: "Persona Portrait",
 }
