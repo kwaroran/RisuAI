@@ -27,9 +27,12 @@ export async function selectUserImg() {
 
 export function saveUserPersona() {
     let db = get(DataBase)
-    db.personas[db.selectedPersona].name = db.username;
-    db.personas[db.selectedPersona].icon = db.userIcon;
-    db.personas[db.selectedPersona].personaPrompt = db.personaPrompt;
+    db.personas[db.selectedPersona] = {
+        name: db.username,
+        icon: db.userIcon,
+        personaPrompt: db.personaPrompt,
+        largePortrait: db.personas[db.selectedPersona].largePortrait,
+    }
     setDatabase(db)
 }
 
