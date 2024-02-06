@@ -15,7 +15,7 @@ export function getPatchNote(version: string){
     if(patchNote.version.split(".")[1] === version.split(".")[1] && patchNote.version.split(".")[0] === version.split(".")[0]){
         return patchNote
     }
-    return {
+return {
         version: version.split(".")[0] + "." + version.split(".")[1],
         content: ""
     }

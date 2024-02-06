@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash";
 import { getVarChat, risuChatParser } from "../parser";
 import type { Chat, character } from "../storage/database";
 import { tokenize } from "../tokenizer";
+import { getModuleTriggers } from "./modules";
 
 export interface triggerscript{
     comment: string;
@@ -68,7 +69,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         historyend: '',
         promptend: ''
     }
-    const triggers = char.triggerscript
+    const triggers = char.triggerscript.concat(getModuleTriggers())
     const chat = cloneDeep(arg.chat ?? char.chats[char.chatPage])
     if((!triggers) || (triggers.length === 0)){
         return null

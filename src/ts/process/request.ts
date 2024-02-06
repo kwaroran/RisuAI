@@ -152,9 +152,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4_32k_0613':
         case 'gpt4_1106':
         case 'gpt4_0125':
+        case 'gpt35_0125':
         case 'gpt35_1106':
         case 'gpt35_0301':
-        case 'gpt4_0301':
+        case 'gpt4_0314':
         case 'gptvi4_1106':
         case 'openrouter':
         case 'mistral-tiny':
@@ -405,9 +406,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === "gpt4_1106" ? 'gpt-4-1106-preview'
                     : requestModel === 'gpt4_0125' ? 'gpt-4-0125-preview'
                     : requestModel === "gptvi4_1106" ? 'gpt-4-vision-preview'
+                    : requestModel === "gpt35_0125" ? 'gpt-3.5-turbo-0125'
                     : requestModel === "gpt35_1106" ? 'gpt-3.5-turbo-1106'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
-                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
+                    : requestModel === 'gpt4_0314' ? 'gpt-4-0314'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
@@ -1423,7 +1425,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
-
+                let latestRole = 'user'
                 let requestPrompt = formated.map((v, i) => {
                     let prefix = ''
                     switch (v.role){
@@ -1437,13 +1439,18 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             prefix = "\n\nSystem: "
                             break
                     }
+                    latestRole = v.role
                     if(raiModel.startsWith('claude-2') && (!raiModel.startsWith('claude-2.0'))){
                         if(v.role === 'system' && i === 0){
                             prefix = ''
                         }
                     }
                     return prefix + v.content
-                }).join('') + '\n\nAssistant: '
+                }).join('')
+
+                if(latestRole !== 'assistant'){
+                    requestPrompt += '\n\nAssistant: '
+                }
 
 
                 const bedrock = db.claudeAws

@@ -10,7 +10,9 @@
     import BackgroundDom from "./BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import VisualNovelMain from "../VisualNovel/VisualNovelMain.svelte";
+  import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
     let openChatList = false
+    let openModuleList = false
 
     const wallPaper = `background: url(${defaultWallpaper})`
     const externalStyles = 
@@ -40,7 +42,7 @@
                     <ResizeBox />
                 {/if}
             {/if}
-            <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList/>
+            <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList bind:openModuleList/>
         </div>
     </div>
 {:else if $DataBase.theme === 'waifu'}
@@ -55,7 +57,7 @@
             {/if}
         {/if}
         <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}>
-            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
+            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
     </div>
 {:else if $DataBase.theme === 'waifuMobile'}
@@ -66,7 +68,7 @@
             class:per33={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}
             class:h-full={!($selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none')}
         >
-            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList/>
+            <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
         {#if $selectedCharID >= 0}
             {#if $CurrentCharacter.viewScreen !== 'none'}
@@ -79,6 +81,8 @@
 {/if}
 {#if openChatList}
     <ChatList close={() => {openChatList = false}}/>
+{:else if openModuleList}
+    <ModuleChatMenu close={() => {openModuleList = false}}/>
 {/if}
 
 <style>
