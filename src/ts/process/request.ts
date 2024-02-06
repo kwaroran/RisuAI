@@ -1423,7 +1423,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
-
+                let latestRole = 'user'
                 let requestPrompt = formated.map((v, i) => {
                     let prefix = ''
                     switch (v.role){
@@ -1437,13 +1437,18 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             prefix = "\n\nSystem: "
                             break
                     }
+                    latestRole = v.role
                     if(raiModel.startsWith('claude-2') && (!raiModel.startsWith('claude-2.0'))){
                         if(v.role === 'system' && i === 0){
                             prefix = ''
                         }
                     }
                     return prefix + v.content
-                }).join('') + '\n\nAssistant: '
+                }).join('')
+
+                if(latestRole !== 'assistant'){
+                    requestPrompt += '\n\nAssistant: '
+                }
 
 
                 const bedrock = db.claudeAws
