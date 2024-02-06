@@ -529,6 +529,7 @@ export interface Database{
         personaPrompt:string
         name:string
         icon:string
+        largePortrait?:boolean
     }[]
     assetWidth:number
     animationSpeed:number

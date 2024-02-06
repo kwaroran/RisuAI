@@ -2,6 +2,7 @@
     import { language } from "src/lang";
     import BaseRoundedButton from "src/lib/UI/BaseRoundedButton.svelte";
     import Button from "src/lib/UI/GUI/Button.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
@@ -69,7 +70,7 @@
             {#if $DataBase.userIcon === ''}
                 <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
             {:else}
-                {#await getCharImage($DataBase.userIcon, 'css')}
+                {#await getCharImage($DataBase.userIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
                 {:then im} 
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
@@ -99,6 +100,7 @@
                     changeUserPersona(0, 'noSave')
                 }
             }}>{language.remove}</Button>
+            <Check bind:check={$DataBase.personas[$DataBase.selectedPersona].largePortrait}>{language.largePortrait}</Check>
         </div>
     </div>
 </div>
