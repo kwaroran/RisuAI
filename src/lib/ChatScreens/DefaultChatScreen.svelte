@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -36,6 +36,7 @@
     let doingChatInputTranslate = false
     let currentCharacter:character|groupChat = $CurrentCharacter
     let toggleStickers:boolean = false
+    export let openModuleList = false
     export let openChatList:boolean = false 
 
     async function send(){
@@ -581,7 +582,7 @@
             {/if}
 
             {#if openMenu}
-                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor" on:click={(e) => {
+                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" on:click={(e) => {
                     e.stopPropagation()
                 }}>
                     {#if $CurrentCharacter.type === 'group'}
@@ -663,9 +664,15 @@
                         <ReplyIcon />
                         <span class="ml-2">{language.autoSuggest}</span>
                     </div>
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
-                        <RefreshCcwIcon />
-                        <span class="ml-2">{language.reroll}</span>
+
+
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                        $CurrentChat.modules ??= []
+                        openModuleList = true
+                        openMenu = false
+                    }}>
+                        <PackageIcon />
+                        <span class="ml-2">{language.modules}</span>
                     </div>
                 </div>
 

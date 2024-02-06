@@ -7,6 +7,7 @@ import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../storage/globalApi";
 import { HypaProcesser } from "./memory/hypamemory";
+import { getModuleLorebooks } from "./modules";
 
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
@@ -71,12 +72,12 @@ export async function loadLoreBookPrompt(){
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
     const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
-    const fullLore = characterLore.concat(chatLore.concat(globalLore))
+    const moduleLorebook = getModuleLorebooks()
+    const fullLore = characterLore.concat(chatLore).concat(moduleLorebook).concat(globalLore)
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
     const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
-
     if(char.lorePlus){
         return await loadLoreBookPlusPrompt()
     }

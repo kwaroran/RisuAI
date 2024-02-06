@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -17,13 +17,13 @@
     import LanguageSettings from "./Pages/LanguageSettings.svelte";
     import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
     import PersonaSettings from "./Pages/PersonaSettings.svelte";
-  import PromptSettings from "./Pages/PromptSettings.svelte";
-  import { DataBase } from "src/ts/storage/database";
-  import ThanksPage from "./Pages/ThanksPage.svelte";
+    import PromptSettings from "./Pages/PromptSettings.svelte";
+    import ThanksPage from "./Pages/ThanksPage.svelte";
+    import ModuleSettings from "./Pages/Module/ModuleSettings.svelte";
     let selected = -1
     let openPresetList = false
     let openLoreList = false
-    if(window.innerWidth >= 700){
+    if(window.innerWidth >= 700 && selected === -1){
         selected = 1
     }
 
@@ -107,6 +107,15 @@
                     <span>{language.globalRegexScript}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
+                    class:text-textcolor={selected === 14}
+                    class:text-textcolor2={selected !== 14}
+                    on:click={() => {
+                        selected = 14
+                }}>
+                    <PackageIcon />
+                    <span>{language.modules}</span>
+                </button>
+                <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={selected === 4}
                     class:text-textcolor2={selected !== 4}
                     on:click={() => {
@@ -180,6 +189,8 @@
                         <AccessibilitySettings/>
                     {:else if selected === 12}
                         <PersonaSettings/>
+                    {:else if selected === 14}
+                        <ModuleSettings/>
                     {:else if selected === 13}
                         <PromptSettings onGoBack={() => {
                             selected = 1

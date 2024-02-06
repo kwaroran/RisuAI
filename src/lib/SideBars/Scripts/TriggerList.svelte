@@ -7,7 +7,7 @@
 
 </script>
 
-<div class="contain w-full max-w-full mt-4 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
+<div class="contain w-full max-w-full mt-2 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
     {#if value.length === 0}
             <div class="text-textcolor2">No Scripts</div>
     {/if}

@@ -10,6 +10,7 @@ import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
 import { metricaPlugin } from "../plugins/metrica";
 import { OaiFixKorean } from "../plugins/fixer";
+import { getModuleRegexScripts } from "./modules";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -60,7 +61,7 @@ export async function importRegex(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
-    const scripts = (db.globalscript ?? []).concat(char.customscript)
+    const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     if(db.officialplugins.automark && mode === 'editdisplay'){
         data = autoMarkPlugin(data)
     }
