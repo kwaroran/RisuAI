@@ -590,6 +590,7 @@ export interface Database{
     memoryLimitThickness?:number
     modules: RisuModule[]
     enabledModules: string[]
+    sideMenuRerollButton?:boolean
 }
 
 export interface customscript{

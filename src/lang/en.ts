@@ -529,4 +529,5 @@ export const languageEnglish = {
     edit: "Edit",
     enableGlobal: "Enable Globally",
     chatModulesInfo: "You can enable or disable modules for this chat.",
+    sideMenuRerollButton: "Side Menu Reroll Button",
 }

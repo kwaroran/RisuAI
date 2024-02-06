@@ -38,3 +38,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={$DataBase.showMenuChatList} name={language.showMenuChatList}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.sideMenuRerollButton} name={language.sideMenuRerollButton}/>
+</div>

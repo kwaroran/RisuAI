@@ -666,15 +666,12 @@
                         <span class="ml-2">{language.autoSuggest}</span>
                     </div>
 
-
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
-                        $CurrentChat.modules ??= []
-                        openModuleList = true
-                        openMenu = false
-                    }}>
-                        <PackageIcon />
-                        <span class="ml-2">{language.modules}</span>
-                    </div>
+                    {#if $DataBase.sideMenuRerollButton}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
+                            <RefreshCcwIcon />
+                            <span class="ml-2">{language.reroll}</span>
+                        </div>
+                    {/if}
                 </div>
 
             {/if}
