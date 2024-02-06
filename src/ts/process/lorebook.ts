@@ -320,43 +320,8 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
             }
         }
         else if(importedlore.entries){
-            const entries:{[key:string]:{
-                key:string[]
-                comment:string
-                content:string
-                order:number
-                constant:boolean,
-                name:string,
-                keywords:string[],
-                priority:number
-                entry:string
-                secondary_keys:string[]
-                selective:boolean
-                forceActivation:boolean
-                keys:string[]
-                displayName:string
-                text:string
-                contextConfig?: {
-                    budgetPriority:number
-                    prefix:string
-                    suffix:string
-                }
-            }} = importedlore.entries
-            for(const key in entries){
-                const currentLore = entries[key]
-                lore.push({
-                    key: currentLore.key ? currentLore.key.join(', ') :
-                        currentLore.keys ? currentLore.keys.join(', ') :
-                        currentLore.keywords ? currentLore.keywords.join(', ') : '',
-                    insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
-                    comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
-                    content: currentLore.content || currentLore.entry || currentLore.text || '',
-                    mode: "normal",
-                    alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
-                    secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
-                    selective: currentLore.selective ?? false
-                })
-            }
+            const entries:{[key:string]:CCLorebook} = importedlore.entries
+            lore.push(...convertExternalLorebook(entries))
         }
         if(mode === 'global'){
             db.characters[selectedID].globalLore = lore
@@ -368,6 +333,49 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     } catch (error) {
         alertError(`${error}`)
     }
+}
+
+interface CCLorebook{
+    key:string[]
+    comment:string
+    content:string
+    order:number
+    constant:boolean,
+    name:string,
+    keywords:string[],
+    priority:number
+    entry:string
+    secondary_keys:string[]
+    selective:boolean
+    forceActivation:boolean
+    keys:string[]
+    displayName:string
+    text:string
+    contextConfig?: {
+        budgetPriority:number
+        prefix:string
+        suffix:string
+    }
+}
+
+export function convertExternalLorebook(entries:{[key:string]:CCLorebook}){
+    let lore:loreBook[] = []
+    for(const key in entries){
+        const currentLore = entries[key]
+        lore.push({
+            key: currentLore.key ? currentLore.key.join(', ') :
+                currentLore.keys ? currentLore.keys.join(', ') :
+                currentLore.keywords ? currentLore.keywords.join(', ') : '',
+            insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
+            comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
+            content: currentLore.content || currentLore.entry || currentLore.text || '',
+            mode: "normal",
+            alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
+            secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
+            selective: currentLore.selective ?? false
+        })
+    }
+    return lore
 }
 
 export async function exportLoreBook(mode:'global'|'local'|'sglobal'){

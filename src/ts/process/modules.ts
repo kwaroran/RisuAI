@@ -6,6 +6,7 @@ import { get } from "svelte/store"
 import { CurrentChat } from "../stores"
 import { selectSingleFile } from "../util"
 import { v4 } from "uuid"
+import { convertExternalLorebook } from "./lorebook"
 
 export interface RisuModule{
     name: string
@@ -26,25 +27,50 @@ export async function exportModule(module:RisuModule){
 }
 
 export async function importModule(){
-    const f = await selectSingleFile(['json'])
+    const f = await selectSingleFile(['json', 'lorebook'])
     if(!f){
         return
     }
     const file = f.data
+    const db = get(DataBase)
     try {
-        const importedModule = JSON.parse(Buffer.from(file).toString())
-        if(importedModule.type === 'risuModule'){
-            const db = get(DataBase)
+        const importData = JSON.parse(Buffer.from(file).toString())
+        if(importData.type === 'risuModule'){
             if(
-                (!importedModule.name)
-                || (!importedModule.description)
-                || (!importedModule.id)
+                (!importData.name)
+                || (!importData.description)
+                || (!importData.id)
             ){
                 alertError(language.errors.noData)
             }
-            importedModule.id = v4()
-            db.modules.push(importedModule)
+            importData.id = v4()
+            db.modules.push(importData)
             setDatabase(db)
+            return
+        }
+        if(importData.type === 'risu' && importData.data){
+            const lores:loreBook[] = importData.data
+            const importModule = {
+                name: importData.name,
+                description: importData.description,
+                lorebook: lores,
+                id: v4()
+            }
+            db.modules.push(importModule)
+            setDatabase(db)
+            return
+        }
+        if(importData.entries){
+            const lores:loreBook[] = convertExternalLorebook(importData.entries)
+            const importModule = {
+                name: importData.name,
+                description: importData.description,
+                lorebook: lores,
+                id: v4()
+            }
+            db.modules.push(importModule)
+            setDatabase(db)
+            return
         }
     } catch (error) {
         alertNormal(language.errors.noData)
