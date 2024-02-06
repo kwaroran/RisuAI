@@ -12,6 +12,7 @@ import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
 import { getInlayImage } from './image';
 import { autoMarkNew } from './plugins/automark';
+import { getModuleLorebooks } from './process/modules';
 
 const mconverted = new Marked({
     gfm: true,
@@ -490,8 +491,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             const chat = selchar.chats[selchar.chatPage]
             const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
             const chatLore = chat.localLore ?? []
-            const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
-            const fullLore = characterLore.concat(chatLore.concat(globalLore))
+            const fullLore = characterLore.concat(chatLore.concat(getModuleLorebooks()))
             return fullLore.map((f) => {
                 return JSON.stringify(f)
             }).join("§\n")

@@ -89,24 +89,6 @@
                     <span>{language.accessibility}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={$SettingsMenuIndex === 8}
-                    class:text-textcolor2={$SettingsMenuIndex !== 8}
-                    on:click={() => {
-                        $SettingsMenuIndex = 8
-                }}>
-                    <BookIcon />
-                    <span>{language.globalLoreBook}</span>
-                </button>
-                <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={$SettingsMenuIndex === 9}
-                    class:text-textcolor2={$SettingsMenuIndex !== 9}
-                    on:click={() => {
-                        $SettingsMenuIndex = 9
-                }}>
-                    <AlignLeft />
-                    <span>{language.globalRegexScript}</span>
-                </button>
-                <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={$SettingsMenuIndex === 14}
                     class:text-textcolor2={$SettingsMenuIndex !== 14}
                     on:click={() => {
