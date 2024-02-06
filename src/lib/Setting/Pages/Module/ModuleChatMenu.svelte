@@ -1,9 +1,10 @@
 <script lang="ts">
     import { CheckCircle2Icon, Globe, XIcon } from "lucide-svelte";
     import { language } from "src/lang";
-  import Button from "src/lib/UI/GUI/Button.svelte";
+    import Button from "src/lib/UI/GUI/Button.svelte";
     import { DataBase } from "src/ts/storage/database";
     import { CurrentChat } from "src/ts/stores";
+    import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     export let close = () => {}
 
 </script>
@@ -63,6 +64,8 @@
         </div>
         <div>
             <Button className="mt-4 flex-grow-0" size="sm" on:click={() => {
+                $SettingsMenuIndex = 14
+                $settingsOpen = true
                 close()
             }}>{language.edit}</Button>
         </div>

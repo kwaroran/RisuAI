@@ -37,6 +37,7 @@ export const CurrentUsername = writable(db.username)
 export const CurrentUserIcon = writable(db.userIcon)
 export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
 export const ShowVN = writable(false)
+export const SettingsMenuIndex = writable(0)
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
