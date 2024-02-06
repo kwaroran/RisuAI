@@ -1,6 +1,6 @@
 import { language } from "src/lang"
 import { alertError, alertNormal } from "../alert"
-import { DataBase, type customscript, type loreBook, type triggerscript } from "../storage/database"
+import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
 import { downloadFile } from "../storage/globalApi"
 import { get } from "svelte/store"
 import { CurrentChat } from "../stores"
@@ -44,6 +44,7 @@ export async function importModule(){
             }
             importedModule.id = v4()
             db.modules.push(importedModule)
+            setDatabase(db)
         }
     } catch (error) {
         alertNormal(language.errors.noData)
