@@ -51,8 +51,8 @@ export async function importModule(){
         if(importData.type === 'risu' && importData.data){
             const lores:loreBook[] = importData.data
             const importModule = {
-                name: importData.name,
-                description: importData.description,
+                name: importData.name || 'Imported Lorebook',
+                description: importData.description || 'Converted from risu lorebook',
                 lorebook: lores,
                 id: v4()
             }
@@ -63,8 +63,8 @@ export async function importModule(){
         if(importData.entries){
             const lores:loreBook[] = convertExternalLorebook(importData.entries)
             const importModule = {
-                name: importData.name,
-                description: importData.description,
+                name: importData.name || 'Imported Lorebook',
+                description: importData.description || 'Converted from external lorebook',
                 lorebook: lores,
                 id: v4()
             }
