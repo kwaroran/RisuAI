@@ -95,7 +95,7 @@
         <Button className="mt-6" on:click={() => {
             $DataBase.modules.push(tempModule)
             mode = 0
-        }}>{language.editModule}</Button>
+        }}>{language.createModule}</Button>
     {/if}
 {:else if mode === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.editModule}</h2>
@@ -104,6 +104,6 @@
         <Button className="mt-6" on:click={() => {
             $DataBase.modules[editModuleIndex] = tempModule
             mode = 0
-        }}>{language.createModule}</Button>
+        }}>{language.editModule}</Button>
     {/if}
 {/if}
