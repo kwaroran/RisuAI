@@ -65,8 +65,8 @@ export function getModuleLorebooks() {
     const currentChat = get(CurrentChat)
     const db = get(DataBase)
     if (!currentChat) return []
-    const moduleIds = currentChat.modules ?? []
-    moduleIds.concat(db.enabledModules)
+    let moduleIds = currentChat.modules ?? []
+    moduleIds = moduleIds.concat(db.enabledModules)
     let lorebooks: loreBook[] = []
     for (const moduleId of moduleIds) {
         const module = getModuleById(moduleId)
@@ -85,8 +85,8 @@ export function getModuleTriggers() {
     const currentChat = get(CurrentChat)
     const db = get(DataBase)
     if (!currentChat) return []
-    const moduleIds = currentChat.modules ?? []
-    moduleIds.concat(db.enabledModules)
+    let moduleIds = currentChat.modules ?? []
+    moduleIds = moduleIds.concat(db.enabledModules)
     let triggers: triggerscript[] = []
     for (const moduleId of moduleIds) {
         const module = getModuleById(moduleId)
@@ -104,8 +104,8 @@ export function getModuleRegexScripts() {
     const currentChat = get(CurrentChat)
     const db = get(DataBase)
     if (!currentChat) return []
-    const moduleIds = currentChat.modules ?? []
-    moduleIds.concat(db.enabledModules)
+    let moduleIds = currentChat.modules ?? []
+    moduleIds = moduleIds.concat(db.enabledModules)
     let customscripts: customscript[] = []
     for (const moduleId of moduleIds) {
         const module = getModuleById(moduleId)
