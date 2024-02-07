@@ -302,7 +302,8 @@ export function setDatabase(data:Database){
     data.personas ??= [{
         name: data.username,
         personaPrompt: "",
-        icon: data.userIcon
+        icon: data.userIcon,
+        largePortrait: false
     }]
     data.classicMaxWidth ??= false
     data.ooba ??= cloneDeep(defaultOoba)
