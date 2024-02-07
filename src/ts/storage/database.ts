@@ -15,7 +15,7 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.77.0"
+export let appVer = "1.78.2"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -591,6 +591,7 @@ export interface Database{
     memoryLimitThickness?:number
     modules: RisuModule[]
     enabledModules: string[]
+    sideMenuRerollButton?:boolean
 }
 
 export interface customscript{

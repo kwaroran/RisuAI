@@ -12,19 +12,7 @@ import { getModuleLorebooks } from "./modules";
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
     let db = get(DataBase)
-    if(type === -1){
-        db.loreBook[db.loreBookPage].data.push({
-            key: '',
-            comment: `New Lore ${db.loreBook[db.loreBookPage].data.length + 1}`,
-            content: '',
-            mode: 'normal',
-            insertorder: 100,
-            alwaysActive: false,
-            secondkey: "",
-            selective: false
-        })
-    }
-    else if(type === 0){
+    if(type === 0){
         db.characters[selectedID].globalLore.push({
             key: '',
             comment: `New Lore ${db.characters[selectedID].globalLore.length + 1}`,
@@ -71,9 +59,8 @@ export async function loadLoreBookPrompt(){
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
-    const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
     const moduleLorebook = getModuleLorebooks()
-    const fullLore = characterLore.concat(chatLore).concat(moduleLorebook).concat(globalLore)
+    const fullLore = characterLore.concat(chatLore).concat(moduleLorebook)
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
@@ -224,8 +211,7 @@ export async function loadLoreBookPlusPrompt(){
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
-    const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
-    const fullLore = characterLore.concat(chatLore.concat(globalLore)).filter((v) => { return v.content })
+    const fullLore = characterLore.concat(chatLore).concat(getModuleLorebooks()).filter((v) => { return v.content })
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
@@ -317,7 +303,6 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const page = mode === 'sglobal' ? -1 : db.characters[selectedID].chatPage
     let lore = 
         mode === 'global' ? db.characters[selectedID].globalLore : 
-        mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
         db.characters[selectedID].chats[page].localLore
     const lorebook = (await selectSingleFile(['json', 'lorebook'])).data
     if(!lorebook){
@@ -335,49 +320,11 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
             }
         }
         else if(importedlore.entries){
-            const entries:{[key:string]:{
-                key:string[]
-                comment:string
-                content:string
-                order:number
-                constant:boolean,
-                name:string,
-                keywords:string[],
-                priority:number
-                entry:string
-                secondary_keys:string[]
-                selective:boolean
-                forceActivation:boolean
-                keys:string[]
-                displayName:string
-                text:string
-                contextConfig?: {
-                    budgetPriority:number
-                    prefix:string
-                    suffix:string
-                }
-            }} = importedlore.entries
-            for(const key in entries){
-                const currentLore = entries[key]
-                lore.push({
-                    key: currentLore.key ? currentLore.key.join(', ') :
-                        currentLore.keys ? currentLore.keys.join(', ') :
-                        currentLore.keywords ? currentLore.keywords.join(', ') : '',
-                    insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
-                    comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
-                    content: currentLore.content || currentLore.entry || currentLore.text || '',
-                    mode: "normal",
-                    alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
-                    secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
-                    selective: currentLore.selective ?? false
-                })
-            }
+            const entries:{[key:string]:CCLorebook} = importedlore.entries
+            lore.push(...convertExternalLorebook(entries))
         }
         if(mode === 'global'){
             db.characters[selectedID].globalLore = lore
-        }
-        else if(mode === 'sglobal'){
-            db.loreBook[db.loreBookPage].data = lore
         }
         else{
             db.characters[selectedID].chats[page].localLore = lore
@@ -388,6 +335,49 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     }
 }
 
+interface CCLorebook{
+    key:string[]
+    comment:string
+    content:string
+    order:number
+    constant:boolean,
+    name:string,
+    keywords:string[],
+    priority:number
+    entry:string
+    secondary_keys:string[]
+    selective:boolean
+    forceActivation:boolean
+    keys:string[]
+    displayName:string
+    text:string
+    contextConfig?: {
+        budgetPriority:number
+        prefix:string
+        suffix:string
+    }
+}
+
+export function convertExternalLorebook(entries:{[key:string]:CCLorebook}){
+    let lore:loreBook[] = []
+    for(const key in entries){
+        const currentLore = entries[key]
+        lore.push({
+            key: currentLore.key ? currentLore.key.join(', ') :
+                currentLore.keys ? currentLore.keys.join(', ') :
+                currentLore.keywords ? currentLore.keywords.join(', ') : '',
+            insertorder: currentLore.order ?? currentLore.priority ?? currentLore?.contextConfig?.budgetPriority ?? 0,
+            comment: currentLore.comment || currentLore.name || currentLore.displayName || '',
+            content: currentLore.content || currentLore.entry || currentLore.text || '',
+            mode: "normal",
+            alwaysActive: currentLore.constant ?? currentLore.forceActivation ?? false,
+            secondkey: currentLore.secondary_keys ? currentLore.secondary_keys.join(', ') : "",
+            selective: currentLore.selective ?? false
+        })
+    }
+    return lore
+}
+
 export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
     try {
         const selectedID = get(selectedCharID)
@@ -395,7 +385,6 @@ export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
         const page = mode === 'sglobal' ? -1 :  db.characters[selectedID].chatPage
         const lore = 
             mode === 'global' ? db.characters[selectedID].globalLore : 
-            mode === 'sglobal' ? db.loreBook[db.loreBookPage].data :
             db.characters[selectedID].chats[page].localLore        
         const stringl = Buffer.from(JSON.stringify({
             type: 'risu',

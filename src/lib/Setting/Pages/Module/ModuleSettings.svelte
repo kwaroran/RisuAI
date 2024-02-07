@@ -3,7 +3,7 @@
     import { DataBase } from "src/ts/storage/database";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
-    import { exportModule, type RisuModule } from "src/ts/process/modules";
+    import { exportModule, importModule, type RisuModule } from "src/ts/process/modules";
     import { DownloadIcon, Edit, TrashIcon, Globe } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
@@ -87,7 +87,7 @@
         }
         mode = 1
     }}>{language.createModule}</Button>
-    <Button className="mt-2">{language.importModule}</Button>
+    <Button className="mt-2" on:click={importModule}>{language.importModule}</Button>
 {:else if mode === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.createModule}</h2>
     <ModuleMenu bind:currentModule={tempModule}/>
@@ -95,7 +95,7 @@
         <Button className="mt-6" on:click={() => {
             $DataBase.modules.push(tempModule)
             mode = 0
-        }}>{language.editModule}</Button>
+        }}>{language.createModule}</Button>
     {/if}
 {:else if mode === 2}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.editModule}</h2>
@@ -104,6 +104,6 @@
         <Button className="mt-6" on:click={() => {
             $DataBase.modules[editModuleIndex] = tempModule
             mode = 0
-        }}>{language.createModule}</Button>
+        }}>{language.editModule}</Button>
     {/if}
 {/if}

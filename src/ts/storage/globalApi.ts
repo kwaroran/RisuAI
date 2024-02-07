@@ -1,7 +1,7 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
 import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
@@ -26,6 +26,7 @@ import { saveDbKei } from "../kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
 import { save } from "@tauri-apps/api/dialog";
+import type { RisuModule } from "../process/modules";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -984,6 +985,43 @@ async function checkNewFormat() {
         }
 
         db.formatversion = 3
+    }
+    if(db.formatversion < 4){
+        db.modules ??= []
+        db.enabledModules ??=[]
+        //convert globallore and global regex to modules
+        if(db.globalscript && db.globalscript.length > 0){
+            const id = v4()
+            let regexModule:RisuModule = {
+                name: "Global Regex",
+                description: "Converted from legacy global regex",
+                id: id,
+                regex: cloneDeep(db.globalscript)
+            }
+            db.modules.push(regexModule)
+            db.enabledModules.push(id)
+            db.globalscript = []
+        }
+        if(db.loreBook && db.loreBook.length > 0){
+            const selIndex = db.loreBookPage
+            for(let i=0;i<db.loreBook.length;i++){
+                const id = v4()
+                let lbModule:RisuModule = {
+                    name: db.loreBook[i].name || "Unnamed Global Lorebook",
+                    description: "Converted from legacy global lorebook",
+                    id: id,
+                    lorebook: cloneDeep(db.loreBook[i].data)
+                }
+                db.modules.push(lbModule)
+                if(i === selIndex){
+                    db.enabledModules.push(id)
+                }
+                db.globalscript = []
+            }
+            db.loreBook = []
+        }
+
+        db.formatversion = 4
     }
     if(!db.characterOrder){
         db.characterOrder = []
