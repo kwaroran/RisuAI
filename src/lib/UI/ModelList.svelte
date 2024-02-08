@@ -82,6 +82,14 @@
                 return "Gemini Pro"
             case 'horde:::auto':
                 return 'Horde Auto Model'
+            case 'gpt4_0125':
+                return 'GPT-4 Turbo 0125'
+            case 'gpt35_0125':
+                return 'GPT-3.5 Turbo 0125'
+            case 'gemini-ultra':
+                return 'Gemini Ultra'
+            case 'gemini-ultra-vision':
+                return 'Gemini Ultra Vision'
             default:
                 if(name.startsWith("horde:::")){
                     const split = name.split(":::")
@@ -183,6 +191,8 @@
                 <Arcodion name="Google Gemini">
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro-vision')}}>Gemini Pro Vision</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra')}}>Gemini Ultra</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra-vision')}}>Gemini Ultra Vision</button>
                 </Arcodion>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}
