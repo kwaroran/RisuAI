@@ -72,6 +72,18 @@ export async function importModule(){
             setDatabase(db)
             return
         }
+        if(importData.type === 'regex'  && importData.data){
+            const regexs:customscript[] = importData.data
+            const importModule = {
+                name: importData.name || 'Imported Regex',
+                description: importData.description || 'Converted from risu regex',
+                regex: regexs,
+                id: v4()
+            }
+            db.modules.push(importModule)
+            setDatabase(db)
+            return
+        }
     } catch (error) {
         alertNormal(language.errors.noData)
     }
