@@ -11,8 +11,9 @@
     import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
-  import { Capacitor } from "@capacitor/core";
-  import { isNative } from "lodash";
+    import { Capacitor } from "@capacitor/core";
+    import { isNative } from "lodash";
+    import { persistantStorageRecommended, requestPersistantStorage } from "src/ts/storage/persistant";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -40,7 +41,21 @@
     }
 }}></svelte:window>
 
+
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
+
+{#await persistantStorageRecommended() then a}
+    {#if a}
+        <button
+            class="flex justify-center p-3 text-left items-start border-red-300 cursor-pointer hover:border-red-700 border-solid mt-2 border-2 hover:bg-red-600 text-textcolor hover:text-white transition-colors rounded-md flex-col"
+            on:click={requestPersistantStorage}
+        >
+            <h3 class="text-xl">{language.persistentStorageRecommended}</h3>
+            <span class="text-gray-200">{language.persistentStorageDesc}</span>
+        </button>
+    {/if}
+{/await}
+
 <Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){

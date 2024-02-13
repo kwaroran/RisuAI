@@ -4,6 +4,7 @@
     import { checkDriver } from "src/ts/drive/drive";
     import { DataBase } from "src/ts/storage/database";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
+  import { persistantStorageRecommended } from "src/ts/storage/persistant";
 
 </script>
 

@@ -530,4 +530,10 @@ export const languageEnglish = {
     enableGlobal: "Enable Globally",
     chatModulesInfo: "You can enable or disable modules for this chat.",
     sideMenuRerollButton: "Side Menu Reroll Button",
+    persistentStorage: "Persistent Storage",
+    persistentStorageSuccess: "Storage is successfully persisted",
+    persistentStorageFail: "Storage is not persisted. Did you deny the request?, or is the browser not supported?",
+    persistentStorageRecommended: "Persistent Storage Recommended",
+    persistentStorageDesc: "Your browser supports persistent storage. this is recommended for better performance and user experience.",
+    enable: "Enable",
 }
