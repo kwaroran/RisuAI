@@ -99,6 +99,25 @@ function getModuleById(id:string){
     return null
 }
 
+let lastModules = ''
+let lastModuleData:RisuModule[] = []
+export function getModules(ids:string[]){
+    const idsJoined = ids.join('-')
+    if(lastModules === idsJoined){
+        return lastModuleData
+    }
+
+    let modules:RisuModule[] = []
+    for(const id of ids){
+        const module = getModuleById(id)
+        modules.push(module)
+    }
+    lastModules = idsJoined
+    lastModuleData = modules
+    return modules
+
+}
+
 
 export function getModuleLorebooks() {
     const currentChat = get(CurrentChat)
@@ -106,9 +125,9 @@ export function getModuleLorebooks() {
     if (!currentChat) return []
     let moduleIds = currentChat.modules ?? []
     moduleIds = moduleIds.concat(db.enabledModules)
+    const modules = getModules(moduleIds)
     let lorebooks: loreBook[] = []
-    for (const moduleId of moduleIds) {
-        const module = getModuleById(moduleId)
+    for (const module of modules) {
         if(!module){
             continue
         }
@@ -126,9 +145,9 @@ export function getModuleTriggers() {
     if (!currentChat) return []
     let moduleIds = currentChat.modules ?? []
     moduleIds = moduleIds.concat(db.enabledModules)
+    const modules = getModules(moduleIds)
     let triggers: triggerscript[] = []
-    for (const moduleId of moduleIds) {
-        const module = getModuleById(moduleId)
+    for (const module of modules) {
         if(!module){
             continue
         }
@@ -145,9 +164,9 @@ export function getModuleRegexScripts() {
     if (!currentChat) return []
     let moduleIds = currentChat.modules ?? []
     moduleIds = moduleIds.concat(db.enabledModules)
+    const modules = getModules(moduleIds)
     let customscripts: customscript[] = []
-    for (const moduleId of moduleIds) {
-        const module = getModuleById(moduleId)
+    for (const module of modules) {
         if(!module){
             continue
         }
