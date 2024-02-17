@@ -7,6 +7,7 @@ import { requestChatData } from "../process/request"
 import { doingChat } from "../process"
 import type { simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
+import { getModuleRegexScripts } from "../process/modules"
 
 let cache={
     origin: [''],
@@ -241,10 +242,10 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             const db = get(DataBase)
             const charId = get(selectedCharID)
             const char = db.characters[charId]
-            scripts = (db.globalscript ?? []).concat(char?.customscript ?? [])
+            scripts = (getModuleRegexScripts() ?? []).concat(char?.customscript ?? [])
         }
         else{
-            scripts = (db.globalscript ?? []).concat(charArg?.customscript ?? [])
+            scripts = (getModuleRegexScripts() ?? []).concat(charArg?.customscript ?? [])
 
         }
         for(const script of scripts){
