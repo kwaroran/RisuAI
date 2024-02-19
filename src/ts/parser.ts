@@ -85,19 +85,30 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
 
     if(char.additionalAssets){
 
-        let assetPaths:{[key:string]:string} = {}
-        let emoPaths:{[key:string]:string} = {}
+        let assetPaths:{[key:string]:{
+            path:string
+            ext?:string
+        }} = {}
+        let emoPaths:{[key:string]:{
+            path:string
+        }} = {}
 
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0].toLocaleLowerCase()] = assetPath
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
+            }
         }
         if(char.emotionImages){
             for(const emo of char.emotionImages){
                 const emoPath = await getFileSrc(emo[1])
-                emoPaths[emo[0].toLocaleLowerCase()] = emoPath
+                emoPaths[emo[0].toLocaleLowerCase()] = {
+                    path: emoPath,
+                }
             }
         }
+        const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
         data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
             name = name.toLocaleLowerCase()
             if(type === 'emotion'){
@@ -114,18 +125,26 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
             switch(type){
                 case 'raw':
-                    return path
+                    return path.path
                 case 'img':
-                    return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
                 case 'video':
-                    return `<video controls autoplay loop><source src="${path}" type="video/mp4"></video>`
+                    return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+                case 'video-img':
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
                 case 'audio':
-                    return `<audio controls autoplay loop><source src="${path}" type="audio/mpeg"></audio>`
+                    return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
                 case 'bg':
                     if(mode === 'back'){
-                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path}); background-size: cover;"></div>`
+                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
                     }
                     break
+                case 'asset':{
+                    if(path.ext && videoExtention.includes(path.ext)){
+                        return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                    }
+                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                }
             }
             return ''
         })
