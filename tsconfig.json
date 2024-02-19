@@ -17,7 +17,7 @@
     "isolatedModules": true
   },
   "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js"],
-  "exclude": ["src/**/web/*.ts"],
+  "exclude": ["src/**/web/*.ts", "risu-electron/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "ignoreDeprecations": "5.0"
 }
