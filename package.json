@@ -11,7 +11,9 @@
     "tauri": "tauri",
     "buildsite": "vite build --outDir dist",
     "updatePlugin": "tsc public/pluginApi.ts",
-    "runserver": "node server/node/server.cjs"
+    "runserver": "node server/node/server.cjs",
+    "sync": "node electron/sync",
+    "electron": "node electron/dist/electron"
   },
   "dependencies": {
     "@adobe/css-tools": "4.3.2",

@@ -1,4 +1,4 @@
-import { get } from "svelte/store"
+import { get, writable, type Writable } from "svelte/store"
 import type { Database, Message } from "./storage/database"
 import { DataBase } from "./storage/database"
 import { selectedCharID } from "./stores"
@@ -371,4 +371,8 @@ export function getCurrentCharacter(){
     const db = get(DataBase)
     const selectedChar = get(selectedCharID)
     return db.characters[selectedChar]
+}
+
+export function toState<T>(t:T):Writable<T>{
+    return writable(t)
 }
