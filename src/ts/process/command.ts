@@ -4,6 +4,7 @@ import { selectedCharID } from "../stores";
 import { alertInput, alertMd, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
+import { sendChat } from ".";
 
 export async function processMultiCommand(command:string) {
     let pipe = ''
@@ -153,6 +154,25 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
                 }
             } catch (error) {}
             return pipe
+        }
+        case 'multisend':{
+            const splited = arg.split('|||')
+            let clearMode = false
+            if(splited[0] && splited[0].trim() === 'clear'){
+                clearMode = true
+                splited.shift()
+            }
+            for(const e of splited){
+                if(clearMode){
+                    currentChat.message = []
+                }
+                currentChat.message.push({
+                    role: 'user',
+                    data: e
+                })
+                await sendChat(-1)
+            }
+            return ''
         }
     }
     return false
