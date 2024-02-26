@@ -651,6 +651,10 @@
                                 messageInput += res.data
                                 updateInputSizeAll()
                             }
+                            if(res?.type === 'text'){
+                                messageInput += `{{file::${res.name}::${res.data}}}`
+                                updateInputSizeAll()
+                            }
                         }}>
                             <ImagePlusIcon />
                             <span class="ml-2">{language.postFile}</span>

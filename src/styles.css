@@ -163,3 +163,15 @@ html, body{
 .text-bordered{
   -webkit-text-stroke: 1px #000;
 }
+
+.x-risu-risu-file{
+  padding: 1rem;
+  border: 1px solid var(--risu-theme-selected);
+  border-radius: 0.5rem;
+  color: var(--FontColorStandard);
+  min-width: 0;
+  max-width: 20rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

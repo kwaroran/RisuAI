@@ -393,6 +393,7 @@ type matcherArg = {
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
     consistantChar?:boolean
+    displaying?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 100000){
@@ -680,6 +681,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'not':{
                 return (Number(arra[1]) === 0) ? '1' : '0'
             }
+            case 'file':{
+                if(matcherArg.displaying){
+                    return `<br><div class="risu-file">${arra[1]}</div><br>`
+                }
+                return Buffer.from(arra[2], 'base64').toString('utf-8') 
+            }
         }
     }
     if(p1.startsWith('random')){
@@ -852,7 +859,8 @@ export function risuChatParser(da:string, arg:{
         rmVar: arg.rmVar ?? false,
         db: db,
         var: arg.var ?? null,
-        tokenizeAccurate: arg.tokenizeAccurate ?? false
+        tokenizeAccurate: arg.tokenizeAccurate ?? false,
+        displaying: arg.visualize ?? false,
     }
     let pef = performance.now()
     while(pointer < da.length){

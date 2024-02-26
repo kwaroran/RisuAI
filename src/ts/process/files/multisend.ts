@@ -93,9 +93,10 @@ async function sendPofile(arg:sendFileArg){
 }
 
 async function sendPDFFile(arg:sendFileArg) {
-    const pdfjsLib = (await import('pdfjs-dist')).default;
+    const pdfjsLib = (await import('pdfjs-dist'));
+    const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker?worker&url');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
     const pdf = await pdfjsLib.getDocument({data: arg.file}).promise;
-    const db = get(DataBase)
     const texts:string[] = []
     for(let i = 1; i<=pdf.numPages; i++){
         const page = await pdf.getPage(i);
@@ -105,30 +106,40 @@ async function sendPDFFile(arg:sendFileArg) {
             texts.push(item.str)
         }
     }
+    console.log(texts)
     const hypa = new HypaProcesser('MiniLM')
     hypa.addText(texts)
-    let currentChar = db.characters[get(selectedCharID)]
-    let currentChat = currentChar.chats[currentChar.chatPage]
     const result = await hypa.similaritySearch(arg.query)
-    let message = arg.query
+    let message = ''
     for(let i = 0; i<result.length; i++){
-        message += "\n" + texts[result[i]]
+        message += "\n" + result[i]
         if(i>5){
             break
         }
     }
-    currentChat.message.push({
-        role: 'user',
-        data: message
-    })
-
-    currentChar.chats[currentChar.chatPage] = currentChat
-    db.characters[get(selectedCharID)] = currentChar
-    setDatabase(db)
-    await sendChat(-1)
+    console.log(message)
+    return Buffer.from(`<File>\n${message}\n</File>\n`).toString('base64')
 }
 
-type postFileResult = postFileResultImage | postFileResultVoid
+async function sendTxtFile(arg:sendFileArg) {
+    const lines = arg.file.split('\n').filter((a) => {
+        return a !== ''
+    })
+    const hypa = new HypaProcesser('MiniLM')
+    hypa.addText(lines)
+    const result = await hypa.similaritySearch(arg.query)
+    let message = ''
+    for(let i = 0; i<result.length; i++){
+        message += "\n" + result[i]
+        if(i>5){
+            break
+        }
+    }
+    console.log(message)
+    return Buffer.from(`<File>\n${message}\n</File>\n`).toString('base64')
+}
+
+type postFileResult = postFileResultImage | postFileResultVoid | postFileResultText
 
 type postFileResultImage = {
     data: string,
@@ -139,6 +150,11 @@ type postFileResultVoid = {
     type: 'void',
 }
 
+type postFileResultText = {
+    data: string,
+    type: 'text',
+    name: string
+}
 export async function postChatFile(query:string):Promise<postFileResult>{
     const file = await selectSingleFile([
         //image format
@@ -147,7 +163,8 @@ export async function postChatFile(query:string):Promise<postFileResult>{
         'png',
         'webp',
         'po',
-        'pdf'
+        // 'pdf',
+        'txt'
     ])
 
     if(!file){
@@ -168,12 +185,13 @@ export async function postChatFile(query:string):Promise<postFileResult>{
             }
         }
         case 'pdf':{
-            await sendPDFFile({
-                file: BufferToText(file.data),
-                query: query
-            })
             return {
-                type: 'void'
+                type: 'text',
+                data: await sendPDFFile({
+                    file: BufferToText(file.data),
+                    query: query
+                }),
+                name: file.name
             }
         }
         case 'jpg':
@@ -184,6 +202,16 @@ export async function postChatFile(query:string):Promise<postFileResult>{
             return {
                 data: postData,
                 type: 'image'
+            }
+        }
+        case 'txt':{
+            return {
+                type: 'text',
+                data: await sendTxtFile({
+                    file: BufferToText(file.data),
+                    query: query
+                }),
+                name: file.name
             }
         }
     }
