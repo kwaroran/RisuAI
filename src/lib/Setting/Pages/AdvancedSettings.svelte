@@ -78,7 +78,7 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.inlayImage} name={language.inlayImage}>
+    <Check bind:check={$DataBase.inlayImage} name={language.postFile}>
         <Help key="experimental"/><Help key="inlayImages"/>
     </Check>
 </div>

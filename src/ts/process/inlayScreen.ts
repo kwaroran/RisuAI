@@ -1,4 +1,4 @@
-import { writeInlayImage } from "../image";
+import { writeInlayImage } from "./files/image";
 import type { character } from "../storage/database";
 import { generateAIImage } from "./stableDiff";
 

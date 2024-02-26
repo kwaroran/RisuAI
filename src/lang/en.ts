@@ -466,7 +466,6 @@ export const languageEnglish = {
     charjs: "CharacterJS",
     depthPrompt: "Depth Prompt",
     largePortrait: "Portrait",
-    postImage: "Post Image",
     lorePlus: "LoreBook+",
     reverseProxyOobaMode: "Reverse Proxy Ooba Mode",
     joinMultiUserRoom: "Join MultiUser Room",
@@ -536,4 +535,5 @@ export const languageEnglish = {
     persistentStorageRecommended: "Persistent Storage Recommended",
     persistentStorageDesc: "Your browser supports persistent storage. this is recommended for better performance and user experience.",
     enable: "Enable",
+    postFile: "Post File",
 }

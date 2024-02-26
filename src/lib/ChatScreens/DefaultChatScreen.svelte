@@ -16,14 +16,13 @@
     import CreatorQuote from "./CreatorQuote.svelte";
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
-    import Help from '../Others/Help.svelte';
     import AssetInput from './AssetInput.svelte';
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
-    import { postInlayImage } from 'src/ts/image';
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
     import { processMultiCommand } from 'src/ts/process/command';
+    import { postChatFile } from 'src/ts/process/files/multisend';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -647,14 +646,14 @@
 
                     {#if $DataBase.inlayImage}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            const imgid = await postInlayImage()
-                            if(imgid){
-                                messageInput += imgid
+                            const res = await postChatFile(messageInput)
+                            if(res?.type === 'image'){
+                                messageInput += res.data
                                 updateInputSizeAll()
                             }
                         }}>
                             <ImagePlusIcon />
-                            <span class="ml-2">{language.postImage}</span>
+                            <span class="ml-2">{language.postFile}</span>
                         </div>
                     {/if}
 

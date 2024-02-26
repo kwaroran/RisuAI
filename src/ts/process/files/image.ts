@@ -1,30 +1,21 @@
 import localforage from "localforage";
-import { selectSingleFile } from "./util";
+import { selectSingleFile } from "../../util";
 import { v4 } from "uuid";
-import { DataBase } from "./storage/database";
+import { DataBase } from "../../storage/database";
 import { get } from "svelte/store";
-import { checkImageType } from "./parser";
+import { checkImageType } from "../../parser";
 
 const inlayStorage = localforage.createInstance({
     name: 'inlay',
     storeName: 'inlay'
 })
 
-export async function postInlayImage(){
-    const img = await selectSingleFile([
-        //image format
-        'jpg',
-        'jpeg',
-        'png',
-        'webp'
-    ])
-
-    if(!img){
-        return null
-    }
+export async function postInlayImage(img:{
+    name:string,
+    data:Uint8Array
+}){
 
     const extention = img.name.split('.').at(-1)
-
     const imgObj = new Image()
     imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
 

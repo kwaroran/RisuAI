@@ -19,7 +19,7 @@ import { runTrigger } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
-import { getInlayImage, supportsInlayImage } from "../image";
+import { getInlayImage, supportsInlayImage } from "./files/image";
 import { getGenerationModelString } from "./models/modelString";
 import { sendPeerChar } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";

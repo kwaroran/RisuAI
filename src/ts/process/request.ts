@@ -17,7 +17,7 @@ import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
-import { supportsInlayImage } from "../image";
+import { supportsInlayImage } from "./files/image";
 import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";

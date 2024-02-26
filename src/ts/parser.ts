@@ -10,7 +10,7 @@ import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
-import { getInlayImage } from './image';
+import { getInlayImage } from './process/files/image';
 import { autoMarkNew } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
 

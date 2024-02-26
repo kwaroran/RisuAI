@@ -5,7 +5,7 @@ import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
 import { cloneDeep } from "lodash"
-import { reencodeImage } from "./image"
+import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 
 export async function selectUserImg() {

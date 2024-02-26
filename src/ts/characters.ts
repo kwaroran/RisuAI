@@ -7,7 +7,7 @@ import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, 
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
-import { reencodeImage } from "./image";
+import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { PngChunk } from "./pngChunk";
 

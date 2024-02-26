@@ -3,7 +3,7 @@ import type { Tokenizer } from "@mlc-ai/web-tokenizers";
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
-import { supportsInlayImage } from "./image";
+import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
 import { tokenizeGGUFModel } from "./process/models/local";
 

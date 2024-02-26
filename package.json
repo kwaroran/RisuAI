@@ -53,6 +53,7 @@
     "mobile-drag-drop": "3.0.0-rc.0",
     "msgpackr": "^1.10.1",
     "node-html-parser": "^6.1.12",
+    "pdfjs-dist": "^4.0.379",
     "peerjs": "^1.5.2",
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",

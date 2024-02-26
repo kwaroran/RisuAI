@@ -10,7 +10,7 @@ import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
 
-import { reencodeImage } from "./image"
+import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/embedding/transformers"
 
