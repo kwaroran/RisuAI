@@ -750,7 +750,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
     }
 }
 
-const blockMatcher = (p1:string,matcherArg:matcherArg) => {
+const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     const bn = p1.indexOf('\n')
 
     if(bn === -1){
@@ -772,8 +772,32 @@ const blockMatcher = (p1:string,matcherArg:matcherArg) => {
     }
 
     return null
+}
+
+type blockMatch = 'ignore'|'parse'|'nothing'
 
 
+function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
+    if(p1.startsWith('#if')){
+        const statement = p1.split(" ", 2)
+        const state = statement[1]
+        if(state === 'true' || state === '1'){
+            return 'parse'
+        }
+        return 'ignore'
+    }
+    return 'nothing'
+}
+
+function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string{
+    if(type === 'ignore'){
+        return ''
+    }
+    if(type === 'parse'){
+        return p1
+
+    }
+    return ''
 }
 
 export function risuChatParser(da:string, arg:{
@@ -814,9 +838,10 @@ export function risuChatParser(da:string, arg:{
     
     let pointer = 0;
     let nested:string[] = [""]
-    let pf = performance.now()
-    let v = new Uint8Array(512)
+    let stackType = new Uint8Array(512)
     let pureMode = false
+    let pureModeType:''|'pureSyntax'|'block' = ''
+    let blockType:blockMatch = 'nothing'
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
@@ -829,6 +854,7 @@ export function risuChatParser(da:string, arg:{
         var: arg.var ?? null,
         tokenizeAccurate: arg.tokenizeAccurate ?? false
     }
+    let pef = performance.now()
     while(pointer < da.length){
         switch(da[pointer]){
             case '{':{
@@ -838,49 +864,96 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 nested.unshift('')
-                v[nested.length] = 1
+                stackType[nested.length] = 1
                 break
             }
             case '<':{
                 nested.unshift('')
-                v[nested.length] = 2
+                stackType[nested.length] = 2
                 break
             }
             case '#':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                //legacy if statement, deprecated
+                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
                     nested[0] += da[pointer]
                     break
                 }
                 pointer++
                 const dat = nested.shift()
-                const mc = blockMatcher(dat, matcherObj)
+                const mc = legacyBlockMatcher(dat, matcherObj)
                 nested[0] += mc ?? `{#${dat}#}`
                 break
             }
             case '}':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
                     nested[0] += da[pointer]
                     break
                 }
                 pointer++
                 const dat = nested.shift()
+                if(dat.startsWith('#')){
+                    if(pureMode){
+                        nested[0] += `{{${dat}}}`
+                    }
+                    const matchResult = blockStartMatcher(dat, matcherObj)
+                    if(matchResult === 'nothing'){
+                        break
+                    }
+                    else{
+                        if(matchResult !== 'parse'){
+                            pureMode = true
+                            pureModeType = 'block'
+                        }
+                        blockType = matchResult
+                        nested.unshift('')
+                        stackType[nested.length] = 5
+                        break
+                    }
+                }
+                if(dat.startsWith('/')){
+                    if(stackType[nested.length] === 5){
+                        const dat2 = nested.shift()
+                        if(pureMode && pureModeType === 'block'){
+                            pureMode = false
+                            pureModeType = ''
+                        }
+                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
+                        if(matchResult === ''){
+                            break
+                        }
+                        nested[0] += matchResult
+                        blockType = 'nothing'
+                        break
+                    }
+                }
                 const mc = (pureMode) ? null :matcher(dat, matcherObj)
                 nested[0] += mc ?? `{{${dat}}}`
                 break
             }
             case '>':{
-                if(nested.length === 1 || v[nested.length] !== 2){
+                if(nested.length === 1 || stackType[nested.length] !== 2){
                     break
                 }
                 const dat = nested.shift()
+                if(pureMode && pureModeType !== 'pureSyntax' && pureModeType !== ''){
+                    nested[0] += `<${dat}>`
+                    break
+                }
                 switch(dat){
                     case 'Pure':{
                         pureMode = true
+                        pureModeType = 'pureSyntax'
                         break
                     }
                     case '/Pure':{
-                        pureMode = false
-                        break
+                        if(pureModeType === 'pureSyntax'){
+                            pureMode = false
+                            pureModeType = ''
+                        }
+                        else{
+                            nested[0] += `<${dat}>`
+                            break
+                        }
                     }
                     case 'Comment':{
                         if(!commentMode){
@@ -890,14 +963,14 @@ export function risuChatParser(da:string, arg:{
                             if(commentLatest[0].endsWith('\n')){
                                 commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
                             }
-                            commentV = new Uint8Array(v)
+                            commentV = new Uint8Array(stackType)
                         }
                         break
                     }
                     case '/Comment':{
                         if(commentMode){
                             nested = commentLatest
-                            v = commentV
+                            stackType = commentV
                             commentMode = false
                         }
                         break
@@ -914,7 +987,7 @@ export function risuChatParser(da:string, arg:{
                             if(commentLatest[0].endsWith('\n')){
                                 commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
                             }
-                            commentV = new Uint8Array(v)
+                            commentV = new Uint8Array(stackType)
                         }
                         break
                     }
@@ -925,7 +998,7 @@ export function risuChatParser(da:string, arg:{
                         }
                         if(commentMode){
                             nested = commentLatest
-                            v = commentV
+                            stackType = commentV
                             commentMode = false
                         }
                         break
@@ -947,7 +1020,7 @@ export function risuChatParser(da:string, arg:{
     }
     if(commentMode){
         nested = commentLatest
-        v = commentV
+        stackType = commentV
         if(thinkingMode){
             nested[0] += `<div>Thinking...</div>`
         }
@@ -958,7 +1031,7 @@ export function risuChatParser(da:string, arg:{
     }
     let result = ''
     while(nested.length > 1){
-        let dat = (v[nested.length] === 1) ? '{{' : "<"
+        let dat = (stackType[nested.length] === 1) ? '{{' : "<"
         dat += nested.shift()
         result = dat + result
     }
