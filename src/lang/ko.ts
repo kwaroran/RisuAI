@@ -430,4 +430,6 @@ export const languageKorean = {
     editTranslationDisplay: "번역문 수정",
     memoryLimitThickness: "기억 한계선 두께",
     largePersonaPortrait: "페르소나 세로 이미지",
+    module: "모듈",
+    modules: "모듈",
 }

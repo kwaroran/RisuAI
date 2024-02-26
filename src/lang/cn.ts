@@ -400,5 +400,7 @@ export const languageChinese = {
 	"donatorPatreonDesc": "默认情况下，不会在列表中显示，以保护隐私。如果你想显示你的昵称，请前往RisuAI的Patreon页面并按下链接按钮。",
 	"useNamePrefix": "使用名称前缀",
 	"textAdventureNAI": "以NAI模式运行",
-	"appendNameNAI": "在NAI上附加名称"
+	"appendNameNAI": "在NAI上附加名称",
+	module: "模块",
+    modules: "模块",
 }

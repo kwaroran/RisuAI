@@ -403,5 +403,7 @@ export const LanguageVietnamese = {
     "textAdventureNAI": "Chạy dưới dạng cuộc phiêu lưu văn bản",
     "appendNameNAI": "Nối tên vào NAI",
     "customStopWords": "Từ dừng tùy chỉnh",
-    "defaultPrompt": "Lời nhắc mặc định"
+    "defaultPrompt": "Lời nhắc mặc định",
+    module: "Mô-đun",
+    modules: "Mô-đun",
 }
