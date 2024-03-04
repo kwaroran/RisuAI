@@ -1532,7 +1532,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         result: JSON.stringify(res.data.error)
                     }
                 }
-                return res.data.content[0].text
+                return {
+                    type: 'success',
+                    result: res.data.content[0].text
+                
+                }
             }
             else if(raiModel.startsWith('claude')){
 
