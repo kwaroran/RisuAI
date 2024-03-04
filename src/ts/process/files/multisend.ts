@@ -16,6 +16,8 @@ async function sendPofile(arg:sendFileArg){
 
     let result = ''
     let msgId = ''
+    let note = ''
+    let speaker = ''
     let parseMode = 0
     const db = get(DataBase)
     let currentChar = db.characters[get(selectedCharID)]
@@ -29,10 +31,16 @@ async function sendPofile(arg:sendFileArg){
                 result += '\n'
                 continue
             }
-            const id = msgId
+            let text = msgId
+            if(speaker !== ''){
+                text = `Speaker: ${speaker}\n${text}`
+            }
+            if(note !== ''){
+                text = `Note: ${note}\n${text}`
+            }
             currentChat.message.push({
                 role: 'user',
-                data: id
+                data: text
             })
             currentChar.chats[currentChar.chatPage] = currentChat
             db.characters[get(selectedCharID)] = currentChar
@@ -48,11 +56,20 @@ async function sendPofile(arg:sendFileArg){
                 return `"${str.replaceAll('"', '\\"')}"`
             }).join('\n')
             result += `msgstr ""\n${msgStr}\n\n`
-
+            note = ''
+            speaker = ''
             msgId = ''
             if(isTauri){
                 await downloadFile('translated.po', result)
             }
+            continue
+        }
+        if(line.startsWith('#. Note =')){
+            note = line.replace('#. Notes =', '').trim()
+            continue
+        }
+        if(line.startsWith('#. Speaker =')){
+            speaker = line.replace('#. Speaker =', '').trim()
             continue
         }
         if(line.startsWith('msgid')){
