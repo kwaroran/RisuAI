@@ -1401,7 +1401,140 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         default:{     
-            if(raiModel.startsWith('claude')){
+            if(raiModel.startsWith('claude-3')){
+                let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/messages')
+                let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
+                if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
+                    if(replacerURL.endsWith('v1')){
+                        replacerURL += '/messages'
+                    }
+                    else if(replacerURL.endsWith('v1/')){
+                        replacerURL += 'messages'
+                    }
+                    else if(!(replacerURL.endsWith('messages') || replacerURL.endsWith('messages/'))){
+                        if(replacerURL.endsWith('/')){
+                            replacerURL += 'v1/messages'
+                        }
+                        else{
+                            replacerURL += '/v1/messages'
+                        }
+                    }
+                }
+
+                interface Claude3Chat {
+                    role: 'user'|'assistant'
+                    content: string
+                }
+
+                let claudeChat: Claude3Chat[] = []
+                let systemPrompt:string = ''
+
+                const addClaudeChat = (chat:Claude3Chat) => {
+                    if(claudeChat.length > 0 && claudeChat[claudeChat.length-1].role === chat.role){
+                        claudeChat[claudeChat.length-1].content += "\n\n" + chat.content
+                    }
+                    else{
+                        claudeChat.push(chat)
+                    }
+                }
+
+                for(const chat of formated){
+                    switch(chat.role){
+                        case 'user':{
+                            addClaudeChat({
+                                role: 'user',
+                                content: chat.content
+                            })
+                            break
+                        }
+                        case 'assistant':{
+                            addClaudeChat({
+                                role: 'assistant',
+                                content: chat.content
+                            })
+                            break
+                        }
+                        case 'system':{
+                            if(claudeChat.length === 0){
+                                systemPrompt = chat.content
+                            }
+                            else{
+                                addClaudeChat({
+                                    role: 'user',
+                                    content: "System: " + chat.content
+                                })
+                            }
+                            break
+                        }
+                        case 'function':{
+                            //ignore function for now
+                            break
+                        }
+                    }
+                }
+
+                if(claudeChat.length === 0 && systemPrompt === ''){
+                    return {
+                        type: 'fail',
+                        result: 'No input'
+                    }
+                }
+                if(claudeChat.length === 0 && systemPrompt !== ''){
+                    claudeChat.push({
+                        role: 'user',
+                        content: systemPrompt
+                    })
+                    systemPrompt = ''
+                }
+                if(claudeChat[0].role !== 'user'){
+                    claudeChat.unshift({
+                        role: 'user',
+                        content: 'Start'
+                    })
+                }
+                console.log(claudeChat, formated)
+                let body = {
+                    model: raiModel,
+                    messages: claudeChat,
+                    system: systemPrompt,
+                    max_tokens: maxTokens,
+                    temperature: temperature,
+                    top_p: db.top_p,
+                    top_k: db.top_k,
+                }
+
+                if(systemPrompt === ''){
+                    delete body.system
+                }
+
+
+
+                const res = await globalFetch(replacerURL, {
+                    body: body,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                        "accept": "application/json"
+                    },
+                    method: "POST"
+                })
+
+                if(!res.ok){
+                    return {
+                        type: 'fail',
+                        result: JSON.stringify(res.data)
+                    }
+                }
+                if(res.data.error){
+                    return {
+                        type: 'fail',
+                        result: JSON.stringify(res.data.error)
+                    }
+                }
+                return res.data.content[0].text
+            }
+            else if(raiModel.startsWith('claude')){
 
                 let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/complete')
                 let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey

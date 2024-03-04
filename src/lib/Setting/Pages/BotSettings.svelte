@@ -147,7 +147,11 @@
     <span class="text-textcolor">Mancer {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
 {/if}
-{#if $DataBase.aiModel.startsWith('claude') || $DataBase.subModel.startsWith('claude')}
+{#if $DataBase.aiModel.startsWith('claude-3') || $DataBase.subModel.startsWith('claude-3')}
+    <span class="text-textcolor">Claude {language.apiKey}</span>
+    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
+{/if}
+{#if $DataBase.aiModel.startsWith('claude-1') || $DataBase.subModel.startsWith('claude-1') || $DataBase.subModel.startsWith('claude-2') || $DataBase.subModel.startsWith('claude-2')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
     {#if $DataBase.useExperimental}
@@ -332,7 +336,7 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-{#if $DataBase.aiModel.startsWith('openrouter')}
+{#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3')}
     <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.top_k}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_k).toFixed(0)}</span>
