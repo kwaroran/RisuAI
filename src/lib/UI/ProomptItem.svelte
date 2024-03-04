@@ -42,6 +42,7 @@
         <OptionInput value="authornote">{language.formating.authorNote}</OptionInput>
         <OptionInput value="lorebook">{language.formating.lorebook}</OptionInput>
         <OptionInput value="memory">{language.formating.memory}</OptionInput>
+        <OptionInput value="postEverything">{language.formating.postEverything}</OptionInput>
         {#if $DataBase.proomptSettings.customChainOfThought}
             <OptionInput value="cot">{language.cot}</OptionInput>
         {/if}

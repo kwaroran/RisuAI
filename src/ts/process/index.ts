@@ -182,9 +182,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let promptTemplate = cloneDeep(db.promptTemplate)
     const usingPromptTemplate = !!promptTemplate
     if(promptTemplate){
-        promptTemplate.push({
-            type: 'postEverything'
-        })
+        let hasPostEverything = false
+        for(const card of promptTemplate){
+            if(card.type === 'postEverything'){
+                hasPostEverything = true
+                break
+            }
+        }
+
+        if(!hasPostEverything){
+            promptTemplate.push({
+                type: 'postEverything'
+            })
+        }
     }
     if(currentChar.utilityBot && (!(usingPromptTemplate && db.proomptSettings.utilOverride))){
         promptTemplate = [
