@@ -1,19 +1,15 @@
 export const patchNote = {
-    version: "1.78",
+    version: "1.81",
     content: 
 `
-# Update 1.78
-- Added Modules
-  - Modules are package of triggers, regex, and lorebook
-  - You can enable globally, or enable only in specific chat
-  - Designed for easy sharing and activation/deactivation.
-- Removed global regex and lorebook
-  - This would be replaced by modules
-  - Old global regex and lorebook will be converted to modules 
-- Fixed Claude prompting
-- Settings menu would be remembered
-- Added persona portraits (#289)
-- Added gpt-3.5-turbo-0125 (#288)
+# Update 1.81
+- Added {{model}}
+  - {{model}} outputs the current ai model that is being used
+- Added {{axmodel}}
+  - {{axmodel}} outputs the current ax. model that is being used
+- Added {{startswith::A::B}}
+  - {{startswith::A::B}} returns true if A starts with B
+- Improved Claude 3 format handling
 `
 }
 
