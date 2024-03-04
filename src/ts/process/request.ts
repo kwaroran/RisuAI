@@ -1437,7 +1437,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         claudeChat.push(chat)
                     }
                 }
-
                 for(const chat of formated){
                     switch(chat.role){
                         case 'user':{
@@ -1456,7 +1455,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                         case 'system':{
                             if(claudeChat.length === 0){
-                                systemPrompt = chat.content
+                                systemPrompt += '\n\n' + chat.content
                             }
                             else{
                                 addClaudeChat({
@@ -1492,11 +1491,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         content: 'Start'
                     })
                 }
-                console.log(claudeChat, formated)
                 let body = {
                     model: raiModel,
                     messages: claudeChat,
-                    system: systemPrompt,
+                    system: systemPrompt.trim(),
                     max_tokens: maxTokens,
                     temperature: temperature,
                     top_p: db.top_p,
