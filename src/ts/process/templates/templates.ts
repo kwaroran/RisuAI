@@ -628,7 +628,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     "jailbreak": "",
     "globalNote": "",
     "temperature": 85,
-    "maxContext": 2000,
+    "maxContext": 4000,
     "maxResponse": 500,
     "frequencyPenalty": 50,
     "PresensePenalty": 40,
