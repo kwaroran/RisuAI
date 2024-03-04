@@ -161,6 +161,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-tiny':
         case 'mistral-small':
         case 'mistral-medium':
+        case 'mistral-small-latest':
+        case 'mistral-medium-latest':
+        case 'mistral-large-latest':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             if(db.inlayImage){

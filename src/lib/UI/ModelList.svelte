@@ -90,6 +90,16 @@
                 return 'Gemini Ultra'
             case 'gemini-ultra-vision':
                 return 'Gemini Ultra Vision'
+            case 'claude-3-opus-20240229':
+                return 'Claude 3 Opus (20240229)'
+            case 'claude-3-sonnet-20240229':
+                return 'Claude 3 Sonnet (20240229)'
+            case 'mistral-large-latest':
+                return 'Mistral Large'
+            case 'mistral-small-latest':
+                return 'Mistral Small'
+            case 'mistral-medium-latest':
+                return 'Mistral Medium'
             default:
                 if(name.startsWith("horde:::")){
                     const split = name.split(":::")
@@ -146,10 +156,12 @@
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2.1')}}>claude-2.1</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2-100k')}}>claude-2-100k</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-opus-20240229')}}>Claude 3 Opus (20240229)</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-sonnet-20240229')}}>Claude 3 sonnet (20240229)</button>
                 {#if showUnrec}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2.1')}}>claude-2.1</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2-100k')}}>claude-2-100k</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1')}}>claude-v1</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1-100k')}}>claude-v1-100k</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1')}}>claude-instant-v1</button>
@@ -179,9 +191,9 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             <Arcodion name="Mistral API">
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-tiny')}}>Mistral Tiny</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small')}}>Mistral Small</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium')}}>Mistral Medium</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Medium</button>
             </Arcodion>
             {#if showUnrec}
                 <Arcodion name="Google Palm2">
