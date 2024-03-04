@@ -708,7 +708,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     function pushPrompts(cha:OpenAIChat[]){
         for(const chat of cha){
-            if(!chat.content){
+            if(!chat.content.trim()){
                 continue
             }
             if(!(db.aiModel.startsWith('gpt') || db.aiModel.startsWith('claude') || db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy')){
