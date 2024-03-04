@@ -629,6 +629,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         case 'br':{
             return '\n'
         }
+        case 'model':{
+            return db.aiModel
+        }
+        case 'axmodel':{
+            return db.subModel
+        }
     }
     const arra = p1.split("::")
     if(arra.length > 1){
@@ -686,6 +692,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return `<br><div class="risu-file">${arra[1]}</div><br>`
                 }
                 return Buffer.from(arra[2], 'base64').toString('utf-8') 
+            }
+            case 'startswith':{
+                return arra[1].startsWith(arra[2]) ? '1' : '0'
             }
         }
     }
