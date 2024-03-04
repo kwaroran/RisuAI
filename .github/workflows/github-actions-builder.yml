@@ -1,5 +1,8 @@
 name: 'publish'
-on: [workflow_dispatch]
+on:
+  push:
+    branches:
+      - production
 
 jobs:
   publish-tauri:
