@@ -68,7 +68,7 @@ function runVirtualJS(code:string){
         clearInterval(interval)
         resolve(result.result)
       }
-      else if(performance.now() - startTime > 400){
+      else if(performance.now() - startTime > 800){
         clearInterval(interval)
         //restart worker
         worker.terminate()
