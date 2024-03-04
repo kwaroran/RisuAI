@@ -5,7 +5,7 @@
 //@use editProcess
 //@use editDisplay
 //@use onButtonClick
-
+//@use modifyRequestChat
 
 
 async function editInput(text){
@@ -43,6 +43,14 @@ async function onButtonClick(code){
     //example: <button risu-btn="example-char">button</button> uses "example-char" as the code.
     //return value is not used.
     return
+}
+
+async function modifyRequestChat(chat){
+    //modifyRequestChat is a callable function that is called when before request.
+    //the first argument is the chat array. chat array is almost same as OpenAI's chat array.
+    //unlike editProcess, its called after other fixes is done, and its only called once, with the whole chat array.
+    //the chat array would replaced to return value and used in request.
+    return chat
 }
 
 

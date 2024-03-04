@@ -1,7 +1,7 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
 import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
@@ -11,7 +11,7 @@ import { checkOldDomain, checkUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError } from "../alert";
+import { alertConfirm, alertError, alertNormal } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
@@ -22,6 +22,11 @@ import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
 import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
+import { saveDbKei } from "../kei/backup";
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import * as CapFS from '@capacitor/filesystem'
+import { save } from "@tauri-apps/api/dialog";
+import type { RisuModule } from "../process/modules";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -40,7 +45,11 @@ interface fetchLog{
 
 let fetchLog:fetchLog[] = []
 
-export async function downloadFile(name:string, data:Uint8Array|ArrayBuffer) {
+export async function downloadFile(name:string, dat:Uint8Array|ArrayBuffer|string) {
+    if(typeof(dat) === 'string'){
+        dat = Buffer.from(dat, 'utf-8')
+    }
+    const data = new Uint8Array(dat)
     const downloadURL = (data:string, fileName:string) => {
         const a = document.createElement('a')
         a.href = data
@@ -69,6 +78,18 @@ let fileCache:{
 let pathCache:{[key:string]:string} = {}
 let checkedPaths:string[] = []
 
+async function checkCapFileExists(getUriOptions: CapFS.GetUriOptions): Promise<boolean> {
+    try {
+      await CapFS.Filesystem.stat(getUriOptions);
+      return true;
+    } catch (checkDirException) {
+      if (checkDirException.message === 'File does not exist') {
+        return false;
+      } else {
+        throw checkDirException;
+      }
+    }
+  }
 export async function getFileSrc(loc:string) {
     if(isTauri){
         if(loc.startsWith('assets')){
@@ -87,11 +108,23 @@ export async function getFileSrc(loc:string) {
         }
         return convertFileSrc(loc)
     }
-    try {
-
-        if(forageStorage.isAccount && loc.startsWith('assets')){
-            return hubURL + `/rs/` + loc
+    if(forageStorage.isAccount && loc.startsWith('assets')){
+        return hubURL + `/rs/` + loc
+    }
+    if(Capacitor.isNativePlatform()){
+        if(!await checkCapFileExists({
+            path: loc,
+            directory: CapFS.Directory.External
+        })){
+            return ''
         }
+        const uri = await CapFS.Filesystem.getUri({
+            path: loc,
+            directory: CapFS.Directory.External
+        })
+        return Capacitor.convertFileSrc(uri.uri)
+    }
+    try {
         if(usingSw){
             const encoded = Buffer.from(loc,'utf-8').toString('hex')
             let ind = fileCache.origin.indexOf(loc)
@@ -203,6 +236,15 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
     }
 }
 
+export async function loadAsset(id:string){
+    if(isTauri){
+        return await readBinaryFile(id,{dir: BaseDirectory.AppData})
+    }
+    else{
+        return await forageStorage.getItem(id) as Uint8Array
+    }
+}
+
 let lastSave = ''
 
 export async function saveDb(){
@@ -225,11 +267,16 @@ export async function saveDb(){
                     await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
                 }
                 else{
-                    await forageStorage.setItem('database/database.bin', dbData)
                     if(!forageStorage.isAccount){
+                        await forageStorage.setItem('database/database.bin', dbData)
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
                     if(forageStorage.isAccount){
+                        const dbData = encodeRisuSave(db, 'compression')
+                        const z:Database = decodeRisuSave(dbData)
+                        if(z.formatversion){
+                            await forageStorage.setItem('database/database.bin', dbData)
+                        }
                         await sleep(5000);
                     }
                 }
@@ -238,6 +285,7 @@ export async function saveDb(){
                 }
                 savetrys = 0
             }
+            await saveDbKei()
             await sleep(500)
         } catch (error) {
             if(savetrys > 4){
@@ -396,17 +444,9 @@ export async function loadData() {
                 if(isDriverMode){
                     return
                 }
-                if(navigator.serviceWorker){
+                if(navigator.serviceWorker && (!Capacitor.isNativePlatform())){
                     usingSw = true
-                    await navigator.serviceWorker.register("/sw.js", {
-                        scope: "/"
-                    });
-
-                    await sleep(100)
-                    const da = await fetch('/sw/init')
-                    if(!(da.status >= 200 && da.status < 300)){
-                        location.reload()
-                    }
+                    await registerSw()
                 }
                 else{
                     usingSw = false
@@ -625,6 +665,42 @@ export async function globalFetch(url:string, arg:{
                 }
             }
         }
+        else if (Capacitor.isNativePlatform()){
+            const body = arg.body
+            const headers = arg.headers ?? {}
+            if(arg.body instanceof URLSearchParams){
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/x-www-form-urlencoded`
+                }
+            }
+            else{
+                if(!headers["Content-Type"]){
+                    headers["Content-Type"] =  `application/json`
+                }
+            }
+            const res = await CapacitorHttp.request({
+                url: url,
+                method: method,
+                headers: headers,
+                data: body,
+                responseType: arg.rawResponse ? 'arraybuffer' : 'json'
+            })
+
+            if(arg.rawResponse){
+                addFetchLog("Uint8Array Response", true)
+                return {
+                    ok: true,
+                    data: new Uint8Array(res.data as ArrayBuffer),
+                    headers: res.headers
+                }
+            }
+            addFetchLog(res.data, true)
+            return {
+                ok: true,
+                data: res.data,
+                headers: res.headers
+            }
+        }
         else{
             try {
                 let body:any
@@ -722,6 +798,20 @@ export async function globalFetch(url:string, arg:{
     }
 }
 
+async function registerSw() {
+    await navigator.serviceWorker.register("/sw.js", {
+        scope: "/"
+    });
+    await sleep(100)
+    const da = await fetch('/sw/init')
+    if(!(da.status >= 200 && da.status < 300)){
+        location.reload()
+    }
+    else{
+
+    }
+}
+
 const re = /\\/g
 function getBasename(data:string){
     const splited = data.replace(re, '/').split('/')
@@ -761,6 +851,13 @@ export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basenam
             if(cha.additionalAssets){
                 for(const em of cha.additionalAssets){
                     addUnparge(em[1])
+                }
+            }
+            if(cha.vits){
+                const keys = Object.keys(cha.vits.files)
+                for(const key of keys){
+                    const vit = cha.vits.files[key]
+                    addUnparge(vit)
                 }
             }
         }
@@ -889,6 +986,43 @@ async function checkNewFormat() {
 
         db.formatversion = 3
     }
+    if(db.formatversion < 4){
+        db.modules ??= []
+        db.enabledModules ??=[]
+        //convert globallore and global regex to modules
+        if(db.globalscript && db.globalscript.length > 0){
+            const id = v4()
+            let regexModule:RisuModule = {
+                name: "Global Regex",
+                description: "Converted from legacy global regex",
+                id: id,
+                regex: cloneDeep(db.globalscript)
+            }
+            db.modules.push(regexModule)
+            db.enabledModules.push(id)
+            db.globalscript = []
+        }
+        if(db.loreBook && db.loreBook.length > 0){
+            const selIndex = db.loreBookPage
+            for(let i=0;i<db.loreBook.length;i++){
+                const id = v4()
+                let lbModule:RisuModule = {
+                    name: db.loreBook[i].name || "Unnamed Global Lorebook",
+                    description: "Converted from legacy global lorebook",
+                    id: id,
+                    lorebook: cloneDeep(db.loreBook[i].data)
+                }
+                db.modules.push(lbModule)
+                if(i === selIndex){
+                    db.enabledModules.push(id)
+                }
+                db.globalscript = []
+            }
+            db.loreBook = []
+        }
+
+        db.formatversion = 4
+    }
     if(!db.characterOrder){
         db.characterOrder = []
     }
@@ -974,7 +1108,7 @@ async function pargeChunks(){
         const assets = await readDir('assets', {dir: BaseDirectory.AppData})
         for(const asset of assets){
             const n = getBasename(asset.name)
-            if(unpargeable.includes(n) || (!n.endsWith('png'))){
+            if(unpargeable.includes(n)){
             }
             else{
                 await removeFile(asset.path)
@@ -984,8 +1118,11 @@ async function pargeChunks(){
     else{
         const indexes = await forageStorage.keys()
         for(const asset of indexes){
+            if(!asset.startsWith('assets/')){
+                continue
+            }
             const n = getBasename(asset)
-            if(unpargeable.includes(n) || (!asset.endsWith(".png"))){
+            if(unpargeable.includes(n)){
             }
             else{
                 await forageStorage.removeItem(asset)
@@ -1043,4 +1180,101 @@ export function getModelMaxContext(model:string):number|undefined{
     }
 
     return undefined
+}
+
+class TauriWriter{
+    path: string
+    firstWrite: boolean = true
+    constructor(path: string){
+        this.path = path
+    }
+
+    async write(data:Uint8Array) {
+        await writeBinaryFile(this.path, data, {
+            append: !this.firstWrite
+        })
+        this.firstWrite = false
+    }
+
+    async close(){
+        // do nothing
+    }
+}
+
+class MobileWriter{
+    path: string
+    firstWrite: boolean = true
+    constructor(path: string){
+        this.path = path
+    }
+
+    async write(data:Uint8Array) {
+        if(this.firstWrite){
+            if(!await CapFS.Filesystem.checkPermissions()){
+                await CapFS.Filesystem.requestPermissions()
+            }
+            await CapFS.Filesystem.writeFile({
+                path: this.path,
+                data: Buffer.from(data).toString('base64'),
+                recursive: true,
+                directory: CapFS.Directory.Documents
+            })
+        }
+        else{
+            await CapFS.Filesystem.appendFile({
+                path: this.path,
+                data: Buffer.from(data).toString('base64'),
+                directory: CapFS.Directory.Documents
+            })
+        }
+        
+        this.firstWrite = false
+    }
+
+    async close(){
+        // do nothing
+    }
+}
+
+
+export class LocalWriter{
+    writer: WritableStreamDefaultWriter|TauriWriter|MobileWriter
+    async init(name = 'Binary', ext = ['bin']) {
+        if(isTauri){
+            const filePath = await save({
+                filters: [{
+                  name: name,
+                  extensions: ext
+                }]
+            });
+            if(!filePath){
+                return false
+            }
+            this.writer = new TauriWriter(filePath)
+            return true
+        }
+        if(Capacitor.isNativePlatform()){
+            this.writer = new MobileWriter(name + '.' + ext[0])
+            return true
+        }
+        const streamSaver = await import('streamsaver')
+        const writableStream = streamSaver.createWriteStream(name + '.' + ext[0])
+        this.writer = writableStream.getWriter()
+        return true
+    }
+    async writeBackup(name:string,data: Uint8Array){
+        const encodedName = new TextEncoder().encode(getBasename(name))
+        const nameLength = new Uint32Array([encodedName.byteLength])
+        await this.writer.write(new Uint8Array(nameLength.buffer))
+        await this.writer.write(encodedName)
+        const dataLength = new Uint32Array([data.byteLength])
+        await this.writer.write(new Uint8Array(dataLength.buffer))
+        await this.writer.write(data)
+    }
+    async write(data:Uint8Array) {
+        await this.writer.write(data)
+    }
+    async close(){
+        await this.writer.close()
+    }
 }

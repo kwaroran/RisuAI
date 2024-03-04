@@ -27,7 +27,7 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
             result.push({
                 role: "system",
                 content: '[Start a new chat]',
-                memo: "NewChatExample"
+                memo: "NewChatExample",
             })
             currentMessage = null
         }
@@ -58,7 +58,9 @@ export function exampleMessage(char:character, userName:string):OpenAIChat[]{
     result = result.map((r) => {
         return {
             role: r.role,
-            content: risuChatParser(r.content, {chara: char})
+            content: risuChatParser(r.content, {chara: char}),
+            name: r.name,
+            memo: r.memo
         }
     })
 

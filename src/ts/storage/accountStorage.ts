@@ -21,7 +21,8 @@ export class AccountStorage{
                 headers: {
                     'content-type': 'application/json',
                     'x-risu-key': key,
-                    'x-risu-auth': this.auth
+                    'x-risu-auth': this.auth,
+                    'X-Format': 'nocheck'
                 }
             })
             if(da.status === 304){

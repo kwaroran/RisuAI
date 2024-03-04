@@ -7,6 +7,7 @@ import { createBlankChar } from "../characters";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { get } from "svelte/store";
 import { sleep } from "../util";
+import { Capacitor } from "@capacitor/core";
 
 
 type creationResult = { ok: false; data:string }|{ok:"creation";data:character}
@@ -291,7 +292,7 @@ async function createFirstMsg(charDesc:string) {
 async function createBotFromWeb() {
     const sel = parseInt(await alertSelect([language.createBotInternet, language.createBotAI]))
     if(sel === 0){
-        if((!isTauri) && (!isNodeServer)){
+        if((!isTauri) && (!isNodeServer) && (!Capacitor.isNativePlatform())){
             alertNormal(language.noweb)
             return
         }

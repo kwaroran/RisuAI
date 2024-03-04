@@ -4,18 +4,18 @@ import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
 import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from './globalApi';
-import { clone, cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
-import type { Proompt } from '../process/proompt';
+import type { Proompt, ProomptSettings } from '../process/proompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.61.2"
+export let appVer = "1.79.2"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -175,7 +175,7 @@ export function setDatabase(data:Database){
         data.sdCFG = 7
     }
     if(checkNullish(data.NAIImgUrl)){
-        data.NAIImgUrl = 'https://api.novelai.net/ai/generate-image'
+        data.NAIImgUrl = 'https://image.novelai.net/ai/generate-image'
     }
     if(checkNullish(data.NAIApiKey)){
         data.NAIApiKey = ''
@@ -184,7 +184,10 @@ export function setDatabase(data:Database){
         data.NAIImgModel = 'nai-diffusion-3'
     }
     if(checkNullish(data.NAII2I)){
-        data.NAII2I = true
+        data.NAII2I = false
+    }
+    if(checkNullish(data.NAIREF)){
+        data.NAIREF = false
     }
     if(checkNullish(data.textTheme)){
         data.textTheme = "standard"
@@ -251,10 +254,13 @@ export function setDatabase(data:Database){
             steps:28,
             scale:5,
             sm:true,
-            sm_dyn:true,
+            sm_dyn:false,
             noise:0.0,
             strength:0.6,
-            image:""
+            image:"",
+            refimage:"",
+            InfoExtracted:1,
+            RefStrength:0.4
         }
     }
     if(checkNullish(data.customTextTheme)){
@@ -288,24 +294,12 @@ export function setDatabase(data:Database){
     if(checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage){
         data.loreBookPage = 0
     }
-    if(checkNullish(data.globalscript)){
-        data.globalscript = []
-    }
-    if(checkNullish(data.sendWithEnter)){
-        data.sendWithEnter = true
-    }
-    if(checkNullish(data.autoSuggestPrompt)){
-        data.autoSuggestPrompt = defaultAutoSuggestPrompt
-    }
-    if(checkNullish(data.autoSuggestPrefix)){
-        data.autoSuggestPrefix = ""
-    }
-    if(checkNullish(data.autoSuggestClean)){
-        data.autoSuggestClean = true
-    }
-    if(checkNullish(data.imageCompression)){
-        data.imageCompression = true
-    }
+    data.globalscript ??= []
+    data.sendWithEnter ??= true
+    data.autoSuggestPrompt ??= defaultAutoSuggestPrompt
+    data.autoSuggestPrefix ??= ""
+    data.autoSuggestClean ??= true
+    data.imageCompression ??= true
     if(!data.formatingOrder.includes('personaPrompt')){
         data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
     }
@@ -314,7 +308,8 @@ export function setDatabase(data:Database){
     data.personas ??= [{
         name: data.username,
         personaPrompt: "",
-        icon: data.userIcon
+        icon: data.userIcon,
+        largePortrait: false
     }]
     data.classicMaxWidth ??= false
     data.ooba ??= cloneDeep(defaultOoba)
@@ -348,9 +343,39 @@ export function setDatabase(data:Database){
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
     data.huggingfaceKey ??= ''
+    data.statistics ??= {}
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
+    data.top_p ??= 1
+    if(typeof(data.top_p) !== 'number'){
+        //idk why type changes, but it does so this is a fix
+        data.top_p = 1
+    }
+    //@ts-ignore
+    data.google ??= {}
+    data.google.accessToken ??= ''
+    data.google.projectId ??= ''
+    data.genTime ??= 1
+    data.proomptSettings ??= {
+        assistantPrefill: '',
+        postEndInnerFormat: '',
+        sendChatAsSystem: false,
+        sendName: false,
+        utilOverride: false,
+        customChainOfThought: false,
+        maxThoughtTagDepth: -1
+    }
+    data.keiServerURL ??= ''
+    data.top_k ??= 0
+    data.proomptSettings.maxThoughtTagDepth ??= -1
+    data.openrouterFallback ??= true
+    data.openrouterMiddleOut ??= false
+    data.removePunctuationHypa ??= true
+    data.memoryLimitThickness ??= 1
+    data.modules ??= []
+    data.enabledModules ??= []
+
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -395,6 +420,9 @@ export interface Database{
         automark?: boolean
         romanizer?: boolean
         metrica?: boolean
+        oaiFix?: boolean
+        oaiFixEmdash?: boolean
+        oaiFixLetters?: boolean
     }
     currentPluginProvider: string
     zoomsize:number
@@ -425,6 +453,7 @@ export interface Database{
     NAIApiKey:string
     NAIImgModel:string
     NAII2I:boolean
+    NAIREF:boolean
     NAIImgConfig:NAIImgConfig
     runpodKey:string
     promptPreprocess:boolean
@@ -488,6 +517,7 @@ export interface Database{
             expires_in?: number
         }
         useSync?:boolean
+        kei?:boolean
     },
     classicMaxWidth: boolean,
     useChatSticker:boolean,
@@ -500,11 +530,14 @@ export interface Database{
     personaPrompt:string
     openrouterRequestModel:string
     openrouterKey:string
+    openrouterMiddleOut:boolean
+    openrouterFallback:boolean
     selectedPersona:number
     personas:{
         personaPrompt:string
         name:string
         icon:string
+        largePortrait?:boolean
     }[]
     assetWidth:number
     animationSpeed:number
@@ -542,6 +575,30 @@ export interface Database{
     huggingfaceKey:string
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
+    top_p: number,
+    google: {
+        accessToken: string
+        projectId: string
+    }
+    mistralKey?:string
+    chainOfThought?:boolean
+    genTime:number
+    proomptSettings: ProomptSettings
+    keiServerURL:string
+    statistics: {
+        newYear2024?: {
+            messages: number
+            chats: number
+        }
+    },
+    top_k:number
+    claudeAws:boolean
+    lastPatchNoteCheckVersion?:string,
+    removePunctuationHypa?:boolean
+    memoryLimitThickness?:number
+    modules: RisuModule[]
+    enabledModules: string[]
+    sideMenuRerollButton?:boolean
 }
 
 export interface customscript{
@@ -653,7 +710,8 @@ export interface character{
     hfTTS?: {
         model: string
         language: string
-    }
+    },
+    vits?: OnnxModelFiles
 }
 
 
@@ -737,6 +795,8 @@ export interface botPreset{
     localStopStrings?: string[]
     customProxyRequestModel?: string
     reverseProxyOobaArgs?: OobaChatCompletionRequestParams
+    top_p?: number
+    proomptSettings?: ProomptSettings
 
 }
 
@@ -776,7 +836,10 @@ interface NAIImgConfig{
     sm_dyn:boolean,
     noise:number,
     strength:number,
-    image:string
+    image:string,
+    refimage:string,
+    InfoExtracted:number,
+    RefStrength:number
 }
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
@@ -791,6 +854,7 @@ export interface Chat{
     suggestMessages?:string[]
     isStreaming?:boolean
     scriptstate?:{[key:string]:string|number|boolean}
+    modules?:string[]
 }
 
 export interface Message{
@@ -930,7 +994,8 @@ export const presetTemplate:botPreset = {
     ainconfig: cloneDeep(defaultAIN),
     reverseProxyOobaArgs: {
         mode: 'instruct'
-    }
+    },
+    top_p: 1,
 
 }
 
@@ -986,7 +1051,9 @@ export function saveCurrentPreset(){
         localStopStrings: db.localStopStrings,
         autoSuggestPrompt: db.autoSuggestPrompt,
         customProxyRequestModel: db.customProxyRequestModel,
-        reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null
+        reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null,
+        top_p: db.top_p ?? 1,
+        proomptSettings: cloneDeep(db.proomptSettings) ?? null
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1055,11 +1122,21 @@ export function setPreset(db:Database, newPres: botPreset){
     db.reverseProxyOobaArgs = cloneDeep(newPres.reverseProxyOobaArgs) ?? {
         mode: 'instruct'
     }
+    db.top_p = newPres.top_p ?? 1
+    db.proomptSettings = cloneDeep(newPres.proomptSettings) ?? {
+        assistantPrefill: '',
+        postEndInnerFormat: '',
+        sendChatAsSystem: false,
+        sendName: false,
+        utilOverride: false
+    }
     return db
 }
 
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import * as fflate from "fflate";
+import type { OnnxModelFiles } from '../process/embedding/transformers';
+import type { RisuModule } from '../process/modules';
 
 export async function downloadPreset(id:number){
     saveCurrentPreset()

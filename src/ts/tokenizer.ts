@@ -3,9 +3,9 @@ import type { Tokenizer } from "@mlc-ai/web-tokenizers";
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
 import type { OpenAIChat } from "./process";
-import { supportsInlayImage } from "./image";
+import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
-import type { Proompt } from "./process/proompt";
+import { tokenizeGGUFModel } from "./process/models/local";
 
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
@@ -19,14 +19,33 @@ async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     if(db.aiModel.startsWith('novelai')){
         return await tokenizeWebTokenizers(data, 'novelai')
     }
-    if(db.aiModel.startsWith('local_') || db.aiModel === 'mancer' || db.aiModel === 'textgen_webui' || (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
+    if(db.aiModel.startsWith('mistral')){
+        return await tokenizeWebTokenizers(data, 'mistral')
+    }
+    if(db.aiModel === 'mancer' ||
+        db.aiModel === 'textgen_webui' ||
+        (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
         return await tokenizeWebTokenizers(data, 'llama')
+    }
+    if(db.aiModel.startsWith('local_')){
+        return await tokenizeGGUFModel(data)
+    }
+    if(db.aiModel === 'ooba'){
+        if(db.reverseProxyOobaArgs.tokenizer === 'mixtral' || db.reverseProxyOobaArgs.tokenizer === 'mistral'){
+            return await tokenizeWebTokenizers(data, 'mistral')
+        }
+        else if(db.reverseProxyOobaArgs.tokenizer === 'llama'){
+            return await tokenizeWebTokenizers(data, 'llama')
+        }
+        else{
+            return await tokenizeWebTokenizers(data, 'llama')
+        }
     }
 
     return await tikJS(data)
 }
 
-type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'
+type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'
 
 let tikParser:Tiktoken = null
 let tokenizersTokenizer:Tokenizer = null
@@ -70,6 +89,12 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
                     await (await fetch("/token/llama/llama.model")
                 ).arrayBuffer())
+                break
+            case 'mistral':
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
+                    await (await fetch("/token/mistral/tokenizer.model")
+                ).arrayBuffer())
+                break
 
         }
         tokenizersType = type
@@ -160,4 +185,59 @@ export class ChatTokenizer {
 export async function tokenizeNum(data:string) {
     const encoded = await encode(data)
     return encoded
+}
+
+export async function strongBan(data:string, bias:{[key:number]:number}) {
+
+    if(localStorage.getItem('strongBan_' + data)){
+        return JSON.parse(localStorage.getItem('strongBan_' + data))
+    }
+    const performace = performance.now()
+    const length = Object.keys(bias).length
+    let charAlt = [
+        data,
+        data.trim(),
+        data.toLocaleUpperCase(),
+        data.toLocaleLowerCase(),
+        data[0].toLocaleUpperCase() + data.slice(1),
+        data[0].toLocaleLowerCase() + data.slice(1),
+    ]
+
+    let banChars = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~“”‘’«»「」…–―※"
+    let unbanChars:number[] = []
+
+    for(const char of banChars){
+        unbanChars.push((await tokenizeNum(char))[0])
+    }
+
+
+
+    for(const char of banChars){
+        const encoded = await tokenizeNum(char)
+        if(encoded.length > 0){
+            if(!unbanChars.includes(encoded[0])){
+                bias[encoded[0]] = -100
+            }
+        }
+        for(const alt of charAlt){
+            let fchar = char
+
+            const encoded = await tokenizeNum(alt + fchar)
+            if(encoded.length > 0){
+                if(!unbanChars.includes(encoded[0])){
+                    bias[encoded[0]] = -100
+                }
+            }
+            const encoded2 = await tokenizeNum(fchar + alt)
+            if(encoded2.length > 0){
+                if(!unbanChars.includes(encoded2[0])){
+                    bias[encoded2[0]] = -100
+                }
+            }
+        }
+    }
+    console.log('strongBan', performance.now() - performace)
+    console.log('added', Object.keys(bias).length - length)
+    localStorage.setItem('strongBan_' + data, JSON.stringify(bias))
+    return bias
 }

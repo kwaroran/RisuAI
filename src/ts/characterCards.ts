@@ -1,16 +1,18 @@
 import { get, writable, type Writable } from "svelte/store"
-import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
+import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
-import { checkNullish, selectMultipleFile, sleep } from "./util"
+import { checkNullish, decryptBuffer, encryptBuffer, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { checkCharOrder, downloadFile, readImage, saveAsset } from "./storage/globalApi"
+import { checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
-import { convertImage } from "./parser"
-import * as yuso from 'yuso'
-import { reencodeImage } from "./image"
+import { convertImage, hasher } from "./parser"
+
+import { reencodeImage } from "./process/files/image"
+import { PngChunk } from "./pngChunk"
+import type { OnnxModelFiles } from "./process/embedding/transformers"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -60,15 +62,97 @@ async function importCharacterProcess(f:{
     await sleep(10)
     const img = f.data
     
-    const readed = yuso.decode(img, 'chara')
-    {
-        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
-        if(await importSpecv2(charaData, img)){
+    // const readed = PngChunk.read(img, ['chara'])?.['chara']
+    let readedChara = ''
+    const readGenerator = PngChunk.readGenerator(img)
+    const assets:{[key:string]:string} = {}
+    for await(const chunk of readGenerator){
+        if(!chunk){
+            break
+        }
+        if(chunk.key === 'chara'){
+            //For memory reason, limit to 2MB
+            if(readedChara.length < 2 * 1024 * 1024){
+                readedChara = chunk.value.replaceAll('\0', '')
+            }
+            break
+        }
+        if(chunk.key.startsWith('chara-ext-asset_')){
+            const assetIndex = (chunk.key.replace('chara-ext-asset_', ''))
+            alertWait('Loading... (Reading Asset ' + assetIndex + ')' )
+            const assetData = Buffer.from(chunk.value, 'base64')
+            const assetId = await saveAsset(assetData)
+            assets[assetIndex] = assetId
+        }
+    }
+    if(!readedChara){
+        alertError(language.errors.noData)
+        return
+    }
+
+    if(readedChara.startsWith('rcc||')){
+        const parts = readedChara.split('||')
+        const type = parts[1]
+        if(type === 'rccv1'){
+            if(parts.length !== 5){
+                alertError(language.errors.noData)
+                return
+            }
+            const encrypted = Buffer.from(parts[2], 'base64')
+            const hashed = await hasher(encrypted)
+            if(hashed !== parts[3]){
+                alertError(language.errors.noData)
+                return
+            }
+            console.log(parts[4])
+            const metaData:RccCardMetaData = JSON.parse(Buffer.from(parts[4], 'base64').toString('utf-8'))
+            console.log(metaData)
+            if(metaData.usePassword){
+                const password = await alertInput(language.inputCardPassword)
+                if(!password){
+                    return
+                }
+                else{
+                    try {
+                        const decrypted = await decryptBuffer(encrypted, password)         
+                        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
+                        if(await importSpecv2(charaData, img, "normal", assets)){
+                            let db = get(DataBase)
+                            return db.characters.length - 1
+                        }
+                        else{
+                            throw new Error('Error while importing')
+                        }
+                    } catch (error) {
+                        alertError(language.errors.wrongPassword)
+                        return
+                    }
+                }
+            }
+            else{
+                const decrypted = await decryptBuffer(encrypted, 'RISU_NONE')
+                try {
+                    const charaData:CharacterCardV2 = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
+                    if(await importSpecv2(charaData, img, "normal", assets)){
+                        let db = get(DataBase)
+                        return db.characters.length - 1
+                    }   
+                } catch (error) {
+                    alertError(language.errors.noData)
+                    return
+                }
+            }
+
+        }
+    }
+    else {
+        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        if(await importSpecv2(charaData, img, "normal", assets)){
             let db = get(DataBase)
             return db.characters.length - 1
         }
     }
-    const charaData:OldTavernChar = JSON.parse(Buffer.from(readed, 'base64').toString('utf-8'))
+    const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
     const imgp = await saveAsset(await reencodeImage(img))
     let db = get(DataBase)
     db.characters.push(convertOldTavernAndJSON(charaData, imgp))
@@ -192,18 +276,24 @@ export async function exportChar(charaID:number) {
         return
     }
 
-    const sel = await alertSelect(['Export as PNG', 'Export as JSON'])
-    exportSpecV2(char, sel === '1' ? 'json' : 'png')
+    const option = await alertCardExport()
+    if(option.type === 'cancel'){
+        return
+    }
+    else if(option.type === 'rcc'){
+        char.license = option.license
+        exportSpecV2(char, 'rcc', {password:option.password})
+    }
+    else{
+        exportSpecV2(char,'png')
+    }
     return
 }
 
 
-async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'normal'):Promise<boolean>{
+async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}):Promise<boolean>{
     if(!card ||card.spec !== 'chara_card_v2'){
         return false
-    }
-    if(!mode){
-        mode = 'normal'
     }
 
     const data = card.data
@@ -218,7 +308,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
     let utilityBot = false
     let sdData = defaultSdDataFunc()
     let extAssets:[string,string,string][] = []
-
+    let vits:null|OnnxModelFiles = null
     if(risuext){
         if(risuext.emotions){
             for(let i=0;i<risuext.emotions.length;i++){
@@ -227,6 +317,15 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                     msg: `Loading... (Getting Emotions ${i} / ${risuext.emotions.length})`
                 })
                 await sleep(10)
+                if(risuext.emotions[i][1].startsWith('__asset:')){
+                    const key = risuext.emotions[i][1].replace('__asset:', '')
+                    const imgp = assetDict[key]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + key + ' not found')
+                    }
+                    emotions.push([risuext.emotions[i][0],imgp])
+                    continue
+                }
                 const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.emotions[i][1])) : Buffer.from(risuext.emotions[i][1], 'base64'))
                 emotions.push([risuext.emotions[i][0],imgp])
             }
@@ -241,9 +340,50 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
                 let fileName = ''
                 if(risuext.additionalAssets[i].length >= 3)
                     fileName = risuext.additionalAssets[i][2]
+                if(risuext.additionalAssets[i][1].startsWith('__asset:')){
+                    const key = risuext.additionalAssets[i][1].replace('__asset:', '')
+                    const imgp = assetDict[key]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + key + ' not found')
+                    }
+                    extAssets.push([risuext.additionalAssets[i][0],imgp,fileName])
+                    continue
+                }
                 const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.additionalAssets[i][1])) :Buffer.from(risuext.additionalAssets[i][1], 'base64'), '', fileName)
                 extAssets.push([risuext.additionalAssets[i][0],imgp,fileName])
             }
+        }
+        if(risuext.vits){
+            const keys = Object.keys(risuext.vits)
+            for(let i=0;i<keys.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting VITS ${i} / ${keys.length})`
+                })
+                await sleep(10)
+                const key = keys[i]
+                if(risuext.vits[key].startsWith('__asset:')){
+                    const rkey = risuext.vits[key].replace('__asset:', '')
+                    const imgp = assetDict[rkey]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + rkey + ' not found')
+                    }
+                    risuext.vits[key] = imgp
+                    continue
+                }
+                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(risuext.vits[key])) : Buffer.from(risuext.vits[key], 'base64'))
+                risuext.vits[key] = imgp
+            }
+
+            if(keys.length > 0){
+                vits = {
+                    name: "Imported VITS",
+                    files: risuext.vits,
+                    id: uuidv4().replace(/-/g, '')
+                }
+            }
+
+
         }
         bias = risuext.bias ?? bias
         viewScreen = risuext.viewScreen ?? viewScreen
@@ -350,6 +490,10 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode?:'hub'|'
         extentions: ext ?? {},
         largePortrait: data?.extensions?.risuai?.largePortrait ?? (!data?.extensions?.risuai),
         lorePlus: data?.extensions?.risuai?.lorePlus ?? false,
+        inlayViewScreen: data?.extensions?.risuai?.inlayViewScreen ?? false,
+        newGenData: data?.extensions?.risuai?.newGenData ?? undefined,
+        vits: vits,
+        ttsMode: vits ? 'vits' : 'normal'
     }
 
     db.characters.push(char)
@@ -438,6 +582,9 @@ async function createBaseV2(char:character) {
                     virtualscript: char.virtualscript,
                     largePortrait: char.largePortrait,
                     lorePlus: char.lorePlus,
+                    inlayViewScreen: char.inlayViewScreen,
+                    newGenData: char.newGenData,
+                    vits: {}
                 },
                 depth_prompt: char.depth_prompt
             }
@@ -456,20 +603,30 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
+export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'png', rcc:{password?:string} = {}) {
     let img = await readImage(char.image)
 
     try{
+        char.image = ''
         const card = await createBaseV2(char)
-
+        img = await reencodeImage(img)
+        const localWriter = new LocalWriter()
+        await localWriter.init(`Image file`, ['png'])
+        const writer = new PngChunk.streamWriter(img, localWriter)
+        await writer.init()
+        let assetIndex = 0
         if(card.data.extensions.risuai.emotions && card.data.extensions.risuai.emotions.length > 0){
             for(let i=0;i<card.data.extensions.risuai.emotions.length;i++){
                 alertStore.set({
                     type: 'wait',
                     msg: `Loading... (Adding Emotions ${i} / ${card.data.extensions.risuai.emotions.length})`
                 })
-                const rData = await readImage(card.data.extensions.risuai.emotions[i][1])
-                char.emotionImages[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
+                const key = card.data.extensions.risuai.emotions[i][1]
+                const rData = await readImage(key)
+                const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                assetIndex++
+                card.data.extensions.risuai.emotions[i][1] = `__asset:${assetIndex}`
+                await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
             }
         }
 
@@ -480,41 +637,68 @@ export async function exportSpecV2(char:character, type:'png'|'json' = 'png') {
                     type: 'wait',
                     msg: `Loading... (Adding Additional Assets ${i} / ${card.data.extensions.risuai.additionalAssets.length})`
                 })
-                const rData = await readImage(card.data.extensions.risuai.additionalAssets[i][1])
-                char.additionalAssets[i][1] = Buffer.from(await convertImage(rData)).toString('base64')
+                const key = card.data.extensions.risuai.additionalAssets[i][1]
+                const rData = await readImage(key)
+                const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                assetIndex++
+                card.data.extensions.risuai.additionalAssets[i][1] = `__asset:${assetIndex}`
+                await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
             }
         }
-        
-        
+
+        if(char.vits && char.ttsMode === 'vits'){
+            const keys = Object.keys(char.vits.files)
+            for(let i=0;i<keys.length;i++){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Adding VITS ${i} / ${keys.length})`
+                })
+                const key = keys[i]
+                const rData = await loadAsset(char.vits.files[key])
+                const b64encoded = Buffer.from(rData).toString('base64')
+                assetIndex++
+                card.data.extensions.risuai.vits[key] = `__asset:${assetIndex}`
+                await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+            }
+        }
+
         if(type === 'json'){
             await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.json`, Buffer.from(JSON.stringify(card, null, 4), 'utf-8'))
             alertNormal(language.successExport)
             return
         }
 
-        alertStore.set({
-            type: 'wait',
-            msg: 'Loading... (Writing Exif)'
-        })
-
         await sleep(10)
-
-        img = await reencodeImage(img)
-        img = yuso.encode(img, "chara",Buffer.from(JSON.stringify(card)).toString('base64'))
-
         alertStore.set({
             type: 'wait',
             msg: 'Loading... (Writing)'
         })
-        
-        char.image = ''
+
+        if(type === 'rcc'){
+            const password = rcc.password || 'RISU_NONE'
+            const json = JSON.stringify(card)
+            const encrypted = Buffer.from(await encryptBuffer(Buffer.from(json, 'utf-8'), password))
+            const hashed = await hasher(encrypted)
+            const metaData:RccCardMetaData = {}
+            if(password !== 'RISU_NONE'){
+                metaData.usePassword = true
+            }
+            const rccString = 'rcc||rccv1||' + encrypted.toString('base64') + '||' + hashed + '||' + Buffer.from(JSON.stringify(metaData)).toString('base64')
+            await writer.write("chara", rccString)
+        }
+        else{
+            await writer.write("chara", Buffer.from(JSON.stringify(card)).toString('base64'))
+        }
+
+        await writer.end()
+
         await sleep(10)
-        await downloadFile(`${char.name.replace(/[<>:"/\\|?*\.\,]/g, "")}_export.png`, img)
 
         alertNormal(language.successExport)
 
     }
     catch(e){
+        console.error(e, e.stack)
         alertError(`${e}`)
     }
 }
@@ -616,17 +800,16 @@ export type hubType = {
     authorname?:string
 }
 
-export async function getRisuHub(arg?:{
-    search?:string,
-    page?:number,
-    nsfw?:boolean
-    sort?:string
+export async function getRisuHub(arg:{
+    search:string,
+    page:number,
+    nsfw:boolean
+    sort:string
 }):Promise<hubType[]> {
     try {
-        const da = await fetch(hubURL + '/hub/list', {
-            method: "POST",
-            body: JSON.stringify(arg ?? {})
-        })
+        const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}`
+
+        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
         if(da.status !== 200){
             return []
         }
@@ -721,6 +904,14 @@ type CharacterCardV2 = {
                 virtualscript?:string
                 largePortrait?:boolean
                 lorePlus?:boolean
+                inlayViewScreen?:boolean
+                newGenData?: {
+                    prompt: string,
+                    negative: string,
+                    instructions: string,
+                    emotionInstructions: string,
+                },
+                vits?: {[key:string]:string}
             }
             depth_prompt?: { depth: number, prompt: string }
         }
@@ -769,4 +960,8 @@ interface charBookEntry{
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
+}
+
+interface RccCardMetaData{
+    usePassword?: boolean
 }

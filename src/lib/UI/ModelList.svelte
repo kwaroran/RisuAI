@@ -3,11 +3,10 @@
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
-    import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
-  import { checkLocalModel } from "src/ts/process/models/local";
-  import { alertError } from "src/ts/alert";
-  import Help from "../Others/Help.svelte";
-    let openAdv = true
+    import Help from "../Others/Help.svelte";
+    import CheckInput from "./GUI/CheckInput.svelte";
+    import { isTauri } from "src/ts/storage/globalApi";
+    import {open} from '@tauri-apps/api/dialog'
 
     export let value = ""
     export let onChange: (v:string) => void = (v) => {}
@@ -39,14 +38,18 @@
                 return "GPT-4 32k 0613"
             case "gpt4_1106":
                 return "GPT-4 Turbo 1106"
+            case 'gpt45':
+                return 'GPT-4.5'
             case "gpt35_1106":
                 return "GPT-3.5 Turbo 1106"
             case 'local_gptq':
                 return 'Local Model GPTQ'
             case "palm2":
-                return "PaLM2"
+                return "PaLM2 Bison"
             case "textgen_webui":
-                return "Oobabooga WebUI"
+                return "Oobabooga Legacy"
+            case 'ooba':
+                return 'Oobabooga'
             case "mancer":
                 return "Mancer"
             case "kobold":
@@ -67,9 +70,48 @@
                 return "OpenRouter"
             case 'gptvi4_1106':
                 return "GPT-4 Turbo 1106 Vision"
+            case 'palm2_unicorn':
+                return "PaLM2 Unicorn"
+            case 'mistral-tiny':
+                return "Mistral Tiny"
+            case 'mistral-small':
+                return "Mistral Small"
+            case 'mistral-medium':
+                return "Mistral Medium"
+            case 'gemini-pro':
+                return "Gemini Pro"
+            case 'horde:::auto':
+                return 'Horde Auto Model'
+            case 'gpt4_0125':
+                return 'GPT-4 Turbo 0125'
+            case 'gpt35_0125':
+                return 'GPT-3.5 Turbo 0125'
+            case 'gemini-ultra':
+                return 'Gemini Ultra'
+            case 'gemini-ultra-vision':
+                return 'Gemini Ultra Vision'
+            case 'claude-3-opus-20240229':
+                return 'Claude 3 Opus (20240229)'
+            case 'claude-3-sonnet-20240229':
+                return 'Claude 3 Sonnet (20240229)'
+            case 'mistral-large-latest':
+                return 'Mistral Large'
+            case 'mistral-small-latest':
+                return 'Mistral Small'
+            case 'mistral-medium-latest':
+                return 'Mistral Medium'
             default:
                 if(name.startsWith("horde:::")){
-                    return name.replace(":::", " ")
+                    const split = name.split(":::")
+                    return `Horde ${split[1]}`
+                }
+                if(name.startsWith('tf:::')){
+                    const split = name.split(":::")
+                    return `${split[1]}`
+                }
+                if(name.startsWith('local_')){
+                    const realName = name.replace('local_', '').split(/(\\|\/)/g).at(-1)
+                    return `GGUF ${realName}`
                 }
                 return name
         }
@@ -80,6 +122,8 @@
         openOptions = false
         onChange(name)
     }
+
+    let showUnrec = false
 </script>
 
 {#if openOptions}
@@ -89,27 +133,22 @@
     }}>
         <div class="w-96 max-w-full max-h-full overflow-y-auto overflow-x-hidden bg-bgcolor p-4 flex flex-col" on:click|stopPropagation>
             <h1 class="font-bold text-xl">{language.model}
-                <!-- <button class="float-right text-sm font-light text-textcolor2 hover:text-green-300"
-                class:text-green-500={openAdv} on:click={() => {
-                    openAdv = !openAdv
-                }}>
-                    {language.advanced}
-                </button> -->
             </h1>
             <div class="border-t-1 border-y-selected mt-1 mb-1"></div>
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('instructgpt35')}}>GPT-3.5 Instruct</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
-                {#if openAdv}
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_1106')}}>GPT-4 Turbo 1106</button>
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
-
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0301')}}>GPT-4 0301</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0125')}}>GPT-4 Turbo 0125</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
+                {#if showUnrec}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0314')}}>GPT-4 0314</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k_0613')}}>GPT-4 32K 0613</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_1106')}}>GPT-4 Turbo 1106</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0125')}}>GPT-3.5 Turbo 0125</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_1106')}}>GPT-3.5 Turbo 1106</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
@@ -117,29 +156,58 @@
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2.1')}}>claude-2.1</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2-100k')}}>claude-2-100k</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1')}}>claude-v1</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1-100k')}}>claude-v1-100k</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1')}}>claude-instant-v1</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1-100k')}}>claude-instant-v1-100k</button>
-                {#if openAdv}
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-opus-20240229')}}>Claude 3 Opus (20240229)</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-sonnet-20240229')}}>Claude 3 sonnet (20240229)</button>
+                {#if showUnrec}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2.1')}}>claude-2.1</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2-100k')}}>claude-2-100k</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1')}}>claude-v1</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-v1-100k')}}>claude-v1-100k</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1')}}>claude-instant-v1</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-instant-v1-100k')}}>claude-instant-v1-100k</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.2')}}>claude-v1.2</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.0')}}>claude-v1.0</button>
                 {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
-            {#if import.meta.env.DEV}
+            {#if $DataBase.tpo && isTauri}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
-                    changeModel('local_gptq')
-                }}>Local Model GPTQ <Help key="experimental"/> </button>
+                    const selected = await open({
+                        filters: [{
+                            name: 'Model File',
+                            extensions: ['gguf']
+                        }]
+                    });
+                    if(selected){
+                        changeModel('local_' + selected)
+                    }
+                }}>Local GGUF Model <Help key="experimental"/> </button>
             {/if}
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga WebUI</button>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('ooba')}}>Oobabooga</button>
+            {#if showUnrec}
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('textgen_webui')}}>Oobabooga Legacy</button>
+            {/if}
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Google PaLM2</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
+            <Arcodion name="Mistral API">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Medium</button>
+            </Arcodion>
+            {#if showUnrec}
+                <Arcodion name="Google Palm2">
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Unicorn</button>
+                </Arcodion>
+                <Arcodion name="Google Gemini">
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro-vision')}}>Gemini Pro Vision</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra')}}>Gemini Ultra</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra-vision')}}>Gemini Ultra Vision</button>
+                </Arcodion>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
+            {/if}
             <Arcodion name="Novellist">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist')}}>SuperTrin</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist_damsel')}}>Damsel</button>
@@ -148,21 +216,35 @@
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai_kayra')}}>NovelAI Kayra</button>
             </Arcodion>
-            {#if isTauri ||isNodeServer}
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('deepai')}}>DeepAI</button>
-            {/if}
             <Arcodion name="Horde">
                 {#await getHordeModels()}
                     <button class="p-2">Loading...</button>
                 {:then models}
+                    <button on:click={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500">
+                        Auto Model
+                        <br><span class="text-textcolor2 text-sm">Performace: Auto</span>
+                    </button>
                     {#each models as model}
-                        <button on:click={() => {changeModel("horde:::" + model)}} class="p-2 hover:text-green-500">{model.trim()}</button>
+                        <button on:click={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500">
+                            {model.name.trim()}
+                            <br><span class="text-textcolor2 text-sm">Performace: {model.performance.toFixed(1)}</span>
+                        </button>
                     {/each}
                 {/await}
             </Arcodion>
+            {#if showUnrec}
+            <Arcodion name="WebLLM Local">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/opt-350m')}}>opt-350m</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/tiny-random-mistral')}}>tiny-random-mistral</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/gpt2-large-conversational')}}>gpt2-large-conversational</button>
+            </Arcodion>
+            {/if}
             {#if $DataBase.plugins.length > 0}
                 <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}
+            <div class="text-textcolor2 text-xs">
+                <CheckInput name={language.showUnrecommended}  grayText bind:check={showUnrec}/>
+            </div>
         </div>
     </div>
 

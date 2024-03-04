@@ -1,9 +1,19 @@
 import { tokenizeAccurate } from "../tokenizer";
 
 export type Proompt = ProomptPlain|ProomptTyped|ProomptChat|ProomptAuthorNote;
+export type ProomptType = Proompt['type'];
+export type ProomptSettings = {
+    assistantPrefill: string
+    postEndInnerFormat: string
+    sendChatAsSystem: boolean
+    sendName: boolean
+    utilOverride: boolean
+    customChainOfThought?: boolean
+    maxThoughtTagDepth?: number
+}
 
 export interface ProomptPlain {
-    type: 'plain'|'jailbreak';
+    type: 'plain'|'jailbreak'|'cot';
     type2: 'normal'|'globalNote'|'main'
     text: string;
     role: 'user'|'bot'|'system';
@@ -25,6 +35,7 @@ export interface ProomptChat {
     type: 'chat';
     rangeStart: number;
     rangeEnd: number|'end';
+    chatAsOriginalOnSystem?: boolean;
 }
 
 export async function tokenizePreset(proompts:Proompt[], consti:boolean = false){

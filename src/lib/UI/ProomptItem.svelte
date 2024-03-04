@@ -8,6 +8,7 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
   import TextInput from "./GUI/TextInput.svelte";
+  import { DataBase } from "src/ts/storage/database";
     export let proompt:Proompt
     export let onRemove:() => void = () => {}
     export let moveUp:() => void = () => {}
@@ -24,7 +25,7 @@
     <span>{language.type}
     </span>
     <SelectInput bind:value={proompt.type} on:change={() => {
-        if(proompt.type === 'plain' || proompt.type === 'jailbreak'){
+        if(proompt.type === 'plain' || proompt.type === 'jailbreak' || proompt.type === 'cot'){
             proompt.text = ""
             proompt.role = "system"
         }
@@ -41,10 +42,12 @@
         <OptionInput value="authornote">{language.formating.authorNote}</OptionInput>
         <OptionInput value="lorebook">{language.formating.lorebook}</OptionInput>
         <OptionInput value="memory">{language.formating.memory}</OptionInput>
-
+        {#if $DataBase.proomptSettings.customChainOfThought}
+            <OptionInput value="cot">{language.cot}</OptionInput>
+        {/if}
     </SelectInput>
 
-    {#if proompt.type === 'plain' || proompt.type === 'jailbreak'}
+    {#if proompt.type === 'plain' || proompt.type === 'jailbreak' || proompt.type === 'cot'}
         <span>{language.specialType}</span>
         <SelectInput bind:value={proompt.type2}>
             <OptionInput value="normal">{language.noSpecialType}</OptionInput>
@@ -77,6 +80,9 @@
                     proompt.rangeEnd = 'end'
                 }
             }} />
+        {/if}
+        {#if $DataBase.proomptSettings.sendChatAsSystem}
+            <CheckInput name={language.chatAsOriginalOnSystem} bind:check={proompt.chatAsOriginalOnSystem}/>
         {/if}
     {/if}
     {#if proompt.type === 'authornote'}

@@ -1,62 +1,68 @@
 <script lang="ts">
-    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import OptionalInput from "src/lib/UI/GUI/OptionalInput.svelte";
     import { DataBase } from "src/ts/storage/database";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+  import { language } from "src/lang";
+  import { PlusIcon, TrashIcon } from "lucide-svelte";
+  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import Arcodion from "src/lib/UI/Arcodion.svelte";
     let openOobaSettings = false
     const toggleOobaSettings = () => {
         openOobaSettings = !openOobaSettings
     }
+    export let instructionMode = false
 </script>
 
-<div class="border-darkborderc border px-2 flex flex-col py-4 rounded-md">
+<Arcodion name="Ooba Settings" styled>
+    {#if instructionMode}
+        <span class="text-textcolor">System Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
+        <span class="text-textcolor">User Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
+        <span class="text-textcolor">Assistant Prefix</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
+        <span class="text-textcolor">Seperator</span>
+        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
 
-{#if !openOobaSettings}
-    <button on:click={toggleOobaSettings}>
-        ⮞ Ooba Settings
-    </button>
-{:else}
-    <button on:click={toggleOobaSettings}> 
-        ⮟ Ooba Settings
-    </button>
+    {:else}
+        <span class="text-textcolor">Ooba Mode</span>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>
+            <OptionInput value="instruct">Instruct</OptionInput>
+            <OptionInput value="chat">Chat</OptionInput>
+            <OptionInput value="chat-instruct">Chat-Instruct</OptionInput>
+        </SelectInput>
+        <!-- name1 = user | name2 = bot --->
 
-    <div class="border-b border-b-darkborderc mt-4 mb-4">
-
-    </div>
-    <span class="text-textcolor">Ooba Mode</span>
-    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>
-        <OptionInput value="instruct">Instruct</OptionInput>
-        <OptionInput value="chat">Chat</OptionInput>
-        <OptionInput value="chat-instruct">Chat-Instruct</OptionInput>
-    </SelectInput>
-    <!-- name1 = user | name2 = bot --->
-
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'instruct'}
-        <span class="text-textcolor">user prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1_instruct} />
-        <span class="text-textcolor">bot prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2_instruct} />
-        <span class="text-textcolor">system prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context_instruct} />
-        <span class="text-textcolor">system message</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.system_message} />
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'instruct'}
+            <span class="text-textcolor">user prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1_instruct} />
+            <span class="text-textcolor">bot prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2_instruct} />
+            <span class="text-textcolor">system prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context_instruct} />
+            <span class="text-textcolor">system message</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.system_message} />
+        {/if}
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'chat' || $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
+            <span class="text-textcolor">user prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1} />
+            <span class="text-textcolor">bot prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2} />
+            <span class="text-textcolor">system prefix</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context} />
+            <span class="text-textcolor">start message</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.greeting} />
+        {/if}
+        {#if $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
+            <span class="text-textcolor">chat_instruct_command</span>
+            <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
+        {/if}
     {/if}
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'chat' || $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
-        <span class="text-textcolor">user prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name1} />
-        <span class="text-textcolor">bot prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.name2} />
-        <span class="text-textcolor">system prefix</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.context} />
-        <span class="text-textcolor">start message</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.greeting} />
-    {/if}
-    {#if $DataBase.reverseProxyOobaArgs.mode === 'chat-instruct'}
-        <span class="text-textcolor">chat_instruct_command</span>
-        <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.chat_instruct_command} />
-    {/if}
+    <span class="text-textcolor">tokenizer</span>
+    <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.tokenizer} />
     <span class="text-textcolor">min_p</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.min_p} numberMode />
     <span class="text-textcolor">top_k</span>
@@ -121,5 +127,43 @@
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.add_bos_token} boolMode />
     <span class="text-textcolor">skip_special_tokens</span>
     <OptionalInput marginBottom={true} bind:value={$DataBase.reverseProxyOobaArgs.skip_special_tokens} boolMode />
-{/if}
-</div>
+
+    
+    {#if instructionMode}
+        <div class="flex items-center mt-4">
+            <CheckInput check={!!$DataBase.localStopStrings} name={language.customStopWords} onChange={() => {
+                if(!$DataBase.localStopStrings){
+                    $DataBase.localStopStrings = []
+                }
+                else{
+                    $DataBase.localStopStrings = null
+                }
+            }} />
+        </div>
+        {#if $DataBase.localStopStrings}
+            <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
+                <div class="p-2">
+                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                        let localStopStrings = $DataBase.localStopStrings
+                        localStopStrings.push('')
+                        $DataBase.localStopStrings = localStopStrings
+                    }}><PlusIcon /></button>
+                </div>
+                {#each $DataBase.localStopStrings as stopString, i}
+                    <div class="flex w-full">
+                        <div class="flex-grow">
+                            <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
+                        </div>
+                        <div>
+                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                                let localStopStrings = $DataBase.localStopStrings
+                                localStopStrings.splice(i, 1)
+                                $DataBase.localStopStrings = localStopStrings
+                            }}><TrashIcon /></button>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+    {/if}
+</Arcodion>

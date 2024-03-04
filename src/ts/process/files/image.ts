@@ -1,29 +1,21 @@
 import localforage from "localforage";
-import { selectSingleFile } from "./util";
+import { selectSingleFile } from "../../util";
 import { v4 } from "uuid";
-import { DataBase } from "./storage/database";
+import { DataBase } from "../../storage/database";
 import { get } from "svelte/store";
+import { checkImageType } from "../../parser";
 
 const inlayStorage = localforage.createInstance({
     name: 'inlay',
     storeName: 'inlay'
 })
 
-export async function postInlayImage(){
-    const img = await selectSingleFile([
-        //image format
-        'jpg',
-        'jpeg',
-        'png',
-        'webp'
-    ])
-
-    if(!img){
-        return null
-    }
+export async function postInlayImage(img:{
+    name:string,
+    data:Uint8Array
+}){
 
     const extention = img.name.split('.').at(-1)
-
     const imgObj = new Image()
     imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
 
@@ -94,10 +86,13 @@ export async function getInlayImage(id: string){
 
 export function supportsInlayImage(){
     const db = get(DataBase)
-    return db.aiModel.startsWith('gptv') || (db.aiModel === 'reverse_proxy' && db.proxyRequestModel?.startsWith('gptv'))
+    return db.aiModel.startsWith('gptv') || (db.aiModel === 'reverse_proxy' && db.proxyRequestModel?.startsWith('gptv')) || db.aiModel === 'gemini-pro-vision'
 }
 
 export async function reencodeImage(img:Uint8Array){
+    if(checkImageType(img) === 'PNG'){
+        return img
+    }
     const canvas = document.createElement('canvas')
     const imgObj = new Image()
     imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/png`}))

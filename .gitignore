@@ -31,9 +31,11 @@ src-others/
 /build/
 pycache/
 test.ts
-
+.wrangler/
 
 
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 raise.code-workspace
+recc.md
+__pycache__/

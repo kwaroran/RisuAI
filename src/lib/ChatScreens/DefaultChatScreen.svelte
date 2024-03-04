@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -16,12 +16,13 @@
     import CreatorQuote from "./CreatorQuote.svelte";
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
-    import Help from '../Others/Help.svelte';
     import AssetInput from './AssetInput.svelte';
     import { downloadFile } from 'src/ts/storage/globalApi';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
-  import { postInlayImage } from 'src/ts/image';
+    import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
+    import { processMultiCommand } from 'src/ts/process/command';
+    import { postChatFile } from 'src/ts/process/files/multisend';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -34,6 +35,7 @@
     let doingChatInputTranslate = false
     let currentCharacter:character|groupChat = $CurrentCharacter
     let toggleStickers:boolean = false
+    export let openModuleList = false
     export let openChatList:boolean = false 
 
     async function send(){
@@ -45,7 +47,6 @@
 
     async function sendMain(continueResponse:boolean) {
         let selectedChar = $selectedCharID
-        console.log('send')
         if($doingChat){
             return
         }
@@ -55,6 +56,15 @@
         }
 
         let cha = $DataBase.characters[selectedChar].chats[$DataBase.characters[selectedChar].chatPage].message
+
+        if(messageInput.startsWith('/')){
+            const commandProcessed = await processMultiCommand(messageInput)
+            if(commandProcessed !== false){
+                messageInput = ''
+                return
+            }
+        }
+
 
         if(messageInput === ''){
             if($DataBase.characters[selectedChar].type !== 'group'){
@@ -108,6 +118,14 @@
             rerolls = []
             rerollid = -1
         }
+        const genId = $CurrentChat.message.at(-1)?.generationInfo?.generationId
+        if(genId){
+            const r = Prereroll(genId)
+            if(r){
+                $CurrentChat.message[$CurrentChat.message.length - 1].data = r
+                return
+            }
+        }
         if(rerollid < rerolls.length - 1){
             if(Array.isArray(rerolls[rerollid + 1])){
                 let db = $DataBase
@@ -150,14 +168,22 @@
     }
 
     async function unReroll() {
-        if(rerollid <= 0){
+        if($doingChat){
             return
         }
         if(lastCharId !== $selectedCharID){
             rerolls = []
             rerollid = -1
         }
-        if($doingChat){
+        const genId = $CurrentChat.message.at(-1)?.generationInfo?.generationId
+        if(genId){
+            const r = PreUnreroll(genId)
+            if(r){
+                $CurrentChat.message[$CurrentChat.message.length - 1].data = r
+                return
+            }
+        }
+        if(rerollid <= 0){
             return
         }
         if(Array.isArray(rerolls[rerollid - 1])){
@@ -501,6 +527,7 @@
                         message={chat.data}
                         img={getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                        largePortrait={$DataBase.personas[$DataBase.selectedPersona].largePortrait}
                     />
                 {/if}
             {/each}
@@ -555,7 +582,7 @@
             {/if}
 
             {#if openMenu}
-                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor" on:click={(e) => {
+                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" on:click={(e) => {
                     e.stopPropagation()
                 }}>
                     {#if $CurrentCharacter.type === 'group'}
@@ -619,14 +646,18 @@
 
                     {#if $DataBase.inlayImage}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            const imgid = await postInlayImage()
-                            if(imgid){
-                                messageInput += imgid
+                            const res = await postChatFile(messageInput)
+                            if(res?.type === 'image'){
+                                messageInput += res.data
+                                updateInputSizeAll()
+                            }
+                            if(res?.type === 'text'){
+                                messageInput += `{{file::${res.name}::${res.data}}}`
                                 updateInputSizeAll()
                             }
                         }}>
                             <ImagePlusIcon />
-                            <span class="ml-2">{language.postImage}</span>
+                            <span class="ml-2">{language.postFile}</span>
                         </div>
                     {/if}
 
@@ -637,10 +668,23 @@
                         <ReplyIcon />
                         <span class="ml-2">{language.autoSuggest}</span>
                     </div>
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
-                        <RefreshCcwIcon />
-                        <span class="ml-2">{language.reroll}</span>
+
+
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={() => {
+                        $CurrentChat.modules ??= []
+                        openModuleList = true
+                        openMenu = false
+                    }}>
+                        <PackageIcon />
+                        <span class="ml-2">{language.modules}</span>
                     </div>
+
+                    {#if $DataBase.sideMenuRerollButton}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={reroll}>
+                            <RefreshCcwIcon />
+                            <span class="ml-2">{language.reroll}</span>
+                        </div>
+                    {/if}
                 </div>
 
             {/if}

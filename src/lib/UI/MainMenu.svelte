@@ -8,17 +8,42 @@
   import { language } from "src/lang";
   import { getRisuHub } from "src/ts/characterCards";
   import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
+  import Title from "./Title.svelte";
+  import { getPatchNote } from "src/etc/patchNote";
+  import { parseMarkdownSafe } from "src/ts/parser";
   let openHub = false
+  const patch = getPatchNote(appVer)
+  let patchNodeHidden = true
+
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !openHub}
-      <h2 class="text-4xl text-textcolor mb-0 mt-6 font-black">RisuAI</h2>
+      <Title />
       {#if (!isTauri) && (!isNodeServer)}
         <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
       {:else}
         <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
       {/if}
       <GithubStars />
+      {#if patch.content}
+        <div class="w-full max-w-4xl pl-4 pr-4 pt-4 relative">
+          {#if patch.version !== $DataBase.lastPatchNoteCheckVersion}
+            <div class="absolute inline-flex items-center justify-center p-1 text-sm font-bold text-white bg-red-500 border-2 border-red-600 rounded-full top-2 start-2 ">
+              Update
+            </div>
+          {/if}
+          <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
+            on:click={() => {
+              patchNodeHidden = false
+              $DataBase.lastPatchNoteCheckVersion = patch.version
+            }}
+            class:max-h-40={patchNodeHidden}>
+              <div class="prose prose-invert">
+                {@html parseMarkdownSafe(patch.content)}
+              </div>
+          </div>
+        </div>
+      {/if}
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !openHub}

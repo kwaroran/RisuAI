@@ -75,12 +75,29 @@ const whitelist = [
     "Element",
     "Text",
     "Comment",
-    'onmessage'
+    'onmessage',
+    "DOMParser",
+    "XMLSerializer",
+    "TextEncoder",
+    "TextDecoder",
+    "AbortController",
+    "AbortSignal",
+    "Event",
+    "CustomEvent",
+    "EventTarget",
+    "OffscreenCanvas",
+    "ImageBitmap",
+    "ImageBitmapRenderingContext",
+    "createImageBitmap",
+    "OffScreenCanvasRenderingContext2D",
+    "WebGL2RenderingContext",
+    "WebGLRenderingContext",
 ]
 
 const evaluation = globaly.eval
 
-const prop = Object.getOwnPropertyNames( globaly ).concat( Object.getOwnPropertyNames( this ))
+const propa = Object.getOwnPropertyNames( this ?? {} )
+const prop = Object.getOwnPropertyNames( globaly ).concat( propa)
 prop.push(
     //unsafe apis
     'open',

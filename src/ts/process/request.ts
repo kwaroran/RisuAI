@@ -9,15 +9,19 @@ import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
-import { tokenizeNum } from "../tokenizer";
-import { runLocalModel } from "./models/local";
+import { strongBan, tokenizeNum } from "../tokenizer";
+import { runGGUFModel } from "./models/local";
 import { risuChatParser } from "../parser";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
 import { cloneDeep } from "lodash";
-import { supportsInlayImage } from "../image";
+import { supportsInlayImage } from "./files/image";
+import { OaifixBias } from "../plugins/fixer";
+import { Capacitor } from "@capacitor/core";
+import { getFreeOpenRouterModel } from "../model/openrouter";
+import { runTransformers } from "./embedding/transformers";
 
 
 
@@ -45,19 +49,19 @@ type requestDataResponse = {
     }
 }|{
     type: "streaming",
-    result: ReadableStream<string>,
-    noRetry?: boolean,
+    result: ReadableStream<StreamResponseChunk>,
     special?: {
         emotion?: string
     }
 }|{
     type: "multiline",
     result: ['user'|'char',string][],
-    noRetry?: boolean,
     special?: {
         emotion?: string
     }
 }
+
+interface StreamResponseChunk{[key:string]:string}
 
 interface OaiFunctions {
     name: string;
@@ -111,12 +115,12 @@ export interface OpenAIChatExtra {
     memo?:string
     name?:string
     removable?:boolean
+    attr?:string[]
 }
 
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
-    let result = ''
     let formated = cloneDeep(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)
@@ -135,24 +139,33 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             raiModel = 'reverse_proxy'
         }
     }
+    console.log(formated)
     switch(raiModel){
         case 'gpt35':
         case 'gpt35_0613':
         case 'gpt35_16k':
         case 'gpt35_16k_0613':
         case 'gpt4':
+        case 'gpt45':
         case 'gpt4_32k':
         case 'gpt4_0613':
         case 'gpt4_32k_0613':
         case 'gpt4_1106':
+        case 'gpt4_0125':
+        case 'gpt35_0125':
         case 'gpt35_1106':
         case 'gpt35_0301':
-        case 'gpt4_0301':
+        case 'gpt4_0314':
         case 'gptvi4_1106':
         case 'openrouter':
+        case 'mistral-tiny':
+        case 'mistral-small':
+        case 'mistral-medium':
+        case 'mistral-small-latest':
+        case 'mistral-medium-latest':
+        case 'mistral-large-latest':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
-
             if(db.inlayImage){
                 let pendingImages:OpenAIImageContents[] = []
                 for(let i=0;i<formated.length;i++){
@@ -191,10 +204,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let oobaSystemPrompts:string[] = []
             for(let i=0;i<formatedChat.length;i++){
                 if(formatedChat[i].role !== 'function'){
-                    if(arg.isGroupChat && formatedChat[i].name){
-                        formatedChat[i].content = formatedChat[i].name + ": " + formatedChat[i].content
-                        formatedChat[i].name = undefined
-                    }
                     if(!(formatedChat[i].name && formatedChat[i].name.startsWith('example_') && db.newOAIHandle)){
                         formatedChat[i].name = undefined
                     }
@@ -203,6 +212,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                     delete formatedChat[i].memo
                     delete formatedChat[i].removable
+                    delete formatedChat[i].attr
                 }
                 if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
                     const cont = formatedChat[i].content
@@ -229,10 +239,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             for(let i=0;i<biasString.length;i++){
                 const bia = biasString[i]
+                if(bia[1] === -101){
+                    bias = await strongBan(bia[0], bias)
+                    continue
+                }
                 const tokens = await tokenizeNum(bia[0])
         
                 for(const token of tokens){
                     bias[token] = bia[1]
+
+                }
+            }
+            if(raiModel.startsWith('gpt')){
+                if(db.officialplugins.oaiFix){
+                    bias = OaifixBias(bias)
                 }
             }
 
@@ -267,29 +287,132 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
             let requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
-
+            let openrouterRequestModel = db.openrouterRequestModel
             if(aiModel === 'reverse_proxy' && db.proxyRequestModel === 'custom'){
                 requestModel = db.customProxyRequestModel
             }
 
+            if(aiModel === 'openrouter' && db.openrouterRequestModel === 'risu/free'){
+                openrouterRequestModel = await getFreeOpenRouterModel()
+            }
 
-            console.log(bias)
+            if(aiModel.startsWith('mistral')){
+                requestModel = aiModel
+
+                let reformatedChat:OpenAIChatExtra[] = []
+
+                for(let i=0;i<formatedChat.length;i++){
+                    const chat = formatedChat[i]
+                    if(i === 0){
+                        if(chat.role === 'user' || chat.role === 'system'){
+                            reformatedChat.push({
+                                role: chat.role,
+                                content: chat.content
+                            })
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: 'system',
+                                content:  chat.role + ':' + chat.content
+                            })
+                        }
+                    }
+                    else{
+                        const prevChat = reformatedChat[reformatedChat.length-1]
+                        if(prevChat.role === chat.role){
+                            reformatedChat[reformatedChat.length-1].content += '\n' + chat.content
+                            continue
+                        }
+                        else if(chat.role === 'system'){
+                            if(prevChat.role === 'user'){
+                                reformatedChat[reformatedChat.length-1].content += '\nSystem:' + chat.content
+                            }
+                            else{
+                                reformatedChat.push({
+                                    role: 'user',
+                                    content: 'System:' + chat.content
+                                })
+                            }
+                        }
+                        else if(chat.role === 'function'){
+                            reformatedChat.push({
+                                role: 'user',
+                                content: chat.content
+                            })
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: chat.role,
+                                content: chat.content
+                            })
+                        }
+                    }
+                }
+            
+                const res = await globalFetch("https://api.mistral.ai/v1/chat/completions", {
+                    body: {
+                        model: requestModel,
+                        messages: reformatedChat,
+                        temperature: temperature,
+                        max_tokens: maxTokens,
+                        top_p: db.top_p,
+                    },
+                    headers: {
+                        "Authorization": "Bearer " + db.mistralKey,
+                    },
+                    abortSignal,
+                })
+    
+                const dat = res.data as any
+                if(res.ok){
+                    try {
+                        const msg:OpenAIChatFull = (dat.choices[0].message)
+                        return {
+                            type: 'success',
+                            result: msg.content
+                        }
+                    } catch (error) {                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${JSON.stringify(dat)}`)
+                        }
+                    }
+                }
+                else{
+                    if(dat.error && dat.error.message){                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${dat.error.message}`)
+                        }
+                    }
+                    else{                    
+                        return {
+                            type: 'fail',
+                            result: (language.errors.httpError + `${JSON.stringify(res.data)}`)
+                        }
+                    }
+                }
+            }
+
             db.cipherChat = false
             let body = ({
-                model: aiModel === 'openrouter' ? db.openrouterRequestModel :
+                model: aiModel === 'openrouter' ? openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
                     : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
                     : requestModel ===  'gpt35_16k_0613' ? 'gpt-3.5-turbo-16k-0613'
                     : requestModel === 'gpt4' ? 'gpt-4'
+                    : requestModel === 'gpt45' ? 'gpt-4.5-preview'
                     : requestModel === 'gpt4_32k' ? 'gpt-4-32k'
                     : requestModel === "gpt4_0613" ? 'gpt-4-0613'
                     : requestModel === "gpt4_32k_0613" ? 'gpt-4-32k-0613'
                     : requestModel === "gpt4_1106" ? 'gpt-4-1106-preview'
+                    : requestModel === 'gpt4_0125' ? 'gpt-4-0125-preview'
                     : requestModel === "gptvi4_1106" ? 'gpt-4-vision-preview'
+                    : requestModel === "gpt35_0125" ? 'gpt-3.5-turbo-0125'
                     : requestModel === "gpt35_1106" ? 'gpt-3.5-turbo-1106'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
-                    : requestModel === 'gpt4_0301' ? 'gpt-4-0301'
+                    : requestModel === 'gpt4_0314' ? 'gpt-4-0314'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
@@ -299,6 +422,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
+                top_p: db.top_p,
+
             })
 
             if(db.generationSeed > 0){
@@ -309,6 +434,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(db.putUserOpen){
                 // @ts-ignore
                 body.user = getOpenUserString()
+            }
+
+            if(aiModel === 'openrouter'){
+                if(db.top_k !== 0){
+                    //@ts-ignore
+                    body.top_k = db.top_k
+                }
+                if(db.openrouterFallback){
+                    //@ts-ignore
+                    body.route = "fallback"
+                }
+                //@ts-ignore
+                body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
             }
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
@@ -368,7 +506,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(risuIdentify){
                 headers["X-Proxy-Risu"] = 'RisuAI'
             }
-            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
+            const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt') && (!arg.continue))
+            if(multiGen){
+                // @ts-ignore
+                body.n = db.genTime
+            }
+            let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
             if(db.useStreaming && arg.useStreaming){
                 body.stream = true
                 let urlHost = new URL(replacerURL).host
@@ -422,12 +565,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 let dataUint = new Uint8Array([])
 
-                const transtream = new TransformStream<Uint8Array, string>(  {
+                const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
                     async transform(chunk, control) {
                         dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
                         try {
                             const datas = dataUint.toString().split('\n')
-                            let readed = ''
+                            let readed:{[key:string]:string} = {}
                             for(const data of datas){
                                 if(data.startsWith("data: ")){
                                     try {
@@ -436,9 +579,24 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                             control.enqueue(readed)
                                             return
                                         }
-                                        const chunk = JSON.parse(rawChunk).choices[0].delta.content
-                                        if(chunk){
-                                            readed += chunk
+                                        const choices = JSON.parse(rawChunk).choices
+                                        for(const choice of choices){
+                                            const chunk = choice.delta.content
+                                            if(chunk){
+                                                if(multiGen){
+                                                    const ind = choice.index.toString()
+                                                    if(!readed[ind]){
+                                                        readed[ind] = ""
+                                                    }
+                                                    readed[ind] += chunk
+                                                }
+                                                else{
+                                                    if(!readed["0"]){
+                                                        readed["0"] = ""
+                                                    }
+                                                    readed["0"] += chunk
+                                                }
+                                            }
                                         }
                                     } catch (error) {}
                                 }
@@ -468,6 +626,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const dat = res.data as any
             if(res.ok){
                 try {
+                    if(multiGen && dat.choices){
+                        return {
+                            type: 'multiline',
+                            result: dat.choices.map((v) => {
+                                return ["char",v.message.content]
+                            })
+                        }
+
+                    }
                     const msg:OpenAIChatFull = (dat.choices[0].message)
                     return {
                         type: 'success',
@@ -670,6 +837,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'stopping_strings': stopStrings,
                 'seed': -1,
                 add_bos_token: db.ooba.add_bos_token,
+                topP: db.top_p,
                 prompt: proompt
             }
 
@@ -758,6 +926,56 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         
+        case 'ooba': {
+            const suggesting = model === "submodel"
+            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+            let stopStrings = getStopStrings(suggesting)
+            if(db.localStopStrings){
+                stopStrings = db.localStopStrings.map((v) => {
+                    return risuChatParser(v.replace(/\\n/g, "\n"))
+                })
+            }
+            let bodyTemplate:Record<string, any> = {
+                'prompt': proompt,
+                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                logit_bias: {},
+                max_tokens: maxTokens,
+                stop: stopStrings,
+                temperature: temperature,
+                top_p: db.top_p,
+            }
+
+            const url = new URL(db.textgenWebUIBlockingURL)
+            url.pathname = "/v1/completions"
+            const urlStr = url.toString()
+
+            const OobaBodyTemplate = db.reverseProxyOobaArgs
+            const keys = Object.keys(OobaBodyTemplate)
+            for(const key of keys){
+                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                    bodyTemplate[key] = OobaBodyTemplate[key]
+                }
+            }
+
+            const response = await globalFetch(urlStr, {
+                body: bodyTemplate,
+            })
+
+            if(!response.ok){
+                return {
+                    type: 'fail',
+                    result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
+                }
+            }
+            const text:string = response.data.choices[0].text
+            return {
+                type: 'success',
+                result: text.replace(/##\n/g, '')
+            }
+            
+        }
+
         case 'custom':{
             const d = await pluginProcess({
                 bias: bias,
@@ -787,26 +1005,44 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             break
         }
-        case 'palm2':{
-            const body = {
-                "prompt": {
-                      "text": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
-                },
-                "temperature": arg.temperature,
-                "maxOutputTokens": arg.maxTokens,
-                "candidate_count": 1
-            }
-            const res = await globalFetch(`https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText?key=${db.palmAPI}`, {
-                body: body,
+        case 'palm2':
+        case 'palm2_unicorn':{
+            const bodyData = {
+                "instances": [
+                    {
+                        "content": stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+                    }
+                ],
+                "parameters": {
+                    "candidateCount": 1,
+                    "maxOutputTokens": maxTokens,
+                    "stopSequences": [
+                        "system:", "user:", "assistant:"
+                    ],
+                    "temperature": temperature,
+                }
+            };
+
+            const API_ENDPOINT="us-central1-aiplatform.googleapis.com"
+            const PROJECT_ID=db.google.projectId
+            const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
+                                        'palm2_unicorn' ? 'text-unicorn' : 
+                                        ''
+            const LOCATION_ID="us-central1"
+
+            const url = `https://${API_ENDPOINT}/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/publishers/google/models/${MODEL_ID}:predict`;
+            const res = await globalFetch(url, {
+                body: bodyData,
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + db.google.accessToken
                 },
                 abortSignal
             })
-
             if(res.ok){
-                if(res.data.candidates){
-                    let output:string = res.data.candidates[0].output
+                console.log(res.data)
+                if(res.data.predictions){
+                    let output:string = res.data.predictions[0].content
                     const ind = output.search(/(system note)|(user)|(assistant):/gi)
                     if(ind >= 0){
                         output = output.substring(0, ind)
@@ -829,6 +1065,212 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     result: `${JSON.stringify(res.data)}`
                 }
             }
+        }
+        case 'gemini-pro':
+        case 'gemini-pro-vision':
+        case 'gemini-ultra':
+        case 'gemini-ultra-vision':{
+            interface GeminiPart{
+                text?:string
+                "inlineData"?: {
+                    "mimeType": string,
+                    "data": string
+                },
+            }
+            
+            interface GeminiChat {
+                role: "USER"|"MODEL"
+                parts:|GeminiPart[]
+            }
+
+
+            let reformatedChat:GeminiChat[] = []
+            let pendingImage = ''
+
+            for(let i=0;i<formated.length;i++){
+                const chat = formated[i]
+                if(chat.memo && chat.memo.startsWith('inlayImage')){
+                    pendingImage = chat.content
+                    continue
+                }
+                if(i === 0){
+                    if(chat.role === 'user' || chat.role === 'assistant'){
+                        reformatedChat.push({
+                            role: chat.role === 'user' ? 'USER' : 'MODEL',
+                            parts: [{
+                                text: chat.content
+                            }]
+                        })
+                    }
+                    else{
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [{
+                                text: chat.role + ':' + chat.content
+                            }]
+                        })
+                    }
+                }
+                else{
+                    const prevChat = reformatedChat[reformatedChat.length-1]
+                    const qRole = 
+                        chat.role === 'user' ? 'USER' :
+                        chat.role === 'assistant' ? 'MODEL' :
+                        chat.role
+
+                    if(prevChat.role === qRole){
+                        reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
+                        continue
+                    }
+                    else if(chat.role === 'system'){
+                        if(prevChat.role === 'USER'){
+                            reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
+                        }
+                        else{
+                            reformatedChat.push({
+                                role: "USER",
+                                parts: [{
+                                    text: chat.role + ':' + chat.content
+                                }]
+                            })
+                        }
+                    }
+                    else if(chat.role === 'user' && pendingImage !== ''){
+                        //conver image to jpeg so it can be inlined
+                        const canv = document.createElement('canvas')
+                        const img = new Image()
+                        img.src = pendingImage  
+                        await img.decode()
+                        canv.width = img.width
+                        canv.height = img.height
+                        const ctx = canv.getContext('2d')
+                        ctx.drawImage(img, 0, 0)
+                        const base64 = canv.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, "")
+                        const mimeType = 'image/jpeg'
+                        pendingImage = ''
+                        canv.remove()
+                        img.remove()
+
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [
+                            {
+                                text: chat.content,
+                            },
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64
+                                }
+                            }]
+                        })
+                    }
+                    else if(chat.role === 'assistant' || chat.role === 'user'){
+                        reformatedChat.push({
+                            role: chat.role === 'user' ? 'USER' : 'MODEL',
+                            parts: [{
+                                text: chat.content
+                            }]
+                        })
+                    }
+                    else{
+                        reformatedChat.push({
+                            role: "USER",
+                            parts: [{
+                                text: chat.role + ':' + chat.content
+                            }]
+                        })
+                    }
+                }
+            }
+
+            const uncensoredCatagory = [
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE"
+                },
+            ]
+
+
+            const body = {
+                contents: reformatedChat,
+                generation_config: {
+                    "maxOutputTokens": maxTokens,
+                    "temperature": temperature,
+                    "topP": db.top_p,
+                },
+                safetySettings: uncensoredCatagory
+            }
+
+            let headers:{[key:string]:string} = {}
+
+            const PROJECT_ID=db.google.projectId
+            const REGION="us-central1"
+            if(PROJECT_ID !== 'aigoogle'){
+                headers['Authorization'] = "Bearer " + db.google.accessToken
+            }
+
+            const url = PROJECT_ID !== 'aigoogle' ?
+                `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${aiModel}:streamGenerateContent`
+                : `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${db.google.accessToken}`
+            const res = await globalFetch(url, {
+                headers: headers,
+                body: body,
+            })
+
+            if(!res.ok){
+                return {
+                    type: 'fail',
+                    result: `${JSON.stringify(res.data)}`
+                }
+            }
+
+            let fullRes = ''
+
+            const processDataItem = (data:any) => {
+                if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
+                    fullRes += data.candidates[0].content.parts[0].text
+                }
+                else if(data?.errors){
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(data.errors)}`
+                    }
+                }
+                else{
+                    return {
+                        type: 'fail',
+                        result: `${JSON.stringify(data)}`
+                    }
+                }
+            }
+
+            // traverse responded data if it contains multipart contents
+            if (typeof (res.data)[Symbol.iterator] === 'function') {
+                for(const data of res.data){
+                    processDataItem(data)
+                }
+            } else {
+                processDataItem(res.data)
+            }
+
+            return {
+                type: 'success',
+                result: fullRes
+            }
+
         }
         case "kobold":{
             const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
@@ -988,7 +1430,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
-
+                let latestRole = 'user'
                 let requestPrompt = formated.map((v, i) => {
                     let prefix = ''
                     switch (v.role){
@@ -1002,61 +1444,91 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             prefix = "\n\nSystem: "
                             break
                     }
+                    latestRole = v.role
                     if(raiModel.startsWith('claude-2') && (!raiModel.startsWith('claude-2.0'))){
                         if(v.role === 'system' && i === 0){
                             prefix = ''
                         }
                     }
                     return prefix + v.content
-                }).join('') + '\n\nAssistant: '
+                }).join('')
 
-
-                //claude bedrock
-
-                //placeholders
-                const bedrock = false
-                const region = ''
-
-                const AMZ_HOST = "invoke-bedrock.%REGION%.amazonaws.com";
-                const host = AMZ_HOST.replace("%REGION%", region);
-
-                function getCredentialParts(key:string) {
-                    const [accessKeyId, secretAccessKey, region] = key.split(":");
-                  
-                    if (!accessKeyId || !secretAccessKey || !region) {
-                      throw new Error("The key assigned to this request is invalid.");
-                    }
-                  
-                    return { accessKeyId, secretAccessKey, region };
+                if(latestRole !== 'assistant'){
+                    requestPrompt += '\n\nAssistant: '
                 }
 
+
+                const bedrock = db.claudeAws
                   
-                if(bedrock){
+                if(bedrock && aiModel !== 'reverse_proxy'){
+                    function getCredentialParts(key:string) {
+                        const [accessKeyId, secretAccessKey, region] = key.split(":");
+                      
+                        if (!accessKeyId || !secretAccessKey || !region) {
+                          throw new Error("The key assigned to this request is invalid.");
+                        }
+                      
+                        return { accessKeyId, secretAccessKey, region };
+                    }
+                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
+
+                    const AMZ_HOST = "bedrock-runtime.%REGION%.amazonaws.com";
+                    const host = AMZ_HOST.replace("%REGION%", region);
+
                     const stream = false
-                    const url = `https://${host}/model/${model}/invoke${stream ? "-with-response-stream" : ""}`
+
+                    const LATEST_AWS_V2_MINOR_VERSION = 1;
+                    let awsModel = `anthropic.claude-v2:${LATEST_AWS_V2_MINOR_VERSION}`;
+
+                    const pattern = /^(claude-)?(instant-)?(v)?(\d+)(\.(\d+))?(-\d+k)?$/i;
+                    const match = raiModel.match(pattern);
+                  
+                    if (match) {
+                        const [, , instant, v, major, dot, minor] = match;
+                    
+                        if (instant) {
+                            awsModel = "anthropic.claude-instant-v1";
+                        }
+                    
+                        // There's only one v1 model
+                        else if (major === "1") {
+                            awsModel = "anthropic.claude-v1";
+                        }
+                    
+                        // Try to map Anthropic API v2 models to AWS v2 models
+                        else if (major === "2") {
+                            if (minor === "0") {
+                                awsModel = "anthropic.claude-v2";
+                            } else if (!v && !dot && !minor) {
+                                awsModel = "anthropic.claude-v2";
+                            } 
+                        }                    
+                    }
+
+                    const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
                     const params = {
-                        prompt : "\n\nHuman: " + requestPrompt,
-                        model: raiModel,
+                        prompt : requestPrompt.startsWith("\n\nHuman: ") ? requestPrompt : "\n\nHuman: " + requestPrompt,
+                        //model: raiModel,
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
+                        top_p: db.top_p,
                     }
                     const rq = new HttpRequest({
                         method: "POST",
                         protocol: "https:",
                         hostname: host,
-                        path: `/model/${model}/invoke${stream ? "-with-response-stream" : ""}`,
+                        path: `/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`,
                         headers: {
                           ["Host"]: host,
-                          ["content-type"]: "application/json",
+                          ["Content-Type"]: "application/json",
                           ["accept"]: "application/json",
-                          "anthropic-version": "2023-06-01",
+                          //"anthropic-version": "2023-06-01",
                         },
                         body: JSON.stringify(params),
                     });                    
 
 
-                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
                     const signer = new SignatureV4({
                         sha256: Sha256,
                         credentials: { accessKeyId, secretAccessKey },
@@ -1066,15 +1538,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                     const signed = await signer.sign(rq);
 
-                    const da = await globalFetch(`${signed.protocol}//${signed.hostname}`, {
+                    const da = await globalFetch(url, {
                         method: "POST",
                         body: params,
-                        headers: {
-                            ["Host"]: host,
-                            ["content-type"]: "application/json",
-                            ["accept"]: "application/json",
-                            "anthropic-version": "2023-06-01",
-                        }
+                        headers: signed.headers,
+                        plainFetchForce: true
                     })
 
                       
@@ -1135,25 +1603,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "prompt": proompt,
                     "params": {
                         "n": 1,
-                        "frmtadsnsp": false,
-                        "frmtrmblln": false,
-                        "frmtrmspch": false,
-                        "frmttriminc": false,
                         "max_context_length": db.maxContext + 100,
                         "max_length": db.maxResponse,
-                        "rep_pen": 3,
-                        "rep_pen_range": 0,
-                        "rep_pen_slope": 10,
                         "singleline": false,
                         "temperature": db.temperature / 100,
-                        "tfs": 1,
-                        "top_a": 1,
-                        "top_k": 100,
-                        "top_p": 1,
-                        "typical": 1,
-                        "sampler_order": [
-                            0
-                        ]
+                        "top_k": db.top_k,
+                        "top_p": db.top_p,
                     },
                     "trusted_workers": false,
                     "workerslow_workers": true,
@@ -1162,12 +1617,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "models": [realModel, realModel.trim(), ' ' + realModel, realModel + ' ']
                 }
 
+                if(realModel === 'auto'){
+                    delete argument.models
+                }
+
+                let apiKey = '0000000000'
+                if(db.hordeConfig.apiKey.length > 2){
+                    apiKey = db.hordeConfig.apiKey
+                }
+
                 const da = await fetch("https://stablehorde.net/api/v2/generate/text/async", {
                     body: JSON.stringify(argument),
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
-                        "apikey": db.hordeConfig.apiKey
+                        "apikey": apiKey
                     },
                     signal: abortSignal
                 })
@@ -1221,12 +1685,59 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
 
             }
+            if(aiModel.startsWith('hf:::')){
+                const realModel = aiModel.split(":::")[1]
+                const suggesting = model === "submodel"
+                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const v = await runTransformers(proompt, realModel, {
+                    temperature: temperature,
+                    max_new_tokens: maxTokens,
+                    top_k: db.ooba.top_k,
+                    top_p: db.ooba.top_p,
+                    repetition_penalty: db.ooba.repetition_penalty,
+                    typical_p: db.ooba.typical_p,
+                })
+                return {
+                    type: 'success',
+                    result: unstringlizeChat(v.generated_text, formated, currentChar?.name ?? '')
+                }
+            }
             if(aiModel.startsWith('local_')){
                 console.log('running local model')
                 const suggesting = model === "submodel"
                 const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
                 const stopStrings = getStopStrings(suggesting)
-                await runLocalModel(proompt)
+                console.log(stopStrings)
+                const modelPath = aiModel.replace('local_', '')
+                const res = await runGGUFModel({
+                    prompt: proompt,
+                    modelPath: modelPath,
+                    temperature: temperature,
+                    top_p: db.top_p,
+                    top_k: db.top_k,
+                    maxTokens: maxTokens,
+                    presencePenalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                    frequencyPenalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                    repeatPenalty: 0,
+                    maxContext: db.maxContext,
+                    stop: stopStrings,
+                })
+                let decoded = ''
+                const transtream = new TransformStream<Uint8Array, StreamResponseChunk>({
+                    async transform(chunk, control) {
+                        const decodedChunk = new TextDecoder().decode(chunk)
+                        decoded += decodedChunk
+                        control.enqueue({
+                            "0": decoded
+                        })
+                    }
+                })
+                res.pipeTo(transtream.writable)
+
+                return {
+                    type: 'streaming',
+                    result: transtream.readable
+                }
             }
             return {
                 type: 'fail',

@@ -60,7 +60,7 @@
     }
 
     function displaya(message:string){
-        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true})
+        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
     }
 
     const setStatusMessage = (message:string, timeout:number = 0)=>{
@@ -92,7 +92,7 @@
             if(translateText){
                 const marked = await ParseMarkdown(data, charArg, mode, chatID)
                 translating = true
-                const translated = await translateHTML(marked, false)
+                const translated = await translateHTML(marked, false, charArg)
                 translating = false
                 lastParsed = translated
                 lastCharArg = charArg
@@ -117,7 +117,7 @@
 
     $: displaya(message)
 </script>
-<div class="flex max-w-full justify-center risu-chat" class:bgc={isLastMemory}>
+<div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#await img}
             <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
@@ -146,7 +146,7 @@
                         </button>    
                     {/if}
                     {#if idx > -1}
-                        {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.ttsMode !== 'none'}
+                        {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.ttsMode !== 'none' && ($CurrentCharacter.ttsMode)}
                             <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
                                 return sayTTS(null, message)
                             }}>

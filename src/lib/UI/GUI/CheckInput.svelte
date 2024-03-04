@@ -7,10 +7,11 @@
     export let name = ''
     export let hiddenName = false
     export let className = ""
+    export let grayText = false
 </script>
 
 <label 
-    class={"flex items-center space-x-2 cursor-pointer text-textcolor" + (className ? " " + className : "")}
+    class={"flex items-center space-x-2 cursor-pointer" + (className ? " " + className : "") + (grayText ? " text-textcolor2" : " text-textcolor")}
     class:mr-2={margin}
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
 >

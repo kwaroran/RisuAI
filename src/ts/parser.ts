@@ -10,15 +10,9 @@ import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId } from './util';
-import { getInlayImage } from './image';
-import { cloneDeep } from 'lodash';
+import { getInlayImage } from './process/files/image';
 import { autoMarkNew } from './plugins/automark';
-
-const convertora = new showdown.Converter({
-    simpleLineBreaks: true,
-    strikethrough: true,
-    tables: true
-})
+import { getModuleLorebooks } from './process/modules';
 
 const mconverted = new Marked({
     gfm: true,
@@ -29,12 +23,22 @@ const mconverted = new Marked({
     }
 })
 
-const safeConvertor = new showdown.Converter({
-    simpleLineBreaks: true,
-    strikethrough: true,
-    tables: true,
-    backslashEscapesHTMLTags: true
-})
+mconverted.use({
+    tokenizer: {
+        del(src) {
+            const cap = /^~~+(?=\S)([\s\S]*?\S)~~+/.exec(src);
+            if (cap) {
+                return {
+                    type: 'del',
+                    raw: cap[0],
+                    text: cap[2],
+                    tokens: []
+                };
+            }
+            return false;
+        }
+    }
+});
 
 
 
@@ -61,11 +65,19 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
             }
             break
         }
+        case 'href':{
+            if(data.attrValue.startsWith('http://') || data.attrValue.startsWith('https://')){
+                node.setAttribute('target', '_blank')
+                break
+            }
+            data.attrValue = ''
+            break
+        }
     }
 })
 
 
-const assetRegex = /{{(raw|img|video|audio|bg|emotion)::(.+?)}}/g
+const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
@@ -73,19 +85,30 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
 
     if(char.additionalAssets){
 
-        let assetPaths:{[key:string]:string} = {}
-        let emoPaths:{[key:string]:string} = {}
+        let assetPaths:{[key:string]:{
+            path:string
+            ext?:string
+        }} = {}
+        let emoPaths:{[key:string]:{
+            path:string
+        }} = {}
 
         for(const asset of char.additionalAssets){
             const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0].toLocaleLowerCase()] = assetPath
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
+            }
         }
         if(char.emotionImages){
             for(const emo of char.emotionImages){
                 const emoPath = await getFileSrc(emo[1])
-                emoPaths[emo[0].toLocaleLowerCase()] = emoPath
+                emoPaths[emo[0].toLocaleLowerCase()] = {
+                    path: emoPath,
+                }
             }
         }
+        const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
         data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
             name = name.toLocaleLowerCase()
             if(type === 'emotion'){
@@ -102,18 +125,26 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
             switch(type){
                 case 'raw':
-                    return path
+                    return path.path
                 case 'img':
-                    return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
                 case 'video':
-                    return `<video controls autoplay loop><source src="${path}" type="video/mp4"></video>`
+                    return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+                case 'video-img':
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
                 case 'audio':
-                    return `<audio controls autoplay loop><source src="${path}" type="audio/mpeg"></audio>`
+                    return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
                 case 'bg':
                     if(mode === 'back'){
-                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path}); background-size: cover;"></div>`
+                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
                     }
                     break
+                case 'asset':{
+                    if(path.ext && videoExtention.includes(path.ext)){
+                        return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                    }
+                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                }
             }
             return ''
         })
@@ -165,19 +196,9 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     }
     data = await parseInlayImages(data)
     if(db.automark){
-        // data = autoMarkNew(DOMPurify.sanitize(data, {
-        //     ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        //     ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-        //     FORBID_ATTR: ["href"]
-        // }))
-        // return data
-        // data = autoMarkNew(data)
-        // data = encodeStyle(data)
-        // data = mconverted.parse(data)
         return (DOMPurify.sanitize(autoMarkNew(data), {
             ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
             ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-            FORBID_ATTR: ["href"]
         }))
     }
     else{
@@ -186,13 +207,12 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         return decodeStyle(DOMPurify.sanitize(data, {
             ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
             ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn"],
-            FORBID_ATTR: ["href"]
         }))
     }
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(safeConvertor.makeHtml(data), {
+    return DOMPurify.sanitize(mconverted.parse(data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -253,9 +273,6 @@ export async function convertImage(data:Uint8Array) {
     }
     const type = checkImageType(data)
     if(type !== 'Unknown' && type !== 'WEBP' && type !== 'AVIF'){
-        if(type === 'PNG' && isAPNG(data)){
-            return data
-        }
         return await resizeAndConvert(data)
     }
     return data
@@ -294,11 +311,11 @@ async function resizeAndConvert(imageData: Uint8Array): Promise<Buffer> {
             context.drawImage(image, 0, 0, width, height);
 
             // Try to convert to WebP
-            let base64 = canvas.toDataURL('image/webp', 90);
+            let base64 = canvas.toDataURL('image/webp', 75);
 
             // If WebP is not supported, convert to JPEG
             if (base64.indexOf('data:image/webp') != 0) {
-                base64 = canvas.toDataURL('image/jpeg', 90);
+                base64 = canvas.toDataURL('image/jpeg', 75);
             }
 
             // Convert it to Uint8Array
@@ -311,7 +328,7 @@ async function resizeAndConvert(imageData: Uint8Array): Promise<Buffer> {
 
 type ImageType = 'JPEG' | 'PNG' | 'GIF' | 'BMP' | 'AVIF' | 'WEBP' | 'Unknown';
 
-function checkImageType(arr:Uint8Array):ImageType {
+export function checkImageType(arr:Uint8Array):ImageType {
     const isJPEG = arr[0] === 0xFF && arr[1] === 0xD8 && arr[arr.length-2] === 0xFF && arr[arr.length-1] === 0xD9;
     const isPNG = arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47 && arr[4] === 0x0D && arr[5] === 0x0A && arr[6] === 0x1A && arr[7] === 0x0A;
     const isGIF = arr[0] === 0x47 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x38 && (arr[4] === 0x37 || arr[4] === 0x39) && arr[5] === 0x61;
@@ -326,22 +343,6 @@ function checkImageType(arr:Uint8Array):ImageType {
     if (isAVIF) return "AVIF";
     if (isWEBP) return "WEBP";
     return "Unknown";
-}
-
-function isAPNG(pngData: Uint8Array): boolean {
-    const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-    const acTL = [0x61, 0x63, 0x54, 0x4C];
-  
-    if (!pngData.slice(0, pngSignature.length).every((v, i) => v === pngSignature[i])) {
-      throw new Error('Invalid PNG data');
-    }
-  
-    for (let i = pngSignature.length; i < pngData.length - 12; i += 4) {
-      if (pngData.slice(i + 4, i + 8).every((v, j) => v === acTL[j])) {
-        return true;
-      }
-    }
-    return false;
 }
 
 function wppParser(data:string){
@@ -392,9 +393,10 @@ type matcherArg = {
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
     consistantChar?:boolean
+    displaying?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
-    if(p1.length > 10000){
+    if(p1.length > 100000){
         return ''
     }
     const lowerCased = p1.toLocaleLowerCase()
@@ -509,8 +511,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             const chat = selchar.chats[selchar.chatPage]
             const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
             const chatLore = chat.localLore ?? []
-            const globalLore = db.loreBook[db.loreBookPage]?.data ?? []
-            const fullLore = characterLore.concat(chatLore.concat(globalLore))
+            const fullLore = characterLore.concat(chatLore.concat(getModuleLorebooks()))
             return fullLore.map((f) => {
                 return JSON.stringify(f)
             }).join("§\n")
@@ -625,7 +626,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             //output, like 1:30:00
             return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
         }
-        
+        case 'br':{
+            return '\n'
+        }
     }
     const arra = p1.split("::")
     if(arra.length > 1){
@@ -677,6 +680,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'not':{
                 return (Number(arra[1]) === 0) ? '1' : '0'
+            }
+            case 'file':{
+                if(matcherArg.displaying){
+                    return `<br><div class="risu-file">${arra[1]}</div><br>`
+                }
+                return Buffer.from(arra[2], 'base64').toString('utf-8') 
             }
         }
     }
@@ -748,7 +757,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
     }
 }
 
-const blockMatcher = (p1:string,matcherArg:matcherArg) => {
+const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     const bn = p1.indexOf('\n')
 
     if(bn === -1){
@@ -770,8 +779,32 @@ const blockMatcher = (p1:string,matcherArg:matcherArg) => {
     }
 
     return null
+}
+
+type blockMatch = 'ignore'|'parse'|'nothing'
 
 
+function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
+    if(p1.startsWith('#if')){
+        const statement = p1.split(" ", 2)
+        const state = statement[1]
+        if(state === 'true' || state === '1'){
+            return 'parse'
+        }
+        return 'ignore'
+    }
+    return 'nothing'
+}
+
+function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string{
+    if(type === 'ignore'){
+        return ''
+    }
+    if(type === 'parse'){
+        return p1
+
+    }
+    return ''
 }
 
 export function risuChatParser(da:string, arg:{
@@ -782,10 +815,12 @@ export function risuChatParser(da:string, arg:{
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
     consistantChar?:boolean
+    visualize?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
+    const visualize = arg.visualize ?? false
     let chara:character|string = null
 
     if(aChara){
@@ -810,20 +845,24 @@ export function risuChatParser(da:string, arg:{
     
     let pointer = 0;
     let nested:string[] = [""]
-    let pf = performance.now()
-    let v = new Uint8Array(512)
+    let stackType = new Uint8Array(512)
     let pureMode = false
+    let pureModeType:''|'pureSyntax'|'block' = ''
+    let blockType:blockMatch = 'nothing'
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
+    let thinkingMode = false
     const matcherObj = {
         chatID: chatID,
         chara: chara,
         rmVar: arg.rmVar ?? false,
         db: db,
         var: arg.var ?? null,
-        tokenizeAccurate: arg.tokenizeAccurate ?? false
+        tokenizeAccurate: arg.tokenizeAccurate ?? false,
+        displaying: arg.visualize ?? false,
     }
+    let pef = performance.now()
     while(pointer < da.length){
         switch(da[pointer]){
             case '{':{
@@ -833,65 +872,141 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 nested.unshift('')
-                v[nested.length] = 1
+                stackType[nested.length] = 1
                 break
             }
             case '<':{
                 nested.unshift('')
-                v[nested.length] = 2
+                stackType[nested.length] = 2
                 break
             }
             case '#':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                //legacy if statement, deprecated
+                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
                     nested[0] += da[pointer]
                     break
                 }
                 pointer++
                 const dat = nested.shift()
-                const mc = blockMatcher(dat, matcherObj)
+                const mc = legacyBlockMatcher(dat, matcherObj)
                 nested[0] += mc ?? `{#${dat}#}`
                 break
             }
             case '}':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || v[nested.length] !== 1){
+                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
                     nested[0] += da[pointer]
                     break
                 }
                 pointer++
                 const dat = nested.shift()
+                if(dat.startsWith('#')){
+                    if(pureMode){
+                        nested[0] += `{{${dat}}}`
+                    }
+                    const matchResult = blockStartMatcher(dat, matcherObj)
+                    if(matchResult === 'nothing'){
+                        break
+                    }
+                    else{
+                        if(matchResult !== 'parse'){
+                            pureMode = true
+                            pureModeType = 'block'
+                        }
+                        blockType = matchResult
+                        nested.unshift('')
+                        stackType[nested.length] = 5
+                        break
+                    }
+                }
+                if(dat.startsWith('/')){
+                    if(stackType[nested.length] === 5){
+                        const dat2 = nested.shift()
+                        if(pureMode && pureModeType === 'block'){
+                            pureMode = false
+                            pureModeType = ''
+                        }
+                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
+                        if(matchResult === ''){
+                            break
+                        }
+                        nested[0] += matchResult
+                        blockType = 'nothing'
+                        break
+                    }
+                }
                 const mc = (pureMode) ? null :matcher(dat, matcherObj)
                 nested[0] += mc ?? `{{${dat}}}`
                 break
             }
             case '>':{
-                if(nested.length === 1 || v[nested.length] !== 2){
+                if(nested.length === 1 || stackType[nested.length] !== 2){
                     break
                 }
                 const dat = nested.shift()
+                if(pureMode && pureModeType !== 'pureSyntax' && pureModeType !== ''){
+                    nested[0] += `<${dat}>`
+                    break
+                }
                 switch(dat){
                     case 'Pure':{
                         pureMode = true
+                        pureModeType = 'pureSyntax'
                         break
                     }
                     case '/Pure':{
-                        pureMode = false
-                        break
+                        if(pureModeType === 'pureSyntax'){
+                            pureMode = false
+                            pureModeType = ''
+                        }
+                        else{
+                            nested[0] += `<${dat}>`
+                            break
+                        }
                     }
                     case 'Comment':{
                         if(!commentMode){
+                            thinkingMode = false
                             commentMode = true
                             commentLatest = nested.map((f) => f)
                             if(commentLatest[0].endsWith('\n')){
                                 commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
                             }
-                            commentV = new Uint8Array(v)
+                            commentV = new Uint8Array(stackType)
                         }
                         break
                     }
                     case '/Comment':{
                         if(commentMode){
                             nested = commentLatest
-                            v = commentV
+                            stackType = commentV
+                            commentMode = false
+                        }
+                        break
+                    }
+                    case 'Thoughts':{
+                        if(!visualize){
+                            nested[0] += `<${dat}>`
+                            break
+                        }
+                        if(!commentMode){
+                            thinkingMode = true
+                            commentMode = true
+                            commentLatest = nested.map((f) => f)
+                            if(commentLatest[0].endsWith('\n')){
+                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
+                            }
+                            commentV = new Uint8Array(stackType)
+                        }
+                        break
+                    }
+                    case '/Thoughts':{
+                        if(!visualize){
+                            nested[0] += `<${dat}>`
+                            break
+                        }
+                        if(commentMode){
+                            nested = commentLatest
+                            stackType = commentV
                             commentMode = false
                         }
                         break
@@ -911,12 +1026,20 @@ export function risuChatParser(da:string, arg:{
         }
         pointer++
     }
+    if(commentMode){
+        nested = commentLatest
+        stackType = commentV
+        if(thinkingMode){
+            nested[0] += `<div>Thinking...</div>`
+        }
+        commentMode = false
+    }
     if(nested.length === 1){
         return nested[0]
     }
     let result = ''
     while(nested.length > 1){
-        let dat = (v[nested.length] === 1) ? '{{' : "<"
+        let dat = (stackType[nested.length] === 1) ? '{{' : "<"
         dat += nested.shift()
         result = dat + result
     }
@@ -1004,4 +1127,21 @@ export function getVarChat(targetIndex = -1, chara:character|groupChat = null){
         }
     }
     return vars
+}
+
+
+async function editDisplay(text){
+    let rt = ""
+    if(!text.includes("<obs>")){
+        return text
+    }
+
+    for(let i=0;i<text.length;i++){
+        const obfiEffect = "!@#$%^&*"
+        if(Math.random() < 0.4){
+            rt += obfiEffect[Math.floor(Math.random() * obfiEffect.length)]
+        }
+        rt += text[i]
+    }
+    return rt
 }

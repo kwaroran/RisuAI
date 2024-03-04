@@ -1,6 +1,7 @@
 import { get } from "svelte/store"
 import { alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
+import { selectedCharID, settingsOpen } from "./stores"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -56,6 +57,18 @@ export function initHotkey(){
                 }
                 case "9":{
                     changeToPreset(8)
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case 's':{
+                    settingsOpen.set(!get(settingsOpen))
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case 'h':{
+                    selectedCharID.set(-1)
                     ev.preventDefault()
                     ev.stopPropagation()
                     break

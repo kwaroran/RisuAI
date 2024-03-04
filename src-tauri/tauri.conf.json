@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "RisuAI",
-    "version": "1.61.2"
+    "version": "1.79.2"
   },
   "tauri": {
     "allowlist": {
@@ -29,7 +29,7 @@
       },
       "fs":{
         "all": true,
-        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*"]
+        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*", "$RESOURCE/*"]
       },
       "path":{
         "all": true
@@ -87,7 +87,10 @@
         "icons/icon.ico"
       ],
       "identifier": "co.aiclient.risu",
-      "targets": "all"
+      "targets": "all",
+      "resources": [
+        "src-python/*"
+      ]
     },
     "security": {
       "csp": null

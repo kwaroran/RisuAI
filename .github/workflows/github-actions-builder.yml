@@ -16,7 +16,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 21
       - id: set_var_win
         if: matrix.platform == 'windows-latest'
         run: |

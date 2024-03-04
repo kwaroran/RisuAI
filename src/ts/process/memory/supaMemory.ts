@@ -125,7 +125,11 @@ export async function supaMemory(
                         i += 1
                     }
         
+
                     supaMemory = data
+                    if(db.removePunctuationHypa){
+                        supaMemory = supaMemory.replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+                    }
                     currentTokens += await tokenize(supaMemory)
                 }
             }
@@ -142,6 +146,11 @@ export async function supaMemory(
             if(hypaChunks.length > 0){
                 await hypa.addText(hypaChunks.filter((value, index, self) => {
                     return self.indexOf(value) === index;
+                }).map((value) => {
+                    if(db.removePunctuationHypa){
+                        value = value.replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+                    }
+                    return value
                 }))
                 const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function')
                 const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), char?.name ?? '', false))
@@ -178,7 +187,7 @@ export async function supaMemory(
             if(db.supaMemoryType === 'distilbart'){
                 try {
                     const sum =  await runSummarizer(stringlizedChat)
-                    return sum[0].summary_text
+                    return sum
                 } catch (error) {
                     return {
                         currentTokens: currentTokens,
@@ -274,7 +283,7 @@ export async function supaMemory(
                             return {
                                 currentTokens: currentTokens,
                                 chats: chats,
-                                error: "Not Enough Tokens"
+                                error: "Not Enough Tokens to summarize in SupaMemory"
                             }
                         }
                         maxChunkSize = maxChunkSize * 0.7

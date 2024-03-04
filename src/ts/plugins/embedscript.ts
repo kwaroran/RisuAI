@@ -68,7 +68,7 @@ function runVirtualJS(code:string){
         clearInterval(interval)
         resolve(result.result)
       }
-      else if(performance.now() - startTime > 400){
+      else if(performance.now() - startTime > 800){
         clearInterval(interval)
         //restart worker
         worker.terminate()
@@ -97,13 +97,13 @@ addWorkerFunction('setChat', async (data:Message[]) => {
         if(typeof dat.data !== 'string'){
             return false
         }
-        if(typeof dat.saying !== 'string'){
+        if(typeof dat.saying !== 'string' && dat.saying !== null && dat.saying !== undefined){
             return false
         }
-        if(typeof dat.time !== 'number'){
+        if(typeof dat.time !== 'number' && dat.time !== null && dat.time !== undefined){
             return false
         }
-        if(typeof dat.chatId !== 'string'){
+        if(typeof dat.chatId !== 'string' && dat.chatId !== null && dat.chatId !== undefined){
             return false
         }
         newChat.push({
@@ -224,9 +224,9 @@ let compCode:{[key:string]:string[]} = {}
 
 export async function runCharacterJS(arg:{
     code: string|null,
-    mode: ScriptMode|'onButtonClick'
-    data: string
-}):Promise<string>{
+    mode: ScriptMode|'onButtonClick'|'modifyRequestChat'
+    data: any
+}):Promise<any>{
     try {
         if(arg.code === null){
             const db = get(DataBase)
@@ -238,7 +238,8 @@ export async function runCharacterJS(arg:{
             "editoutput": 'editOutput',
             "editprocess": 'editProcess',
             "editdisplay": 'editDisplay',
-            'onButtonClick': "onButtonClick"
+            'onButtonClick': "onButtonClick",
+            'modifyRequestChat': 'modifyRequestChat'
         } as const
 
         let runCodes = [...additionalCharaJS, arg.code]
@@ -277,8 +278,19 @@ export async function runCharacterJS(arg:{
             if(!result){
                 continue
             }
+
+            if(arg.mode !== 'modifyRequestChat'){
+                if(typeof result !== 'string'){
+                    continue
+                }
+            }
+            else{
+                if(!Array.isArray(result)){
+                    continue
+                }
+            }
         
-            r = result.toString()
+            r = result
 
             if(runCode === 'onButtonClick'){
                 return r

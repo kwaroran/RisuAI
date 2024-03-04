@@ -29,6 +29,7 @@
     import TriggerList from "./Scripts/TriggerList.svelte";
   import CheckInput from "../UI/GUI/CheckInput.svelte";
   import { updateInlayScreen } from "src/ts/process/inlayScreen";
+  import { registerOnnxModel } from "src/ts/process/embedding/transformers";
     
 
     let subMenu = 0
@@ -526,6 +527,7 @@
             <OptionInput value="openai">OpenAI</OptionInput>
             <OptionInput value="novelai">NovelAI</OptionInput>
             <OptionInput value="huggingface">Huggingface</OptionInput>
+            <OptionInput value="vits">VITS</OptionInput>
         </SelectInput>
         
 
@@ -625,12 +627,20 @@
             <span class="text-textcolor">Language</span>
             <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
         {/if}
-        {#if currentChar.data.ttsMode === 'webspeech' ||
-            currentChar.data.ttsMode === 'elevenlab' ||
-            currentChar.data.ttsMode === 'VOICEVOX' ||
-            currentChar.data.ttsMode === 'huggingface' ||
-            currentChar.data.ttsMode === 'openai' ||
-            currentChar.data.ttsMode === 'novelai'}
+        {#if currentChar.data.ttsMode === 'vits'}
+            {#if currentChar.data.vits}
+                <span class="text-textcolor">{currentChar.data.vits.name ?? 'Unnamed VitsModel'}</span>
+            {:else}
+                <span class="text-textcolor">No Model</span>
+            {/if}
+            <Button on:click={async () => {
+                const model = await registerOnnxModel()
+                if(model && currentChar.type === 'character'){
+                    currentChar.data.vits = model
+                }
+            }}>{language.selectModel}</Button>
+        {/if}
+        {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
                 <Check bind:check={currentChar.data.ttsReadOnlyQuoted} name={language.ttsReadOnlyQuoted}/>
             </div>
@@ -805,6 +815,7 @@
             && currentChar.data.license !== 'CC BY-SA 4.0'
             && currentChar.data.license !== 'CC BY-ND 4.0'
             && currentChar.data.license !== 'CC BY-NC-ND 4.0'
+            || $DataBase.tpo
         }
             <Button size="lg" on:click={async () => {
                 exportChar($selectedCharID)

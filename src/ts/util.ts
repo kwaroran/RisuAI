@@ -1,4 +1,4 @@
-import { get } from "svelte/store"
+import { get, writable, type Writable } from "svelte/store"
 import type { Database, Message } from "./storage/database"
 import { DataBase } from "./storage/database"
 import { selectedCharID } from "./stores"
@@ -17,7 +17,7 @@ export function messageForm(arg:Message[], loadPages:number){
     let db = get(DataBase)
     let selectedChar = get(selectedCharID)
     function reformatContent(data:string){
-        return data.trim().replace(`${db.characters[selectedChar].name}:`, '').trim()
+        return data.trim()
     }
 
     let a:Messagec[] = []
@@ -42,8 +42,9 @@ export function checkNullish(data:any){
     return data === undefined || data === null
 }
 
+const domSelect = true
 export async function selectSingleFile(ext:string[]){
-    if(await !isTauri){
+    if(domSelect){
         const v = await selectFileByDom(ext, 'single')
         const file = v[0]
         return {name: file.name,data:await readFileAsUint8Array(file)}
@@ -371,4 +372,15 @@ export function getCurrentCharacter(){
     const db = get(DataBase)
     const selectedChar = get(selectedCharID)
     return db.characters[selectedChar]
+}
+
+export function toState<T>(t:T):Writable<T>{
+    return writable(t)
+}
+
+export function BufferToText(data:Uint8Array){
+    if(!TextDecoder){
+        return Buffer.from(data).toString('utf-8')
+    }
+    return new TextDecoder().decode(data)
 }

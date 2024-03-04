@@ -4,10 +4,16 @@
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-    import { alertConfirm } from "src/ts/alert";
+    import { alertConfirm, alertNormal } from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
+    import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { exportAsDataset } from "src/ts/storage/exportAsDataset";
+    import { Capacitor } from "@capacitor/core";
+    import { isNative } from "lodash";
+    import { persistantStorageRecommended, requestPersistantStorage } from "src/ts/storage/persistant";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
@@ -35,29 +41,59 @@
     }
 }}></svelte:window>
 
+
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
 
-<button
+{#await persistantStorageRecommended() then a}
+    {#if a}
+        <button
+            class="flex justify-center p-3 text-left items-start border-red-300 cursor-pointer hover:border-red-700 border-solid mt-2 border-2 hover:bg-red-600 text-textcolor hover:text-white transition-colors rounded-md flex-col"
+            on:click={requestPersistantStorage}
+        >
+            <h3 class="text-xl">{language.persistentStorageRecommended}</h3>
+            <span class="text-gray-200">{language.persistentStorageDesc}</span>
+        </button>
+    {/if}
+{/await}
+
+<Button
+    on:click={async () => {
+        if(await alertConfirm(language.backupConfirm)){
+            SaveLocalBackup()
+        }
+    }} className="mt-2">
+    {language.saveBackupLocal}
+</Button>
+
+<Button
+    on:click={async () => {
+        if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
+            LoadLocalBackup()
+        }
+    }} className="mt-2">
+    {language.loadBackupLocal}
+</Button>
+
+<Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
-            if(isTauri || isNodeServer){
+            if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
                 checkDriver('savetauri')
             }
             else{
                 checkDriver('save')
             }
         }
-    }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+    }} className="mt-2">
     {language.savebackup}
-</button>
+</Button>
 
-<button
+<Button
     on:click={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
-            if(isTauri || isNodeServer){
+            if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
                 checkDriver('loadtauri')
             }
             else{
@@ -65,10 +101,14 @@
             }
         }
     }}
-    class="drop-shadow-lg p-3 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm mb-4">
+    className="mt-2">
     {language.loadbackup}
-</button>
-<div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start">
+</Button>
+
+<Button on:click={exportAsDataset} className="mt-2">
+    {language.exportAsDataset}
+</Button>
+<div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
         <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
             <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
@@ -82,10 +122,14 @@
     </div>
     {#if $DataBase.account}
         <span class="mb-4 text-textcolor2">ID: {$DataBase.account.id}</span>
-        {#if !isTauri}
+        {#if !isTauri && (!Capacitor.isNativePlatform())}
             <div class="flex items-center mt-2">
                 {#if $DataBase.account.useSync || forageStorage.isAccount}
-                    <span>{language.dataSavingInAccount}</span>
+                    <Check check={true} name={language.SaveDataInAccount} onChange={(v) => {
+                        if(v){
+                            unMigrationAccount()
+                        }
+                    }}/>
                 {:else}
                     <Check check={false} name={language.SaveDataInAccount} onChange={(v) => {
                         if(v){
@@ -96,7 +140,6 @@
                 {/if}
             </div>
         {/if}
-
     {:else}
         <span>{language.notLoggedIn}</span>
         <button class="bg-selected p-2 rounded-md mt-2 hover:bg-green-500 transition-colors" on:click={() => {
@@ -106,6 +149,8 @@
             Login
         </button>
     {/if}
+    <!-- <Button on:click={autoServerBackup}>Auto Server Backups</Button> -->
+
 </div>
 {#if openIframe}
     <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">

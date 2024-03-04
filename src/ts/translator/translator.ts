@@ -1,10 +1,13 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
-import { DataBase } from "../storage/database"
+import { DataBase, type customscript } from "../storage/database"
 import { globalFetch } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
 import { doingChat } from "../process"
+import type { simpleCharacterArgument } from "../parser"
+import { selectedCharID } from "../stores"
+import { getModuleRegexScripts } from "../process/modules"
 
 let cache={
     origin: [''],
@@ -171,7 +174,7 @@ export function isExpTranslator(){
     return db.translatorType === 'llm' || db.translatorType === 'deepl'
 }
 
-export async function translateHTML(html: string, reverse:boolean): Promise<string> {
+export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = ''): Promise<string> {
     let db = get(DataBase)
     let DoingChat = get(doingChat)
     if(DoingChat){
@@ -232,6 +235,28 @@ export async function translateHTML(html: string, reverse:boolean): Promise<stri
     let translatedHTML = serializer.serializeToString(dom);
     // Remove the outer <body> tags
     translatedHTML = translatedHTML.replace(/^<body[^>]*>|<\/body>$/g, '');
+
+    if(charArg !== ''){
+        let scripts:customscript[] = []
+        if(typeof(charArg) === 'string'){
+            const db = get(DataBase)
+            const charId = get(selectedCharID)
+            const char = db.characters[charId]
+            scripts = (getModuleRegexScripts() ?? []).concat(char?.customscript ?? [])
+        }
+        else{
+            scripts = (getModuleRegexScripts() ?? []).concat(charArg?.customscript ?? [])
+
+        }
+        for(const script of scripts){
+            if(script.type === 'edittrans'){
+                const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
+                let outScript = script.out.replaceAll("$n", "\n")
+                translatedHTML = translatedHTML.replace(reg, outScript)
+            }
+        }
+
+    }
 
     // console.log(html)
     // console.log(translatedHTML)

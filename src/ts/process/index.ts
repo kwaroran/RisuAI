@@ -13,16 +13,18 @@ import { exampleMessage } from "./exampleMessages";
 import { sayTTS } from "./tts";
 import { supaMemory } from "./memory/supaMemory";
 import { v4 } from "uuid";
-import { clone, cloneDeep } from "lodash";
+import { cloneDeep } from "lodash";
 import { groupOrder } from "./group";
-import { runTrigger, type additonalSysPrompt } from "./triggers";
+import { runTrigger } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
-import { getInlayImage, supportsInlayImage } from "../image";
+import { getInlayImage, supportsInlayImage } from "./files/image";
 import { getGenerationModelString } from "./models/modelString";
 import { sendPeerChar } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
+import { runCharacterJS } from "../plugins/embedscript";
+import { addRerolls } from "./prereroll";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -30,6 +32,7 @@ export interface OpenAIChat{
     memo?:string
     name?:string
     removable?:boolean
+    attr?:string[]
 }
 
 export interface OpenAIChatFull extends OpenAIChat{
@@ -65,7 +68,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         if(chatProcessIndex === -1){
             return data.trim()
         }
-        return data.trim().replace(`${currentChar.name}:`, '').trim()
+        return data.trim()
     }
 
     let isDoing = get(doingChat)
@@ -177,12 +180,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     let promptTemplate = cloneDeep(db.promptTemplate)
+    const usingPromptTemplate = !!promptTemplate
     if(promptTemplate){
         promptTemplate.push({
             type: 'postEverything'
         })
     }
-    if(currentChar.utilityBot){
+    if(currentChar.utilityBot && (!(usingPromptTemplate && db.proomptSettings.utilOverride))){
         promptTemplate = [
             {
               "type": "plain",
@@ -218,10 +222,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
 
         function formatPrompt(data:string){
-            if(!data.startsWith('@@@')){
-                data = "@@@system\n" + data
+            if(!data.startsWith('@@')){
+                data = "@@system\n" + data
             }
-            const parts = data.split(/@@@(user|assistant|system)\n/);
+            const parts = data.split(/@@@?(user|assistant|system)\n/);
   
             // Initialize empty array for the chat objects
             const chatObjects: OpenAIChat[] = [];
@@ -255,6 +259,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         unformated.authorNote.push({
             role: 'system',
             content: risuChatParser(getAuthorNoteDefaultText(), {chara: currentChar})
+        })
+    }
+
+    if(db.chainOfThought && (!(usingPromptTemplate && db.proomptSettings.customChainOfThought))){
+        unformated.postEverything.push({
+            role: 'system',
+            content: `<instruction> - before respond everything, Think step by step as a ai assistant how would you respond inside <Thoughts> xml tag. this must be less than 5 paragraphs.</instruction>`
         })
     }
 
@@ -383,11 +394,21 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     await tokenizeChatArray(unformated.postEverything)
+                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                        await tokenizeChatArray([{
+                            role: 'system',
+                            content: db.proomptSettings.postEndInnerFormat
+                        }])
+                    }
                     break
                 }
                 case 'plain':
-                case 'jailbreak':{
+                case 'jailbreak':
+                case 'cot':{
                     if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+                    if((!db.chainOfThought) && (card.type === 'cot')){
                         continue
                     }
 
@@ -436,7 +457,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     if(start >= end){
                         break
                     }
-                    const chats = unformated.chats.slice(start, end)
+                    let chats = unformated.chats.slice(start, end)
+
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
+                        chats = systemizeChat(chats)
+                    }
                     await tokenizeChatArray(chats)
                     break
                 }
@@ -482,6 +507,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 risuChatParser(firstMsg, {chara: currentChar, rmVar: true}),
             'editprocess'))
         }
+
+        if(usingPromptTemplate && db.proomptSettings.sendName){
+            chat.content = `${currentChar.name}: ${chat.content}`
+            chat.attr = ['nameAdded']
+        }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
@@ -495,8 +525,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += triggerResult.tokens
     }
 
+    let index = 0
     for(const msg of ms){
-        let formedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
+        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
@@ -515,10 +546,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         let inlays:string[] = []
         if(db.inlayImage){
             if(msg.role === 'char'){
-                formedChat = formedChat.replace(/{{inlay::(.+?)}}/g, '')
+                formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
             }
             else{
-                const inlayMatch = formedChat.match(/{{inlay::(.+?)}}/g)
+                const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
                 if(inlayMatch){
                     for(const inlay of inlayMatch){
                         inlays.push(inlay)
@@ -542,41 +573,32 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         currentTokens += await tokenizer.tokenizeChat(imgchat)
                     }
                 }
-                formedChat = formedChat.replace(inlay, '')
+                formatedChat = formatedChat.replace(inlay, '')
+            }
+        }
+
+        let attr:string[] = []
+
+        if(nowChatroom.type === 'group' || (usingPromptTemplate && db.proomptSettings.sendName)){
+            formatedChat = name + ': ' + formatedChat
+            attr.push('nameAdded')
+        }
+        if(usingPromptTemplate && db.proomptSettings.customChainOfThought && db.proomptSettings.maxThoughtTagDepth !== -1){
+            const depth = ms.length - index
+            if(depth >= db.proomptSettings.maxThoughtTagDepth){
+                formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
             }
         }
 
         const chat:OpenAIChat = {
             role: msg.role === 'user' ? 'user' : 'assistant',
-            content: formedChat,
+            content: formatedChat,
             memo: msg.chatId,
-            name: name
+            attr: attr
         }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
-    }
-
-    if(db.officialplugins.romanizer){
-        const romanizer = await import('../plugins/romanizer')
-        const r = romanizer.romanizer(chats.map((v) => {
-            return v.content   
-        }))
-
-        for(let i=0;i<chats.length;i++){
-            const pchat = cloneDeep(chats[i])
-            pchat.content = r.result[i]
-            if(await tokenizer.tokenizeChat(chats[i]) > await tokenizer.tokenizeChat(pchat)){
-                chats[i] = pchat
-            }
-        }
-
-        if(r.mostUsed !== 'roman'){
-
-            unformated.postEverything.push({
-                role: 'system',
-                content: `user and assistant are chatting with romanized ${r.mostUsed}, but always respond with ${r.mostUsed} with ${r.mostUsed} letters.`
-            })
-        }
+        index++
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
@@ -743,11 +765,21 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     pushPrompts(unformated.postEverything)
+                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                        pushPrompts([{
+                            role: 'system',
+                            content: db.proomptSettings.postEndInnerFormat
+                        }])
+                    }
                     break
                 }
                 case 'plain':
-                case 'jailbreak':{
+                case 'jailbreak':
+                case 'cot':{
                     if((!db.jailbreakToggle) && (card.type === 'jailbreak')){
+                        continue
+                    }
+                    if((!db.chainOfThought) && (card.type === 'cot')){
                         continue
                     }
 
@@ -797,7 +829,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         break
                     }
 
-                    const chats = unformated.chats.slice(start, end)
+                    let chats = unformated.chats.slice(start, end)
+                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
+                        chats = systemizeChat(chats)
+                    }
                     pushPrompts(chats)
                     break
                 }
@@ -841,6 +876,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         })
     }
 
+    formated = await runCharacterJS({
+        code: null,
+        mode: 'modifyRequestChat',
+        data: formated
+    })
+
     {
         //token rechecking
         let tokens = 0
@@ -852,7 +893,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             let pointer = 0
             while(tokens > maxContextTokens){
                 if(pointer >= formated.length){
-                    alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + tokens)
+                    alertError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + tokens)
                     return false
                 }
                 if(formated[pointer].removable){
@@ -910,10 +951,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             })
         }
         db.characters[selectedChar].chats[selectedChat].isStreaming = true
+        let lastResponseChunk:{[key:string]:string} = {}
         while(abortSignal.aborted === false){
             const readed = (await reader.read())
             if(readed.value){
-                result = readed.value
+                lastResponseChunk = readed.value
+                const firstChunkKey = Object.keys(lastResponseChunk)[0]
+                result = lastResponseChunk[firstChunkKey]
+                if(!result){
+                    result = ''
+                }
                 if(db.cipherChat){
                     result = decipherChat(result)
                 }
@@ -930,6 +977,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 break
             }   
         }
+
+        console.log(lastResponseChunk)
+        addRerolls(generationId, Object.values(lastResponseChunk))
 
         currentChat = db.characters[selectedChar].chats[selectedChat]        
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
@@ -952,6 +1002,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const msgs = (req.type === 'success') ? [['char',req.result]] as const 
                     : (req.type === 'multiline') ? req.result
                     : []
+        let mrerolls:string[] = []
         for(let i=0;i<msgs.length;i++){
             let msg = msgs[i]
             let mess = msg[1]
@@ -985,7 +1036,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = p
                 }
             }
-            else{
+            else if(i===0){
                 db.characters[selectedChar].chats[selectedChat].message.push({
                     role: msg[0],
                     data: result,
@@ -1001,10 +1052,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     const p = await inlayResult.promise
                     db.characters[selectedChar].chats[selectedChat].message[ind].data = p
                 }
+                mrerolls.push(result)
+            }
+            else{
+                mrerolls.push(result)
             }
             db.characters[selectedChar].reloadKeys += 1
             await sayTTS(currentChar, result)
             setDatabase(db)
+        }
+
+        if(mrerolls.length >1){
+            addRerolls(generationId, mrerolls)
         }
 
         currentChat = db.characters[selectedChar].chats[selectedChat]        
@@ -1243,4 +1302,22 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     return true
+}
+
+function systemizeChat(chat:OpenAIChat[]){
+    for(let i=0;i<chat.length;i++){
+        if(chat[i].role === 'user' || chat[i].role === 'assistant'){
+            const attr = chat[i].attr ?? []
+            if(chat[i].name?.startsWith('example_')){
+                chat[i].content = chat[i].name + ': ' + chat[i].content
+            }
+            else if(!attr.includes('nameAdded')){
+                chat[i].content = chat[i].role + ': ' + chat[i].content
+            }
+            chat[i].role = 'system'
+            delete chat[i].memo
+            delete chat[i].name
+        }
+    }
+    return chat
 }

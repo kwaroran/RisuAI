@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -8,7 +8,7 @@
     import PluginSettings from "./Pages/PluginSettings.svelte";
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
-    import { settingsOpen } from "src/ts/stores";
+    import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
@@ -17,127 +17,118 @@
     import LanguageSettings from "./Pages/LanguageSettings.svelte";
     import AccessibilitySettings from "./Pages/AccessibilitySettings.svelte";
     import PersonaSettings from "./Pages/PersonaSettings.svelte";
-  import PromptSettings from "./Pages/PromptSettings.svelte";
-  import { DataBase } from "src/ts/storage/database";
-  import ThanksPage from "./Pages/ThanksPage.svelte";
-    let selected = -1
+    import PromptSettings from "./Pages/PromptSettings.svelte";
+    import ThanksPage from "./Pages/ThanksPage.svelte";
+    import ModuleSettings from "./Pages/Module/ModuleSettings.svelte";
+
     let openPresetList = false
     let openLoreList = false
-    if(window.innerWidth >= 700){
-        selected = 1
+    if(window.innerWidth >= 900 && $SettingsMenuIndex === -1){
+        $SettingsMenuIndex = 1
     }
 
 </script>
 <div class="h-full w-full flex justify-center setting-bg">
     <div class="h-full max-w-screen-lg w-full flex relative">
-        {#if window.innerWidth >= 700 || selected === -1}
+        {#if window.innerWidth >= 700 || $SettingsMenuIndex === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
                 class:w-full={window.innerWidth < 700}>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 1 || selected === 13}
-                    class:text-textcolor2={selected !== 1 && selected !== 13}
+                    class:text-textcolor={$SettingsMenuIndex === 1 || $SettingsMenuIndex === 13}
+                    class:text-textcolor2={$SettingsMenuIndex !== 1 && $SettingsMenuIndex !== 13}
                     on:click={() => {
-                        selected = 1
+                        $SettingsMenuIndex = 1
                         
                 }}>
                     <BotIcon />
                     <span>{language.chatBot}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 12}
-                    class:text-textcolor2={selected !== 12}
+                    class:text-textcolor={$SettingsMenuIndex === 12}
+                    class:text-textcolor2={$SettingsMenuIndex !== 12}
                     on:click={() => {
-                        selected = 12
+                        $SettingsMenuIndex = 12
                 }}>
                     <ContactIcon />
                     <span>{language.persona}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 2}
-                    class:text-textcolor2={selected !== 2}
+                    class:text-textcolor={$SettingsMenuIndex === 2}
+                    class:text-textcolor2={$SettingsMenuIndex !== 2}
                     on:click={() => {
-                        selected = 2
+                        $SettingsMenuIndex = 2
                 }}>
                     <Sailboat />
                     <span>{language.otherBots}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 3}
-                    class:text-textcolor2={selected !== 3}
+                    class:text-textcolor={$SettingsMenuIndex === 3}
+                    class:text-textcolor2={$SettingsMenuIndex !== 3}
                     on:click={() => {
-                        selected = 3
+                        $SettingsMenuIndex = 3
                 }}>
                     <MonitorIcon />
                     <span>{language.display}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 10}
-                    class:text-textcolor2={selected !== 10}
+                    class:text-textcolor={$SettingsMenuIndex === 10}
+                    class:text-textcolor2={$SettingsMenuIndex !== 10}
                     on:click={() => {
-                        selected = 10
+                        $SettingsMenuIndex = 10
                 }}>
                     <LanguagesIcon />
                     <span>{language.language}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 11}
-                    class:text-textcolor2={selected !== 11}
+                    class:text-textcolor={$SettingsMenuIndex === 11}
+                    class:text-textcolor2={$SettingsMenuIndex !== 11}
                     on:click={() => {
-                        selected = 11
+                        $SettingsMenuIndex = 11
                 }}>
                     <AccessibilityIcon />
                     <span>{language.accessibility}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 8}
-                    class:text-textcolor2={selected !== 8}
+                    class:text-textcolor={$SettingsMenuIndex === 14}
+                    class:text-textcolor2={$SettingsMenuIndex !== 14}
                     on:click={() => {
-                        selected = 8
+                        $SettingsMenuIndex = 14
                 }}>
-                    <BookIcon />
-                    <span>{language.globalLoreBook}</span>
+                    <PackageIcon />
+                    <span>{language.modules}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 9}
-                    class:text-textcolor2={selected !== 9}
+                    class:text-textcolor={$SettingsMenuIndex === 4}
+                    class:text-textcolor2={$SettingsMenuIndex !== 4}
                     on:click={() => {
-                        selected = 9
-                }}>
-                    <AlignLeft />
-                    <span>{language.globalRegexScript}</span>
-                </button>
-                <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 4}
-                    class:text-textcolor2={selected !== 4}
-                    on:click={() => {
-                    selected = 4
+                    $SettingsMenuIndex = 4
                 }}>
                     <CodeIcon />
                     <span>{language.plugin}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 0}
-                    class:text-textcolor2={selected !== 0}
+                    class:text-textcolor={$SettingsMenuIndex === 0}
+                    class:text-textcolor2={$SettingsMenuIndex !== 0}
                     on:click={() => {
-                        selected = 0
+                        $SettingsMenuIndex = 0
                 }}>
                     <UserIcon />
                     <span>{language.account} & {language.files}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 6}
-                    class:text-textcolor2={selected !== 6}
+                    class:text-textcolor={$SettingsMenuIndex === 6}
+                    class:text-textcolor2={$SettingsMenuIndex !== 6}
                     on:click={() => {
-                    selected = 6
+                    $SettingsMenuIndex = 6
                 }}>
                     <ActivityIcon />
                     <span>{language.advancedSettings}</span>
                 </button>
                 <button class="flex gap-2 items-center hover:text-textcolor"
-                    class:text-textcolor={selected === 77}
-                    class:text-textcolor2={selected !== 77}
+                    class:text-textcolor={$SettingsMenuIndex === 77}
+                    class:text-textcolor2={$SettingsMenuIndex !== 77}
                     on:click={() => {
-                    selected = 77
+                    $SettingsMenuIndex = 77
                 }}>
                     <BoxIcon />
                     <span>{language.supporterThanks}</span>
@@ -149,42 +140,44 @@
                 {/if}
             </div>
         {/if}
-        {#if window.innerWidth >= 700 || selected !== -1}
-            {#key selected}
+        {#if window.innerWidth >= 700 || $SettingsMenuIndex !== -1}
+            {#key $SettingsMenuIndex}
                 <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
-                    {#if selected === 0}
+                    {#if $SettingsMenuIndex === 0}
                         <UserSettings />
-                    {:else if selected === 1}
+                    {:else if $SettingsMenuIndex === 1}
                         <BotSettings bind:openPresetList goPromptTemplate={() => {
-                            selected = 13
+                            $SettingsMenuIndex = 13
                         }} />
-                    {:else if selected === 2}
+                    {:else if $SettingsMenuIndex === 2}
                         <OtherBotSettings />
-                    {:else if selected === 3}
+                    {:else if $SettingsMenuIndex === 3}
                         <DisplaySettings />
-                    {:else if selected === 4}
+                    {:else if $SettingsMenuIndex === 4}
                         <PluginSettings />
-                    {:else if selected === 5}
+                    {:else if $SettingsMenuIndex === 5}
                         <FilesSettings />
-                    {:else if selected === 6}
+                    {:else if $SettingsMenuIndex === 6}
                         <AdvancedSettings />
-                    {:else if selected === 7}
+                    {:else if $SettingsMenuIndex === 7}
                         <Communities />
-                    {:else if selected === 8}
+                    {:else if $SettingsMenuIndex === 8}
                         <GlobalLoreBookSettings bind:openLoreList />
-                    {:else if selected === 9}
+                    {:else if $SettingsMenuIndex === 9}
                         <GlobalRegex/>
-                    {:else if selected === 10}
+                    {:else if $SettingsMenuIndex === 10}
                         <LanguageSettings/>
-                    {:else if selected === 11}
+                    {:else if $SettingsMenuIndex === 11}
                         <AccessibilitySettings/>
-                    {:else if selected === 12}
+                    {:else if $SettingsMenuIndex === 12}
                         <PersonaSettings/>
-                    {:else if selected === 13}
+                    {:else if $SettingsMenuIndex === 14}
+                        <ModuleSettings/>
+                    {:else if $SettingsMenuIndex === 13}
                         <PromptSettings onGoBack={() => {
-                            selected = 1
+                            $SettingsMenuIndex = 1
                         }}/>
-                    {:else if selected === 77}
+                    {:else if $SettingsMenuIndex === 77}
                         <ThanksPage/>
                     {/if}
             </div>
@@ -194,7 +187,7 @@
                     settingsOpen.set(false)
                 }
                 else{
-                    selected = -1
+                    $SettingsMenuIndex = -1
                 }
             }}>
                 <XCircleIcon />

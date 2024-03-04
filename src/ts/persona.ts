@@ -2,11 +2,11 @@ import { get } from "svelte/store"
 import { DataBase, saveImage, setDatabase } from "./storage/database"
 import { selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
-import * as yuso from 'yuso'
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
 import { cloneDeep } from "lodash"
-import { reencodeImage } from "./image"
+import { reencodeImage } from "./process/files/image"
+import { PngChunk } from "./pngChunk"
 
 export async function selectUserImg() {
     const selected = await selectSingleFile(['png'])
@@ -30,7 +30,8 @@ export function saveUserPersona() {
     db.personas[db.selectedPersona] = {
         name: db.username,
         icon: db.userIcon,
-        personaPrompt: db.personaPrompt
+        personaPrompt: db.personaPrompt,
+        largePortrait: db.personas[db.selectedPersona]?.largePortrait,
     }
     setDatabase(db)
 }
@@ -81,7 +82,9 @@ export async function exportUserPersona(){
 
     await sleep(10)
 
-    img = yuso.encode(await reencodeImage(img), "persona",Buffer.from(JSON.stringify(card)).toString('base64'))
+    img = (await PngChunk.write(await reencodeImage(img), {
+        "persona":Buffer.from(JSON.stringify(card)).toString('base64')
+    })) as Uint8Array
 
     alertStore.set({
         type: 'wait',
@@ -98,7 +101,12 @@ export async function importUserPersona(){
 
     try {
         const v = await selectSingleFile(['png'])
-        const data:PersonaCard = JSON.parse(Buffer.from(yuso.decode(v.data, "persona"), 'base64').toString('utf-8'))
+        const decoded = PngChunk.read(v.data, ['persona'])?.persona
+        if(!decoded){
+            alertError(language.errors.noData)
+            return
+        }
+        const data:PersonaCard = JSON.parse(Buffer.from(decoded, 'base64').toString('utf-8'))
         if(data.name && data.personaPrompt){
             let db = get(DataBase)
             db.personas.push({

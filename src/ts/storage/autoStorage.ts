@@ -1,18 +1,20 @@
 import localforage from "localforage"
-import { getUnpargeables, isNodeServer, replaceDbResources } from "./globalApi"
+import { isNodeServer, replaceDbResources } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
-import { alertConfirm, alertSelect, alertStore } from "../alert"
+import { alertSelect, alertStore } from "../alert"
 import { get } from "svelte/store"
-import { DataBase } from "./database"
+import { DataBase, type Database } from "./database"
 import { AccountStorage } from "./accountStorage"
-import { encodeRisuSave } from "./risuSave";
+import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { language } from "src/lang"
+import { MobileStorage } from "./mobileStorage"
+import { Capacitor } from "@capacitor/core"
 
 export class AutoStorage{
     isAccount:boolean = false
 
-    realStorage:LocalForage|NodeStorage|OpfsStorage|AccountStorage
+    realStorage:LocalForage|NodeStorage|OpfsStorage|AccountStorage|MobileStorage
 
     async setItem(key:string, value:Uint8Array):Promise<string|null> {
         await this.Init()
@@ -80,8 +82,15 @@ export class AutoStorage{
             }
 
             const dba = replaceDbResources(db, replaced)
-            await accountStorage.setItem('database/database.bin', encodeRisuSave(dba))
-
+            const comp = encodeRisuSave(dba, 'compression')
+            //try decoding
+            try {
+                const z:Database = decodeRisuSave(comp)
+                if(z.formatversion){
+                    await accountStorage.setItem('database/database.bin', comp)
+                }
+                
+            } catch (error) {}
             this.realStorage = accountStorage
             alertStore.set({
                 type: "none",
@@ -107,6 +116,10 @@ export class AutoStorage{
             if(localStorage.getItem('accountst') === 'able'){
                 this.realStorage = new AccountStorage()
                 this.isAccount = true
+                return
+            }
+            if(Capacitor.isNativePlatform()){
+                this.realStorage = new MobileStorage()
                 return
             }
             if(isNodeServer){

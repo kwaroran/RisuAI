@@ -69,7 +69,7 @@
     
     {#if $DataBase.sdProvider === 'novelai'}
         <span class="text-textcolor mt-2">Novel AI {language.providerURL}</span>
-        <TextInput size="sm" marginBottom placeholder="https://api.novelai.net" bind:value={$DataBase.NAIImgUrl}/>
+        <TextInput size="sm" marginBottom placeholder="https://image.novelai.net" bind:value={$DataBase.NAIImgUrl}/>
         <span class="text-textcolor">API Key</span>
         <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={$DataBase.NAIApiKey}/>
     
@@ -95,7 +95,7 @@
         <span class="text-textcolor">CFG scale</span>
         <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.NAIImgConfig.scale}/>
     
-        {#if !$DataBase.NAII2I || $DataBase.NAIImgConfig.sampler === 'ddim_v3'}
+        {#if !$DataBase.NAII2I || $DataBase.NAIImgConfig.sampler !== 'ddim_v3'}
             <Check bind:check={$DataBase.NAIImgConfig.sm} name="Use SMEA"/>
             <Check bind:check={$DataBase.NAIImgConfig.sm_dyn} name='Use DYN'/>
         {/if}
@@ -103,10 +103,10 @@
     
         {#if $DataBase.NAII2I}
     
-            <span class="text-textcolor mt-4">strength</span>
+            <span class="text-textcolor mt-4">Strength</span>
             <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.strength}/>
             <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.strength}</span>
-            <span class="text-textcolor">noise</span>
+            <span class="text-textcolor">Noise</span>
             <SliderInput min={0} max={0.99} step={0.01} bind:value={$DataBase.NAIImgConfig.noise}/>
             <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
     
@@ -135,6 +135,47 @@
                 {/if}
             </button>
     
+        {/if}
+
+        <Check bind:check={$DataBase.NAIREF} name="Enable Reference" className="mt-4"/>
+
+        {#if $DataBase.NAIREF}
+
+
+            <span class="text-textcolor mt-4">Information Extracted</span>
+            <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIImgConfig.InfoExtracted}/>
+            <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.InfoExtracted}</span>
+            <span class="text-textcolor">Reference Strength</span>
+            <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIImgConfig.RefStrength}/>
+            <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.RefStrength}</span>
+
+
+
+
+            <span class="text-textcolor">Reference image</span>
+            <button on:click={async () => {
+                const img = await selectSingleFile([
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'webp'
+                ])
+                if(!img){
+                    return null
+                }
+                const saveId = await saveAsset(img.data)
+                $DataBase.NAIImgConfig.refimage = saveId
+            }}>
+                {#if $DataBase.NAIImgConfig.refimage === ''}
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                {:else}
+                    {#await getCharImage($DataBase.NAIImgConfig.refimage, 'css')}
+                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                    {:then im} 
+                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                    {/await}
+                {/if}
+            </button>
         {/if}
     {/if}
 </Arcodion>
@@ -166,7 +207,7 @@
     </SelectInput>
 </Arcodion>
 
-<Arcodion name="superMemory" styled>
+<Arcodion name={language.SuperMemory} styled>
     <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
     <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
         <OptionInput value="none" >None</OptionInput>
@@ -191,9 +232,7 @@
             <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
         </SelectInput>
     {/if}
-    {#if $DataBase.useExperimental}
-        <div class="flex">
-            <Check bind:check={$DataBase.hypaMemory} name={language.able + ' ' + language.HypaMemory}/> <Help key="experimental" />
-        </div>
-    {/if}
+    <div class="flex">
+        <Check bind:check={$DataBase.hypaMemory} name={language.able + ' ' + language.HypaMemory}/>
+    </div>
 </Arcodion>
