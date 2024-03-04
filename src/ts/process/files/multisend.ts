@@ -156,6 +156,28 @@ async function sendTxtFile(arg:sendFileArg) {
     return Buffer.from(`<File>\n${message}\n</File>\n`).toString('base64')
 }
 
+async function sendXMLFile(arg:sendFileArg) {
+    const hypa = new HypaProcesser('MiniLM')
+    let nodeTexts:string[] = []
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(arg.file, "text/xml");
+    const nodes = xmlDoc.getElementsByTagName('*')
+    for(const node of nodes){
+        nodeTexts.push(node.textContent)
+    }
+    hypa.addText(nodeTexts)
+    const result = await hypa.similaritySearch(arg.query)
+    let message = ''
+    for(let i = 0; i<result.length; i++){
+        message += "\n" + result[i]
+        if(i>5){
+            break
+        }
+    }
+    console.log(message)
+    return Buffer.from(`<File>\n${message}\n</File>\n`).toString('base64')    
+}
+
 type postFileResult = postFileResultImage | postFileResultVoid | postFileResultText
 
 type postFileResultImage = {
@@ -205,6 +227,16 @@ export async function postChatFile(query:string):Promise<postFileResult>{
             return {
                 type: 'text',
                 data: await sendPDFFile({
+                    file: BufferToText(file.data),
+                    query: query
+                }),
+                name: file.name
+            }
+        }
+        case 'xml':{
+            return {
+                type: 'text',
+                data: await sendXMLFile({
                     file: BufferToText(file.data),
                     query: query
                 }),
