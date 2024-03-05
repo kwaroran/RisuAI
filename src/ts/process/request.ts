@@ -1561,14 +1561,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     
                     const signed = await signer.sign(rq);
 
-                    console.log(`
-                    ### Params
-                    ${JSON.stringify(body)}
-
-                    ### Signed Headers
-                    ${JSON.stringify(signed.headers)}
-                    `);
-
                     const res = await globalFetch(url, {
                         method: "POST",
                         body: params,
