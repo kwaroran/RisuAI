@@ -188,6 +188,8 @@
         <OptionInput value="claude-v1.2">claude-v1.2</OptionInput>
         <OptionInput value="claude-instant-v1.1">claude-instant-v1.1</OptionInput>
         <OptionInput value="claude-instant-v1.1-100k">claude-instant-v1.1-100k</OptionInput>
+        <OptionInput value="claude-3-opus-20240229">claude-3-opus-20240229</OptionInput>
+        <OptionInput value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</OptionInput>
         <OptionInput value="custom">Custom</OptionInput>
     </SelectInput>
     {#if $DataBase.proxyRequestModel === 'custom'}
