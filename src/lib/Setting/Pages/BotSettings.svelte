@@ -147,11 +147,7 @@
     <span class="text-textcolor">Mancer {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
 {/if}
-{#if $DataBase.aiModel.startsWith('claude-3') || $DataBase.subModel.startsWith('claude-3')}
-    <span class="text-textcolor">Claude {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
-{/if}
-{#if $DataBase.aiModel.startsWith('claude-1') || $DataBase.subModel.startsWith('claude-1') || $DataBase.subModel.startsWith('claude-2') || $DataBase.subModel.startsWith('claude-2')}
+{#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
     {#if $DataBase.useExperimental}
