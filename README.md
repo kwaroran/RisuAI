@@ -4,7 +4,9 @@
   <img alt="text" src="https://github.com/kwaroran/RisuAI/assets/116663078/bc28e5a3-c6da-4a42-bfc1-f3ab3debdf65">
 </picture>
 
-RisuAI, or Risu for short, is an AI chatting software / web application with powerful features such as multiple API support, assets in the chat, regex functions and much more.
+[![Svelte](https://img.shields.io/badge/svelte-4-red?logo=svelte)](https://svelte.dev/) [![Typescript](https://img.shields.io/badge/typescript-5-blue?logo=typescript)](https://www.typescriptlang.org/) [![Tauri](https://img.shields.io/badge/tauri-1.5-%2324C8D8?logo=tauri)](https://tauri.app/)
+
+RisuAI, or Risu for short, is an cross platform AI chatting software / web application with powerful features such as multiple API support, assets in the chat, regex functions and much more.
 
 # Screenshots
 |![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe) | ![image](https://github.com/kwaroran/RisuAI/assets/116663078/30d29f85-1380-4c73-9b82-1a40f2c5d2ea) |
