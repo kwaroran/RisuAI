@@ -1496,7 +1496,87 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     delete body.system
                 }
 
+                const bedrock = db.claudeAws
 
+                if(bedrock && aiModel !== 'reverse_proxy'){
+                    function getCredentialParts(key:string) {
+                        const [accessKeyId, secretAccessKey, region] = key.split(":");
+                      
+                        if (!accessKeyId || !secretAccessKey || !region) {
+                          throw new Error("The key assigned to this request is invalid.");
+                        }
+                      
+                        return { accessKeyId, secretAccessKey, region };
+                    }
+                    const { accessKeyId, secretAccessKey, region } = getCredentialParts(apiKey);
+
+                    const AMZ_HOST = "bedrock-runtime.%REGION%.amazonaws.com";
+                    const host = AMZ_HOST.replace("%REGION%", region);
+                    const stream = false
+                    const CLAUDE_3_COMPAT_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0";
+                    
+                    // AWS currently only supports one v3 model.
+                    const awsModel = CLAUDE_3_COMPAT_MODEL;
+                    const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
+
+                    const params = {
+                        messages : claudeChat,
+                        system: systemPrompt.trim(),
+                        max_tokens: maxTokens,
+                        // stop_sequences: ["user:", "assistant:", "system:"],
+                        temperature: temperature,
+                        top_p: db.top_p,
+                        top_k: db.top_k,
+                        anthropic_version: "bedrock-2023-05-31",
+                    }
+
+                    const rq = new HttpRequest({
+                        method: "POST",
+                        protocol: "https:",
+                        hostname: host,
+                        path: `/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`,
+                        headers: {
+                          ["Host"]: host,
+                          ["Content-Type"]: "application/json",
+                          ["accept"]: "application/json",
+                        },
+                        body: JSON.stringify(params),
+                    });
+                    
+                    const signer = new SignatureV4({
+                        sha256: Sha256,
+                        credentials: { accessKeyId, secretAccessKey },
+                        region,
+                        service: "bedrock",
+                    });
+                    
+                    const signed = await signer.sign(rq);
+
+                    const res = await globalFetch(url, {
+                        method: "POST",
+                        body: params,
+                        headers: signed.headers,
+                        plainFetchForce: true
+                    })
+
+                    if(!res.ok){
+                        return {
+                            type: 'fail',
+                            result: JSON.stringify(res.data)
+                        }
+                    }
+                    if(res.data.error){
+                        return {
+                            type: 'fail',
+                            result: JSON.stringify(res.data.error)
+                        }
+                    }
+                    return {
+                        type: 'success',
+                        result: res.data.content[0].text
+                    
+                    }
+                }
 
                 const res = await globalFetch(replacerURL, {
                     body: body,
@@ -1634,11 +1714,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
                     const params = {
                         prompt : requestPrompt.startsWith("\n\nHuman: ") ? requestPrompt : "\n\nHuman: " + requestPrompt,
-                        //model: raiModel,
                         max_tokens_to_sample: maxTokens,
                         stop_sequences: ["\n\nHuman:", "\n\nSystem:", "\n\nAssistant:"],
                         temperature: temperature,
                         top_p: db.top_p,
+                        //top_k: db.top_k,
                     }
                     const rq = new HttpRequest({
                         method: "POST",
