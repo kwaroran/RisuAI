@@ -394,6 +394,7 @@ type matcherArg = {
     tokenizeAccurate?:boolean
     consistantChar?:boolean
     displaying?:boolean
+    role?:string
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 100000){
@@ -635,6 +636,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         case 'axmodel':{
             return db.subModel
         }
+        case 'role': {
+            return matcherArg.role ?? 'role'
+        }
     }
     const arra = p1.split("::")
     if(arra.length > 1){
@@ -824,7 +828,8 @@ export function risuChatParser(da:string, arg:{
     var?:{[key:string]:string}
     tokenizeAccurate?:boolean
     consistantChar?:boolean
-    visualize?:boolean
+    visualize?:boolean,
+    role?:string
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -870,6 +875,7 @@ export function risuChatParser(da:string, arg:{
         var: arg.var ?? null,
         tokenizeAccurate: arg.tokenizeAccurate ?? false,
         displaying: arg.visualize ?? false,
+        role: arg.role
     }
     let pef = performance.now()
     while(pointer < da.length){
