@@ -1629,9 +1629,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         
                                     }
                                 }
-                                if(e.type === 'reconnect-interval'){
-                                    //TODO: handle reconnect interval
-                                }
                             })
                             const reader = res.body.getReader()
                             while(true){
