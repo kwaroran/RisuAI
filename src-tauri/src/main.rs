@@ -10,6 +10,7 @@ fn greet(name: &str) -> String {
 use serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
+use tauri::Manager;
 use std::io::Write;
 use std::{time::Duration, path::Path};
 use serde_json::json;
@@ -374,6 +375,79 @@ fn run_server_local(){
 
 }
 
+
+#[tauri::command]
+async fn streamed_fetch(id:String, url:String, headers: String, body: String, handle: tauri::AppHandle) -> String {
+
+    //parse headers
+    let headers_json: Value = match serde_json::from_str(&headers) {
+        Ok(h) => h,
+        Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
+    };
+    let app = handle.app_handle();
+    
+    let mut headers = HeaderMap::new();
+    if let Some(obj) = headers_json.as_object() {
+        for (key, value) in obj {
+            let header_name = match HeaderName::from_bytes(key.as_bytes()) {
+                Ok(name) => name,
+                Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
+            };
+            let header_value = match HeaderValue::from_str(value.as_str().unwrap_or("")) {
+                Ok(value) => value,
+                Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
+            };
+            headers.insert(header_name, header_value);
+        }
+    } else {
+        return format!(r#"{{"success":false,"body":"Invalid header JSON"}}"#);
+    }
+
+    let client = reqwest::Client::new();
+    let response = client
+        .post(&url)
+        .headers(headers)
+        .timeout(Duration::from_secs(240))
+        .body(body)
+        .send().await;
+
+    match response {
+        Ok(mut resp) => {
+            let headers = resp.headers();
+            let header_json = header_map_to_json(headers);
+            app.emit_all("streamed_fetch", &format!(r#"{{"type": "headers", "body": {}, "id": "{}", "status": {}}}"#, header_json, id, resp.status().as_u16())).unwrap();
+            loop {
+                let byt = resp.chunk().await;
+                match byt {
+                    Ok(chunk) => {
+                        if chunk.is_none() {
+                            break;
+                        }
+                        let chunk = chunk.unwrap();
+                        let encoded = general_purpose::STANDARD.encode(chunk);
+                        let emited = app.emit_all("streamed_fetch", &format!(r#"{{"type": "chunk", "body": "{}", "id": "{}"}}"#, encoded, id));
+
+                        match emited {
+                            Ok(_) => {},
+                            Err(e) => {
+                                return format!(r#"{{"success":false, body:{}}}"#, e.to_string())
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        return format!(r#"{{"success":false, body:{}}}"#, e.to_string())
+                    }
+                }
+            }
+            app.emit_all("streamed_fetch", &format!(r#"{{"type": "end", "id": "{}"}}"#, id)).unwrap();
+            return "{\"success\":true}".to_string();
+        }
+        Err(e) => {
+            return format!(r#"{{"success":false, body:{}}}"#, e.to_string())
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -386,7 +460,8 @@ fn main() {
             install_pip,
             post_py_install,
             run_py_server,
-            install_py_dependencies
+            install_py_dependencies,
+            streamed_fetch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

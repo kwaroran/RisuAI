@@ -4,7 +4,7 @@ import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
-import { addFetchLog, globalFetch, isNodeServer, isTauri } from "../storage/globalApi";
+import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
@@ -526,36 +526,24 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     }
                 }
-                const da =  (throughProxi)
-                    ? await fetch(hubURL + `/proxy2`, {
-                        body: JSON.stringify(body),
-                        headers: {
-                            "risu-header": encodeURIComponent(JSON.stringify(headers)),
-                            "risu-url": encodeURIComponent(replacerURL),
-                            "Content-Type": "application/json",
-                            "x-risu-tk": "use"
-                        },
-                        method: "POST",
-                        signal: abortSignal
-                    })
-                    : await fetch(replacerURL, {
-                        body: JSON.stringify(body),
-                        method: "POST",
-                        headers: headers,
-                        signal: abortSignal
-                    })  
+                const da = await fetchNative(replacerURL, {
+                    body: JSON.stringify(body),
+                    method: "POST",
+                    headers: headers,
+                    signal: abortSignal
+                })
 
                 if(da.status !== 200){
                     return {
                         type: "fail",
-                        result: await da.text()
+                        result: await textifyReadableStream(da.body)
                     }
                 }
 
                 if (!da.headers.get('Content-Type').includes('text/event-stream')){
                     return {
                         type: "fail",
-                        result: await da.text()
+                        result: await textifyReadableStream(da.body)
                     }
                 }
 
