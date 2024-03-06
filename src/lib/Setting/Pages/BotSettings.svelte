@@ -151,7 +151,7 @@
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
     {#if $DataBase.useExperimental}
-        <Check name="Claude Aws" bind:check={$DataBase.claudeAws}> <Help key="experimental" /></Check>
+        <Check name="AWS Claude" bind:check={$DataBase.claudeAws}> <Help key="experimental" /></Check>
     {/if}
 {/if}
 {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
@@ -235,7 +235,7 @@
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
 {/if}
-{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter'}
+{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
     <div class="flex items-center mt-2 mb-4">
         <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
     </div>
@@ -501,7 +501,16 @@
     <span class="text-textcolor">Typical P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.typical_p}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
+{:else if $DataBase.aiModel.startsWith('claude')}
+    <span class="text-textcolor">Top P <Help key="topP"/></span>
+    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
+    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
+    <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {:else}
+
+
     <span class="text-textcolor">Top P <Help key="topP"/></span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
