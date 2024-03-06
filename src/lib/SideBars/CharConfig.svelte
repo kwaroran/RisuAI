@@ -667,7 +667,7 @@
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.additionalText}></TextAreaInput>
 
 
-        {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
+        {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
             <span class="text-textcolor">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
         {/if}
@@ -840,7 +840,7 @@
             <RealmUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
         {/if}
     {:else}
-        {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4}
+        {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
             <span class="text-textcolor">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
         {/if}
