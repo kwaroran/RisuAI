@@ -61,9 +61,6 @@
     <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch"/></Check>
-</div>
-<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}> <Help key="autoFillRequestURL"/></Check>
 </div>
 <div class="flex items-center mt-4">
@@ -96,6 +93,9 @@
     <Check bind:check={$DataBase.removePunctuationHypa} name={language.removePunctuationHypa}>
         <Help key="removePunctuationHypa"/>
     </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
 </div>
 <div class="flex items-center mt-4">
     <Check check={$DataBase.tpo} name="Alpha DevMode" onChange={() => {
