@@ -1,15 +1,13 @@
 export const patchNote = {
-    version: "1.81",
+    version: "1.82",
     content: 
 `
-# Update 1.81
-- Added {{model}}
-  - {{model}} outputs the current ai model that is being used
-- Added {{axmodel}}
-  - {{axmodel}} outputs the current ax. model that is being used
-- Added {{startswith::A::B}}
-  - {{startswith::A::B}} returns true if A starts with B
-- Improved Claude 3 format handling
+# Update 1.82
+- Added native fetch handling for local version
+  - This would make the fetch request faster and more stable
+  - This would solve many issues with fetch request on local version
+- Added Claude-3 streaming
+- Force Plain Fetch is now unrecommended
 `
 }
 
