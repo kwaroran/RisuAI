@@ -1617,6 +1617,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                             }
                                             break
                                         }
+                                        case 'error': {
+                                            if(e.data){
+                                                text += "Error:" + JSON.parse(e.data).error?.message
+                                                controller.enqueue({
+                                                    "0": text
+                                                })
+                                            }
+                                            break
+                                        }
         
                                     }
                                 }
