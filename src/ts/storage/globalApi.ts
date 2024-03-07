@@ -1302,6 +1302,7 @@ interface StreamedFetchEndData{
 }
 
 type StreamedFetchChunk = StreamedFetchChunkData|StreamedFetchHeaderData|StreamedFetchEndData
+let streamedFetchListening = false
 
 listen('streamed_fetch', (event) => {
     try {
@@ -1311,6 +1312,8 @@ listen('streamed_fetch', (event) => {
     } catch (error) {
         console.error(error)
     }
+}).then((v) => {
+    streamedFetchListening = true
 })
 
 export async function fetchNative(url:string, arg:{
@@ -1336,6 +1339,9 @@ export async function fetchNative(url:string, arg:{
         let resolved = false
 
         let error = ''
+        while(!streamedFetchListening){
+            await sleep(100)
+        }
         invoke('streamed_fetch', {
             id: fetchId,
             url: url,
