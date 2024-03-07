@@ -31,7 +31,14 @@
 
     let msgDisplay = ''
     let translated = get(DataBase).autoTranslate
-    async function rm(){
+    async function rm(e:MouseEvent){
+        if(e.shiftKey){
+            let msg = $CurrentChat.message
+            msg = msg.slice(0, idx)
+            $CurrentChat.message = msg
+            return
+        }
+
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
             if($DataBase.instantRemove){
