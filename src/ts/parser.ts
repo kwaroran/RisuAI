@@ -737,6 +737,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
 }
 
 const smMatcher = (p1:string,matcherArg:matcherArg) => {
+    if(!p1){
+        return null
+    }
     const lowerCased = p1.toLocaleLowerCase()
     const db = matcherArg.db
     const chara = matcherArg.chara
