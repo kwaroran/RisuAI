@@ -28,6 +28,7 @@ import * as CapFS from '@capacitor/filesystem'
 import { save } from "@tauri-apps/api/dialog";
 import type { RisuModule } from "../process/modules";
 import { listen } from '@tauri-apps/api/event'
+import { registerPlugin } from '@capacitor/core';
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -1281,7 +1282,7 @@ export class LocalWriter{
 }
 
 let fetchIndex = 0
-let tauriNativeFetchData:{[key:string]:StreamedFetchChunk[]} = {}
+let nativeFetchData:{[key:string]:StreamedFetchChunk[]} = {}
 
 interface StreamedFetchChunkData{
     type:'chunk',
@@ -1302,19 +1303,39 @@ interface StreamedFetchEndData{
 }
 
 type StreamedFetchChunk = StreamedFetchChunkData|StreamedFetchHeaderData|StreamedFetchEndData
-let streamedFetchListening = false
+interface StreamedFetchPlugin {
+    streamedFetch(options: { id: string, url:string, body:string, headers:{[key:string]:string} }): Promise<{"error":string,"success":boolean}>;
+    addListener(eventName: 'streamed_fetch', listenerFunc: (data:StreamedFetchChunk) => void): void;
+}
 
-listen('streamed_fetch', (event) => {
-    try {
-        const parsed = JSON.parse(event.payload as string)
-        const id = parsed.id
-        tauriNativeFetchData[id]?.push(parsed)
-    } catch (error) {
-        console.error(error)
-    }
-}).then((v) => {
+let streamedFetchListening = false
+let capStreamedFetch:StreamedFetchPlugin|undefined
+
+if(isTauri){
+    listen('streamed_fetch', (event) => {
+        try {
+            const parsed = JSON.parse(event.payload as string)
+            const id = parsed.id
+            nativeFetchData[id]?.push(parsed)
+        } catch (error) {
+            console.error(error)
+        }
+    }).then((v) => {
+        streamedFetchListening = true
+    })
+}
+if(Capacitor.isNativePlatform()){
+    capStreamedFetch = registerPlugin<StreamedFetchPlugin>('CapacitorHttp', CapacitorHttp)
+
+    capStreamedFetch.addListener('streamed_fetch', (data) => {
+        try {
+            nativeFetchData[data.id]?.push(data)
+        } catch (error) {
+            console.error(error)
+        }
+    })
     streamedFetchListening = true
-})
+}
 
 export async function fetchNative(url:string, arg:{
     body:string,
@@ -1326,7 +1347,7 @@ export async function fetchNative(url:string, arg:{
     let headers = arg.headers ?? {}
     const db = get(DataBase)
     let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
-    if(isTauri){
+    if(isTauri || Capacitor.isNativePlatform()){
         fetchIndex++
         if(arg.signal && arg.signal.aborted){
             throw new Error('aborted')
@@ -1335,34 +1356,49 @@ export async function fetchNative(url:string, arg:{
             fetchIndex = 0
         }
         let fetchId = fetchIndex.toString().padStart(5,'0')
-        tauriNativeFetchData[fetchId] = []
+        nativeFetchData[fetchId] = []
         let resolved = false
 
         let error = ''
         while(!streamedFetchListening){
             await sleep(100)
         }
-        invoke('streamed_fetch', {
-            id: fetchId,
-            url: url,
-            headers: JSON.stringify(headers),
-            body: arg.body,
-        }).then((res) => {
-            const parsedRes = JSON.parse(res as string)
-            if(!parsedRes.success){
-                error = parsedRes.body
-                resolved = true
-            }
-        })
+        if(isTauri){
+            invoke('streamed_fetch', {
+                id: fetchId,
+                url: url,
+                headers: JSON.stringify(headers),
+                body: arg.body,
+            }).then((res) => {
+                const parsedRes = JSON.parse(res as string)
+                if(!parsedRes.success){
+                    error = parsedRes.body
+                    resolved = true
+                }
+            })
+        }
+        else if(capStreamedFetch){
+            capStreamedFetch.streamedFetch({
+                id: fetchId,
+                url: url,
+                headers: headers,
+                body: Buffer.from(arg.body).toString('base64'),
+            }).then((res) => {
+                if(!res.success){
+                    error = res.error
+                    resolved = true
+                }
+            })
+        }
 
         let resHeaders:{[key:string]:string} = null
         let status = 400
 
         const readableStream = new ReadableStream<Uint8Array>({
             async start(controller) {
-                while(!resolved || tauriNativeFetchData[fetchId].length > 0){
-                    if(tauriNativeFetchData[fetchId].length > 0){
-                        const data = tauriNativeFetchData[fetchId].shift()
+                while(!resolved || nativeFetchData[fetchId].length > 0){
+                    if(nativeFetchData[fetchId].length > 0){
+                        const data = nativeFetchData[fetchId].shift()
                         console.log(data)
                         if(data.type === 'chunk'){
                             const chunk = Buffer.from(data.body, 'base64')
