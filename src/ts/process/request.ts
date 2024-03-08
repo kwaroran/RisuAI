@@ -1491,7 +1491,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     temperature: temperature,
                     top_p: db.top_p,
                     top_k: db.top_k,
-                    stream: db.useStreaming ?? false
+                    stream: db.useStreaming ?? false,
+                    stop_sequences: ["\n\nuser:", "\n\nassistant:", "\n\nSystem:"],
                 }
 
                 if(systemPrompt === ''){
@@ -1525,7 +1526,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         messages : claudeChat,
                         system: systemPrompt.trim(),
                         max_tokens: maxTokens,
-                        // stop_sequences: ["user:", "assistant:", "system:"],
+                        stop_sequences: ["\n\nuser:", "\n\nassistant:", "\n\nSystem:"],
                         temperature: temperature,
                         top_p: db.top_p,
                         top_k: db.top_k,
