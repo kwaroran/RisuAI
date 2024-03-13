@@ -100,6 +100,8 @@
                 return 'Mistral Small'
             case 'mistral-medium-latest':
                 return 'Mistral Medium'
+            case 'claude-3-haiku-20240307':
+                return 'Claude 3 Haiku (20240307)'
             default:
                 if(name.startsWith("horde:::")){
                     const split = name.split(":::")
@@ -157,7 +159,8 @@
             </Arcodion>
             <Arcodion name="Anthropic Claude">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-opus-20240229')}}>Claude 3 Opus (20240229)</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-sonnet-20240229')}}>Claude 3 sonnet (20240229)</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-sonnet-20240229')}}>Claude 3 Sonnet (20240229)</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-3-haiku-20240307')}}>Claude 3 Haiku (20240307)</button>
                 {#if showUnrec}
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2.1')}}>claude-2.1</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-2')}}>claude-2</button>
