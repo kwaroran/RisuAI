@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { MailIcon, WalletIcon } from "lucide-svelte";
-  import { isTauri, openURL } from "src/ts/storage/globalApi";
+  import { MailIcon, MaximizeIcon, WalletIcon } from "lucide-svelte";
+  import { isTauri, openURL, toggleFullscreen } from "src/ts/storage/globalApi";
 
 </script>
 <svelte:head>
@@ -27,4 +27,11 @@
   }}>
     <MailIcon size={24} />
   </button>
+  {#if !isTauri}
+    <button class="text-textcolor" on:click={() => {
+      toggleFullscreen()
+    }}>
+      <MaximizeIcon size={24} />
+    </button>
+  {/if}
 </div>

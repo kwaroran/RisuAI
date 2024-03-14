@@ -1469,3 +1469,7 @@ export async function fetchNative(url:string, arg:{
 export function textifyReadableStream(stream:ReadableStream<Uint8Array>){
     return new Response(stream).text()
 }
+
+export function toggleFullscreen(){
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()
+}
