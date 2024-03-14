@@ -1473,3 +1473,9 @@ export function textifyReadableStream(stream:ReadableStream<Uint8Array>){
 export function toggleFullscreen(){
     document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()
 }
+
+export function trimNonLatin(data:string){
+    return data .replace(/[^\x00-\x7F]/g, "")
+                .replace(/ +/g, ' ')
+                .trim()
+}
