@@ -1477,7 +1477,9 @@ export function toggleFullscreen(){
     const exitFullscreen = document.exitFullscreen ?? document.webkitExitFullscreen as typeof document.exitFullscreen
     // @ts-ignore
     const fullscreenElement = document.fullscreenElement ?? document.webkitFullscreenElement as typeof document.fullscreenElement
-    fullscreenElement ? exitFullscreen() : requestFullscreen()
+    fullscreenElement ? exitFullscreen() : requestFullscreen({
+        navigationUI: "hide"
+    })
 }
 
 export function trimNonLatin(data:string){
