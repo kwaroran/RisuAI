@@ -1,24 +1,38 @@
 import { get, writable } from "svelte/store"
 import { sleep } from "./util"
 import { language } from "../lang"
+import { isNodeServer, isTauri } from "./storage/globalApi"
+import { Capacitor } from "@capacitor/core"
+import { DataBase } from "./storage/database"
 
 interface alertData{
     type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'
-    msg: string
+    msg: string,
+    submsg?: string
 }
 
 
 export const alertStore = writable({
     type: 'none',
-    msg: 'n'
+    msg: 'n',
 } as alertData)
 
 export function alertError(msg:string){
     console.error(msg)
+    const db = get(DataBase)
+
+    let submsg = ''
+
+    //check if it's a known error
+    if(msg.includes('Failed to fetch') || msg.includes("NetworkError when attempting to fetch resource.")){
+        submsg =    db.usePlainFetch ? language.errors.networkFetchPlain :
+                    (!isTauri && !isNodeServer && !Capacitor.isNativePlatform()) ? language.errors.networkFetchWeb : language.errors.networkFetch
+    }
 
     alertStore.set({
         'type': 'error',
-        'msg': msg
+        'msg': msg,
+        'submsg': submsg
     })
 }
 

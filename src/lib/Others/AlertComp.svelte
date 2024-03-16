@@ -68,6 +68,9 @@
                 }}>Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
+                {#if $alertStore.submsg}
+                    <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
+                {/if}
             {/if}
             {#if $alertStore.type === 'ask'}
                 <div class="flex gap-2 w-full">
