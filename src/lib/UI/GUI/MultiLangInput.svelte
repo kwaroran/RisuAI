@@ -40,11 +40,13 @@
 {#if addingLang}
     <div class="m-1 p-1 g-2 flex max-w-fit rounded-md border-t-bgcolor flex-wrap gap-1">
         {#each languageCodes as lang}
-            <button class="bg-bgcolor py-2 rounded-lg px-4 text-nowrap" on:click={() => {
-                valueObject[lang] = ""
-                selectedLang = lang
-                addingLang = false
-            }}>{toLangName(lang)}</button>
+            {#if toLangName(lang).length !== 2}
+                <button class="bg-bgcolor py-2 rounded-lg px-4 text-nowrap" on:click={() => {
+                    valueObject[lang] = ""
+                    selectedLang = lang
+                    addingLang = false
+                }}>{toLangName(lang)}</button>
+            {/if}
         {/each}
     </div>
 {/if}
