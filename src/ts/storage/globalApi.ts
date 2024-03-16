@@ -1370,9 +1370,14 @@ export async function fetchNative(url:string, arg:{
                 headers: JSON.stringify(headers),
                 body: arg.body,
             }).then((res) => {
-                const parsedRes = JSON.parse(res as string)
-                if(!parsedRes.success){
-                    error = parsedRes.body
+                try {
+                    const parsedRes = JSON.parse(res as string)
+                    if(!parsedRes.success){
+                        error = parsedRes.body
+                        resolved = true
+                    }   
+                } catch (error) {
+                    error = JSON.stringify(error)
                     resolved = true
                 }
             })
