@@ -6,7 +6,7 @@
     import { parseMarkdownSafe } from "src/ts/parser";
     import { DataBase } from "src/ts/storage/database";
     import RealmLicense from "./RealmLicense.svelte";
-  import { characterFormatUpdate } from "src/ts/characters";
+  import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
 
     export let openedData:hubType
 
@@ -25,9 +25,7 @@
             {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
-                <span class="text-textcolor2 break-words text-base chattext prose prose-invert">
-                    {@html parseMarkdownSafe(openedData.desc)}
-                </span>
+                <MultiLangDisplay value={openedData.desc} markdown={true} />
             </div>
             <RealmLicense license={openedData.license}/>
 

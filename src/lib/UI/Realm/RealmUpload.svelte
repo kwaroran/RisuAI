@@ -1,6 +1,6 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" on:click={close}>
-    <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" on:click|stopPropagation>
+    <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl max-h-full overflow-y-auto" on:click|stopPropagation>
         
         {#if !$DataBase.account}
             <span class="font-bold text-2xl w-full">You must login to Risu Account upload to RisuRealm</span>
@@ -22,7 +22,7 @@
         <span class="text-textcolor">{language.creatorNotes}</span>
         <span class="text-textcolor2 text-sm">A description that displays when you search and when you first open a bot.</span>
         <span class="text-textcolor2 text-sm">More than 20 characters.</span>
-        <TextAreaInput autocomplete="off" bind:value={char.creatorNotes} height={"20"} />
+        <MultiLangInput bind:value={char.creatorNotes} />
         <span class="text-textcolor">{language.tags}</span>
         <span class="text-textcolor2 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
         <TextInput placeholder="" bind:value={tags} on:input={() => {
@@ -53,18 +53,21 @@
             <span class="text-textcolor2 text-sm">Grotesque Contents and non-adult characters with NSFW would be banned.</span>
         {/if}
         <Button on:click={async () => {
-            if(char.creatorNotes.length < 20){
-                alertError("Creator Notes must be longer than 20 characters")
+            const enNotes = creatorNotes.en
+            const latin1 = /^[\x00-\xFF]*$/
+            if(enNotes.length < 10){
+                alertError("English version of creator notes must be longer than 10 characters")
             }
-            else{
-                shareRisuHub(char, {
-                    anon: privateMode,
-                    nsfw: nsfwMode,
-                    tag: tags,
-                    license: license
-                })
-                close()
+            if(!latin1.test(enNotes)){
+                alertError("English version of creator notes must contain only Latin-1 characters")
             }
+            shareRisuHub(char, {
+                anon: privateMode,
+                nsfw: nsfwMode,
+                tag: tags,
+                license: license
+            })
+            close()
         }} className="mt-2" size="lg">{language.shareCloud}</Button>
         {/if}
 
@@ -79,16 +82,18 @@
     import { shareRisuHub } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
     import TextInput from "../GUI/TextInput.svelte";
-    import TextAreaInput from "../GUI/TextAreaInput.svelte";
     import Button from "../GUI/Button.svelte";
     import SelectInput from "../GUI/SelectInput.svelte";
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
+    import { parseMultilangString } from "src/ts/util";
+  import MultiLangInput from "../GUI/MultiLangInput.svelte";
     export let close = () => {}
     export let char:character
     let tags=""
     let privateMode = false
     let nsfwMode = false
     let license = ""
+    let creatorNotes: {[code:string]:string} = parseMultilangString(char.creatorNotes)
 
 </script>

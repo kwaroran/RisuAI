@@ -3,6 +3,7 @@
     import { alertNormal } from "src/ts/alert";
     import { hubURL, type hubType } from "src/ts/characterCards";
   import { trimNonLatin } from "src/ts/storage/globalApi";
+  import { parseMultilangString } from "src/ts/util";
 
     export let onClick = () => {}
     export let chara:hubType
@@ -10,11 +11,12 @@
 </script>
 
 
-<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={onClick}>                <div class="flex gap-2 w-full">
+<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={onClick}>
+    <div class="flex gap-2 w-full">
     <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
     <div class="flex flex-col flex-grow min-w-0">
         <span class="text-textcolor text-lg min-w-0 max-w-full text-ellipsis whitespace-nowrap overflow-hidden text-start">{chara.name}</span>
-        <span class="text-textcolor2 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{trimNonLatin(chara.desc)}</span>
+        <span class="text-textcolor2 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{parseMultilangString(chara.desc).en ?? parseMultilangString(chara.desc).xx}</span>
         <div class="flex flex-wrap">
             {#each chara.tags as tag, i}
                 {#if i < 4}

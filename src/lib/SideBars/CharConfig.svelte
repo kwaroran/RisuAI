@@ -30,6 +30,7 @@
   import CheckInput from "../UI/GUI/CheckInput.svelte";
   import { updateInlayScreen } from "src/ts/process/inlayScreen";
   import { registerOnnxModel } from "src/ts/process/embedding/transformers";
+  import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
     
 
     let subMenu = 0
@@ -653,9 +654,9 @@
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>
 
         <span class="text-textcolor">{language.creatorNotes} <Help key="creatorQuotes"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.creatorNotes} on:input={() => {
+        <MultiLangInput bind:value={currentChar.data.creatorNotes} className="my-2" onInput={() => {
             currentChar.data.removedQuotes = false
-        }}></TextAreaInput>
+        }}></MultiLangInput>
 
         <span class="text-textcolor">{language.systemPrompt} <Help key="systemPrompt"/></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.systemPrompt}></TextAreaInput>
