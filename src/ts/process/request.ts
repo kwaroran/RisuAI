@@ -1514,18 +1514,24 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                     const AMZ_HOST = "bedrock-runtime.%REGION%.amazonaws.com";
                     const host = AMZ_HOST.replace("%REGION%", region);
-                    const stream = false
-                    const CLAUDE_3_COMPAT_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0";
+                    const stream = false;   // todo?
                     
-                    // AWS currently only supports one v3 model.
-                    const awsModel = CLAUDE_3_COMPAT_MODEL;
+                    // https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+                    const modelIDs = [
+                      "anthropic.claude-v2",
+                      "anthropic.claude-v2:1",
+                      "anthropic.claude-3-haiku-20240307-v1:0",
+                      "anthropic.claude-3-sonnet-20240229-v1:0",
+                    ];
+                    
+                    const awsModel = raiModel.includes("sonnet") ? modelIDs[3] : modelIDs[2];
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
                     const params = {
                         messages : claudeChat,
                         system: systemPrompt.trim(),
                         max_tokens: maxTokens,
-                        // stop_sequences: ["user:", "assistant:", "system:"],
+                        // stop_sequences: null,
                         temperature: temperature,
                         top_p: db.top_p,
                         top_k: db.top_k,
