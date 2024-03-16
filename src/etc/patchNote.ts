@@ -1,13 +1,13 @@
 export const patchNote = {
-    version: "1.82",
+    version: "1.83",
     content: 
 `
-# Update 1.82
-- Added native fetch handling for local version
-  - This would make the fetch request faster and more stable
-  - This would solve many issues with fetch request on local version
-- Added Claude-3 streaming
-- Force Plain Fetch is now unrecommended
+# Update 1.83
+- Added multi language support for creator's quote
+- Added Network error resolve tips
+- Added iPad fullscreen compatibility
+- Changed requirements for creator's quote on uploading to RisuRealm
+- Fixed inlayed emotion images not displaying properly
 `
 }
 
