@@ -83,7 +83,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
-    if(char.additionalAssets){
+    if(char.additionalAssets || char.emotionImages){
 
         let assetPaths:{[key:string]:{
             path:string
@@ -93,11 +93,13 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             path:string
         }} = {}
 
-        for(const asset of char.additionalAssets){
-            const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0].toLocaleLowerCase()] = {
-                path: assetPath,
-                ext: asset[2]
+        if(char.additionalAssets){
+            for(const asset of char.additionalAssets){
+                const assetPath = await getFileSrc(asset[1])
+                assetPaths[asset[0].toLocaleLowerCase()] = {
+                    path: assetPath,
+                    ext: asset[2]
+                }
             }
         }
         if(char.emotionImages){
@@ -112,7 +114,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
             name = name.toLocaleLowerCase()
             if(type === 'emotion'){
-                const path = emoPaths[name]
+                const path = emoPaths[name]?.path
                 if(!path){
                     return ''
                 }
