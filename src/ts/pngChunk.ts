@@ -83,7 +83,6 @@ export const PngChunk = {
             const len = data[pos] * 0x1000000 + data[pos+1] * 0x10000 + data[pos+2] * 0x100 + data[pos+3]
             const type = data.slice(pos+4,pos+8)
             const typeString = new TextDecoder().decode(type)
-            console.log(typeString, len)
             if(arg.checkCrc){
                 const crc = data[pos+8+len] * 0x1000000 + data[pos+9+len] * 0x10000 + data[pos+10+len] * 0x100 + data[pos+11+len]
                 const crcCheck = crc32(data.slice(pos+4,pos+8+len))
@@ -120,7 +119,6 @@ export const PngChunk = {
             const len = data[pos] * 0x1000000 + data[pos+1] * 0x10000 + data[pos+2] * 0x100 + data[pos+3]
             const type = data.slice(pos+4,pos+8)
             const typeString = new TextDecoder().decode(type)
-            console.log(typeString, len)
             if(arg.checkCrc){
                 const crc = data[pos+8+len] * 0x1000000 + data[pos+9+len] * 0x10000 + data[pos+10+len] * 0x100 + data[pos+11+len]
                 const crcCheck = crc32(data.slice(pos+4,pos+8+len))

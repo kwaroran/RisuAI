@@ -22,7 +22,6 @@
 <svelte:window on:message={async (e) => {
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1")){
         if(e.data.msg.type === 'drive'){
-            console.log(e.data.msg)
             await loadRisuAccountData()
             $DataBase.account.data.refresh_token = e.data.msg.data.refresh_token
             $DataBase.account.data.access_token = e.data.msg.data.access_token

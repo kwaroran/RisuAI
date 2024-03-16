@@ -96,7 +96,6 @@ export async function addCharEmotion(charId:number) {
     }
     let db = get(DataBase)
     for(const f of selected){
-        console.log(f)
         const img = f.data
         const imgp = await saveImage(img)
         const name = f.name.replace('.png','').replace('.webp','')
@@ -130,7 +129,6 @@ export async function exportChat(page:number){
         const chat = db.characters[selectedID].chats[page]
         const char = db.characters[selectedID]
         const date = new Date().toJSON();
-        console.log(mode)
         if(mode === '0'){
             const stringl = Buffer.from(JSON.stringify({
                 type: 'risuChat',
@@ -441,7 +439,6 @@ export async function makeGroupImage() {
         // Return the image URI
     
         const uri = canvas.toDataURL()
-        console.log(uri)
         canvas.remove()
         db.characters[charID].image = await saveImage(dataURLtoBuffer(uri));
         setDatabase(db)

@@ -236,8 +236,6 @@ export async function strongBan(data:string, bias:{[key:number]:number}) {
             }
         }
     }
-    console.log('strongBan', performance.now() - performace)
-    console.log('added', Object.keys(bias).length - length)
     localStorage.setItem('strongBan_' + data, JSON.stringify(bias))
     return bias
 }

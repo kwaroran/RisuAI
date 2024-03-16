@@ -35,7 +35,6 @@ async function createBotFromWebMain(prompt:string):Promise<creationResult>{
     }
     const searchDom = new DOMParser()
     const searchDoc = searchDom.parseFromString(Buffer.from(bd.data).toString('utf-8'), 'text/html')
-    console.log(searchDoc)
     const links = searchDoc.querySelectorAll(".link-text")
     let url = ''
     const fandomURL = /(.+?)\.fandom\.com\/wiki\//g
@@ -50,7 +49,6 @@ async function createBotFromWebMain(prompt:string):Promise<creationResult>{
                 }
                 const surl = new URL(lurl)
                 const charname = surl.pathname.split("/")[2].toLocaleLowerCase()
-                console.log(charname)
                 if(charname.includes('main') ||charname.includes('home') || charname.includes('wiki')){
                     continue
                 }

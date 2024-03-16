@@ -25,15 +25,10 @@
             btn.focus()
         }
         if($alertStore.type !== 'input'){
-            console.log('reset input')
             input = ''
         }
         
     })()
-
-    alertStore.subscribe(() => {
-        console.log('alup')
-    })
 </script>
 
 <svelte:window on:message={async (e) => {

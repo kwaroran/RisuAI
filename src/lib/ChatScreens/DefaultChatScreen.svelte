@@ -229,7 +229,6 @@
 
     function abortChat(){
         if(abortController){
-            console.log('abort')
             abortController.abort()
         }
     }
@@ -290,8 +289,6 @@
             const lastMessageInputTranslate = messageInputTranslate
             await sleep(1500)
             if(lastMessageInputTranslate === messageInputTranslate){
-                console.log(lastMessageInputTranslate === messageInputTranslate)
-                console.log(lastMessageInputTranslate, messageInputTranslate)
                 translate(reverse ? messageInputTranslate : messageInput, reverse).then((translatedMessage) => {
                     if(translatedMessage){
                         if(reverse)

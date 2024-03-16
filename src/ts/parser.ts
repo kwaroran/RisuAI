@@ -112,7 +112,6 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
             name = name.toLocaleLowerCase()
             if(type === 'emotion'){
-                console.log(emoPaths, name)
                 const path = emoPaths[name]
                 if(!path){
                     return ''
@@ -615,8 +614,6 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return "[Cannot get time, previous message was sent in older version]"
             }
 
-            console.log(message.time)
-            console.log(previous_message.time)
             let duration = message.time - previous_message.time
             //output time in format like 10:30:00
             let seconds = Math.floor(duration / 1000)

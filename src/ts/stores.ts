@@ -77,7 +77,6 @@ function updateCurrentCharacter(){
         ShowVN.set(currentChar?.viewScreen === 'vn')   
     }
 
-    console.log("Character updated")
     CurrentCharacter.set(cloneDeep(currentChar))
     const simp = createSimpleCharacter(currentChar)
     

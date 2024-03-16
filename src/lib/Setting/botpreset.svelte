@@ -60,7 +60,6 @@
                         if(d){
                             changeToPreset(0)
                             let botPresets = $DataBase.botPresets
-                            console.log(botPresets)
                             botPresets.splice(i, 1)
                             $DataBase.botPresets = botPresets
                             changeToPreset(0, false)

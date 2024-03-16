@@ -35,7 +35,6 @@ class voiceDetector{
             const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
             this.analyser.getByteTimeDomainData(dataArray);
             const volume = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
-            console.log(volume);
             if (Date.now() - start > 10000) {
                 this.mediaRecorder.stop();
                 clearInterval(this.intervalID);

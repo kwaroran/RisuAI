@@ -89,7 +89,6 @@
             return
         }
         if((!currentChar) || (!isEqual(currentChar.data, cha))){
-            console.log("updated")
             if(cha.type === 'character'){
                 currentChar = {
                     type: 'character',
@@ -754,7 +753,6 @@
                                     return
                                 }
                                 for(const f of da){
-                                    console.log(f)
                                     const img = f.data
                                     const name = f.name
                                     const extension = name.split('.').pop().toLowerCase()
