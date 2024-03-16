@@ -385,19 +385,18 @@ export function BufferToText(data:Uint8Array){
 
 export function encodeMultilangString(data:{[code:string]:string}){
     let result = ''
-    if(data.en){
-        result = data.en
+    if(data.xx){
+        result = data.xx
     }
     for(const key in data){
-        result = `${result}\n<div hidden x-recc-lang="${key}">${data[key]}</div>`
-
+        result = `${result}\n# \`${key}\`\n${data[key]}`
     }
-    return result
+    return result.trim()
 }
 
 export function parseMultilangString(data:string){
     let result:{[code:string]:string} = {}
-    const regex = /<div hidden x-recc-lang="(.+?)">(.*?)<\/div>/g
+    const regex = /# `(.+?)`\n([\s\S]+?)(?=\n# `|$)/g
     let m:RegExpExecArray
     while ((m = regex.exec(data)) !== null) {
         if (m.index === regex.lastIndex) {
