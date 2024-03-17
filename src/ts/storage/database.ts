@@ -1135,7 +1135,7 @@ export function setPreset(db:Database, newPres: botPreset){
 
 import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import * as fflate from "fflate";
-import type { OnnxModelFiles } from '../process/embedding/transformers';
+import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 
 export async function downloadPreset(id:number){

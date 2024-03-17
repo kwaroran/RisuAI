@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import { similarity } from "ml-distance";
 import { globalFetch } from "src/ts/storage/globalApi";
-import { runEmbedding } from "../embedding/transformers";
+import { runEmbedding } from "../transformers";
 
 
 export class HypaProcesser{

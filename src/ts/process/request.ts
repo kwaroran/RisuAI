@@ -21,7 +21,7 @@ import { supportsInlayImage } from "./files/image";
 import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
-import { runTransformers } from "./embedding/transformers";
+import { runTransformers } from "./transformers";
 import {createParser, type ParsedEvent, type ReconnectInterval} from 'eventsource-parser'
 
 

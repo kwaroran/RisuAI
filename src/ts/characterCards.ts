@@ -12,7 +12,7 @@ import { convertImage, hasher } from "./parser"
 
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
-import type { OnnxModelFiles } from "./process/embedding/transformers"
+import type { OnnxModelFiles } from "./process/transformers"
 
 export const hubURL = "https://sv.risuai.xyz"
 

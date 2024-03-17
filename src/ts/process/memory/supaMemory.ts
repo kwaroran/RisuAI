@@ -7,7 +7,7 @@ import { cloneDeep } from "lodash";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
 import { globalFetch } from "src/ts/storage/globalApi";
-import { runSummarizer } from "../embedding/transformers";
+import { runSummarizer } from "../transformers";
 
 export async function supaMemory(
         chats:OpenAIChat[],

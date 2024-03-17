@@ -5,7 +5,7 @@ import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch } from "../storage/globalApi";
 import { language } from "src/lang";
 import { getCurrentCharacter, sleep } from "../util";
-import { registerOnnxModel, runVITS } from "./embedding/transformers";
+import { registerOnnxModel, runVITS } from "./transformers";
 
 let sourceNode:AudioBufferSourceNode = null
 
