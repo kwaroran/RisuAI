@@ -1,24 +1,13 @@
 export const patchNote = {
-    version: "1.84",
+    version: "1.85",
     content: 
 `
-# Update 1.84
-# Changes
-- Added \`{{endswith::A::B}}\`
-- Added \`{{contains::A::B}}\`
-- Added \`{{replace::A::B::C}}\`
-- Added \`{{split::A::B}}\`
-- Added \`{{join::A::B}}\`
-- Added \`{{length::A}}\`
-- Added \`{{arraylength::A}}\`
-- Added \`{{lower::A}}\`
-- Added \`{{upper::A}}\`
-- Added \`{{capitalize::A}}\`
-- Added \`{{round::A}}\`
-- Added \`{{floor::A}}\`
-- Added \`{{ceil::A}}\`
-- Added \`{{abs::A}}\`
-- Fix Claude streaming on ax. model
+# Update 1.85
+- Added Claude-3 vision functionality
+- Added local captioning for non-vision models
+- Post file button would be available regardless of settings
+- Removed 'able post file' setting, since it's always available now
+- Fixed creator's quote not updating
 `
 }
 
