@@ -638,6 +638,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         case 'role': {
             return matcherArg.role ?? 'role'
         }
+        case 'jbtoggled':{
+            return db.jailbreakToggle ? '1' : '0'
+        }
+        case 'random':{
+            return Math.random().toString()
+        }
     }
     const arra = p1.split("::")
     if(arra.length > 1){
@@ -666,7 +672,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'equal':{
                 return (arra[1] === arra[2]) ? '1' : '0'
             }
-            case 'not_equal':{
+            case 'not_equal':
+            case 'notequal':{
                 return (arra[1] !== arra[2]) ? '1' : '0'
             }
             case 'greater':{
@@ -675,10 +682,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'less':{
                 return (Number(arra[1]) < Number(arra[2])) ? '1' : '0'
             }
-            case 'greater_equal':{
+            case 'greater_equal':
+            case 'greaterequal':{
                 return (Number(arra[1]) >= Number(arra[2])) ? '1' : '0'
             }
-            case 'less_equal':{
+            case 'less_equal':
+            case 'lessequal':{
                 return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
             }
             case 'and':{
@@ -698,6 +707,49 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'startswith':{
                 return arra[1].startsWith(arra[2]) ? '1' : '0'
+            }
+            case 'endswith':{
+                return arra[1].endsWith(arra[2]) ? '1' : '0'
+            }
+            case 'contains':{
+                return arra[1].includes(arra[2]) ? '1' : '0'
+            }
+            case 'replace':{
+                return arra[1].replaceAll(arra[2], arra[3])
+            }
+            case 'split':{
+                return arra[1].split(arra[2]).join('§')
+            }
+            case 'join':{
+                return arra[1].split('§').join(arra[2])
+            }
+            case 'length':{
+                return arra[1].length.toString()
+            }
+            case 'arraylength':
+            case 'array_length':{
+                return arra[1].split('§').length.toString()
+            }
+            case 'lower':{
+                return arra[1].toLocaleLowerCase()
+            }
+            case 'upper':{
+                return arra[1].toLocaleUpperCase()
+            }
+            case 'capitalize':{
+                return arra[1].charAt(0).toUpperCase() + arra[1].slice(1)
+            }
+            case 'round':{
+                return Math.round(Number(arra[1])).toString()
+            }
+            case 'floor':{
+                return Math.floor(Number(arra[1])).toString()
+            }
+            case 'ceil':{
+                return Math.ceil(Number(arra[1])).toString()
+            }
+            case 'abs':{
+                return Math.abs(Number(arra[1])).toString()
             }
         }
     }
