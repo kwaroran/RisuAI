@@ -127,6 +127,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
     let currentChar = arg.currentChar
+    let useStreaming = db.useStreaming && arg.useStreaming
     arg.continue = arg.continue ?? false
     let biasString = arg.biasString ?? []
     const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
@@ -516,7 +517,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.n = db.genTime
             }
             let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
-            if(db.useStreaming && arg.useStreaming){
+            if(useStreaming){
                 body.stream = true
                 let urlHost = new URL(replacerURL).host
                 if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
@@ -837,7 +838,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'X-API-KEY': db.mancerHeader
             }
 
-            if(db.useStreaming && arg.useStreaming){
+            if(useStreaming){
                 const oobaboogaSocket = new WebSocket(streamUrl);
                 const statusCode = await new Promise((resolve) => {
                     oobaboogaSocket.onopen = () => resolve(0)
@@ -1491,7 +1492,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     temperature: temperature,
                     top_p: db.top_p,
                     top_k: db.top_k,
-                    stream: db.useStreaming ?? false
+                    stream: useStreaming ?? false
                 }
 
                 if(systemPrompt === ''){
@@ -1586,7 +1587,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
-                if(db.useStreaming){
+                if(useStreaming){
                     
                     const res = await fetchNative(replacerURL, {
                         body: JSON.stringify(body),
