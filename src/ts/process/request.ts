@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import type { OpenAIChat, OpenAIChatFull } from ".";
+import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
@@ -117,6 +117,7 @@ export interface OpenAIChatExtra {
     name?:string
     removable?:boolean
     attr?:string[]
+    multimodals?:MultiModal[]
 }
 
 
@@ -172,33 +173,29 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             if(db.inlayImage){
-                let pendingImages:OpenAIImageContents[] = []
                 for(let i=0;i<formated.length;i++){
                     const m = formated[i]
-                    if(m.memo && m.memo.startsWith('inlayImage')){
-                        pendingImages.push({
-                            "type": "image",
-                            "image_url": {
-                                "url": m.content,
-                                "detail": db.gptVisionQuality
-                            }
+                    if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
+                        let v:OpenAIChatExtra = cloneDeep(m)
+                        let contents:OpenAIContents[] = []
+                        for(let j=0;j<m.multimodals.length;j++){
+                            contents.push({
+                                "type": "image",
+                                "image_url": {
+                                    "url": m.multimodals[j].base64,
+                                    "detail": db.gptVisionQuality
+                                }
+                            })
+                        }
+                        contents.push({
+                            "type": "text",
+                            "text": m.content
                         })
+                        v.content = contents
+                        formatedChat.push(v)
                     }
                     else{
-                        if(pendingImages.length > 0 && m.role === 'user'){
-                            let v:OpenAIChatExtra = cloneDeep(m)
-                            let contents:OpenAIContents[] = pendingImages
-                            contents.push({
-                                "type": "text",
-                                "text": m.content
-                            })
-                            v.content = contents
-                            formatedChat.push(v)
-                            pendingImages = []
-                        }
-                        else{
-                            formatedChat.push(m)
-                        }
+                        formatedChat.push(m)
                     }
                 }
             }
@@ -218,6 +215,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     delete formatedChat[i].memo
                     delete formatedChat[i].removable
                     delete formatedChat[i].attr
+                    delete formatedChat[i].multimodals
                 }
                 if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
                     const cont = formatedChat[i].content
@@ -301,6 +299,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 openrouterRequestModel = await getFreeOpenRouterModel()
             }
 
+            console.log(formatedChat)
             if(aiModel.startsWith('mistral')){
                 requestModel = aiModel
 
@@ -1414,20 +1413,106 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
+                interface Claude3TextBlock {
+                    type: 'text',
+                    text: string
+                }
+
+                interface Claude3ImageBlock {
+                    type: 'image',
+                    source: {
+                        type: 'base64'
+                        media_type: string,
+                        data: string
+                    }
+                }
+
+                type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
+
                 interface Claude3Chat {
                     role: 'user'|'assistant'
-                    content: string
+                    content: string|Claude3ContentBlock[]
                 }
 
                 let claudeChat: Claude3Chat[] = []
                 let systemPrompt:string = ''
 
-                const addClaudeChat = (chat:Claude3Chat) => {
+                const addClaudeChat = (chat:{
+                    role: 'user'|'assistant'
+                    content: string
+                }, multimodals?:MultiModal[]) => {
                     if(claudeChat.length > 0 && claudeChat[claudeChat.length-1].role === chat.role){
-                        claudeChat[claudeChat.length-1].content += "\n\n" + chat.content
+                        let content = claudeChat[claudeChat.length-1].content
+                        if(multimodals && multimodals.length > 0 && !Array.isArray(content)){
+                            content = [{
+                                type: 'text',
+                                text: content
+                            }]
+                        }
+
+                        if(Array.isArray(content)){
+                            let lastContent = content[content.length-1]
+                            if( lastContent?.type === 'text'){
+                                lastContent.text += "\n\n" + chat.content
+                                content[content.length-1] = lastContent
+                            }
+                            else{
+                                content.push({
+                                    type: 'text',
+                                    text: chat.content
+                                })
+                            }
+
+                            if(multimodals && multimodals.length > 0){
+                                for(const modal of multimodals){
+                                    if(modal.type === 'image'){
+                                        const dataurl = modal.base64
+                                        const base64 = dataurl.split(',')[1]
+                                        const mediaType = dataurl.split(';')[0].split(':')[1]
+    
+                                        content.unshift({
+                                            type: 'image',
+                                            source: {
+                                                type: 'base64',
+                                                media_type: mediaType,
+                                                data: base64
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            content += "\n\n" + chat.content
+                        }
+                        claudeChat[claudeChat.length-1].content = content
                     }
                     else{
-                        claudeChat.push(chat)
+                        let formatedChat:Claude3Chat = chat
+                        if(multimodals && multimodals.length > 0){
+                            formatedChat.content = [{
+                                type: 'text',
+                                text: chat.content
+                            }]
+                            for(const modal of multimodals){
+                                if(modal.type === 'image'){
+                                    const dataurl = modal.base64
+                                    const base64 = dataurl.split(',')[1]
+                                    const mediaType = dataurl.split(';')[0].split(':')[1]
+
+                                    formatedChat.content.unshift({
+                                        type: 'image',
+                                        source: {
+                                            type: 'base64',
+                                            media_type: mediaType,
+                                            data: base64
+                                        }
+                                    })
+                                }
+                            }
+
+                        }
+                        claudeChat.push(formatedChat)
                     }
                 }
                 for(const chat of formated){
@@ -1436,14 +1521,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             addClaudeChat({
                                 role: 'user',
                                 content: chat.content
-                            })
+                            }, chat.multimodals)
                             break
                         }
                         case 'assistant':{
                             addClaudeChat({
                                 role: 'assistant',
                                 content: chat.content
-                            })
+                            }, chat.multimodals)
                             break
                         }
                         case 'system':{
@@ -1464,7 +1549,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     }
                 }
-
+                console.log(claudeChat)
                 if(claudeChat.length === 0 && systemPrompt === ''){
                     return {
                         type: 'fail',

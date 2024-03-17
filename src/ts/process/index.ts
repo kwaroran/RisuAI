@@ -33,6 +33,14 @@ export interface OpenAIChat{
     name?:string
     removable?:boolean
     attr?:string[]
+    multimodals?: MultiModal[]
+}
+
+export interface MultiModal{
+    type:'image'|'video'
+    base64:string,
+    height?:number,
+    width?:number
 }
 
 export interface OpenAIChatFull extends OpenAIChat{
@@ -568,19 +576,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
         }
 
+        let multimodal:MultiModal[] = []
         if(inlays.length > 0){
             for(const inlay of inlays){
                 const inlayName = inlay.replace('{{inlay::', '').replace('}}', '')
                 const inlayData = await getInlayImage(inlayName)
                 if(inlayData){
                     if(supportsInlayImage()){
-                        const imgchat = {
-                            role: msg.role === 'user' ? 'user' : 'assistant',
-                            content: inlayData.data,
-                            memo: `inlayImage-${inlayData.height}-${inlayData.width}`,
-                        } as const
-                        chats.push(imgchat)
-                        currentTokens += await tokenizer.tokenizeChat(imgchat)
+                        multimodal.push({
+                            type: 'image',
+                            base64: inlayData.data,
+                            width: inlayData.width,
+                            height: inlayData.height
+                        })
                     }
                 }
                 formatedChat = formatedChat.replace(inlay, '')
@@ -604,7 +612,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             role: msg.role === 'user' ? 'user' : 'assistant',
             content: formatedChat,
             memo: msg.chatId,
-            attr: attr
+            attr: attr,
+            multimodals: multimodal
+        }
+        if(chat.multimodals.length === 0){
+            delete chat.multimodals
         }
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)

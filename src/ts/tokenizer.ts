@@ -2,7 +2,7 @@ import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
 import { DataBase, type character } from "./storage/database";
 import { get } from "svelte/store";
-import type { OpenAIChat } from "./process";
+import type { MultiModal, OpenAIChat } from "./process";
 import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
 import { tokenizeGGUFModel } from "./process/models/local";
@@ -132,53 +132,56 @@ export class ChatTokenizer {
         this.useName = useName
     }
     async tokenizeChat(data:OpenAIChat) {
-        if(data.memo && data.memo.startsWith('inlayImage')){
-            const db = get(DataBase)
-            if(!supportsInlayImage()){
-                return this.chatAdditonalTokens
-            }
-            if(db.gptVisionQuality === 'low'){
-                return 87
-            }
-
-            let encoded = this.chatAdditonalTokens
-            const memo = data.memo.split('-')
-            let height = parseInt(memo[1])
-            let width = parseInt(memo[2])
-
-            if(height === width){
-                if(height > 768){
-                    height = 768
-                    width = 768
-                }
-            }
-            else if(height > width){
-                if(width > 768){
-                    width = 768
-                    height = height * (768 / width)
-                }
-            }
-            else{
-                if(height > 768){
-                    height = 768
-                    width = width * (768 / height)
-                }
-            }
-
-            const chunkSize = Math.ceil(width / 512) * Math.ceil(height / 512)
-            encoded += chunkSize * 2
-            encoded += 85
-
-            return encoded
-        }
-
         let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
         if(data.name && this.useName ==='name'){
             encoded += (await encode(data.name)).length + 1
         }
+        if(data.multimodals && data.multimodals.length > 0){
+            for(const multimodal of data.multimodals){
+                encoded += await this.tokenizeMultiModal(multimodal)
+            }
+        }
         return encoded
     }
 
+    async tokenizeMultiModal(data:MultiModal){
+        const db = get(DataBase)
+        if(!supportsInlayImage()){
+            return this.chatAdditonalTokens
+        }
+        if(db.gptVisionQuality === 'low'){
+            return 87
+        }
+
+        let encoded = this.chatAdditonalTokens
+        let height = data.height ?? 0
+        let width = data.width ?? 0
+
+        if(height === width){
+            if(height > 768){
+                height = 768
+                width = 768
+            }
+        }
+        else if(height > width){
+            if(width > 768){
+                width = 768
+                height = height * (768 / width)
+            }
+        }
+        else{
+            if(height > 768){
+                height = 768
+                width = width * (768 / height)
+            }
+        }
+
+        const chunkSize = Math.ceil(width / 512) * Math.ceil(height / 512)
+        encoded += chunkSize * 2
+        encoded += 85
+
+        return encoded
+    }
     
 }
 
