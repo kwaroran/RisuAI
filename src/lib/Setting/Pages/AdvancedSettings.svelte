@@ -38,12 +38,10 @@
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={$DataBase.genTime}/>
 
 <span class="text-textcolor mt-4">GPT Vision Quality <Help key="gptVisionQuality"/></span>
-{#if $DataBase.inlayImage}
-    <SelectInput bind:value={$DataBase.gptVisionQuality}>
-        <OptionInput value="low">Low</OptionInput>
-        <OptionInput value="high">High</OptionInput>
-    </SelectInput>
-{/if}
+<SelectInput bind:value={$DataBase.gptVisionQuality}>
+    <OptionInput value="low">Low</OptionInput>
+    <OptionInput value="high">High</OptionInput>
+</SelectInput>
 
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}> <Help key="sayNothing"/></Check>
@@ -72,11 +70,6 @@
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
         <Help key="experimental"/><Help key="oaiRandomUser"/>
-    </Check>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.inlayImage} name={language.postFile}>
-        <Help key="experimental"/><Help key="inlayImages"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">

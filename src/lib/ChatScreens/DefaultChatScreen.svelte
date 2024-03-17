@@ -641,22 +641,20 @@
                         <span class="ml-2">{language.screenshot}</span>
                     </div>
 
-                    {#if $DataBase.inlayImage}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
-                            const res = await postChatFile(messageInput)
-                            if(res?.type === 'image'){
-                                messageInput += res.data
-                                updateInputSizeAll()
-                            }
-                            if(res?.type === 'text'){
-                                messageInput += `{{file::${res.name}::${res.data}}}`
-                                updateInputSizeAll()
-                            }
-                        }}>
-                            <ImagePlusIcon />
-                            <span class="ml-2">{language.postFile}</span>
-                        </div>
-                    {/if}
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" on:click={async () => {
+                        const res = await postChatFile(messageInput)
+                        if(res?.type === 'image'){
+                            messageInput += res.data
+                            updateInputSizeAll()
+                        }
+                        if(res?.type === 'text'){
+                            messageInput += `{{file::${res.name}::${res.data}}}`
+                            updateInputSizeAll()
+                        }
+                    }}>
+                        <ImagePlusIcon />
+                        <span class="ml-2">{language.postFile}</span>
+                    </div>
 
 
                     <div class={"flex items-center cursor-pointer "+ ($DataBase.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} on:click={async () => {
