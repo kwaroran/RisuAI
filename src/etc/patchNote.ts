@@ -1,13 +1,24 @@
 export const patchNote = {
-    version: "1.83",
+    version: "1.84",
     content: 
 `
-# Update 1.83
-- Added multi language support for creator's quote
-- Added Network error resolve tips
-- Added iPad fullscreen compatibility
-- Changed requirements for creator's quote on uploading to RisuRealm
-- Fixed inlayed emotion images not displaying properly
+# Update 1.84
+# Changes
+- Added \`{{endswith::A::B}}\`
+- Added \`{{contains::A::B}}\`
+- Added \`{{replace::A::B::C}}\`
+- Added \`{{split::A::B}}\`
+- Added \`{{join::A::B}}\`
+- Added \`{{length::A}}\`
+- Added \`{{arraylength::A}}\`
+- Added \`{{lower::A}}\`
+- Added \`{{upper::A}}\`
+- Added \`{{capitalize::A}}\`
+- Added \`{{round::A}}\`
+- Added \`{{floor::A}}\`
+- Added \`{{ceil::A}}\`
+- Added \`{{abs::A}}\`
+- Fix Claude streaming on ax. model
 `
 }
 
