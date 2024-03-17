@@ -9,6 +9,7 @@
     if(valueObject["en"] === undefined){
         selectedLang = "xx"
     }
+    $: valueObject = parseMultilangString(value)
 </script>
 
 <div class="flex flex-col">

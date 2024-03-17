@@ -24,6 +24,7 @@
         delete valueObject["xx"]
         updateValue()
     }
+    $: valueObject = parseMultilangString(value)
 </script>
 
 <div class="flex flex-wrap max-w-fit p-1 gap-2">
