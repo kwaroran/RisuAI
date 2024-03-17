@@ -7,7 +7,7 @@ import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database";
 import { appWindow } from "@tauri-apps/api/window";
-import { checkOldDomain, checkUpdate } from "../update";
+import { checkUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
@@ -453,7 +453,6 @@ export async function loadData() {
                 else{
                     usingSw = false
                 }
-                checkOldDomain()
                 if(get(DataBase).didFirstSetup){
                     characterURLImport()
                 }
