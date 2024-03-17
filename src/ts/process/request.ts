@@ -172,35 +172,30 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-large-latest':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
-            if(db.inlayImage){
-                for(let i=0;i<formated.length;i++){
-                    const m = formated[i]
-                    if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
-                        let v:OpenAIChatExtra = cloneDeep(m)
-                        let contents:OpenAIContents[] = []
-                        for(let j=0;j<m.multimodals.length;j++){
-                            contents.push({
-                                "type": "image",
-                                "image_url": {
-                                    "url": m.multimodals[j].base64,
-                                    "detail": db.gptVisionQuality
-                                }
-                            })
-                        }
+            for(let i=0;i<formated.length;i++){
+                const m = formated[i]
+                if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
+                    let v:OpenAIChatExtra = cloneDeep(m)
+                    let contents:OpenAIContents[] = []
+                    for(let j=0;j<m.multimodals.length;j++){
                         contents.push({
-                            "type": "text",
-                            "text": m.content
+                            "type": "image",
+                            "image_url": {
+                                "url": m.multimodals[j].base64,
+                                "detail": db.gptVisionQuality
+                            }
                         })
-                        v.content = contents
-                        formatedChat.push(v)
                     }
-                    else{
-                        formatedChat.push(m)
-                    }
+                    contents.push({
+                        "type": "text",
+                        "text": m.content
+                    })
+                    v.content = contents
+                    formatedChat.push(v)
                 }
-            }
-            else{
-                formatedChat = formated
+                else{
+                    formatedChat.push(m)
+                }
             }
             
             let oobaSystemPrompts:string[] = []

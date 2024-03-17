@@ -1,4 +1,4 @@
-import {env, AutoTokenizer, pipeline, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline } from '@xenova/transformers';
+import {env, AutoTokenizer, pipeline, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline, type ImageToTextOutput } from '@xenova/transformers';
 import { unzip } from 'fflate';
 import { globalFetch, loadAsset, saveAsset } from 'src/ts/storage/globalApi';
 import { selectSingleFile } from 'src/ts/util';
@@ -91,6 +91,13 @@ export const runEmbedding = async (text: string):Promise<Float32Array> => {
     }
     let result = await extractor(text, { pooling: 'mean', normalize: true });
     return (result?.data as Float32Array) ?? null;
+}
+
+export const runImageEmbedding = async (dataurl:string) => {
+    await initTransformers()
+    const captioner = await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning');
+    const output = await captioner(dataurl)
+    return output as ImageToTextOutput
 }
 
 let synthesizer:TextToAudioPipeline = null

@@ -25,6 +25,7 @@ import { sendPeerChar } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
 import { runCharacterJS } from "../plugins/embedscript";
 import { addRerolls } from "./prereroll";
+import { runImageEmbedding } from "./transformers";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -562,16 +563,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             msg.chatId = v4()
         }
         let inlays:string[] = []
-        if(db.inlayImage){
-            if(msg.role === 'char'){
-                formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
-            }
-            else{
-                const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
-                if(inlayMatch){
-                    for(const inlay of inlayMatch){
-                        inlays.push(inlay)
-                    }
+        if(msg.role === 'char'){
+            formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
+        }
+        else{
+            const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
+            if(inlayMatch){
+                for(const inlay of inlayMatch){
+                    inlays.push(inlay)
                 }
             }
         }
@@ -589,6 +588,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                             width: inlayData.width,
                             height: inlayData.height
                         })
+                    }
+                    else{
+                        const captionResult = await runImageEmbedding(inlayData.data) 
+                        formatedChat += `[${captionResult[0].generated_text}]`
                     }
                 }
                 formatedChat = formatedChat.replace(inlay, '')

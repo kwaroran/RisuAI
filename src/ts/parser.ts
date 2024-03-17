@@ -154,16 +154,13 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
 }
 
 async function parseInlayImages(data:string){
-    const db = get(DataBase)
-    if(db.inlayImage){
-        const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
-        if(inlayMatch){
-            for(const inlay of inlayMatch){
-                const id = inlay.substring(9, inlay.length - 2)
-                const img = await getInlayImage(id)
-                if(img){
-                    data = data.replace(inlay, `<img src="${img.data}"/>`)
-                }
+    const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
+    if(inlayMatch){
+        for(const inlay of inlayMatch){
+            const id = inlay.substring(9, inlay.length - 2)
+            const img = await getInlayImage(id)
+            if(img){
+                data = data.replace(inlay, `<img src="${img.data}"/>`)
             }
         }
     }
