@@ -67,7 +67,7 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
         width: drawWidth
     })
 
-    return `{{inlay::${imgid}}}`
+    return `${imgid}`
 }
 
 export async function getInlayImage(id: string){
