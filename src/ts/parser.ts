@@ -748,6 +748,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'abs':{
                 return Math.abs(Number(arra[1])).toString()
             }
+            case 'previous_chat_log':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message[chatID - 1].data
+
+            }
         }
     }
     if(p1.startsWith('random')){
