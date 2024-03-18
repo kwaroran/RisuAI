@@ -16,6 +16,9 @@
         if(valueObject.xx){
             delete valueObject.xx
         }
+        if(valueObject.en === ""){
+            valueObject.en = ' '
+        }
         valueObject = valueObject // force update
         value = encodeMultilangString(valueObject)
     }
