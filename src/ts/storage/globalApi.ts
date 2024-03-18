@@ -43,6 +43,7 @@ interface fetchLog{
     success:boolean,
     date:string
     url:string
+    responseType?:string
 }
 
 let fetchLog:fetchLog[] = []
@@ -492,16 +493,19 @@ export function addFetchLog(arg:{
     headers?:{[key:string]:string},
     response:any,
     success:boolean,
-    url:string
+    url:string,
+    resType?:string
 }){
     fetchLog.unshift({
-        body: JSON.stringify(arg.body, null, 2),
+        body: typeof(arg.body) === 'string' ? arg.body : JSON.stringify(arg.body, null, 2),
         header: JSON.stringify(arg.headers ?? {}, null, 2),
-        response: JSON.stringify(arg.response, null, 2),
+        response: typeof(arg.response) === 'string' ? arg.response : JSON.stringify(arg.response, null, 2),
+        responseType: arg.resType ?? 'json',
         success: arg.success,
         date: (new Date()).toLocaleTimeString(),
         url: arg.url
     })
+    return fetchLog.length - 1
 }
 
 export async function globalFetch(url:string, arg:{
@@ -1336,6 +1340,30 @@ if(Capacitor.isNativePlatform()){
     streamedFetchListening = true
 }
 
+const pipeFetchLog = (fetchLogIndex:number, readableStream:ReadableStream<Uint8Array>) => {
+    const textDecoder = new TextDecoderStream()
+    textDecoder.readable.pipeTo(new WritableStream({
+        write(chunk) {
+            fetchLog[fetchLogIndex].response += chunk
+        }
+    }))
+    const writer = textDecoder.writable.getWriter()
+    return new ReadableStream<Uint8Array>({
+        start(controller) {
+            readableStream.pipeTo(new WritableStream({
+                write(chunk) {
+                    controller.enqueue(chunk)
+                    writer.write(chunk)
+                },
+                close() {
+                    controller.close()
+                    writer.close()
+                }
+            }))
+        }
+    })
+}
+
 export async function fetchNative(url:string, arg:{
     body:string,
     headers?:{[key:string]:string},
@@ -1346,6 +1374,14 @@ export async function fetchNative(url:string, arg:{
     let headers = arg.headers ?? {}
     const db = get(DataBase)
     let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
+    let fetchLogIndex = addFetchLog({
+        body: arg.body,
+        headers: arg.headers,
+        response: 'Streamed Fetch',
+        success: true,
+        url: url,
+        resType: 'stream'
+    })
     if(isTauri || Capacitor.isNativePlatform()){
         fetchIndex++
         if(arg.signal && arg.signal.aborted){
@@ -1398,12 +1434,11 @@ export async function fetchNative(url:string, arg:{
         let resHeaders:{[key:string]:string} = null
         let status = 400
 
-        const readableStream = new ReadableStream<Uint8Array>({
+        let readableStream = pipeFetchLog(fetchLogIndex,new ReadableStream<Uint8Array>({
             async start(controller) {
                 while(!resolved || nativeFetchData[fetchId].length > 0){
                     if(nativeFetchData[fetchId].length > 0){
                         const data = nativeFetchData[fetchId].shift()
-                        console.log(data)
                         if(data.type === 'chunk'){
                             const chunk = Buffer.from(data.body, 'base64')
                             controller.enqueue(chunk)
@@ -1420,7 +1455,7 @@ export async function fetchNative(url:string, arg:{
                 }
                 controller.close()
             }
-        })
+        }))
 
         while(resHeaders === null && !resolved){
             await sleep(10)
@@ -1434,7 +1469,6 @@ export async function fetchNative(url:string, arg:{
             throw new Error(error)
         }
 
-
         return {
             body: readableStream,
             headers: new Headers(resHeaders),
@@ -1444,7 +1478,7 @@ export async function fetchNative(url:string, arg:{
 
     }
     else if(throughProxi){
-        return await fetch(hubURL + `/proxy2`, {
+        const r = await fetch(hubURL + `/proxy2`, {
             body: arg.body,
             headers: arg.useRisuTk ? {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
@@ -1459,14 +1493,26 @@ export async function fetchNative(url:string, arg:{
             method: "POST",
             signal: arg.signal
         })
+
+        return {
+            body: pipeFetchLog(fetchLogIndex, r.body),
+            headers: r.headers,
+            status: r.status
+        }
     }
     else{
-        return await fetch(url, {
+        const r = await fetch(url, {
             body: arg.body,
             headers: headers,
             method: arg.method,
             signal: arg.signal
         })
+        pipeFetchLog(fetchLogIndex, r.body)
+        return {
+            body: pipeFetchLog(fetchLogIndex, r.body),
+            headers: r.headers,
+            status: r.status
+        }
     }
 }
 
