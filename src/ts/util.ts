@@ -391,7 +391,7 @@ export function encodeMultilangString(data:{[code:string]:string}){
     for(const key in data){
         result = `${result}\n# \`${key}\`\n${data[key]}`
     }
-    return result.trim()
+    return result
 }
 
 export function parseMultilangString(data:string){
