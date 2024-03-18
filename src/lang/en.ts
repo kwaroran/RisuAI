@@ -540,4 +540,5 @@ export const languageEnglish = {
     persistentStorageDesc: "Your browser supports persistent storage. this is recommended for better performance and user experience.",
     enable: "Enable",
     postFile: "Post File",
+    requestInfoInsideChat: "Show Request Info Inside Chat",
 }

@@ -520,6 +520,7 @@
                             isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                             character={$CurrentSimpleCharacter}
                             largePortrait={$CurrentCharacter.largePortrait}
+                            MessageGenerationInfo={chat.generationInfo}
                         />
                     {:else}
                         <Chat
@@ -533,6 +534,7 @@
                             isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                             character={chat.saying}
                             largePortrait={findCharacterbyId(chat.saying).largePortrait}
+                            MessageGenerationInfo={chat.generationInfo}
                         />
                     {/if}
                 {:else}
@@ -544,6 +546,7 @@
                         img={getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                         largePortrait={$DataBase.personas[$DataBase.selectedPersona].largePortrait}
+                        MessageGenerationInfo={chat.generationInfo}
                     />
                 {/if}
             {/each}

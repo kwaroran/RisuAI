@@ -1,16 +1,17 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, type groupChat } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, selectedCharID } from "../../ts/stores";
-    import { translate, translateHTML } from "../../ts/translator/translator";
+    import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
+    import { CurrentCharacter, CurrentChat } from "../../ts/stores";
+    import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
-  import { isEqual } from "lodash";
-  import { sayTTS } from "src/ts/process/tts";
+    import { capitalize, isEqual } from "lodash";
+    import { sayTTS } from "src/ts/process/tts";
+  import { getModelShortName } from "src/ts/model/names";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -18,6 +19,7 @@
     export let img:string|Promise<string> = ''
     export let idx = -1
     export let rerollIcon = false
+    export let MessageGenerationInfo:MessageGenerationInfo|null = null
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
@@ -199,6 +201,18 @@
                     {/if}
                 </div>
             </div>
+            {#if MessageGenerationInfo}
+                <div>
+                    <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
+                                    hover:ring-borderc hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                    >
+                        <BotIcon size={20} />
+                        <span class="ml-1">
+                            {capitalize(getModelShortName(MessageGenerationInfo.model))}
+                        </span>
+                    </button>
+                </div>
+            {/if}
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
             {:else}

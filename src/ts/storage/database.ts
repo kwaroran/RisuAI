@@ -599,6 +599,7 @@ export interface Database{
     modules: RisuModule[]
     enabledModules: string[]
     sideMenuRerollButton?:boolean
+    requestInfoInsideChat?:boolean
 }
 
 export interface customscript{
