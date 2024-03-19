@@ -39,6 +39,7 @@ interface requestDataArgument{
     isGroupChat?:boolean
     useEmotion?:boolean
     continue?:boolean
+    chatId?:string
 }
 
 type requestDataResponse = {
@@ -360,6 +361,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "Authorization": "Bearer " + db.mistralKey,
                     },
                     abortSignal,
+                    chatId: arg.chatId
                 })
     
                 const dat = res.data as any
@@ -526,7 +528,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     body: JSON.stringify(body),
                     method: "POST",
                     headers: headers,
-                    signal: abortSignal
+                    signal: abortSignal,
+                    chatId: arg.chatId
                 })
 
                 if(da.status !== 200){
@@ -607,7 +610,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body: body,
                 headers: headers,
                 abortSignal,
-                useRisuToken:throughProxi
+                useRisuToken:throughProxi,
+                chatId: arg.chatId
             })
 
             const dat = res.data as any
@@ -727,7 +731,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
                 },
-                abortSignal
+                abortSignal,
+                chatId: arg.chatId
             })
 
             if((!da.ok )|| (!da.data.output)){
@@ -775,8 +780,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 },
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": "Bearer " + db.openAIKey
+                    "Authorization": "Bearer " + db.openAIKey,
                 },
+                chatId: arg.chatId
             });
 
             if(!response.ok){
@@ -883,7 +889,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const res = await globalFetch(blockingUrl, {
                 body: bodyTemplate,
                 headers: headers,
-                abortSignal
+                abortSignal,
+                chatId: arg.chatId
             })
             
             const dat = res.data as any
@@ -947,6 +954,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const response = await globalFetch(urlStr, {
                 body: bodyTemplate,
+                chatId: arg.chatId
             })
 
             if(!response.ok){
@@ -1024,7 +1032,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + db.google.accessToken
                 },
-                abortSignal
+                abortSignal,
+                chatId: arg.chatId
             })
             if(res.ok){
                 console.log(res.data)
@@ -1215,6 +1224,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const res = await globalFetch(url, {
                 headers: headers,
                 body: body,
+                chatId: arg.chatId
             })
 
             if(!res.ok){
@@ -1276,7 +1286,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 headers: {
                     "content-type": "application/json",
                 },
-                abortSignal
+                abortSignal,
+                chatId: arg.chatId
             })
 
             if(!da.ok){
@@ -1329,7 +1340,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const response = await globalFetch(api_server_url + '/api', {
                 method: 'POST',
                 headers: headers,
-                body: send_body
+                body: send_body,
+                chatId: arg.chatId
             });
 
             if(!response.ok){
@@ -1645,7 +1657,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         method: "POST",
                         body: params,
                         headers: signed.headers,
-                        plainFetchForce: true
+                        plainFetchForce: true,
+                        chatId: arg.chatId
                     })
 
                     if(!res.ok){
@@ -1677,7 +1690,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             "anthropic-version": "2023-06-01",
                             "accept": "application/json",
                         },
-                        method: "POST"
+                        method: "POST",
+                        chatId: arg.chatId
                     })
 
                     if(res.status !== 200){
@@ -1744,7 +1758,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "anthropic-version": "2023-06-01",
                         "accept": "application/json"
                     },
-                    method: "POST"
+                    method: "POST",
+                    chatId: arg.chatId
                 })
 
                 if(!res.ok){
@@ -1906,7 +1921,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         method: "POST",
                         body: params,
                         headers: signed.headers,
-                        plainFetchForce: true
+                        plainFetchForce: true,
+                        chatId: arg.chatId
                     })
 
                       
@@ -1940,7 +1956,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         "anthropic-version": "2023-06-01",
                         "accept": "application/json"
                     },
-                    useRisuToken: aiModel === 'reverse_proxy'
+                    useRisuToken: aiModel === 'reverse_proxy',
+                    chatId: arg.chatId
                 })
 
                 if((!da.ok) || (da.data.error)){

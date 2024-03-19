@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase, type character } from "../storage/database";
+import { DataBase, setDatabase, type character, type MessageGenerationInfo } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
@@ -907,32 +907,46 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         data: formated
     })
 
-    {
-        //token rechecking
-        let tokens = 0
-        for(const chat of formated){
-            tokens += await tokenizer.tokenizeChat(chat)
-        }
+    //token rechecking
+    let inputTokens = 0
 
-        if(tokens > maxContextTokens){
-            let pointer = 0
-            while(tokens > maxContextTokens){
-                if(pointer >= formated.length){
-                    alertError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + tokens)
-                    return false
-                }
-                if(formated[pointer].removable){
-                    tokens -= await tokenizer.tokenizeChat(formated[pointer])
-                    formated[pointer].content = ''
-                }
-                pointer++
+    for(const chat of formated){
+        inputTokens += await tokenizer.tokenizeChat(chat)
+    }
+
+    if(inputTokens > maxContextTokens){
+        let pointer = 0
+        while(inputTokens > maxContextTokens){
+            if(pointer >= formated.length){
+                alertError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + inputTokens)
+                return false
             }
-            formated = formated.filter((v) => {
-                return v.content !== ''
-            })
-    }
+            if(formated[pointer].removable){
+                inputTokens -= await tokenizer.tokenizeChat(formated[pointer])
+                formated[pointer].content = ''
+            }
+            pointer++
+        }
+        formated = formated.filter((v) => {
+            return v.content !== ''
+        })
     }
 
+    //estimate tokens
+    let outputTokens = db.maxResponse
+    if(inputTokens + outputTokens > maxContextTokens){
+        outputTokens = maxContextTokens - inputTokens
+    }
+    const generationId = v4()
+    const generationModel = getGenerationModelString()
+
+    const generationInfo:MessageGenerationInfo = {
+        model: generationModel,
+        generationId: generationId,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+        maxContext: maxContextTokens,
+    }
     const req = await requestChatData({
         formated: formated,
         biasString: biases,
@@ -941,6 +955,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         isGroupChat: nowChatroom.type === 'group',
         bias: {},
         continue: arg.continue,
+        chatId: generationId
     }, 'model', abortSignal)
 
     let result = ''
@@ -949,8 +964,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     if(abortSignal.aborted === true){
         return false
     }
-    const generationId = v4()
-    const generationModel = getGenerationModelString()
     if(req.type === 'fail'){
         alertError(req.result)
         return false
@@ -969,10 +982,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 data: "",
                 saying: currentChar.chaId,
                 time: Date.now(),
-                generationInfo: {
-                    model: generationModel,
-                    generationId: generationId,
-                }
+                generationInfo,
             })
         }
         db.characters[selectedChar].chats[selectedChat].isStreaming = true
@@ -1051,10 +1061,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     data: result,
                     saying: currentChar.chaId,
                     time: Date.now(),
-                    generationInfo: {
-                        model: generationModel,
-                        generationId: generationId,
-                    }
+                    generationInfo
                 }       
                 if(inlayResult.promise){
                     const p = await inlayResult.promise
@@ -1067,10 +1074,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     data: result,
                     saying: currentChar.chaId,
                     time: Date.now(),
-                    generationInfo: {
-                        model: generationModel,
-                        generationId: generationId,
-                    }
+                    generationInfo
                 })
                 const ind = db.characters[selectedChar].chats[selectedChat].message.length - 1
                 if(inlayResult.promise){

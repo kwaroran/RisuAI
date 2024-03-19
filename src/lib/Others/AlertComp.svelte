@@ -1,6 +1,5 @@
-<script>
-    import { onMount } from 'svelte';
-    import { alertStore } from "../../ts/alert";
+<script lang="ts">
+    import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
     import { DataBase } from '../../ts/storage/database';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser';
@@ -15,11 +14,13 @@
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
+    import { getFetchData } from 'src/ts/storage/globalApi';
     let btn
     let input = ''
     let cardExportType = ''
     let cardExportPassword = ''
     let cardLicense = ''
+    let generationInfoMenuIndex = 0
     $: (() => {
         if(btn){
             btn.focus()
@@ -29,6 +30,14 @@
         }
         
     })()
+
+    const beautifyJSON = (data:string) =>{
+        try {
+            return JSON.stringify(JSON.parse(data), null, 2)
+        } catch (error) {
+            return data
+        }
+    }
 </script>
 
 <svelte:window on:message={async (e) => {
@@ -66,7 +75,7 @@
                 <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
-            {:else if $alertStore.type !== 'select'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -162,6 +171,60 @@
                         {/if}
                     {/each}
                 </div>
+            {:else if $alertStore.type === 'requestdata'}
+                <div class="flex flex-wrap gap-2">
+                    <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
+                        Tokens
+                    </Button>
+                    <Button selected={generationInfoMenuIndex === 2} size="sm" on:click={() => {generationInfoMenuIndex = 2}}>
+                        Log
+                    </Button>
+                    <button class="ml-auto" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: ''
+                        })
+                    }}>✖</button>
+                </div>
+                {#if generationInfoMenuIndex === 0}
+                    <div class="mt-4 flex justify-center w-full">
+                        <div class="w-32 h-32 border-darkborderc border-4 rounded-lg" style:background={
+                            `linear-gradient(0deg,
+                            rgb(59,130,246) 0%,
+                            rgb(59,130,246) ${($alertGenerationInfoStore.inputTokens / $alertGenerationInfoStore.maxContext) * 100}%,
+                            rgb(34 197 94) ${($alertGenerationInfoStore.inputTokens / $alertGenerationInfoStore.maxContext) * 100}%,
+                            rgb(34 197 94) ${(($alertGenerationInfoStore.outputTokens + $alertGenerationInfoStore.inputTokens) / $alertGenerationInfoStore.maxContext) * 100}%,
+                            rgb(156 163 175) ${(($alertGenerationInfoStore.outputTokens + $alertGenerationInfoStore.inputTokens) / $alertGenerationInfoStore.maxContext) * 100}%,
+                            rgb(156 163 175) 100%)`
+                        }>
+
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-4">
+                        <span class="text-blue-500">{language.inputTokens}</span>
+                        <span class="text-blue-500 justify-self-end">{$alertGenerationInfoStore.inputTokens ?? '?'} {language.tokens}</span>
+                        <span class="text-green-500">{language.outputTokens}</span>
+                        <span class="text-green-500 justify-self-end">{$alertGenerationInfoStore.outputTokens ?? '?'} {language.tokens}</span>
+                        <span class="text-gray-400">{language.maxContextSize}</span>
+                        <span class="text-gray-400 justify-self-end">{$alertGenerationInfoStore.maxContext ?? '?'} {language.tokens}</span>
+                    </div>
+                    <span class="text-textcolor2 text-sm">{language.tokenWarning}</span>
+                {/if}
+                {#if generationInfoMenuIndex === 2}
+                    {#await getFetchData($alertStore.msg) then data} 
+                        {#if !data}
+                            <span class="text-gray-300 text-lg mt-2">{language.errors.requestLogRemoved}</span>
+                            <span class="text-gray-500">{language.errors.requestLogRemovedDesc}</span>
+                        {:else}
+                            <h1 class="text-2xl font-bold my-4">URL</h1>
+                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{data.url}</code>
+                            <h1 class="text-2xl font-bold my-4">Request Body</h1>
+                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.body)}</code>
+                            <h1 class="text-2xl font-bold my-4">Response</h1>
+                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.response)}</code>
+                        {/if}
+                    {/await}
+                {/if}
             {/if}
         </div>
     </div>

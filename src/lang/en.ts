@@ -28,6 +28,8 @@ export const languageEnglish = {
         networkFetch: "This happens when the network is unstable or the server is down.",
         networkFetchWeb: "This can be a CORS error. this only happens when using web version dude to limitations of the browser. try using desktop local version, or other version of RisuAI.",
         networkFetchPlain: "This can be a plain fetch error. try disabling force plain fetch option in settings.",
+        requestLogRemoved: "This request log is removed.",
+        requestLogRemovedDesc: "This request log removes when client is refreshed or reloaded.",
     },
     showHelp: "Show Help",
     help:{
@@ -541,4 +543,7 @@ export const languageEnglish = {
     enable: "Enable",
     postFile: "Post File",
     requestInfoInsideChat: "Show Request Info Inside Chat",
+    inputTokens: "Input Tokens",
+    outputTokens: "Output Tokens",
+    tokenWarning: "Token caculation can be inaccurate. it is recommended to use it as a reference.",
 }

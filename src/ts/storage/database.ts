@@ -870,6 +870,9 @@ export interface Message{
 export interface MessageGenerationInfo{
     model?: string
     generationId?: string
+    inputTokens?: number
+    outputTokens?: number
+    maxContext?: number
 }
 
 interface AINsettings{

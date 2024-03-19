@@ -2,7 +2,7 @@
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertConfirm, alertError } from "../../ts/alert";
+    import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
     import { CurrentCharacter, CurrentChat } from "../../ts/stores";
@@ -205,6 +205,9 @@
                 <div>
                     <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
                                     hover:ring-borderc hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                            on:click={() => {
+                                alertRequestData(MessageGenerationInfo)
+                            }}
                     >
                         <BotIcon size={20} />
                         <span class="ml-1">

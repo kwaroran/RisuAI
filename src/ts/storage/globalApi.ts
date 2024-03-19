@@ -44,6 +44,7 @@ interface fetchLog{
     date:string
     url:string
     responseType?:string
+    chatId?:string
 }
 
 let fetchLog:fetchLog[] = []
@@ -494,7 +495,8 @@ export function addFetchLog(arg:{
     response:any,
     success:boolean,
     url:string,
-    resType?:string
+    resType?:string,
+    chatId?:string
 }){
     fetchLog.unshift({
         body: typeof(arg.body) === 'string' ? arg.body : JSON.stringify(arg.body, null, 2),
@@ -503,9 +505,19 @@ export function addFetchLog(arg:{
         responseType: arg.resType ?? 'json',
         success: arg.success,
         date: (new Date()).toLocaleTimeString(),
-        url: arg.url
+        url: arg.url,
+        chatId: arg.chatId
     })
     return fetchLog.length - 1
+}
+
+export async function getFetchData(id:string) {
+    for(const log of fetchLog){
+        if(log.chatId === id){
+            return log
+        }
+    }
+    return null
 }
 
 export async function globalFetch(url:string, arg:{
@@ -515,7 +527,8 @@ export async function globalFetch(url:string, arg:{
     rawResponse?:boolean,
     method?:"POST"|"GET",
     abortSignal?:AbortSignal,
-    useRisuToken?:boolean
+    useRisuToken?:boolean,
+    chatId?:string
 } = {}): Promise<{
     ok: boolean;
     data: any;
@@ -542,7 +555,8 @@ export async function globalFetch(url:string, arg:{
                     response: JSON.stringify(response, null, 2),
                     success: success,
                     date: (new Date()).toLocaleTimeString(),
-                    url: url
+                    url: url,
+                    chatId: arg.chatId
                 })
             }
             catch{
@@ -552,7 +566,8 @@ export async function globalFetch(url:string, arg:{
                     response: `${response}`,
                     success: success,
                     date: (new Date()).toLocaleTimeString(),
-                    url: url
+                    url: url,
+                    chatId: arg.chatId
                 })
             }
         }
@@ -1397,7 +1412,8 @@ export async function fetchNative(url:string, arg:{
     headers?:{[key:string]:string},
     method?:"POST",
     signal?:AbortSignal,
-    useRisuTk?:boolean
+    useRisuTk?:boolean,
+    chatId?:string
 }):Promise<{ body: ReadableStream<Uint8Array>; headers: Headers; status: number }> {
     let headers = arg.headers ?? {}
     const db = get(DataBase)
@@ -1408,7 +1424,8 @@ export async function fetchNative(url:string, arg:{
         response: 'Streamed Fetch',
         success: true,
         url: url,
-        resType: 'stream'
+        resType: 'stream',
+        chatId: arg.chatId
     })
     if(isTauri || Capacitor.isNativePlatform()){
         fetchIndex++

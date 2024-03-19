@@ -3,10 +3,10 @@ import { sleep } from "./util"
 import { language } from "../lang"
 import { isNodeServer, isTauri } from "./storage/globalApi"
 import { Capacitor } from "@capacitor/core"
-import { DataBase } from "./storage/database"
+import { DataBase, type MessageGenerationInfo } from "./storage/database"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'
     msg: string,
     submsg?: string
 }
@@ -16,6 +16,7 @@ export const alertStore = writable({
     type: 'none',
     msg: 'n',
 } as alertData)
+export const alertGenerationInfoStore = writable<MessageGenerationInfo>(null)
 
 export function alertError(msg:string){
     console.error(msg)
@@ -216,4 +217,12 @@ export async function alertInput(msg:string){
     }
 
     return get(alertStore).msg
+}
+
+export function alertRequestData(info:MessageGenerationInfo){
+    alertGenerationInfoStore.set(info)
+    alertStore.set({
+        'type': 'requestdata',
+        'msg': info.generationId ?? 'none'
+    })
 }
