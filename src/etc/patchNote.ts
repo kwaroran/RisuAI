@@ -1,13 +1,14 @@
 export const patchNote = {
-    version: "1.85",
+    version: "1.86",
     content: 
 `
 # Update 1.85
-- Added Claude-3 vision functionality
-- Added local captioning for non-vision models
-- Post file button would be available regardless of settings
-- Removed 'able post file' setting, since it's always available now
-- Fixed creator's quote not updating
+- Added 'Request info inside chat' option
+- Added response info for streamed chat
+- Added color scheme customization
+- Added color scheme export and import
+- Added {{previous_chat_log::A}} syntax
+- Minor bug fixes
 `
 }
 
