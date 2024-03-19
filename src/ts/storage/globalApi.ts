@@ -1340,8 +1340,36 @@ if(Capacitor.isNativePlatform()){
     streamedFetchListening = true
 }
 
+class AppendableBuffer{
+    buffer:Uint8Array
+    constructor(){
+        this.buffer = new Uint8Array(0)
+    }
+    append(data:Uint8Array){
+        const newBuffer = new Uint8Array(this.buffer.length + data.length)
+        newBuffer.set(this.buffer, 0)
+        newBuffer.set(data, this.buffer.length)
+        this.buffer = newBuffer
+    }
+}
+
 const pipeFetchLog = (fetchLogIndex:number, readableStream:ReadableStream<Uint8Array>) => {
-    const textDecoder = new TextDecoderStream()
+    let textDecoderBuffer = new AppendableBuffer()
+    let textDecoderPointer = 0
+    const textDecoder = TextDecoderStream ? (new TextDecoderStream()) : new TransformStream<Uint8Array, string>({
+        transform(chunk, controller) {
+            try{
+                textDecoderBuffer.append(chunk)
+                const decoded = new TextDecoder('utf-8', {
+                    fatal: true
+                }).decode(textDecoderBuffer.buffer)
+                let newString = decoded.slice(textDecoderPointer)
+                textDecoderPointer = decoded.length
+                controller.enqueue(newString)
+            }
+            catch{}
+        }
+    })
     textDecoder.readable.pipeTo(new WritableStream({
         write(chunk) {
             fetchLog[fetchLogIndex].response += chunk
