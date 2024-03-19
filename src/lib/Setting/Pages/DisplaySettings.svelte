@@ -8,7 +8,8 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
-    import { changeColorScheme, colorSchemeList, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
+    import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
+  import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -44,6 +45,7 @@
 </SelectInput>
 
 {#if $DataBase.colorSchemeName === "custom"}
+<div class="border border-darkborderc p-2 m-2 rounded-md">
     <SelectInput className="mt-2" value={$DataBase.colorScheme.type} on:change={updateColorScheme}>
         <OptionInput value="light">Light</OptionInput>
         <OptionInput value="dark">Dark</OptionInput>
@@ -84,6 +86,19 @@
         <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.textcolor2} on:change={updateColorScheme}>
         <span class="ml-2">Text Color 2</span>
     </div>
+    <div class="flex-grow flex justify-end">
+        <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={async (e) => {
+            exportColorScheme()
+        }}>
+            <DownloadIcon size={18}/>
+        </button>
+        <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+            importColorScheme()
+        }}>
+            <FolderUpIcon size={18}/>
+        </button>
+    </div>
+</div>
 {/if}
 
 <span class="text-textcolor mt-4">{language.textColor}</span>

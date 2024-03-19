@@ -1,6 +1,9 @@
 import { get } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
 import { cloneDeep } from "lodash";
+import { downloadFile } from "../storage/globalApi";
+import { BufferToText, selectSingleFile } from "../util";
+import { alertError } from "../alert";
 
 export interface ColorScheme{
     bgcolor: string;
@@ -127,6 +130,48 @@ export function updateColorScheme(){
     document.documentElement.style.setProperty("--risu-theme-darkbutton", colorScheme.darkbutton);
 }
 
+export function exportColorScheme(){
+    let db = get(DataBase)
+    let json = JSON.stringify(db.colorScheme)
+    downloadFile('colorScheme.json', json)
+}
+
+export async function importColorScheme(){
+    const uarray = await selectSingleFile(['json'])
+    if(uarray == null){
+        return
+    }
+    const string = BufferToText(uarray.data)
+    let colorScheme: ColorScheme
+    try{
+        colorScheme = JSON.parse(string)
+        if(
+            typeof colorScheme.bgcolor !== 'string' ||
+            typeof colorScheme.darkbg !== 'string' ||
+            typeof colorScheme.borderc !== 'string' ||
+            typeof colorScheme.selected !== 'string' ||
+            typeof colorScheme.draculared !== 'string' ||
+            typeof colorScheme.textcolor !== 'string' ||
+            typeof colorScheme.textcolor2 !== 'string' ||
+            typeof colorScheme.darkBorderc !== 'string' ||
+            typeof colorScheme.darkbutton !== 'string' ||
+            typeof colorScheme.type !== 'string'
+        ){
+            alertError('Invalid color scheme')
+            return
+        }
+        changeColorScheme('custom')
+        let db = get(DataBase)
+        db.colorScheme = colorScheme
+        setDatabase(db)
+        updateColorScheme()
+    }
+    catch(e){
+        alertError('Invalid color scheme')
+        return
+    
+    }
+}
 export function updateTextTheme(){
     let db = get(DataBase)
     const root = document.querySelector(':root') as HTMLElement;
