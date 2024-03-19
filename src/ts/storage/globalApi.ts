@@ -1546,18 +1546,12 @@ export async function fetchNative(url:string, arg:{
         }
     }
     else{
-        const r = await fetch(url, {
+        return await fetch(url, {
             body: arg.body,
             headers: headers,
             method: arg.method,
             signal: arg.signal
         })
-        pipeFetchLog(fetchLogIndex, r.body)
-        return {
-            body: pipeFetchLog(fetchLogIndex, r.body),
-            headers: r.headers,
-            status: r.status
-        }
     }
 }
 
