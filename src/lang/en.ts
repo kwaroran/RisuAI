@@ -546,4 +546,5 @@ export const languageEnglish = {
     inputTokens: "Input Tokens",
     outputTokens: "Output Tokens",
     tokenWarning: "Token caculation can be inaccurate. it is recommended to use it as a reference.",
+    log: "Log",
 }

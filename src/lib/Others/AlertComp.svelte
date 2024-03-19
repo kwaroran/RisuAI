@@ -174,10 +174,10 @@
             {:else if $alertStore.type === 'requestdata'}
                 <div class="flex flex-wrap gap-2">
                     <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
-                        Tokens
+                        {language.tokens}
                     </Button>
                     <Button selected={generationInfoMenuIndex === 2} size="sm" on:click={() => {generationInfoMenuIndex = 2}}>
-                        Log
+                        {language.log}
                     </Button>
                     <button class="ml-auto" on:click={() => {
                         alertStore.set({
