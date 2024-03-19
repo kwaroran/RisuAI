@@ -112,7 +112,7 @@
     </div>
 {/if}
 
-<span class="text-textcolor">{language.UISize}</span>
+<span class="text-textcolor mt-4">{language.UISize}</span>
 <SliderInput  min={50} max={200} bind:value={$DataBase.zoomsize} />
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.zoomsize)}%</span>
 
