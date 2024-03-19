@@ -98,7 +98,9 @@ export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorSh
 
 export function changeColorScheme(colorScheme: string){
     let db = get(DataBase)
-    db.colorScheme = cloneDeep(colorShemes[colorScheme])
+    if(colorScheme !== 'custom'){
+        db.colorScheme = cloneDeep(colorShemes[colorScheme])
+    }
     db.colorSchemeName = colorScheme
     setDatabase(db)
     updateColorScheme()

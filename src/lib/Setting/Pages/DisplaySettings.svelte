@@ -8,7 +8,7 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
-    import { changeColorScheme, colorSchemeList, updateTextTheme } from "src/ts/gui/colorscheme";
+    import { changeColorScheme, colorSchemeList, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -40,7 +40,51 @@
     {#each colorSchemeList as scheme}
         <OptionInput value={scheme} >{scheme}</OptionInput>
     {/each}
+    <OptionInput value="custom" >Custom</OptionInput>
 </SelectInput>
+
+{#if $DataBase.colorSchemeName === "custom"}
+    <SelectInput className="mt-2" value={$DataBase.colorScheme.type} on:change={updateColorScheme}>
+        <OptionInput value="light">Light</OptionInput>
+        <OptionInput value="dark">Dark</OptionInput>
+    </SelectInput>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.bgcolor} on:change={updateColorScheme}>
+        <span class="ml-2">Background</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkbg} on:change={updateColorScheme}>
+        <span class="ml-2">Dark Background</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.borderc} on:change={updateColorScheme}>
+        <span class="ml-2">Color 1</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.selected} on:change={updateColorScheme}>
+        <span class="ml-2">Color 2</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.draculared} on:change={updateColorScheme}>
+        <span class="ml-2">Color 3</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkBorderc} on:change={updateColorScheme}>
+        <span class="ml-2">Color 4</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkbutton} on:change={updateColorScheme}>
+        <span class="ml-2">Color 5</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.textcolor} on:change={updateColorScheme}>
+        <span class="ml-2">Text Color</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.textcolor2} on:change={updateColorScheme}>
+        <span class="ml-2">Text Color 2</span>
+    </div>
+{/if}
 
 <span class="text-textcolor mt-4">{language.textColor}</span>
 <SelectInput className="mt-2" bind:value={$DataBase.textTheme} on:change={updateTextTheme}>
