@@ -2,7 +2,7 @@ export const patchNote = {
     version: "1.86",
     content: 
 `
-# Update 1.85
+# Update 1.86
 - Added 'Request info inside chat' option
 - Added response info for streamed chat
 - Added color scheme customization
