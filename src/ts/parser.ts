@@ -750,8 +750,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'previous_chat_log':{
                 const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar.chats[selchar.chatPage]
-                return chat.message[chatID - 1].data
+                const chat = selchar?.chats?.[selchar.chatPage]
+                return chat?.message[chatID - 1]?.data ?? 'Out of range'
 
             }
         }
