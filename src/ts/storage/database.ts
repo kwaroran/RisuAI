@@ -376,7 +376,7 @@ export function setDatabase(data:Database){
     data.modules ??= []
     data.enabledModules ??= []
     data.additionalParams ??= []
-    data.heightMode ??= 0
+    data.heightMode ??= 'normal'
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -603,7 +603,7 @@ export interface Database{
     sideMenuRerollButton?:boolean
     requestInfoInsideChat?:boolean
     additionalParams:[string, string][]
-    heightMode:number
+    heightMode:string
 }
 
 export interface customscript{

@@ -43,6 +43,16 @@
     <OptionInput value="high">High</OptionInput>
 </SelectInput>
 
+<span class="text-textcolor mt-4">{language.heightMode}</span>
+<SelectInput bind:value={$DataBase.heightMode}>
+    <OptionInput value="normal">Normal</OptionInput>
+    <OptionInput value="percent">Percent</OptionInput>
+    <OptionInput value="vh">VH</OptionInput>
+    <OptionInput value="dvh">DVH</OptionInput>
+    <OptionInput value="svh">SVH</OptionInput>
+    <OptionInput value="lvh">LVH</OptionInput>
+</SelectInput>
+
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}> <Help key="sayNothing"/></Check>
 </div>

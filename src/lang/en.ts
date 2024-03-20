@@ -550,4 +550,5 @@ export const languageEnglish = {
     log: "Log",
     popularityLevelDesc: "Popularity increases with downloads, etc. to estimate, 3.7 popularity is about 1 downloads.",
     additionalParams: "Additional Parameters",
+    heightMode: "Height Mode",
 }
