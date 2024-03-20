@@ -631,10 +631,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         key = key.replace('header::', '')
                         headers[key] = value
                     }
+                    else if(value.startsWith('json::')){
+                        value = value.replace('json::', '')
+                        try {
+                            body[key] = JSON.parse(value)                            
+                        } catch (error) {}
+                    }
                     else if(isNaN(parseFloat(value))){
-                        if(value.startsWith('"') && value.endsWith('"')){
-                            value = value.slice(1, -1)
-                        }
                         body[key] = value
                     }
                     else{
