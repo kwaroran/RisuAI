@@ -1560,13 +1560,9 @@ export function textifyReadableStream(stream:ReadableStream<Uint8Array>){
 }
 
 export function toggleFullscreen(){
-    // @ts-ignore
-    const requestFullscreen = document.documentElement.requestFullscreen ?? document.documentElement.webkitRequestFullscreen as typeof document.documentElement.requestFullscreen
-    // @ts-ignore
-    const exitFullscreen = document.exitFullscreen ?? document.webkitExitFullscreen as typeof document.exitFullscreen
-    // @ts-ignore
-    const fullscreenElement = document.fullscreenElement ?? document.webkitFullscreenElement as typeof document.fullscreenElement
-    fullscreenElement ? exitFullscreen() : requestFullscreen({
+
+    const fullscreenElement = document.fullscreenElement
+    fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen({
         navigationUI: "hide"
     })
 }

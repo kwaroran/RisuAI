@@ -169,12 +169,7 @@ export async function characterURLImport() {
             url.searchParams.delete('realm');
             window.history.pushState(null, '', url.toString());
 
-            const res = await fetch(`${hubURL}/hub/info`,{
-                method: "POST",
-                body: JSON.stringify({
-                    id: realmPath
-                })
-            })
+            const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
             if(res.status !== 200){
                 alertError(await res.text())
                 return
@@ -826,13 +821,7 @@ export async function downloadRisuHub(id:string) {
             type: "wait",
             msg: "Downloading..."
         })
-        const res = await fetch(hubURL + '/hub/get', {
-            method: "POST",
-            body: JSON.stringify({
-                id: id,
-                apiver: 3
-            })
-        })
+        const res = await fetch(hubURL + '/hub/get/' + id)
         if(res.status !== 200){
             alertError(await res.text())
             return

@@ -26,6 +26,7 @@ body{
   --risu-theme-textcolor2: #64748b;
   --risu-theme-darkborderc: #4b5563;
   --risu-theme-darkbutton: #374151;
+  --risu-height-size: 100%;
 
 }
 
@@ -36,7 +37,7 @@ body{
 }
 
 html, body{
-  height: 100%
+  height: var(--risu-height-size);
 }
 
 .chattext p{
