@@ -117,6 +117,7 @@ export const languageEnglish = {
         requestretrys: "This option is used to set the number of request retrys when request fails.",
         emotionPrompt: "This option is used to set the prompt that is used to detect emotion. if it is blank, it will use the default prompt.",
         removePunctuationHypa: "If enabled, it will remove punctuation before executing HypaMemory.",
+        additionalParams: "Additional parameters that would be added to the request body. if you want to exclude some parameters, you can put `{{none}}` to the value. if you want to add a header instead of body, you can put `header::` in front of the key like `header::Authorization`.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -364,7 +365,7 @@ export const languageEnglish = {
     saveCurrentDataToAccount: "Save Current Data to Account",
     chatAssumed: "",
     proxyAPIKey: "Proxy Key/Password",
-    proxyRequestModel: "Proxy Request Model",
+    proxyRequestModel: "Request Model",
     officialWiki: "Official Wiki",
     officialWikiDesc: "Official Wiki for RisuAI. feel free to see.",
     officialDiscord: "Official Discord",
@@ -473,7 +474,7 @@ export const languageEnglish = {
     depthPrompt: "Depth Prompt",
     largePortrait: "Portrait",
     lorePlus: "LoreBook+",
-    reverseProxyOobaMode: "Reverse Proxy Ooba Mode",
+    reverseProxyOobaMode: "Ooba Mode",
     joinMultiUserRoom: "Join MultiUser Room",
     exactTokens: "Exact Tokens",
     fixedTokens: "Approximate Tokens",
@@ -547,4 +548,6 @@ export const languageEnglish = {
     outputTokens: "Output Tokens",
     tokenWarning: "Token caculation can be inaccurate. it is recommended to use it as a reference.",
     log: "Log",
+    popularityLevelDesc: "Popularity increases with downloads, etc. to estimate, 3.7 popularity is about 1 downloads.",
+    additionalParams: "Additional Parameters",
 }

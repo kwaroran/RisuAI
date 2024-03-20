@@ -606,6 +606,43 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
+            if(raiModel === 'reverse_proxy'){
+                const additionalParams = db.additionalParams
+                for(let i=0;i<additionalParams.length;i++){
+                    let key = additionalParams[i][0]
+                    let value = additionalParams[i][1]
+
+                    if(!key || !value){
+                        continue
+                    }
+
+                    if(value === '{{none}}'){
+                        if(key.startsWith('header::')){
+                            key = key.replace('header::', '')
+                            delete headers[key]
+                        }
+                        else{
+                            delete body[key]
+                        }
+                        continue
+                    }
+
+                    if(key.startsWith('header::')){
+                        key = key.replace('header::', '')
+                        headers[key] = value
+                    }
+                    else if(isNaN(parseFloat(value))){
+                        if(value.startsWith('"') && value.endsWith('"')){
+                            value = value.slice(1, -1)
+                        }
+                        body[key] = value
+                    }
+                    else{
+                        body[key] = parseFloat(value)
+                    }
+                }
+            }
+
             const res = await globalFetch(replacerURL, {
                 body: body,
                 headers: headers,

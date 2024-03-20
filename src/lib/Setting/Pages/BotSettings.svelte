@@ -159,7 +159,7 @@
     <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
-    <span class="text-textcolor mt-2">{language.forceReplaceUrl} URL <Help key="forceUrl"/></span>
+    <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
     <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
     <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
@@ -576,6 +576,46 @@
             {/each}
         </table>
     </Arcodion>
+
+    {#if $DataBase.aiModel === 'reverse_proxy'}
+    <Arcodion styled name="{language.additionalParams} " help="additionalParams">
+        <table class="contain w-full max-w-full tabler">
+            <tr>
+                <th class="font-medium">{language.key}</th>
+                <th class="font-medium">{language.value}</th>
+                <th>
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
+                        let additionalParams = $DataBase.additionalParams
+                        additionalParams.push(['', ''])
+                        $DataBase.additionalParams = additionalParams
+                    }}><PlusIcon /></button>
+                </th>
+            </tr>
+            {#if $DataBase.bias.length === 0}
+                <tr>
+                    <div class="text-textcolor2">{language.noData}</div>
+                </tr>
+            {/if}
+            {#each $DataBase.additionalParams as additionalParams, i}
+                <tr>
+                    <td class="font-medium truncate">
+                        <TextInput bind:value={$DataBase.additionalParams[i][0]} size="lg" fullwidth/>
+                    </td>
+                    <td class="font-medium truncate">
+                        <TextInput bind:value={$DataBase.additionalParams[i][1]} size="lg" fullwidth/>
+                    </td>
+                    <td>
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                            let additionalParams = $DataBase.additionalParams
+                            additionalParams.splice(i, 1)
+                            $DataBase.additionalParams = additionalParams
+                        }}><TrashIcon /></button>
+                    </td>
+                </tr>
+            {/each}
+        </table>
+    </Arcodion>
+    {/if}
 
 
     {#if !$DataBase.promptTemplate}

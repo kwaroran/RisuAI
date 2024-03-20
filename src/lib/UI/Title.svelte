@@ -15,6 +15,12 @@
     if( today.getMonth() === 3 && today.getDate() === 1){
         specialDay = 'aprilFool'
     }
+    if( today.getMonth() === 3 && today.getDate() === 14){
+        specialDay = 'anniversary'
+    }
+    if( today.getMonth() === 9 && today.getDate() === 31){
+        specialDay = 'halloween'
+    }
     let iconAnimation = 0
     let clicks = 0
     let score = 0

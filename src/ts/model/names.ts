@@ -52,7 +52,7 @@ export function getModelName(name:string){
         case "novellist damsel":
             return "NovelList Damsel"
         case 'reverse_proxy':
-            return "Reverse Proxy"
+            return "Custom (OpenAI-compatible)"
         case 'openrouter':
             return "OpenRouter"
         case 'gptvi4_1106':
@@ -143,6 +143,12 @@ export function getModelShortName(model:string){
         else{
             return split[split.length-1]
         }
+    }
+    if(model.startsWith('reverse_proxy')){
+        return 'Custom'
+    }
+    if(model.startsWith('oaicomp')){
+        return 'Custom'
     }
     return getModelName(model)
 

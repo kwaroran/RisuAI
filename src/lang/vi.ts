@@ -300,7 +300,7 @@ export const LanguageVietnamese = {
     "loadDataFromAccount": "Tải dữ liệu từ tài khoản",
     "saveCurrentDataToAccount": "Lưu dữ liệu hiện tại vào tài khoản",
     "chatAssumed": "--",
-    "proxyAPIKey": "Khóa proxy/Mật khẩu",
+    "proxyAPIKey": "Khóa/Mật khẩu",
     "proxyRequestModel": "Mô hình yêu cầu proxy",
     "officialWiki": "Wiki chính thức",
     "officialWikiDesc": "Wiki chính thức của RisuAI. cứ thoải mái xem nhé.",

@@ -375,6 +375,7 @@ export function setDatabase(data:Database){
     data.memoryLimitThickness ??= 1
     data.modules ??= []
     data.enabledModules ??= []
+    data.additionalParams ??= []
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -600,6 +601,7 @@ export interface Database{
     enabledModules: string[]
     sideMenuRerollButton?:boolean
     requestInfoInsideChat?:boolean
+    additionalParams:[string, string][]
 }
 
 export interface customscript{

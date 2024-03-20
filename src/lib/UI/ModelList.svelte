@@ -67,7 +67,7 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('claude-1.0')}}>claude-v1.0</button>
                 {/if}
             </Arcodion>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Reverse Proxy</button>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('reverse_proxy')}}>Custom (OpenAI-compatible)</button>
             {#if $DataBase.tpo && isTauri}
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={async () => {
                     const selected = await open({
@@ -129,6 +129,7 @@
                     {/each}
                 {/await}
             </Arcodion>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('oaicomp')}}>Custom (OpenAI-compatible)</button>
             {#if showUnrec}
             <Arcodion name="WebLLM Local">
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/opt-350m')}}>opt-350m</button>

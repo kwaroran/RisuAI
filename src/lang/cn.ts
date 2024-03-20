@@ -299,7 +299,7 @@ export const languageChinese = {
 	"loadDataFromAccount": "从帐户加载数据",
 	"saveCurrentDataToAccount": "将当前数据保存到帐户",
 	"chatAssumed": "",
-	"proxyAPIKey": "代理API密钥/密码",
+	"proxyAPIKey": "API密钥/密码",
 	"proxyRequestModel": "代理请求模型",
 	"officialWiki": "官方Wiki",
 	"officialWikiDesc": "RisuAI的官方Wiki，随意查看。",
