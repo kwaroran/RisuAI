@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "RisuAI",
-    "version": "1.86.1"
+    "version": "1.87.0"
   },
   "tauri": {
     "allowlist": {
