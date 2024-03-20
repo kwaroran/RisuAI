@@ -86,8 +86,15 @@ export async function getInlayImage(id: string){
 
 export function supportsInlayImage(){
     const db = get(DataBase)
-    return db.aiModel.startsWith('gptv') || (db.aiModel === 'reverse_proxy' && db.proxyRequestModel?.startsWith('gptv')) || db.aiModel === 'gemini-pro-vision'
-            || db.aiModel.startsWith('claude-3') || db.proxyRequestModel?.startsWith('claude-3')
+    return db.aiModel.startsWith('gptv') || db.aiModel === 'gemini-pro-vision' || db.aiModel.startsWith('claude-3') ||
+        (db.aiModel === 'reverse_proxy' && (
+            db.proxyRequestModel?.startsWith('gptv') || db.proxyRequestModel === 'gemini-pro-vision' || db.proxyRequestModel?.startsWith('claude-3') ||
+            db.proxyRequestModel === 'custom'  && (
+                db.customProxyRequestModel?.startsWith('gptv') ||
+                db.customProxyRequestModel === 'gemini-pro-vision' ||
+                db.customProxyRequestModel?.startsWith('claude-3')
+            )
+        ))
 }
 
 export async function reencodeImage(img:Uint8Array){
