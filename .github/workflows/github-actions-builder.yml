@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - production
-    workflow_dispatch:
-      - production
+  workflow_dispatch:
+    - production
 
 jobs:
   publish-tauri:
