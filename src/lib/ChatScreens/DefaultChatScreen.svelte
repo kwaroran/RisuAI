@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
+	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
@@ -385,6 +386,7 @@
     }
 </script>
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="w-full h-full" style={customStyle} on:click={() => {
     openMenu = false
 }}>
@@ -405,6 +407,8 @@
                             <Laugh/>
                     </div>    
                 {/if}
+
+                {#if !$DataBase.useAdvancedEditor}
                 <textarea class="text-textcolor p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
@@ -423,9 +427,16 @@
                     on:input={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
                     style:height={inputHeight}
                 />
+                {:else}
+                <AdvancedChatEditor 
+                    bind:value={messageInput}
+                    bind:translate={messageInputTranslate}
+                    on:change={(e) => { updateInputTransateMessage(e.detail.translate);}}
+                 />
+                {/if}
 
                 
-                {#if $doingChat || doingChatInputTranslate}
+                {#if $doingChat || doingChatInputTranslate} 
                     <div
                         class="mr-2 bg-selected flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
                         <div class="loadmove" class:autoload={autoMode}>
@@ -443,7 +454,7 @@
                     class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
                     </div>
             </div>
-            {#if $DataBase.useAutoTranslateInput}
+            {#if $DataBase.useAutoTranslateInput && !$DataBase.useAdvancedEditor}
                 <div class="flex items-center mt-2 mb-2">
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />

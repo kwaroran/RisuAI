@@ -403,4 +403,5 @@ export const languageChinese = {
 	"appendNameNAI": "在NAI上附加名称",
 	module: "模块",
     modules: "模块",
+    useAdvancedEditor: "使用高级编辑器",
 }

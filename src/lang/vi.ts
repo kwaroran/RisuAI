@@ -406,4 +406,5 @@ export const LanguageVietnamese = {
     "defaultPrompt": "Lời nhắc mặc định",
     module: "Mô-đun",
     modules: "Mô-đun",
+    useAdvancedEditor: "Sử dụng trình biên tập nâng cao",
 }
