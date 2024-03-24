@@ -754,6 +754,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return chat?.message[chatID - 1]?.data ?? 'Out of range'
 
             }
+            case 'tonumber':{
+                return arra[1].split('').filter((v) => {
+                    return !isNaN(Number(v))
+                }).join('')
+            }
         }
     }
     if(p1.startsWith('random')){
