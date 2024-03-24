@@ -652,7 +652,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 const chat = char.chats[char.chatPage]
-                return (chat.scriptstate ?? {})[v] ?? 'null'
+                return (chat.scriptstate ?? {})['$' + v] ?? 'null'
             }
             case 'calc':{
                 return calcString(v).toString()
@@ -669,10 +669,10 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     const chat = char.chats[char.chatPage]
                     chat.scriptstate = chat.scriptstate ?? {}
                     if(arra[0] === 'addvar'){
-                        chat.scriptstate[v] = Number(chat.scriptstate[v]) + Number(arra[2])
+                        chat.scriptstate['$' + v] = Number(chat.scriptstate['$' + v]) + Number(arra[2])
                     }
                     else{
-                        chat.scriptstate[v] = arra[2]
+                        chat.scriptstate['$' + v] = arra[2]
                     }
 
                     char.chats[char.chatPage] = chat

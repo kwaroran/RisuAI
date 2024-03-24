@@ -53,6 +53,9 @@ dependencies:
   buffer:
     specifier: ^6.0.3
     version: 6.0.3
+  codemirror:
+    specifier: ^5.65.16
+    version: 5.65.16
   core-js:
     specifier: ^3.35.0
     version: 3.35.0
@@ -2213,6 +2216,10 @@ packages:
       acorn: 8.11.3
       estree-walker: 3.0.3
       periscopic: 3.1.0
+
+  /codemirror@5.65.16:
+    resolution: {integrity: sha512-br21LjYmSlVL0vFCPWPfhzUCT34FM/pAdK7rRIZwa0rrtrIdotvP4Oh4GUHsu2E3IrQMCfRkL/fN3ytMNxVQvg==}
+    dev: false
 
   /color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
