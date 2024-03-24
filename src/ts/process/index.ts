@@ -1026,6 +1026,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         console.log(lastResponseChunk)
         addRerolls(generationId, Object.values(lastResponseChunk))
 
+        db.characters[selectedChar].chats[selectedChat] = runCurrentChatFunction(db.characters[selectedChar].chats[selectedChat])
         currentChat = db.characters[selectedChar].chats[selectedChat]        
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
         if(triggerResult && triggerResult.chat){
@@ -1105,6 +1106,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             addRerolls(generationId, mrerolls)
         }
 
+        db.characters[selectedChar].chats[selectedChat] = runCurrentChatFunction(db.characters[selectedChar].chats[selectedChat])
         currentChat = db.characters[selectedChar].chats[selectedChat]        
 
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
@@ -1114,7 +1116,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    db.characters[selectedChar].chats[selectedChat] = runCurrentChatFunction(db.characters[selectedChar].chats[selectedChat])
     sendPeerChar()
 
     if(req.special){
