@@ -6,7 +6,8 @@ function toRPN(expression:string) {
         '+': {precedence: 2, associativity: 'Left'},
         '-': {precedence: 2, associativity: 'Left'},
         '*': {precedence: 3, associativity: 'Left'},
-        '/': {precedence: 3, associativity: 'Left'}
+        '/': {precedence: 3, associativity: 'Left'},
+        '^': {precedence: 4, associativity: 'Right'},
     };
 
     expression = expression.replace(/\s+/g, '');
@@ -15,7 +16,7 @@ function toRPN(expression:string) {
     expression2.forEach(token => {
         if (parseFloat(token) || token === '0') {
             outputQueue += token + ' ';
-        } else if ('+-*/'.includes(token)) {
+        } else if ('+-*/^'.includes(token)) {
             while (operatorStack.length > 0 &&
             ((operators[token].associativity === 'Left' &&
             operators[token].precedence <= operators[operatorStack[operatorStack.length - 1]].precedence) ||
@@ -48,6 +49,7 @@ function calculateRPN(expression:string) {
                 case '-': stack.push(a - b); break;
                 case '*': stack.push(a * b); break;
                 case '/': stack.push(a / b); break;
+                case '^': stack.push(a ** b); break;
             }
         }
     });
