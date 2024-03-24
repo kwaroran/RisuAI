@@ -432,4 +432,5 @@ export const languageKorean = {
     largePersonaPortrait: "페르소나 세로 이미지",
     module: "모듈",
     modules: "모듈",
+    useAdvancedEditor: "고급 에디터 사용",
 }

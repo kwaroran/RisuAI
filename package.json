@@ -32,6 +32,7 @@
     "blueimp-md5": "^2.19.0",
     "body-parser": "^1.20.2",
     "buffer": "^6.0.3",
+    "codemirror": "^5.65.16",
     "core-js": "^3.35.0",
     "cors": "^2.8.5",
     "crc": "^4.3.2",

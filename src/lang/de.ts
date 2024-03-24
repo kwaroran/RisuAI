@@ -432,4 +432,5 @@ export const languageGerman = {
     textAdventureNAI: "Als Textabenteuer ausführen",
     appendNameNAI: "Namen an NAI anhängen",
     customStopWords: "Benutzerdefinierte Stoppwörter",
+    useAdvancedEditor: "Erweiterten Editor verwenden",
 }
