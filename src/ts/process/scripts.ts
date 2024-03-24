@@ -86,7 +86,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         if(script.type === mode){
 
             let outScript2 = script.out.replaceAll("$n", "\n")
-            let outScript = risuChatParser(outScript2.replace(dreg, "$&"), {chatID: chatID, db:db})
+            let outScript = outScript2.replace(dreg, "$&")
             let flag = 'g'
             if(script.ableFlag){
                 flag = script.flag || 'g'
@@ -207,7 +207,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = data.replace(reg, outScript)
+                data = risuChatParser(data.replace(reg, outScript))
             }
         }
     }
