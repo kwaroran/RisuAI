@@ -183,6 +183,25 @@ addWorkerFunction('setCharacterFirstMessage', async (data:string) => {
     return true
 })
 
+addWorkerFunction('getBackgroundEmbedding', async () => {
+    const db = get(DataBase)
+    const selectedChar = get(selectedCharID)
+    const char = db.characters[selectedChar]
+    return char.backgroundHTML
+})
+
+addWorkerFunction('setBackgroundEmbedding', async (data:string) => {
+    const db = get(DataBase)
+    const selectedChar = get(selectedCharID)
+    if(typeof data !== 'string'){
+        return false
+    }
+    db.characters[selectedChar].backgroundHTML = data
+    setDatabase(db)
+    return true
+})
+
+
 addWorkerFunction('getState', async (statename) => {
     const db = get(DataBase)
     const selectedChar = get(selectedCharID)
