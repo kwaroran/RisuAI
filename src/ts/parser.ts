@@ -756,7 +756,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'tonumber':{
                 return arra[1].split('').filter((v) => {
-                    return !isNaN(Number(v))
+                    return !isNaN(Number(v)) || v === '.'
                 }).join('')
             }
         }
