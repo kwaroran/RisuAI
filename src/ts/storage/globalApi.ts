@@ -555,7 +555,6 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
     return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' }
 
     // Simplify the globalFetch function: Detach built-in functions
-    const fetchData = async (url, arg) => {
       if (forcePlainFetch) {
         return await fetchWithPlainFetch(url, arg);
       }
@@ -566,7 +565,6 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
         return await fetchWithCapacitor(url, arg);
       }
       return await fetchWithProxy(url, arg);
-    };
     
   } catch (error) {
     console.error(error);
