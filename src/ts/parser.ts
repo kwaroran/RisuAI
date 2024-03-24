@@ -1065,6 +1065,9 @@ export function risuChatParser(da:string, arg:{
                         }
                     }
                     case 'Comment':{
+                        if(arg.runVar){
+                            break
+                        }
                         if(!commentMode){
                             thinkingMode = false
                             commentMode = true
