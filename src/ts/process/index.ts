@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase, type character, type MessageGenerationInfo } from "../storage/database";
+import { DataBase, setDatabase, type character, type MessageGenerationInfo, type Chat } from "../storage/database";
 import { CharEmotion, selectedCharID } from "../stores";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
@@ -71,6 +71,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             findCharCache[id] = r
             return r
         }
+    }
+
+
+    function runCurrentChatFunction(chat:Chat){
+        chat.message = chat.message.map((v) => {
+            v.data = risuChatParser(v.data, {chara: currentChar, runVar: true})
+            return v
+        })
+        return chat
     }
 
     function reformatContent(data:string){
@@ -150,7 +159,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let chatAdditonalTokens = arg.chatAdditonalTokens ?? caculatedChatTokens
     const tokenizer = new ChatTokenizer(chatAdditonalTokens, db.aiModel.startsWith('gpt') ? 'noName' : 'name')
     let selectedChat = nowChatroom.chatPage
-    let currentChat = nowChatroom.chats[selectedChat]
+    let currentChat = runCurrentChatFunction(nowChatroom.chats[selectedChat])
+    nowChatroom.chats[selectedChat] = currentChat
     let maxContextTokens = db.maxContext
 
     if(db.aiModel === 'gpt35'){
@@ -523,7 +533,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const chat:OpenAIChat = {
             role: 'assistant',
             content: await (processScript(nowChatroom,
-                risuChatParser(firstMsg, {chara: currentChar, rmVar: true}),
+                risuChatParser(firstMsg, {chara: currentChar}),
             'editprocess'))
         }
 
@@ -546,7 +556,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let index = 0
     for(const msg of ms){
-        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, rmVar: true, role: msg.role}), 'editprocess')
+        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, role: msg.role}), 'editprocess')
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){
@@ -1104,6 +1114,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
+    db.characters[selectedChar].chats[selectedChat] = runCurrentChatFunction(db.characters[selectedChar].chats[selectedChat])
     sendPeerChar()
 
     if(req.special){

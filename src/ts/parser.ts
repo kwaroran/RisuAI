@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import showdown from 'showdown';
 import { Marked } from 'marked';
 
-import { DataBase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
+import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
@@ -393,6 +393,7 @@ type matcherArg = {
     consistantChar?:boolean
     displaying?:boolean
     role?:string
+    runVar?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     if(p1.length > 100000){
@@ -647,8 +648,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         const v = arra[1]
         switch(arra[0]){
             case 'getvar':{
-                const d = matcherArg.var ?? getVarChat(chatID)
-                return d[v] ?? "[Null]" 
+                const db = get(DataBase)
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+                const chat = char.chats[char.chatPage]
+                return (chat.scriptstate ?? {})[v] ?? 'null'
             }
             case 'calc':{
                 return calcString(v).toString()
@@ -658,7 +662,25 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 if(matcherArg.rmVar){
                     return ''
                 }
-                break
+                if(matcherArg.runVar){
+                    const db = get(DataBase)
+                    const selectedChar = get(selectedCharID)
+                    const char = db.characters[selectedChar]
+                    const chat = char.chats[char.chatPage]
+                    chat.scriptstate = chat.scriptstate ?? {}
+                    if(arra[0] === 'addvar'){
+                        chat.scriptstate[v] = Number(chat.scriptstate[v]) + Number(arra[2])
+                    }
+                    else{
+                        chat.scriptstate[v] = arra[2]
+                    }
+
+                    char.chats[char.chatPage] = chat
+                    db.characters[selectedChar] = char
+                    setDatabase(db)
+                    return ''
+                }
+                return null
             }
             case 'button':{
                 return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
@@ -892,6 +914,7 @@ export function risuChatParser(da:string, arg:{
     consistantChar?:boolean
     visualize?:boolean,
     role?:string
+    runVar?:boolean
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -937,7 +960,8 @@ export function risuChatParser(da:string, arg:{
         var: arg.var ?? null,
         tokenizeAccurate: arg.tokenizeAccurate ?? false,
         displaying: arg.visualize ?? false,
-        role: arg.role
+        role: arg.role,
+        runVar: arg.runVar ?? false,
     }
     let pef = performance.now()
     while(pointer < da.length){
