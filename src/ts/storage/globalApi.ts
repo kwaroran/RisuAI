@@ -488,335 +488,213 @@ export async function loadData() {
     }
 }
 
-const knownHostes = ["localhost","127.0.0.1"]
+export async function getFetchData(id:string) {
+  for(const log of fetchLog){
+      if(log.chatId === id){
+          return log
+      }
+  }
+  return null
+}
+
+const knownHostes = ["localhost","127.0.0.1","0.0.0.0"]
+
+interface GlobalFetchArgs {
+  plainFetchForce?: boolean;
+  body?: any;
+  headers?: { [key: string]: string };
+  rawResponse?: boolean;
+  method?: 'POST' | 'GET';
+  abortSignal?: AbortSignal;
+  useRisuToken?: boolean;
+  chatId?: string;
+}
+
+interface GlobalFetchResult {
+  ok: boolean;
+  data: any;
+  headers: { [key: string]: string };
+}
 
 export function addFetchLog(arg:{
-    body:any,
-    headers?:{[key:string]:string},
-    response:any,
-    success:boolean,
-    url:string,
-    resType?:string,
-    chatId?:string
+  body:any,
+  headers?:{[key:string]:string},
+  response:any,
+  success:boolean,
+  url:string,
+  resType?:string,
+  chatId?:string
 }){
-    fetchLog.unshift({
-        body: typeof(arg.body) === 'string' ? arg.body : JSON.stringify(arg.body, null, 2),
-        header: JSON.stringify(arg.headers ?? {}, null, 2),
-        response: typeof(arg.response) === 'string' ? arg.response : JSON.stringify(arg.response, null, 2),
-        responseType: arg.resType ?? 'json',
-        success: arg.success,
-        date: (new Date()).toLocaleTimeString(),
-        url: arg.url,
-        chatId: arg.chatId
-    })
-    return fetchLog.length - 1
+  fetchLog.unshift({
+      body: typeof(arg.body) === 'string' ? arg.body : JSON.stringify(arg.body, null, 2),
+      header: JSON.stringify(arg.headers ?? {}, null, 2),
+      response: typeof(arg.response) === 'string' ? arg.response : JSON.stringify(arg.response, null, 2),
+      responseType: arg.resType ?? 'json',
+      success: arg.success,
+      date: (new Date()).toLocaleTimeString(),
+      url: arg.url,
+      chatId: arg.chatId
+  })
+  return fetchLog.length - 1
 }
 
-export async function getFetchData(id:string) {
-    for(const log of fetchLog){
-        if(log.chatId === id){
-            return log
-        }
+
+
+export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promise<GlobalFetchResult> {
+  try {
+    const db = get(DataBase)
+    const method = arg.method ?? "POST"
+    db.requestmet = "normal"
+
+    if (arg.abortSignal?.aborted) { return { ok: false, data: 'aborted', headers: {} }}
+
+    const urlHost = new URL(url).hostname
+    const forcePlainFetch = (knownHostes.includes(urlHost) && !isTauri) || db.usePlainFetch || arg.plainFetchForce
+
+    if (knownHostes.includes(urlHost) && !isTauri && !isNodeServer)
+    return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' }
+
+    // Simplify the globalFetch function: Detach built-in functions
+    const fetchData = async (url, arg) => {
+      if (forcePlainFetch) {
+        return await fetchWithPlainFetch(url, arg);
+      }
+      if (isTauri) {
+        return await fetchWithTauri(url, arg);
+      }
+      if (Capacitor.isNativePlatform()) {
+        return await fetchWithCapacitor(url, arg);
+      }
+      return await fetchWithProxy(url, arg);
+    };
+    
+  } catch (error) {
+    console.error(error);
+    return { ok: false, data: `${error}`, headers: {} };
+  }
+}
+
+// Decoupled globalFetch built-in function
+function addFetchLogInGlobalFetch(response:any, success:boolean, url:string, arg:GlobalFetchArgs){
+  try{
+      fetchLog.unshift({
+          body: JSON.stringify(arg.body, null, 2),
+          header: JSON.stringify(arg.headers ?? {}, null, 2),
+          response: JSON.stringify(response, null, 2),
+          success: success,
+          date: (new Date()).toLocaleTimeString(),
+          url: url,
+          chatId: arg.chatId
+      })
+  }
+  catch{
+      fetchLog.unshift({
+          body: JSON.stringify(arg.body, null, 2),
+          header: JSON.stringify(arg.headers ?? {}, null, 2),
+          response: `${response}`,
+          success: success,
+          date: (new Date()).toLocaleTimeString(),
+          url: url,
+          chatId: arg.chatId
+      })
+  }
+}
+
+// Decoupled globalFetch built-in function
+async function fetchWithPlainFetch(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
+  try {
+    const headers = { 'Content-Type': 'application/json', ...arg.headers };
+    const response = await fetch(new URL(url), { body: JSON.stringify(arg.body), headers, method: arg.method, signal: arg.abortSignal });
+    const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
+    const ok = response.ok && response.status >= 200 && response.status < 300;
+    addFetchLogInGlobalFetch(data, ok, url, arg);
+    return { ok, data, headers: Object.fromEntries(response.headers) };
+  } catch (error) {
+    return { ok: false, data: `${error}`, headers: {} };
+  }
+}
+
+// Decoupled globalFetch built-in function
+async function fetchWithTauri(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
+  const body = !arg.body ? null : arg.body instanceof URLSearchParams ? Body.text(arg.body.toString()) : Body.json(arg.body);
+  const headers = arg.headers ?? {};
+  const fetchPromise = TauriFetch(url, {
+    body,
+    method: arg.method,
+    headers,
+    timeout: { secs: get(DataBase).timeOut, nanos: 0 },
+    responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON,
+  });
+
+  let abortFn = () => {};
+  const abortPromise = new Promise<"aborted">((res, rej) => {
+    abortFn = () => res("aborted");
+    arg.abortSignal?.addEventListener('abort', abortFn);
+  });
+
+  const result = await Promise.any([fetchPromise, abortPromise]);
+  arg.abortSignal?.removeEventListener('abort', abortFn);
+
+  if (result === 'aborted') {
+    return { ok: false, data: 'aborted', headers: {} };
+  }
+
+  const data = arg.rawResponse ? new Uint8Array(result.data as number[]) : result.data;
+  addFetchLogInGlobalFetch(data, result.ok, url, arg);
+  return { ok: result.ok, data, headers: result.headers };
+}
+
+// Decoupled globalFetch built-in function
+async function fetchWithCapacitor(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
+  const { body, headers = {}, rawResponse } = arg;
+  headers["Content-Type"] = body instanceof URLSearchParams ? "application/x-www-form-urlencoded" : "application/json";
+
+  const res = await CapacitorHttp.request({ url, method: arg.method, headers, data: body, responseType: rawResponse ? "arraybuffer" : "json" });
+
+  addFetchLogInGlobalFetch(rawResponse ? "Uint8Array Response" : res.data, true, url, arg);
+
+  return {
+    ok: true,
+    data: rawResponse ? new Uint8Array(res.data as ArrayBuffer) : res.data,
+    headers: res.headers,
+  };
+}
+
+// Decoupled globalFetch built-in function
+async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
+  try {
+    const furl = !isTauri && !isNodeServer ? `${hubURL}/proxy2` : `/proxy2`;
+    const headers = {
+      "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
+      "risu-url": encodeURIComponent(url),
+      "Content-Type": arg.body instanceof URLSearchParams ? "application/x-www-form-urlencoded" : "application/json",
+      ...(arg.useRisuToken && { "x-risu-tk": "use" }),
+    };
+
+    const body = arg.body instanceof URLSearchParams ? arg.body.toString() : JSON.stringify(arg.body);
+
+    const response = await fetch(furl, { body, headers, method: arg.method, signal: arg.abortSignal });
+    const isSuccess = response.ok && response.status >= 200 && response.status < 300;
+
+    if (arg.rawResponse) {
+      const data = new Uint8Array(await response.arrayBuffer());
+      addFetchLogInGlobalFetch("Uint8Array Response", isSuccess, url, arg);
+      return { ok: isSuccess, data, headers: Object.fromEntries(response.headers) };
     }
-    return null
-}
 
-export async function globalFetch(url:string, arg:{
-    plainFetchForce?:boolean,
-    body?:any,
-    headers?:{[key:string]:string},
-    rawResponse?:boolean,
-    method?:"POST"|"GET",
-    abortSignal?:AbortSignal,
-    useRisuToken?:boolean,
-    chatId?:string
-} = {}): Promise<{
-    ok: boolean;
-    data: any;
-    headers:{[key:string]:string},
-}> {
+    const text = await response.text();
     try {
-        const db = get(DataBase)
-        const method = arg.method ?? "POST"
-        db.requestmet = "normal"
-    
-        if(arg.abortSignal && arg.abortSignal.aborted){
-            return {
-                ok: false,
-                data: 'aborted',
-                headers: {}
-            }
-        }
-        
-        function addFetchLog(response:any, success:boolean){
-            try{
-                fetchLog.unshift({
-                    body: JSON.stringify(arg.body, null, 2),
-                    header: JSON.stringify(arg.headers ?? {}, null, 2),
-                    response: JSON.stringify(response, null, 2),
-                    success: success,
-                    date: (new Date()).toLocaleTimeString(),
-                    url: url,
-                    chatId: arg.chatId
-                })
-            }
-            catch{
-                fetchLog.unshift({
-                    body: JSON.stringify(arg.body, null, 2),
-                    header: JSON.stringify(arg.headers ?? {}, null, 2),
-                    response: `${response}`,
-                    success: success,
-                    date: (new Date()).toLocaleTimeString(),
-                    url: url,
-                    chatId: arg.chatId
-                })
-            }
-        }
-    
-        const urlHost = (new URL(url)).hostname
-        let forcePlainFetch = (knownHostes.includes(urlHost) && (!isTauri)) || db.usePlainFetch || arg.plainFetchForce
-        //check if the url is a local url like localhost
-        if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
-            if((!isTauri) && (!isNodeServer)){
-                return {
-                    ok: false,
-                    data: 'You are trying local request on web version. this is not allowed dude to browser security policy. use the desktop version instead, or use tunneling service like ngrok and set the cors to allow all.',
-                    headers: {}
-                }
-            }
-        }
-
-        if(forcePlainFetch){
-            try {
-                let headers = arg.headers ?? {}
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
-                }
-                const furl = new URL(url)
-    
-                const da = await fetch(furl, {
-                    body: JSON.stringify(arg.body),
-                    headers: arg.headers,
-                    method: method,
-                    signal: arg.abortSignal
-                })
-    
-                if(arg.rawResponse){
-                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer()),
-                        headers: Object.fromEntries(da.headers)
-                    }   
-                }
-                else{
-                    const dat = await da.json()
-                    addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: dat,
-                        headers: Object.fromEntries(da.headers)
-                    }
-                }
-    
-            } catch (error) {
-                return {
-                    ok: false,
-                    data: `${error}`,
-                    headers: {}
-                }
-            }
-        }
-        if(isTauri){
-            const body = (!arg.body) ? null :
-                (arg.body instanceof URLSearchParams) ? (Body.text(arg.body.toString())) : (Body.json(arg.body))
-            const headers = arg.headers ?? {}
-            const fetchPromise = TauriFetch(url, {
-                body: body,
-                method: method,
-                headers: headers,
-                timeout: {
-                    secs: db.timeOut,
-                    nanos: 0
-                },
-                responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON,
-                
-            })
-
-            //abort the promise when abort signal is triggered
-            let abortFn:() => void = () => {}
-
-            const abortPromise = (new Promise<"aborted">((res,rej) => {
-                abortFn = () => {
-                    res("aborted")
-                }
-                if(arg.abortSignal){
-                    arg.abortSignal?.addEventListener('abort', abortFn)
-                }
-            }))
-
-            const result = await Promise.any([fetchPromise,abortPromise])
-
-            if(arg.abortSignal){
-                arg.abortSignal.removeEventListener('abort', abortFn)
-            }
-
-            if(result === 'aborted'){
-                return {
-                    ok: false,
-                    data: 'aborted',
-                    headers: {}
-                }
-            }
-
-            if(arg.rawResponse){
-                addFetchLog("Uint8Array Response", result.ok)
-                return {
-                    ok: result.ok,
-                    data: new Uint8Array(result.data as number[]),
-                    headers: result.headers
-                }
-            }
-            else{
-                addFetchLog(result.data, result.ok)
-                return {
-                    ok: result.ok,
-                    data: result.data,
-                    headers: result.headers
-                }
-            }
-        }
-        else if (Capacitor.isNativePlatform()){
-            const body = arg.body
-            const headers = arg.headers ?? {}
-            if(arg.body instanceof URLSearchParams){
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/x-www-form-urlencoded`
-                }
-            }
-            else{
-                if(!headers["Content-Type"]){
-                    headers["Content-Type"] =  `application/json`
-                }
-            }
-            const res = await CapacitorHttp.request({
-                url: url,
-                method: method,
-                headers: headers,
-                data: body,
-                responseType: arg.rawResponse ? 'arraybuffer' : 'json'
-            })
-
-            if(arg.rawResponse){
-                addFetchLog("Uint8Array Response", true)
-                return {
-                    ok: true,
-                    data: new Uint8Array(res.data as ArrayBuffer),
-                    headers: res.headers
-                }
-            }
-            addFetchLog(res.data, true)
-            return {
-                ok: true,
-                data: res.data,
-                headers: res.headers
-            }
-        }
-        else{
-            try {
-                let body:any
-                if(arg.body instanceof URLSearchParams){
-                    const argBody = arg.body as URLSearchParams
-                    body = argBody.toString()
-                    let headers = arg.headers ?? {}
-                    if(!headers["Content-Type"]){
-                        headers["Content-Type"] =  `application/x-www-form-urlencoded`
-                    }
-                }
-                else{
-                    body = JSON.stringify(arg.body)
-                    let headers = arg.headers ?? {}
-                    if(!headers["Content-Type"]){
-                        headers["Content-Type"] =  `application/json`
-                    }
-                }
-                if(arg.rawResponse){
-                    const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
-                
-                    let headers = {
-                        "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
-                        "risu-url": encodeURIComponent(url),
-                        "Content-Type": "application/json",
-                    }
-                    if(arg.useRisuToken){
-                        headers["x-risu-tk"] = "use"
-                    }
-
-                    const da = await fetch(furl, {
-                        body: body,
-                        headers: headers,
-                        method: method,
-                        signal: arg.abortSignal
-                    })
-
-                    addFetchLog("Uint8Array Response", da.ok && da.status >= 200 && da.status < 300)
-                    return {
-                        ok: da.ok && da.status >= 200 && da.status < 300,
-                        data: new Uint8Array(await da.arrayBuffer()),
-                        headers: Object.fromEntries(da.headers)
-                    }   
-                }
-                else{
-                    const furl = ((!isTauri) && (!isNodeServer)) ? `${hubURL}/proxy2` : `/proxy2`
-
-                    let headers = {
-                        "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
-                        "risu-url": encodeURIComponent(url),
-                        "Content-Type": "application/json"
-                    }
-                    if(arg.useRisuToken){
-                        headers["x-risu-tk"] = "use"
-                    }
-                    const da = await fetch(furl, {
-                        body: body,
-                        headers: headers,
-                        method: method
-                    })
-                    const daText = await da.text()
-                    try {
-                        const dat = JSON.parse(daText)
-                        addFetchLog(dat, da.ok && da.status >= 200 && da.status < 300)
-                        return {
-                            ok: da.ok && da.status >= 200 && da.status < 300,
-                            data: dat,
-                            headers: Object.fromEntries(da.headers)
-                        }   
-                    } catch (error) {
-                        addFetchLog(daText, false)
-                        let errorMsg = (daText.startsWith('<!DOCTYPE')) ? ("Responded HTML. is your url, api key and password correct?") : (daText)
-                        return {
-                            ok:false,
-                            data: errorMsg,
-                            headers: Object.fromEntries(da.headers)
-                        }
-                    }
-                }
-            } catch (error) {
-                return {
-                    ok:false,
-                    data: `${error}`,
-                    headers: {}
-                }
-            }
-        }   
+      const data = JSON.parse(text);
+      addFetchLogInGlobalFetch(data, isSuccess, url, arg);
+      return { ok: isSuccess, data, headers: Object.fromEntries(response.headers) };
     } catch (error) {
-        console.error(error)
-        return {
-            ok:false,
-            data: `${error}`,
-            headers: {}
-        }
+      const errorMsg = text.startsWith('<!DOCTYPE') ? "Responded HTML. Is your URL, API key, and password correct?" : text;
+      addFetchLogInGlobalFetch(text, false, url, arg);
+      return { ok: false, data: errorMsg, headers: Object.fromEntries(response.headers) };
     }
+  } catch (error) {
+    return { ok: false, data: `${error}`, headers: {} };
+  }
 }
 
 async function registerSw() {
