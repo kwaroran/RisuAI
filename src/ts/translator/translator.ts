@@ -128,20 +128,26 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
     }
     if(db.translatorType === 'deeplX'){
-        const body = {
+        const body = JSON.stringify({
             text: [text],
             target_lang: arg.to.toLocaleUpperCase(),
             source_lang: arg.from.toLocaleUpperCase()
+        })
+        let url = db.deeplXOptions.url;
+        let headers = {
+            "Content-Type": "application/json"
         }
-        let url = db.deeplXOptions.url
+    
+        // token이 비어있지 않으면 headers에 Authorization 추가
+        if(db.deeplXOptions.token.trim() !== '') {
+            headers["Authorization"] = "Bearer " + db.deeplXOptions.token;
+        }
+    
         const f = await globalFetch(url, {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization" : "Bearer " + db.deeplXOptions.token
-            },
+            method: "POST", // 요청 메소드 추가
+            headers: headers,
             body: body
         })
-
         if(!f.ok){
             return 'ERR::DeepLX API Error' + (await f.data)
         }
