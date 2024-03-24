@@ -127,6 +127,29 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return f.data.translations[0].text
 
     }
+    if(db.translatorType === 'deeplX'){
+        const body = {
+            text: [text],
+            target_lang: arg.to.toLocaleUpperCase(),
+            source_lang: arg.from.toLocaleUpperCase()
+        }
+        let url = db.deeplXOptions.url
+        const f = await globalFetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization" : "Bearer " + db.deeplXOptions.token
+            },
+            body: body
+        })
+
+        if(!f.ok){
+            return 'ERR::DeepLX API Error' + (await f.data)
+        }
+        return f.data.translations[0].text
+
+    }
+
+
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
 
@@ -171,7 +194,7 @@ async function jaTrans(text:string) {
 
 export function isExpTranslator(){
     const db = get(DataBase)
-    return db.translatorType === 'llm' || db.translatorType === 'deepl'
+    return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
 export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = ''): Promise<string> {

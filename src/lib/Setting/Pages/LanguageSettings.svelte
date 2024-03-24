@@ -58,6 +58,7 @@
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
         <OptionInput value="llm" >Ax. Model</OptionInput>
+        <OptionInput value="deeplX" >DeepL X</OptionInput>
     </SelectInput>
 
     {#if $DataBase.translatorType === 'deepl'}
@@ -70,6 +71,14 @@
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
+    {/if}
+
+    {#if $DataBase.translatorType === 'deeplX'}
+        <span class="text-textcolor mt-4">{language.deeplXUrl}</span>
+        <TextInput bind:value={$DataBase.deeplXOptions.url} />
+        
+        <span class="text-textcolor mt-4">{language.deeplXToken}</span>
+        <TextInput bind:value={$DataBase.deeplXOptions.token} />
     {/if}
     
     {#if $DataBase.translatorType === 'llm'}

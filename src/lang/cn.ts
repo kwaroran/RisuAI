@@ -391,6 +391,8 @@ export const languageChinese = {
 	"translatorType": "翻译类型",
 	"deeplKey": "deepl API密钥",
 	"deeplFreeKey": "deepl 免费 API密钥",
+	"deeplXUrl": "deepLX URL",
+	"deeplXToken": "deepLX Token",
 	"exportPersona": "导出角色",
 	"importPersona": "导入角色",
 	"export": "导出",

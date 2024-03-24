@@ -421,6 +421,8 @@ export const languageGerman = {
     translatorType: "Übersetzer-Typ",
     deeplKey: "DeepL API-Schlüssel",
     deeplFreeKey: "DeepL Gratis API-Schlüssel",
+    deeplXUrl: "deepLX URL",
+    deeplXToken: "deepLX Token",
     exportPersona: "Profil exportieren",
     importPersona: "Profil importieren",
     export: "Exportieren",

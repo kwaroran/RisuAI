@@ -56,7 +56,8 @@ export async function sayTTS(character:character,text:string) {
                 const audioContext = new AudioContext();
                 const da = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${character.ttsSpeech}`, {
                     body: JSON.stringify({
-                        text: text
+                        text: text,
+                        model_id: "eleven_multilingual_v2"
                     }),
                     method: "POST",
                     headers: {
