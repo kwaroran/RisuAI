@@ -672,7 +672,7 @@ async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<Global
 
     const body = arg.body instanceof URLSearchParams ? arg.body.toString() : JSON.stringify(arg.body);
 
-    const response = await fetch(furl, { body, headers, method: arg.method, signal: arg.abortSignal });
+    const response = await fetch(furl, { body, headers, method: arg.method ?? "POST", signal: arg.abortSignal });
     const isSuccess = response.ok && response.status >= 200 && response.status < 300;
 
     if (arg.rawResponse) {
