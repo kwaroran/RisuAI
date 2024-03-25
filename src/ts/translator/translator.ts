@@ -145,7 +145,8 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     
         if(db.deeplXOptions.token.trim() !== '') { headers["Authorization"] = "Bearer " + db.deeplXOptions.token}
         
-        const f = await globalFetch(url, { method: "POST", headers: headers, body: body })
+        //Since the DeepLX API is non-CORS restricted, we can use the plain fetch function
+        const f = await globalFetch(url, { method: "POST", headers: headers, body: body, plainFetchForce:true })
 
         if(!f.ok){ return 'ERR::DeepLX API Error' + (await f.data) }
 
@@ -217,9 +218,68 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     console.log(html)
 
     let promises: Promise<void>[] = [];
+    let translationChunks: {
+        chunks: string[],
+        resolvers: ((text:string) => void)[]
+    }[] = [{
+        chunks: [],
+        resolvers: []
+    }]
+
+    async function translateTranslationChunks(force:boolean = false, additionalChunkLength = 0){
+        const text: string = translationChunks[translationChunks.length-1].chunks.join('\n')
+
+        if(!force && text.length + additionalChunkLength < 5000){
+            return
+        }
+
+        const translated = await translate(text, reverse)
+
+        const split = translated.split('\n')
+
+
+        let i=0;
+        let pointer = 0;
+        let pointer2 = 0;
+        let cl = ''
+        console.log(split, translationChunks[translationChunks.length-1].chunks)
+        while(i < split.length){
+            const chunk = translationChunks[translationChunks.length-1]?.chunks?.[pointer]?.split('\n')
+            if(!chunk){
+                //error, should not happen. but if it does, just break the loop
+                break
+            }
+            cl += split[i] + '\n'
+            pointer2++
+
+            if(chunk.length === pointer2){
+                translationChunks[translationChunks.length-1].resolvers[pointer](cl.trim())
+                pointer++
+                pointer2 = 0
+                cl = ''
+            }
+            i++
+        }
+
+        translationChunks[translationChunks.length-1].chunks = []
+        translationChunks[translationChunks.length-1].resolvers = []
+
+
+    }
 
     async function translateNodeText(node:Node) {
         if(node.textContent.trim().length !== 0){
+            if(needSuperChunkedTranslate()){
+                const prm = new Promise<string>((resolve) => {
+                    translateTranslationChunks(false, node.textContent.length)
+                    translationChunks[translationChunks.length-1].resolvers.push(resolve)
+                    translationChunks[translationChunks.length-1].chunks.push(node.textContent)
+                })
+    
+                node.textContent = await prm
+                return
+            }
+
             node.textContent = await translate(node.textContent || '', reverse);
         }
     }
@@ -256,6 +316,8 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     // Start translation from the body element
     await translateNode(dom.body);
 
+    await translateTranslationChunks(true, 0)
+
     await Promise.all(promises)
     // Serialize the DOM back to HTML
     const serializer = new XMLSerializer();
@@ -289,6 +351,11 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     // console.log(translatedHTML)
     // Return the translated HTML, excluding the outer <body> tags if needed
     return translatedHTML
+}
+
+function needSuperChunkedTranslate(){
+    let db = get(DataBase)
+    return db.translatorType === 'deeplX'
 }
 
 let llmCache = new Map<string, string>()
