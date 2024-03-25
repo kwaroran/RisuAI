@@ -114,9 +114,11 @@ export const PngChunk = {
         return chunks
     },
 
-    readGenerator: async function*(data:File|Uint8Array, arg:{checkCrc?:boolean,returnTrimed?:boolean} = {}):AsyncGenerator<
+    readGenerator: async function*(data:File|Uint8Array|ReadableStream<Uint8Array>, arg:{checkCrc?:boolean,returnTrimed?:boolean} = {}):AsyncGenerator<
         {key:string,value:string}|AppendableBuffer,null
     >{
+        const reader = data instanceof ReadableStream ? data.getReader() : null
+        let readableStreamData = new AppendableBuffer()
         const trimedData = new AppendableBuffer()
 
         async function appendTrimed(data:Uint8Array){
@@ -125,27 +127,45 @@ export const PngChunk = {
             }
         }
 
-        async function slice(start:number,end?:number):Promise<Uint8Array> {
+        async function slice(start:number,end:number):Promise<Uint8Array> {
             if(data instanceof File){
                 return await blobToUint8Array (data.slice(start,end))
             }
-            else{
+            else if(data instanceof Uint8Array){
                 return data.slice(start,end)
             }
-            
+            else{
+                while(end > readableStreamData.length()){
+                    const rs = await reader.read()
+                    if(!rs.value && rs.done){
+                        return new Uint8Array(0)
+                    }
+                    if(!rs.value){
+                        continue
+                    }
+                    readableStreamData.append(rs.value)
+                }
+                const data = readableStreamData.slice(start, end)
+
+                if(start - readableStreamData.deapended > 200000){
+                    readableStreamData.deappend(50000)
+                }
+
+                return data
+            }
         }
 
         
 
         await appendTrimed(await slice(0,8))
         let pos = 8
-        const size = data instanceof File ? data.size : data.length
+        const size = data instanceof File ? data.size : data instanceof Uint8Array ? data.length : Infinity
         while(pos < size){
             const dataPart = await slice(pos,pos+4)
             const len = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
             const type = await slice(pos+4,pos+8)
             const typeString = new TextDecoder().decode(type)
-            if(arg.checkCrc){
+            if(arg.checkCrc && !(data instanceof ReadableStream)){ //crc check is not supported for stream
                 const dataPart = await slice(pos+8+len,pos+12+len)
                 const crc = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
                 const crcCheck = crc32(await slice(pos+4,pos+8+len))

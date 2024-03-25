@@ -39,9 +39,12 @@ export async function importCharacter() {
 
 async function importCharacterProcess(f:{
     name: string;
-    data: Uint8Array|File
+    data: Uint8Array|File|ReadableStream<Uint8Array>
 }) {
     if(f.name.endsWith('json')){
+        if(f.data instanceof ReadableStream){
+            return null
+        }
         const data = f.data instanceof Uint8Array ? f.data : new Uint8Array(await f.data.arrayBuffer())
         const da = JSON.parse(Buffer.from(data).toString('utf-8'))
         if(await importSpecv2(da)){

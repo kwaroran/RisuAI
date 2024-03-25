@@ -1236,6 +1236,7 @@ if(Capacitor.isNativePlatform()){
 
 export class AppendableBuffer{
     buffer:Uint8Array
+    deapended:number = 0
     constructor(){
         this.buffer = new Uint8Array(0)
     }
@@ -1245,6 +1246,17 @@ export class AppendableBuffer{
         newBuffer.set(data, this.buffer.length)
         this.buffer = newBuffer
     }
+    deappend(length:number){
+        this.buffer = this.buffer.slice(length)
+        this.deapended += length
+    }
+    slice(start:number, end:number){
+        return this.buffer.slice(start - this.deapended, end - this.deapended)
+    }
+    length(){
+        return this.buffer.length + this.deapended
+    }
+
 }
 
 const pipeFetchLog = (fetchLogIndex:number, readableStream:ReadableStream<Uint8Array>) => {
