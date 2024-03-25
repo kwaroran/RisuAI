@@ -613,6 +613,7 @@ export interface Database{
     additionalParams:[string, string][]
     heightMode:string
     useAdvancedEditor:boolean
+    noWaitForTranslate:boolean
 }
 
 export interface customscript{

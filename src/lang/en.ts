@@ -554,4 +554,5 @@ export const languageEnglish = {
     additionalParams: "Additional Parameters",
     heightMode: "Height Mode",
     useAdvancedEditor: "Use Advanced Editor",
+    noWaitForTranslate: "No Wait for Translate",
 }

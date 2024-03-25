@@ -8,6 +8,7 @@ import { doingChat } from "../process"
 import type { simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
+import { sleep } from "../util"
 
 let cache={
     origin: [''],
@@ -128,6 +129,14 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
     }
     if(db.translatorType === 'deeplX'){
+        if(!db.noWaitForTranslate){
+            if(waitTrans - Date.now() > 0){
+                const waitTime = waitTrans - Date.now()
+                waitTrans = Date.now() + 3000
+                await sleep(waitTime)
+            }
+        }
+
         let url = db.deeplXOptions.url;
 
         if(url.endsWith('/')){
