@@ -225,44 +225,41 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
         chunks: [],
         resolvers: []
     }]
+    
 
     async function translateTranslationChunks(force:boolean = false, additionalChunkLength = 0){
-        const text: string = translationChunks[translationChunks.length-1].chunks.join('\n')
+        const currentChunk = translationChunks[translationChunks.length-1]
+        const text: string = currentChunk.chunks.join('\n■\n')
 
+        console.log(text)
         if(!force && text.length + additionalChunkLength < 5000){
             return
         }
 
+        translationChunks.push({
+            chunks: [],
+            resolvers: []
+        })
+
         const translated = await translate(text, reverse)
 
-        const split = translated.split('\n')
+        const split = translated.split('■')
 
+        console.log(split.length, currentChunk.chunks.length)
 
-        let i=0;
-        let pointer = 0;
-        let pointer2 = 0;
-        let cl = ''
-        console.log(split, translationChunks[translationChunks.length-1].chunks)
-        while(i < split.length){
-            const chunk = translationChunks[translationChunks.length-1]?.chunks?.[pointer]?.split('\n')
-            if(!chunk){
-                //error, should not happen. but if it does, just break the loop
-                break
+        if(split.length !== currentChunk.chunks.length){
+            //try translating one by one
+            for(let i = 0; i < currentChunk.chunks.length; i++){
+                currentChunk.resolvers[i](
+                    await translate(currentChunk.chunks[i]
+                , reverse))
             }
-            cl += split[i] + '\n'
-            pointer2++
-
-            if(chunk.length === pointer2){
-                translationChunks[translationChunks.length-1].resolvers[pointer](cl.trim())
-                pointer++
-                pointer2 = 0
-                cl = ''
-            }
-            i++
         }
-
-        translationChunks[translationChunks.length-1].chunks = []
-        translationChunks[translationChunks.length-1].resolvers = []
+        
+        for(let i = 0; i < split.length; i++){
+            console.log(split[i])
+            currentChunk.resolvers[i](split[i])
+        }
 
 
     }
@@ -354,7 +351,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 }
 
 function needSuperChunkedTranslate(){
-    return false //not needed for now
+    return true //not needed for now
 }
 
 let llmCache = new Map<string, string>()
