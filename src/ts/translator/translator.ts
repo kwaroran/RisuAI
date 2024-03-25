@@ -127,6 +127,27 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return f.data.translations[0].text
 
     }
+    if(db.translatorType === 'deeplX'){
+        // URL이 DeeplX 프로그램 실행시키면 CMD에서는 0.0.0.0:1188라고 뜨는데 https://0.0.0.0:1188/translate 로 호출 보내야함
+        // 유저가 https://0.0.0.0:1188/translate라고 입력하게 할지, 아니면 0.0.0.0:1188만 입력하면 /translate를 자동으로 붙여줄지 결정필요
+        let url = db.deeplXOptions.url;
+        let headers = { "Content-Type": "application/json" }
+
+        const body = {text: text, target_lang: arg.to.toLocaleUpperCase(), source_lang: arg.from.toLocaleUpperCase()}
+
+    
+        if(db.deeplXOptions.token.trim() !== '') { headers["Authorization"] = "Bearer " + db.deeplXOptions.token}
+        
+        console.log(body)
+        const f = await globalFetch(url, { method: "POST", headers: headers, body: body })
+
+        if(!f.ok){ return 'ERR::DeepLX API Error' + (await f.data) }
+
+        const jsonResponse = JSON.stringify(f.data.data)
+        return jsonResponse
+    }
+
+
     const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
 
 
@@ -171,7 +192,7 @@ async function jaTrans(text:string) {
 
 export function isExpTranslator(){
     const db = get(DataBase)
-    return db.translatorType === 'llm' || db.translatorType === 'deepl'
+    return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
 export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = ''): Promise<string> {

@@ -456,6 +456,8 @@ export const languageEnglish = {
     translatorType: "Translator Type",
     deeplKey: "deepL API Key",
     deeplFreeKey: "deepL Free API Key",
+    deeplXUrl: "deepLX URL",
+    deeplXToken: "deepLX Token",
     exportPersona: "Export Persona",
     importPersona: "Import Persona",
     export: "Export",

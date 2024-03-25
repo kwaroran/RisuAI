@@ -394,6 +394,8 @@ export const languageKorean = {
     translatorType: "번역기 타입",
     deeplKey: "deepL API 키",
     deeplFreeKey: "deepL 무료 API 키",
+    deeplXUrl: "deepLX URL",
+    deeplXToken: "deepLX Token",
     exportPersona: "페르소나 엑스포트",
     importPersona: "페르소나 임포트",
     export: "엑스포트",

@@ -332,6 +332,10 @@ export function setDatabase(data:Database){
         key:'',
         freeApi: false
     }
+    data.deeplXOptions ??= {
+        url:'',
+        token:''
+    } 
     data.NAIadventure ??= false
     data.NAIappendName ??= true
     data.NAIsettings.cfg_scale ??= 1
@@ -555,12 +559,16 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none'|'llm',
+    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX',
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
         key:string,
         freeApi:boolean
+    }
+    deeplXOptions:{
+        url:string,
+        token:string    
     }
     localStopStrings?:string[]
     autofillRequestUrl:boolean
