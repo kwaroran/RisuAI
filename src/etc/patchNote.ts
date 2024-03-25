@@ -1,12 +1,15 @@
 export const patchNote = {
-    version: "1.87",
+    version: "1.88",
     content: 
 `
-# Update 1.87
-- Changed name of Reverse Proxy to Custom (OpenAI-Compatible)
-- Added Additional Parameters to Custom (OpenAI-Compatible)
-- Added Height mode option
-- Fixed file post not working on Custom (OpenAI-Compatible)
+# Update 1.88
+- Added DeepLX API support for translation #328
+- Added ElevenLabs Multilingual support #328
+- Added CharacterJS API support for Background Embedding #324
+- Added CodeMinor based syntax highlighting on input #325
+- Added ST preset import support
+- Reworked Variable system, now variables are stored in CharacterJS states, rather than in the chat context
+
 `
 }
 
