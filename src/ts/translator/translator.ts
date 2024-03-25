@@ -354,8 +354,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 }
 
 function needSuperChunkedTranslate(){
-    let db = get(DataBase)
-    return db.translatorType === 'deeplX'
+    return false //not needed for now
 }
 
 let llmCache = new Map<string, string>()
