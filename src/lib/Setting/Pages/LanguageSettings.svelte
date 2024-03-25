@@ -74,7 +74,7 @@
     {/if}
 
     {#if $DataBase.translatorType === 'deeplX'}
-        <span class="text-textcolor mt-4">{language.deeplXUrl}</span>
+        <span class="text-textcolor mt-4" placeholder="http://localhost:1188">{language.deeplXUrl}</span>
         <TextInput bind:value={$DataBase.deeplXOptions.url} />
         
         <span class="text-textcolor mt-4">{language.deeplXToken}</span>

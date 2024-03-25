@@ -137,7 +137,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
             }
         }
 
-        let url = db.deeplXOptions.url;
+        let url = db.deeplXOptions.url ?? 'http://localhost:1188'
 
         if(url.endsWith('/')){
             url = url.slice(0, -1)
