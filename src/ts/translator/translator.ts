@@ -237,10 +237,13 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     
 
     async function translateTranslationChunks(force:boolean = false, additionalChunkLength = 0){
+        if(translationChunks.length === 0 || !needSuperChunkedTranslate()){
+            return
+        }
+
         const currentChunk = translationChunks[translationChunks.length-1]
         const text: string = currentChunk.chunks.join('\n■\n')
 
-        console.log(text)
         if(!force && text.length + additionalChunkLength < 5000){
             return
         }
@@ -249,6 +252,10 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             chunks: [],
             resolvers: []
         })
+
+        if(!text){
+            return
+        }
 
         const translated = await translate(text, reverse)
 
