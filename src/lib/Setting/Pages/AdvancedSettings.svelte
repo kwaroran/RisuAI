@@ -75,6 +75,9 @@
     <Check bind:check={$DataBase.newOAIHandle} name={language.newOAIHandle}/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.noWaitForTranslate} name={language.noWaitForTranslate}/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.allowAllExtentionFiles} name="Allow all in file select"/>
 </div>
 <div class="flex items-center mt-4">
