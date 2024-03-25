@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import crc32 from 'crc/crc32';
-import type { LocalWriter } from './storage/globalApi';
+import { AppendableBuffer, type LocalWriter } from './storage/globalApi';
+import { blobToUint8Array } from './util';
 
 class StreamChunkWriter{
     constructor(private data:Uint8Array, private writer:LocalWriter){
@@ -113,24 +114,51 @@ export const PngChunk = {
         return chunks
     },
 
-    readGenerator: function*(data:Uint8Array, arg:{checkCrc?:boolean} = {}):Generator<{key:string,value:string},null>{
+    readGenerator: async function*(data:File|Uint8Array, arg:{checkCrc?:boolean,returnTrimed?:boolean} = {}):AsyncGenerator<
+        {key:string,value:string}|AppendableBuffer,null
+    >{
+        const trimedData = new AppendableBuffer()
+
+        async function appendTrimed(data:Uint8Array){
+            if(arg.returnTrimed){
+                trimedData.append(data)
+            }
+        }
+
+        async function slice(start:number,end?:number):Promise<Uint8Array> {
+            if(data instanceof File){
+                return await blobToUint8Array (data.slice(start,end))
+            }
+            else{
+                return data.slice(start,end)
+            }
+            
+        }
+
+        
+
+        await appendTrimed(await slice(0,8))
         let pos = 8
-        while(pos < data.length){
-            const len = data[pos] * 0x1000000 + data[pos+1] * 0x10000 + data[pos+2] * 0x100 + data[pos+3]
-            const type = data.slice(pos+4,pos+8)
+        const size = data instanceof File ? data.size : data.length
+        while(pos < size){
+            const dataPart = await slice(pos,pos+4)
+            const len = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
+            const type = await slice(pos+4,pos+8)
             const typeString = new TextDecoder().decode(type)
             if(arg.checkCrc){
-                const crc = data[pos+8+len] * 0x1000000 + data[pos+9+len] * 0x10000 + data[pos+10+len] * 0x100 + data[pos+11+len]
-                const crcCheck = crc32(data.slice(pos+4,pos+8+len))
+                const dataPart = await slice(pos+8+len,pos+12+len)
+                const crc = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
+                const crcCheck = crc32(await slice(pos+4,pos+8+len))
                 if(crc !== crcCheck){
                     throw new Error('crc check failed')
                 }
             }
             if(typeString === 'IEND'){
+                await appendTrimed(await slice(pos,pos+12+len))
                 break
             }
-            if(typeString === 'tEXt'){
-                const chunkData = data.slice(pos+8,pos+8+len)
+            else if(typeString === 'tEXt'){
+                const chunkData = await slice(pos+8,pos+8+len)
                 let key=''
                 let value=''
                 for(let i=0;i<70;i++){
@@ -142,11 +170,17 @@ export const PngChunk = {
                 }
                 yield {key,value}
             }
+            else{
+                await appendTrimed(await slice(pos,pos+12+len))
+            }
             pos += 12 + len
+        }
+        if(arg.returnTrimed){
+            yield trimedData
         }
         return null
     },
-    
+
     trim: (data:Uint8Array) => {
         let pos = 8
         let newData:Uint8Array[] = []
@@ -169,6 +203,7 @@ export const PngChunk = {
         newData.push(data.slice(pos))
         return Buffer.concat(newData)
     },
+
 
     write: async (data:Uint8Array, chunks:{[key:string]:string}, options:{writer?:LocalWriter} = {}):Promise<void | Buffer> => {
         let pos = 8

@@ -1,11 +1,11 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
-import { checkNullish, decryptBuffer, encryptBuffer, selectMultipleFile, sleep } from "./util"
+import { checkNullish, decryptBuffer, encryptBuffer, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
+import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
 import { selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
@@ -18,13 +18,17 @@ export const hubURL = "https://sv.risuai.xyz"
 
 export async function importCharacter() {
     try {
-        const files = await selectMultipleFile(['png', 'json'])
+        const files = await selectFileByDom(['png', 'json'])
         if(!files){
             return
         }
 
         for(const f of files){
-            await importCharacterProcess(f)
+            console.log(f)
+            await importCharacterProcess({
+                name: f.name,
+                data: f
+            })
             checkCharOrder()
         }
     } catch (error) {
@@ -35,10 +39,11 @@ export async function importCharacter() {
 
 async function importCharacterProcess(f:{
     name: string;
-    data: Uint8Array;
+    data: Uint8Array|File
 }) {
     if(f.name.endsWith('json')){
-        const da = JSON.parse(Buffer.from(f.data).toString('utf-8'))
+        const data = f.data instanceof Uint8Array ? f.data : new Uint8Array(await f.data.arrayBuffer())
+        const da = JSON.parse(Buffer.from(data).toString('utf-8'))
         if(await importSpecv2(da)){
             let db = get(DataBase)
             return db.characters.length - 1
@@ -60,14 +65,21 @@ async function importCharacterProcess(f:{
         msg: 'Loading... (Reading)'
     })
     await sleep(10)
-    const img = f.data
     
     // const readed = PngChunk.read(img, ['chara'])?.['chara']
     let readedChara = ''
-    const readGenerator = PngChunk.readGenerator(img)
+    let img:Uint8Array
+    const readGenerator = PngChunk.readGenerator(f.data, {
+        returnTrimed: true
+    })
     const assets:{[key:string]:string} = {}
-    for await(const chunk of readGenerator){
+    for await (const chunk of readGenerator){
+        console.log(chunk)
         if(!chunk){
+            break
+        }
+        if(chunk instanceof AppendableBuffer){
+            img = chunk.buffer
             break
         }
         if(chunk.key === 'chara'){

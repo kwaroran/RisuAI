@@ -1234,7 +1234,7 @@ if(Capacitor.isNativePlatform()){
     streamedFetchListening = true
 }
 
-class AppendableBuffer{
+export class AppendableBuffer{
     buffer:Uint8Array
     constructor(){
         this.buffer = new Uint8Array(0)
