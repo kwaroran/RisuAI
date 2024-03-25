@@ -663,6 +663,7 @@ async function fetchWithCapacitor(url: string, arg: GlobalFetchArgs): Promise<Gl
 async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
   try {
     const furl = !isTauri && !isNodeServer ? `${hubURL}/proxy2` : `/proxy2`;
+    arg.headers["Content-Type"] ??= arg.body instanceof URLSearchParams ? "application/x-www-form-urlencoded" : "application/json";
     const headers = {
       "risu-header": encodeURIComponent(JSON.stringify(arg.headers)),
       "risu-url": encodeURIComponent(url),
