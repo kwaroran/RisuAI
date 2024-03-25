@@ -551,20 +551,21 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
     const urlHost = new URL(url).hostname
     const forcePlainFetch = (knownHostes.includes(urlHost) && !isTauri) || db.usePlainFetch || arg.plainFetchForce
 
-    if (knownHostes.includes(urlHost) && !isTauri && !isNodeServer)
-    return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' }
+    if (knownHostes.includes(urlHost) && !isTauri && !isNodeServer){
+        return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' }
+    }
 
     // Simplify the globalFetch function: Detach built-in functions
-      if (forcePlainFetch) {
+    if (forcePlainFetch) {
         return await fetchWithPlainFetch(url, arg);
-      }
-      if (isTauri) {
+    }
+    if (isTauri) {
         return await fetchWithTauri(url, arg);
-      }
-      if (Capacitor.isNativePlatform()) {
+    }
+    if (Capacitor.isNativePlatform()) {
         return await fetchWithCapacitor(url, arg);
-      }
-      return await fetchWithProxy(url, arg);
+    }
+    return await fetchWithProxy(url, arg);
     
   } catch (error) {
     console.error(error);
@@ -602,7 +603,7 @@ function addFetchLogInGlobalFetch(response:any, success:boolean, url:string, arg
 async function fetchWithPlainFetch(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
   try {
     const headers = { 'Content-Type': 'application/json', ...arg.headers };
-    const response = await fetch(new URL(url), { body: JSON.stringify(arg.body), headers, method: arg.method, signal: arg.abortSignal });
+    const response = await fetch(new URL(url), { body: JSON.stringify(arg.body), headers, method: arg.method ?? "POST", signal: arg.abortSignal });
     const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
     const ok = response.ok && response.status >= 200 && response.status < 300;
     addFetchLogInGlobalFetch(data, ok, url, arg);
@@ -618,7 +619,7 @@ async function fetchWithTauri(url: string, arg: GlobalFetchArgs): Promise<Global
   const headers = arg.headers ?? {};
   const fetchPromise = TauriFetch(url, {
     body,
-    method: arg.method,
+    method: arg.method ?? 'POST',
     headers,
     timeout: { secs: get(DataBase).timeOut, nanos: 0 },
     responseType: arg.rawResponse ? ResponseType.Binary : ResponseType.JSON,
@@ -647,7 +648,7 @@ async function fetchWithCapacitor(url: string, arg: GlobalFetchArgs): Promise<Gl
   const { body, headers = {}, rawResponse } = arg;
   headers["Content-Type"] = body instanceof URLSearchParams ? "application/x-www-form-urlencoded" : "application/json";
 
-  const res = await CapacitorHttp.request({ url, method: arg.method, headers, data: body, responseType: rawResponse ? "arraybuffer" : "json" });
+  const res = await CapacitorHttp.request({ url, method: arg.method ?? "POST", headers, data: body, responseType: rawResponse ? "arraybuffer" : "json" });
 
   addFetchLogInGlobalFetch(rawResponse ? "Uint8Array Response" : res.data, true, url, arg);
 
