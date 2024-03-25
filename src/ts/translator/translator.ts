@@ -128,31 +128,23 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
     }
     if(db.translatorType === 'deeplX'){
-        const body = JSON.stringify({
-            text: [text],
-            target_lang: arg.to.toLocaleUpperCase(),
-            source_lang: arg.from.toLocaleUpperCase()
-        })
+        // URL이 DeeplX 프로그램 실행시키면 CMD에서는 0.0.0.0:1188라고 뜨는데 https://0.0.0.0:1188/translate 로 호출 보내야함
+        // 유저가 https://0.0.0.0:1188/translate라고 입력하게 할지, 아니면 0.0.0.0:1188만 입력하면 /translate를 자동으로 붙여줄지 결정필요
         let url = db.deeplXOptions.url;
-        let headers = {
-            "Content-Type": "application/json"
-        }
-    
-        // token이 비어있지 않으면 headers에 Authorization 추가
-        if(db.deeplXOptions.token.trim() !== '') {
-            headers["Authorization"] = "Bearer " + db.deeplXOptions.token;
-        }
-    
-        const f = await globalFetch(url, {
-            method: "POST", // 요청 메소드 추가
-            headers: headers,
-            body: body
-        })
-        if(!f.ok){
-            return 'ERR::DeepLX API Error' + (await f.data)
-        }
-        return f.data.translations[0].text
+        let headers = { "Content-Type": "application/json" }
 
+        const body = {text: text, target_lang: arg.to.toLocaleUpperCase(), source_lang: arg.from.toLocaleUpperCase()}
+
+    
+        if(db.deeplXOptions.token.trim() !== '') { headers["Authorization"] = "Bearer " + db.deeplXOptions.token}
+        
+        console.log(body)
+        const f = await globalFetch(url, { method: "POST", headers: headers, body: body })
+
+        if(!f.ok){ return 'ERR::DeepLX API Error' + (await f.data) }
+
+        const jsonResponse = JSON.stringify(f.data.data)
+        return jsonResponse
     }
 
 
