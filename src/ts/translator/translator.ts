@@ -159,8 +159,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
         if(!f.ok){ return 'ERR::DeepLX API Error' + (await f.data) }
 
-        const jsonResponse = JSON.stringify(f.data.data)
-        return jsonResponse
+        return f.data.data;
     }
 
 
