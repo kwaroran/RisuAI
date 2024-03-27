@@ -101,7 +101,7 @@ export const PngChunk = {
                 for(let i=0;i<70;i++){
                     if(chunkData[i] === 0){
                         key = new TextDecoder().decode(chunkData.slice(0,i))
-                        value = new TextDecoder().decode(chunkData.slice(i))
+                        value = new TextDecoder().decode(chunkData.slice(i + 1))
                         break
                     }
                 }
@@ -184,7 +184,7 @@ export const PngChunk = {
                 for(let i=0;i<70;i++){
                     if(chunkData[i] === 0){
                         key = new TextDecoder().decode(chunkData.slice(0,i))
-                        value = new TextDecoder().decode(chunkData.slice(i))
+                        value = new TextDecoder().decode(chunkData.slice(i+1))
                         break
                     }
                 }
