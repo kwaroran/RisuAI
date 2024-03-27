@@ -79,7 +79,7 @@ async function importCharacterProcess(f:{
     for await (const chunk of readGenerator){
         console.log(chunk)
         if(!chunk){
-            break
+            continue
         }
         if(chunk instanceof AppendableBuffer){
             img = chunk.buffer
@@ -90,7 +90,7 @@ async function importCharacterProcess(f:{
             if(readedChara.length < 2 * 1024 * 1024){
                 readedChara = chunk.value.replaceAll('\0', '')
             }
-            break
+            continue
         }
         if(chunk.key.startsWith('chara-ext-asset_')){
             const assetIndex = (chunk.key.replace('chara-ext-asset_', ''))
@@ -101,6 +101,12 @@ async function importCharacterProcess(f:{
         }
     }
     if(!readedChara){
+        alertError(language.errors.noData)
+        return
+    }
+
+    if(!img){
+        console.error("No Image Found")
         alertError(language.errors.noData)
         return
     }
