@@ -61,7 +61,7 @@
             if(!latin1.test(enNotes)){
                 alertError("English version of creator notes must contain only Latin-1 characters")
             }
-            shareRisuHub(char, {
+            shareRisuHub2(char, {
                 anon: privateMode,
                 nsfw: nsfwMode,
                 tag: tags,
@@ -79,7 +79,7 @@
     import { XIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertError } from "src/ts/alert";
-    import { shareRisuHub } from "src/ts/characterCards";
+    import { shareRisuHub2 } from "src/ts/characterCards";
     import { DataBase, type character } from "src/ts/storage/database";
     import TextInput from "../GUI/TextInput.svelte";
     import Button from "../GUI/Button.svelte";

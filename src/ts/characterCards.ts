@@ -730,51 +730,56 @@ export async function shareRisuHub2(char:character, arg:{
     license: string
     anon: boolean
 }) {
-    char = cloneDeep(char)
-    char.license = arg.license
-    let tagList = arg.tag.split(',')
-    
-    if(arg.nsfw){
-        tagList.push("nsfw")
-    }
-
-    await alertWait("Uploading...")
-    
-
-    let tags = tagList.filter((v, i) => {
-        return (!!v) && (tagList.indexOf(v) === i)
-    })
-    char.tags = tags
-
-
-    const writer = new VirtualWriter()
-    await exportSpecV2(char, 'png', {writer: writer})
-
-    const fetchPromise = fetch(hubURL + '/hub/realm/upload', {
-        method: "POST",
-        body: writer.buf.buffer,
-        headers: {
-            "Content-Type": 'image/png',
-            "x-risu-api-version": "4",
-            "x-risu-token": get(DataBase)?.account?.token,
-            'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
+    try {
+        char = cloneDeep(char)
+        char.license = arg.license
+        let tagList = arg.tag.split(',')
+        
+        if(arg.nsfw){
+            tagList.push("nsfw")
         }
-    })
-
-
-    const res = await fetchPromise
-
-    if(res.status !== 200){
-        alertError(await res.text())
-    }
-    else{
-        const resJSON = await res.json()
-        alertNormal(resJSON.message)
-        const currentChar = get(CurrentCharacter)
-        if(currentChar.type === 'group'){
-            return
+    
+        await alertWait("Uploading...")
+        
+    
+        let tags = tagList.filter((v, i) => {
+            return (!!v) && (tagList.indexOf(v) === i)
+        })
+        char.tags = tags
+    
+    
+        const writer = new VirtualWriter()
+        await exportSpecV2(char, 'png', {writer: writer})
+    
+        const fetchPromise = fetch(hubURL + '/hub/realm/upload', {
+            method: "POST",
+            body: writer.buf.buffer,
+            headers: {
+                "Content-Type": 'image/png',
+                "x-risu-api-version": "4",
+                "x-risu-token": get(DataBase)?.account?.token,
+                'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
+                'x-risu-debug': 'true'
+            }
+        })
+    
+    
+        const res = await fetchPromise
+    
+        if(res.status !== 200){
+            alertError(await res.text())
         }
-        currentChar.realmId = resJSON.id
+        else{
+            const resJSON = await res.json()
+            alertMd(resJSON.message)
+            const currentChar = get(CurrentCharacter)
+            if(currentChar.type === 'group'){
+                return
+            }
+            currentChar.realmId = resJSON.id
+        }   
+    } catch (error) {
+        alertError(`${error}`)
     }
 
 }
@@ -904,9 +909,22 @@ export async function downloadRisuHub(id:string) {
             type: "wait",
             msg: "Downloading..."
         })
-        const res = await fetch(hubURL + '/hub/get/' + id)
+        const res = await fetch(hubURL + '/hub/get/' + id, {
+            headers: {
+                "x-risu-api-version": "4"
+            }
+        })
         if(res.status !== 200){
             alertError(await res.text())
+            return
+        }
+
+        if(res.headers.get('content-type') === 'image/png'){
+            await importCharacterProcess({
+                name: 'realm.png',
+                data: res.body
+            })
+            checkCharOrder()
             return
         }
     
