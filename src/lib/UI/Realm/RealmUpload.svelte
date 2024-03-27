@@ -53,6 +53,7 @@
             <span class="text-textcolor2 text-sm">Grotesque Contents and non-adult characters with NSFW would be banned.</span>
         {/if}
         <Button on:click={async () => {
+            await sleep(1) // wait for the input to be updated
             const enNotes = creatorNotes.en
             const latin1 = /^[\x00-\xFF]*$/
             if(enNotes.length < 10){
@@ -86,7 +87,7 @@
     import SelectInput from "../GUI/SelectInput.svelte";
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
-    import { parseMultilangString } from "src/ts/util";
+    import { parseMultilangString, sleep } from "src/ts/util";
     import MultiLangInput from "../GUI/MultiLangInput.svelte";
     export let close = () => {}
     export let char:character
