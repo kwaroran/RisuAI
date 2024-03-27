@@ -88,7 +88,7 @@ async function importCharacterProcess(f:{
         if(chunk.key === 'chara'){
             //For memory reason, limit to 2MB
             if(readedChara.length < 2 * 1024 * 1024){
-                readedChara = chunk.value.replaceAll('\0', '')
+                readedChara = chunk.value
             }
             continue
         }
