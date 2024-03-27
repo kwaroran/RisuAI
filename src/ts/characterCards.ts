@@ -5,9 +5,9 @@ import { checkNullish, decryptBuffer, encryptBuffer, selectFileByDom, selectMult
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset } from "./storage/globalApi"
+import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
 import { cloneDeep } from "lodash"
-import { selectedCharID } from "./stores"
+import { CurrentCharacter, selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
 
 import { reencodeImage } from "./process/files/image"
@@ -617,15 +617,20 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'png', rcc:{password?:string} = {}) {
+export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'png', arg:{
+    password?:string
+    writer?:LocalWriter|VirtualWriter
+} = {}) {
     let img = await readImage(char.image)
 
     try{
         char.image = ''
         const card = await createBaseV2(char)
         img = await reencodeImage(img)
-        const localWriter = new LocalWriter()
-        await localWriter.init(`Image file`, ['png'])
+        const localWriter = arg.writer ?? (new LocalWriter())
+        if(!arg.writer){
+            await (localWriter as LocalWriter).init(`Image file`, ['png'])
+        }
         const writer = new PngChunk.streamWriter(img, localWriter)
         await writer.init()
         let assetIndex = 0
@@ -689,7 +694,7 @@ export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'pn
         })
 
         if(type === 'rcc'){
-            const password = rcc.password || 'RISU_NONE'
+            const password = arg.password || 'RISU_NONE'
             const json = JSON.stringify(card)
             const encrypted = Buffer.from(await encryptBuffer(Buffer.from(json, 'utf-8'), password))
             const hashed = await hasher(encrypted)
@@ -708,13 +713,70 @@ export async function exportSpecV2(char:character, type:'png'|'json'|'rcc' = 'pn
 
         await sleep(10)
 
-        alertNormal(language.successExport)
+        if(!arg.writer){
+            alertNormal(language.successExport)
+        }
 
     }
     catch(e){
         console.error(e, e.stack)
         alertError(`${e}`)
     }
+}
+
+export async function shareRisuHub2(char:character, arg:{
+    nsfw: boolean,
+    tag:string
+    license: string
+    anon: boolean
+}) {
+    char = cloneDeep(char)
+    char.license = arg.license
+    let tagList = arg.tag.split(',')
+    
+    if(arg.nsfw){
+        tagList.push("nsfw")
+    }
+
+    await alertWait("Uploading...")
+    
+
+    let tags = tagList.filter((v, i) => {
+        return (!!v) && (tagList.indexOf(v) === i)
+    })
+    char.tags = tags
+
+
+    const writer = new VirtualWriter()
+    await exportSpecV2(char, 'png', {writer: writer})
+
+    const fetchPromise = fetch(hubURL + '/hub/realm/upload', {
+        method: "POST",
+        body: writer.buf.buffer,
+        headers: {
+            "Content-Type": 'image/png',
+            "x-risu-api-version": "4",
+            "x-risu-token": get(DataBase)?.account?.token,
+            'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
+        }
+    })
+
+
+    const res = await fetchPromise
+
+    if(res.status !== 200){
+        alertError(await res.text())
+    }
+    else{
+        const resJSON = await res.json()
+        alertNormal(resJSON.message)
+        const currentChar = get(CurrentCharacter)
+        if(currentChar.type === 'group'){
+            return
+        }
+        currentChar.realmId = resJSON.id
+    }
+
 }
 
 export async function shareRisuHub(char:character, arg:{

@@ -1,10 +1,10 @@
 import { Buffer } from 'buffer';
 import crc32 from 'crc/crc32';
-import { AppendableBuffer, type LocalWriter } from './storage/globalApi';
+import { AppendableBuffer, VirtualWriter, type LocalWriter } from './storage/globalApi';
 import { blobToUint8Array } from './util';
 
 class StreamChunkWriter{
-    constructor(private data:Uint8Array, private writer:LocalWriter){
+    constructor(private data:Uint8Array, private writer:LocalWriter|WritableStreamDefaultWriter<Uint8Array>|VirtualWriter){
 
     }
     async pushData(data:Uint8Array){

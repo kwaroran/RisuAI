@@ -727,6 +727,7 @@ export interface character{
         language: string
     },
     vits?: OnnxModelFiles
+    realmId?:string
 }
 
 

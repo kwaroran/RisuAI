@@ -1178,6 +1178,16 @@ export class LocalWriter{
     }
 }
 
+export class VirtualWriter{
+    buf = new AppendableBuffer()
+    async write(data:Uint8Array) {
+        this.buf.append(data)
+    }
+    async close(){
+        // do nothing
+    }
+}
+
 let fetchIndex = 0
 let nativeFetchData:{[key:string]:StreamedFetchChunk[]} = {}
 

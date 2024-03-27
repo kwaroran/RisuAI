@@ -87,7 +87,7 @@
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
     import { parseMultilangString } from "src/ts/util";
-  import MultiLangInput from "../GUI/MultiLangInput.svelte";
+    import MultiLangInput from "../GUI/MultiLangInput.svelte";
     export let close = () => {}
     export let char:character
     let tags=""
