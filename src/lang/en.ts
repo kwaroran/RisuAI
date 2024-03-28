@@ -555,4 +555,6 @@ export const languageEnglish = {
     heightMode: "Height Mode",
     useAdvancedEditor: "Use Advanced Editor",
     noWaitForTranslate: "No Wait for Translate",
+    updateRealm: "Update to RisuRealm",
+    updateRealmDesc: "You are trying to update your character to RisuRealm. this will update your character to RisuRealm, and you can't revert it back.",
 }

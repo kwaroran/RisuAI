@@ -18,6 +18,9 @@
                 <XIcon />
             </button>
         </h1>
+        {#if char.realmId}
+        <span class="text-textcolor2 text-sm">{language.updateRealmDesc}</span>
+        {/if}
         <div class="mb-2 mt-2 w-full border-t-2 border-t-bgcolor"></div>
         <span class="text-textcolor">{language.creatorNotes}</span>
         <span class="text-textcolor2 text-sm">A description that displays when you search and when you first open a bot.</span>
@@ -41,14 +44,16 @@
         </SelectInput>
 
         {/if}
-        <div class="flex items-center flex-wrap mt-4">
-            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Show Author ID</button>
-            <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Anonymized</button>
-        </div>
-        <div class="flex items-center flex-wrap mt-2">
-            <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} on:click={() => {nsfwMode = false}}>🎖️ Safe</button>
-            <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} on:click={() => {nsfwMode = true}}>🔞 NSFW</button>
-        </div>
+        {#if !char.realmId}
+            <div class="flex items-center flex-wrap mt-4">
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} on:click={() => {privateMode = false}}>🌏 Show Author ID</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} on:click={() => {privateMode = true}}>🔒 Anonymized</button>
+            </div>
+            <div class="flex items-center flex-wrap mt-2">
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} on:click={() => {nsfwMode = false}}>🎖️ Safe</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} on:click={() => {nsfwMode = true}}>🔞 NSFW</button>
+            </div>
+        {/if}
         {#if nsfwMode}
             <span class="text-textcolor2 text-sm">Grotesque Contents and non-adult characters with NSFW would be banned.</span>
         {/if}
@@ -69,7 +74,13 @@
                 license: license
             })
             close()
-        }} className="mt-2" size="lg">{language.shareCloud}</Button>
+        }} className="mt-2" size="lg">
+            {#if char.realmId}
+                {language.updateRealm}
+            {:else}
+                {language.shareCloud}
+            {/if}
+        </Button>
         {/if}
 
     </div>

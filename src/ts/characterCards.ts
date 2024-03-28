@@ -759,7 +759,8 @@ export async function shareRisuHub2(char:character, arg:{
                 "x-risu-api-version": "4",
                 "x-risu-token": get(DataBase)?.account?.token,
                 'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
-                'x-risu-debug': 'true'
+                'x-risu-debug': 'true',
+                'x-risu-update-id': char.realmId ?? 'null'
             }
         })
     
@@ -777,6 +778,7 @@ export async function shareRisuHub2(char:character, arg:{
                 return
             }
             currentChar.realmId = resJSON.id
+            CurrentCharacter.set(currentChar)
         }   
     } catch (error) {
         alertError(`${error}`)

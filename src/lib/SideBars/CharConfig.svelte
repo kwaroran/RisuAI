@@ -832,7 +832,13 @@
                 if(await alertTOS()){
                     openHubUpload = true                    
                 }
-            }} className="mt-2">{language.shareCloud}</Button>
+            }} className="mt-2">
+                {#if currentChar.data.realmId}
+                    {language.updateRealm}
+                {:else}
+                    {language.shareCloud}
+                {/if}
+            </Button>
         {/if}
 
         {#if openHubUpload}
