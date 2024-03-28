@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { getVarChat, risuChatParser } from "../parser";
+import { risuChatParser } from "../parser";
 import type { Chat, character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
@@ -74,8 +74,18 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     if((!triggers) || (triggers.length === 0)){
         return null
     }
-    let varValues = getVarChat(-1, char)
+    const charVars = chat.scriptstate
+    let varValues:{[key:string]:string} = {}
     let varValuesChanged = false
+
+    for(const key in charVars){
+        if(!key.startsWith('$')){
+            continue
+        }
+        varValues[key] = charVars[key.substring(1)].toString()
+    }
+    
+    
     for(const trigger of triggers){
         if(mode !== trigger.type){
             continue
@@ -192,6 +202,11 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
     if(additonalSysPrompt.promptend){
         caculatedTokens += await tokenize(additonalSysPrompt.promptend)
+    }
+    if(varValuesChanged){
+        for(const key in varValues){
+            chat.scriptstate['$' + key] = varValues[key]
+        }
     }
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens}
