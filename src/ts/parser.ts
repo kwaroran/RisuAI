@@ -648,36 +648,27 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         const v = arra[1]
         switch(arra[0]){
             case 'getvar':{
-                const db = get(DataBase)
-                const selectedChar = get(selectedCharID)
-                const char = db.characters[selectedChar]
-                const chat = char.chats[char.chatPage]
-                return (chat.scriptstate ?? {})['$' + v] ?? 'null'
+                return getChatVar(v)
             }
             case 'calc':{
                 return calcString(v).toString()
             }
-            case 'addvar':
+            case 'addvar':{
+                if(matcherArg.rmVar){
+                    return ''
+                }
+                if(matcherArg.runVar){
+                    setChatVar(v, (Number(getChatVar(v)) + Number(arra[2])).toString())
+                    return ''
+                }
+                return null
+            }
             case 'setvar':{
                 if(matcherArg.rmVar){
                     return ''
                 }
                 if(matcherArg.runVar){
-                    const db = get(DataBase)
-                    const selectedChar = get(selectedCharID)
-                    const char = db.characters[selectedChar]
-                    const chat = char.chats[char.chatPage]
-                    chat.scriptstate = chat.scriptstate ?? {}
-                    if(arra[0] === 'addvar'){
-                        chat.scriptstate['$' + v] = Number(chat.scriptstate['$' + v]) + Number(arra[2])
-                    }
-                    else{
-                        chat.scriptstate['$' + v] = arra[2]
-                    }
-
-                    char.chats[char.chatPage] = chat
-                    db.characters[selectedChar] = char
-                    setDatabase(db)
+                    setChatVar(v, arra[2])
                     return ''
                 }
                 return null
@@ -1150,87 +1141,26 @@ export function risuChatParser(da:string, arg:{
     return nested[0] + result
 }
 
-export function getVarChat(targetIndex = -1, chara:character|groupChat = null){
+
+export function getChatVar(key:string){
     const db = get(DataBase)
-    const selchar = chara ?? db.characters[get(selectedCharID)]
-    const chat = selchar.chats[selchar.chatPage]
-    let i =0;
-    if(targetIndex === -1 || targetIndex >= chat.message.length){
-        targetIndex = chat.message.length - 1
-    }
-    let vars:{[key:string]:string} = {}
-    let rules:{
-        key:string
-        rule:string
-        arg:string
-    }[] = []
-    const fm = selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
-    const rg = /(\{\{setvar::(.+?)::(.+?)\}\})/gu
-    const rg2 = /(\{\{addvar::(.+?)::(.+?)\}\})/gu
-    const rg3 = /(\{\{varrule_(.+?)::(.+?)::(.+?)\}\})/gu
-    function process(text:string){
-        const m = text.matchAll(rg)
-        for(const a of m){
-            if(a.length === 4){
-                vars[a[2]] = a[3]
-            }
-        }
-        const m2 = text.matchAll(rg2)
-        for(const a of m2){
-            if(a.length === 4){
-                vars[a[2]] = (parseInt(vars[a[2]]) + parseInt(a[3])).toString()
-            }
-        }
-        const m3 = text.matchAll(rg3)
-        for(const a of m3){
-            if(a.length === 5){
-                rules.push({
-                    key: a[3],
-                    rule: a[2],
-                    arg: a[4]
-                })
-            }
-        }
-    }
-    process(fm)
-    while( i <= targetIndex ){
-        process(chat.message[i].data)
-        i += 1
-    }
+    const selectedChar = get(selectedCharID)
+    const char = db.characters[selectedChar]
+    const chat = char.chats[char.chatPage]
+    chat.scriptstate = chat.scriptstate ?? {}
+    return (chat.scriptstate['$' + key]).toString() ?? 'null'
+}
 
-    for(const rule of rules){
-        if(vars[rule.key] === undefined){
-            continue
-        }
-        switch(rule.rule){
-            case "max":{
-                if(parseInt(vars[rule.key]) > parseInt(rule.arg)){
-                    vars[rule.key] = rule.arg
-                }
-                break
-            }
-            case "min":{
-                if(parseInt(vars[rule.key]) < parseInt(rule.arg)){
-                    vars[rule.key] = rule.arg
-                }
-                break
-            }
-            case 'overflow':{
-                const exArg = rule.arg.split(":")
-                let rv = parseInt(vars[rule.key])
-                const val = parseInt(exArg[0])
-                const tg = exArg[1]
-
-                if(isNaN(val) || isNaN(rv)){
-                    break
-                }
-
-                vars[tg] = (Math.floor(rv / val)).toString()
-                vars[rule.key] = (Math.floor(rv % val)).toString()
-            }
-        }
-    }
-    return vars
+export function setChatVar(key:string, value:string){
+    const db = get(DataBase)
+    const selectedChar = get(selectedCharID)
+    const char = db.characters[selectedChar]
+    const chat = char.chats[char.chatPage]
+    chat.scriptstate = chat.scriptstate ?? {}
+    chat.scriptstate['$' + key] = value
+    char.chats[char.chatPage] = chat
+    db.characters[selectedChar] = char
+    setDatabase(db)
 }
 
 
