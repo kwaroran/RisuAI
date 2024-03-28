@@ -1,15 +1,16 @@
 export const patchNote = {
-    version: "1.88",
+    version: "1.89",
     content: 
 `
-# Update 1.88
-- Added DeepLX API support for translation #328
-- Added ElevenLabs Multilingual support #328
-- Added CharacterJS API support for Background Embedding #324
-- Added CodeMinor based syntax highlighting on input #325
-- Added ST preset import support
-- Reworked Variable system, now variables are stored in CharacterJS states, rather than in the chat context
-
+# Update 1.89.0
+- Reworked import card system
+  - Now it would read streamed data instead of whole file
+  - This would reduce memory usage and increase performance, and also allow to import larger files
+- Reworked RisuRealm share system
+  - Now it would upload and download streamed data instead of splited assets
+  - Added Upload functionallity
+- Added /setvar, /addvar, /getvar command
+- Fixed trigger scripts using old variable system
 `
 }
 
