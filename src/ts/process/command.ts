@@ -51,7 +51,6 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             chara: currentChar.type === 'character' ? currentChar : null
         })
     }
-    console.log(commandName, arg, namedArg)
 
     switch(commandName){
         //STScript compatibility commands
@@ -174,6 +173,43 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             }
             return ''
         }
+        case 'setvar':{
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            const chat = char.chats[char.chatPage]
+            chat.scriptstate = chat.scriptstate ?? {}
+            chat.scriptstate['$' + namedArg['key']] = arg[0]
+
+            char.chats[char.chatPage] = chat
+            db.characters[selectedChar] = char
+            setDatabase(db)
+            return ''
+        }
+        case 'addvar':{
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            const chat = char.chats[char.chatPage]
+            chat.scriptstate = chat.scriptstate ?? {}
+            chat.scriptstate['$' + namedArg['key']] = (Number(chat.scriptstate['$' + namedArg['key']]) + Number(arg[0])).toString()
+
+            char.chats[char.chatPage] = chat
+            db.characters[selectedChar] = char
+            setDatabase(db)
+            return ''
+        }
+        case 'getvar':{
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            const chat = char.chats[char.chatPage]
+            chat.scriptstate = chat.scriptstate ?? {}
+            pipe = (chat.scriptstate['$' + namedArg['key']]).toString() ?? 'null'
+            return pipe
+        }
+
+
     }
     return false
 }
@@ -188,7 +224,7 @@ function commandParser(command:string, pipe:string){
     let argArray:string[] = []
     let namedArg:{[key:string]:string} = {}
     for(let i = 1; i<sliced.length; i++){
-        if(sliced.includes('=')){
+        if(sliced[i].includes('=')){
             const [key, value] = sliced[i].split('=')
             namedArg[key] = value
         }
