@@ -174,12 +174,14 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return ''
         }
         case 'setvar':{
+            console.log(namedArg, arg)
             const db = get(DataBase)
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
             chat.scriptstate = chat.scriptstate ?? {}
-            chat.scriptstate['$' + namedArg['key']] = arg[0]
+            chat.scriptstate['$' + namedArg['key']] = arg
+            console.log(chat.scriptstate)
 
             char.chats[char.chatPage] = chat
             db.characters[selectedChar] = char
@@ -192,7 +194,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
             chat.scriptstate = chat.scriptstate ?? {}
-            chat.scriptstate['$' + namedArg['key']] = (Number(chat.scriptstate['$' + namedArg['key']]) + Number(arg[0])).toString()
+            chat.scriptstate['$' + namedArg['key']] = (Number(chat.scriptstate['$' + namedArg['key']]) + Number(arg)).toString()
 
             char.chats[char.chatPage] = chat
             db.characters[selectedChar] = char
