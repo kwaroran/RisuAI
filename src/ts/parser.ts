@@ -733,6 +733,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'join':{
                 return arra[1].split('§').join(arra[2])
             }
+            case 'spread':{
+                return arra[1].split('§').join('::')
+            }
+            case 'trim':{
+                return arra[1].trim()
+            }
             case 'length':{
                 return arra[1].length.toString()
             }
