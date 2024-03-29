@@ -2,7 +2,7 @@ export const patchNote = {
     version: "1.90",
     content: 
 `
-# Update 1.90.0
+# Update 1.90.1
 - Added {{spread::A}} and {{trim::B}}
 - Fixed undefined variable crashing the app
 - Now invaild curly brace syntax will be ignored
