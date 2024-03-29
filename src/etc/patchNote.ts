@@ -2,15 +2,10 @@ export const patchNote = {
     version: "1.89",
     content: 
 `
-# Update 1.89.0
-- Reworked import card system
-  - Now it would read streamed data instead of whole file
-  - This would reduce memory usage and increase performance, and also allow to import larger files
-- Reworked RisuRealm share system
-  - Now it would upload and download streamed data instead of splited assets
-  - Added Upload functionallity
-- Added /setvar, /addvar, /getvar command
-- Fixed trigger scripts using old variable system
+# Update 1.90.0
+- Added {{spread::A}} and {{trim::B}}
+- Fixed undefined variable crashing the app
+- Now invaild curly brace syntax will be ignored
 `
 }
 
