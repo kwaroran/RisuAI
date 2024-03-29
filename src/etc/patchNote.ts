@@ -1,5 +1,5 @@
 export const patchNote = {
-    version: "1.89",
+    version: "1.90",
     content: 
 `
 # Update 1.90.0
