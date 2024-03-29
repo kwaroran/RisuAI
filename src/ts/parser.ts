@@ -396,422 +396,426 @@ type matcherArg = {
     runVar?:boolean
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
-    if(p1.length > 100000){
-        return ''
-    }
-    const lowerCased = p1.toLocaleLowerCase()
-    const chatID = matcherArg.chatID
-    const db = matcherArg.db
-    const chara = matcherArg.chara
-    switch(lowerCased){
-        case 'previous_char_chat':{
-            if(chatID !== -1){
-                const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar.chats[selchar.chatPage]
-                let pointer = chatID - 1
-                while(pointer >= 0){
-                    if(chat.message[pointer].role === 'char'){
-                        return chat.message[pointer].data
+    try {
+        if(p1.length > 100000){
+            return ''
+        }
+        const lowerCased = p1.toLocaleLowerCase()
+        const chatID = matcherArg.chatID
+        const db = matcherArg.db
+        const chara = matcherArg.chara
+        switch(lowerCased){
+            case 'previous_char_chat':{
+                if(chatID !== -1){
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar.chats[selchar.chatPage]
+                    let pointer = chatID - 1
+                    while(pointer >= 0){
+                        if(chat.message[pointer].role === 'char'){
+                            return chat.message[pointer].data
+                        }
+                        pointer--
                     }
-                    pointer--
+                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                 }
-                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                return ''
             }
-            return ''
-        }
-        case 'previous_user_chat':{
-            if(chatID !== -1){
-                const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar.chats[selchar.chatPage]
-                let pointer = chatID - 1
-                while(pointer >= 0){
-                    if(chat.message[pointer].role === 'user'){
-                        return chat.message[pointer].data
+            case 'previous_user_chat':{
+                if(chatID !== -1){
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar.chats[selchar.chatPage]
+                    let pointer = chatID - 1
+                    while(pointer >= 0){
+                        if(chat.message[pointer].role === 'user'){
+                            return chat.message[pointer].data
+                        }
+                        pointer--
                     }
-                    pointer--
+                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
                 }
-                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                return ''
             }
-            return ''
-        }
-        case 'char':
-        case 'bot':{
-            if(matcherArg.consistantChar){
-                return 'botname'
-            }
-            let selectedChar = get(selectedCharID)
-            let currentChar = db.characters[selectedChar]
-            if(currentChar && currentChar.type !== 'group'){
-                return currentChar.name
-            }
-            if(chara){
-                if(typeof(chara) === 'string'){
-                    return chara
+            case 'char':
+            case 'bot':{
+                if(matcherArg.consistantChar){
+                    return 'botname'
                 }
-                else{
-                    return chara.name
+                let selectedChar = get(selectedCharID)
+                let currentChar = db.characters[selectedChar]
+                if(currentChar && currentChar.type !== 'group'){
+                    return currentChar.name
                 }
-            }
-            return currentChar.name
-        }
-        case 'user':{
-            if(matcherArg.consistantChar){
-                return 'username'
-            }
-            return db.username
-        }
-        case 'personality':
-        case 'char_persona':{
-            const argChara = chara
-            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-            if(achara.type === 'group'){
-                return ""
-            }
-            return achara.personality
-        }
-        case 'description':
-        case 'char_desc':{
-            const argChara = chara
-            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-            if(achara.type === 'group'){
-                return ""
-            }
-            return achara.desc
-        }
-        case 'scenario':{
-            const argChara = chara
-            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-            if(achara.type === 'group'){
-                return ""
-            }
-            return achara.scenario
-        }
-        case 'example_dialogue':
-        case 'example_message':{
-            const argChara = chara
-            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-            if(achara.type === 'group'){
-                return ""
-            }
-            return achara.exampleMessage
-        }
-        case 'persona':
-        case 'user_persona':{
-            return db.personaPrompt
-        }
-        case 'main_prompt':
-        case 'system_prompt':{
-            return db.mainPrompt
-        }
-        case 'lorebook':
-        case 'world_info':{
-            const argChara = chara
-            const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
-            const selchar = db.characters[get(selectedCharID)]
-            const chat = selchar.chats[selchar.chatPage]
-            const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
-            const chatLore = chat.localLore ?? []
-            const fullLore = characterLore.concat(chatLore.concat(getModuleLorebooks()))
-            return fullLore.map((f) => {
-                return JSON.stringify(f)
-            }).join("§\n")
-        }
-        case 'history':
-        case 'messages':{
-            const selchar = db.characters[get(selectedCharID)]
-            const chat = selchar.chats[selchar.chatPage]
-            return chat.message.map((f) => {
-                return JSON.stringify(f)
-            }).join("§\n")
-        }
-        case 'ujb':
-        case 'global_note':
-        case 'system_note':{
-            return db.globalNote
-        }
-        case 'chat_index':{
-            return chatID.toString() 
-        }
-        case 'blank':
-        case 'none':{
-            return ''
-        }
-        case 'time':{
-            if(matcherArg.tokenizeAccurate){
-                return `00:00:00`
-            }
-            if(chatID === -1){
-                return "[Cannot get time]"
-            }
-
-            const selchar = db.characters[get(selectedCharID)]
-            const chat = selchar.chats[selchar.chatPage]
-            const message = chat.message[chatID]
-            if(!message.time){
-                return "[Cannot get time, message was sent in older version]"
-            }
-            const date = new Date(message.time)
-            //output time in format like 10:30 AM
-            return date.toLocaleTimeString()
-        }
-        case 'date':{
-            if(matcherArg.tokenizeAccurate){
-                return `00:00:00`
-            }
-            if(chatID === -1){
-                return "[Cannot get time]"
-            }
-            const selchar = db.characters[get(selectedCharID)]
-            const chat = selchar.chats[selchar.chatPage]
-            const message = chat.message[chatID]
-            if(!message.time){
-                return "[Cannot get time, message was sent in older version]"
-            }
-            const date = new Date(message.time)
-            //output date in format like Aug 23, 2021
-            return date.toLocaleDateString()
-        }
-        case 'idle_duration':{
-            if(matcherArg.tokenizeAccurate){
-                return `00:00:00`
-            }
-            if(chatID === -1){
-                return "[Cannot get time]"
-            }
-            const selchar = db.characters[get(selectedCharID)]
-            const chat = selchar.chats[selchar.chatPage]
-            
-            //get latest user message
-            let pointer = chatID
-            let pointerMode: 'findLast'|'findSecondLast' = 'findLast'
-            let message:Message
-            let previous_message:Message
-            while(pointer >= 0){
-                if(chat.message[pointer].role === 'user'){
-                    if(pointerMode === 'findLast'){
-                        message = chat.message[pointer]
-                        pointerMode = 'findSecondLast'
+                if(chara){
+                    if(typeof(chara) === 'string'){
+                        return chara
                     }
                     else{
-                        previous_message = chat.message[pointer]
-                        break
+                        return chara.name
                     }
                 }
-                pointer--
+                return currentChar.name
             }
-
-            if(!message){
-                return '[No user message found]'
-            }
-
-            if(!previous_message){
-                return '[No previous user message found]'
-            }
-            if(!message.time){
-                return "[Cannot get time, message was sent in older version]"
-            }
-            if(!previous_message.time){
-                return "[Cannot get time, previous message was sent in older version]"
-            }
-
-            let duration = message.time - previous_message.time
-            //output time in format like 10:30:00
-            let seconds = Math.floor(duration / 1000)
-            let minutes = Math.floor(seconds / 60)
-            let hours = Math.floor(minutes / 60)
-            seconds = seconds % 60
-            minutes = minutes % 60
-            //output, like 1:30:00
-            return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
-        }
-        case 'br':{
-            return '\n'
-        }
-        case 'model':{
-            return db.aiModel
-        }
-        case 'axmodel':{
-            return db.subModel
-        }
-        case 'role': {
-            return matcherArg.role ?? 'role'
-        }
-        case 'jbtoggled':{
-            return db.jailbreakToggle ? '1' : '0'
-        }
-        case 'random':{
-            return Math.random().toString()
-        }
-    }
-    const arra = p1.split("::")
-    if(arra.length > 1){
-        const v = arra[1]
-        switch(arra[0]){
-            case 'getvar':{
-                return getChatVar(v)
-            }
-            case 'calc':{
-                return calcString(v).toString()
-            }
-            case 'addvar':{
-                if(matcherArg.rmVar){
-                    return ''
+            case 'user':{
+                if(matcherArg.consistantChar){
+                    return 'username'
                 }
-                if(matcherArg.runVar){
-                    setChatVar(v, (Number(getChatVar(v)) + Number(arra[2])).toString())
-                    return ''
+                return db.username
+            }
+            case 'personality':
+            case 'char_persona':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
                 }
-                return null
+                return achara.personality
             }
-            case 'setvar':{
-                if(matcherArg.rmVar){
-                    return ''
+            case 'description':
+            case 'char_desc':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
                 }
-                if(matcherArg.runVar){
-                    setChatVar(v, arra[2])
-                    return ''
+                return achara.desc
+            }
+            case 'scenario':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
                 }
-                return null
+                return achara.scenario
             }
-            case 'button':{
-                return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
-            }
-            case 'risu':{
-                return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
-            }
-            case 'equal':{
-                return (arra[1] === arra[2]) ? '1' : '0'
-            }
-            case 'not_equal':
-            case 'notequal':{
-                return (arra[1] !== arra[2]) ? '1' : '0'
-            }
-            case 'greater':{
-                return (Number(arra[1]) > Number(arra[2])) ? '1' : '0'
-            }
-            case 'less':{
-                return (Number(arra[1]) < Number(arra[2])) ? '1' : '0'
-            }
-            case 'greater_equal':
-            case 'greaterequal':{
-                return (Number(arra[1]) >= Number(arra[2])) ? '1' : '0'
-            }
-            case 'less_equal':
-            case 'lessequal':{
-                return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
-            }
-            case 'and':{
-                return (Number(arra[1]) && Number(arra[2])) ? '1' : '0'
-            }
-            case 'or':{
-                return (Number(arra[1]) || Number(arra[2])) ? '1' : '0'
-            }
-            case 'not':{
-                return (Number(arra[1]) === 0) ? '1' : '0'
-            }
-            case 'file':{
-                if(matcherArg.displaying){
-                    return `<br><div class="risu-file">${arra[1]}</div><br>`
+            case 'example_dialogue':
+            case 'example_message':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
+                if(achara.type === 'group'){
+                    return ""
                 }
-                return Buffer.from(arra[2], 'base64').toString('utf-8') 
+                return achara.exampleMessage
             }
-            case 'startswith':{
-                return arra[1].startsWith(arra[2]) ? '1' : '0'
+            case 'persona':
+            case 'user_persona':{
+                return db.personaPrompt
             }
-            case 'endswith':{
-                return arra[1].endsWith(arra[2]) ? '1' : '0'
+            case 'main_prompt':
+            case 'system_prompt':{
+                return db.mainPrompt
             }
-            case 'contains':{
-                return arra[1].includes(arra[2]) ? '1' : '0'
-            }
-            case 'replace':{
-                return arra[1].replaceAll(arra[2], arra[3])
-            }
-            case 'split':{
-                return arra[1].split(arra[2]).join('§')
-            }
-            case 'join':{
-                return arra[1].split('§').join(arra[2])
-            }
-            case 'spread':{
-                return arra[1].split('§').join('::')
-            }
-            case 'trim':{
-                return arra[1].trim()
-            }
-            case 'length':{
-                return arra[1].length.toString()
-            }
-            case 'arraylength':
-            case 'array_length':{
-                return arra[1].split('§').length.toString()
-            }
-            case 'lower':{
-                return arra[1].toLocaleLowerCase()
-            }
-            case 'upper':{
-                return arra[1].toLocaleUpperCase()
-            }
-            case 'capitalize':{
-                return arra[1].charAt(0).toUpperCase() + arra[1].slice(1)
-            }
-            case 'round':{
-                return Math.round(Number(arra[1])).toString()
-            }
-            case 'floor':{
-                return Math.floor(Number(arra[1])).toString()
-            }
-            case 'ceil':{
-                return Math.ceil(Number(arra[1])).toString()
-            }
-            case 'abs':{
-                return Math.abs(Number(arra[1])).toString()
-            }
-            case 'previous_chat_log':{
+            case 'lorebook':
+            case 'world_info':{
+                const argChara = chara
+                const achara = (argChara && typeof(argChara) !== 'string') ? argChara : (db.characters[get(selectedCharID)])
                 const selchar = db.characters[get(selectedCharID)]
-                const chat = selchar?.chats?.[selchar.chatPage]
-                return chat?.message[chatID - 1]?.data ?? 'Out of range'
-
+                const chat = selchar.chats[selchar.chatPage]
+                const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
+                const chatLore = chat.localLore ?? []
+                const fullLore = characterLore.concat(chatLore.concat(getModuleLorebooks()))
+                return fullLore.map((f) => {
+                    return JSON.stringify(f)
+                }).join("§\n")
             }
-            case 'tonumber':{
-                return arra[1].split('').filter((v) => {
-                    return !isNaN(Number(v)) || v === '.'
-                }).join('')
+            case 'history':
+            case 'messages':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.map((f) => {
+                    return JSON.stringify(f)
+                }).join("§\n")
+            }
+            case 'ujb':
+            case 'global_note':
+            case 'system_note':{
+                return db.globalNote
+            }
+            case 'chat_index':{
+                return chatID.toString() 
+            }
+            case 'blank':
+            case 'none':{
+                return ''
+            }
+            case 'time':{
+                if(matcherArg.tokenizeAccurate){
+                    return `00:00:00`
+                }
+                if(chatID === -1){
+                    return "[Cannot get time]"
+                }
+    
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                const message = chat.message[chatID]
+                if(!message.time){
+                    return "[Cannot get time, message was sent in older version]"
+                }
+                const date = new Date(message.time)
+                //output time in format like 10:30 AM
+                return date.toLocaleTimeString()
+            }
+            case 'date':{
+                if(matcherArg.tokenizeAccurate){
+                    return `00:00:00`
+                }
+                if(chatID === -1){
+                    return "[Cannot get time]"
+                }
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                const message = chat.message[chatID]
+                if(!message.time){
+                    return "[Cannot get time, message was sent in older version]"
+                }
+                const date = new Date(message.time)
+                //output date in format like Aug 23, 2021
+                return date.toLocaleDateString()
+            }
+            case 'idle_duration':{
+                if(matcherArg.tokenizeAccurate){
+                    return `00:00:00`
+                }
+                if(chatID === -1){
+                    return "[Cannot get time]"
+                }
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                
+                //get latest user message
+                let pointer = chatID
+                let pointerMode: 'findLast'|'findSecondLast' = 'findLast'
+                let message:Message
+                let previous_message:Message
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'user'){
+                        if(pointerMode === 'findLast'){
+                            message = chat.message[pointer]
+                            pointerMode = 'findSecondLast'
+                        }
+                        else{
+                            previous_message = chat.message[pointer]
+                            break
+                        }
+                    }
+                    pointer--
+                }
+    
+                if(!message){
+                    return '[No user message found]'
+                }
+    
+                if(!previous_message){
+                    return '[No previous user message found]'
+                }
+                if(!message.time){
+                    return "[Cannot get time, message was sent in older version]"
+                }
+                if(!previous_message.time){
+                    return "[Cannot get time, previous message was sent in older version]"
+                }
+    
+                let duration = message.time - previous_message.time
+                //output time in format like 10:30:00
+                let seconds = Math.floor(duration / 1000)
+                let minutes = Math.floor(seconds / 60)
+                let hours = Math.floor(minutes / 60)
+                seconds = seconds % 60
+                minutes = minutes % 60
+                //output, like 1:30:00
+                return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
+            }
+            case 'br':{
+                return '\n'
+            }
+            case 'model':{
+                return db.aiModel
+            }
+            case 'axmodel':{
+                return db.subModel
+            }
+            case 'role': {
+                return matcherArg.role ?? 'role'
+            }
+            case 'jbtoggled':{
+                return db.jailbreakToggle ? '1' : '0'
+            }
+            case 'random':{
+                return Math.random().toString()
             }
         }
+        const arra = p1.split("::")
+        if(arra.length > 1){
+            const v = arra[1]
+            switch(arra[0]){
+                case 'getvar':{
+                    return getChatVar(v)
+                }
+                case 'calc':{
+                    return calcString(v).toString()
+                }
+                case 'addvar':{
+                    if(matcherArg.rmVar){
+                        return ''
+                    }
+                    if(matcherArg.runVar){
+                        setChatVar(v, (Number(getChatVar(v)) + Number(arra[2])).toString())
+                        return ''
+                    }
+                    return null
+                }
+                case 'setvar':{
+                    if(matcherArg.rmVar){
+                        return ''
+                    }
+                    if(matcherArg.runVar){
+                        setChatVar(v, arra[2])
+                        return ''
+                    }
+                    return null
+                }
+                case 'button':{
+                    return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
+                }
+                case 'risu':{
+                    return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
+                }
+                case 'equal':{
+                    return (arra[1] === arra[2]) ? '1' : '0'
+                }
+                case 'not_equal':
+                case 'notequal':{
+                    return (arra[1] !== arra[2]) ? '1' : '0'
+                }
+                case 'greater':{
+                    return (Number(arra[1]) > Number(arra[2])) ? '1' : '0'
+                }
+                case 'less':{
+                    return (Number(arra[1]) < Number(arra[2])) ? '1' : '0'
+                }
+                case 'greater_equal':
+                case 'greaterequal':{
+                    return (Number(arra[1]) >= Number(arra[2])) ? '1' : '0'
+                }
+                case 'less_equal':
+                case 'lessequal':{
+                    return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
+                }
+                case 'and':{
+                    return (Number(arra[1]) && Number(arra[2])) ? '1' : '0'
+                }
+                case 'or':{
+                    return (Number(arra[1]) || Number(arra[2])) ? '1' : '0'
+                }
+                case 'not':{
+                    return (Number(arra[1]) === 0) ? '1' : '0'
+                }
+                case 'file':{
+                    if(matcherArg.displaying){
+                        return `<br><div class="risu-file">${arra[1]}</div><br>`
+                    }
+                    return Buffer.from(arra[2], 'base64').toString('utf-8') 
+                }
+                case 'startswith':{
+                    return arra[1].startsWith(arra[2]) ? '1' : '0'
+                }
+                case 'endswith':{
+                    return arra[1].endsWith(arra[2]) ? '1' : '0'
+                }
+                case 'contains':{
+                    return arra[1].includes(arra[2]) ? '1' : '0'
+                }
+                case 'replace':{
+                    return arra[1].replaceAll(arra[2], arra[3])
+                }
+                case 'split':{
+                    return arra[1].split(arra[2]).join('§')
+                }
+                case 'join':{
+                    return arra[1].split('§').join(arra[2])
+                }
+                case 'spread':{
+                    return arra[1].split('§').join('::')
+                }
+                case 'trim':{
+                    return arra[1].trim()
+                }
+                case 'length':{
+                    return arra[1].length.toString()
+                }
+                case 'arraylength':
+                case 'array_length':{
+                    return arra[1].split('§').length.toString()
+                }
+                case 'lower':{
+                    return arra[1].toLocaleLowerCase()
+                }
+                case 'upper':{
+                    return arra[1].toLocaleUpperCase()
+                }
+                case 'capitalize':{
+                    return arra[1].charAt(0).toUpperCase() + arra[1].slice(1)
+                }
+                case 'round':{
+                    return Math.round(Number(arra[1])).toString()
+                }
+                case 'floor':{
+                    return Math.floor(Number(arra[1])).toString()
+                }
+                case 'ceil':{
+                    return Math.ceil(Number(arra[1])).toString()
+                }
+                case 'abs':{
+                    return Math.abs(Number(arra[1])).toString()
+                }
+                case 'previous_chat_log':{
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar?.chats?.[selchar.chatPage]
+                    return chat?.message[chatID - 1]?.data ?? 'Out of range'
+    
+                }
+                case 'tonumber':{
+                    return arra[1].split('').filter((v) => {
+                        return !isNaN(Number(v)) || v === '.'
+                    }).join('')
+                }
+            }
+        }
+        if(p1.startsWith('random')){
+            if(p1.startsWith('random::')){
+                const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
+                if(matcherArg.tokenizeAccurate){
+                    return arra[0]
+                }
+                return arra[randomIndex]
+            }
+            else{
+                const arr = p1.split(/\:|\,/g)
+                const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+                if(matcherArg.tokenizeAccurate){
+                    return arra[0]
+                }
+                return arr[randomIndex]
+            }
+        }
+        if(p1.startsWith('roll')){
+            const arr = p1.split(/\:|\ /g)
+            let ina = arr.at(-1)
+    
+            if(ina.startsWith('d')){
+                ina = ina.substring(1)
+            }
+    
+            const maxRoll = parseInt(ina)
+            if(isNaN(maxRoll)){
+                return 'NaN'
+            }
+            return (Math.floor(Math.random() * maxRoll) + 1).toString()
+        }
+        return null        
+    } catch (error) {
+        return null   
     }
-    if(p1.startsWith('random')){
-        if(p1.startsWith('random::')){
-            const randomIndex = Math.floor(Math.random() * (arra.length - 1)) + 1
-            if(matcherArg.tokenizeAccurate){
-                return arra[0]
-            }
-            return arra[randomIndex]
-        }
-        else{
-            const arr = p1.split(/\:|\,/g)
-            const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
-            if(matcherArg.tokenizeAccurate){
-                return arra[0]
-            }
-            return arr[randomIndex]
-        }
-    }
-    if(p1.startsWith('roll')){
-        const arr = p1.split(/\:|\ /g)
-        let ina = arr.at(-1)
-
-        if(ina.startsWith('d')){
-            ina = ina.substring(1)
-        }
-
-        const maxRoll = parseInt(ina)
-        if(isNaN(maxRoll)){
-            return 'NaN'
-        }
-        return (Math.floor(Math.random() * maxRoll) + 1).toString()
-    }
-    return null
 }
 
 const smMatcher = (p1:string,matcherArg:matcherArg) => {
@@ -1154,7 +1158,7 @@ export function getChatVar(key:string){
     const char = db.characters[selectedChar]
     const chat = char.chats[char.chatPage]
     chat.scriptstate = chat.scriptstate ?? {}
-    return (chat.scriptstate['$' + key]).toString() ?? 'null'
+    return (chat.scriptstate['$' + key])?.toString() ?? 'null'
 }
 
 export function setChatVar(key:string, value:string){
