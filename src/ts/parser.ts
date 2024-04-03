@@ -807,6 +807,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 case 'abs':{
                     return Math.abs(Number(arra[1])).toString()
                 }
+                case 'remaind':{
+                    return (Number(arra[1]) % Number(arra[2])).toString()
+                }
                 case 'previous_chat_log':{
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar?.chats?.[selchar.chatPage]
