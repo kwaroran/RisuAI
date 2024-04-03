@@ -905,6 +905,28 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             return (Math.floor(Math.random() * maxRoll) + 1).toString()
         }
+        if(p1.startsWith('datetimeformat')){
+            const date = new Date()
+            let main = p1.substring("datetimeformat".length + 1)
+            if(!main){
+                return ''
+            }
+            if(main.startsWith(':')){
+                main = main.substring(1)
+            }
+            return main
+                .replace(/YYYY/g, date.getFullYear().toString())
+                .replace(/YY/g, date.getFullYear().toString().substring(2))
+                .replace(/MM?/g, (date.getMonth() + 1).toString().padStart(2, '0'))
+                .replace(/DD?/g, date.getDate().toString().padStart(2, '0'))
+                .replace(/DDDD?/g, (date.getDay() + (date.getMonth() * 30)).toString())
+                .replace(/HH?/g, date.getHours().toString().padStart(2, '0'))
+                .replace(/hh?/g, (date.getHours() % 12).toString().padStart(2, '0'))
+                .replace(/mm?/g, date.getMinutes().toString().padStart(2, '0'))
+                .replace(/ss?/g, date.getSeconds().toString().padStart(2, '0'))
+                .replace(/A/g, date.getHours() >= 12 ? 'PM' : 'AM')
+                .replace(/MMMM?/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+        }
         return null        
     } catch (error) {
         return null   
