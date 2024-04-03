@@ -574,6 +574,22 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 //output date in format like Aug 23, 2021
                 return date.toLocaleDateString()
             }
+            case 'time':{
+                const now = new Date()
+                return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+            }
+            case 'date':{
+                const now = new Date()
+                return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+            }
+            case 'isotime':{
+                const now = new Date()
+                return `${now.getUTCHours()}:${now.getUTCMinutes()}:${now.getUTCSeconds()}`
+            }
+            case 'isodate':{
+                const now = new Date()
+                return `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`
+            }
             case 'idle_duration':{
                 if(matcherArg.tokenizeAccurate){
                     return `00:00:00`
