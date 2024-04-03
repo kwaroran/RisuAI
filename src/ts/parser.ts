@@ -406,7 +406,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         const chara = matcherArg.chara
         switch(lowerCased){
             case 'previous_char_chat':
-            case 'lastusermessage':{
+            case 'lastcharmessage':{
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
@@ -422,7 +422,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return ''
             }
             case 'previous_user_chat':
-            case 'lastcharmessage':{
+            case 'lastusermessage':{
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
