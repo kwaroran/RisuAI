@@ -1,23 +1,17 @@
 export const patchNote = {
-    version: "1.91",
+    version: "1.92",
     content: 
 `
-# Update 1.91.0
-- {{#if A}} now trims the whitespace inside the content
-- Old {{time}} and {{date}} is renamed to {{message_time}} and {{message_date}}
-- Added {{lastcharmessage}} as allias for {{previous_char_chat}}
-- Added {{lastusermessage}} as allias for {{previous_user_chat}}
-- Added {{newline}} as allias for {{br}}
-- Added {{lastmessage}}, which returns the last message sent in the current chat
-- Added {{maxcontext}}, which returns the maximum context length
-- Added {{lastmessageid}}, which returns the index of the last message sent in the current chat
-- Added {{pow::A::B}}, which returns A raised to the power of B
-- Added {{pick::A::B...}} which returns a random element from the list, but is consistent across the same message
-- Added {{time}}, which returns the current time in the format HH:MM:SS in your timezone
-- Added {{date}}, which returns the current date in the format YYYY-MM-DD in your timezone
-- Added {{isotime}}, which returns the current time in the format HH:MM:SS in UTC
-- Added {{isodate}}, which returns the current date in the format YYYY-MM-DD in UTC
-- Added {{#if-pure A}} which is the same as {{#if A}}, but does not trim the whitespace inside the content
+# Update 1.92.0
+- Added {{remaind::A::B}} which will return remainder of A divided by B
+- Added {{array_element::A::B}} which will return Bth element of array A
+- Added {{array_shift::A}} which will return A without first element
+- Added {{array_pop::A}} which will return A without last element
+- Added {{array_push::A::B}} which will return A with B pushed at the end
+- Added {{array_splice::A::B::C::D}} which will return A with C elements removed starting from Bth element and D elements added at Bth position
+- Added {{array::A::B...}} which will return an array with A, B and so on
+- Added {{datetimeformat::A}} which will return formatted date time string according to A
+- Fixed {{#if}} not working in some cases
 `
 }
 
