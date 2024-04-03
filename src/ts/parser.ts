@@ -539,7 +539,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'none':{
                 return ''
             }
-            case 'time':{
+            case 'message_time':{
                 if(matcherArg.tokenizeAccurate){
                     return `00:00:00`
                 }
@@ -557,7 +557,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 //output time in format like 10:30 AM
                 return date.toLocaleTimeString()
             }
-            case 'date':{
+            case 'message_date':{
                 if(matcherArg.tokenizeAccurate){
                     return `00:00:00`
                 }
