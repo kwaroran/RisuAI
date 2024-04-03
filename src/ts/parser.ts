@@ -977,7 +977,7 @@ type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'
 
 function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
     if(p1.startsWith('#if') || p1.startsWith('#if_pure ')){
-        const statement = p1.substring(p1.indexOf(' ') + 1)
+        const statement = p1.split(' ', 2)
         const state = statement[1]
         if(state === 'true' || state === '1'){
             return p1.startsWith('#if_pure') ? 'parse-pure' : 'parse'
@@ -1109,6 +1109,7 @@ export function risuChatParser(da:string, arg:{
                     }
                     const matchResult = blockStartMatcher(dat, matcherObj)
                     if(matchResult === 'nothing'){
+                        nested[0] += `{{${dat}}}`
                         break
                     }
                     else{
