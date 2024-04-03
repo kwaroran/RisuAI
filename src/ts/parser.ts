@@ -847,6 +847,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
                     return arr.join('§')
                 }
+                case 'makearray':
+                case 'array':
+                case 'a':
+                case 'make_array':{
+                    return arra.slice(1).join('§')
+                }
             }
         }
         if(p1.startsWith('random')){
