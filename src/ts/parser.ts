@@ -843,7 +843,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         if(p1.startsWith('pick')){
             const selchar = db.characters[get(selectedCharID)]
             const rand = sfc32(uuidtoNumber(selchar.chaId), chatID, uuidtoNumber(selchar.chaId), chatID)
-            if(p1.startsWith('random::')){
+            if(p1.startsWith('pick::')){
                 const randomIndex = Math.floor(rand() * (arra.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
