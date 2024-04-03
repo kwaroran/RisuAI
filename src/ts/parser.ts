@@ -405,7 +405,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         const db = matcherArg.db
         const chara = matcherArg.chara
         switch(lowerCased){
-            case 'previous_char_chat':{
+            case 'previous_char_chat':
+            case 'lastusermessage':{
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
@@ -420,7 +421,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 return ''
             }
-            case 'previous_user_chat':{
+            case 'previous_user_chat':
+            case 'lastcharmessage':{
                 if(chatID !== -1){
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
@@ -625,7 +627,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 //output, like 1:30:00
                 return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
             }
-            case 'br':{
+            case 'br':
+            case 'newline':{
                 return '\n'
             }
             case 'model':{
@@ -642,6 +645,26 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'random':{
                 return Math.random().toString()
+            }
+            case 'maxcontext':{
+                return db.maxContext.toString()
+            }
+            case 'lastmessage':{
+                const selchar = db.characters[get(selectedCharID)]
+                if(!selchar){
+                    return ''
+                }
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message[chat.message.length - 1].data
+            }
+            case 'lastmessageid':
+            case 'lastmessageindex':{
+                const selchar = db.characters[get(selectedCharID)]
+                if(!selchar){
+                    return ''
+                }
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.length - 1
             }
         }
         const arra = p1.split("::")
