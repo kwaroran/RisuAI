@@ -9,7 +9,7 @@ import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
 import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId } from './util';
+import { findCharacterbyId, sfc32, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
 import { autoMarkNew } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
@@ -779,6 +779,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                         return !isNaN(Number(v)) || v === '.'
                     }).join('')
                 }
+                case 'pow':{
+                    return Math.pow(Number(arra[1]), Number(arra[2])).toString()
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -792,6 +795,25 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             else{
                 const arr = p1.split(/\:|\,/g)
                 const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+                if(matcherArg.tokenizeAccurate){
+                    return arra[0]
+                }
+                return arr[randomIndex]
+            }
+        }
+        if(p1.startsWith('pick')){
+            const selchar = db.characters[get(selectedCharID)]
+            const rand = sfc32(uuidtoNumber(selchar.chaId), chatID, uuidtoNumber(selchar.chaId), chatID)
+            if(p1.startsWith('random::')){
+                const randomIndex = Math.floor(rand() * (arra.length - 1)) + 1
+                if(matcherArg.tokenizeAccurate){
+                    return arra[0]
+                }
+                return arra[randomIndex]
+            }
+            else{
+                const arr = p1.split(/\:|\,/g)
+                const randomIndex = Math.floor(rand() * (arr.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
                 }

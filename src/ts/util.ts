@@ -443,3 +443,24 @@ export function blobToUint8Array(data:Blob){
 }
 
 export const languageCodes = ["af","ak","am","an","ar","as","ay","az","be","bg","bh","bm","bn","br","bs","ca","co","cs","cy","da","de","dv","ee","el","en","eo","es","et","eu","fa","fi","fo","fr","fy","ga","gd","gl","gn","gu","ha","he","hi","hr","ht","hu","hy","ia","id","ig","is","it","iu","ja","jv","ka","kk","km","kn","ko","ku","ky","la","lb","lg","ln","lo","lt","lv","mg","mi","mk","ml","mn","mr","ms","mt","my","nb","ne","nl","nn","no","ny","oc","om","or","pa","pl","ps","pt","qu","rm","ro","ru","rw","sa","sd","si","sk","sl","sm","sn","so","sq","sr","st","su","sv","sw","ta","te","tg","th","ti","tk","tl","tn","to","tr","ts","tt","tw","ug","uk","ur","uz","vi","wa","wo","xh","yi","yo","zh","zu"]
+
+export function sfc32(a:number, b:number, c:number, d:number) {
+    return function() {
+      a |= 0; b |= 0; c |= 0; d |= 0;
+      let t = (a + b | 0) + d | 0;
+      d = d + 1 | 0;
+      a = b ^ b >>> 9;
+      b = c + (c << 3) | 0;
+      c = (c << 21 | c >>> 11);
+      c = c + t | 0;
+      return (t >>> 0) / 4294967296;
+    }
+}
+
+export function uuidtoNumber(uuid:string){
+    let result = 0
+    for(let i=0;i<uuid.length;i++){
+        result += uuid.charCodeAt(i)
+    }
+    return result
+}
