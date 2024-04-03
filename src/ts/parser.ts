@@ -821,6 +821,32 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 case 'pow':{
                     return Math.pow(Number(arra[1]), Number(arra[2])).toString()
                 }
+                case 'arrayelement':
+                case 'array_element':{
+                    return arra[1].split('§')[Number(arra[2])]
+                }
+                case 'arrayshift':
+                case 'array_shift':{
+                    const arr = arra[1].split('§')
+                    arr.shift()
+                    return arr.join('§')
+                }
+                case 'arraypop':
+                case 'array_pop':{
+                    const arr = arra[1].split('§')
+                    arr.pop()
+                    return arr.join('§')
+                }
+                case 'arraypush':
+                case 'array_push':{
+                    return arra[1] + '§' + arra[2]
+                }
+                case 'arraysplice':
+                case 'array_splice':{
+                    const arr = arra[1].split('§')
+                    arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
+                    return arr.join('§')
+                }
             }
         }
         if(p1.startsWith('random')){
