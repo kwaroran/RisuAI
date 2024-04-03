@@ -917,16 +917,20 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
 }
 
 function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string{
-    if(type === 'ignore'){
-        return ''
+    switch(type){
+        case 'ignore':{
+            return ''
+        }
+        case 'parse':{
+            return p1.trim()
+        }
+        case 'parse-pure':{
+            return p1
+        }
+        default:{
+            return ''
+        }
     }
-    if(type === 'parse'){
-        return p1.trim()
-    }
-    if(type === 'parse-pure'){
-        return p1
-    }
-    return ''
 }
 
 export function risuChatParser(da:string, arg:{
