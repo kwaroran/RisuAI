@@ -924,7 +924,7 @@ function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string
         return p1.trim()
     }
     if(type === 'parse-pure'){
-        return p1.trim()
+        return p1
     }
     return ''
 }
