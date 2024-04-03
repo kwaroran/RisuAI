@@ -901,15 +901,15 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'
 
 
 function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
-    if(p1.startsWith('#if')){
-        const statement = p1.split(" ", 2)
+    if(p1.startsWith('#if') || p1.startsWith('#if_pure ')){
+        const statement = p1.substring(p1.indexOf(' ') + 1)
         const state = statement[1]
         if(state === 'true' || state === '1'){
-            return 'parse'
+            return p1.startsWith('#if_pure') ? 'parse-pure' : 'parse'
         }
         return 'ignore'
     }
@@ -922,7 +922,9 @@ function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string
     }
     if(type === 'parse'){
         return p1.trim()
-
+    }
+    if(type === 'parse-pure'){
+        return p1.trim()
     }
     return ''
 }
