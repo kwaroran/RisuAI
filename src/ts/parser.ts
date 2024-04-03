@@ -922,7 +922,10 @@ function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string
             return ''
         }
         case 'parse':{
-            return p1.trim()
+            const trimedLines = p1.split('\n').map((v) => {
+                return v.trim()
+            }).join('\n').trim()
+            return trimedLines
         }
         case 'parse-pure':{
             return p1
