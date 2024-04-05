@@ -1000,37 +1000,39 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
 type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'
 
 
-function blockStartMatcher(p1:string,matcherArg:matcherArg):blockMatch{
+function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string}{
     if(p1.startsWith('#if') || p1.startsWith('#if_pure ')){
         const statement = p1.split(' ', 2)
         const state = statement[1]
         if(state === 'true' || state === '1'){
-            return p1.startsWith('#if_pure') ? 'parse-pure' : 'parse'
+            return {type:p1.startsWith('#if_pure') ? 'parse-pure' : 'parse'}
         }
-        return 'ignore'
+        return {type:'ignore'}
     }
     if(p1 === '#pure'){
-        return 'pure'
+        return {type:'pure'}
     }
-    return 'nothing'
+    if(p1.startsWith('#each')){
+        return {type:'each',type2:p1.substring(5).trim()}
+    }
+    return {type:'nothing'}
 }
 
-function blockEndMatcher(p1:string,type:blockMatch,matcherArg:matcherArg):string{
-    switch(type){
-        case 'ignore':{
-            return ''
-        }
-        case 'pure':{
-            return p1
-        }
-        case 'parse':{
-            const trimedLines = p1.split('\n').map((v) => {
-                return v.trim()
-            }).join('\n').trim()
-            return trimedLines
-        }
+function trimLines(p1:string){
+    return p1.split('\n').map((v) => {
+        return v.trimStart()
+    }).join('\n').trim()
+}
+
+function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherArg:matcherArg):string{
+    switch(type.type){
+        case 'pure':
         case 'parse-pure':{
             return p1
+        }
+        case 'parse':
+        case 'each':{
+            return trimLines(p1)
         }
         default:{
             return ''
@@ -1081,7 +1083,7 @@ export function risuChatParser(da:string, arg:{
     let stackType = new Uint8Array(512)
     let pureModeNest:Map<number,boolean> = new Map()
     let pureModeNestType:Map<number,string> = new Map()
-    let blockNestType:Map<number,blockMatch> = new Map()
+    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
@@ -1147,9 +1149,12 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('#')){
                     if(isPureMode()){
                         nested[0] += `{{${dat}}}`
+                        nested.unshift('')
+                        stackType[nested.length] = 6
+                        break
                     }
                     const matchResult = blockStartMatcher(dat, matcherObj)
-                    if(matchResult === 'nothing'){
+                    if(matchResult.type === 'nothing'){
                         nested[0] += `{{${dat}}}`
                         break
                     }
@@ -1157,7 +1162,7 @@ export function risuChatParser(da:string, arg:{
                         nested.unshift('')
                         stackType[nested.length] = 5
                         blockNestType.set(nested.length, matchResult)
-                        if(matchResult === 'ignore' || matchResult === 'pure'){
+                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
                         }
@@ -1167,17 +1172,35 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('/')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
-                        if(blockType === 'ignore' || blockType === 'pure'){
+                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
                         }
                         blockNestType.delete(nested.length)
                         const dat2 = nested.shift()
                         const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
+                        if(blockType.type === 'each'){
+                            const subind = blockType.type2.lastIndexOf(' ')
+                            const sub = blockType.type2.substring(subind + 1)
+                            const array = blockType.type2.substring(0, subind).split('§')
+                            let added = ''
+                            for(let i = 0;i < array.length;i++){
+                                added += matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
+                            }
+                            console.log(added)
+                            da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
+                            break
+                        }
                         if(matchResult === ''){
                             break
                         }
                         nested[0] += matchResult
+                        break
+                    }
+                    if(stackType[nested.length] === 6){
+                        console.log(dat)
+                        const sft = nested.shift()
+                        nested[0] += sft + `{{${dat}}}`
                         break
                     }
                 }
