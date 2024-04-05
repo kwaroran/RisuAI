@@ -1821,9 +1821,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     continue
                                 }
                                 try {
-                                    if(reader.closed){
-                                        
-                                    }
                                     const {done, value} = await reader.read() 
                                     if(done){
                                         if(rerequesting){
