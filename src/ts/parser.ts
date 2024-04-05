@@ -1189,7 +1189,6 @@ export function risuChatParser(da:string, arg:{
                                     added += matchResult.replaceAll(`{{slot::${sub}}}`, array[i]) + '\n'
                                 }
                             }
-                            console.log(added)
                             da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
                             break
                         }
