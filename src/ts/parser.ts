@@ -682,6 +682,24 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 const chat = selchar.chats[selchar.chatPage]
                 return chat.message.length - 1
             }
+            case 'emotionlist':{
+                const selchar = db.characters[get(selectedCharID)]
+                if(!selchar){
+                    return ''
+                }
+                return selchar.emotionImages?.map((f) => {
+                    return f[0]
+                })?.join('§') ?? ''
+            }
+            case 'assetlist':{
+                const selchar = db.characters[get(selectedCharID)]
+                if(!selchar || selchar.type === 'group'){
+                    return ''
+                }
+                return selchar.additionalAssets?.map((f) => {
+                    return f[0]
+                })?.join('§') ?? ''
+            }
         }
         const arra = p1.split("::")
         if(arra.length > 1){
