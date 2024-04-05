@@ -1230,9 +1230,8 @@ export function risuChatParser(da:string, arg:{
                             const array = blockType.type2.substring(0, subind).split('§')
                             let added = ''
                             for(let i = 0;i < array.length;i++){
-                                if(added){
-                                    added += matchResult.replaceAll(`{{slot::${sub}}}`, array[i]) + '\n'
-                                }
+                                const res = matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
+                                added += res
                             }
                             da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
                             break
