@@ -374,7 +374,7 @@
                 mergedCanvas.remove();
             }
             alertNormal(language.screenshotSaved)
-            loadPages = 30   
+            loadPages = 15   
         } catch (error) {
             console.error(error)
             alertError("Error while taking screenshot")
@@ -397,7 +397,7 @@
             //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && $CurrentChat.message.length > loadPages){
-                loadPages += 30
+                loadPages += 15
             }
         }}>
             <div class="flex items-end mt-2 mb-2 w-full">

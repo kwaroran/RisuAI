@@ -1820,14 +1820,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     await sleep(1000)
                                     continue
                                 }
-                                const {done, value} = await reader.read()
-                                if(done){
-                                    if(rerequesting){
-                                        continue
+                                try {
+                                    if(reader.closed){
+                                        
                                     }
-                                    break
+                                    const {done, value} = await reader.read() 
+                                    if(done){
+                                        if(rerequesting){
+                                            continue
+                                        }
+                                        break
+                                    }
+                                    parser.feed(decoder.decode(value))                                   
+                                } catch (error) {
+                                    await sleep(1)
                                 }
-                                parser.feed(decoder.decode(value))
                             }
                             controller.close()
                         },
