@@ -381,6 +381,7 @@ export function setDatabase(data:Database){
     data.enabledModules ??= []
     data.additionalParams ??= []
     data.heightMode ??= 'normal'
+    data.antiClaudeOverload ??= false
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -614,6 +615,7 @@ export interface Database{
     heightMode:string
     useAdvancedEditor:boolean
     noWaitForTranslate:boolean
+    antiClaudeOverload:boolean
 }
 
 export interface customscript{

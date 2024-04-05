@@ -81,6 +81,11 @@
     <Check bind:check={$DataBase.allowAllExtentionFiles} name="Allow all in file select"/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.antiClaudeOverload} name={language.antiClaudeOverload}>
+        <Help key="experimental"/><Help key="antiClaudeOverload"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
         <Help key="experimental"/><Help key="oaiRandomUser"/>
     </Check>

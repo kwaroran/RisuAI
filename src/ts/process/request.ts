@@ -9,7 +9,7 @@ import { sleep } from "../util";
 import { createDeep } from "./deepai";
 import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
-import { strongBan, tokenizeNum } from "../tokenizer";
+import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
 import { runGGUFModel } from "./models/local";
 import { risuChatParser } from "../parser";
 import { SignatureV4 } from "@smithy/signature-v4";
@@ -1740,13 +1740,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             result: await textifyReadableStream(res.body)
                         }
                     }
+                    let rerequesting = false
+                    let breakError = ''
 
 
                     const stream = new ReadableStream<StreamResponseChunk>({
                         async start(controller){
                             let text = ''
+                            let reader = res.body.getReader()
                             const decoder = new TextDecoder()
-                            const parser = createParser((e) => {
+                            const parser = createParser(async (e) => {
                                 if(e.type === 'event'){
                                     switch(e.event){
                                         case 'content_block_delta': {
@@ -1760,6 +1763,42 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                         }
                                         case 'error': {
                                             if(e.data){
+                                                const errormsg:string = JSON.parse(e.data).error?.message
+                                                if(errormsg && errormsg.toLocaleLowerCase().includes('overload') && db.antiClaudeOverload){
+                                                    console.log('Overload detected, retrying...')
+                                                    reader.cancel()
+                                                    rerequesting = true
+                                                    await sleep(2000)
+                                                    body.max_tokens -= await tokenize(text)
+                                                    if(body.max_tokens < 0){
+                                                        body.max_tokens = 0
+                                                    }
+                                                    if(body.messages.at(-1)?.role !== 'assistant'){
+                                                        body.messages.push({
+                                                            role: 'assistant',
+                                                            content: ''
+                                                        })
+                                                    }
+                                                    body.messages[body.messages.length-1].content += text
+                                                    const res = await fetchNative(replacerURL, {
+                                                        body: JSON.stringify(body),
+                                                        headers: {
+                                                            "Content-Type": "application/json",
+                                                            "x-api-key": apiKey,
+                                                            "anthropic-version": "2023-06-01",
+                                                            "accept": "application/json",
+                                                        },
+                                                        method: "POST",
+                                                        chatId: arg.chatId
+                                                    })
+                                                    if(res.status !== 200){
+                                                        breakError = 'Error: ' + await textifyReadableStream(res.body)
+                                                        break
+                                                    }
+                                                    reader = res.body.getReader()
+                                                    rerequesting = false
+                                                    break
+                                                }
                                                 text += "Error:" + JSON.parse(e.data).error?.message
                                                 controller.enqueue({
                                                     "0": text
@@ -1770,10 +1809,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     }
                                 }
                             })
-                            const reader = res.body.getReader()
                             while(true){
+                                if(rerequesting){
+                                    if(breakError){
+                                        controller.enqueue({
+                                            "0": breakError
+                                        })
+                                        break
+                                    }
+                                    await sleep(1000)
+                                    continue
+                                }
                                 const {done, value} = await reader.read()
                                 if(done){
+                                    if(rerequesting){
+                                        continue
+                                    }
                                     break
                                 }
                                 parser.feed(decoder.decode(value))

@@ -118,6 +118,7 @@ export const languageEnglish = {
         emotionPrompt: "This option is used to set the prompt that is used to detect emotion. if it is blank, it will use the default prompt.",
         removePunctuationHypa: "If enabled, it will remove punctuation before executing HypaMemory.",
         additionalParams: "Additional parameters that would be added to the request body. if you want to exclude some parameters, you can put `{{none}}` to the value. if you want to add a header instead of body, you can put `header::` in front of the key like `header::Authorization`. if you want value as json, you can put `json::` in front of the value like `json::{\"key\":\"value\"}`. otherwise, type of the value would be determined automatically.",
+        antiClaudeOverload: "If Claude overload happens, RisuAI would try to prevent it by continuing with same prompt, making it less likely to happen. works only for streamed responses. this could not work for non-official api endpoints.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -557,4 +558,5 @@ export const languageEnglish = {
     noWaitForTranslate: "No Wait for Translate",
     updateRealm: "Update to RisuRealm",
     updateRealmDesc: "You are trying to update your character to RisuRealm. this will update your character to RisuRealm, and you can't revert it back.",
+    antiClaudeOverload: "Anti-Claude Overload",
 }
