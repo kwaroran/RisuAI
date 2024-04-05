@@ -2,16 +2,14 @@ export const patchNote = {
     version: "1.92",
     content: 
 `
-# Update 1.92.0
-- Added {{remaind::A::B}} which will return remainder of A divided by B
-- Added {{array_element::A::B}} which will return Bth element of array A
-- Added {{array_shift::A}} which will return A without first element
-- Added {{array_pop::A}} which will return A without last element
-- Added {{array_push::A::B}} which will return A with B pushed at the end
-- Added {{array_splice::A::B::C::D}} which will return A with C elements removed starting from Bth element and D elements added at Bth position
-- Added {{array::A::B...}} which will return an array with A, B and so on
-- Added {{datetimeformat::A}} which will return formatted date time string according to A
-- Fixed {{#if}} not working in some cases
+# Update 1.93.0
+- Added {{#each A B}} syntax for looping through arrays
+- Added {{range::A}} syntax which returns an array of numbers from 0 to A
+- Added {{assetlist}} and {{emotionlist}} which returns a list of assets and emotions
+- Added functionality to update card to realm optionally
+- Changed {{history}} behavior to return the array of history
+- Fixed a bug where {{#if}} was not working properly when its nested multiple times
+- Removed <Pure> tag dude to buggy behavior
 `
 }
 
