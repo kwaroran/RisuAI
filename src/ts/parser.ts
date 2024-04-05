@@ -524,7 +524,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
                 return chat.message.map((f) => {
-                    return JSON.stringify(f)
+                    return f.role + ': ' + f.data
                 }).join("§\n")
             }
             case 'ujb':
@@ -855,6 +855,19 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 case 'a':
                 case 'make_array':{
                     return arra.slice(1).join('§')
+                }
+                case 'history':
+                case 'messages':{
+                    const selchar = db.characters[get(selectedCharID)]
+                    const chat = selchar.chats[selchar.chatPage]
+                    return chat.message.map((f) => {
+                        let data = ''
+                        if(arra.includes('role')){
+                            data += f.role + ': '
+                        }
+                        data += f.data
+                        return data
+                    }).join("§\n")
                 }
             }
         }
