@@ -869,6 +869,20 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                         return data
                     }).join("§\n")
                 }
+                case 'range':{
+                    const arr = arra[1].split('§')
+                    const start = arr.length > 1 ? Number(arr[0]) : 0
+                    const end = arr.length > 1 ? Number(arr[1]) : Number(arr[0])
+                    const step = arr.length > 2 ? Number(arr[2]) : 1
+                    let out = ''
+                    for(let i=start;i<end;i+=step){
+                        out += i.toString()
+                        if(i + step < end){
+                            out += '§'
+                        }
+                    }
+                    return out
+                }
             }
         }
         if(p1.startsWith('random')){
