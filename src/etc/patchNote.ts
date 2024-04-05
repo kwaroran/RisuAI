@@ -2,7 +2,7 @@ export const patchNote = {
     version: "1.92",
     content: 
 `
-# Update 1.93.0
+# Update 1.93.1
 - Added {{#each A B}} syntax for looping through arrays
 - Added {{range::A}} syntax which returns an array of numbers from 0 to A
 - Added {{assetlist}} and {{emotionlist}} which returns a list of assets and emotions
