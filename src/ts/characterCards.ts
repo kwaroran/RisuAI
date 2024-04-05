@@ -6,7 +6,7 @@ import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { cloneDeep } from "lodash"
+import { cloneDeep, update } from "lodash"
 import { CurrentCharacter, selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
 
@@ -728,7 +728,8 @@ export async function shareRisuHub2(char:character, arg:{
     nsfw: boolean,
     tag:string
     license: string
-    anon: boolean
+    anon: boolean,
+    update: boolean
 }) {
     try {
         char = cloneDeep(char)
@@ -760,7 +761,7 @@ export async function shareRisuHub2(char:character, arg:{
                 "x-risu-token": get(DataBase)?.account?.token,
                 'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
                 'x-risu-debug': 'true',
-                'x-risu-update-id': char.realmId ?? 'null'
+                'x-risu-update-id': arg.update ? (char.realmId ?? 'null') : 'null'
             }
         })
     

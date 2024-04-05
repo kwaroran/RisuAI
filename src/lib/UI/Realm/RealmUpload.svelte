@@ -53,6 +53,11 @@
                 <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} on:click={() => {nsfwMode = false}}>🎖️ Safe</button>
                 <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} on:click={() => {nsfwMode = true}}>🔞 NSFW</button>
             </div>
+        {:else}
+            <div class="flex items-center flex-wrap mt-2">
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!update} on:click={() => {nsfwMode = false}}>🚀 Update</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={update} on:click={() => {nsfwMode = true}}>⭐ Upload Newly</button>
+            </div>
         {/if}
         {#if nsfwMode}
             <span class="text-textcolor2 text-sm">Grotesque Contents and non-adult characters with NSFW would be banned.</span>
@@ -71,7 +76,8 @@
                 anon: privateMode,
                 nsfw: nsfwMode,
                 tag: tags,
-                license: license
+                license: license,
+                update
             })
             close()
         }} className="mt-2" size="lg">
@@ -107,5 +113,6 @@
     let nsfwMode = false
     let license = ""
     let creatorNotes: {[code:string]:string} = parseMultilangString(char.creatorNotes)
+    let update = false
 
 </script>
