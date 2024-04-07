@@ -873,6 +873,7 @@ export interface Chat{
     isStreaming?:boolean
     scriptstate?:{[key:string]:string|number|boolean}
     modules?:string[]
+    id?:string
 }
 
 export interface Message{

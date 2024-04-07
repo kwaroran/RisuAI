@@ -29,7 +29,8 @@
     let messageInput:string = ''
     let messageInputTranslate:string = ''
     let openMenu = false
-    let loadPages = 30
+    let loadPages = 10
+    let lastLoadedChatId = ''
     let autoMode = false
     let rerolls:Message[][] = []
     let rerollid = -1
@@ -46,6 +47,17 @@
     }
     async function sendContinue(){
         return sendMain(true)
+    }
+
+    function getLoadPages(){
+        if(!$CurrentChat.id){
+            $CurrentChat.id = v4()
+        }
+        if($CurrentChat.id !== lastLoadedChatId){
+            lastLoadedChatId = $CurrentChat.id
+            loadPages = 10
+        }
+        return loadPages
     }
 
     async function sendMain(continueResponse:boolean) {
@@ -374,7 +386,7 @@
                 mergedCanvas.remove();
             }
             alertNormal(language.screenshotSaved)
-            loadPages = 15   
+            loadPages = 10
         } catch (error) {
             console.error(error)
             alertError("Error while taking screenshot")
@@ -397,7 +409,7 @@
             //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && $CurrentChat.message.length > loadPages){
-                loadPages += 15
+                loadPages += 10
             }
         }}>
             <div class="flex items-end mt-2 mb-2 w-full">
@@ -517,7 +529,7 @@
                 )} {send}/>
             {/if}
             
-            {#each messageForm($CurrentChat.message, loadPages) as chat, i}
+            {#each messageForm($CurrentChat.message, getLoadPages()) as chat, i}
                 {#if chat.role === 'char'}
                     {#if $CurrentCharacter.type !== 'group'}
                         <Chat
@@ -561,7 +573,7 @@
                     />
                 {/if}
             {/each}
-            {#if $CurrentChat.message.length <= loadPages}
+            {#if $CurrentChat.message.length <= getLoadPages()}
                 {#if $CurrentCharacter.type !== 'group'}
                     <Chat
                         character={$CurrentSimpleCharacter}
