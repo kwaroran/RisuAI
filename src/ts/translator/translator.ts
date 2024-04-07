@@ -319,6 +319,9 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             }
 
             for (const child of Array.from(node.childNodes)) {
+                if(node.nodeType === Node.ELEMENT_NODE && (node as Element)?.getAttribute('translate') === 'no'){
+                    continue
+                }
                 await translateNode(child, node);
             }
         }
