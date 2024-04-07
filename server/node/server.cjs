@@ -69,6 +69,7 @@ const reverseProxyFunc = async (req, res, next) => {
         head.delete('content-security-policy-report-only');
         head.delete('clear-site-data');
         head.delete('Cache-Control');
+        head.delete('Content-Encoding');
         const headObj = {};
         for (let [k, v] of head) {
             headObj[k] = v;
