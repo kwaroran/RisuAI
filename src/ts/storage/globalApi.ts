@@ -261,15 +261,17 @@ export async function saveDb(){
     })
     let gotChannel = false
     const sessionID = v4()
-    const channel = new BroadcastChannel('risu-save-channel')
-    channel.onmessage = async (ev) => {
-        if(ev.data === sessionID){
-            return
-        }
-        if(!gotChannel){
-            gotChannel = true
-            await alertNormalWait(language.activeTabChange)
-            gotChannel = false
+    const channel = BroadcastChannel ? (new BroadcastChannel('risu-active')): null
+    if(channel){
+        channel.onmessage = async (ev) => {
+            if(ev.data === sessionID){
+                return
+            }
+            if(!gotChannel){
+                gotChannel = true
+                await alertNormalWait(language.activeTabChange)
+                gotChannel = false
+            }
         }
     }
     let savetrys = 0
@@ -281,7 +283,9 @@ export async function saveDb(){
                     await sleep(1000)
                     continue
                 }
-                channel.postMessage(sessionID)
+                if(channel){
+                    channel.postMessage(sessionID)
+                }
                 changed = false
                 let db = get(DataBase)
                 db.saveTime = Math.floor(Date.now() / 1000)
