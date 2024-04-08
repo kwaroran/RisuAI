@@ -129,13 +129,13 @@
                     {/each}
                 {/await}
             </Arcodion>
-            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('oaicomp')}}>Custom (OpenAI-compatible)</button>
             {#if showUnrec}
             <Arcodion name="WebLLM Local">
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/opt-350m')}}>opt-350m</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/tiny-random-mistral')}}>tiny-random-mistral</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/gpt2-large-conversational')}}>gpt2-large-conversational</button>
             </Arcodion>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('risullm-proto')}}>RisuAI LLM (Prototype)</button>
             {/if}
             {#if $DataBase.plugins.length > 0}
                 <button on:click={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>

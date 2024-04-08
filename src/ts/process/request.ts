@@ -1439,6 +1439,48 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'result': result
             }
         }
+        case 'risullm-proto':{
+            const res = await globalFetch('https://sv.risuai.xyz/risullm', {
+                body: {
+                    messages: formated.map((v) => {
+                        if(v.role === 'system'){
+                            return {
+                                role: "user",
+                                content: "System: " + v.content
+                            }
+                        }
+                        if(v.role === 'function'){
+                            return {
+                                role: "user",
+                                content: "Function: " + v.content
+                            
+                            }
+                        }
+                        return {
+                            role: v.role,
+                            content: v.content
+                        }
+                    })
+                },
+                headers: {
+                    "X-Api-Key": db.proxyKey
+                }
+            })
+
+            const resp:string = res?.data?.response
+            
+            if(!resp){
+                return {
+                    type: 'fail',
+                    result: JSON.stringify(res.data)
+                }
+            }
+
+            return {
+                type: 'success',
+                result: resp.replace(/\\n/g, '\n')
+            }
+        }
         default:{     
             if(raiModel.startsWith('claude-3')){
                 let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/messages')

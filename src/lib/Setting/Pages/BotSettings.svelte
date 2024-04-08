@@ -23,6 +23,7 @@
     import { alertConfirm } from "src/ts/alert";
     import OobaSettings from "./OobaSettings.svelte";
   import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import { startsWith } from "lodash";
 
     let tokens = {
         mainPrompt: 0,
@@ -197,6 +198,10 @@
     <div class="flex items-center mt-2 mb-4">
         <Check bind:check={$DataBase.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
     </div>
+{/if}
+{#if $DataBase.aiModel.startsWith('risullm')}
+    <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
 {/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
     <span class="text-textcolor mt-4">Openrouter Key</span>
