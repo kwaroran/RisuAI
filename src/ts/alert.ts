@@ -44,6 +44,19 @@ export function alertNormal(msg:string){
     })
 }
 
+export async function alertNormalWait(msg:string){
+    alertStore.set({
+        'type': 'normal',
+        'msg': msg
+    })
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+}
+
 export async function alertLogin(){
     alertStore.set({
         'type': 'login',
