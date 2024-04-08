@@ -29,6 +29,7 @@ import { save } from "@tauri-apps/api/dialog";
 import type { RisuModule } from "../process/modules";
 import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
+import { language } from "src/lang";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -267,7 +268,7 @@ export async function saveDb(){
         }
         if(!gotChannel){
             gotChannel = true
-            await alertNormalWait("Current tab is inactivated since other tab is active. to activate this tab, click OK")
+            await alertNormalWait(language.activeTabChange)
             gotChannel = false
         }
     }
