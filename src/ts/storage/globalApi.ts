@@ -262,7 +262,7 @@ export async function saveDb(){
     let gotChannel = false
     const sessionID = v4()
     let channel:BroadcastChannel
-    if(BroadcastChannel){
+    if(window.BroadcastChannel){
         channel = new BroadcastChannel('risu-db')
     }
     if(channel){
