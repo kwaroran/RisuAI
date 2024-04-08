@@ -759,13 +759,13 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return (Number(arra[1]) <= Number(arra[2])) ? '1' : '0'
                 }
                 case 'and':{
-                    return (Number(arra[1]) && Number(arra[2])) ? '1' : '0'
+                    return arra[1] === '1' && arra[2] === '1' ? '1' : '0'
                 }
                 case 'or':{
-                    return (Number(arra[1]) || Number(arra[2])) ? '1' : '0'
+                    return arra[1] === '1' || arra[2] === '1' ? '1' : '0'
                 }
                 case 'not':{
-                    return (Number(arra[1]) === 0) ? '1' : '0'
+                    return arra[1] === '1' ? '0' : '1'
                 }
                 case 'file':{
                     if(matcherArg.displaying){
