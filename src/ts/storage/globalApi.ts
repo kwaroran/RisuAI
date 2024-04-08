@@ -261,7 +261,10 @@ export async function saveDb(){
     })
     let gotChannel = false
     const sessionID = v4()
-    const channel = BroadcastChannel ? (new BroadcastChannel('risu-active')): null
+    let channel:BroadcastChannel
+    if(BroadcastChannel){
+        channel = new BroadcastChannel('risu-db')
+    }
     if(channel){
         channel.onmessage = async (ev) => {
             if(ev.data === sessionID){
