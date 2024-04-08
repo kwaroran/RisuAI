@@ -15,7 +15,7 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.93.4"
+export let appVer = "1.93.5"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -382,6 +382,7 @@ export function setDatabase(data:Database){
     data.additionalParams ??= []
     data.heightMode ??= 'normal'
     data.antiClaudeOverload ??= false
+    data.maxSupaChunkSize ??= 1200
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -616,6 +617,7 @@ export interface Database{
     useAdvancedEditor:boolean
     noWaitForTranslate:boolean
     antiClaudeOverload:boolean
+    maxSupaChunkSize:number
 }
 
 export interface customscript{

@@ -266,7 +266,10 @@ export async function supaMemory(
 
         while(currentTokens > maxContextTokens){
             const beforeToken = currentTokens
-            let maxChunkSize = maxContextTokens > 3500 ? 1200 : Math.floor(maxContextTokens / 3)
+            let maxChunkSize = Math.floor(maxContextTokens / 3)
+            if(db.maxSupaChunkSize > maxChunkSize){
+                maxChunkSize = db.maxSupaChunkSize
+            }
             let summarized = false
             let chunkSize = 0
             let stringlizedChat = ''

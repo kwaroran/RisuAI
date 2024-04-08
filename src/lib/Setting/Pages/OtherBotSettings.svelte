@@ -213,17 +213,17 @@
         <OptionInput value="none" >None</OptionInput>
         <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
         <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
-        <OptionInput value="davinci" >OpenAI Davinci</OptionInput>
-        <OptionInput value="curie" >OpenAI Curie</OptionInput>
-        <OptionInput value="subModel" >{language.submodel} ({language.unrecommended})</OptionInput>
+        <OptionInput value="subModel" >{language.submodel}</OptionInput>
     </SelectInput>
+    <span class="text-textcolor">{language.maxSupaChunkSize}</span>
+    <NumberInput size="sm" marginBottom bind:value={$DataBase.maxSupaChunkSize} min={100} />
     {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
         <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
         <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
     {/if}
     {#if $DataBase.supaMemoryType !== 'none'}
         <span class="text-textcolor">{language.SuperMemory} Prompt</span>
-        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="recommended to leave it blank to use default"/>
+        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
     {/if}
     {#if $DataBase.hypaMemory}
         <span class="text-textcolor">{language.HypaMemory} Model</span>
@@ -233,6 +233,6 @@
         </SelectInput>
     {/if}
     <div class="flex">
-        <Check bind:check={$DataBase.hypaMemory} name={language.able + ' ' + language.HypaMemory}/>
+        <Check bind:check={$DataBase.hypaMemory} name={language.enable + ' ' + language.HypaMemory}/>
     </div>
 </Arcodion>
