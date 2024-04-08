@@ -224,15 +224,31 @@ export async function supaMemory(
                     }
                 })
 
-                console.log(da)
+                try {
+                    if(!da.ok){
+                        return {
+                            currentTokens: currentTokens,
+                            chats: chats,
+                            error: "SupaMemory: HTTP: " + await da.data
+                        }
+                    }
+        
+                    result = (await da.data)?.choices[0]?.text?.trim()
     
-                result = (await da.data)?.choices[0]?.text?.trim()
+                    if(!result){
+                        return {
+                            currentTokens: currentTokens,
+                            chats: chats,
+                            error: "SupaMemory: HTTP: " + await da.data
+                        }
+                    }
 
-                if(!result){
+                    return result
+                } catch (error) {
                     return {
                         currentTokens: currentTokens,
                         chats: chats,
-                        error: "SupaMemory: HTTP: " + await da.data
+                        error: "SupaMemory: HTTP: " + error
                     }
                 }
             }
