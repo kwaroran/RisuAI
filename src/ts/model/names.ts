@@ -89,6 +89,10 @@ export function getModelName(name:string){
             return 'Mistral Medium'
         case 'claude-3-haiku-20240307':
             return 'Claude 3 Haiku (20240307)'
+        case 'gpt4_turbo':
+            return 'GPT-4 Turbo'
+        case 'gpt4_turbo_20240409':
+            return 'GPT-4 Turbo (20240409)'
         default:
             if(name.startsWith("horde:::")){
                 const split = name.split(":::")
