@@ -102,7 +102,7 @@ interface OpenAITextContents {
 }
 
 interface OpenAIImageContents {
-    type: 'image'
+    type: 'image'|'image_url'
     image_url: {
         url: string
         detail: string
@@ -171,6 +171,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-small-latest':
         case 'mistral-medium-latest':
         case 'mistral-large-latest':
+        case 'gpt4_turbo_20240409':
+        case 'gpt4_turbo':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -180,7 +182,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     let contents:OpenAIContents[] = []
                     for(let j=0;j<m.multimodals.length;j++){
                         contents.push({
-                            "type": "image",
+                            "type": "image_url",
                             "image_url": {
                                 "url": m.multimodals[j].base64,
                                 "detail": db.gptVisionQuality
@@ -414,6 +416,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === "gpt35_1106" ? 'gpt-3.5-turbo-1106'
                     : requestModel === 'gpt35_0301' ? 'gpt-3.5-turbo-0301'
                     : requestModel === 'gpt4_0314' ? 'gpt-4-0314'
+                    : requestModel === 'gpt4_turbo_20240409' ? 'gpt-4-turbo-2024-04-09'
+                    : requestModel === 'gpt4_turbo' ? 'gpt-4-turbo'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,

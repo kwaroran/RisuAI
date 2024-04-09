@@ -34,10 +34,7 @@
             <Arcodion name="OpenAI GPT">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('instructgpt35')}}>GPT-3.5 Instruct</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0125')}}>GPT-4 Turbo 0125</button>
-                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo')}}>GPT-4 Turbo</button>
                 {#if showUnrec}
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0314')}}>GPT-4 0314</button>
@@ -49,6 +46,11 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0613')}}>GPT-3.5 Turbo 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k_0613')}}>GPT-3.5 Turbo 16K 0613</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_0301')}}>GPT-3.5 Turbo 0301</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0125')}}>GPT-4 Turbo 0125</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo_20240409')}}>GPT-4 Turbo 20240409</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4 (Old)</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K (Old)</button>
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
