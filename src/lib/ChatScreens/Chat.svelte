@@ -11,7 +11,7 @@
     import { get } from "svelte/store";
     import { capitalize, isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
-  import { getModelShortName } from "src/ts/model/names";
+    import { getModelShortName } from "src/ts/model/names";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -68,7 +68,7 @@
         $CurrentChat.message = msg
     }
 
-    function displaya(message:string){
+    function displaya(message:string, chatPointer?:any){
         msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
     }
 
@@ -124,7 +124,7 @@
         }
     }
 
-    $: displaya(message)
+    $: displaya(message, $CurrentVariablePointer)
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
@@ -228,13 +228,11 @@
                     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
                     style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
                 >
-                    {#key $CurrentVariablePointer}
-                        {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                            {@html lastParsed}
-                        {:then md}
-                            {@html md}
-                        {/await}
-                    {/key}
+                    {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                        {@html lastParsed}
+                    {:then md}
+                        {@html md}
+                    {/await}
                 </span>
             {/if}
         </span>

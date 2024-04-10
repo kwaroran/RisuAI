@@ -146,10 +146,11 @@ CurrentChat.subscribe((chat) => {
     }
 
     const variablePointer = get(CurrentVariablePointer)
-    const currentState = chat.scriptstate
+    const currentState = structuredClone(chat?.scriptstate)
 
     if(!isEqual(variablePointer, currentState)){
         CurrentVariablePointer.set(currentState)
+        console.log(currentState)
     }
 })
 
