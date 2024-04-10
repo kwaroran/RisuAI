@@ -38,6 +38,7 @@ export const CurrentUserIcon = writable(db.userIcon)
 export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
+export const CurrentVariablePointer = writable({} as {[key:string]: string|number|boolean})
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
@@ -136,12 +137,19 @@ CurrentCharacter.subscribe((char) => {
 
 CurrentChat.subscribe((chat) => {
     let currentChar = get(CurrentCharacter)
+
     if(currentChar){
-        if(isEqual(currentChar.chats[currentChar.chatPage], chat)){
-            return
+        if(!isEqual(currentChar.chats[currentChar.chatPage], chat)){
+            currentChar.chats[currentChar.chatPage] = cloneDeep(chat)
+            CurrentCharacter.set(currentChar)
         }
-        currentChar.chats[currentChar.chatPage] = cloneDeep(chat)
-        CurrentCharacter.set(currentChar)
+    }
+
+    const variablePointer = get(CurrentVariablePointer)
+    const currentState = chat.scriptstate
+
+    if(!isEqual(variablePointer, currentState)){
+        CurrentVariablePointer.set(currentState)
     }
 })
 
