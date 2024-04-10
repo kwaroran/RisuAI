@@ -1,15 +1,20 @@
 export const patchNote = {
-    version: "1.93",
+    version: "1.94",
     content: 
 `
-# Update 1.93
-- Added {{#each A B}} syntax for looping through arrays
-- Added {{range::A}} syntax which returns an array of numbers from 0 to A
-- Added {{assetlist}} and {{emotionlist}} which returns a list of assets and emotions
-- Added functionality to update card to realm optionally
-- Changed {{history}} behavior to return the array of history
-- Fixed a bug where {{#if}} was not working properly when its nested multiple times
-- Removed <Pure> tag dude to buggy behavior
+# Update 1.94
+- Added "If Value" condition in Trigger Scripts
+- Added "Call Trigger" effect in Trigger Scripts
+- Added "Stop Sending Prompt" effect in Trigger Scripts
+- Added "Run Command" effect in Trigger Scripts
+- Added Trigger Scripts' help dialog
+- Added "risu-trigger" attribute support to trigger Trigger Scripts in HTML
+- Reworked {{button::A::B}} to use with Trigger Scripts
+- Trigger Scripts now parses curly braced syntax in attributes
+- Fixed Commands not chaining properly
+- Fixed Trigger Scripts' variable not saving and syncing properly
+- Changed CharacterJS in character to not be shown unless unrecommended option is enabled
+- Changed CharacterJS to not be exported in character export
 `
 }
 
