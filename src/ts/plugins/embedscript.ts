@@ -325,22 +325,3 @@ export async function runCharacterJS(arg:{
     }
 
 }
-
-export async function watchParamButton() {
-    while(true){
-        const qs = document.querySelectorAll('*[risu-btn]:not([risu-btn-run="true"])')
-        for(let i = 0; i < qs.length; i++){
-            const q = qs[i]
-            const code = q.getAttribute('risu-btn')
-            q.setAttribute('risu-btn-run','true')
-            q.addEventListener('click',async ()=>{
-                await runCharacterJS({
-                    code: null,
-                    mode: 'onButtonClick',
-                    data: code
-                })
-            })
-        }
-        await sleep(100)
-    }
-}
