@@ -1,10 +1,10 @@
 import { cloneDeep } from "lodash";
 import { risuChatParser } from "../parser";
-import type { Chat, character } from "../storage/database";
+import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { CurrentChat } from "../stores";
+import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
 import { processMultiCommand } from "./command";
 
 export interface triggerscript{
@@ -88,6 +88,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     char = cloneDeep(char)
     let varChanged = false
     let stopSending = arg.stopSending ?? false
+    const currentChat = get(CurrentChat)
     let additonalSysPrompt:additonalSysPrompt = arg.additonalSysPrompt ?? {
         start:'',
         historyend: '',
@@ -104,9 +105,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
 
     function setVar(key:string, value:string){
+        const selectedCharId = get(selectedCharID)
+        const currentCharacter = get(CurrentCharacter)
+        const db = get(DataBase)
         varChanged = true
         chat.scriptstate ??= {}
         chat.scriptstate['$' + key] = value
+        currentChat.scriptstate = chat.scriptstate
+        currentCharacter.chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+        db.characters[selectedCharId].chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+
+        
     }
     
     
@@ -283,8 +292,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         const currentChat = get(CurrentChat)
         currentChat.scriptstate = chat.scriptstate
     }
-
-    console.log(chat)
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending}
 
