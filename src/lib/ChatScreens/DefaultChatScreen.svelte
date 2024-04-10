@@ -6,7 +6,7 @@
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
-    import { doingChat, sendChat } from "../../ts/process/index";
+    import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
@@ -439,7 +439,7 @@
                 {#if $doingChat || doingChatInputTranslate} 
                     <div
                         class="mr-2 bg-selected flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
-                        <div class="loadmove" class:autoload={autoMode}>
+                        <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}>
                         </div>
                     </div>
                 {:else}
@@ -729,6 +729,26 @@
         height: 1rem;
         border-top: 0.4rem solid var(--risu-theme-borderc);
         border-left: 0.4rem solid var(--risu-theme-borderc);
+    }
+
+    .chat-process-stage-1{
+        border-top: 0.4rem solid #60a5fa;
+        border-left: 0.4rem solid #60a5fa;
+    }
+
+    .chat-process-stage-2{
+        border-top: 0.4rem solid #db2777;
+        border-left: 0.4rem solid #db2777;
+    }
+
+    .chat-process-stage-3{
+        border-top: 0.4rem solid #34d399;
+        border-left: 0.4rem solid #34d399;
+    }
+
+    .chat-process-stage-4{
+        border-top: 0.4rem solid #8b5cf6;
+        border-left: 0.4rem solid #8b5cf6;
     }
 
     .autoload{

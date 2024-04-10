@@ -52,11 +52,12 @@ export interface OpenAIChatFull extends OpenAIChat{
 }
 
 export const doingChat = writable(false)
+export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 
 export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean} = {}):Promise<boolean> {
 
-
+    chatProcessStage.set(0)
     const abortSignal = arg.signal ?? (new AbortController()).signal
 
     let isAborted = false
@@ -185,6 +186,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
 
+    chatProcessStage.set(1)
     let unformated = {
         'main':([] as OpenAIChat[]),
         'jailbreak':([] as OpenAIChat[]),
@@ -641,6 +643,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     }
 
     if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
+        chatProcessStage.set(2)
         const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
             asHyper: db.supaMemoryType !== 'subModel' && db.hypaMemory
         })
@@ -651,7 +654,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         chats = sp.chats
         currentTokens = sp.currentTokens
         currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
+        db.characters[selectedChar].chats[selectedChat].supaMemoryData = currentChat.supaMemoryData
+        console.log(currentChat.supaMemoryData)
+        DataBase.set(db)
         currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory
+        chatProcessStage.set(1)
     }
     else{
         while(currentTokens > maxContextTokens){
@@ -961,6 +968,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         outputTokens: outputTokens,
         maxContext: maxContextTokens,
     }
+    chatProcessStage.set(3)
     const req = await requestChatData({
         formated: formated,
         biasString: biases,
@@ -1119,6 +1127,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             setDatabase(db)
         }
     }
+
+    chatProcessStage.set(4)
 
     sendPeerChar()
 
