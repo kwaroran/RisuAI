@@ -175,7 +175,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             }
                             break
                         case 'null':
-                            if(varValue !== '[Null]'){
+                            if(varValue !== 'null'){
                                 pass = false
                             }
                             break
