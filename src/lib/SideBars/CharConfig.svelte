@@ -493,7 +493,7 @@
             }
         }}><PlusIcon /></button>
 
-        <span class="text-textcolor mt-4">{language.triggerScript} <Help key="regexScript"/></span>
+        <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <TriggerList bind:value={currentChar.data.triggerscript} />
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
