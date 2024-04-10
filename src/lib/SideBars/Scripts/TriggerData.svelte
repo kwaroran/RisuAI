@@ -59,10 +59,10 @@
             <span class="text-textcolor mt-4">Conditions
                 <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
                     value.conditions.push({
-                        type: 'exists',
+                        type: 'value',
                         value: '',
-                        type2: 'loose',
-                        depth: 3
+                        operator: '=',
+                        var: ''
                     })
                     value.conditions = value.conditions
 
@@ -93,9 +93,9 @@
                                 depth: 3
                             }
                         }
-                        if(cond.type === 'var'){
+                        if(cond.type === 'var' || cond.type === 'value'){
                             cond = {
-                                type: 'var',
+                                type: cond.type,
                                 var: '',
                                 value: '',
                                 operator: '='
@@ -108,8 +108,8 @@
                                 operator: '='
                             }
                         }
-
                     }}>
+                        <OptionInput value="value">{language.ifValue}</OptionInput>
                         <OptionInput value="exists">{language.triggerCondExists}</OptionInput>
                         <OptionInput value="var">{language.triggerCondVar}</OptionInput>
                         <OptionInput value="chatindex">{language.ifChatIndex}</OptionInput>
@@ -127,9 +127,12 @@
                         <span  class="text-textcolor2 text-sm">{language.searchDepth}</span>
                         <NumberInput size="sm" bind:value={cond.depth} />
                     {/if}
-                    {#if cond.type === 'var' || cond.type === 'chatindex'}
+                    {#if cond.type === 'var' || cond.type === 'chatindex' || cond.type === 'value'}
                         {#if cond.type === 'var'}
                             <span class="text-textcolor2 text-sm">{language.varableName}</span>
+                            <TextInput size="sm" bind:value={cond.var} />
+                        {/if}
+                        {#if cond.type === 'value'}
                             <TextInput size="sm" bind:value={cond.var} />
                         {/if}
                         <span  class="text-textcolor2 text-sm">{language.value}</span>
@@ -217,19 +220,34 @@
                                 value: ''
                             }
                         }
+                        if(effect.type === 'stop'){
+                            effect = {
+                                type: 'stop',
+                            }
+                        }
+                        if(effect.type === 'runtrigger'){
+                            effect = {
+                                type: 'runtrigger',
+                                value: ''
+                            }
+                        }
                     }}>
-                        {#if effect.type === 'systemprompt' || value.type === 'start'}
-                            <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
-                        {/if}
                         <OptionInput value="setvar">{language.triggerEffSetVar}</OptionInput>
                         <OptionInput value="impersonate">{language.triggerEffImperson}</OptionInput>
                         <OptionInput value="command">{language.triggerEffCommand}</OptionInput>
+                        {#if effect.type === 'systemprompt' || value.type === 'start'}
+                            <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
+                        {/if}
+                        {#if effect.type === 'stop' || value.type === 'start'}
+                            <OptionInput value="stop">{language.triggerEffStop}</OptionInput>
+                        {/if}
+                        <OptionInput value="runtrigger">{language.triggerEffRunTrigger}</OptionInput>
 
                     </SelectInput>
+                    {#if value.type !== 'start' && (effect.type === 'systemprompt' || effect.type === 'stop')}
+                        <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
+                    {/if}
                     {#if effect.type === 'systemprompt'}
-                        {#if value.type !== 'start'}
-                            <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
-                        {/if}
                         <span class="text-textcolor2 text-sm">{language.location}</span>
                         <SelectInput bind:value={effect.location} size="sm">
                             <OptionInput value="start">{language.promptstart}</OptionInput>
@@ -254,6 +272,10 @@
                         <TextInput size="sm" bind:value={effect.value} />
                     {/if}
 
+                    {#if effect.type === 'runtrigger'}
+                        <span class="text-textcolor2 text-sm">{language.name}</span>
+                        <TextInput size="sm" bind:value={effect.value} />
+                    {/if}
                     {#if effect.type === 'command'}
                         <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextAreaInput size="sm" bind:value={effect.value} />

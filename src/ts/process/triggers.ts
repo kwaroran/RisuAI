@@ -16,10 +16,10 @@ export interface triggerscript{
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand
+export type triggerEffect = triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
 
 export type triggerConditionsVar = {
-    type:'var'
+    type:'var'|'value'
     var:string
     value:string
     operator:'='|'!='|'>'|'<'|'>='|'<='|'null'
@@ -62,6 +62,15 @@ export interface triggerEffectCommand{
     value: string
 }
 
+export interface triggerEffectRunTrigger{
+    type: 'runtrigger',
+    value: string
+}
+
+export interface triggerEffectStop{
+    type: 'stop'
+}
+
 export type additonalSysPrompt = {
     start:string,
     historyend: string,
@@ -69,17 +78,23 @@ export type additonalSysPrompt = {
 }
 
 export async function runTrigger(char:character,mode:triggerMode, arg:{
-    chat: Chat
+    chat: Chat,
+    recursiveCount?: number
+    additonalSysPrompt?: additonalSysPrompt
+    stopSending?: boolean
+    manualName?: string
 }){
+    arg.recursiveCount ??= 0
     char = cloneDeep(char)
     let varChanged = false
-    let additonalSysPrompt:additonalSysPrompt = {
+    let stopSending = arg.stopSending ?? false
+    let additonalSysPrompt:additonalSysPrompt = arg.additonalSysPrompt ?? {
         start:'',
         historyend: '',
         promptend: ''
     }
     const triggers = char.triggerscript.concat(getModuleTriggers())
-    const chat = cloneDeep(arg.chat ?? char.chats[char.chatPage])
+    let chat = cloneDeep(arg.chat ?? char.chats[char.chatPage])
     if((!triggers) || (triggers.length === 0)){
         return null
     }
@@ -96,14 +111,22 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     
     
     for(const trigger of triggers){
-        if(mode !== trigger.type){
+        if(arg.manualName){
+            if(trigger.comment !== arg.manualName){
+                continue
+            }
+        }
+        else if(mode !== trigger.type){
             continue
         }
 
         let pass = true
         for(const condition of trigger.conditions){
-            if(condition.type === 'var' || condition.type === 'chatindex'){
-                let varValue = (condition.type === 'var') ? (getVar(condition.var) ?? 'null') : (chat.message.length.toString())
+            if(condition.type === 'var' || condition.type === 'chatindex' || condition.type === 'value'){
+                let varValue =  (condition.type === 'var') ? (getVar(condition.var) ?? 'null') :
+                                (condition.type === 'chatindex') ? (chat.message.length.toString()) :
+                                (condition.type === 'value') ? condition.var : null
+                                
                 if(varValue === undefined || varValue === null){
                     pass = false
                     break
@@ -172,48 +195,76 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
             continue
         }
         for(const effect of trigger.effect){
-            if(effect.type === 'setvar'){
-                const effectValue = risuChatParser(effect.value,{chara:char})
-                const varKey  = risuChatParser(effect.var,{chara:char})
-                switch(effect.operator){
-                    case '=':{
-                        setVar(varKey, effectValue)
-                        break
+            switch(effect.type){
+                case'setvar': {
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    const varKey  = risuChatParser(effect.var,{chara:char})
+                    switch(effect.operator){
+                        case '=':{
+                            setVar(varKey, effectValue)
+                            break
+                        }
+                        case '+=':{
+                            setVar(varKey, (Number(getVar(varKey)) + Number(effectValue)).toString())
+                            break
+                        }
+                        case '-=':{
+                            setVar(varKey, (Number(getVar(varKey)) - Number(effectValue)).toString())
+                            break
+                        }
+                        case '*=':{
+                            setVar(varKey, (Number(getVar(varKey)) * Number(effectValue)).toString())
+                            break
+                        }
+                        case '/=':{
+                            setVar(varKey, (Number(getVar(varKey)) / Number(effectValue)).toString())
+                            break
+                        }
                     }
-                    case '+=':{
-                        setVar(varKey, (Number(getVar(varKey)) + Number(effectValue)).toString())
-                        break
-                    }
-                    case '-=':{
-                        setVar(varKey, (Number(getVar(varKey)) - Number(effectValue)).toString())
-                        break
-                    }
-                    case '*=':{
-                        setVar(varKey, (Number(getVar(varKey)) * Number(effectValue)).toString())
-                        break
-                    }
-                    case '/=':{
-                        setVar(varKey, (Number(getVar(varKey)) / Number(effectValue)).toString())
-                        break
-                    }
+                    break
                 }
-            }
-            else if(effect.type === 'systemprompt'){
-                const effectValue = risuChatParser(effect.value,{chara:char})
-                additonalSysPrompt[effect.location] += effectValue + "\n\n"
-            }
-            else if(effect.type === 'impersonate'){
-                const effectValue = risuChatParser(effect.value,{chara:char})
-                if(effect.role === 'user'){
-                    chat.message.push({role: 'user', data: effectValue})
+                case 'systemprompt':{
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    additonalSysPrompt[effect.location] += effectValue + "\n\n"
+                    break
                 }
-                else if(effect.role === 'char'){
-                    chat.message.push({role: 'char', data: effectValue})
+                case 'impersonate':{
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    if(effect.role === 'user'){
+                        chat.message.push({role: 'user', data: effectValue})
+                    }
+                    else if(effect.role === 'char'){
+                        chat.message.push({role: 'char', data: effectValue})
+                    }
+                    break
                 }
-            }
-            else if(effect.type === 'command'){
-                const effectValue = risuChatParser(effect.value,{chara:char})
-                await processMultiCommand(effectValue)
+                case 'command':{
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    await processMultiCommand(effectValue)
+                    break
+                }
+                case 'stop':{
+                    stopSending = true
+                    break
+                }
+                case 'runtrigger':{
+                    if(arg.recursiveCount < 10){
+                        arg.recursiveCount++
+                        const r = await runTrigger(char,'manual',{
+                            chat,
+                            recursiveCount: arg.recursiveCount,
+                            additonalSysPrompt,
+                            stopSending,
+                            manualName: effect.value
+                        })
+                        if(r){
+                            additonalSysPrompt = r.additonalSysPrompt
+                            chat = r.chat
+                            stopSending = r.stopSending
+                        }
+                    }
+                    break
+                }
             }
         }
     }
@@ -235,6 +286,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
 
     console.log(chat)
 
-    return {additonalSysPrompt, chat, tokens:caculatedTokens}
+    return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending}
 
 }

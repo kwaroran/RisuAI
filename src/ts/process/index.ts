@@ -552,6 +552,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentChat = triggerResult.chat
         ms = currentChat.message
         currentTokens += triggerResult.tokens
+        if(triggerResult.stopSending){
+            doingChat.set(false)
+            return false
+        }
     }
 
     let index = 0
