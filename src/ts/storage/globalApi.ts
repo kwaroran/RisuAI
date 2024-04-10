@@ -30,6 +30,7 @@ import type { RisuModule } from "../process/modules";
 import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
+import { startObserveDom } from "../observer";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -508,6 +509,7 @@ export async function loadData() {
             }
             loadedStore.set(true)
             selectedCharID.set(-1)
+            startObserveDom()
             saveDb()   
         } catch (error) {
             alertError(`${error}`)

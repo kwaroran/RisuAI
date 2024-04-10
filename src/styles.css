@@ -176,3 +176,7 @@ html, body{
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.x-risu-button-default{
+  @apply border text-textcolor rounded-md shadow-sm focus:outline-none focus:ring-2 transition-colors duration-200 border-darkborderc px-4 py-2 bg-darkbutton hover:bg-borderc focus:ring-borderc
+}

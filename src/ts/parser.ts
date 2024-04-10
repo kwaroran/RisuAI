@@ -732,7 +732,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return null
                 }
                 case 'button':{
-                    return `<button style="padding" x-risu-prompt="${arra[2]}">${arra[1]}</button>`
+                    return `<button class="button-default" risu-trigger="${arra[2]}">${arra[1]}</button>`
                 }
                 case 'risu':{
                     return `<img src="/logo2.png" style="height:${v || 45}px;width:${v || 45}px" />`
