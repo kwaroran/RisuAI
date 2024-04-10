@@ -416,6 +416,7 @@ export const languageEnglish = {
     triggerEffSysPrompt: 'Add System Prompt',
     triggerEffSetVar: 'Modify Variable',
     triggerEffImperson: 'Send Chat',
+    triggerEffCommand: 'Run Command',
     varableName: "Variable Name",
     role: "Role",
     location: 'Location',

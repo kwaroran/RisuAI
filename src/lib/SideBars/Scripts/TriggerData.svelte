@@ -211,12 +211,20 @@
                                 value: ''
                             }
                         }
+                        if(effect.type === 'command'){
+                            effect = {
+                                type: 'command',
+                                value: ''
+                            }
+                        }
                     }}>
                         {#if effect.type === 'systemprompt' || value.type === 'start'}
                             <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
                         {/if}
                         <OptionInput value="setvar">{language.triggerEffSetVar}</OptionInput>
                         <OptionInput value="impersonate">{language.triggerEffImperson}</OptionInput>
+                        <OptionInput value="command">{language.triggerEffCommand}</OptionInput>
+
                     </SelectInput>
                     {#if effect.type === 'systemprompt'}
                         {#if value.type !== 'start'}
@@ -244,6 +252,11 @@
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextInput size="sm" bind:value={effect.value} />
+                    {/if}
+
+                    {#if effect.type === 'command'}
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
+                        <TextAreaInput size="sm" bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'impersonate'}
                         <span class="text-textcolor2 text-sm">{language.role}</span>

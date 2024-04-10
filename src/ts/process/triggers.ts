@@ -5,6 +5,7 @@ import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
 import { CurrentChat } from "../stores";
+import { processMultiCommand } from "./command";
 
 export interface triggerscript{
     comment: string;
@@ -15,7 +16,7 @@ export interface triggerscript{
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate
+export type triggerEffect = triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand
 
 export type triggerConditionsVar = {
     type:'var'
@@ -55,6 +56,11 @@ export interface triggerEffectImpersonate{
     role: 'user'|'char',
     value:string
 }type triggerMode = 'start'|'manual'|'output'|'input'
+
+export interface triggerEffectCommand{
+    type: 'command',
+    value: string
+}
 
 export type additonalSysPrompt = {
     start:string,
@@ -197,6 +203,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 else if(effect.role === 'char'){
                     chat.message.push({role: 'char', data: effect.value})
                 }
+            }
+            else if(effect.type === 'command'){
+                return await processMultiCommand(effect.value)
             }
         }
     }
