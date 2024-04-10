@@ -526,7 +526,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let chats:OpenAIChat[] = examples
 
-    console.log(db.aiModel)
     if(!db.aiModel.startsWith('novelai')){
         chats.push({
             role: 'system',
@@ -1041,7 +1040,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }   
         }
 
-        console.log(lastResponseChunk)
         addRerolls(generationId, Object.values(lastResponseChunk))
 
         db.characters[selectedChar].chats[selectedChat] = runCurrentChatFunction(db.characters[selectedChar].chats[selectedChat])
@@ -1210,8 +1208,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }).map((v) => {
                     return v[0]
                 })
-
-                console.log(searched)
 
                 for(const emo of currentEmotion){
                     if(emo[0] === emoresult[0]){
