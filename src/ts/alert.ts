@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core"
 import { DataBase, type MessageGenerationInfo } from "./storage/database"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'
     msg: string,
     submsg?: string
 }
@@ -55,6 +55,21 @@ export async function alertNormalWait(msg:string){
         }
         await sleep(10)
     }
+}
+
+export async function alertAddCharacter() {
+    alertStore.set({
+        'type': 'addchar',
+        'msg': language.addCharacter
+    })
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+
+    return get(alertStore).msg
 }
 
 export async function alertLogin(){

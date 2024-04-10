@@ -567,4 +567,7 @@ export const languageEnglish = {
     antiClaudeOverload: "Anti-Claude Overload",
     activeTabChange: "Current tab is inactivated since other tab is active. to activate this tab, click OK",
     maxSupaChunkSize: "Max SupaMemory Chunk Size",
+    addCharacter: "Add Character",
+    importFromRealm: "Choose from RisuRealm",
+    importFromRealmDesc: "Choose over 1000 characters in RisuRealm",
 }

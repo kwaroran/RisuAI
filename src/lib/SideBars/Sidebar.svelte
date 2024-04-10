@@ -7,7 +7,10 @@
     settingsOpen,
     sideBarClosing,
     sideBarStore,
-    CurrentCharacter
+    CurrentCharacter,
+
+    OpenRealmStore
+
   } from "../../ts/stores";
   import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
   import BarIcon from "./BarIcon.svelte";
@@ -44,7 +47,7 @@
   import { BotCreator } from "src/ts/creation/creator";
   import Button from "../UI/GUI/Button.svelte";
   import { fly } from "svelte/transition";
-  import { alertInput, alertSelect } from "src/ts/alert";
+  import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
   import SideChatList from "./SideChatList.svelte";
   import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   let openPresetList = false;
@@ -564,13 +567,22 @@
     {/each}
     <div class="flex flex-col items-center space-y-2 px-2">
       <BaseRoundedButton
-        onClick={() => {
-          if (sideBarMode === 1) {
-            reseter();
-            sideBarMode = 0;
-          } else {
-            reseter();
-            sideBarMode = 1;
+        onClick={async () => {
+          const r = await alertAddCharacter()
+          switch(r){
+            case 'createfromScratch':
+              createScratch()
+              break
+            case 'importCharacter':
+              createImport()
+              break
+            case 'createGroup':
+              createGroup()
+              break
+            case 'importFromRealm':
+              selectedCharID.set(-1)
+              OpenRealmStore.set(true)
+              break
           }
         }}
         ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"

@@ -4,7 +4,7 @@
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
-    import { User } from 'lucide-svelte';
+    import { ChevronRightIcon, User } from 'lucide-svelte';
     import { hubURL } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/storage/globalApi';
@@ -75,7 +75,7 @@
                 <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -225,6 +225,73 @@
                         {/if}
                     {/await}
                 {/if}
+            {:else if $alertStore.type === 'addchar'}
+                <div class="w-2xl flex flex-col max-w-full">
+
+                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'importFromRealm'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span class="text-2xl font-bold">{language.importFromRealm}</span>
+                            <span class="text-textcolor2">{language.importFromRealmDesc}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'importCharacter'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.importCharacter}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'createfromScratch'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.createfromScratch}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'createGroup'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.createGroup}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'cancel'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.cancel}</span>
+                        </div>
+                    </button>
+                </div>
             {/if}
         </div>
     </div>

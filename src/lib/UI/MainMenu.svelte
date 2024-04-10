@@ -2,7 +2,7 @@
   import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
   import GithubStars from "../Others/GithubStars.svelte";
   import Hub from "./Realm/RealmMain.svelte";
-  import { sideBarStore } from "src/ts/stores";
+  import { OpenRealmStore } from "src/ts/stores";
   import { ArrowLeft } from "lucide-svelte";
   import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
   import { language } from "src/lang";
@@ -11,13 +11,12 @@
   import Title from "./Title.svelte";
   import { getPatchNote } from "src/etc/patchNote";
   import { parseMarkdownSafe } from "src/ts/parser";
-  let openHub = false
   const patch = getPatchNote(appVer)
   let patchNodeHidden = true
 
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
-    {#if !openHub}
+    {#if !$OpenRealmStore}
       <Title />
       {#if (!isTauri) && (!isNodeServer)}
         <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
@@ -46,7 +45,7 @@
       {/if}
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
-      {#if !openHub}
+      {#if !$OpenRealmStore}
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
           openURL("https://github.com/kwaroran/RisuAI/wiki")
@@ -61,7 +60,7 @@
       </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
       <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
-        openHub = true
+        $OpenRealmStore = true
       }}>Get More</button></h1>
           {#if !$DataBase.hideRealm}
             {#await getRisuHub({
@@ -73,7 +72,7 @@
             {#if charas.length > 0}
               <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
                   {#each charas as chara}
-                      <RisuHubIcon onClick={() => {openHub = true}} chara={chara} />
+                      <RisuHubIcon onClick={() => {$OpenRealmStore = true}} chara={chara} />
                   {/each}
               </div>
             {:else}
@@ -85,7 +84,7 @@
         {/if}
       {:else}
         <div class="flex items-center mt-4">
-          <button class="mr-2 text-textcolor2 hover:text-green-500" on:click={() => (openHub = false)}>
+          <button class="mr-2 text-textcolor2 hover:text-green-500" on:click={() => ($OpenRealmStore = false)}>
             <ArrowLeft/>
           </button>
         </div>
