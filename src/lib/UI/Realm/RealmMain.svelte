@@ -144,7 +144,7 @@
                 const input = await alertInput('Input URL or ID')
                 if(input.startsWith("http")){
                     const url = new URL(input)
-                    const id = url.searchParams.get("realm")
+                    const id = url.searchParams.get("realm") ?? url.searchParams.get("code")
                     if(id){
                         downloadRisuHub(id)
                         return
