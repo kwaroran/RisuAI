@@ -85,7 +85,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
 
     function getVar(key:string){
-        return chat.scriptstate?.['$' + key]
+        return `${chat.scriptstate?.['$' + key]}`
     }
 
     function setVar(key:string, value:string){
@@ -103,40 +103,42 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         let pass = true
         for(const condition of trigger.conditions){
             if(condition.type === 'var' || condition.type === 'chatindex'){
-                const varValue = (condition.type === 'var') ? (getVar(condition.var) ?? 'null') : (chat.message.length)
+                let varValue = (condition.type === 'var') ? (getVar(condition.var) ?? 'null') : (chat.message.length.toString())
                 if(varValue === undefined || varValue === null){
                     pass = false
                     break
                 }
                 else{
+                    const conditionValue = risuChatParser(condition.value,{chara:char})
+                    varValue = risuChatParser(varValue,{chara:char})
                     switch(condition.operator){
                         case '=':
-                            if(varValue !== condition.value){
+                            if(varValue !== conditionValue){
                                 pass = false
                             }
                             break
                         case '!=':
-                            if(varValue === condition.value){
+                            if(varValue === conditionValue){
                                 pass = false
                             }
                             break
                         case '>':
-                            if(Number(varValue) > Number(condition.value)){
+                            if(Number(varValue) > Number(conditionValue)){
                                 pass = false
                             }
                             break
                         case '<':
-                            if(Number(varValue) < Number(condition.value)){
+                            if(Number(varValue) < Number(conditionValue)){
                                 pass = false
                             }
                             break
                         case '>=':
-                            if(Number(varValue) >= Number(condition.value)){
+                            if(Number(varValue) >= Number(conditionValue)){
                                 pass = false
                             }
                             break
                         case '<=':
-                            if(Number(varValue) <= Number(condition.value)){
+                            if(Number(varValue) <= Number(conditionValue)){
                                 pass = false
                             }
                             break
@@ -149,7 +151,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
             }
             else if(condition.type === 'exists'){
-                const val = risuChatParser(condition.value,{chara:char})
+                const conditionValue = risuChatParser(condition.value,{chara:char})
+                const val = risuChatParser(conditionValue,{chara:char})
                 let da =  chat.message.slice(0-condition.depth).map((v)=>v.data).join(' ')
                 if(condition.type2 === 'strict'){
                     pass = da.split(' ').includes(val)
@@ -170,42 +173,47 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         }
         for(const effect of trigger.effect){
             if(effect.type === 'setvar'){
+                const effectValue = risuChatParser(effect.value,{chara:char})
+                const varKey  = risuChatParser(effect.var,{chara:char})
                 switch(effect.operator){
                     case '=':{
-                        setVar(effect.var, effect.value)
+                        setVar(varKey, effectValue)
                         break
                     }
                     case '+=':{
-                        setVar(effect.var, (Number(getVar(effect.var)) + Number(effect.value)).toString())
+                        setVar(varKey, (Number(getVar(varKey)) + Number(effectValue)).toString())
                         break
                     }
                     case '-=':{
-                        setVar(effect.var, (Number(getVar(effect.var)) - Number(effect.value)).toString())
+                        setVar(varKey, (Number(getVar(varKey)) - Number(effectValue)).toString())
                         break
                     }
                     case '*=':{
-                        setVar(effect.var, (Number(getVar(effect.var)) * Number(effect.value)).toString())
+                        setVar(varKey, (Number(getVar(varKey)) * Number(effectValue)).toString())
                         break
                     }
                     case '/=':{
-                        setVar(effect.var, (Number(getVar(effect.var)) / Number(effect.value)).toString())
+                        setVar(varKey, (Number(getVar(varKey)) / Number(effectValue)).toString())
                         break
                     }
                 }
             }
             else if(effect.type === 'systemprompt'){
-                additonalSysPrompt[effect.location] += effect.value + "\n\n"
+                const effectValue = risuChatParser(effect.value,{chara:char})
+                additonalSysPrompt[effect.location] += effectValue + "\n\n"
             }
             else if(effect.type === 'impersonate'){
+                const effectValue = risuChatParser(effect.value,{chara:char})
                 if(effect.role === 'user'){
-                    chat.message.push({role: 'user', data: effect.value})
+                    chat.message.push({role: 'user', data: effectValue})
                 }
                 else if(effect.role === 'char'){
-                    chat.message.push({role: 'char', data: effect.value})
+                    chat.message.push({role: 'char', data: effectValue})
                 }
             }
             else if(effect.type === 'command'){
-                return await processMultiCommand(effect.value)
+                const effectValue = risuChatParser(effect.value,{chara:char})
+                await processMultiCommand(effectValue)
             }
         }
     }
@@ -224,6 +232,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         const currentChat = get(CurrentChat)
         currentChat.scriptstate = chat.scriptstate
     }
+
+    console.log(chat)
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens}
 
