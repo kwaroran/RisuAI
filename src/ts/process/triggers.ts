@@ -3,6 +3,8 @@ import { risuChatParser } from "../parser";
 import type { Chat, character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
+import { get } from "svelte/store";
+import { CurrentChat } from "../stores";
 
 export interface triggerscript{
     comment: string;
@@ -64,6 +66,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     chat: Chat
 }){
     char = cloneDeep(char)
+    let varChanged = false
     let additonalSysPrompt:additonalSysPrompt = {
         start:'',
         historyend: '',
@@ -74,15 +77,15 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     if((!triggers) || (triggers.length === 0)){
         return null
     }
-    const charVars = chat.scriptstate
-    let varValues:{[key:string]:string} = {}
-    let varValuesChanged = false
 
-    for(const key in charVars){
-        if(!key.startsWith('$')){
-            continue
-        }
-        varValues[key] = charVars[key.substring(1)].toString()
+    function getVar(key:string){
+        return chat.scriptstate?.['$' + key]
+    }
+
+    function setVar(key:string, value:string){
+        varChanged = true
+        chat.scriptstate ??= {}
+        chat.scriptstate['$' + key] = value
     }
     
     
@@ -94,7 +97,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         let pass = true
         for(const condition of trigger.conditions){
             if(condition.type === 'var' || condition.type === 'chatindex'){
-                const varValue = (condition.type === 'var') ? (varValues[condition.var] ?? '[Null]') : (chat.message.length)
+                const varValue = (condition.type === 'var') ? (getVar(condition.var) ?? 'null') : (chat.message.length)
                 if(varValue === undefined || varValue === null){
                     pass = false
                     break
@@ -140,7 +143,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
             }
             else if(condition.type === 'exists'){
-                const val = risuChatParser(condition.value,{chara:char, var:varValues})
+                const val = risuChatParser(condition.value,{chara:char})
                 let da =  chat.message.slice(0-condition.depth).map((v)=>v.data).join(' ')
                 if(condition.type2 === 'strict'){
                     pass = da.split(' ').includes(val)
@@ -162,23 +165,27 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         for(const effect of trigger.effect){
             if(effect.type === 'setvar'){
                 switch(effect.operator){
-                    case '=':
-                        varValues[effect.var] = effect.value
+                    case '=':{
+                        setVar(effect.var, effect.value)
                         break
-                    case '+=':
-                        varValues[effect.var] = (Number(varValues[effect.var]) + Number(effect.value)).toString()
+                    }
+                    case '+=':{
+                        setVar(effect.var, (Number(getVar(effect.var)) + Number(effect.value)).toString())
                         break
-                    case '-=':
-                        varValues[effect.var] = (Number(varValues[effect.var]) - Number(effect.value)).toString()
+                    }
+                    case '-=':{
+                        setVar(effect.var, (Number(getVar(effect.var)) - Number(effect.value)).toString())
                         break
-                    case '*=':
-                        varValues[effect.var] = (Number(varValues[effect.var]) * Number(effect.value)).toString()
+                    }
+                    case '*=':{
+                        setVar(effect.var, (Number(getVar(effect.var)) * Number(effect.value)).toString())
                         break
-                    case '/=':
-                        varValues[effect.var] = (Number(varValues[effect.var]) / Number(effect.value)).toString()
+                    }
+                    case '/=':{
+                        setVar(effect.var, (Number(getVar(effect.var)) / Number(effect.value)).toString())
                         break
+                    }
                 }
-                varValuesChanged = true
             }
             else if(effect.type === 'systemprompt'){
                 additonalSysPrompt[effect.location] += effect.value + "\n\n"
@@ -193,6 +200,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
             }
         }
     }
+    
     let caculatedTokens = 0
     if(additonalSysPrompt.start){
         caculatedTokens += await tokenize(additonalSysPrompt.start)
@@ -203,10 +211,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     if(additonalSysPrompt.promptend){
         caculatedTokens += await tokenize(additonalSysPrompt.promptend)
     }
-    if(varValuesChanged){
-        for(const key in varValues){
-            chat.scriptstate['$' + key] = varValues[key]
-        }
+    if(varChanged){
+        const currentChat = get(CurrentChat)
+        currentChat.scriptstate = chat.scriptstate
     }
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens}

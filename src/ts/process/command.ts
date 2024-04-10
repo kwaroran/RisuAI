@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
 import { selectedCharID } from "../stores";
-import { alertInput, alertMd, alertSelect, alertToast } from "../alert";
+import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
 import { sendChat } from ".";
@@ -22,8 +22,10 @@ export async function processMultiCommand(command:string) {
         }
     }
     splited.push(command.slice(lastIndex))
+    console.log(splited)
     for(let i = 0; i<splited.length; i++){
         const result = await processCommand(splited[i].trim(), pipe)
+        console.log(pipe)
         if(result === false){
             return false
         }
@@ -40,6 +42,10 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
     const currentChar = db.characters[get(selectedCharID)]
     const currentChat = currentChar.chats[currentChar.chatPage]
     let {commandName, arg, namedArg} = commandParser(command, pipe)
+
+    if(!arg){
+        arg = pipe
+    }
 
     arg = risuChatParser(arg, {
         chara: currentChar.type === 'character' ? currentChar : null
@@ -58,12 +64,9 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             pipe = await alertInput(arg)
             return pipe
         }
-        case 'echo':{
-            alertToast(arg)
-            return pipe
-        }
+        case 'echo':
         case 'popup':{
-            alertMd(arg)
+            alertNormal(arg)
             return pipe
         }
         case 'pass':{
