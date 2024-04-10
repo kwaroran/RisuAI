@@ -43,7 +43,7 @@
             }
         }} class="flex items-center text-textcolor  border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"class:bg-selected={i === chara.chatPage}>
             {#if editMode}
-                <TextInput bind:value={chara.chats[i].name} additionalClass="flex-grow min-w-0" padding={false}/>
+                <TextInput bind:value={chara.chats[i].name} className="flex-grow min-w-0" padding={false}/>
             {:else}
                 <span>{chat.name}</span>
             {/if}

@@ -624,10 +624,10 @@
         {/if}
         {#if currentChar.data.ttsMode === 'huggingface'}
             <span class="text-textcolor">Model</span>
-            <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.model} />
+            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.model} />
 
             <span class="text-textcolor">Language</span>
-            <TextInput additionalClass="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
+            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
         {/if}
         {#if currentChar.data.ttsMode === 'vits'}
             {#if currentChar.data.vits}
@@ -693,8 +693,8 @@
 
         <span class="text-textcolor">{language.depthPrompt}</span>
         <div class="flex justify-center items-center">
-            <NumberInput size="sm" bind:value={currentChar.data.depth_prompt.depth} additionalClass="w-12"/>
-            <TextInput size="sm" bind:value={currentChar.data.depth_prompt.prompt} additionalClass="flex-1"/>
+            <NumberInput size="sm" bind:value={currentChar.data.depth_prompt.depth} className="w-12"/>
+            <TextInput size="sm" bind:value={currentChar.data.depth_prompt.prompt} className="flex-1"/>
         </div>
 
         <span class="text-textcolor mt-2">{language.altGreet}</span>

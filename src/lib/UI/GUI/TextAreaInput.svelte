@@ -1,6 +1,6 @@
 {#if optimaizedInput}
     <textarea 
-        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
         class:text-sm={size === 'sm'}
         class:text-md={size === 'md'}
         class:text-lg={size === 'lg'}
@@ -37,7 +37,7 @@
     />
 {:else}
     <textarea 
-        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+        class={"border border-darkborderc n-scroll focus:border-borderc resize-none rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
         class:text-sm={size === 'sm'}
         class:text-md={size === 'md'}
         class:text-lg={size === 'lg'}
@@ -74,7 +74,7 @@
     export let onInput = () => {}
     export let fullwidth = false
     export let height:'20'|'24'|'32'|'full' = '20'
-    export let additionalClass = ''
+    export let className = ''
     export let optimaizedInput = true
     let inpa = 0
 

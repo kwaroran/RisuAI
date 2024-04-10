@@ -57,4 +57,4 @@
 <TextAreaInput autocomplete="off" bind:value={valueObject[selectedLang]} height={"20"} onInput={() => {
     updateValue()
     onInput()
-}} additionalClass={className} />
+}} className={className} />

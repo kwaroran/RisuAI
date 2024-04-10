@@ -1,5 +1,5 @@
 <input 
-    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((additionalClass) ? (' ' + additionalClass) : '')} 
+    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
     class:text-sm={size === 'sm'}
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}
@@ -31,7 +31,7 @@
     export let fullwidth = false
     export let fullh = false
     export let onChange = () => {}
-    export let additionalClass = ''
+    export let className = ''
 </script>
 
 <style>

@@ -103,8 +103,8 @@
 </script>
 
 <span class="mt-4 text-xl">{language.basicInfo}</span>
-<TextInput bind:value={currentModule.name} additionalClass="mt-1" placeholder={language.name}/>
-<TextInput bind:value={currentModule.description} additionalClass="mt-1" placeholder={language.description} size="sm"/>
+<TextInput bind:value={currentModule.name} className="mt-1" placeholder={language.name}/>
+<TextInput bind:value={currentModule.description} className="mt-1" placeholder={language.description} size="sm"/>
 <span class="mt-6 text-xl">{language.moduleContent}</span>
 <div class="grid grid-cols-2 border-selected border rounded-md">
     <button class={(!Array.isArray(currentModule.lorebook)) ? 'p-4' : "p-4 bg-selected rounded-tl-md"} on:click={toggleLorebook}>

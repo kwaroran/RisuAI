@@ -37,9 +37,9 @@
 <div class="w-full flex justify-center mt-4">
     <div class="flex w-2xl max-w-full items-center">
         {#if $SizeStore.w < 768}
-            <TextInput additionalClass="flex-grow min-w-0" placeholder="Search" bind:value={search} />
+            <TextInput className="flex-grow min-w-0" placeholder="Search" bind:value={search} />
         {:else}
-            <TextInput size="xl" additionalClass="flex-grow" placeholder="Search" bind:value={search} />
+            <TextInput size="xl" className="flex-grow" placeholder="Search" bind:value={search} />
 
         {/if}
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
