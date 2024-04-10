@@ -8,6 +8,7 @@
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../GUI/TextInput.svelte";
     import RealmPopUp from "./RealmPopUp.svelte";
+  import { SizeStore } from "src/ts/stores";
 
     let openedData:null|hubType = null
 
@@ -35,7 +36,12 @@
 </script>
 <div class="w-full flex justify-center mt-4">
     <div class="flex w-2xl max-w-full items-center">
-        <TextInput size="xl" additionalClass="flex-grow" placeholder="Search" bind:value={search} />
+        {#if $SizeStore.w < 768}
+            <TextInput additionalClass="flex-grow min-w-0" placeholder="Search" bind:value={search} />
+        {:else}
+            <TextInput size="xl" additionalClass="flex-grow" placeholder="Search" bind:value={search} />
+
+        {/if}
         <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
             page = 0
             getHub()
@@ -49,12 +55,12 @@
         </button>
     </div>
 </div>
-<div class="w-full mt-2 flex justify-center mb-3 items-center">
+<div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
     <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
         nsfw = !nsfw
         getHub()
     }}>
-        {nsfw ? 'NSFW ON': 'NSFW OFF'}
+        NSFW
     </button>
     <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
     <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
@@ -75,6 +81,12 @@
     }}>
         {language.downloads}
     </button>
+    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'random'} on:click={() => {
+        sort = 'random'
+        getHub()
+    }}>
+        {language.random}
+    </button>
 </div>
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
     {#key charas}
@@ -83,27 +95,29 @@
         {/each}
     {/key}
 </div>
-<div class="w-full flex justify-center">
-    <div class="flex">
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" on:click={() => {
-            if(page > 0){
-                page -= 1
+{#if sort !== 'random'}
+    <div class="w-full flex justify-center">
+        <div class="flex">
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+                if(page > 0){
+                    page -= 1
+                    getHub()
+                }
+            }}>
+                <ArrowLeft />
+            </button>
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
+                <span>{page + 1}</span>
+            </button>
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+                page += 1
                 getHub()
-            }
-        }}>
-            <ArrowLeft />
-        </button>
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
-            <span>{page + 1}</span>
-        </button>
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
-            page += 1
-            getHub()
-        }}>
-            <ArrowRight />
-        </button>
+            }}>
+                <ArrowRight />
+            </button>
+        </div>
     </div>
-</div>
+{/if}
 
 {#if openedData}
     <RealmPopUp bind:openedData={openedData} />
