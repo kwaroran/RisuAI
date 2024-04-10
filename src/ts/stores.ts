@@ -151,7 +151,6 @@ CurrentChat.subscribe((chat) => {
 
     if(!isEqual(variablePointer, currentState)){
         CurrentVariablePointer.set(currentState)
-        console.log(currentState)
     }
 })
 
