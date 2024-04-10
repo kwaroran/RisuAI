@@ -2,6 +2,7 @@ import { get } from "svelte/store";
 import { runTrigger } from "./process/triggers";
 import { CurrentCharacter, CurrentChat } from "./stores";
 import { runCharacterJS } from "./plugins/embedscript";
+import { sleep } from "./util";
 
 
 function nodeObserve(node:HTMLElement){
@@ -47,23 +48,11 @@ function nodeObserve(node:HTMLElement){
     }
 }
 
-export function startObserveDom(){
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            const node = mutation.target as HTMLElement;
-            if(node.nodeType !== 1){
-                return;
-            }
-            node.querySelectorAll('[risu-trigger]').forEach(nodeObserve);
-            node.querySelectorAll('[risu-btn]').forEach(nodeObserve);
-            nodeObserve(node)
-        });
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributeFilter: ['risu-trigger', 'risu-btn'],
-        attributes: true,
-    });
+export async function startObserveDom(){
+    //We are using a while loop intead of MutationObserver because MutationObserver is expensive for just a few elements
+    while(true){
+        document.querySelectorAll('[risu-trigger]').forEach(nodeObserve);
+        document.querySelectorAll('[risu-btn]').forEach(nodeObserve);
+        await sleep(100);
+    }
 }
