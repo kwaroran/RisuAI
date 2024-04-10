@@ -729,6 +729,8 @@
         height: 1rem;
         border-top: 0.4rem solid var(--risu-theme-borderc);
         border-left: 0.4rem solid var(--risu-theme-borderc);
+        /* transition colors */
+        transition: border-color 0.5s;
     }
 
     .chat-process-stage-1{
