@@ -16,7 +16,11 @@ export const alertStore = writable({
     type: 'none',
     msg: 'n',
 } as alertData)
-export const alertGenerationInfoStore = writable<MessageGenerationInfo>(null)
+type AlertGenerationInfoStoreData = {
+    genInfo: MessageGenerationInfo,
+    idx: number
+}
+export const alertGenerationInfoStore = writable<AlertGenerationInfoStoreData>(null)
 
 export function alertError(msg:string){
     console.error(msg)
@@ -247,10 +251,10 @@ export async function alertInput(msg:string){
     return get(alertStore).msg
 }
 
-export function alertRequestData(info:MessageGenerationInfo){
+export function alertRequestData(info:AlertGenerationInfoStoreData){
     alertGenerationInfoStore.set(info)
     alertStore.set({
         'type': 'requestdata',
-        'msg': info.generationId ?? 'none'
+        'msg': info.genInfo.generationId ?? 'none'
     })
 }

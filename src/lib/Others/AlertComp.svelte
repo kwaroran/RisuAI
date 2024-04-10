@@ -15,6 +15,8 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
     import { getFetchData } from 'src/ts/storage/globalApi';
+  import { CurrentChat } from "src/ts/stores";
+  import { tokenize } from "src/ts/tokenizer";
     let btn
     let input = ''
     let cardExportType = ''
@@ -176,6 +178,9 @@
                     <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
                         {language.tokens}
                     </Button>
+                    <Button selected={generationInfoMenuIndex === 1} size="sm" on:click={() => {generationInfoMenuIndex = 1}}>
+                        {language.metaData}
+                    </Button>
                     <Button selected={generationInfoMenuIndex === 2} size="sm" on:click={() => {generationInfoMenuIndex = 2}}>
                         {language.log}
                     </Button>
@@ -191,10 +196,10 @@
                         <div class="w-32 h-32 border-darkborderc border-4 rounded-lg" style:background={
                             `linear-gradient(0deg,
                             rgb(59,130,246) 0%,
-                            rgb(59,130,246) ${($alertGenerationInfoStore.inputTokens / $alertGenerationInfoStore.maxContext) * 100}%,
-                            rgb(34 197 94) ${($alertGenerationInfoStore.inputTokens / $alertGenerationInfoStore.maxContext) * 100}%,
-                            rgb(34 197 94) ${(($alertGenerationInfoStore.outputTokens + $alertGenerationInfoStore.inputTokens) / $alertGenerationInfoStore.maxContext) * 100}%,
-                            rgb(156 163 175) ${(($alertGenerationInfoStore.outputTokens + $alertGenerationInfoStore.inputTokens) / $alertGenerationInfoStore.maxContext) * 100}%,
+                            rgb(59,130,246) ${($alertGenerationInfoStore.genInfo.inputTokens / $alertGenerationInfoStore.genInfo.maxContext) * 100}%,
+                            rgb(34 197 94) ${($alertGenerationInfoStore.genInfo.inputTokens / $alertGenerationInfoStore.genInfo.maxContext) * 100}%,
+                            rgb(34 197 94) ${(($alertGenerationInfoStore.genInfo.outputTokens + $alertGenerationInfoStore.genInfo.inputTokens) / $alertGenerationInfoStore.genInfo.maxContext) * 100}%,
+                            rgb(156 163 175) ${(($alertGenerationInfoStore.genInfo.outputTokens + $alertGenerationInfoStore.genInfo.inputTokens) / $alertGenerationInfoStore.genInfo.maxContext) * 100}%,
                             rgb(156 163 175) 100%)`
                         }>
 
@@ -202,13 +207,37 @@
                     </div>
                     <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-4">
                         <span class="text-blue-500">{language.inputTokens}</span>
-                        <span class="text-blue-500 justify-self-end">{$alertGenerationInfoStore.inputTokens ?? '?'} {language.tokens}</span>
+                        <span class="text-blue-500 justify-self-end">{$alertGenerationInfoStore.genInfo.inputTokens ?? '?'} {language.tokens}</span>
                         <span class="text-green-500">{language.outputTokens}</span>
-                        <span class="text-green-500 justify-self-end">{$alertGenerationInfoStore.outputTokens ?? '?'} {language.tokens}</span>
+                        <span class="text-green-500 justify-self-end">{$alertGenerationInfoStore.genInfo.outputTokens ?? '?'} {language.tokens}</span>
                         <span class="text-gray-400">{language.maxContextSize}</span>
-                        <span class="text-gray-400 justify-self-end">{$alertGenerationInfoStore.maxContext ?? '?'} {language.tokens}</span>
+                        <span class="text-gray-400 justify-self-end">{$alertGenerationInfoStore.genInfo.maxContext ?? '?'} {language.tokens}</span>
                     </div>
                     <span class="text-textcolor2 text-sm">{language.tokenWarning}</span>
+                {/if}
+                {#if generationInfoMenuIndex === 1}
+                <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-4">
+                    <span class="text-blue-500">Index</span>
+                    <span class="text-blue-500 justify-self-end">{$alertGenerationInfoStore.idx}</span>
+                    <span class="text-amber-500">Model</span>
+                    <span class="text-amber-500 justify-self-end">{$alertGenerationInfoStore.genInfo.model}</span>
+                    <span class="text-green-500">ID</span>
+                    <span class="text-green-500 justify-self-end">{$CurrentChat.message[$alertGenerationInfoStore.idx].chatId ?? "None"}</span>
+                    <span class="text-red-500">GenID</span>
+                    <span class="text-red-500 justify-self-end">{$alertGenerationInfoStore.genInfo.generationId}</span>
+                    <span class="text-cyan-500">Saying</span>
+                    <span class="text-cyan-500 justify-self-end">{$CurrentChat.message[$alertGenerationInfoStore.idx].saying}</span>
+                    <span class="text-purple-500">Size</span>
+                    <span class="text-purple-500 justify-self-end">{JSON.stringify($CurrentChat.message[$alertGenerationInfoStore.idx]).length} Bytes</span>
+                    <span class="text-yellow-500">Time</span>
+                    <span class="text-yellow-500 justify-self-end">{(new Date($CurrentChat.message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
+                    <span class="text-green-500">Tokens</span>
+                    {#await tokenize($CurrentChat.message[$alertGenerationInfoStore.idx].data)}
+                        <span class="text-green-500 justify-self-end">Loading</span>
+                    {:then tokens} 
+                        <span class="text-green-500 justify-self-end">{tokens}</span>
+                    {/await}
+                </div>
                 {/if}
                 {#if generationInfoMenuIndex === 2}
                     {#await getFetchData($alertStore.msg) then data} 

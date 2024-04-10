@@ -571,4 +571,5 @@ export const languageEnglish = {
     importFromRealm: "Choose from RisuRealm",
     importFromRealmDesc: "Choose over 1000 characters in RisuRealm",
     random: "Random",
+    metaData: "Meta Data",
 }

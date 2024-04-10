@@ -102,6 +102,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     let db = get(DataBase)
     let selectedChar = get(selectedCharID)
     const nowChatroom = db.characters[selectedChar]
+    let selectedChat = nowChatroom.chatPage
+    nowChatroom.chats[nowChatroom.chatPage].message = nowChatroom.chats[nowChatroom.chatPage].message.map((v) => {
+        v.chatId = v.chatId ?? v4()
+        return v
+    })
+    
+
     let currentChar:character
     let caculatedChatTokens = 0
     if(db.aiModel.startsWith('gpt')){
@@ -159,7 +166,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let chatAdditonalTokens = arg.chatAdditonalTokens ?? caculatedChatTokens
     const tokenizer = new ChatTokenizer(chatAdditonalTokens, db.aiModel.startsWith('gpt') ? 'noName' : 'name')
-    let selectedChat = nowChatroom.chatPage
     let currentChat = runCurrentChatFunction(nowChatroom.chats[selectedChat])
     nowChatroom.chats[selectedChat] = currentChat
     let maxContextTokens = db.maxContext
