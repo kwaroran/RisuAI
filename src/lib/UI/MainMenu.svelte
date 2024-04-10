@@ -60,7 +60,7 @@
         </button>
       </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
-      <h1 class="text-2xl font-bold">Recent Characters from {language.hub} <button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
+      <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
         openHub = true
       }}>Get More</button></h1>
           {#if !$DataBase.hideRealm}
