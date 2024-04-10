@@ -508,8 +508,10 @@
             }
         }}><PlusIcon /></button>
 
-        <span class="text-textcolor mt-4">{language.charjs} <Help key="charjs"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.virtualscript}></TextAreaInput>
+        {#if currentChar.data.virtualscript || $DataBase.showUnrecommended}
+            <span class="text-textcolor mt-4">{language.charjs} <Help key="charjs" unrecommended/></span>
+            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.virtualscript}></TextAreaInput>
+        {/if}
     {/if}
 {:else if subMenu === 5}
     {#if currentChar.type === 'character'}

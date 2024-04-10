@@ -500,7 +500,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'n
         triggerscript: data?.extensions?.risuai?.triggerscript ?? [],
         private: data?.extensions?.risuai?.private ?? false,
         additionalText: data?.extensions?.risuai?.additionalText ?? '',
-        virtualscript: data?.extensions?.risuai?.virtualscript ?? '',
+        virtualscript: '', //removed dude to security issue
         extentions: ext ?? {},
         largePortrait: data?.extensions?.risuai?.largePortrait ?? (!data?.extensions?.risuai),
         lorePlus: data?.extensions?.risuai?.lorePlus ?? false,
@@ -593,7 +593,7 @@ async function createBaseV2(char:character) {
                     license: char.license,
                     triggerscript: char.triggerscript,
                     additionalText: char.additionalText,
-                    virtualscript: char.virtualscript,
+                    virtualscript: '', //removed dude to security issue
                     largePortrait: char.largePortrait,
                     lorePlus: char.lorePlus,
                     inlayViewScreen: char.inlayViewScreen,
