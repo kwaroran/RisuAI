@@ -732,6 +732,7 @@ export interface character{
     },
     vits?: OnnxModelFiles
     realmId?:string
+    imported?:boolean
 }
 
 

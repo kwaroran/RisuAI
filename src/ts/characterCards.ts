@@ -507,7 +507,8 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'n
         inlayViewScreen: data?.extensions?.risuai?.inlayViewScreen ?? false,
         newGenData: data?.extensions?.risuai?.newGenData ?? undefined,
         vits: vits,
-        ttsMode: vits ? 'vits' : 'normal'
+        ttsMode: vits ? 'vits' : 'normal',
+        imported: true,
     }
 
     db.characters.push(char)
