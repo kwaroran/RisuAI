@@ -17,12 +17,14 @@ export async function setRecommended(model: string, ask:'ask'|'force') {
         }
     }
     db.aiModel = model
-    if(db.aiModel.startsWith('gpt') || db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
+    if(db.aiModel.startsWith('gpt') || db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy' || db.aiModel.startsWith('claude')){
         const pr:botPreset = prebuiltPresets.OAI2
+        pr.aiModel = db.aiModel
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel.startsWith('novelai')){
         const pr:botPreset = prebuiltPresets.NAI2
+        pr.aiModel = db.aiModel
         setDatabase(setPreset(db, pr))
     }
     else if(db.aiModel === 'textgen_webui' || db.aiModel === 'mancer'){
