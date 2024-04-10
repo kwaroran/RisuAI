@@ -229,7 +229,7 @@ export async function supaMemory(
                         return {
                             currentTokens: currentTokens,
                             chats: chats,
-                            error: "SupaMemory: HTTP: " + await da.data
+                            error: "SupaMemory: HTTP: " + JSON.stringify(da.data)
                         }
                     }
         
@@ -239,7 +239,7 @@ export async function supaMemory(
                         return {
                             currentTokens: currentTokens,
                             chats: chats,
-                            error: "SupaMemory: HTTP: " + await da.data
+                            error: "SupaMemory: HTTP: " + JSON.stringify(da.data)
                         }
                     }
 
