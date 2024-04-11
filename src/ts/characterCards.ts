@@ -18,7 +18,7 @@ export const hubURL = "https://sv.risuai.xyz"
 
 export async function importCharacter() {
     try {
-        const files = await selectFileByDom(['png', 'json'])
+        const files = await selectFileByDom(['png', 'json'], 'multiple')
         if(!files){
             return
         }
