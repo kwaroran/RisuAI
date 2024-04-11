@@ -1,4 +1,4 @@
-noimport { get } from "svelte/store";
+import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
