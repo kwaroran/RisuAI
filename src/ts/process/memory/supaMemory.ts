@@ -283,7 +283,7 @@ export async function supaMemory(
         while(currentTokens > maxContextTokens){
             const beforeToken = currentTokens
             let maxChunkSize = Math.floor(maxContextTokens / 3)
-            if(db.maxSupaChunkSize > maxChunkSize){
+            if(db.maxSupaChunkSize < maxChunkSize){
                 maxChunkSize = db.maxSupaChunkSize
             }
             let summarized = false
