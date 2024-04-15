@@ -1917,10 +1917,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         result: JSON.stringify(res.data.error)
                     }
                 }
+                const resText = res?.data?.content?.[0]?.text
+                if(!resText){
+                    return {
+                        type: 'fail',
+                        result: JSON.stringify(res.data)
+                    }
+                }
                 return {
                     type: 'success',
-                    result: res.data.content[0].text
-                
+                    result: resText
                 }
             }
             else if(raiModel.startsWith('claude')){
