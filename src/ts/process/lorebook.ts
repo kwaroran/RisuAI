@@ -52,7 +52,6 @@ const rmRegex = / |\n/g
 
 export async function loadLoreBookPrompt(){
     
-
     const selectedID = get(selectedCharID)
     const db = get(DataBase)
     const char = db.characters[selectedID]
@@ -65,9 +64,6 @@ export async function loadLoreBookPrompt(){
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
     const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
-    if(char.lorePlus){
-        return await loadLoreBookPlusPrompt()
-    }
 
     let activatiedPrompt: string[] = []
 
@@ -185,116 +181,73 @@ export async function loadLoreBookPrompt(){
 
 
     let sactivated:string[] = []
+    let decoratedArray:{
+        depth:number,
+        pos:string,
+        prompt:string
+    }[] = []
     activatiedPrompt = activatiedPrompt.filter((v) => {
-        //deprecated three @ for special prompt
-        if(v.startsWith("@@@end")){
-            sactivated.push(v.replace('@@@end','').trim())
+        const decorated = decoratorParser(v)
+        if(decorated.decorators['dont_activate']){
             return false
         }
-        if(v.startsWith('@@end')){
-            sactivated.push(v.replace('@@end','').trim())
+        if(decorated.decorators['depth'] && decorated.decorators['depth'][0] === '0'){
+            sactivated.push(decorated.prompt)
             return false
         }
+        if(decorated.decorators['position']){
+            decoratedArray.push({
+                depth: -1,
+                pos: decorated.decorators['position'][0],
+                prompt: decorated.prompt
+            })
+            return false
+        }
+        if(decorated.decorators)
         return true
     })
 
     return {
         act: activatiedPrompt.reverse().join('\n\n'),
-        special_act: sactivated.reverse().join('\n\n')
+        special_act: sactivated.reverse().join('\n\n'),
+        decorated: decoratedArray
     }
 }
 
-export async function loadLoreBookPlusPrompt(){
-    const selectedID = get(selectedCharID)
-    const db = get(DataBase)
-    const char = db.characters[selectedID]
-    const page = char.chatPage
-    const characterLore = char.globalLore ?? []
-    const chatLore = char.chats[page].localLore ?? []
-    const fullLore = characterLore.concat(chatLore).concat(getModuleLorebooks()).filter((v) => { return v.content })
-    const currentChat = char.chats[page].message
-    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
-    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+const supportedDecorators = ['depth','dont_activate','position']
+export function decoratorParser(prompt:string){
+    const split = prompt.split('\n')
+    let decorators:{[name:string]:string[]} = {}
 
-    interface formatedLorePlus{
-        content: string
-        simularity:number
-    }
-
-    let formatedLores:formatedLorePlus[] = []
-    let activatiedPrompt: string[] = []
-    const hypaProcesser = new HypaProcesser('MiniLM')
-
-    
-    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
-        return msg.data
-    }).join('||').replace(rmRegex,'').toLocaleLowerCase()
-    const chatVec = await hypaProcesser.testText(formatedChatMain)
-
-
-    for(const lore of fullLore){
-        let key = (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',')
-        key.push(lore.comment)
-
-        let vec:number[]
-
-        if(lore.loreCache && lore.loreCache.key === lore.content){
-            const vect = lore.loreCache.data[0]
-            const v = Buffer.from(vect, 'base64')
-            const f = new Float32Array(v.buffer)
-            vec = Array.from(f)
-        }
-        else{
-            vec = await hypaProcesser.testText(lore.content)
-            lore.loreCache = {
-                key: lore.content,
-                data: [Buffer.from(new Float32Array(vec).buffer).toString('base64')]
+    let fallbacking = false
+    for(let i=0;i<split.length;i++){
+        const line = split[i].trim()
+        if(line.startsWith('@@')){
+            const data = line.startsWith('@@@') ? line.replace('@@@','') : line.replace('@@','')
+            const name = data.split(' ')[0]
+            const values = data.replace(name,'').trim().split(',')
+            if(!supportedDecorators.includes(name)){
+                fallbacking = true
+                continue
+            }
+            if((!line.startsWith('@@@')) || fallbacking){
+                decorators[name] = values
             }
         }
-
-        
-
-        formatedLores.push({
-            content: lore.content,
-            simularity: hypaProcesser.similarityCheck(chatVec, vec)
-        })
+        else if(line === '@@end' || line === '@@@end'){
+            decorators['depth'] = ['0']
+        }
+        else{
+            return {
+                prompt: split.slice(i).join('\n').trim(),
+                decorators: decorators
+            }
+        }
     }
-
-    formatedLores.sort((a, b) => {
-        return b.simularity - a.simularity
-    })
-
-    let i=0;
-    while(i < formatedLores.length){
-        const lore = formatedLores[i]
-        const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
-        if(totalTokens > loreToken){
-            break
-        }
-        activatiedPrompt.push(lore.content)
-        i++
-    }
-
-
-    let sactivated:string[] = []
-    activatiedPrompt = activatiedPrompt.filter((v) => {
-        //deprecated three @ for special prompt
-        if(v.startsWith("@@@end")){
-            sactivated.push(v.replace('@@@end','').trim())
-            return false
-        }
-        if(v.startsWith('@@end')){
-            sactivated.push(v.replace('@@end','').trim())
-            return false
-        }
-        return true
-    })
-
     return {
-        act: activatiedPrompt.reverse().join('\n\n'),
-        special_act: sactivated.reverse().join('\n\n')
+        prompt: '',
+        decorators: decorators
     }
-    
 }
 
 export async function importLoreBook(mode:'global'|'local'|'sglobal'){
