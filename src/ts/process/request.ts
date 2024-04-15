@@ -1796,64 +1796,66 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             let reader = res.body.getReader()
                             const decoder = new TextDecoder()
                             const parser = createParser(async (e) => {
-                                if(e.type === 'event'){
-                                    switch(e.event){
-                                        case 'content_block_delta': {
-                                            if(e.data){
-                                                text += JSON.parse(e.data).delta?.text
-                                                controller.enqueue({
-                                                    "0": text
-                                                })
-                                            }
-                                            break
-                                        }
-                                        case 'error': {
-                                            if(e.data){
-                                                const errormsg:string = JSON.parse(e.data).error?.message
-                                                if(errormsg && errormsg.toLocaleLowerCase().includes('overload') && db.antiClaudeOverload){
-                                                    console.log('Overload detected, retrying...')
-                                                    reader.cancel()
-                                                    rerequesting = true
-                                                    await sleep(2000)
-                                                    body.max_tokens -= await tokenize(text)
-                                                    if(body.max_tokens < 0){
-                                                        body.max_tokens = 0
-                                                    }
-                                                    if(body.messages.at(-1)?.role !== 'assistant'){
-                                                        body.messages.push({
-                                                            role: 'assistant',
-                                                            content: ''
-                                                        })
-                                                    }
-                                                    body.messages[body.messages.length-1].content += text
-                                                    const res = await fetchNative(replacerURL, {
-                                                        body: JSON.stringify(body),
-                                                        headers: {
-                                                            "Content-Type": "application/json",
-                                                            "x-api-key": apiKey,
-                                                            "anthropic-version": "2023-06-01",
-                                                            "accept": "application/json",
-                                                        },
-                                                        method: "POST",
-                                                        chatId: arg.chatId
+                                try {               
+                                    if(e.type === 'event'){
+                                        switch(e.event){
+                                            case 'content_block_delta': {
+                                                if(e.data){
+                                                    text += JSON.parse(e.data).delta?.text
+                                                    controller.enqueue({
+                                                        "0": text
                                                     })
-                                                    if(res.status !== 200){
-                                                        breakError = 'Error: ' + await textifyReadableStream(res.body)
+                                                }
+                                                break
+                                            }
+                                            case 'error': {
+                                                if(e.data){
+                                                    const errormsg:string = JSON.parse(e.data).error?.message
+                                                    if(errormsg && errormsg.toLocaleLowerCase().includes('overload') && db.antiClaudeOverload){
+                                                        console.log('Overload detected, retrying...')
+                                                        reader.cancel()
+                                                        rerequesting = true
+                                                        await sleep(2000)
+                                                        body.max_tokens -= await tokenize(text)
+                                                        if(body.max_tokens < 0){
+                                                            body.max_tokens = 0
+                                                        }
+                                                        if(body.messages.at(-1)?.role !== 'assistant'){
+                                                            body.messages.push({
+                                                                role: 'assistant',
+                                                                content: ''
+                                                            })
+                                                        }
+                                                        body.messages[body.messages.length-1].content += text
+                                                        const res = await fetchNative(replacerURL, {
+                                                            body: JSON.stringify(body),
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                "x-api-key": apiKey,
+                                                                "anthropic-version": "2023-06-01",
+                                                                "accept": "application/json",
+                                                            },
+                                                            method: "POST",
+                                                            chatId: arg.chatId
+                                                        })
+                                                        if(res.status !== 200){
+                                                            breakError = 'Error: ' + await textifyReadableStream(res.body)
+                                                            break
+                                                        }
+                                                        reader = res.body.getReader()
+                                                        rerequesting = false
                                                         break
                                                     }
-                                                    reader = res.body.getReader()
-                                                    rerequesting = false
-                                                    break
+                                                    text += "Error:" + JSON.parse(e.data).error?.message
+                                                    controller.enqueue({
+                                                        "0": text
+                                                    })
                                                 }
-                                                text += "Error:" + JSON.parse(e.data).error?.message
-                                                controller.enqueue({
-                                                    "0": text
-                                                })
+                                                break
                                             }
-                                            break
                                         }
                                     }
-                                }
+                                } catch (error) {}
                             })
                             while(true){
                                 if(rerequesting){
