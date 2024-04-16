@@ -469,8 +469,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(supportsInlayImage()){
                 // inlay models doesn't support logit_bias
-                // @ts-ignore
-                delete body.logit_bias
+                // gpt-4-turbo supports both logit_bias and inlay image
+                if(!(
+                    aiModel.startsWith('gpt4_turbo') || 
+                    (aiModel == 'reverse_proxy' && (
+                        db.proxyRequestModel?.startsWith('gpt4_turbo') ||
+                        (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt-4-turbo'))
+                    )))){
+                    // @ts-ignore
+                    delete body.logit_bias
+                }
             }
 
             let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
