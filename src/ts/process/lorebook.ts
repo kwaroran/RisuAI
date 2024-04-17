@@ -187,23 +187,14 @@ export async function loadLoreBookPrompt(){
         prompt:string
     }[] = []
     activatiedPrompt = activatiedPrompt.filter((v) => {
-        const decorated = decoratorParser(v)
-        if(decorated.decorators['dont_activate']){
+        if(v.startsWith("@@@end")){
+            sactivated.push(v.replace('@@@end','').trim())
             return false
         }
-        if(decorated.decorators['depth'] && decorated.decorators['depth'][0] === '0'){
-            sactivated.push(decorated.prompt)
+        if(v.startsWith('@@end')){
+            sactivated.push(v.replace('@@end','').trim())
             return false
         }
-        if(decorated.decorators['position']){
-            decoratedArray.push({
-                depth: -1,
-                pos: decorated.decorators['position'][0],
-                prompt: decorated.prompt
-            })
-            return false
-        }
-        if(decorated.decorators)
         return true
     })
 
