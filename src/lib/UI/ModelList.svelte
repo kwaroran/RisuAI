@@ -94,16 +94,17 @@
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Medium</button>
             </Arcodion>
+            <Arcodion name="Google Gemini">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-latest')}}>Gemini Pro 1.5</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro-vision')}}>Gemini Pro Vision</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra')}}>Gemini Ultra</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra-vision')}}>Gemini Ultra Vision</button>
+            </Arcodion>
             {#if showUnrec}
                 <Arcodion name="Google Palm2">
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Unicorn</button>
-                </Arcodion>
-                <Arcodion name="Google Gemini">
-                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
-                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro-vision')}}>Gemini Pro Vision</button>
-                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra')}}>Gemini Ultra</button>
-                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-ultra-vision')}}>Gemini Ultra Vision</button>
                 </Arcodion>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}
