@@ -1743,9 +1743,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                       "anthropic.claude-v2:1",
                       "anthropic.claude-3-haiku-20240307-v1:0",
                       "anthropic.claude-3-sonnet-20240229-v1:0",
+                      "anthropic.claude-3-opus-20240229-v1:0"
                     ];
                     
-                    const awsModel = raiModel.includes("haiku") ? modelIDs[2] : modelIDs[3];
+                    const awsModel = raiModel.includes("opus") ? modelIDs[4] : raiModel.includes("sonnet") ? modelIDs[3] : modelIDs[2];
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
                     const params = {
