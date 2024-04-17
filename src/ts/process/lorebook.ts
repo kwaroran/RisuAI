@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import {selectedCharID} from '../stores'
-import { DataBase, setDatabase, type loreBook } from "../storage/database";
+import { DataBase, setDatabase, type Message, type loreBook } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
@@ -214,7 +214,153 @@ export async function loadLoreBookPrompt(){
     }
 }
 
-const supportedDecorators = ['depth','dont_activate','position']
+
+export async function loadLoreBookV3Prompt(){
+    const selectedID = get(selectedCharID)
+    const db = get(DataBase)
+    const char = db.characters[selectedID]
+    const page = char.chatPage
+    const characterLore = char.globalLore ?? []
+    const chatLore = char.chats[page].localLore ?? []
+    const moduleLorebook = getModuleLorebooks()
+    const fullLore = structuredClone(characterLore.concat(chatLore).concat(moduleLorebook))
+    const currentChat = char.chats[page].message
+    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
+
+    const searchMatch = (text:Message[],arg:{
+        keys:string[],
+        searchDepth:number,
+        regex:boolean
+        fullWordMatching:boolean
+    }) => {
+        const sliced = text.slice(text.length - arg.searchDepth,text.length)
+        let mText = sliced.join(" ")
+        if(arg.regex){
+            const regexString = arg.keys[0]
+            if(!regexString.startsWith('/')){
+                return false
+            }
+            const regexFlag = regexString.split('/').pop()
+            if(regexFlag){
+                arg.keys[0] = regexString.replace('/'+regexFlag,'')
+                try {
+                    const regex = new RegExp(arg.keys[0],regexFlag)
+                    return regex.test(mText)
+                } catch (error) {
+                    return false
+                }
+            }
+        }
+
+        mText = mText.toLowerCase()
+
+        if(arg.fullWordMatching){
+            const splited = mText.split(' ')
+            return arg.keys.some((key) => {
+                return splited.includes(key)
+            })
+        }
+        else{
+            return arg.keys.some((key) => {
+                return mText.includes(key.toLowerCase())
+            })
+        }
+    
+    }
+
+    let matching = true
+    let sactivated:string[] = []
+    let decoratedArray:{
+        depth:number,
+        pos:string,
+        prompt:string
+    }[] = []
+    let activatied:string[] = []
+
+    while(matching){
+        matching = false
+        for(let i=0;i<fullLore.length;i++){
+            const decorated = decoratorParser(fullLore[i].content)
+            const searchDepth = decorated.decorators['scan_depth'] ? parseInt(decorated.decorators['scan_depth'][0]) : loreDepth
+
+            let matched = searchMatch(currentChat,{
+                keys: fullLore[i].key.split(','),
+                searchDepth: searchDepth,
+                regex: fullLore[i].key.startsWith('/'),
+                fullWordMatching: fullWordMatching
+            })
+
+            if(decorated.decorators['dont_activate']){
+                continue
+            }
+            if(!matched){
+                continue
+            }
+
+            const addtitionalKeys = decorated.decorators['additional_keys'] ?? []
+
+            if(addtitionalKeys.length > 0){
+                const additionalMatched = searchMatch(currentChat,{
+                    keys: decorated.decorators['additional_keys'],
+                    searchDepth: searchDepth,
+                    regex: false,
+                    fullWordMatching: fullWordMatching
+                })
+
+                if(!additionalMatched){
+                    continue
+                }
+            }
+
+            const excludeKeys = decorated.decorators['exclude_keys'] ?? []
+
+            if(excludeKeys.length > 0){
+                const excludeMatched = searchMatch(currentChat,{
+                    keys: decorated.decorators['exclude_keys'],
+                    searchDepth: searchDepth,
+                    regex: false,
+                    fullWordMatching: fullWordMatching
+                })
+
+                if(excludeMatched){
+                    continue
+                }
+            }
+
+            matching = true
+            fullLore.splice(i,1)
+            i--
+            
+            const depth = decorated.decorators['depth'] ? parseInt(decorated.decorators['depth'][0]) : null
+            if(depth === 0){
+                sactivated.push(decorated.prompt)
+                continue
+            }
+            if(depth){
+                decoratedArray.push({
+                    depth: depth,
+                    pos: '',
+                    prompt: decorated.prompt
+                })
+                continue
+            }
+            if(decorated.decorators['position']){
+                decoratedArray.push({
+                    depth: -1,
+                    pos: decorated.decorators['position'][0],
+                    prompt: decorated.prompt
+                })
+                continue
+            }
+
+            activatied.push(decorated.prompt)
+        }
+    }
+
+}
+const supportedDecorators = ['depth','dont_activate','position','scan_depth','additional_keys', 'exclude_keys']
 export function decoratorParser(prompt:string){
     const split = prompt.split('\n')
     let decorators:{[name:string]:string[]} = {}
