@@ -132,6 +132,7 @@
                     {/each}
                 {/await}
             </Arcodion>
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('ollama-hosted')}}>OLlama</button>
             {#if showUnrec}
             <Arcodion name="WebLLM Local">
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('hf:::Xenova/opt-350m')}}>opt-350m</button>

@@ -23,6 +23,7 @@ import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
 import {createParser, type ParsedEvent, type ReconnectInterval} from 'eventsource-parser'
+import {Ollama} from 'ollama/dist/browser.mjs'
 
 
 
@@ -1492,6 +1493,38 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             return {
                 type: 'success',
                 result: resp.replace(/\\n/g, '\n')
+            }
+        }
+        case 'ollama-hosted':{
+            const ollama = new Ollama({host: 'http://localhost:11434'})
+
+            const response = await ollama.chat({
+                model: db.ollamaModel,
+                messages: formated.map((v) => {
+                    return {
+                        role: v.role,
+                        content: v.content
+                    }
+                }).filter((v) => {
+                    return v.role === 'assistant' || v.role === 'user' || v.role === 'system'
+                }),
+                stream: true
+            })
+
+            const readableStream = new ReadableStream<StreamResponseChunk>({
+                async start(controller){
+                    for await(const chunk of response){
+                        controller.enqueue({
+                            "0": chunk.message.content
+                        })
+                    }
+                    controller.close()
+                }
+            })
+
+            return {
+                type: 'streaming',
+                result: readableStream
             }
         }
         default:{     

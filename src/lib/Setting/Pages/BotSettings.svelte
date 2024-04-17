@@ -203,6 +203,13 @@
     <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
 {/if}
+{#if $DataBase.aiModel === 'ollama-hosted'}
+    <span class="text-textcolor mt-4">Ollama URL</span>
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.ollamaURL} />
+
+    <span class="text-textcolor mt-4">Ollama Model</span>
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.ollamaModel} />
+{/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
     <span class="text-textcolor mt-4">Openrouter Key</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />

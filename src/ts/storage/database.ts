@@ -383,6 +383,8 @@ export function setDatabase(data:Database){
     data.heightMode ??= 'normal'
     data.antiClaudeOverload ??= false
     data.maxSupaChunkSize ??= 1200
+    data.ollamaURL ??= ''
+    data.ollamaModel ??= ''
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -618,6 +620,8 @@ export interface Database{
     noWaitForTranslate:boolean
     antiClaudeOverload:boolean
     maxSupaChunkSize:number
+    ollamaURL:string
+    ollamaModel:string
 }
 
 export interface customscript{
