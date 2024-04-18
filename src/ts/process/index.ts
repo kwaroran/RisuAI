@@ -55,7 +55,7 @@ export const doingChat = writable(false)
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 
-export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean} = {}):Promise<boolean> {
+export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean,usedContinueTokens?:number} = {}):Promise<boolean> {
 
     chatProcessStage.set(0)
     const abortSignal = arg.signal ?? (new AbortController()).signal
@@ -1132,12 +1132,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    if(db.autoContinueMinTokens > 0 && (await tokenize(result)) < db.autoContinueMinTokens){
+    const resultTokens = await tokenize(result) + (arg.usedContinueTokens || 0)
+    if(db.autoContinueMinTokens > 0 && resultTokens < db.autoContinueMinTokens){
         doingChat.set(false)
         return await sendChat(chatProcessIndex, {
             chatAdditonalTokens: arg.chatAdditonalTokens,
             continue: true,
-            signal: abortSignal
+            signal: abortSignal,
+            usedContinueTokens: resultTokens
         })
     }
 
