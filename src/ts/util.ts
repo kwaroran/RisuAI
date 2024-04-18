@@ -464,3 +464,32 @@ export function uuidtoNumber(uuid:string){
     }
     return result
 }
+
+export function isLastCharPunctuation(s:string){
+    const lastChar = s.trim().at(-1)
+    const punctuation = [
+        '.', '!', '?', '。', '！', '？', '…', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', '>', ',', '.', '/', '~', '`', ' ',
+        '¡', '¿', '‽', '⁉'
+    ]
+    if(lastChar && !(punctuation.indexOf(lastChar) !== -1
+        //spacing modifier letters
+        || (lastChar.charCodeAt(0) >= 0x02B0 && lastChar.charCodeAt(0) <= 0x02FF)
+        //combining diacritical marks
+        || (lastChar.charCodeAt(0) >= 0x0300 && lastChar.charCodeAt(0) <= 0x036F)
+        //hebrew punctuation
+        || (lastChar.charCodeAt(0) >= 0x0590 && lastChar.charCodeAt(0) <= 0x05CF)
+        //CJK symbols and punctuation
+        || (lastChar.charCodeAt(0) >= 0x3000 && lastChar.charCodeAt(0) <= 0x303F)
+    )){
+        return false
+    }
+    return true
+}
+
+export function trimUntilPunctuation(s:string){
+    let result = s
+    while(result.length > 0 && !isLastCharPunctuation(result)){
+        result = result.slice(0, -1)
+    }
+    return result
+}

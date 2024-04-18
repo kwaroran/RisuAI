@@ -626,6 +626,7 @@ export interface Database{
     ollamaModel:string
     autoContinueChat:boolean
     autoContinueMinTokens:number
+    removeIncompleteResponse:boolean
 }
 
 export interface customscript{

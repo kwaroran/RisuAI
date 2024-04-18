@@ -575,4 +575,5 @@ export const languageEnglish = {
     metaData: "Meta Data",
     autoContinueMinTokens: "Target Tokens (Auto Continue)",
     autoContinueChat: "Anti-Incomplete Response (Auto Continue)",
+    removeIncompleteResponse: "Remove Incomplete Sentences",
 }

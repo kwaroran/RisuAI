@@ -5,7 +5,7 @@ import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
 import { loadLoreBookPrompt } from "./lorebook";
-import { findCharacterbyId, getAuthorNoteDefaultText } from "../util";
+import { findCharacterbyId, getAuthorNoteDefaultText, isLastCharPunctuation, trimUntilPunctuation } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull, risuChatParser } from "./scripts";
@@ -1026,7 +1026,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 if(db.cipherChat){
                     result = decipherChat(result)
                 }
-                const result2 = await processScriptFull(nowChatroom, reformatContent(prefix + result), 'editoutput', msgIndex)
+                if(db.removeIncompleteResponse){
+                    result = trimUntilPunctuation(result)
+                }
+                let result2 = await processScriptFull(nowChatroom, reformatContent(prefix + result), 'editoutput', msgIndex)
                 db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = result2.data
                 emoChanged = result2.emoChanged
                 db.characters[selectedChar].reloadKeys += 1
@@ -1077,6 +1080,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 msgIndex -= 1
                 let beforeChat = db.characters[selectedChar].chats[selectedChat].message[msgIndex]
                 result2 = await processScriptFull(nowChatroom, reformatContent(beforeChat.data + mess), 'editoutput', msgIndex)
+            }
+            if(db.removeIncompleteResponse){
+                result2.data = trimUntilPunctuation(result2.data)
             }
             result = result2.data
             const inlayResult = runInlayScreen(currentChar, result)
@@ -1138,25 +1144,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         needsAutoContinue = true
     }
 
-    if(db.autoContinueChat){
+    if(db.autoContinueChat && (!isLastCharPunctuation(result))){
         //if result doesn't end with punctuation or special characters, auto continue
-        const lastChar = result.trim().at(-1)
-        const punctuation = [
-            '.', '!', '?', '。', '！', '？', '…', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '/', '~', '`', ' ',
-            '¡', '¿', '‽', '⁉'
-        ]
-        if(lastChar && !(punctuation.indexOf(lastChar) !== -1
-            //spacing modifier letters
-            || (lastChar.charCodeAt(0) >= 0x02B0 && lastChar.charCodeAt(0) <= 0x02FF)
-            //combining diacritical marks
-            || (lastChar.charCodeAt(0) >= 0x0300 && lastChar.charCodeAt(0) <= 0x036F)
-            //hebrew punctuation
-            || (lastChar.charCodeAt(0) >= 0x0590 && lastChar.charCodeAt(0) <= 0x05CF)
-            //CJK symbols and punctuation
-            || (lastChar.charCodeAt(0) >= 0x3000 && lastChar.charCodeAt(0) <= 0x303F)
-        )){
-            needsAutoContinue = true
-        }
+        needsAutoContinue = true
     }
 
     if(needsAutoContinue){
