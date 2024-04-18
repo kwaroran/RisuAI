@@ -1132,6 +1132,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
+    if(db.autoContinueMinTokens > 0 && (await tokenize(result)) < db.autoContinueMinTokens){
+        doingChat.set(false)
+        return await sendChat(chatProcessIndex, {
+            chatAdditonalTokens: arg.chatAdditonalTokens,
+            continue: true,
+            signal: abortSignal
+        })
+    }
+
     chatProcessStage.set(4)
 
     sendPeerChar()

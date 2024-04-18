@@ -572,4 +572,5 @@ export const languageEnglish = {
     importFromRealmDesc: "Choose over 1000 characters in RisuRealm",
     random: "Random",
     metaData: "Meta Data",
+    autoContinueMinTokens: "Target Tokens Auto Continue",
 }
