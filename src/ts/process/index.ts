@@ -1132,8 +1132,34 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
+    let needsAutoContinue = false
     const resultTokens = await tokenize(result) + (arg.usedContinueTokens || 0)
     if(db.autoContinueMinTokens > 0 && resultTokens < db.autoContinueMinTokens){
+        needsAutoContinue = true
+    }
+
+    if(db.autoContinueChat){
+        //if result doesn't end with punctuation or special characters, auto continue
+        const lastChar = result.trim().at(-1)
+        const punctuation = [
+            '.', '!', '?', '。', '！', '？', '…', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '/', '~', '`', ' ',
+            '¡', '¿', '‽', '⁉'
+        ]
+        if(lastChar && !(punctuation.indexOf(lastChar) !== -1
+            //spacing modifier letters
+            || (lastChar.charCodeAt(0) >= 0x02B0 && lastChar.charCodeAt(0) <= 0x02FF)
+            //combining diacritical marks
+            || (lastChar.charCodeAt(0) >= 0x0300 && lastChar.charCodeAt(0) <= 0x036F)
+            //hebrew punctuation
+            || (lastChar.charCodeAt(0) >= 0x0590 && lastChar.charCodeAt(0) <= 0x05CF)
+            //CJK symbols and punctuation
+            || (lastChar.charCodeAt(0) >= 0x3000 && lastChar.charCodeAt(0) <= 0x303F)
+        )){
+            needsAutoContinue = true
+        }
+    }
+
+    if(needsAutoContinue){
         doingChat.set(false)
         return await sendChat(chatProcessIndex, {
             chatAdditonalTokens: arg.chatAdditonalTokens,

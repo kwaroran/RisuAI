@@ -74,6 +74,9 @@
     <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}> <Help key="autoFillRequestURL"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.autoContinueChat} name={language.autoContinueChat}> <Help key="autoContinueChat"/></Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.newOAIHandle} name={language.newOAIHandle}/>
 </div>
 <div class="flex items-center mt-4">
