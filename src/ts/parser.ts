@@ -700,6 +700,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return f[0]
                 })?.join('§') ?? ''
             }
+            case 'prefill_supported':{
+                return db.aiModel.startsWith('claude') ? '1' : '0'
+            }
         }
         const arra = p1.split("::")
         if(arra.length > 1){
