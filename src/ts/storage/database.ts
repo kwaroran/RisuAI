@@ -1331,6 +1331,14 @@ export async function importPreset(){
             
             }
         }
+        if(pre?.assistant_prefill){
+            pr.promptTemplate.push({
+                type: 'plain',
+                type2: 'main',
+                text: `{{#if {{prefill_supported}}}}${pre?.assistant_prefill}{{/if}}`,
+                role: 'bot'
+            })
+        }
         pr.name = "Imported ST Preset"
         db.botPresets.push(pr)
         setDatabase(db)
