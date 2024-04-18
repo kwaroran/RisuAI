@@ -1298,9 +1298,6 @@ export async function importPreset(){
                         break
                     }
                     case 'worldInfoAfter':{
-                        pr.promptTemplate.push({
-                            type: 'postEverything'
-                        })
                         break
                     }
                     case 'charDescription':{
@@ -1332,6 +1329,9 @@ export async function importPreset(){
             }
         }
         if(pre?.assistant_prefill){
+            pr.promptTemplate.push({
+                type: 'postEverything'
+            })
             pr.promptTemplate.push({
                 type: 'plain',
                 type2: 'main',
