@@ -1253,6 +1253,9 @@ export async function importPreset(){
         pr.top_p = pre.top_p ?? 1
 
         for(const prompt of pre?.prompt_order?.[0]?.order){
+            if(!prompt?.enabled){
+                continue
+            }
             const p = findPrompt(prompt?.identifier ?? '')
             if(p){
                 switch(p.identifier){
