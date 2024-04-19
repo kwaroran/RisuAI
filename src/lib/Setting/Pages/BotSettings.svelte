@@ -355,15 +355,15 @@
 {#if $DataBase.aiModel.startsWith('openrouter')}
     <span class="text-textcolor">Repetition penalty</span>
     <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.repetition_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.repetition_penalty).toFixed(0)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.repetition_penalty).toFixed(2)}</span>
 
     <span class="text-textcolor">Min P</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.min_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.min_p).toFixed(0)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.min_p).toFixed(2)}</span>
 
     <span class="text-textcolor">Top A</span>
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_a).toFixed(0)}</span>
+    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_a).toFixed(2)}</span>
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_') || $DataBase.aiModel.startsWith('hf:::')}
     <span class="text-textcolor">Repetition Penalty</span>
