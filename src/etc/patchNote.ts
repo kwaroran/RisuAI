@@ -1,20 +1,13 @@
 export const patchNote = {
-    version: "1.95",
+    version: "1.96",
     content: 
 `
-# Update 1.95
-- Added New character import screen
-- Added Metadata viewer for chat
-- Changed default prompt
-- Changed High contrast text color
-- Changed SupaMemory and HypaMemory to return one chunk instead of multiple
-- Made progress circle color to change dynamically depending how the progress is
-- Imported flag would be saved when character is imported
-- Fixed Realm UI cutoff
-- Fixed Realm import not working for new URLs
-- Fixed Error message in SupaMemory returning [Object Object]
-- Fixed HypaMemory not running even the HypaMemory is enabled
-- Fixed HypaMemory and SupaMemory returning same result
+# Update 1.96
+- Added Openrouter Repetition penalty
+- Added Openrouter Min P
+- Added Openrouter Top A
+- Added Custom Tokenizer settings for both Openrouter and Custom
+- Added Remove Incomplete Sentences option
 `
 }
 
