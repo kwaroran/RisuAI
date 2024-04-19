@@ -387,6 +387,9 @@ export function setDatabase(data:Database){
     data.ollamaModel ??= ''
     data.autoContinueChat ??= false
     data.autoContinueMinTokens ??= 0
+    data.repetition_penalty ??= 1
+    data.min_p ??= 0
+    data.top_a ??= 0
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -608,6 +611,9 @@ export interface Database{
         }
     },
     top_k:number
+    repetition_penalty:number
+    min_p:number
+    top_a:number
     claudeAws:boolean
     lastPatchNoteCheckVersion?:string,
     removePunctuationHypa?:boolean

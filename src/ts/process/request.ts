@@ -452,6 +452,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     body.route = "fallback"
                 }
                 //@ts-ignore
+                body.repetition_penalty = db.repetition_penalty
+                //@ts-ignore
+                body.min_p = db.min_p
+                //@ts-ignore
+                body.top_a = db.top_a
+                //@ts-ignore
                 body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
             }
 
