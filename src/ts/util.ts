@@ -469,7 +469,7 @@ export function isLastCharPunctuation(s:string){
     const lastChar = s.trim().at(-1)
     const punctuation = [
         '.', '!', '?', '。', '！', '？', '…', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', '>', ',', '.', '/', '~', '`', ' ',
-        '¡', '¿', '‽', '⁉'
+        '¡', '¿', '‽', '⁉', "'", '"'
     ]
     if(lastChar && !(punctuation.indexOf(lastChar) !== -1
         //spacing modifier letters
