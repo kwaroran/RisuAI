@@ -390,6 +390,7 @@ export function setDatabase(data:Database){
     data.repetition_penalty ??= 1
     data.min_p ??= 0
     data.top_a ??= 0
+    data.customTokenizer ??= 'tik'
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -633,6 +634,7 @@ export interface Database{
     autoContinueChat:boolean
     autoContinueMinTokens:number
     removeIncompleteResponse:boolean
+    customTokenizer:string
 }
 
 export interface customscript{

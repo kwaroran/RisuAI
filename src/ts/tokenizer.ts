@@ -7,8 +7,34 @@ import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
 import { tokenizeGGUFModel } from "./process/models/local";
 
+
+export const tokenizerList = [
+    ['tik', 'Tiktoken (OpenAI)'],
+    ['mistral', 'Mistral'],
+    ['novelai', 'NovelAI'],
+    ['claude', 'Claude'],
+    ['llama', 'Llama'],
+    ['novellist', 'Novellist'],
+] as const
+
 async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
+    if(db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
+        switch(db.customTokenizer){
+            case 'mistral':
+                return await tokenizeWebTokenizers(data, 'mistral')
+            case 'llama':
+                return await tokenizeWebTokenizers(data, 'llama')
+            case 'novelai':
+                return await tokenizeWebTokenizers(data, 'novelai')
+            case 'claude':
+                return await tokenizeWebTokenizers(data, 'claude')
+            case 'novellist':
+                return await tokenizeWebTokenizers(data, 'novellist')
+            default:
+                return await tikJS(data)
+        }
+    }
     if(db.aiModel.startsWith('novellist')){
         const nv= await tokenizeWebTokenizers(data, 'novellist')
         return nv

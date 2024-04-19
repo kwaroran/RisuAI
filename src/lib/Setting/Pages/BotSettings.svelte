@@ -5,7 +5,7 @@
     import { DataBase } from "src/ts/storage/database";
     import { customProviderStore, getCurrentPluginMax } from "src/ts/plugins/plugins";
     import { getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
-    import { tokenize, tokenizeAccurate } from "src/ts/tokenizer";
+    import { tokenize, tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
@@ -242,6 +242,14 @@
         </SelectInput>
     {/await}
 {/if}
+{#if $DataBase.aiModel === 'openrouter' || $DataBase.aiModel === 'reverse_proxy'}
+    <span class="text-textcolor">{language.tokenizer}</span>
+    <SelectInput bind:value={$DataBase.customTokenizer}>
+        {#each tokenizerList as entry}
+            <OptionInput value={entry[0]}>{entry[1]}</OptionInput>
+        {/each}
+    </SelectInput>
+{/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')
     || $DataBase.aiModel.startsWith('instructgpt') || $DataBase.subModel.startsWith('instructgpt')}
     <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
@@ -254,10 +262,10 @@
     </div>
 {/if}
 {#if $DataBase.aiModel.startsWith('openrouter')}
-    <div class="flex items-center">
+    <div class="flex items-center mb-4">
         <Check bind:check={$DataBase.openrouterFallback} name={language.openrouterFallback}/>
     </div>
-    <div class="flex items-center">
+    <div class="flex items-center mb-4">
         <Check bind:check={$DataBase.openrouterMiddleOut} name={language.openrouterMiddleOut}/>
     </div>
 {/if}

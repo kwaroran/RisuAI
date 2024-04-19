@@ -576,4 +576,5 @@ export const languageEnglish = {
     autoContinueMinTokens: "Target Tokens (Auto Continue)",
     autoContinueChat: "Anti-Incomplete Response (Auto Continue)",
     removeIncompleteResponse: "Remove Incomplete Sentences",
+    tokenizer: "Tokenizer",
 }
