@@ -1,13 +1,15 @@
 export const patchNote = {
-    version: "1.96",
+    version: "1.97",
     content: 
 `
-# Update 1.96
-- Added Openrouter Repetition penalty
-- Added Openrouter Min P
-- Added Openrouter Top A
-- Added Custom Tokenizer settings for both Openrouter and Custom
-- Added Remove Incomplete Sentences option
+# Update 1.97
+- Replaced old Prefix-based instruct model formatter to jinja based instruct model formatter
+- Added Llama3 formatter template
+- Added Llama2 formatter template
+- Added Chatml formatter template
+- Added GPT2 formatter template
+- Added Gemma formatter template
+- Added Mistral formatter template
 `
 }
 
