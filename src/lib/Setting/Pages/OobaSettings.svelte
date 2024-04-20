@@ -18,15 +18,21 @@
 
 <Arcodion name="Ooba Settings" styled>
     {#if instructionMode}
-        <span class="text-textcolor">System Prefix</span>
-        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.systemPrefix} />
-        <span class="text-textcolor">User Prefix</span>
-        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.userPrefix} />
-        <span class="text-textcolor">Assistant Prefix</span>
-        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.assistantPrefix} />
-        <span class="text-textcolor">Seperator</span>
-        <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.ooba.formating.seperator} />
+        <span class="text-textcolor">Chat Formating</span>
+        <SelectInput bind:value={$DataBase.instructChatTemplate}>
+            <OptionInput value="chatml">ChatML</OptionInput>
+            <OptionInput value="llama3">Llama3</OptionInput>
+            <OptionInput value="gpt2">GPT2</OptionInput>
+            <OptionInput value="gemma">Gemma</OptionInput>
+            <OptionInput value="mistral">Mistral</OptionInput>
+            <OptionInput value="llama2">Llama2</OptionInput>
+            <OptionInput value="jinja">Custom (Jinja)</OptionInput>
+        </SelectInput>
 
+        {#if $DataBase.instructChatTemplate === 'jinja'}
+            <span class="text-textcolor">Jinja Template</span>
+            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.JinjaTemplate} />
+        {/if}
     {:else}
         <span class="text-textcolor">Ooba Mode</span>
         <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>
