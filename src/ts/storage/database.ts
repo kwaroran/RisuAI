@@ -635,6 +635,8 @@ export interface Database{
     autoContinueMinTokens:number
     removeIncompleteResponse:boolean
     customTokenizer:string
+    instructChatTemplate:string
+    JinjaTemplate:string
 }
 
 export interface customscript{

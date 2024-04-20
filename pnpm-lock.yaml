@@ -23,6 +23,9 @@ dependencies:
   '@dqbd/tiktoken':
     specifier: ^1.0.7
     version: 1.0.7
+  '@huggingface/jinja':
+    specifier: ^0.2.2
+    version: 0.2.2
   '@mlc-ai/web-tokenizers':
     specifier: ^0.1.2
     version: 0.1.2
@@ -706,6 +709,11 @@ packages:
 
   /@huggingface/jinja@0.1.2:
     resolution: {integrity: sha512-x5mpbfJt1nKmVep5WNP5VjNsjWApWNj8pPYI+uYMkBWH9bWUJmQmHt2lbf0VCoQd54Oq3XuFEh/UyoVh7rPxmg==}
+    engines: {node: '>=18'}
+    dev: false
+
+  /@huggingface/jinja@0.2.2:
+    resolution: {integrity: sha512-/KPde26khDUIPkTGU82jdtTW9UAuvUTumCAbFs/7giR0SxsvZC4hru51PBvpijH6BVkHcROcvZM/lpy5h1jRRA==}
     engines: {node: '>=18'}
     dev: false
 

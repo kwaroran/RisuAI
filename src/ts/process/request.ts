@@ -3,7 +3,7 @@ import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
 import { DataBase, setDatabase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, stringlizeChatOba, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../storage/globalApi";
 import { sleep } from "../util";
 import { createDeep } from "./deepai";
@@ -24,6 +24,7 @@ import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
 import {createParser, type ParsedEvent, type ReconnectInterval} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
+import { applyChatTemplate } from "./templates/chatTemplate";
 
 
 
@@ -862,7 +863,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
             const suggesting = model === "submodel"
-            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+            const proompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
             if(db.localStopStrings){
                 stopStrings = db.localStopStrings.map((v) => {
@@ -981,7 +982,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         
         case 'ooba': {
             const suggesting = model === "submodel"
-            const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+            const proompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
             if(db.localStopStrings){
                 stopStrings = db.localStopStrings.map((v) => {
@@ -2267,7 +2268,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(aiModel.startsWith('hf:::')){
                 const realModel = aiModel.split(":::")[1]
                 const suggesting = model === "submodel"
-                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const proompt = applyChatTemplate(formated)
                 const v = await runTransformers(proompt, realModel, {
                     temperature: temperature,
                     max_new_tokens: maxTokens,
@@ -2284,7 +2285,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(aiModel.startsWith('local_')){
                 console.log('running local model')
                 const suggesting = model === "submodel"
-                const proompt = stringlizeChatOba(formated, currentChar.name, suggesting, arg.continue)
+                const proompt = applyChatTemplate(formated)
                 const stopStrings = getStopStrings(suggesting)
                 console.log(stopStrings)
                 const modelPath = aiModel.replace('local_', '')
