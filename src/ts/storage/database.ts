@@ -391,6 +391,7 @@ export function setDatabase(data:Database){
     data.min_p ??= 0
     data.top_a ??= 0
     data.customTokenizer ??= 'tik'
+    data.instructChatTemplate ??= "chatml"
 
     changeLanguage(data.language)
     DataBase.set(data)
