@@ -451,6 +451,8 @@
             <OptionInput value="gemma">Gemma</OptionInput>
             <OptionInput value="mistral">Mistral</OptionInput>
             <OptionInput value="llama2">Llama2</OptionInput>
+            <OptionInput value="vicuna">Vicuna</OptionInput>
+            <OptionInput value="alpaca">Alpaca</OptionInput>
             <OptionInput value="jinja">Custom (Jinja)</OptionInput>
         </SelectInput>
 
