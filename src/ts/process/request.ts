@@ -460,6 +460,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 body.top_a = db.top_a
                 //@ts-ignore
                 body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
+
+                if(db.openrouterProvider){
+                    //@ts-ignore
+                    body.provider = {
+                        order: [db.openrouterProvider]
+                    }
+                }
             }
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){

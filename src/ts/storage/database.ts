@@ -392,6 +392,7 @@ export function setDatabase(data:Database){
     data.top_a ??= 0
     data.customTokenizer ??= 'tik'
     data.instructChatTemplate ??= "chatml"
+    data.openrouterProvider ??= ''
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -638,6 +639,7 @@ export interface Database{
     customTokenizer:string
     instructChatTemplate:string
     JinjaTemplate:string
+    openrouterProvider:string
 }
 
 export interface customscript{

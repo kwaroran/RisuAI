@@ -24,6 +24,7 @@
     import OobaSettings from "./OobaSettings.svelte";
   import Arcodion from "src/lib/UI/Arcodion.svelte";
   import { startsWith } from "lodash";
+  import OpenrouterSettings from "./OpenrouterSettings.svelte";
 
     let tokens = {
         mainPrompt: 0,
@@ -259,14 +260,6 @@
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
     <div class="flex items-center mt-2 mb-4">
         <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
-    </div>
-{/if}
-{#if $DataBase.aiModel.startsWith('openrouter')}
-    <div class="flex items-center mb-4">
-        <Check bind:check={$DataBase.openrouterFallback} name={language.openrouterFallback}/>
-    </div>
-    <div class="flex items-center mb-4">
-        <Check bind:check={$DataBase.openrouterMiddleOut} name={language.openrouterMiddleOut}/>
     </div>
 {/if}
 
@@ -571,6 +564,10 @@
 
 {#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy') || ($DataBase.aiModel === 'ooba')}
     <OobaSettings instructionMode={$DataBase.aiModel === 'ooba'} />
+{/if}
+
+{#if $DataBase.aiModel.startsWith('openrouter')}
+    <OpenrouterSettings />
 {/if}
 
 
