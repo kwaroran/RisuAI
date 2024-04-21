@@ -26,6 +26,14 @@ export function alertError(msg:string){
     console.error(msg)
     const db = get(DataBase)
 
+    if(typeof(msg) !== 'string'){
+        try{
+            msg = JSON.stringify(msg)
+        }catch(e){
+            msg = `${msg}`
+        }
+    }
+
     let submsg = ''
 
     //check if it's a known error
