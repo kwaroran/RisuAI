@@ -608,7 +608,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                         }
                                         const choices = JSON.parse(rawChunk).choices
                                         for(const choice of choices){
-                                            const chunk = choice.delta.content
+                                            const chunk = choice.delta.content ?? choices.text
                                             if(chunk){
                                                 if(multiGen){
                                                     const ind = choice.index.toString()
@@ -702,6 +702,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                             })
                         }
 
+                    }
+
+                    if(dat?.choices[0]?.text){
+                        return {
+                            type: 'success',
+                            result: dat.choices[0].text
+                        }
                     }
                     const msg:OpenAIChatFull = (dat.choices[0].message)
                     return {
