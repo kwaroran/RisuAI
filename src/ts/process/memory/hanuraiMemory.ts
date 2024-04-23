@@ -57,7 +57,7 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
     let tokens = arg.currentTokens + db.hanuraiTokens
 
     while(tokens > arg.maxContextTokens){
-        const poped = chats.pop()
+        const poped = chats.shift()
         if(!poped){
             alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + tokens)
             return false
