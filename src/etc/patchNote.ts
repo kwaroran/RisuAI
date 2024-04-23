@@ -1,15 +1,14 @@
 export const patchNote = {
-    version: "1.97",
+    version: "1.98",
     content: 
 `
-# Update 1.97
-- Replaced old Prefix-based instruct model formatter to jinja based instruct model formatter
-- Added Llama3 formatter template
-- Added Llama2 formatter template
-- Added Chatml formatter template
-- Added GPT2 formatter template
-- Added Gemma formatter template
-- Added Mistral formatter template
+# Update 1.98
+- Added Hanurai Memory feature
+- Added Supamemory boilerplate
+- Added Llama3 Tokenizer
+- Added Openrouter instruct mode
+- Improved vector embedding similarity calculation
+- Fixed error alert returning [object Object] instead of the error message
 `
 }
 
