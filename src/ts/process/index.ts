@@ -26,6 +26,7 @@ import { runInlayScreen } from "./inlayScreen";
 import { runCharacterJS } from "../plugins/embedscript";
 import { addRerolls } from "./prereroll";
 import { runImageEmbedding } from "./transformers";
+import { hanuraiMemory } from "./memory/hanuraiMemory";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -647,22 +648,39 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         index++
     }
 
-    if(nowChatroom.supaMemory && db.supaMemoryType !== 'none'){
+    
+    if(nowChatroom.supaMemory && (db.supaMemoryType !== 'none' || db.hanuraiEnable)){
         chatProcessStage.set(2)
-        const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
-            asHyper: db.hypaMemory
-        })
-        if(sp.error){
-            alertError(sp.error)
-            return false
+        if(db.hanuraiEnable){
+            const hn = await hanuraiMemory(chats, {
+                currentTokens,
+                maxContextTokens,
+                tokenizer
+            })
+
+            if(hn === false){
+                return false
+            }
+
+            chats = hn.chats
+            currentTokens = hn.tokens
         }
-        chats = sp.chats
-        currentTokens = sp.currentTokens
-        currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
-        db.characters[selectedChar].chats[selectedChat].supaMemoryData = currentChat.supaMemoryData
-        console.log(currentChat.supaMemoryData)
-        DataBase.set(db)
-        currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory
+        else{
+            const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
+                asHyper: db.hypaMemory
+            })
+            if(sp.error){
+                alertError(sp.error)
+                return false
+            }
+            chats = sp.chats
+            currentTokens = sp.currentTokens
+            currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
+            db.characters[selectedChar].chats[selectedChat].supaMemoryData = currentChat.supaMemoryData
+            console.log(currentChat.supaMemoryData)
+            DataBase.set(db)
+            currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory;
+        }
         chatProcessStage.set(1)
     }
     else{

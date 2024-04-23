@@ -579,4 +579,5 @@ export const languageEnglish = {
     tokenizer: "Tokenizer",
     chatFormating: "Chat Formating",
     useInstructPrompt: "Use Instruction Prompt",
+    hanuraiMemory: "HanuraiMemory",
 }

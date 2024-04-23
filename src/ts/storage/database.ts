@@ -394,6 +394,9 @@ export function setDatabase(data:Database){
     data.instructChatTemplate ??= "chatml"
     data.openrouterProvider ??= ''
     data.useInstructPrompt ??= false
+    data.hanuraiEnable ??= false
+    data.hanuraiSplit ??= true
+    data.hanuraiTokens ??= 1000
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -642,6 +645,9 @@ export interface Database{
     JinjaTemplate:string
     openrouterProvider:string
     useInstructPrompt:boolean
+    hanuraiTokens:number
+    hanuraiSplit:boolean
+    hanuraiEnable:boolean
 }
 
 export interface customscript{
@@ -847,7 +853,6 @@ export interface botPreset{
     top_a?:number
     openrouterProvider?:string
     useInstructPrompt?:boolean
-
 }
 
 

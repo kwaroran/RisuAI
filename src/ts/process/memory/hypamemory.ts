@@ -92,7 +92,7 @@ export class HypaProcesser{
     async addText(texts:string[]) {
 
         for(let i=0;i<texts.length;i++){
-            const itm:memoryVector = await this.forage.getItem(texts[i])
+            const itm:memoryVector = await this.forage.getItem(texts[i] + '|' + this.model)
             if(itm){
                 itm.alreadySaved = true
                 this.vectors.push(itm)
@@ -121,7 +121,7 @@ export class HypaProcesser{
         for(let i=0;i<memoryVectors.length;i++){
             const vec = memoryVectors[i]
             if(!vec.alreadySaved){
-                await this.forage.setItem(texts[i], vec)
+                await this.forage.setItem(texts[i] + '|' + this.model, vec)
             }
         }
 

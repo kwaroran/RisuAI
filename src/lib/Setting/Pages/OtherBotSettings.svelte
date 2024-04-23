@@ -207,32 +207,63 @@
     </SelectInput>
 </Arcodion>
 
-<Arcodion name={language.SuperMemory} styled>
-    <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
-    <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+<Arcodion name={language.SuperMemory}/{language.hanuraiMemory} styled>
+    <span class="text-textcolor mt-4">{language.type}</span>
+
+    <SelectInput value={
+        $DataBase.supaMemoryType !== 'none' ? 'supaMemory' :
+        $DataBase.hanuraiEnable ? 'hanuraiMemory' : 'none'
+    } on:change={(v) => {
+        //@ts-ignore
+        const value = v.target.value
+        if (value === 'supaMemory'){
+            $DataBase.supaMemoryType = 'distilbart'
+            $DataBase.hanuraiEnable = false
+        } else if (value === 'hanuraiMemory'){
+            $DataBase.supaMemoryType = 'none'
+            $DataBase.hanuraiEnable = true
+        } else {
+            $DataBase.supaMemoryType = 'none'
+            $DataBase.hanuraiEnable = false
+        }
+    }}>
         <OptionInput value="none" >None</OptionInput>
-        <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
-        <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
-        <OptionInput value="subModel" >{language.submodel}</OptionInput>
+        <OptionInput value="supaMemory" >{language.SuperMemory}</OptionInput>
+        <OptionInput value="hanuraiMemory" >{language.hanuraiMemory}</OptionInput>
     </SelectInput>
-    <span class="text-textcolor">{language.maxSupaChunkSize}</span>
-    <NumberInput size="sm" marginBottom bind:value={$DataBase.maxSupaChunkSize} min={100} />
-    {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
-        <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
-        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
-    {/if}
-    {#if $DataBase.supaMemoryType !== 'none'}
-        <span class="text-textcolor">{language.SuperMemory} Prompt</span>
-        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
-    {/if}
-    {#if $DataBase.hypaMemory}
-        <span class="text-textcolor">{language.HypaMemory} Model</span>
-        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.hypaModel}>
-            <OptionInput value="MiniLM" >MiniLM-L6-v2 (Free / Local)</OptionInput>
-            <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
+
+    {#if $DataBase.hanuraiEnable}
+        <span>Chunk Size</span>
+        <NumberInput size="sm" marginBottom bind:value={$DataBase.hanuraiTokens} min={100} />
+        <div class="flex">
+            <Check bind:check={$DataBase.hanuraiSplit} name="Text Spliting"/>
+        </div>
+    {:else if $DataBase.supaMemoryType !== 'none'}
+        <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
+        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+            <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
+            <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
+            <OptionInput value="subModel" >{language.submodel}</OptionInput>
         </SelectInput>
+        <span class="text-textcolor">{language.maxSupaChunkSize}</span>
+        <NumberInput size="sm" marginBottom bind:value={$DataBase.maxSupaChunkSize} min={100} />
+        {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
+            <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
+            <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
+        {/if}
+        {#if $DataBase.supaMemoryType !== 'none'}
+            <span class="text-textcolor">{language.SuperMemory} Prompt</span>
+            <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
+        {/if}
+        {#if $DataBase.hypaMemory}
+            <span class="text-textcolor">{language.HypaMemory} Model</span>
+            <SelectInput className="mt-2 mb-2" bind:value={$DataBase.hypaModel}>
+                <OptionInput value="MiniLM" >MiniLM-L6-v2 (Free / Local)</OptionInput>
+                <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
+            </SelectInput>
+        {/if}
+        <div class="flex">
+            <Check bind:check={$DataBase.hypaMemory} name={language.enable + ' ' + language.HypaMemory}/>
+        </div>
     {/if}
-    <div class="flex">
-        <Check bind:check={$DataBase.hypaMemory} name={language.enable + ' ' + language.HypaMemory}/>
-    </div>
 </Arcodion>
