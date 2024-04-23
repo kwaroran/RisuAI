@@ -5,7 +5,7 @@
     import { sleep } from "src/ts/util";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-    import { alertNormal } from "src/ts/alert";
+    import { alertNormal, alertSelect } from "src/ts/alert";
     import { downloadFile, isTauri } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -18,8 +18,31 @@
 <span class="text-textcolor mt-4">{language.UiLanguage}</span>
 <SelectInput className="mt-2" bind:value={$DataBase.language} on:change={async () => {
     if($DataBase.language === 'translang'){
-        downloadFile('lang.json', new TextEncoder().encode(JSON.stringify(languageEnglish, null, 4)))
-        alertNormal("Downloaded JSON, translate it, and send it to the dev by discord DM and email. I will add it to the next version.")
+
+        const j = await alertSelect([
+            'Continue Translating Existing Language',
+            'Make a new language'
+        ])
+
+        if(parseInt(j) === 0){
+            const langs = [
+                'de',
+                'ko',
+                'cn',
+                'vi'
+            ]
+            const lang = parseInt(await alertSelect(langs))
+            
+            changeLanguage(langs[lang])
+            
+            downloadFile('lang.json', new TextEncoder().encode(JSON.stringify(language, null, 4)))
+            alertNormal("Downloaded JSON, translate it, and send it to the dev by discord DM and email. I will add it to the next version.")
+        }
+        else{
+            downloadFile('lang.json', new TextEncoder().encode(JSON.stringify(languageEnglish, null, 4)))
+            alertNormal("Downloaded JSON, translate it, and send it to the dev by discord DM and email. I will add it to the next version.")
+        }
+
         $DataBase.language = 'en'
     }
     await sleep(10)
