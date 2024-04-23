@@ -2296,7 +2296,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 })
                 return {
                     type: 'success',
-                    result: unstringlizeChat(v.generated_text, formated, currentChar?.name ?? '')
+                    result: unstringlizeChat(v.generated_text as string, formated, currentChar?.name ?? '')
                 }
             }
             if(aiModel.startsWith('local_')){
