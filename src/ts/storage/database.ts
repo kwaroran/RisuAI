@@ -395,7 +395,7 @@ export function setDatabase(data:Database){
     data.openrouterProvider ??= ''
     data.useInstructPrompt ??= false
     data.hanuraiEnable ??= false
-    data.hanuraiSplit ??= true
+    data.hanuraiSplit ??= false
     data.hanuraiTokens ??= 1000
 
     changeLanguage(data.language)

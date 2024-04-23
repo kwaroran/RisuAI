@@ -13,9 +13,10 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
 }){
     const db = get(DataBase)
     const tokenizer = arg.tokenizer
-    const processer = new HypaProcesser('nomic')
+    const processer = new HypaProcesser('MiniLM')
     let addTexts:string[] = []
     chats.map((chat) => {
+
         if(!chat?.content?.trim()){
             return
         }
@@ -28,12 +29,14 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
                 addTexts.push(`search_document: ${split.trim()}`)
             }
         }
-        addTexts.push(`search_document: ${chat.content?.trim()}`)
+        else{
+            addTexts.push(`search_document: ${chat.content?.trim()}`)
+        }
     })
-    processer.addText(addTexts)
+    await processer.addText(addTexts)
 
     let scoredResults:{[key:string]:number} = {}
-    for(let i=1;i<5;i++){
+    for(let i=1;i<4;i++){
         const chat = chats[chats.length-i]
         if(!chat?.content){
             continue
@@ -49,37 +52,39 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
             }
         }
     }
-    const vectorResult = Object.entries(scoredResults).sort((a,b)=>a[1]-b[1])
-
+    const vectorResult = Object.entries(scoredResults).sort((a,b)=>b[1]-a[1])
 
     let tokens = arg.currentTokens + db.hanuraiTokens
 
-    while(tokens < arg.maxContextTokens){
+    while(tokens > arg.maxContextTokens){
         const poped = chats.pop()
         if(!poped){
             alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + tokens)
             return false
         }
-        tokens -= await tokenizer.tokenizeChat(chats[0])
+        tokens -= await tokenizer.tokenizeChat(poped)
     }
 
     tokens -= db.hanuraiTokens
 
     let resultTexts:string[] = []
     for(const vector of vectorResult){
-        const chat = chats.find((chat) => chat.content === vector[0].substring(14))
+        const chat = chats.find((chat) => chat.content === vector[0].substring(16))
         if(chat){
             continue
         }
-        const tokenized = await tokenizer.tokenizeChat(chat) + 2
+        const tokenized = await tokenizer.tokenizeChat({
+            role: 'system',
+            memo: 'supaMemory',
+            content: vector[0].substring(16)
+        }) + 2
         tokens += tokenized
         if(tokens >= arg.maxContextTokens){
             tokens -= tokenized
             break
         }
-        resultTexts.push(vector[0].substring(14))
+        resultTexts.push(vector[0].substring(16))
     }
-    console.log(resultTexts)
     chats.unshift({
         role: "system",
         memo: "supaMemory",

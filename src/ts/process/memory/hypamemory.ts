@@ -1,5 +1,4 @@
 import localforage from "localforage";
-import { similarity } from "ml-distance";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runEmbedding } from "../transformers";
 
@@ -144,7 +143,7 @@ export class HypaProcesser{
           const memoryVectors = this.vectors
           const searches = memoryVectors
               .map((vector, index) => ({
-              similarity: similarity.cosine(query, vector.embedding),
+              similarity: similarity(query, vector.embedding),
               index,
               }))
               .sort((a, b) => (a.similarity > b.similarity ? -1 : 0))
@@ -158,10 +157,12 @@ export class HypaProcesser{
     }
 
     similarityCheck(query1:number[],query2: number[]) {
-        return similarity.cosine(query1, query2)
+        return similarity(query1, query2)
     }
 }
-
+function similarity(a:number[], b:number[]) {
+    return a.reduce((acc, val, i) => acc + val * b[i], 0);
+}
 
 type memoryVector = {
     embedding:number[]

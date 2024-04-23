@@ -721,6 +721,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 content: '',
             } as const
         }
+        else{
+            v.content = `<Previous Conversation>${v.content}</Previous Conversation>`
+        }
         return v
     }).filter((v) => {
         return v.content !== ''
