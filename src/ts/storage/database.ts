@@ -393,6 +393,7 @@ export function setDatabase(data:Database){
     data.customTokenizer ??= 'tik'
     data.instructChatTemplate ??= "chatml"
     data.openrouterProvider ??= ''
+    data.useInstructPrompt ??= false
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -640,6 +641,7 @@ export interface Database{
     instructChatTemplate:string
     JinjaTemplate:string
     openrouterProvider:string
+    useInstructPrompt:boolean
 }
 
 export interface customscript{
@@ -844,6 +846,7 @@ export interface botPreset{
     min_p?:number
     top_a?:number
     openrouterProvider?:string
+    useInstructPrompt?:boolean
 
 }
 
@@ -1047,6 +1050,7 @@ export const presetTemplate:botPreset = {
         mode: 'instruct'
     },
     top_p: 1,
+    useInstructPrompt: false,
 
 }
 
@@ -1108,7 +1112,8 @@ export function saveCurrentPreset(){
         repetition_penalty: db.repetition_penalty,
         min_p: db.min_p,
         top_a: db.top_a,
-        openrouterProvider: db.openrouterProvider
+        openrouterProvider: db.openrouterProvider,
+        useInstructPrompt: db.useInstructPrompt
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1189,6 +1194,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.min_p = newPres.min_p
     db.top_a = newPres.top_a
     db.openrouterProvider = newPres.openrouterProvider
+    db.useInstructPrompt = newPres.useInstructPrompt ?? false
     return db
 }
 

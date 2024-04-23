@@ -467,6 +467,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         order: [db.openrouterProvider]
                     }
                 }
+
+                if(db.useInstructPrompt){
+                    //@ts-ignore
+                    delete body.messages
+
+                    const prompt = applyChatTemplate(formated)
+
+                    //@ts-ignore
+                    body.prompt = prompt
+                }
             }
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
