@@ -107,8 +107,12 @@
             <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
         </div>
         
-        {#if $DataBase.supaMemoryType !== 'none'}
-            {#if $DataBase.hypaMemory}
+        {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
+            {#if $DataBase.hanuraiEnable}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>
+                </div>
+            {:else if $DataBase.hypaMemory}
                 <div class="flex mt-2 items-center">
                     <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
                 </div>
