@@ -2,7 +2,7 @@ import type { OpenAIChat } from "..";
 import { HypaProcesser } from "./hypamemory";
 
 export async function termMemory(chats:OpenAIChat[]){
-    const processer = new HypaProcesser('MiniLM')
+    const processer = new HypaProcesser('nomic')
     processer.addText(chats.map(chat=>chat.content))
 
     let scoredResults:{[key:string]:number}

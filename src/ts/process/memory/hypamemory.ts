@@ -8,9 +8,9 @@ export class HypaProcesser{
     oaikey:string
     vectors:memoryVector[]
     forage:LocalForage
-    model:'ada'|'MiniLM'
+    model:'ada'|'MiniLM'|'nomic'
 
-    constructor(model:'ada'|'MiniLM'){
+    constructor(model:'ada'|'MiniLM'|'nomic'){
         this.forage = localforage.createInstance({
             name: "hypaVector"
         })
@@ -36,11 +36,11 @@ export class HypaProcesser{
     
     
     async getEmbeds(input:string[]|string) {
-        if(this.model === 'MiniLM'){
+        if(this.model === 'MiniLM' || this.model === 'nomic'){
             const inputs:string[] = Array.isArray(input) ? input : [input]
             let results:Float32Array[] = []
             for(let i=0;i<inputs.length;i++){
-                const res = await runEmbedding(inputs[i])
+                const res = await runEmbedding(inputs[i], this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
                 results.push(res)
             }
             //convert to number[][]

@@ -50,12 +50,12 @@ export const runSummarizer = async (text: string) => {
 }
 
 let extractor:FeatureExtractionPipeline = null
-export const runEmbedding = async (text: string):Promise<Float32Array> => {
+export const runEmbedding = async (text: string, model:'Xenova/all-MiniLM-L6-v2'|'nomic-ai/nomic-embed-text-v1.5' = 'Xenova/all-MiniLM-L6-v2'):Promise<Float32Array> => {
     await initTransformers()
     if(!extractor){
-        extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        extractor = await pipeline('feature-extraction', model);
     }
-    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/all-MiniLM-L6-v2');
+    const tokenizer = await AutoTokenizer.from_pretrained(model);
     const tokens = tokenizer.encode(text)
     if (tokens.length > 1024) {
         let chunks:string[] = []
