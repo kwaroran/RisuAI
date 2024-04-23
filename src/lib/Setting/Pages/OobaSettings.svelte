@@ -1,40 +1,20 @@
 <script lang="ts">
-    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import OptionalInput from "src/lib/UI/GUI/OptionalInput.svelte";
     import { DataBase } from "src/ts/storage/database";
-  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
-  import { language } from "src/lang";
-  import { PlusIcon, TrashIcon } from "lucide-svelte";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-  import Arcodion from "src/lib/UI/Arcodion.svelte";
-    let openOobaSettings = false
-    const toggleOobaSettings = () => {
-        openOobaSettings = !openOobaSettings
-    }
+    import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+    import { language } from "src/lang";
+    import { PlusIcon, TrashIcon } from "lucide-svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import ChatFormatSettings from "./ChatFormatSettings.svelte";
     export let instructionMode = false
 </script>
 
 <Arcodion name="Ooba Settings" styled>
     {#if instructionMode}
-        <span class="text-textcolor">Chat Formating</span>
-        <SelectInput bind:value={$DataBase.instructChatTemplate}>
-            <OptionInput value="chatml">ChatML</OptionInput>
-            <OptionInput value="llama3">Llama3</OptionInput>
-            <OptionInput value="gpt2">GPT2</OptionInput>
-            <OptionInput value="gemma">Gemma</OptionInput>
-            <OptionInput value="mistral">Mistral</OptionInput>
-            <OptionInput value="llama2">Llama2</OptionInput>
-            <OptionInput value="vicuna">Vicuna</OptionInput>
-            <OptionInput value="alpaca">Alpaca</OptionInput>
-            <OptionInput value="jinja">Custom (Jinja)</OptionInput>
-        </SelectInput>
-
-        {#if $DataBase.instructChatTemplate === 'jinja'}
-            <span class="text-textcolor">Jinja Template</span>
-            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.JinjaTemplate} />
-        {/if}
+        <ChatFormatSettings />
     {:else}
         <span class="text-textcolor">Ooba Mode</span>
         <SelectInput className="mt-2 mb-4" bind:value={$DataBase.reverseProxyOobaArgs.mode}>

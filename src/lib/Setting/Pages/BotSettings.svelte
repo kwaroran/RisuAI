@@ -25,6 +25,7 @@
   import Arcodion from "src/lib/UI/Arcodion.svelte";
   import { startsWith } from "lodash";
   import OpenrouterSettings from "./OpenrouterSettings.svelte";
+  import ChatFormatSettings from "./ChatFormatSettings.svelte";
 
     let tokens = {
         mainPrompt: 0,
@@ -436,23 +437,7 @@
         </div>
     {/if}
     <div class="flex flex-col p-3 rounded-md border-selected border mt-4">
-        <span class="text-textcolor">Chat Formating</span>
-        <SelectInput bind:value={$DataBase.instructChatTemplate}>
-            <OptionInput value="chatml">ChatML</OptionInput>
-            <OptionInput value="llama3">Llama3</OptionInput>
-            <OptionInput value="gpt2">GPT2</OptionInput>
-            <OptionInput value="gemma">Gemma</OptionInput>
-            <OptionInput value="mistral">Mistral</OptionInput>
-            <OptionInput value="llama2">Llama2</OptionInput>
-            <OptionInput value="vicuna">Vicuna</OptionInput>
-            <OptionInput value="alpaca">Alpaca</OptionInput>
-            <OptionInput value="jinja">Custom (Jinja)</OptionInput>
-        </SelectInput>
-
-        {#if $DataBase.instructChatTemplate === 'jinja'}
-            <span class="text-textcolor">Jinja Template</span>
-            <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.JinjaTemplate} />
-        {/if}
+        <ChatFormatSettings />
     </div>
 
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
