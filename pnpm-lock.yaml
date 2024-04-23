@@ -38,12 +38,6 @@ dependencies:
   '@tauri-apps/api':
     specifier: 1.5.3
     version: 1.5.3
-  '@types/marked':
-    specifier: ^5.0.2
-    version: 5.0.2
-  '@types/streamsaver':
-    specifier: ^2.0.4
-    version: 2.0.4
   '@xenova/transformers':
     specifier: ^2.14.0
     version: 2.14.0
@@ -143,9 +137,6 @@ dependencies:
   png-chunks-extract:
     specifier: ^1.0.0
     version: 1.0.0
-  pngjs:
-    specifier: ^7.0.0
-    version: 7.0.0
   rollup:
     specifier: ^3.29.4
     version: 3.29.4
@@ -214,18 +205,21 @@ devDependencies:
   '@types/lodash.isequal':
     specifier: ^4.5.8
     version: 4.5.8
+  '@types/marked':
+    specifier: ^5.0.2
+    version: 5.0.2
   '@types/node':
     specifier: ^18.19.7
     version: 18.19.7
-  '@types/pngjs':
-    specifier: ^6.0.4
-    version: 6.0.4
   '@types/showdown':
     specifier: ^2.0.6
     version: 2.0.6
   '@types/sortablejs':
     specifier: ^1.15.7
     version: 1.15.7
+  '@types/streamsaver':
+    specifier: ^2.0.4
+    version: 2.0.4
   '@types/three':
     specifier: ^0.154.0
     version: 0.154.0
@@ -1645,7 +1639,7 @@ packages:
 
   /@types/marked@5.0.2:
     resolution: {integrity: sha512-OucS4KMHhFzhz27KxmWg7J+kIYqyqoW5kdIEI319hqARQQUTqhao3M/F+uFnDXD0Rg72iDDZxZNxq5gvctmLlg==}
-    dev: false
+    dev: true
 
   /@types/minimist@1.2.5:
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
@@ -1658,12 +1652,6 @@ packages:
 
   /@types/normalize-package-data@2.4.4:
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
-    dev: true
-
-  /@types/pngjs@6.0.4:
-    resolution: {integrity: sha512-atAK9xLKOnxiuArxcHovmnOUUGBZOQ3f0vCf43FnoKs6XnqiambT1kkJWmdo71IR+BoXSh+CueeFR0GfH3dTlQ==}
-    dependencies:
-      '@types/node': 18.19.7
     dev: true
 
   /@types/pug@2.0.10:
@@ -1688,7 +1676,7 @@ packages:
 
   /@types/streamsaver@2.0.4:
     resolution: {integrity: sha512-XxpGYIaBP+2NgZ5+4YeG7hI3wYAyOX8QB92xlPpNvStIAvlniml1th+D0bes1lUZz52IWkPlXMf88wy8NzFkbA==}
-    dev: false
+    dev: true
 
   /@types/three@0.154.0:
     resolution: {integrity: sha512-IioqpGhch6FdLDh4zazRn3rXHj6Vn2nVOziJdXVbJFi9CaI65LtP9qqUtpzbsHK2Ezlox8NtsLNHSw3AQzucjA==}
@@ -4733,11 +4721,6 @@ packages:
     resolution: {integrity: sha512-ZiVwF5EJ0DNZyzAqld8BP1qyJBaGOFaq9zl579qfbkcmOwWLLO4I9L8i2O4j3HkI6/35i0nKG2n+dZplxiT89Q==}
     dependencies:
       crc-32: 0.3.0
-    dev: false
-
-  /pngjs@7.0.0:
-    resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
-    engines: {node: '>=14.19.0'}
     dev: false
 
   /postcss-import@15.1.0(postcss@8.4.33):
