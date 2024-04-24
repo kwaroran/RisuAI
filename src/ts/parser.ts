@@ -643,6 +643,36 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 //output, like 1:30:00
                 return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
             }
+            case 'idle_duration':{
+                if(matcherArg.tokenizeAccurate){
+                    return `00:00:00`
+                }
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                const messages = chat.message
+                if(messages.length === 0){
+                    return `00:00:00`
+                }
+
+                const lastMessage = messages[messages.length - 1]
+
+                if(!lastMessage.time){
+                    return "[Cannot get time, message was sent in older version]"
+                }
+
+                const now = new Date()
+
+                let duration = now.getTime() - lastMessage.time
+
+                let seconds = Math.floor(duration / 1000)
+                let minutes = Math.floor(seconds / 60)
+                let hours = Math.floor(minutes / 60)
+
+                seconds = seconds % 60
+                minutes = minutes % 60
+                
+                return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
+            }
             case 'br':
             case 'newline':{
                 return '\n'
