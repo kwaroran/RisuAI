@@ -69,7 +69,7 @@ function calculateRPN(expression:string) {
 }
 
 function executeRPNCalculation(text:string) {
-    text = text.replace(/\$([a-zA-Z0-9_]+)/, (_, p1) => {
+    text = text.replace(/\$([a-zA-Z0-9_]+)/g, (_, p1) => {
         const v = getChatVar(p1)
         const parsed = parseFloat(v)
         if(isNaN(parsed)){
