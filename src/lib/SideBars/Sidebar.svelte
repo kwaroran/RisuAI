@@ -375,6 +375,18 @@
       <div class="mt-2"></div>
       <BarIcon
         onClick={() => {
+          reseter()
+          if($selectedCharID === -1 && $PlaygroundStore !== 0){
+            PlaygroundStore.set(0)
+            return
+          }
+          selectedCharID.set(-1)
+          PlaygroundStore.set(1)
+        }}
+      ><ShellIcon /></BarIcon>
+      <div class="mt-2"></div>
+      <BarIcon
+        onClick={() => {
           reseter();
           openGrid();
         }}><LayoutGridIcon /></BarIcon
@@ -600,20 +612,6 @@
             d="M12 6v6m0 0v6m0-6h6m-6 0H6"
           /></svg
         ></BaseRoundedButton
-      >
-    </div>
-    <div class="flex flex-col items-center space-y-2 px-2 mb-2">
-      <BaseRoundedButton
-        onClick={() => {
-          reseter()
-          if($selectedCharID === -1 && $PlaygroundStore !== 0){
-            PlaygroundStore.set(0)
-            return
-          }
-          selectedCharID.set(-1)
-          PlaygroundStore.set(1)
-        }}
-        ><ShellIcon size="24" /></BaseRoundedButton
       >
     </div>
   </div>
