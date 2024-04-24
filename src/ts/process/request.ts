@@ -1,13 +1,11 @@
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
-import { DataBase, setDatabase, type character } from "../storage/database";
+import { DataBase, type character } from "../storage/database";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../storage/globalApi";
 import { sleep } from "../util";
-import { createDeep } from "./deepai";
-import { hubURL } from "../characterCards";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
 import { runGGUFModel } from "./models/local";
@@ -22,7 +20,7 @@ import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
-import {createParser, type ParsedEvent, type ReconnectInterval} from 'eventsource-parser'
+import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
 
@@ -1448,40 +1446,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             return {
                 'type': 'multiline',
                 'result': unstr
-            }
-        }
-        case "deepai":{
-
-            for(let i=0;i<formated.length;i++){
-                delete formated[i].memo
-                delete formated[i].name
-                if(arg.isGroupChat && formated[i].name && formated[i].role === 'assistant'){
-                    formated[i].content = formated[i].name + ": " + formated[i].content
-                }
-                if(formated[i].role !== 'assistant' && formated[i].role !== 'user'){
-                    formated[i].content = formated[i].role + ": " + formated[i].content
-                    formated[i].role = 'assistant'
-                }
-                formated[i].name = undefined
-            }
-
-            const response = await createDeep([{
-                role: 'user',
-                content: stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
-            }])
-
-            if(!response.ok){
-                return {
-                    type: 'fail',
-                    result: response.data
-                }
-            }
-
-            const result = Buffer.from(response.data).toString('utf-8')
-
-            return {
-                'type': 'success',
-                'result': result
             }
         }
         case 'risullm-proto':{
