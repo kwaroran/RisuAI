@@ -1011,6 +1011,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             let main = p1.substring("datetimeformat".length + 1)
             return dateTimeFormat(main)
         }
+        if(p1.startsWith('? ')){
+            const substring = p1.substring(2)
+
+            return calcString(substring).toString()
+        }
         return null        
     } catch (error) {
         return null   
@@ -1427,6 +1432,9 @@ export function getChatVar(key:string){
     const db = get(DataBase)
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
+    if(!char){
+        return 'null'
+    }
     const chat = char.chats[char.chatPage]
     chat.scriptstate = chat.scriptstate ?? {}
     return (chat.scriptstate['$' + key])?.toString() ?? 'null'
