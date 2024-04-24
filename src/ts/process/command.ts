@@ -213,6 +213,62 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             pipe = (chat.scriptstate['$' + namedArg['key']]).toString() ?? 'null'
             return pipe
         }
+        case '?':{
+            alertMd(`
+            # /input [text]
+            - Show input dialog
+            - Return input text
+            - Example: /input Hello World
+            # /echo [text]
+            - Show alert dialog
+            - Return input text
+            - Example: /echo Hello World
+            # /popup [text]
+            - Show alert dialog
+            - Return input text
+            - Example: /popup Hello World
+            # /pass [text]
+            - Return input text
+            - Example: /pass Hello World
+            # /buttons [labels]
+            - Show select dialog
+            - Return selected label
+            - Example: /buttons Yes§No
+            # /speak [text]
+            - Speak text
+            - Example: /speak Hello World
+            # /send [text]
+            - Send text to chat
+            - Example: /send Hello World
+            # /sendas [text]
+            - Send text to chat as character
+            - Example: /sendas Hello World
+            # /comment [text]
+            - Add comment to chat
+            - Example: /comment Hello World
+            # /cut [index]
+            - Cut chat message
+            - Example: /cut 1
+            # /del [size]
+            - Delete chat message
+            - Example: /del 1
+            # /len [array]
+            - Return length of array
+            - Example: /len Hello§World
+            # /setvar key=[key] [value]
+            - Set variable
+            - Example: /setvar key=hello world
+            # /addvar key=[key] [value]
+            - Add value to variable
+            - Example: /addvar key=damage 10
+            # /getvar key=[key]
+            - Get variable
+            - Example: /getvar key=damage
+            # /?
+            - Show help
+            `)
+            return 'help'
+        }
 
 
     }
