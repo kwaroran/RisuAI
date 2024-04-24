@@ -18,7 +18,7 @@ export class HypaProcesser{
     }
 
     async embedDocuments(texts: string[]): Promise<VectorArray[]> {
-        const subPrompts = chunkArray(texts,512);
+        const subPrompts = chunkArray(texts,50);
     
         const embeddings: VectorArray[] = [];
     
