@@ -1,14 +1,19 @@
 export const patchNote = {
-    version: "1.98",
+    version: "1.99",
     content: 
 `
-# Update 1.98
-- Added Hanurai Memory feature
-- Added Supamemory boilerplate
-- Added Llama3 Tokenizer
+# Update 1.99
+- Added Playground
+  - Added Chat Playground
+  - Added Embedding Playground
+  - Added Tokenization Playground
+  - Added Syntax Playground
+  - Added Jinja Playground
 - Added Openrouter instruct mode
-- Improved vector embedding similarity calculation
-- Fixed error alert returning [object Object] instead of the error message
+- Improved embedding performance
+- Now Chat prompt item in prompt template would not show chat range by default
+- Fixed Harunai enable option not appearing
+- Fixed Approximate Tokens displaying wrong number
 `
 }
 
