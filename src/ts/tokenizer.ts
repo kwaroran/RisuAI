@@ -18,7 +18,7 @@ export const tokenizerList = [
     ['novellist', 'Novellist'],
 ] as const
 
-async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
+export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     let db = get(DataBase)
     if(db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
         switch(db.customTokenizer){
