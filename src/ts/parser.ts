@@ -733,6 +733,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'prefill_supported':{
                 return db.aiModel.startsWith('claude') ? '1' : '0'
             }
+            
         }
         const arra = p1.split("::")
         if(arra.length > 1){
@@ -760,6 +761,18 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     }
                     if(matcherArg.runVar){
                         setChatVar(v, arra[2])
+                        return ''
+                    }
+                    return null
+                }
+                case 'setdefaultvar':{
+                    if(matcherArg.rmVar){
+                        return ''
+                    }
+                    if(matcherArg.runVar){
+                        if(!getChatVar(v)){
+                            setChatVar(v, arra[2])
+                        }
                         return ''
                     }
                     return null
@@ -936,7 +949,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'date':
                 case 'time':
-                case 'datetimeformat':{
+                case 'datetimeformat':
+                case 'date_time_format':{
                     return dateTimeFormat(arra[1])
                 }
             }
