@@ -38,11 +38,6 @@
             }}>
                 <h1 class="text-2xl font-bold text-start">Jinja</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-                PlaygroundStore.set(7)
-            }}>
-                <h1 class="text-2xl font-bold text-start">Regex</h1>
-            </button>
         </div>
     {:else}
         {#if $SizeStore.w < 1024}
@@ -69,9 +64,6 @@
             {/if}
             {#if $PlaygroundStore === 6}
                 <PlaygroundJinja/>
-            {/if}
-            {#if $PlaygroundStore === 7}
-                <PlaygroundRegex/>
             {/if}
         </div>
     {/if}
