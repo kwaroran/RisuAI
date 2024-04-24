@@ -1,8 +1,10 @@
 <input 
-    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
+    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
     class:text-sm={size === 'sm'}
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}
+    class:text-textcolor={!disabled}
+    class:text-textcolor2={disabled}
     class:px-4={size === 'md' && padding}
     class:py-2={size === 'md' && padding}
     class:px-2={size === 'sm' && padding}
@@ -16,6 +18,7 @@
     min={min}
     max={max}
     id={id}
+    disabled={disabled}
     bind:value
     on:change={onChange}
 />
@@ -32,6 +35,7 @@
     export let fullh = false
     export let onChange = () => {}
     export let className = ''
+    export let disabled = false
 </script>
 
 <style>

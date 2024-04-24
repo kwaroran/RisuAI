@@ -23,6 +23,7 @@
             currentprompt.rangeStart = -2
             currentprompt.rangeEnd = 'end'
         }
+        promptItem = currentprompt
     }
 
 </script>
@@ -76,14 +77,12 @@
         </SelectInput>
     {/if}
     {#if promptItem.type === 'chat'}
-        <CheckInput name={language.advanced} check={promptItem.rangeStart !== -2} onChange={chatPromptChange}/>
-
-
         {#if promptItem.rangeStart !== -2}
             <span>{language.rangeStart}</span>
             <NumberInput bind:value={promptItem.rangeStart} />
             <span>{language.rangeEnd}</span>
             {#if promptItem.rangeEnd === 'end'}
+                <NumberInput value={0} marginBottom  disabled/>
                 <CheckInput name={language.untilChatEnd} check={true} onChange={() => {
                     if(promptItem.type === 'chat'){
                         promptItem.rangeEnd = 0
@@ -101,6 +100,7 @@
                 <CheckInput name={language.chatAsOriginalOnSystem} bind:check={promptItem.chatAsOriginalOnSystem}/>
             {/if}
         {/if}
+        <CheckInput name={language.advanced} check={promptItem.rangeStart !== -2} onChange={chatPromptChange} className="my-2"/>
     {/if}
     {#if promptItem.type === 'authornote'}
         <span>{language.defaultPrompt}</span>
