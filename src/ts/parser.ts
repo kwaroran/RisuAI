@@ -590,7 +590,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 const now = new Date()
                 return `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`
             }
-            case 'idle_duration':{
+            case 'message_idle_duration':{
                 if(matcherArg.tokenizeAccurate){
                     return `00:00:00`
                 }
