@@ -578,7 +578,7 @@
                 {/if}
             {/each}
             {#if $CurrentChat.message.length <= loadPages}
-                {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.chaId !== '§playground'}
+                {#if $CurrentCharacter.type !== 'group' }
                     <Chat
                         character={$CurrentSimpleCharacter}
                         name={$CurrentCharacter.name}

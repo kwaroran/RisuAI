@@ -84,7 +84,8 @@
     let lastParsed = ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
-
+    let blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
+    $: blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
@@ -129,32 +130,34 @@
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
-        {#if $CurrentCharacter.chaId === "§playground"}
-            <div class="shadow-lg border-textcolor2 border mt-2 flex justify-center items-center text-textcolor2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}>
-                {#if name === 'assistant'}
-                    <BotIcon />
-                {:else}
-                    <UserIcon />
-                {/if}
-            </div>
-        {:else}
-            {#await img}
-                <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
-            {:then m}
-                {#if largePortrait && (!$DataBase.roundIcons)}
-                    <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
-                {:else}
-                    <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
-                {/if}
-            {/await}
+        {#if !blankMessage}
+            {#if $CurrentCharacter.chaId === "§playground"}
+                <div class="shadow-lg border-textcolor2 border mt-2 flex justify-center items-center text-textcolor2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}>
+                    {#if name === 'assistant'}
+                        <BotIcon />
+                    {:else}
+                        <UserIcon />
+                    {/if}
+                </div>
+            {:else}
+                {#await img}
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
+                {:then m}
+                    {#if largePortrait && (!$DataBase.roundIcons)}
+                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+                    {:else}
+                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+                    {/if}
+                {/await}
+            {/if}
         {/if}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">
-                {#if $CurrentCharacter.chaId === "§playground"}
+                {#if $CurrentCharacter.chaId === "§playground" && !blankMessage}
                     <span class="chat text-xl border-darkborderc flex items-center">
                         <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
                         <button class="ml-2 text-textcolor2 hover:text-textcolor" on:click={() => {
@@ -162,12 +165,12 @@
                             $CurrentChat = $CurrentChat
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
-                {:else}
+                {:else if !blankMessage}
                     <span class="chat text-xl unmargin">{name}</span>
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
-                    {#if $DataBase.useChatCopy}
+                    {#if $DataBase.useChatCopy && !blankMessage}
                         <button class="ml-2 hover:text-green-500 transition-colors" on:click={()=>{
                             window.navigator.clipboard.writeText(msgDisplay).then(() => {
                                 setStatusMessage(language.copied)
@@ -200,7 +203,7 @@
                             <TrashIcon size={20}/>
                         </button>
                     {/if}
-                    {#if $DataBase.translator !== ''}
+                    {#if $DataBase.translator !== '' && !blankMessage}
                         <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} on:click={async () => {
                             translated = !translated
                         }}>
@@ -243,6 +246,10 @@
             {/if}
             {#if editMode}
                 <AutoresizeArea bind:value={message} />
+            {:else if blankMessage}
+                <div class="w-full flex justify-center text-textcolor2 italic mb-12">
+                    {language.noMessage}
+                </div>
             {:else}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <span class="text chat chattext prose prose-invert minw-0" on:click={() => {

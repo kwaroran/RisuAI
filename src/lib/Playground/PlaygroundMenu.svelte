@@ -21,6 +21,7 @@
             const char = db.characters[charIndex] as character
             char.utilityBot = true
             char.name = 'assistant'
+            char.firstMessage = '{{none}}'
             db.characters[charIndex] = char
             characterFormatUpdate(charIndex)
 

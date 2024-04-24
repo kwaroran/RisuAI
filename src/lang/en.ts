@@ -587,4 +587,5 @@ export const languageEnglish = {
     embedding: "Embedding",
     syntax: "Syntax",
     run: "Run",
+    noMessage: "Type something to start the chat.",
 }
