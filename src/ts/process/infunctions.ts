@@ -7,16 +7,17 @@ function toRPN(expression:string) {
         '-': {precedence: 2, associativity: 'Left'},
         '*': {precedence: 3, associativity: 'Left'},
         '/': {precedence: 3, associativity: 'Left'},
-        '^': {precedence: 4, associativity: 'Right'},
+        '^': {precedence: 4, associativity: 'Left'},
+        '%': {precedence: 3, associativity: 'Left'},
     };
 
     expression = expression.replace(/\s+/g, '');
-    let expression2 = expression.split(/([\+\-\*\/])/).filter(token => token);
+    let expression2 = expression.split(/([\+\-\*\/\^\%])/).filter(token => token);
 
     expression2.forEach(token => {
         if (parseFloat(token) || token === '0') {
             outputQueue += token + ' ';
-        } else if ('+-*/^'.includes(token)) {
+        } else if ('+-*/^%'.includes(token)) {
             while (operatorStack.length > 0 &&
             ((operators[token].associativity === 'Left' &&
             operators[token].precedence <= operators[operatorStack[operatorStack.length - 1]].precedence) ||
@@ -50,6 +51,7 @@ function calculateRPN(expression:string) {
                 case '*': stack.push(a * b); break;
                 case '/': stack.push(a / b); break;
                 case '^': stack.push(a ** b); break;
+                case '%': stack.push(a % b); break;
             }
         }
     });
