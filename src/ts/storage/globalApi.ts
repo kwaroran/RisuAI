@@ -31,6 +31,7 @@ import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
 import { startObserveDom } from "../observer";
+import { removeDefaultHandler } from "src/main";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -504,6 +505,7 @@ export async function loadData() {
             updateTextTheme()
             updateAnimationSpeed()
             updateHeightMode()
+            updateErrorHandling()
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
@@ -524,6 +526,20 @@ export async function getFetchData(id:string) {
       }
   }
   return null
+}
+
+function updateErrorHandling(){
+    removeDefaultHandler()
+    const errorHandler = (event: ErrorEvent) => {
+        console.error(event.error)
+        alertError(event.error)
+    }
+    const rejectHandler = (event: PromiseRejectionEvent) => {
+        console.error(event.reason)
+        alertError(event.reason)
+    }
+    window.addEventListener('error', errorHandler)
+    window.addEventListener('unhandledrejection', rejectHandler)
 }
 
 const knownHostes = ["localhost","127.0.0.1","0.0.0.0"]
