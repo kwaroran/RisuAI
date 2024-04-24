@@ -620,12 +620,12 @@
   class:w-96={$sideBarSize === 0}
   class:w-110={$sideBarSize === 1}
   class:w-124={$sideBarSize === 2}
-  class:w-144={$sideBarSize === 3}
+  class:w-138={$sideBarSize === 3}
   class:risu-sidebar-close={$sideBarClosing}
   class:min-w-96={!$DynamicGUI && $sideBarSize === 0}
   class:min-w-110={!$DynamicGUI && $sideBarSize === 1}
   class:min-w-124={!$DynamicGUI && $sideBarSize === 2}
-  class:min-w-144={!$DynamicGUI && $sideBarSize === 3}
+  class:min-w-138={!$DynamicGUI && $sideBarSize === 3}
   class:px-2={$DynamicGUI}
   class:px-4={!$DynamicGUI}
   class:dynamic-sidebar={$DynamicGUI}
@@ -734,12 +734,12 @@
       width: 0rem;
     }
     to {
-      width: 24rem;
+      width: var(--sidebar-size);
     }
   }
   @keyframes sidebar-transition-close {
     from {
-      width: 24rem;
+      width: var(--sidebar-size);
       right:0rem;
     }
     to {
@@ -753,14 +753,14 @@
       min-width: 0rem;
     }
     to {
-      width: 24rem;
-      min-width: 24rem;
+      width: var(--sidebar-size);
+      min-width: var(--sidebar-size);
     }
   }
   @keyframes sidebar-transition-close-non-dynamic {
     from {
-      width: 24rem;
-      min-width: 24rem;
+      width: var(--sidebar-size);
+      min-width: var(--sidebar-size);
       right:0rem;
     }
     to {

@@ -28,12 +28,12 @@
 
 <span class="text-textcolor text-lg">Jinja</span>
 
-<TextAreaInput onInput={onInput} bind:value={input} height="32" />
+<TextAreaInput onInput={onInput} bind:value={input} />
 
 <span class="text-textcolor text-lg">Data (JSON)</span>
 
-<TextAreaInput onInput={onInput} bind:value={json} height="32" />
+<TextAreaInput onInput={onInput} bind:value={json} />
 
 <span class="text-textcolor text-lg">Result</span>
 
-<TextAreaInput value={output} height="32" />
+<TextAreaInput value={output} />

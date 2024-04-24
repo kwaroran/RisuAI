@@ -20,8 +20,8 @@
 
 <span class="text-textcolor text-lg">Input</span>
 
-<TextAreaInput onInput={onInput} bind:value={input} height="32" optimaizedInput={false} />
+<TextAreaInput onInput={onInput} bind:value={input} optimaizedInput={false} />
 
 <span class="text-textcolor text-lg">Result</span>
 
-<TextAreaInput value={output} height="32" />
+<TextAreaInput value={output} />

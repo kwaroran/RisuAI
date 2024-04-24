@@ -14,6 +14,7 @@ export function updateGuisize(){
     textAreaSize.set(db.textAreaSize)
     sideBarSize.set(db.sideBarSize)
     textAreaTextSize.set(db.textAreaTextSize)
+    root.style.setProperty('--sidebar-size', (24 + (4 * db.sideBarSize)) + 'rem')
 }
 
 export function guiSizeText(num:number){

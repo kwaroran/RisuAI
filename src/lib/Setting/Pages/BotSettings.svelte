@@ -441,7 +441,7 @@
     </div>
 
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.autoSuggestPrompt} />
+    <TextAreaInput fullwidth autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
     <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 
     <span class="text-textcolor">{language.autoSuggest} Prefix</span>
@@ -525,7 +525,7 @@
     <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
+    <TextAreaInput autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
     <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {:else}
 
@@ -542,7 +542,7 @@
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
 
     <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput height="20" autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
+    <TextAreaInput autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
     <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
 {/if}
 {/if}

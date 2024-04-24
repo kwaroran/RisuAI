@@ -29,7 +29,7 @@ export default {
         '96': '24rem',
         '110': '28rem',
         '124': '32rem',
-        '144': '36rem',
+        '138': '36rem',
       },
       maxWidth:{
         'half': '50%',
@@ -48,7 +48,7 @@ export default {
         '3xl': '72rem',
         '110': '28rem',
         '124': '32rem',
-        '144': '36rem',
+        '138': '36rem',
       },
       minHeight:{
         '2': '0.5rem',

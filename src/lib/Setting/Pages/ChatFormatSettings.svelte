@@ -21,5 +21,5 @@
 
 {#if $DataBase.instructChatTemplate === 'jinja'}
     <span class="text-textcolor">Jinja Template</span>
-    <TextAreaInput fullwidth autocomplete="off" height={"24"} bind:value={$DataBase.JinjaTemplate} />
+    <TextAreaInput fullwidth autocomplete="off" bind:value={$DataBase.JinjaTemplate} />
 {/if}

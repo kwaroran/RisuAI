@@ -249,19 +249,19 @@
                     {/if}
                     {#if effect.type === 'systemprompt'}
                         <span class="text-textcolor2 text-sm">{language.location}</span>
-                        <SelectInput bind:value={effect.location} size="sm">
+                        <SelectInput bind:value={effect.location}>
                             <OptionInput value="start">{language.promptstart}</OptionInput>
                             <OptionInput value="historyend">{language.historyend}</OptionInput>
                             <OptionInput value="promptend">{language.promptend}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput size="sm" bind:value={effect.value} />
+                        <TextAreaInput bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'setvar'}
                         <span class="text-textcolor2 text-sm">{language.varableName}</span>
-                        <TextInput size="sm" bind:value={effect.var} />
+                        <TextInput bind:value={effect.var} />
                         <span class="text-textcolor2 text-sm">{language.operator}</span>
-                        <SelectInput bind:value={effect.operator} size="sm">
+                        <SelectInput bind:value={effect.operator} >
                             <OptionInput value="=">{language.TriggerSetToVar}</OptionInput>
                             <OptionInput value="+=">{language.TriggerAddToVar}</OptionInput>
                             <OptionInput value="-=">{language.TriggerSubToVar}</OptionInput>
@@ -269,7 +269,7 @@
                             <OptionInput value="/=">{language.TriggerDivToVar}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextInput size="sm" bind:value={effect.value} />
+                        <TextInput bind:value={effect.value} />
                     {/if}
 
                     {#if effect.type === 'runtrigger'}
@@ -278,7 +278,7 @@
                     {/if}
                     {#if effect.type === 'command'}
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput size="sm" bind:value={effect.value} />
+                        <TextAreaInput bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'impersonate'}
                         <span class="text-textcolor2 text-sm">{language.role}</span>
@@ -287,7 +287,7 @@
                             <OptionInput value="char">{language.character}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput size="sm" bind:value={effect.value} />
+                        <TextAreaInput bind:value={effect.value} />
                     {/if}
                 {/each}
             </div>

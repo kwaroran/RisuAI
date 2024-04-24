@@ -54,7 +54,7 @@
         {/each}
     </div>
 {/if}
-<TextAreaInput autocomplete="off" bind:value={valueObject[selectedLang]} height={"20"} onInput={() => {
+<TextAreaInput autocomplete="off" bind:value={valueObject[selectedLang]} onInput={() => {
     updateValue()
     onInput()
 }} className={className} />
