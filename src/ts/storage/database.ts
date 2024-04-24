@@ -1189,7 +1189,7 @@ export function setPreset(db:Database, newPres: botPreset){
     }
     db.top_p = newPres.top_p ?? 1
     //@ts-ignore //for legacy mistpings
-    db.promptSettings = cloneDeep(newPres.promptSettings) ?? cloneDeep(newPres.proomptSettings) ?? {
+    db.promptSettings = cloneDeep(newPres.promptSettings) ?? {
         assistantPrefill: '',
         postEndInnerFormat: '',
         sendChatAsSystem: false,

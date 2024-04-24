@@ -61,8 +61,8 @@
                 <div class="text-textcolor2">No Format</div>
         {/if}
         {#key sorted}
-            {#each $DataBase.promptTemplate as proompt, i}
-                <PromptDataItem bind:promptItem={proompt} onRemove={() => {
+            {#each $DataBase.promptTemplate as prompt, i}
+                <PromptDataItem bind:promptItem={prompt} onRemove={() => {
                     let templates = $DataBase.promptTemplate
                     templates.splice(i, 1)
                     $DataBase.promptTemplate = templates

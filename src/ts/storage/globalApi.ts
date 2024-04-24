@@ -960,9 +960,6 @@ async function checkNewFormat() {
     if(db.mainPrompt === oldJailbreak){
         db.mainPrompt = defaultJailbreak
     }
-    //@ts-ignore
-    if(db.proomptSettings){ db.promptSettings = db.proomptSettingsdelete; delete db.proomptSettings }
-
     setDatabase(db)
     checkCharOrder()
 }
