@@ -479,6 +479,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 case 'chat':{
                     let start = card.rangeStart
                     let end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    if(start === -2){
+                        start = 0
+                        end = unformated.chats.length
+                    }
                     if(start < 0){
                         start = unformated.chats.length + start
                         if(start < 0){
@@ -884,6 +888,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 case 'chat':{
                     let start = card.rangeStart
                     let end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
+                    if(start === -2){
+                        start = 0
+                        end = unformated.chats.length
+                    }
                     if(start < 0){
                         start = unformated.chats.length + start
                         if(start < 0){
