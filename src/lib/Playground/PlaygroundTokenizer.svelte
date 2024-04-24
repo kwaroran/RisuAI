@@ -22,7 +22,7 @@
 
 <span class="text-textcolor text-lg">Input</span>
 
-<TextAreaInput onInput={onInput} bind:value={input} height="32" />
+<TextAreaInput onInput={onInput} bind:value={input} height="32" optimaizedInput={false} />
 
 <span class="text-textcolor text-lg">Result</span>
 
