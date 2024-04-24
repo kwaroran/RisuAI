@@ -10,6 +10,7 @@
     import { findCharacterbyId } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
   import { createMultiuserRoom } from "src/ts/sync/multiuser";
+  import { CurrentCharacter } from "src/ts/stores";
     export let chara:character|groupChat
     let editMode = false
 </script>
@@ -103,23 +104,26 @@
                 <EditIcon size={18}/>
             </button>
         </div>
-        <div class="flex mt-2 items-center">
-            <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
-        </div>
-        
-        {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
-            {#if $DataBase.hanuraiEnable}
-                <div class="flex mt-2 items-center">
-                    <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>
-                </div>
-            {:else if $DataBase.hypaMemory}
-                <div class="flex mt-2 items-center">
-                    <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
-                </div>
-            {:else}
-                <div class="flex mt-2 items-center">
-                    <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
-                </div>
+
+        {#if $CurrentCharacter.chaId !== '§playground'}
+            <div class="flex mt-2 items-center">
+                <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+            </div>
+            
+            {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
+                {#if $DataBase.hanuraiEnable}
+                    <div class="flex mt-2 items-center">
+                        <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>
+                    </div>
+                {:else if $DataBase.hypaMemory}
+                    <div class="flex mt-2 items-center">
+                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
+                    </div>
+                {:else}
+                    <div class="flex mt-2 items-center">
+                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
+                    </div>
+                {/if}
             {/if}
         {/if}
     </div>

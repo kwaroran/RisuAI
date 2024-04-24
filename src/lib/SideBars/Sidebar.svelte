@@ -652,6 +652,8 @@
         <h1 class="text-xl">Welcome to RisuAI!</h1>
         <span class="text-xs text-textcolor2">Select a bot to start chating</span>
       </div>
+    {:else if $CurrentCharacter.chaId === '§playground'}
+      <SideChatList bind:chara={ $CurrentCharacter} />
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
         <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode}>{language.Chat}</button>

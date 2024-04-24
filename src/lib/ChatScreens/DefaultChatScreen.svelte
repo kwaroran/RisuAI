@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
     import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter, PlaygroundStore } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
@@ -452,14 +452,26 @@
                         class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
                     </div>
                 {/if}
+                {#if $CurrentCharacter.chaId !== '§playground'}
                     <div on:click={(e) => {
                         openMenu = !openMenu
                         e.stopPropagation()
                     }}
                     class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
                     </div>
+                {:else}
+                    <div on:click={(e) => {
+                        $CurrentChat.message.push({
+                            role: 'char',
+                            data: ''
+                        })
+                        $CurrentChat = $CurrentChat
+                    }}
+                        class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Plus />
+                    </div>
+                {/if}
             </div>
-            {#if $DataBase.useAutoTranslateInput && !$DataBase.useAdvancedEditor}
+            {#if $DataBase.useAutoTranslateInput && !$DataBase.useAdvancedEditor && $CurrentCharacter.chaId !== '§playground'}
                 <div class="flex items-center mt-2 mb-2">
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
@@ -567,7 +579,7 @@
                 {/if}
             {/each}
             {#if $CurrentChat.message.length <= loadPages}
-                {#if $CurrentCharacter.type !== 'group'}
+                {#if $CurrentCharacter.type !== 'group' && $CurrentCharacter.chaId !== '§playground'}
                     <Chat
                         character={$CurrentSimpleCharacter}
                         name={$CurrentCharacter.name}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
@@ -142,7 +142,17 @@
         {/await}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">
-                <span class="chat text-xl unmargin">{name}</span>
+                {#if $CurrentCharacter.chaId === "§playground"}
+                    <span class="chat text-xl border-darkborderc flex items-center">
+                        <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
+                        <button class="ml-2 text-textcolor2 hover:text-textcolor" on:click={() => {
+                            $CurrentChat.message[idx].role = $CurrentChat.message[idx].role === 'char' ? 'user' : 'char'
+                            $CurrentChat = $CurrentChat
+                        }}><ArrowLeftRightIcon size="18" /></button>
+                    </span>
+                {:else}
+                    <span class="chat text-xl unmargin">{name}</span>
+                {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
                     {#if $DataBase.useChatCopy}
