@@ -15,7 +15,7 @@ export async function stableDiff(currentChar:character,prompt:string){
     }
 
 
-    const proompt = `Chat:\n${prompt}`
+    const promptItem = `Chat:\n${prompt}`
 
     const promptbody:OpenAIChat[] = [
         {
@@ -25,7 +25,7 @@ export async function stableDiff(currentChar:character,prompt:string){
         },
         {
             role: 'user',
-            content: proompt
+            content: promptItem
         },
     ]
 

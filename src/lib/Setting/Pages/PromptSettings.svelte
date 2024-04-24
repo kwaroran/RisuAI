@@ -1,13 +1,13 @@
 <script lang="ts">
     import { ArrowLeft, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
-    import ProomptItem from "src/lib/UI/ProomptItem.svelte";
-    import { tokenizePreset, type Proompt } from "src/ts/process/proompt";
+    import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
+    import { tokenizePreset, type PromptItem } from "src/ts/process/prompt";
     import { templateCheck } from "src/ts/process/templates/templateCheck";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
 
     let sorted = 0
     let opened = 0
@@ -18,7 +18,7 @@
     executeTokenize($DataBase.promptTemplate)
     let subMenu = 0
 
-    async function executeTokenize(prest: Proompt[]){
+    async function executeTokenize(prest: PromptItem[]){
         tokens = await tokenizePreset(prest, true)
         extokens = await tokenizePreset(prest, false)
     }
@@ -62,7 +62,7 @@
         {/if}
         {#key sorted}
             {#each $DataBase.promptTemplate as proompt, i}
-                <ProomptItem bind:proompt={proompt} onRemove={() => {
+                <PromptDataItem bind:promptItem={proompt} onRemove={() => {
                     let templates = $DataBase.promptTemplate
                     templates.splice(i, 1)
                     $DataBase.promptTemplate = templates
@@ -103,18 +103,15 @@
     <span class="text-textcolor2 text-sm mt-2">{tokens} {language.fixedTokens}</span>
     <span class="text-textcolor2 mb-6 text-sm mt-2">{extokens} {language.exactTokens}</span>
 {:else}
-
-    <!-- <span class="text-textcolor mt-4">{language.assistantPrefill}</span>
-    <TextInput bind:value={$DataBase.proomptSettings.assistantPrefill}/> -->
     <span class="text-textcolor mt-4">{language.postEndInnerFormat}</span>
-    <TextInput bind:value={$DataBase.proomptSettings.postEndInnerFormat}/>
+    <TextInput bind:value={$DataBase.promptSettings.postEndInnerFormat}/>
 
-    <Check bind:check={$DataBase.proomptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
-    <Check bind:check={$DataBase.proomptSettings.sendName} name={language.sendName} className="mt-4"/>
-    <Check bind:check={$DataBase.proomptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
-    <Check bind:check={$DataBase.proomptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4"/>
-    {#if $DataBase.proomptSettings.customChainOfThought}
+    <Check bind:check={$DataBase.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
+    <Check bind:check={$DataBase.promptSettings.sendName} name={language.sendName} className="mt-4"/>
+    <Check bind:check={$DataBase.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
+    <Check bind:check={$DataBase.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4"/>
+    {#if $DataBase.promptSettings.customChainOfThought}
         <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
-        <NumberInput bind:value={$DataBase.proomptSettings.maxThoughtTagDepth}/>
+        <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
     {/if}
 {/if}

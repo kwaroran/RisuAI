@@ -10,7 +10,7 @@ import { alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
-import type { Proompt, ProomptSettings } from '../process/proompt';
+import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
@@ -361,7 +361,7 @@ export function setDatabase(data:Database){
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
     data.genTime ??= 1
-    data.proomptSettings ??= {
+    data.promptSettings ??= {
         assistantPrefill: '',
         postEndInnerFormat: '',
         sendChatAsSystem: false,
@@ -372,7 +372,7 @@ export function setDatabase(data:Database){
     }
     data.keiServerURL ??= ''
     data.top_k ??= 0
-    data.proomptSettings.maxThoughtTagDepth ??= -1
+    data.promptSettings.maxThoughtTagDepth ??= -1
     data.openrouterFallback ??= true
     data.openrouterMiddleOut ??= false
     data.removePunctuationHypa ??= true
@@ -568,7 +568,7 @@ export interface Database{
     hideRealm:boolean
     colorScheme:ColorScheme
     colorSchemeName:string
-    promptTemplate?:Proompt[]
+    promptTemplate?:PromptItem[]
     forceProxyAsOpenAI?:boolean
     hypaModel:'ada'|'MiniLM'
     saveTime?:number
@@ -609,7 +609,7 @@ export interface Database{
     mistralKey?:string
     chainOfThought?:boolean
     genTime:number
-    proomptSettings: ProomptSettings
+    promptSettings: PromptSettings
     keiServerURL:string
     statistics: {
         newYear2024?: {
@@ -840,14 +840,14 @@ export interface botPreset{
     autoSuggestPrompt?: string
     autoSuggestPrefix?: string
     autoSuggestClean?: boolean
-    promptTemplate?:Proompt[]
+    promptTemplate?:PromptItem[]
     NAIadventure?: boolean
     NAIappendName?: boolean
     localStopStrings?: string[]
     customProxyRequestModel?: string
     reverseProxyOobaArgs?: OobaChatCompletionRequestParams
     top_p?: number
-    proomptSettings?: ProomptSettings
+    promptSettings?: PromptSettings
     repetition_penalty?:number
     min_p?:number
     top_a?:number
@@ -1113,7 +1113,7 @@ export function saveCurrentPreset(){
         customProxyRequestModel: db.customProxyRequestModel,
         reverseProxyOobaArgs: cloneDeep(db.reverseProxyOobaArgs) ?? null,
         top_p: db.top_p ?? 1,
-        proomptSettings: cloneDeep(db.proomptSettings) ?? null,
+        promptSettings: cloneDeep(db.promptSettings) ?? null,
         repetition_penalty: db.repetition_penalty,
         min_p: db.min_p,
         top_a: db.top_a,
@@ -1188,7 +1188,8 @@ export function setPreset(db:Database, newPres: botPreset){
         mode: 'instruct'
     }
     db.top_p = newPres.top_p ?? 1
-    db.proomptSettings = cloneDeep(newPres.proomptSettings) ?? {
+    //@ts-ignore //for legacy mistpings
+    db.promptSettings = cloneDeep(newPres.promptSettings) ?? cloneDeep(newPres.proomptSettings) ?? {
         assistantPrefill: '',
         postEndInnerFormat: '',
         sendChatAsSystem: false,

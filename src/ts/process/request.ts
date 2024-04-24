@@ -742,7 +742,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'novelai':
         case 'novelai_kayra':{
             console.log(arg.continue)
-            const proompt = stringlizeNAIChat(formated, currentChar?.name ?? '', arg.continue)
+            const prompt = stringlizeNAIChat(formated, currentChar?.name ?? '', arg.continue)
             let logit_bias_exp:{
                 sequence: number[], bias: number, ensure_sequence_finish: false, generate_once: true
             }[] = []
@@ -805,7 +805,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
               
             const body = {
-                "input": proompt,
+                "input": prompt,
                 "model": aiModel === 'novelai_kayra' ? 'kayra-v1' : 'clio-v1',
                 "parameters":payload
             }
@@ -887,7 +887,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
             let bodyTemplate:any
             const suggesting = model === "submodel"
-            const proompt = applyChatTemplate(formated)
+            const prompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
             if(db.localStopStrings){
                 stopStrings = db.localStopStrings.map((v) => {
@@ -915,7 +915,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'seed': -1,
                 add_bos_token: db.ooba.add_bos_token,
                 topP: db.top_p,
-                prompt: proompt
+                prompt: prompt
             }
 
             const headers = (aiModel === 'textgen_webui') ? {} : {
@@ -1006,7 +1006,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         
         case 'ooba': {
             const suggesting = model === "submodel"
-            const proompt = applyChatTemplate(formated)
+            const prompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
             if(db.localStopStrings){
                 stopStrings = db.localStopStrings.map((v) => {
@@ -1014,7 +1014,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 })
             }
             let bodyTemplate:Record<string, any> = {
-                'prompt': proompt,
+                'prompt': prompt,
                 presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
                 frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: {},
@@ -1355,7 +1355,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
         }
         case "kobold":{
-            const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+            const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
             const url = new URL(db.koboldURL)
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
@@ -1364,7 +1364,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const da = await globalFetch(url.toString(), {
                 method: "POST",
                 body: {
-                    "prompt": proompt,
+                    "prompt": prompt,
                     "temperature": (db.temperature / 100),
                     "top_p": 0.9
                 },
@@ -2199,12 +2199,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             }
             if(aiModel.startsWith("horde:::")){
-                const proompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+                const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
 
                 const realModel = aiModel.split(":::")[1]
 
                 const argument = {
-                    "prompt": proompt,
+                    "prompt": prompt,
                     "params": {
                         "n": 1,
                         "max_context_length": db.maxContext + 100,
@@ -2292,8 +2292,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(aiModel.startsWith('hf:::')){
                 const realModel = aiModel.split(":::")[1]
                 const suggesting = model === "submodel"
-                const proompt = applyChatTemplate(formated)
-                const v = await runTransformers(proompt, realModel, {
+                const prompt = applyChatTemplate(formated)
+                const v = await runTransformers(prompt, realModel, {
                     temperature: temperature,
                     max_new_tokens: maxTokens,
                     top_k: db.ooba.top_k,
@@ -2309,12 +2309,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(aiModel.startsWith('local_')){
                 console.log('running local model')
                 const suggesting = model === "submodel"
-                const proompt = applyChatTemplate(formated)
+                const prompt = applyChatTemplate(formated)
                 const stopStrings = getStopStrings(suggesting)
                 console.log(stopStrings)
                 const modelPath = aiModel.replace('local_', '')
                 const res = await runGGUFModel({
-                    prompt: proompt,
+                    prompt: prompt,
                     modelPath: modelPath,
                     temperature: temperature,
                     top_p: db.top_p,

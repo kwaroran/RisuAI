@@ -1,8 +1,8 @@
 import { tokenizeAccurate } from "../tokenizer";
 
-export type Proompt = ProomptPlain|ProomptTyped|ProomptChat|ProomptAuthorNote;
-export type ProomptType = Proompt['type'];
-export type ProomptSettings = {
+export type PromptItem = PromptItemPlain|PromptItemTyped|PromptItemChat|PromptItemAuthorNote;
+export type PromptType = PromptItem['type'];
+export type PromptSettings = {
     assistantPrefill: string
     postEndInnerFormat: string
     sendChatAsSystem: boolean
@@ -12,39 +12,39 @@ export type ProomptSettings = {
     maxThoughtTagDepth?: number
 }
 
-export interface ProomptPlain {
+export interface PromptItemPlain {
     type: 'plain'|'jailbreak'|'cot';
     type2: 'normal'|'globalNote'|'main'
     text: string;
     role: 'user'|'bot'|'system';
 }
 
-export interface ProomptTyped {
+export interface PromptItemTyped {
     type: 'persona'|'description'|'lorebook'|'postEverything'|'memory'
     innerFormat?: string
 }
 
-export interface ProomptAuthorNote {
+export interface PromptItemAuthorNote {
     type : 'authornote'
     innerFormat?: string
     defaultText?: string
 }
 
 
-export interface ProomptChat {
+export interface PromptItemChat {
     type: 'chat';
     rangeStart: number;
     rangeEnd: number|'end';
     chatAsOriginalOnSystem?: boolean;
 }
 
-export async function tokenizePreset(proompts:Proompt[], consti:boolean = false){
+export async function tokenizePreset(prompts:PromptItem[], consti:boolean = false){
     let total = 0
-    for(const proompt of proompts){
-        switch(proompt.type){
+    for(const prompt of prompts){
+        switch(prompt.type){
             case 'plain':
             case 'jailbreak':{
-                total += await tokenizeAccurate(proompt.text, consti)
+                total += await tokenizeAccurate(prompt.text, consti)
                 break
             }
             case 'persona':
@@ -53,8 +53,8 @@ export async function tokenizePreset(proompts:Proompt[], consti:boolean = false)
             case 'postEverything':
             case 'authornote':
             case 'memory':{
-                if(proompt.innerFormat){
-                    total += await tokenizeAccurate(proompt.innerFormat, consti)
+                if(prompt.innerFormat){
+                    total += await tokenizeAccurate(prompt.innerFormat, consti)
                 }
                 break
             }

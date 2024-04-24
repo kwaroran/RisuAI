@@ -224,7 +224,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             })
         }
     }
-    if(currentChar.utilityBot && (!(usingPromptTemplate && db.proomptSettings.utilOverride))){
+    if(currentChar.utilityBot && (!(usingPromptTemplate && db.promptSettings.utilOverride))){
         promptTemplate = [
             {
               "type": "plain",
@@ -300,7 +300,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         })
     }
 
-    if(db.chainOfThought && (!(usingPromptTemplate && db.proomptSettings.customChainOfThought))){
+    if(db.chainOfThought && (!(usingPromptTemplate && db.promptSettings.customChainOfThought))){
         unformated.postEverything.push({
             role: 'system',
             content: `<instruction> - before respond everything, Think step by step as a ai assistant how would you respond inside <Thoughts> xml tag. this must be less than 5 paragraphs.</instruction>`
@@ -432,10 +432,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     await tokenizeChatArray(unformated.postEverything)
-                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                    if(usingPromptTemplate && db.promptSettings.postEndInnerFormat){
                         await tokenizeChatArray([{
                             role: 'system',
-                            content: db.proomptSettings.postEndInnerFormat
+                            content: db.promptSettings.postEndInnerFormat
                         }])
                     }
                     break
@@ -497,7 +497,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     }
                     let chats = unformated.chats.slice(start, end)
 
-                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
+                    if(usingPromptTemplate && db.promptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
                         chats = systemizeChat(chats)
                     }
                     await tokenizeChatArray(chats)
@@ -545,7 +545,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             'editprocess'))
         }
 
-        if(usingPromptTemplate && db.proomptSettings.sendName){
+        if(usingPromptTemplate && db.promptSettings.sendName){
             chat.content = `${currentChar.name}: ${chat.content}`
             chat.attr = ['nameAdded']
         }
@@ -622,13 +622,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
         let attr:string[] = []
 
-        if(nowChatroom.type === 'group' || (usingPromptTemplate && db.proomptSettings.sendName)){
+        if(nowChatroom.type === 'group' || (usingPromptTemplate && db.promptSettings.sendName)){
             formatedChat = name + ': ' + formatedChat
             attr.push('nameAdded')
         }
-        if(usingPromptTemplate && db.proomptSettings.customChainOfThought && db.proomptSettings.maxThoughtTagDepth !== -1){
+        if(usingPromptTemplate && db.promptSettings.customChainOfThought && db.promptSettings.maxThoughtTagDepth !== -1){
             const depth = ms.length - index
-            if(depth >= db.proomptSettings.maxThoughtTagDepth){
+            if(depth >= db.promptSettings.maxThoughtTagDepth){
                 formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
             }
         }
@@ -837,10 +837,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 }
                 case 'postEverything':{
                     pushPrompts(unformated.postEverything)
-                    if(usingPromptTemplate && db.proomptSettings.postEndInnerFormat){
+                    if(usingPromptTemplate && db.promptSettings.postEndInnerFormat){
                         pushPrompts([{
                             role: 'system',
-                            content: db.proomptSettings.postEndInnerFormat
+                            content: db.promptSettings.postEndInnerFormat
                         }])
                     }
                     break
@@ -902,7 +902,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     }
 
                     let chats = unformated.chats.slice(start, end)
-                    if(usingPromptTemplate && db.proomptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
+                    if(usingPromptTemplate && db.promptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
                         chats = systemizeChat(chats)
                     }
                     pushPrompts(chats)

@@ -780,7 +780,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       "mode": "instruct"
     },
     "top_p": 1,
-    "proomptSettings": {
+    "promptSettings": {
       "assistantPrefill": "",
       "postEndInnerFormat": "",
       "sendChatAsSystem": false,
