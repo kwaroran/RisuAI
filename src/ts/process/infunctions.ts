@@ -12,6 +12,8 @@ function toRPN(expression:string) {
         '%': {precedence: 3, associativity: 'Left'},
         '<': {precedence: 1, associativity: 'Left'},
         '>': {precedence: 1, associativity: 'Left'},
+        '|': {precedence: 0, associativity: 'Left'},
+        '&': {precedence: 0, associativity: 'Left'},
     };
 
     expression = expression.replace(/\s+/g, '');
@@ -57,6 +59,8 @@ function calculateRPN(expression:string) {
                 case '%': stack.push(a % b); break;
                 case '<': stack.push(a < b ? 1 : 0); break;
                 case '>': stack.push(a > b ? 1 : 0); break;
+                case '|': stack.push(a || b); break;
+                case '&': stack.push(a && b); break;
             }
         }
     });
