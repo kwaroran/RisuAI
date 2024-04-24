@@ -75,6 +75,15 @@ export function initHotkey(){
                 }
             }
         }
+        if(ev.key === 'Escape'){
+            if(doingAlert()){
+                alertToast('Alert Closed')
+            }
+            if(get(settingsOpen)){
+                settingsOpen.set(false)
+            }
+            ev.preventDefault()
+        }
     })
 }
 
