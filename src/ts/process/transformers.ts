@@ -51,14 +51,13 @@ export const runSummarizer = async (text: string) => {
 
 let extractor:FeatureExtractionPipeline = null
 type EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'|'nomic-ai/nomic-embed-text-v1.5'
-export const runEmbedding = async (text: string, model:EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'):Promise<Float32Array> => {
+export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'):Promise<Float32Array[]> => {
     await initTransformers()
     if(!extractor){
         extractor = await pipeline('feature-extraction', model);
     }
-    const tokenizer = await AutoTokenizer.from_pretrained(model);
-    let result = await extractor(text, { pooling: 'mean', normalize: true });
-    return (result?.data as Float32Array) ?? null;
+    let result = await extractor(texts, { pooling: 'mean', normalize: true });
+    return (result.data as Float32Array[]) ?? null;
 }
 
 export const runImageEmbedding = async (dataurl:string) => {

@@ -17,10 +17,10 @@ export class HypaProcesser{
         this.model = model
     }
 
-    async embedDocuments(texts: string[]): Promise<number[][]> {
+    async embedDocuments(texts: string[]): Promise<VectorArray[]> {
         const subPrompts = chunkArray(texts,512);
     
-        const embeddings: number[][] = [];
+        const embeddings: VectorArray[] = [];
     
         for (let i = 0; i < subPrompts.length; i += 1) {
           const input = subPrompts[i];
@@ -37,22 +37,8 @@ export class HypaProcesser{
     async getEmbeds(input:string[]|string) {
         if(this.model === 'MiniLM' || this.model === 'nomic'){
             const inputs:string[] = Array.isArray(input) ? input : [input]
-            let results:Float32Array[] = []
-            for(let i=0;i<inputs.length;i++){
-                const res = await runEmbedding(inputs[i], this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
-                results.push(res)
-            }
-            //convert to number[][]
-            const result:number[][] = []
-            for(let i=0;i<results.length;i++){
-                const res = results[i]
-                const arr:number[] = []
-                for(let j=0;j<res.length;j++){
-                    arr.push(res[j])
-                }
-                result.push(arr)
-            }
-            return result
+            let results:Float32Array[] = await runEmbedding(inputs, this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
+            return results
         }
         const gf = await globalFetch("https://api.openai.com/v1/embeddings", {
             headers: {
@@ -138,7 +124,7 @@ export class HypaProcesser{
     }
 
     private async similaritySearchVectorWithScore(
-        query: number[],
+        query: VectorArray,
       ): Promise<[string, number][]> {
           const memoryVectors = this.vectors
           const searches = memoryVectors
@@ -160,12 +146,18 @@ export class HypaProcesser{
         return similarity(query1, query2)
     }
 }
-function similarity(a:number[], b:number[]) {
-    return a.reduce((acc, val, i) => acc + val * b[i], 0);
+function similarity(a:VectorArray, b:VectorArray) {    
+    let dot = 0;
+    for(let i=0;i<a.length;i++){
+        dot += a[i] * b[i]
+    }
+    return dot
 }
 
+type VectorArray = number[]|Float32Array
+
 type memoryVector = {
-    embedding:number[]
+    embedding:number[]|Float32Array,
     content:string,
     alreadySaved?:boolean
 }
