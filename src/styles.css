@@ -180,3 +180,15 @@ html, body{
 .x-risu-button-default{
   @apply border text-textcolor rounded-md shadow-sm focus:outline-none focus:ring-2 transition-colors duration-200 border-darkborderc px-4 py-2 bg-darkbutton hover:bg-borderc focus:ring-borderc
 }
+
+.loadmove {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  border: 0.4rem solid rgba(0,0,0,0);
+  width: 1rem;
+  height: 1rem;
+  border-top: 0.4rem solid var(--risu-theme-borderc);
+  border-left: 0.4rem solid var(--risu-theme-borderc);
+  /* transition colors */
+  transition: border-color 0.5s;
+}

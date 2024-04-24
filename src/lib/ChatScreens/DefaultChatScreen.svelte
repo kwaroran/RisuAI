@@ -2,7 +2,7 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter, PlaygroundStore } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
@@ -25,6 +25,7 @@
     import { processMultiCommand } from 'src/ts/process/command';
     import { postChatFile } from 'src/ts/process/files/multisend';
   import { getInlayImage } from 'src/ts/process/files/image';
+  import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -391,7 +392,11 @@
     openMenu = false
 }}>
     {#if $selectedCharID < 0}
-        <MainMenu />
+        {#if $PlaygroundStore === 0}
+            <MainMenu />
+        {:else}
+            <PlaygroundMenu />
+        {/if}
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  on:scroll={(e) => {
             //@ts-ignore  
@@ -721,17 +726,6 @@
     {/if}
 </div>
 <style>
-    .loadmove {
-        animation: spin 1s linear infinite;
-        border-radius: 50%;
-        border: 0.4rem solid rgba(0,0,0,0);
-        width: 1rem;
-        height: 1rem;
-        border-top: 0.4rem solid var(--risu-theme-borderc);
-        border-left: 0.4rem solid var(--risu-theme-borderc);
-        /* transition colors */
-        transition: border-color 0.5s;
-    }
 
     .chat-process-stage-1{
         border-top: 0.4rem solid #60a5fa;

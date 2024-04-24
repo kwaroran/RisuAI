@@ -57,7 +57,16 @@ export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xeno
         extractor = await pipeline('feature-extraction', model);
     }
     let result = await extractor(texts, { pooling: 'mean', normalize: true });
-    return (result.data as Float32Array[]) ?? null;
+    console.log(texts, result)
+    const data = result.data as Float32Array
+
+    const lenPerText = data.length / texts.length
+    let res:Float32Array[] = []
+    for(let i = 0; i < texts.length; i++){
+        res.push(data.subarray(i * lenPerText, (i + 1) * lenPerText))
+    }
+    console.log(res)
+    return res ?? [];
 }
 
 export const runImageEmbedding = async (dataurl:string) => {

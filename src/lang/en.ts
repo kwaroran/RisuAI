@@ -580,4 +580,8 @@ export const languageEnglish = {
     chatFormating: "Chat Formating",
     useInstructPrompt: "Use Instruction Prompt",
     hanuraiMemory: "HanuraiMemory",
+    playground: "Playground",
+    embedding: "Embedding",
+    syntax: "Syntax",
+    run: "Run",
 }

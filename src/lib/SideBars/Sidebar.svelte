@@ -9,14 +9,17 @@
     sideBarStore,
     CurrentCharacter,
 
-    OpenRealmStore
+    OpenRealmStore,
+
+    PlaygroundStore
+
 
   } from "../../ts/stores";
   import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
   import BarIcon from "./BarIcon.svelte";
   import SidebarIndicator from "./SidebarIndicator.svelte";
   import {
-    X,
+    ShellIcon,
     Settings,
     ListIcon,
     LayoutGridIcon,
@@ -366,6 +369,8 @@
         onClick={() => {
           reseter();
           selectedCharID.set(-1)
+          PlaygroundStore.set(0)
+          OpenRealmStore.set(false)
         }}><HomeIcon /></BarIcon>
       <div class="mt-2"></div>
       <BarIcon
@@ -565,6 +570,20 @@
         }
       }} on:dragenter={preventAll} />
     {/each}
+        <div class="flex flex-col items-center space-y-2 px-2 mb-2">
+      <BaseRoundedButton
+        onClick={() => {
+          reseter()
+          if($selectedCharID === -1 && $PlaygroundStore !== 0){
+            PlaygroundStore.set(0)
+            return
+          }
+          selectedCharID.set(-1)
+          PlaygroundStore.set(1)
+        }}
+        ><ShellIcon size="24" /></BaseRoundedButton
+      >
+    </div>
     <div class="flex flex-col items-center space-y-2 px-2">
       <BaseRoundedButton
         onClick={async () => {
@@ -597,17 +616,6 @@
         ></BaseRoundedButton
       >
     </div>
-    {#if $DataBase.tpo}
-      <div class="flex flex-col items-center space-y-2 px-2 mt-2 mb-2">
-        <BaseRoundedButton
-          onClick={() => {
-            reseter()
-            sideBarMode = sideBarMode === 2 ? 0 : 2
-          }}
-          ><MilestoneIcon size="24" /></BaseRoundedButton
-        >
-      </div>
-    {/if}
   </div>
 </div>
 <div
