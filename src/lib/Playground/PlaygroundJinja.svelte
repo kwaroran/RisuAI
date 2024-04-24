@@ -32,7 +32,7 @@
 
 <span class="text-textcolor text-lg">Data (JSON)</span>
 
-<TextAreaInput bind:value={json} height="32" />
+<TextAreaInput onInput={onInput} bind:value={json} height="32" />
 
 <span class="text-textcolor text-lg">Result</span>
 
