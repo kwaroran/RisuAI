@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { ArrowLeft, ArrowRight } from "lucide-svelte";
-  import { DynamicGUI, sideBarClosing, sideBarStore } from "src/ts/stores";
+    import { ArrowLeft, ArrowRight } from "lucide-svelte";
+    import { DynamicGUI, sideBarClosing, sideBarStore } from "src/ts/stores";
 
 </script>
 

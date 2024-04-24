@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     import { DataBase } from "../../ts/storage/database";
     import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
-  import TextInput from "../UI/GUI/TextInput.svelte";
+    import TextInput from "../UI/GUI/TextInput.svelte";
     let editMode = false
     export let close = () => {}
 </script>

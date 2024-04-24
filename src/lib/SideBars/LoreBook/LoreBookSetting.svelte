@@ -7,7 +7,7 @@
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
-  import Help from "src/lib/Others/Help.svelte";
+    import Help from "src/lib/Others/Help.svelte";
 
     let submenu = 0
     export let globalMode = false

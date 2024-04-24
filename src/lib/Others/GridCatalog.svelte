@@ -4,7 +4,7 @@
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { User, Users } from "lucide-svelte";
     import { selectedCharID } from "../../ts/stores";
-  import TextInput from "../UI/GUI/TextInput.svelte";
+    import TextInput from "../UI/GUI/TextInput.svelte";
     export let endGrid = () => {}
     let search = ''
 

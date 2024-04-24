@@ -5,7 +5,7 @@
     import { DataBase } from "src/ts/storage/database";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-  import ChatFormatSettings from "./ChatFormatSettings.svelte";
+    import ChatFormatSettings from "./ChatFormatSettings.svelte";
 
     const openrouterProviders = [
         "OpenAI",

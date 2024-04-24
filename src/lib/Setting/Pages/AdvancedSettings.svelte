@@ -7,9 +7,9 @@
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-  import Help from "src/lib/Others/Help.svelte";
-  import { installPython } from "src/ts/process/models/local";
+    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import Help from "src/lib/Others/Help.svelte";
+    import { installPython } from "src/ts/process/models/local";
 
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>

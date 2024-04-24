@@ -9,7 +9,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
     import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
-  import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
+    import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)

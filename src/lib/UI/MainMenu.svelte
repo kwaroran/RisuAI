@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
-  import GithubStars from "../Others/GithubStars.svelte";
-  import Hub from "./Realm/RealmMain.svelte";
-  import { OpenRealmStore } from "src/ts/stores";
-  import { ArrowLeft } from "lucide-svelte";
-  import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
-  import { language } from "src/lang";
-  import { getRisuHub } from "src/ts/characterCards";
-  import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
-  import Title from "./Title.svelte";
-  import { getPatchNote } from "src/etc/patchNote";
-  import { parseMarkdownSafe } from "src/ts/parser";
+    import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
+    import GithubStars from "../Others/GithubStars.svelte";
+    import Hub from "./Realm/RealmMain.svelte";
+    import { OpenRealmStore } from "src/ts/stores";
+    import { ArrowLeft } from "lucide-svelte";
+    import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
+    import { language } from "src/lang";
+    import { getRisuHub } from "src/ts/characterCards";
+    import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
+    import Title from "./Title.svelte";
+    import { getPatchNote } from "src/etc/patchNote";
+    import { parseMarkdownSafe } from "src/ts/parser";
   const patch = getPatchNote(appVer)
   let patchNodeHidden = true
 

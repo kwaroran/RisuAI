@@ -4,8 +4,8 @@
     import { changeLanguage, language } from "src/lang";
     import { DataBase, setPreset } from "src/ts/storage/database";
     import Chat from "../ChatScreens/Chat.svelte";
-  import { prebuiltPresets } from "src/ts/process/templates/templates";
-  import { updateTextTheme } from "src/ts/gui/colorscheme";
+    import { prebuiltPresets } from "src/ts/process/templates/templates";
+    import { updateTextTheme } from "src/ts/gui/colorscheme";
 
     let step = 0
     let provider = ''

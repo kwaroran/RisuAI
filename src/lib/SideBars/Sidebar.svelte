@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {
+    import {
     CharEmotion,
     DynamicGUI,
     botMakerMode,
@@ -15,10 +15,10 @@
 
 
   } from "../../ts/stores";
-  import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
-  import BarIcon from "./BarIcon.svelte";
-  import SidebarIndicator from "./SidebarIndicator.svelte";
-  import {
+    import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
+    import BarIcon from "./BarIcon.svelte";
+    import SidebarIndicator from "./SidebarIndicator.svelte";
+    import {
     ShellIcon,
     Settings,
     ListIcon,
@@ -27,30 +27,30 @@
     FolderOpenIcon,
     HomeIcon,
   } from "lucide-svelte";
-  import {
+    import {
     characterFormatUpdate,
     createNewCharacter,
     createNewGroup,
     getCharImage,
   } from "../../ts/characters";
-  import { importCharacter } from "src/ts/characterCards";
-  import CharConfig from "./CharConfig.svelte";
-  import { language } from "../../lang";
-  import Botpreset from "../Setting/botpreset.svelte";
-  import { onDestroy } from "svelte";
-  import { isEqual } from "lodash";
-  import SidebarAvatar from "./SidebarAvatar.svelte";
-  import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
-  import { get } from "svelte/store";
-  import { getCharacterIndexObject } from "src/ts/util";
-  import { v4 } from "uuid";
-  import { checkCharOrder } from "src/ts/storage/globalApi";
-  import { doingChat } from "src/ts/process";
-  import { BotCreator } from "src/ts/creation/creator";
-  import Button from "../UI/GUI/Button.svelte";
-  import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
-  import SideChatList from "./SideChatList.svelte";
-  import { joinMultiuserRoom } from "src/ts/sync/multiuser";
+    import { importCharacter } from "src/ts/characterCards";
+    import CharConfig from "./CharConfig.svelte";
+    import { language } from "../../lang";
+    import Botpreset from "../Setting/botpreset.svelte";
+    import { onDestroy } from "svelte";
+    import { isEqual } from "lodash";
+    import SidebarAvatar from "./SidebarAvatar.svelte";
+    import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
+    import { get } from "svelte/store";
+    import { getCharacterIndexObject } from "src/ts/util";
+    import { v4 } from "uuid";
+    import { checkCharOrder } from "src/ts/storage/globalApi";
+    import { doingChat } from "src/ts/process";
+    import { BotCreator } from "src/ts/creation/creator";
+    import Button from "../UI/GUI/Button.svelte";
+    import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
+    import SideChatList from "./SideChatList.svelte";
+    import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;

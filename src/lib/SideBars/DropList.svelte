@@ -1,6 +1,6 @@
 <script>
-  import { ChevronDown, ChevronUp } from "lucide-svelte";
-  import { language } from "../../lang";
+    import { ChevronDown, ChevronUp } from "lucide-svelte";
+    import { language } from "../../lang";
 
     export let list = []
 </script>

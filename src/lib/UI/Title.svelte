@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { alertMd, alertNormal } from "src/ts/alert";
-  import { DataBase } from "src/ts/storage/database";
+    import { alertMd, alertNormal } from "src/ts/alert";
+    import { DataBase } from "src/ts/storage/database";
     import { openURL } from "src/ts/storage/globalApi";
-  import { sideBarStore } from "src/ts/stores";
+    import { sideBarStore } from "src/ts/stores";
 
     let specialDay = ''
     const today = new Date()

@@ -6,7 +6,7 @@
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
-  import TextInput from "../UI/GUI/TextInput.svelte";
+    import TextInput from "../UI/GUI/TextInput.svelte";
 
     let editMode = false
     export let close = () => {}

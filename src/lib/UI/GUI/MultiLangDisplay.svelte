@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { ParseMarkdown } from "src/ts/parser";
-  import { parseMultilangString, toLangName } from "src/ts/util";
+    import { ParseMarkdown } from "src/ts/parser";
+    import { parseMultilangString, toLangName } from "src/ts/util";
 
     export let value: string
     export let markdown: boolean = false

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tooltipRight } from "src/ts/gui/tooltip";
+    import { tooltipRight } from "src/ts/gui/tooltip";
 
   export let rounded:boolean
   export let src:string|Promise<string>;

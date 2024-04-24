@@ -8,7 +8,7 @@
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../GUI/TextInput.svelte";
     import RealmPopUp from "./RealmPopUp.svelte";
-  import { SizeStore } from "src/ts/stores";
+    import { SizeStore } from "src/ts/stores";
 
     let openedData:null|hubType = null
 

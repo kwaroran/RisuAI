@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { PlusIcon, TrashIcon } from "lucide-svelte";
-  import { language } from "src/lang";
-  import { alertConfirm } from "src/ts/alert";
-  import { DataBase } from "src/ts/storage/database";
-  import { importPlugin } from "src/ts/plugins/plugins";
-  import Check from "src/lib/UI/GUI/CheckInput.svelte";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-  import Help from "src/lib/Others/Help.svelte";
+    import { PlusIcon, TrashIcon } from "lucide-svelte";
+    import { language } from "src/lang";
+    import { alertConfirm } from "src/ts/alert";
+    import { DataBase } from "src/ts/storage/database";
+    import { importPlugin } from "src/ts/plugins/plugins";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import Help from "src/lib/Others/Help.svelte";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>

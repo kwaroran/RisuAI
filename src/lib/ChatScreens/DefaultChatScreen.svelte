@@ -23,8 +23,8 @@
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
     import { processMultiCommand } from 'src/ts/process/command';
     import { postChatFile } from 'src/ts/process/files/multisend';
-  import { getInlayImage } from 'src/ts/process/files/image';
-  import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
+    import { getInlayImage } from 'src/ts/process/files/image';
+    import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''

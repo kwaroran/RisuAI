@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { language } from "src/lang";
-  import Help from "../Others/Help.svelte";
+    import Help from "../Others/Help.svelte";
 
     export let name = ""
     let open = false

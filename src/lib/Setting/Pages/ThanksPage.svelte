@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-  import { openURL } from "src/ts/storage/globalApi";
+    import { openURL } from "src/ts/storage/globalApi";
 
 
     interface supporters{

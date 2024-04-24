@@ -7,8 +7,8 @@
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
-  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
 
     export let value:triggerscript
     export let onRemove: () => void = () => {}

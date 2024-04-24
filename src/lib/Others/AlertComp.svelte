@@ -15,8 +15,8 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
     import { getFetchData } from 'src/ts/storage/globalApi';
-  import { CurrentChat } from "src/ts/stores";
-  import { tokenize } from "src/ts/tokenizer";
+    import { CurrentChat } from "src/ts/stores";
+    import { tokenize } from "src/ts/tokenizer";
     let btn
     let input = ''
     let cardExportType = ''

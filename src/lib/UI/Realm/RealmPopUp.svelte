@@ -6,8 +6,8 @@
     import { parseMarkdownSafe } from "src/ts/parser";
     import { DataBase } from "src/ts/storage/database";
     import RealmLicense from "./RealmLicense.svelte";
-  import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
-  import { tooltip } from "src/ts/gui/tooltip";
+    import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
+    import { tooltip } from "src/ts/gui/tooltip";
 
     export let openedData:hubType
 

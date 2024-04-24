@@ -12,7 +12,7 @@
     import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
-  import { capitalize } from "src/ts/util";
+    import { capitalize } from "src/ts/util";
     export let message = ''
     export let name = ''
     export let largePortrait = false

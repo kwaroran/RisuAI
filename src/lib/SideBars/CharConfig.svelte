@@ -26,10 +26,10 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import RegexList from "./Scripts/RegexList.svelte";
     import TriggerList from "./Scripts/TriggerList.svelte";
-  import CheckInput from "../UI/GUI/CheckInput.svelte";
-  import { updateInlayScreen } from "src/ts/process/inlayScreen";
-  import { registerOnnxModel } from "src/ts/process/transformers";
-  import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
+    import CheckInput from "../UI/GUI/CheckInput.svelte";
+    import { updateInlayScreen } from "src/ts/process/inlayScreen";
+    import { registerOnnxModel } from "src/ts/process/transformers";
+    import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
     
 
     let subMenu = 0

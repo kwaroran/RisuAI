@@ -22,10 +22,10 @@
     import { novelLogin } from "src/ts/process/models/nai";
     import { alertConfirm } from "src/ts/alert";
     import OobaSettings from "./OobaSettings.svelte";
-  import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import { startsWith } from "lodash";
-  import OpenrouterSettings from "./OpenrouterSettings.svelte";
-  import ChatFormatSettings from "./ChatFormatSettings.svelte";
+    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import { startsWith } from "lodash";
+    import OpenrouterSettings from "./OpenrouterSettings.svelte";
+    import ChatFormatSettings from "./ChatFormatSettings.svelte";
 
     let tokens = {
         mainPrompt: 0,

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Template } from '@huggingface/jinja';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-  import { risuChatParser } from 'src/ts/parser';
-  import { language } from 'src/lang';
+    import { risuChatParser } from 'src/ts/parser';
+    import { language } from 'src/lang';
     let input = "";
     let output = "";
     const onInput = async () => {

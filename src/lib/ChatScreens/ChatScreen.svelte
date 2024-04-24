@@ -10,7 +10,7 @@
     import BackgroundDom from "./BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import VisualNovelMain from "../VisualNovel/VisualNovelMain.svelte";
-  import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
+    import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
     let openChatList = false
     let openModuleList = false
 
