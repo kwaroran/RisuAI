@@ -9,9 +9,10 @@
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
-    import { capitalize, isEqual } from "lodash";
+    import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
+  import { capitalize } from "src/ts/util";
     export let message = ''
     export let name = ''
     export let largePortrait = false

@@ -3,7 +3,6 @@ import { alertError, alertInput, alertNormal, alertWait } from '../alert';
 import { get } from 'svelte/store';
 import { DataBase, setDatabase, type character, saveImage } from '../storage/database';
 import { selectedCharID } from '../stores';
-import { cloneDeep } from 'lodash';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
 import { readImage } from '../storage/globalApi';
@@ -40,7 +39,7 @@ export async function createMultiuserRoom(){
         async function requestChar(excludeAssets:string[]|null = null){
             const db = get(DataBase)
             const selectedCharId = get(selectedCharID)
-            const char = cloneDeep(db.characters[selectedCharId])
+            const char = structuredClone(db.characters[selectedCharId])
             if(char.type === 'group'){
                 return
             }
@@ -88,7 +87,7 @@ export async function createMultiuserRoom(){
             if(data.type === 'receive-char'){
                 const db = get(DataBase)
                 const selectedCharId = get(selectedCharID)
-                const char = cloneDeep(db.characters[selectedCharId])
+                const char = structuredClone(db.characters[selectedCharId])
                 const recivedChar = data.data
                 if(char.type === 'group'){
                     return

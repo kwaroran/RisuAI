@@ -1,19 +1,18 @@
 <script lang="ts">
     import { language } from "../../lang";
-    import { tokenize, tokenizeAccurate } from "../../ts/tokenizer";
+    import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, LoaderIcon, User, DnaIcon, CurlyBraces, Volume2Icon, XIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertError, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
+    import { alertConfirm, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
-    import {isEqual, cloneDeep} from 'lodash'
+    import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import RegexData from "./Scripts/RegexData.svelte";
     import { exportChar, shareRisuHub } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
@@ -92,13 +91,13 @@
             if(cha.type === 'character'){
                 currentChar = {
                     type: 'character',
-                    data: cloneDeep(cha)
+                    data: structuredClone(cha)
                 }
             }
             else{
                 currentChar = {
                     type: 'group',
-                    data: cloneDeep(cha)
+                    data: structuredClone(cha)
                 }
             }
         }

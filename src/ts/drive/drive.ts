@@ -5,8 +5,7 @@ import { forageStorage, getUnpargeables, isNodeServer, isTauri, openURL } from "
 import { BaseDirectory, exists, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/api/process';
-import { open } from '@tauri-apps/api/shell';
-import { cloneDeep, isEqual, last } from "lodash";
+import { isEqual } from "lodash";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
@@ -108,7 +107,7 @@ let BackupDb:Database = null
 
 
 export async function syncDrive() {
-    BackupDb = cloneDeep(get(DataBase))
+    BackupDb = structuredClone(get(DataBase))
     return
     while(true){
         const maindb = get(DataBase)
@@ -136,7 +135,7 @@ export async function syncDrive() {
             localStorage.setItem('risu_lastsaved', `${lastSaved}`)
             const hadNoSync = d === 'noSync'
             if((!isEqual(maindb, BackupDb)) || hadNoSync){
-                BackupDb = cloneDeep(maindb)
+                BackupDb = structuredClone(maindb)
                 const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
                 const fileNames = files.map((d) => {
                     return d.name

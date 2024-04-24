@@ -2,11 +2,8 @@ import { get } from 'svelte/store'
 import type { ScriptMode } from '../process/scripts'
 //@ts-ignore
 import WorkerUrl from './embedworker?worker&url'
-import { DataBase, type Chat, type character, type Message } from '../storage/database'
+import { DataBase, type Message } from '../storage/database'
 import { selectedCharID } from '../stores'
-import { add, cloneDeep } from 'lodash'
-import { sleep } from '../util'
-import { characterFormatUpdate } from '../characters'
 import { setDatabase } from '../storage/database'
 
 let worker = new Worker(WorkerUrl, {type: 'module'})
@@ -83,7 +80,7 @@ addWorkerFunction('getChat', async () => {
     const db = get(DataBase)
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
-    return cloneDeep(char.chats[char.chatPage].message)
+    return structuredClone(char.chats[char.chatPage].message)
 })
 
 addWorkerFunction('setChat', async (data:Message[]) => {

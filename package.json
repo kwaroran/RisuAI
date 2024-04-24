@@ -82,7 +82,6 @@
     "@types/dompurify": "^3.0.5",
     "@types/libsodium-wrappers-sumo": "^0.7.8",
     "@types/lodash": "^4.14.202",
-    "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.isequal": "^4.5.8",
     "@types/marked": "^5.0.2",
     "@types/node": "^18.19.7",

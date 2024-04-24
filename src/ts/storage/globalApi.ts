@@ -15,7 +15,6 @@ import { alertConfirm, alertError, alertNormal, alertNormalWait } from "../alert
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
-import { cloneDeep } from "lodash";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
@@ -940,7 +939,7 @@ async function checkNewFormat() {
                 name: "Global Regex",
                 description: "Converted from legacy global regex",
                 id: id,
-                regex: cloneDeep(db.globalscript)
+                regex: structuredClone(db.globalscript)
             }
             db.modules.push(regexModule)
             db.enabledModules.push(id)
@@ -954,7 +953,7 @@ async function checkNewFormat() {
                     name: db.loreBook[i].name || "Unnamed Global Lorebook",
                     description: "Converted from legacy global lorebook",
                     id: id,
-                    lorebook: cloneDeep(db.loreBook[i].data)
+                    lorebook: structuredClone(db.loreBook[i].data)
                 }
                 db.modules.push(lbModule)
                 if(i === selIndex){
@@ -983,7 +982,7 @@ async function checkNewFormat() {
 export function checkCharOrder() {
     let db = get(DataBase)
     db.characterOrder = db.characterOrder ?? []
-    let ordered = cloneDeep(db.characterOrder ?? [])
+    let ordered = structuredClone(db.characterOrder ?? [])
     for(let i=0;i<db.characterOrder.length;i++){
         const folder =db.characterOrder[i]
         if(typeof(folder) !== 'string' && folder){

@@ -26,7 +26,6 @@
     FolderIcon,
     FolderOpenIcon,
     HomeIcon,
-    MilestoneIcon,
   } from "lucide-svelte";
   import {
     characterFormatUpdate,
@@ -38,18 +37,17 @@
   import CharConfig from "./CharConfig.svelte";
   import { language } from "../../lang";
   import Botpreset from "../Setting/botpreset.svelte";
-  import { onDestroy, onMount } from "svelte";
-  import { cloneDeep, isEqual } from "lodash";
+  import { onDestroy } from "svelte";
+  import { isEqual } from "lodash";
   import SidebarAvatar from "./SidebarAvatar.svelte";
   import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
   import { get } from "svelte/store";
-  import { findCharacterIndexbyId, findCharacterbyId, getCharacterIndexObject, sleep } from "src/ts/util";
+  import { getCharacterIndexObject } from "src/ts/util";
   import { v4 } from "uuid";
   import { checkCharOrder } from "src/ts/storage/globalApi";
   import { doingChat } from "src/ts/process";
   import { BotCreator } from "src/ts/creation/creator";
   import Button from "../UI/GUI/Button.svelte";
-  import { fly } from "svelte/transition";
   import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
   import SideChatList from "./SideChatList.svelte";
   import { joinMultiuserRoom } from "src/ts/sync/multiuser";
@@ -57,7 +55,6 @@
   let sideBarMode = 0;
   let editMode = false;
   let menuMode = 0;
-  let dragable = navigator.maxTouchPoints <= 1
   export let openGrid = () => {};
 
   function createScratch() {
@@ -178,7 +175,7 @@
       const da = db.characterOrder[mainIndex.index]
       if(typeof(da) !== 'string'){
         mainId = da.id
-        movingFolder = cloneDeep(da)
+        movingFolder = structuredClone(da)
         if(targetIndex.folder){
           return
         }

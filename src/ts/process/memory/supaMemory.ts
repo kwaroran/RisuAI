@@ -3,7 +3,6 @@ import type { OpenAIChat } from "..";
 import { DataBase, type Chat, type character, type groupChat } from "../../storage/database";
 import { tokenize, type ChatTokenizer } from "../../tokenizer";
 import { requestChatData } from "../request";
-import { cloneDeep } from "lodash";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
 import { globalFetch } from "src/ts/storage/globalApi";
@@ -74,7 +73,7 @@ export async function supaMemory(
                     for(let j=0;j<HypaData.length;j++){
                         let i =0;
                         let countTokens  = currentTokens
-                        let countChats = cloneDeep(chats)
+                        let countChats = structuredClone(chats)
                         while(true){
                             if(countChats.length === 0){
                                 break

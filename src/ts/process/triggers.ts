@@ -1,4 +1,3 @@
-import { cloneDeep } from "lodash";
 import { risuChatParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
@@ -85,7 +84,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     manualName?: string
 }){
     arg.recursiveCount ??= 0
-    char = cloneDeep(char)
+    char = structuredClone(char)
     let varChanged = false
     let stopSending = arg.stopSending ?? false
     const currentChat = get(CurrentChat)
@@ -95,7 +94,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         promptend: ''
     }
     const triggers = char.triggerscript.concat(getModuleTriggers())
-    let chat = cloneDeep(arg.chat ?? char.chats[char.chatPage])
+    let chat = structuredClone(arg.chat ?? char.chats[char.chatPage])
     if((!triggers) || (triggers.length === 0)){
         return null
     }

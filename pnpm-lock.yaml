@@ -199,9 +199,6 @@ devDependencies:
   '@types/lodash':
     specifier: ^4.14.202
     version: 4.14.202
-  '@types/lodash.clonedeep':
-    specifier: ^4.5.9
-    version: 4.5.9
   '@types/lodash.isequal':
     specifier: ^4.5.8
     version: 4.5.8
@@ -1610,12 +1607,6 @@ packages:
 
   /@types/libsodium-wrappers@0.7.13:
     resolution: {integrity: sha512-KeAKtlObirLJk/na6jHBFEdTDjDfFS6Vcr0eG2FjiHKn3Nw8axJFfIu0Y9TpwaauRldQBj/pZm/MHtK76r6OWg==}
-    dev: true
-
-  /@types/lodash.clonedeep@4.5.9:
-    resolution: {integrity: sha512-19429mWC+FyaAhOLzsS8kZUsI+/GmBAQ0HFiCPsKGU+7pBXOQWhyrY6xNNDwUSX8SMZMJvuFVMF9O5dQOlQK9Q==}
-    dependencies:
-      '@types/lodash': 4.14.202
     dev: true
 
   /@types/lodash.isequal@4.5.8:

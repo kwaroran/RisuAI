@@ -14,7 +14,6 @@ import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
-import { cloneDeep } from "lodash";
 import { supportsInlayImage } from "./files/image";
 import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
@@ -124,7 +123,7 @@ export interface OpenAIChatExtra {
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
-    let formated = cloneDeep(arg.formated)
+    let formated = structuredClone(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
@@ -178,7 +177,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             for(let i=0;i<formated.length;i++){
                 const m = formated[i]
                 if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
-                    let v:OpenAIChatExtra = cloneDeep(m)
+                    let v:OpenAIChatExtra = structuredClone(m)
                     let contents:OpenAIContents[] = []
                     for(let j=0;j<m.multimodals.length;j++){
                         contents.push({

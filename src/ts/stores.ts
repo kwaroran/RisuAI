@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { DataBase, type character, type groupChat } from "./storage/database";
-import { cloneDeep, isEqual } from "lodash";
+import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
 
 function updateSize(){
@@ -30,9 +30,9 @@ let db = get(DataBase)
 let currentChar = get(selectedCharID)
 let currentCharacter = db.characters ? (db.characters[currentChar]) : null
 let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
-export const CurrentCharacter = writable(cloneDeep(currentCharacter))
+export const CurrentCharacter = writable(structuredClone(currentCharacter))
 export const CurrentSimpleCharacter = writable(createSimpleCharacter(currentCharacter))
-export const CurrentChat = writable(cloneDeep(currentChat))
+export const CurrentChat = writable(structuredClone(currentChat))
 export const CurrentUsername = writable(db.username)
 export const CurrentUserIcon = writable(db.userIcon)
 export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
@@ -49,7 +49,7 @@ function createSimpleCharacter(char:character|groupChat){
 
     const simpleChar:simpleCharacterArgument = {
         type: "simple",
-        customscript: cloneDeep(char.customscript),
+        customscript: structuredClone(char.customscript),
         chaId: char.chaId,
         additionalAssets: char.additionalAssets,
         virtualscript: char.virtualscript,
@@ -80,7 +80,7 @@ function updateCurrentCharacter(){
         ShowVN.set(currentChar?.viewScreen === 'vn')   
     }
 
-    CurrentCharacter.set(cloneDeep(currentChar))
+    CurrentCharacter.set(structuredClone(currentChar))
     const simp = createSimpleCharacter(currentChar)
     
     if(!isEqual(get(CurrentSimpleCharacter), simp)){
@@ -101,7 +101,7 @@ function updateCurrentChat(){
     if(isEqual(gotChat, chat)){
         return
     }
-    CurrentChat.set(cloneDeep(chat))
+    CurrentChat.set(structuredClone(chat))
 }
 
 DataBase.subscribe((data) => {
@@ -133,7 +133,7 @@ CurrentCharacter.subscribe((char) => {
     if(isEqual(cha, char)){
         return
     }
-    db.characters[charId] = cloneDeep(char)
+    db.characters[charId] = structuredClone(char)
     DataBase.set(db)
 })
 
@@ -142,7 +142,7 @@ CurrentChat.subscribe((chat) => {
 
     if(currentChar){
         if(!isEqual(currentChar.chats[currentChar.chatPage], chat)){
-            currentChar.chats[currentChar.chatPage] = cloneDeep(chat)
+            currentChar.chats[currentChar.chatPage] = structuredClone(chat)
             CurrentCharacter.set(currentChar)
         }
     }

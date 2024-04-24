@@ -1,6 +1,5 @@
 import { get } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
-import { cloneDeep } from "lodash";
 import { downloadFile } from "../storage/globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
@@ -102,7 +101,7 @@ export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorSh
 export function changeColorScheme(colorScheme: string){
     let db = get(DataBase)
     if(colorScheme !== 'custom'){
-        db.colorScheme = cloneDeep(colorShemes[colorScheme])
+        db.colorScheme = structuredClone(colorShemes[colorScheme])
     }
     db.colorSchemeName = colorScheme
     setDatabase(db)

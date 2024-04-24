@@ -4,7 +4,6 @@ import { selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
-import { cloneDeep } from "lodash"
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 
@@ -70,7 +69,7 @@ export async function exportUserPersona(){
 
     let img = await readImage(db.userIcon)
 
-    let card:PersonaCard = cloneDeep({
+    let card:PersonaCard = structuredClone({
         name: db.username,
         personaPrompt: db.personaPrompt,
     })

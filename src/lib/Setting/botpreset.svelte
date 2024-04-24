@@ -3,9 +3,8 @@
     import { language } from "../../lang";
     import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset, presetTemplate } from "../../ts/storage/database";
     import { CopyIcon, DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
-  import { cloneDeep } from "lodash";
-  import TextInput from "../UI/GUI/TextInput.svelte";
-  import { prebuiltPresets } from "src/ts/process/templates/templates";
+    import TextInput from "../UI/GUI/TextInput.svelte";
+    import { prebuiltPresets } from "src/ts/process/templates/templates";
 
     let editMode = false
     export let close = () => {}
@@ -74,7 +73,7 @@
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
                 let botPresets = $DataBase.botPresets
-                let newPreset = cloneDeep(prebuiltPresets.OAI2)
+                let newPreset = structuredClone(prebuiltPresets.OAI2)
                 newPreset.name = `New Preset`
                 botPresets.push(newPreset)
 

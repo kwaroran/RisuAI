@@ -6,7 +6,6 @@ import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { cloneDeep, update } from "lodash"
 import { CurrentCharacter, selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
 
@@ -275,7 +274,7 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
 
 export async function exportChar(charaID:number) {
     const db = get(DataBase)
-    let char = cloneDeep(db.characters[charaID])
+    let char = structuredClone(db.characters[charaID])
 
     if(char.type === 'group'){
         return
@@ -314,7 +313,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'n
     const im = img ? await saveAsset(await reencodeImage(img)) : undefined
     let db = get(DataBase)
 
-    const risuext = cloneDeep(data.extensions.risuai)
+    const risuext = structuredClone(data.extensions.risuai)
     let emotions:[string, string][] = []
     let bias:[string, number][] = []
     let viewScreen: "none" | "emotion" | "imggen" = 'none'
@@ -442,7 +441,7 @@ async function importSpecv2(card:CharacterCardV2, img?:Uint8Array, mode:'hub'|'n
 
     }
 
-    let ext = cloneDeep(data?.extensions ?? {})
+    let ext = structuredClone(data?.extensions ?? {})
 
     for(const key in ext){
         if(key === 'risuai'){
@@ -533,7 +532,7 @@ async function createBaseV2(char:character) {
                 key:string
                 data:string[]
             }
-        } = cloneDeep(lore.extentions ?? {})
+        } = structuredClone(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
@@ -733,7 +732,7 @@ export async function shareRisuHub2(char:character, arg:{
     update: boolean
 }) {
     try {
-        char = cloneDeep(char)
+        char = structuredClone(char)
         char.license = arg.license
         let tagList = arg.tag.split(',')
         
@@ -794,7 +793,7 @@ export async function shareRisuHub(char:character, arg:{
     license: string
     anon: boolean
 }) {
-    char = cloneDeep(char)
+    char = structuredClone(char)
     char.license = arg.license
     let tagList = arg.tag.split(',')
     

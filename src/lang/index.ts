@@ -1,4 +1,4 @@
-import { cloneDeep, merge } from "lodash";
+import { merge } from "lodash";
 import { languageChinese } from "./cn";
 import { languageGerman } from "./de";
 import { languageEnglish } from "./en";
@@ -10,16 +10,16 @@ export let language:typeof languageEnglish = languageEnglish
 
 export function changeLanguage(lang:string){
     if(lang === 'cn'){
-        language = merge(cloneDeep(languageEnglish), languageChinese)
+        language = merge(structuredClone(languageEnglish), languageChinese)
     }
     else if(lang === 'de'){
-        language = merge(cloneDeep(languageEnglish), languageGerman)
+        language = merge(structuredClone(languageEnglish), languageGerman)
     }
     else if(lang === 'ko'){
-        language = merge(cloneDeep(languageEnglish), languageKorean)
+        language = merge(structuredClone(languageEnglish), languageKorean)
     }
     else if(lang === 'vi'){
-        language = merge(cloneDeep(languageEnglish), LanguageVietnamese)
+        language = merge(structuredClone(languageEnglish), LanguageVietnamese)
     }
     else{
         language = languageEnglish
