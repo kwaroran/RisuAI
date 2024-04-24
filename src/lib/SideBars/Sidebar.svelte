@@ -51,6 +51,7 @@
     import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
     import { joinMultiuserRoom } from "src/ts/sync/multiuser";
+  import { sideBarSize } from "src/ts/gui/guisize";
   let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
@@ -614,10 +615,17 @@
   </div>
 </div>
 <div
-  class="setting-area w-96 h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
+  class="setting-area h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
   class:risu-sidebar={!$sideBarClosing}
+  class:w-96={$sideBarSize === 0}
+  class:w-110={$sideBarSize === 1}
+  class:w-124={$sideBarSize === 2}
+  class:w-144={$sideBarSize === 3}
   class:risu-sidebar-close={$sideBarClosing}
-  class:minw96={!$DynamicGUI}
+  class:min-w-96={!$DynamicGUI && $sideBarSize === 0}
+  class:min-w-110={!$DynamicGUI && $sideBarSize === 1}
+  class:min-w-124={!$DynamicGUI && $sideBarSize === 2}
+  class:min-w-144={!$DynamicGUI && $sideBarSize === 3}
   class:px-2={$DynamicGUI}
   class:px-4={!$DynamicGUI}
   class:dynamic-sidebar={$DynamicGUI}
@@ -718,9 +726,6 @@
 {/if}
 
 <style>
-  .minw96 {
-    min-width: 24rem; /* 384px */
-  }
   .editMode {
     min-width: 6rem;
   }

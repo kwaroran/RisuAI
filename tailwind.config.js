@@ -26,7 +26,10 @@ export default {
         'half': '50%',
         '5': '1.25rem',
         '6': '1.5rem',
-
+        '96': '24rem',
+        '110': '28rem',
+        '124': '32rem',
+        '144': '36rem',
       },
       maxWidth:{
         'half': '50%',
@@ -43,6 +46,9 @@ export default {
       width: {
         '2xl': '48rem',
         '3xl': '72rem',
+        '110': '28rem',
+        '124': '32rem',
+        '144': '36rem',
       },
       minHeight:{
         '2': '0.5rem',

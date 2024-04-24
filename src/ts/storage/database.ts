@@ -396,6 +396,9 @@ export function setDatabase(data:Database){
     data.hanuraiEnable ??= false
     data.hanuraiSplit ??= false
     data.hanuraiTokens ??= 1000
+    data.textAreaSize ??= 0
+    data.sideBarSize ??= 0
+    data.textAreaTextSize ??= 0
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -647,6 +650,9 @@ export interface Database{
     hanuraiTokens:number
     hanuraiSplit:boolean
     hanuraiEnable:boolean
+    textAreaSize:number
+    sideBarSize:number
+    textAreaTextSize:number
 }
 
 export interface customscript{

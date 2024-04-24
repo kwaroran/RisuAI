@@ -11,6 +11,8 @@
     import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
     import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
 
+    import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
+
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
     }
@@ -135,6 +137,17 @@
 <SliderInput min={50} max={200} bind:value={$DataBase.iconsize} />
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.iconsize)}%</span>
 
+<span class="text-textcolor">{language.textAreaSize}</span>
+<SliderInput min={-5} max={5} bind:value={$DataBase.textAreaSize} on:change={updateGuisize} />
+<span class="text-textcolor2 mb-6 text-sm">{guiSizeText($DataBase.textAreaSize)}</span>
+
+<span class="text-textcolor">{language.textAreaTextSize}</span>
+<SliderInput min={0} max={3} bind:value={$DataBase.textAreaTextSize} on:change={updateGuisize} />
+<span class="text-textcolor2 mb-6 text-sm">{guiSizeText($DataBase.textAreaTextSize)}</span>
+
+<span class="text-textcolor">{language.sideBarSize}</span>
+<SliderInput min={0} max={3} bind:value={$DataBase.sideBarSize} on:change={updateGuisize} />
+<span class="text-textcolor2 mb-6 text-sm">{guiSizeText($DataBase.sideBarSize)}</span>
 
 <span class="text-textcolor">{language.assetWidth}</span>
 <SliderInput min={-1} max={40} step={1} bind:value={$DataBase.assetWidth} />

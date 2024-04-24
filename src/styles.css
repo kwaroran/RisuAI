@@ -117,11 +117,6 @@ html, body{
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.setting-area textarea{
-    height: 10rem;
-    min-height: 10rem;
-}
-
 .chattext p:first-child{
   margin-top: 0.3rem;
 }

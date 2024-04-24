@@ -31,6 +31,7 @@ import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
 import { startObserveDom } from "../observer";
 import { removeDefaultHandler } from "src/main";
+import { updateGuisize } from "../gui/guisize";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -505,6 +506,7 @@ export async function loadData() {
             updateAnimationSpeed()
             updateHeightMode()
             updateErrorHandling()
+            updateGuisize()
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
