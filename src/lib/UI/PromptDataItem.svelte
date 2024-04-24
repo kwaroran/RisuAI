@@ -16,11 +16,11 @@
 
     const chatPromptChange = () => {
         const currentprompt = promptItem as PromptItemChat
-        if(currentprompt.rangeStart === -2){
+        if(currentprompt.rangeStart === -1000){
             currentprompt.rangeStart = 0
             currentprompt.rangeEnd = 'end'
         }else{
-            currentprompt.rangeStart = -2
+            currentprompt.rangeStart = -1000
             currentprompt.rangeEnd = 'end'
         }
         promptItem = currentprompt
@@ -42,7 +42,7 @@
             promptItem.role = "system"
         }
         if(promptItem.type === 'chat'){
-            promptItem.rangeStart = -2
+            promptItem.rangeStart = -1000
             promptItem.rangeEnd = 'end'
         }
     }} >
@@ -77,7 +77,7 @@
         </SelectInput>
     {/if}
     {#if promptItem.type === 'chat'}
-        {#if promptItem.rangeStart !== -2}
+        {#if promptItem.rangeStart !== -1000}
             <span>{language.rangeStart}</span>
             <NumberInput bind:value={promptItem.rangeStart} />
             <span>{language.rangeEnd}</span>
@@ -100,7 +100,7 @@
                 <CheckInput name={language.chatAsOriginalOnSystem} bind:check={promptItem.chatAsOriginalOnSystem}/>
             {/if}
         {/if}
-        <CheckInput name={language.advanced} check={promptItem.rangeStart !== -2} onChange={chatPromptChange} className="my-2"/>
+        <CheckInput name={language.advanced} check={promptItem.rangeStart !== -1000} onChange={chatPromptChange} className="my-2"/>
     {/if}
     {#if promptItem.type === 'authornote'}
         <span>{language.defaultPrompt}</span>
