@@ -1233,6 +1233,10 @@ export function risuChatParser(da:string, arg:{
                 break
             }
             case '<':{
+                if(stackType[nested.length] === 1){
+                    nested[0] += da[pointer]
+                    break
+                }
                 nested.unshift('')
                 stackType[nested.length] = 2
                 break
@@ -1319,6 +1323,10 @@ export function risuChatParser(da:string, arg:{
                 break
             }
             case '>':{
+                if(stackType[nested.length] === 1){
+                    nested[0] += da[pointer]
+                    break
+                }
                 if(nested.length === 1 || stackType[nested.length] !== 2){
                     break
                 }

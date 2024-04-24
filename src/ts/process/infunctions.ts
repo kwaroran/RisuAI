@@ -14,12 +14,12 @@ function toRPN(expression:string) {
     };
 
     expression = expression.replace(/\s+/g, '');
-    let expression2 = expression.split(/([\+\-\*\/\^\%])/).filter(token => token);
+    let expression2 = expression.split(/([\+\-\*\/\^\%\>\<])/).filter(token => token);
 
     expression2.forEach(token => {
         if (parseFloat(token) || token === '0') {
             outputQueue += token + ' ';
-        } else if ('+-*/^%'.includes(token)) {
+        } else if ('+-*/^%><'.includes(token)) {
             while (operatorStack.length > 0 &&
             ((operators[token].associativity === 'Left' &&
             operators[token].precedence <= operators[operatorStack[operatorStack.length - 1]].precedence) ||
@@ -63,8 +63,27 @@ function calculateRPN(expression:string) {
     return stack.pop();
 }
 
-export function calcString(args:string) {
-    const expression = toRPN(args);
+function executeRPNCalculation(text:string) {
+    const expression = toRPN(text);
     const evaluated = calculateRPN(expression);
     return evaluated
+}
+
+export function calcString(text:string) {
+    let depthText:string[] = ['']
+
+    for(let i = 0; i < text.length; i++) {
+        if(text[i] === '(') {
+            depthText.push('')
+        }
+        else if(text[i] === ')' && depthText.length > 1) {
+            let result = executeRPNCalculation(depthText.pop())
+            depthText[depthText.length - 1] += result
+        }
+        else {
+            depthText[depthText.length - 1] += text[i]
+        }
+    }
+
+    return executeRPNCalculation(depthText.join(''))
 }
