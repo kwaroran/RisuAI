@@ -904,6 +904,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     }
                     return out
                 }
+                case 'date':
+                case 'time':
+                case 'datetimeformat':{
+                    return dateTimeFormat(arra[1])
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -957,31 +962,38 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             return (Math.floor(Math.random() * maxRoll) + 1).toString()
         }
         if(p1.startsWith('datetimeformat')){
-            const date = new Date()
             let main = p1.substring("datetimeformat".length + 1)
-            if(!main){
-                return ''
-            }
-            if(main.startsWith(':')){
-                main = main.substring(1)
-            }
-            return main
-                .replace(/YYYY/g, date.getFullYear().toString())
-                .replace(/YY/g, date.getFullYear().toString().substring(2))
-                .replace(/MM?/g, (date.getMonth() + 1).toString().padStart(2, '0'))
-                .replace(/DD?/g, date.getDate().toString().padStart(2, '0'))
-                .replace(/DDDD?/g, (date.getDay() + (date.getMonth() * 30)).toString())
-                .replace(/HH?/g, date.getHours().toString().padStart(2, '0'))
-                .replace(/hh?/g, (date.getHours() % 12).toString().padStart(2, '0'))
-                .replace(/mm?/g, date.getMinutes().toString().padStart(2, '0'))
-                .replace(/ss?/g, date.getSeconds().toString().padStart(2, '0'))
-                .replace(/A/g, date.getHours() >= 12 ? 'PM' : 'AM')
-                .replace(/MMMM?/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+            return dateTimeFormat(main)
         }
         return null        
     } catch (error) {
         return null   
     }
+}
+
+const dateTimeFormat = (main:string) => {
+    const date = new Date()
+    if(!main){
+        return ''
+    }
+    if(main.startsWith(':')){
+        main = main.substring(1)
+    }
+    return main
+        .replace(/YYYY/g, date.getFullYear().toString())
+        .replace(/YY/g, date.getFullYear().toString().substring(2))
+        .replace(/MM?/g, (date.getMonth() + 1).toString().padStart(2, '0'))
+        .replace(/DD?/g, date.getDate().toString().padStart(2, '0'))
+        .replace(/DDDD?/g, (date.getDay() + (date.getMonth() * 30)).toString())
+        .replace(/HH?/g, date.getHours().toString().padStart(2, '0'))
+        .replace(/hh?/g, (date.getHours() % 12).toString().padStart(2, '0'))
+        .replace(/mm?/g, date.getMinutes().toString().padStart(2, '0'))
+        .replace(/ss?/g, date.getSeconds().toString().padStart(2, '0'))
+        .replace(/X?/g, (Date.now() / 1000).toFixed(2))
+        .replace(/x?/g, Date.now().toFixed())
+        .replace(/A/g, date.getHours() >= 12 ? 'PM' : 'AM')
+        .replace(/MMMM?/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+
 }
 
 const smMatcher = (p1:string,matcherArg:matcherArg) => {
