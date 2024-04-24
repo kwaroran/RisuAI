@@ -1146,6 +1146,7 @@ export function risuChatParser(da:string, arg:{
         displaying: arg.visualize ?? false,
         role: arg.role,
         runVar: arg.runVar ?? false,
+        consistantChar: arg.consistantChar ?? false
     }
 
 
