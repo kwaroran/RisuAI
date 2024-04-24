@@ -979,6 +979,9 @@ const dateTimeFormat = (main:string) => {
     if(main.startsWith(':')){
         main = main.substring(1)
     }
+    if(main.length > 300){
+        return ''
+    }
     return main
         .replace(/YYYY/g, date.getFullYear().toString())
         .replace(/YY/g, date.getFullYear().toString().substring(2))
