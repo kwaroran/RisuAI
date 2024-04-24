@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
     import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
@@ -128,18 +128,29 @@
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
-        {#await img}
-            <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
-        {:then m}
-            {#if largePortrait && (!$DataBase.roundIcons)}
-                <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
-            {:else}
-                <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
-            {/if}
-        {/await}
+        {#if $CurrentCharacter.chaId === "§playground"}
+            <div class="shadow-lg bg-borderc mt-2 flex justify-center items-center" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+            class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}>
+                {#if name === 'assistant'}
+                    <BotIcon />
+                {:else}
+                    <UserIcon />
+                {/if}
+            </div>
+        {:else}
+            {#await img}
+                <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons} />
+            {:then m}
+                {#if largePortrait && (!$DataBase.roundIcons)}
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+                {:else}
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}  />
+                {/if}
+            {/await}
+        {/if}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">
                 {#if $CurrentCharacter.chaId === "§playground"}
