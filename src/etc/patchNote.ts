@@ -16,6 +16,7 @@ export const patchNote = {
     - Now it can use \`&\` for and
     - Now it can use \`<\` for less than
     - Now it can use \`>\` for greater than
+    - Now it can use chat variables by prefixing with \`$\` (e.g. \`$a\`)
 - Added {{idle_duration}}
     - Old {{idle_duration}} has been renamed to {{message_idle_duration}}
     - {{idle_duration}} will return (current time - last message time)
