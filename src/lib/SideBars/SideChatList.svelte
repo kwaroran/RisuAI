@@ -105,7 +105,7 @@
             </button>
         </div>
 
-        {#if $CurrentCharacter.chaId !== '§playground'}
+        {#if $CurrentCharacter?.chaId !== '§playground'}
             <div class="flex mt-2 items-center">
                 <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
             </div>

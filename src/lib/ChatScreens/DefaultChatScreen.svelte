@@ -451,7 +451,7 @@
                         class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
                     </div>
                 {/if}
-                {#if $CurrentCharacter.chaId !== '§playground'}
+                {#if $CurrentCharacter?.chaId !== '§playground'}
                     <div on:click={(e) => {
                         openMenu = !openMenu
                         e.stopPropagation()
@@ -470,7 +470,7 @@
                     </div>
                 {/if}
             </div>
-            {#if $DataBase.useAutoTranslateInput && !$DataBase.useAdvancedEditor && $CurrentCharacter.chaId !== '§playground'}
+            {#if $DataBase.useAutoTranslateInput && !$DataBase.useAdvancedEditor && $CurrentCharacter?.chaId !== '§playground'}
                 <div class="flex items-center mt-2 mb-2">
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
