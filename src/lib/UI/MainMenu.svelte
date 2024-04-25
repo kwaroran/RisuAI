@@ -32,6 +32,8 @@
             </div>
           {/if}
           <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
+            class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
+            class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
             on:click={() => {
               patchNodeHidden = false
               $DataBase.lastPatchNoteCheckVersion = patch.version
