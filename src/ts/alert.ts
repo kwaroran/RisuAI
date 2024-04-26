@@ -34,6 +34,16 @@ export function alertError(msg:string){
         }
     }
 
+    msg = msg.trim()
+
+    const ignoredErrors = [
+        '{}'
+    ]
+
+    if(ignoredErrors.includes(msg)){
+        return
+    }
+
     let submsg = ''
 
     //check if it's a known error
