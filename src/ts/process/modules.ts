@@ -38,10 +38,10 @@ export async function importModule(){
         if(importData.type === 'risuModule'){
             if(
                 (!importData.name)
-                || (!importData.description)
                 || (!importData.id)
             ){
                 alertError(language.errors.noData)
+                return
             }
             importData.id = v4()
             db.modules.push(importData)
