@@ -1,20 +1,23 @@
 import localforage from "localforage";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runEmbedding } from "../transformers";
+import { alertError } from "src/ts/alert";
 
 
 export class HypaProcesser{
     oaikey:string
     vectors:memoryVector[]
     forage:LocalForage
-    model:'ada'|'MiniLM'|'nomic'
+    model:'ada'|'MiniLM'|'nomic'|'custom'
+    customEmbeddingUrl:string
 
-    constructor(model:'ada'|'MiniLM'|'nomic'){
+    constructor(model:'ada'|'MiniLM'|'nomic'|'custom',customEmbeddingUrl?:string){
         this.forage = localforage.createInstance({
             name: "hypaVector"
         })
         this.vectors = []
         this.model = model
+        this.customEmbeddingUrl = customEmbeddingUrl
     }
 
     async embedDocuments(texts: string[]): Promise<VectorArray[]> {
@@ -40,15 +43,36 @@ export class HypaProcesser{
             let results:Float32Array[] = await runEmbedding(inputs, this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
             return results
         }
-        const gf = await globalFetch("https://api.openai.com/v1/embeddings", {
-            headers: {
-            "Authorization": "Bearer " + this.oaikey
-            },
-            body: {
-            "input": input,
-            "model": "text-embedding-ada-002"
+        let gf = null;
+        if(this.model === 'custom'){
+            if(!this.customEmbeddingUrl){
+                alertError('Custom model requires a Custom Server URL')
+                return [0]
             }
-        })
+
+            let replaceUrl = new URL(this.customEmbeddingUrl)
+
+            if(replaceUrl.pathname !== '/embeddings'){
+                replaceUrl.pathname = '/embeddings'
+            }
+            
+            gf = await globalFetch(replaceUrl.toString(), {
+                body:{
+                    "input": input
+                },
+            })
+        }
+        if(this.model === 'ada'){
+            gf = await globalFetch("https://api.openai.com/v1/embeddings", {
+                headers: {
+                "Authorization": "Bearer " + this.oaikey
+                },
+                body: {
+                "input": input,
+                "model": "text-embedding-ada-002"
+                }
+            })
+        }
         const data = gf.data
     
     

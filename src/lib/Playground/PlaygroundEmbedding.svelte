@@ -8,6 +8,7 @@
 
     let query = "";
     let model = "MiniLM";
+    let customEmbeddingUrl = "";
     let data:string[] = [];
     let dataresult:[string, number][] = [];
     let running = false;
@@ -15,7 +16,7 @@
     const run = async () => {
         if(running) return;
         running = true;
-        const processer = new HypaProcesser(model as any);
+        const processer = new HypaProcesser(model as any, customEmbeddingUrl);
         await processer.addText(data);
         console.log(processer.vectors)
         dataresult = await processer.similaritySearchScored(query);
@@ -29,7 +30,13 @@
 <SelectInput bind:value={model}>
     <OptionInput value="MiniLM">MiniLM L6 v2</OptionInput>
     <OptionInput value="nomic">Nomic Embed Text v1.5</OptionInput>
+    <OptionInput value="custom">Custom (OpenAI-compatible)</OptionInput>
 </SelectInput>
+
+{#if model === "custom"}
+    <span class="text-textcolor text-lg">Custom Server URL</span>
+    <TextInput bind:value={customEmbeddingUrl} size="lg" fullwidth />
+{/if}
 
 <span class="text-textcolor text-lg">Query</span>
 <TextInput bind:value={query} size="lg" fullwidth />
