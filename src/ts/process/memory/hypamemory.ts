@@ -2,6 +2,7 @@ import localforage from "localforage";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runEmbedding } from "../transformers";
 import { alertError } from "src/ts/alert";
+import { appendLastPath } from "src/ts/util";
 
 
 export class HypaProcesser{
@@ -50,11 +51,7 @@ export class HypaProcesser{
                 return [0]
             }
 
-            let replaceUrl = new URL(this.customEmbeddingUrl)
-
-            if(replaceUrl.pathname !== '/embeddings'){
-                replaceUrl.pathname = '/embeddings'
-            }
+            const replaceUrl = appendLastPath(this.customEmbeddingUrl,'embeddings')
             
             gf = await globalFetch(replaceUrl.toString(), {
                 body:{

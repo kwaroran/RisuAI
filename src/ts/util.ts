@@ -493,3 +493,33 @@ export function trimUntilPunctuation(s:string){
     }
     return result
 }
+
+/**
+ * Appends the given last path to the provided URL.
+ *
+ * @param {string} url - The base URL to which the last path will be appended.
+ * @param {string} lastPath - The path to be appended to the URL.
+ * @returns {string} The modified URL with the last path appended.
+ * 
+ * @example
+ * appendLastPath("https://github.com/kwaroran/RisuAI","/commits/main")
+ * return 'https://github.com/kwaroran/RisuAI/commits/main'
+ * 
+ * @example
+ * appendLastPath("https://github.com/kwaroran/RisuAI/","/commits/main")
+ * return 'https://github.com/kwaroran/RisuAI/commits/main
+ * 
+ * @example
+ * appendLastPath("http://127.0.0.1:7997","embeddings")
+ * return 'http://127.0.0.1:7997/embeddings'
+ */
+export function appendLastPath(url, lastPath) {
+    // Remove trailing slash from url if exists
+    url = url.replace(/\/$/, '');
+    
+    // Remove leading slash from lastPath if exists
+    lastPath = lastPath.replace(/^\//, '');
+
+    // Concat the url and lastPath
+    return url + '/' + lastPath;
+}
