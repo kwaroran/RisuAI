@@ -50,8 +50,8 @@ export class HypaProcesser{
                 alertError('Custom model requires a Custom Server URL')
                 return [0]
             }
-
-            const replaceUrl = appendLastPath(this.customEmbeddingUrl,'embeddings')
+            const {customEmbeddingUrl} = this
+            const replaceUrl = customEmbeddingUrl.endsWith('/embeddings')?customEmbeddingUrl:appendLastPath(customEmbeddingUrl,'embeddings')
             
             gf = await globalFetch(replaceUrl.toString(), {
                 body:{
