@@ -38,7 +38,7 @@ export class HypaProcesser{
     }
     
     
-    async getEmbeds(input:string[]|string) {
+    async getEmbeds(input:string[]|string):Promise<VectorArray[]> {
         if(this.model === 'MiniLM' || this.model === 'nomic'){
             const inputs:string[] = Array.isArray(input) ? input : [input]
             let results:Float32Array[] = await runEmbedding(inputs, this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
@@ -47,8 +47,7 @@ export class HypaProcesser{
         let gf = null;
         if(this.model === 'custom'){
             if(!this.customEmbeddingUrl){
-                alertError('Custom model requires a Custom Server URL')
-                return [0]
+                throw new Error('Custom model requires a Custom Server URL')
             }
             const {customEmbeddingUrl} = this
             const replaceUrl = customEmbeddingUrl.endsWith('/embeddings')?customEmbeddingUrl:appendLastPath(customEmbeddingUrl,'embeddings')
