@@ -1468,3 +1468,49 @@ async function editDisplay(text){
     }
     return rt
 }
+
+export type PromptParsed ={[key:string]:string|PromptParsed}
+
+export async function promptTypeParser(prompt:string):Promise<string | PromptParsed>{
+    //XML type
+    try {
+        const parser = new DOMParser()
+        const dom = `<root>${prompt}</root>`
+        const xmlDoc = parser.parseFromString(dom, "text/xml")
+        const root = xmlDoc.documentElement
+
+        const errorNode = root.getElementsByTagName('parsererror')
+
+        if(errorNode.length > 0){
+            throw new Error('XML Parse Error') //fallback to other parser
+        }
+
+        const parseNode = (node:Element):string|PromptParsed => {
+            if(node.children.length === 0){
+                return node.textContent
+            }
+
+            const data:{[key:string]:string|PromptParsed} = {}
+
+            for(let i=0;i<node.children.length;i++){
+                const child = node.children[i]
+                data[child.tagName] = parseNode(child)
+            }
+
+            return data
+        }
+
+        const pnresult = parseNode(root)
+
+        if(typeof(pnresult) === 'string'){
+            throw new Error('XML Parse Error') //fallback to other parser
+        }
+
+        return pnresult
+
+    } catch (error) {
+        
+    }
+
+    return prompt
+}
