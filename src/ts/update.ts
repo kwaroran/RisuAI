@@ -32,7 +32,7 @@ export async function checkUpdate(){
         if(appVerNum < nextVer){
             const conf = await alertConfirm(language.newVersion)
             if(conf){
-                open("https://github.com/kwaroran/RisuAI-release/releases/latest")
+                open("https://risuai.net/?page=download")
             }
             else{
                 db = get(DataBase)
