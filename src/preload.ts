@@ -9,7 +9,7 @@ export function preLoadCheck(){
     const isNodeServer = !!globalThis.__NODE__
     const isCapacitor = Capacitor.isNativePlatform();
 
-    const isWeb = !isTauri && !isNodeServer && location.hostname !== 'risuai.xyz' && !isCapacitor;
+    const isWeb = !isTauri && !isNodeServer && location.hostname === 'risuai.xyz' && !isCapacitor;
     
     
     // Check if the user has visited the main page
