@@ -4,9 +4,15 @@ import { alertConfirm, alertError, alertMd } from "./alert";
 import { language } from "../lang";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/api/shell'
+import { Capacitor } from "@capacitor/core";
 
 export async function checkUpdate(){
     try {
+
+        if(Capacitor.isNativePlatform()){
+            return
+        }
+
          let db = get(DataBase)
         const da = await fetch('https://raw.githubusercontent.com/kwaroran/RisuAI-release/main/version.json')
         //@ts-ignore
