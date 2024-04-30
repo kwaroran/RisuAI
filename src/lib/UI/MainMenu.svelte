@@ -31,35 +31,34 @@
               Update
             </div>
           {/if}
-          <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
-            class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-            class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-            on:click={() => {
-              patchNodeHidden = false
-              $DataBase.lastPatchNoteCheckVersion = patch.version
-            }}
-            class:max-h-40={patchNodeHidden}>
+          {#if patchNodeHidden}
+            <div class="bg-darkbg rounded-md p-2 flex flex-col transition-shadow overflow-y-hidden shadow-inner text-sm"
+              class:text-textcolor2={patch.version === $DataBase.lastPatchNoteCheckVersion}
+              on:click={() => {
+                patchNodeHidden = false
+                $DataBase.lastPatchNoteCheckVersion = patch.version
+              }}
+            >
+              Update {patch.version} patch notes are available. Click to view.
+            </div>
+          {:else}
+            <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
+              class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
+              class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
+              on:click={() => {
+                patchNodeHidden = true
+              }}
+            >
               <div class="prose prose-invert">
                 {@html parseMarkdownSafe(patch.content)}
               </div>
-          </div>
+            </div>
+          {/if}
         </div>
       {/if}
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-          openURL("https://github.com/kwaroran/RisuAI/wiki")
-        }}>
-          <h1 class="text-2xl font-bold text-start">{language.officialWiki}</h1>
-          <span class="mt-2 text-textcolor2 text-start">{language.officialWikiDesc}</span>
-        </button>
-        <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {openURL("https://discord.gg/JzP8tB9ZK8")}}>
-          <h1 class="text-2xl font-bold text-start">{language.officialDiscord}</h1>
-          <span class="mt-2 text-textcolor2 text-start">{language.officialDiscordDesc}</span>
-        </button>
-      </div>
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
       <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
         $OpenRealmStore = true
