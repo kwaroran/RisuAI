@@ -1363,7 +1363,7 @@ export async function fetchNative(url:string, arg:{
 }):Promise<{ body: ReadableStream<Uint8Array>; headers: Headers; status: number }> {
     let headers = arg.headers ?? {}
     const db = get(DataBase)
-    let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
+    let throughProxy = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
     let fetchLogIndex = addFetchLog({
         body: arg.body,
         headers: arg.headers,
@@ -1373,7 +1373,7 @@ export async function fetchNative(url:string, arg:{
         resType: 'stream',
         chatId: arg.chatId
     })
-    if(isTauri || Capacitor.isNativePlatform()){
+    if(isTauri){
         fetchIndex++
         if(arg.signal && arg.signal.aborted){
             throw new Error('aborted')
@@ -1468,7 +1468,7 @@ export async function fetchNative(url:string, arg:{
 
 
     }
-    else if(throughProxi){
+    else if(throughProxy){
         const r = await fetch(hubURL + `/proxy2`, {
             body: arg.body,
             headers: arg.useRisuTk ? {
