@@ -26,14 +26,11 @@
       <GithubStars />
       {#if patch.content}
         <div class="w-full max-w-4xl pl-4 pr-4 pt-4 relative">
-          {#if patch.version !== $DataBase.lastPatchNoteCheckVersion}
-            <div class="absolute inline-flex items-center justify-center p-1 text-sm font-bold text-white bg-red-500 border-2 border-red-600 rounded-full top-2 start-2 ">
-              Update
-            </div>
-          {/if}
           {#if patchNodeHidden}
             <div class="bg-darkbg rounded-md p-2 flex flex-col transition-shadow overflow-y-hidden shadow-inner text-sm"
               class:text-textcolor2={patch.version === $DataBase.lastPatchNoteCheckVersion}
+              class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
+              class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
               on:click={() => {
                 patchNodeHidden = false
                 $DataBase.lastPatchNoteCheckVersion = patch.version
