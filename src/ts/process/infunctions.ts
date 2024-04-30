@@ -12,17 +12,46 @@ function toRPN(expression:string) {
         '%': {precedence: 3, associativity: 'Left'},
         '<': {precedence: 1, associativity: 'Left'},
         '>': {precedence: 1, associativity: 'Left'},
-        '|': {precedence: 0, associativity: 'Left'},
-        '&': {precedence: 0, associativity: 'Left'},
+        '|': {precedence: 1, associativity: 'Left'},
+        '&': {precedence: 1, associativity: 'Left'},
+        '≤': {precedence: 1, associativity: 'Left'},
+        '≥': {precedence: 1, associativity: 'Left'},
+        '=': {precedence: 1, associativity: 'Left'}
     };
+    const operatorsKeys = Object.keys(operators);
 
     expression = expression.replace(/\s+/g, '');
-    let expression2 = expression.split(/([\+\-\*\/\^\%\>\<\|\&])/).filter(token => token);
+    let expression2 = []
+
+    let lastToken = ''
+
+    for(let i = 0; i < expression.length; i++) {
+        if(operatorsKeys.includes(expression[i])) {
+            if(lastToken !== '') {
+                expression2.push(lastToken)
+            }
+            else{
+                expression2.push('0')
+            }
+            lastToken = ''
+            expression2.push(expression[i])
+        }
+        else{
+            lastToken += expression[i]
+        }
+    }
+
+    if(lastToken !== '') {
+        expression2.push(lastToken)
+    }
+    else{
+        expression2.push('0')
+    }
 
     expression2.forEach(token => {
         if (parseFloat(token) || token === '0') {
             outputQueue += token + ' ';
-        } else if ('+-*/^%><|&'.includes(token)) {
+        } else if (operatorsKeys.includes(token)) {
             while (operatorStack.length > 0 &&
             ((operators[token].associativity === 'Left' &&
             operators[token].precedence <= operators[operatorStack[operatorStack.length - 1]].precedence) ||
@@ -61,6 +90,9 @@ function calculateRPN(expression:string) {
                 case '>': stack.push(a > b ? 1 : 0); break;
                 case '|': stack.push(a || b); break;
                 case '&': stack.push(a && b); break;
+                case '≤': stack.push(a <= b ? 1 : 0); break;
+                case '≥': stack.push(a >= b ? 1 : 0); break;
+                case '=': stack.push(a === b ? 1 : 0); break;
             }
         }
     });
@@ -80,7 +112,7 @@ function executeRPNCalculation(text:string) {
             return "0"
         }
         return parsed.toString()
-    })
+    }).replace(/&&/g, '&').replace(/\|\|/g, '|').replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/==/g, '=')
     const expression = toRPN(text);
     const evaluated = calculateRPN(expression);
     return evaluated
