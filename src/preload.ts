@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 
 export function preLoadCheck(){
     const searchParams = new URLSearchParams(location.search);
@@ -6,8 +7,9 @@ export function preLoadCheck(){
     const isTauri = !!window.__TAURI__
     //@ts-ignore
     const isNodeServer = !!globalThis.__NODE__
-    
-    const isWeb = !isTauri && !isNodeServer && location.hostname !== 'risuai.xyz';
+    const isCapacitor = Capacitor.isNativePlatform();
+
+    const isWeb = !isTauri && !isNodeServer && location.hostname !== 'risuai.xyz' && !isCapacitor;
     
     
     // Check if the user has visited the main page
