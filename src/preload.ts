@@ -17,7 +17,7 @@ export function preLoadCheck(){
         localStorage.setItem('mainpage', 'visited');
     }
     else if(searchParams.has('mainpage')) {
-        localStorage.setItem('mainpage', searchParams.get('main-page'));
+        localStorage.setItem('mainpage', searchParams.get('mainpage'));
     }
     
     
