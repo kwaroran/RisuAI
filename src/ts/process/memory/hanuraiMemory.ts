@@ -6,6 +6,7 @@ import type { ChatTokenizer } from "src/ts/tokenizer";
 import { get } from "svelte/store";
 import { DataBase } from "src/ts/storage/database";
 
+const maxRecentChatQuery = 4;
 export async function hanuraiMemory(chats:OpenAIChat[],arg:{
     currentTokens:number,
     maxContextTokens:number,
@@ -15,8 +16,12 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
     const tokenizer = arg.tokenizer
     const processer = new HypaProcesser('MiniLM')
     let addTexts:string[] = []
-    chats.map((chat) => {
-
+    const queryStartIndex=chats.length-maxRecentChatQuery
+    console.log(chats.length,maxRecentChatQuery,queryStartIndex)
+    chats.map((chat, index) => {
+        if(queryStartIndex < index){
+            return
+        }
         if(!chat?.content?.trim()){
             return
         }
@@ -36,7 +41,7 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
     await processer.addText(addTexts)
 
     let scoredResults:{[key:string]:number} = {}
-    for(let i=1;i<4;i++){
+    for(let i=1;i<maxRecentChatQuery;i++){
         const chat = chats[chats.length-i]
         if(!chat?.content){
             continue
