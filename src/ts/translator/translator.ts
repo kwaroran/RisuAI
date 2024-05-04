@@ -8,7 +8,8 @@ import { doingChat } from "../process"
 import type { simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
-import { sleep } from "../util"
+import { getNodetextWithNewline, sleep } from "../util"
+import { processScriptFull } from "../process/scripts"
 
 let cache={
     origin: [''],
@@ -298,7 +299,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
     }
 
-    async function translateNodeText(node:Node) {
+    async function translateNodeText(node:Node, reapplyDisplayScript:boolean = false) {
         if(node.textContent.trim().length !== 0){
             if(needSuperChunkedTranslate()){
                 const prm = new Promise<string>((resolve) => {
@@ -311,7 +312,32 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 return
             }
 
-            node.textContent = await translate(node.textContent || '', reverse);
+            // node.textContent = await translate(node.textContent || '', reverse);
+            let translated = await translate(node.textContent || "", reverse);
+            if (!reapplyDisplayScript) {
+                node.textContent = translated;
+                return;
+            }
+
+            const { data: processedTranslated } = await processScriptFull(
+                alwaysExistChar,
+                translated,
+                "editdisplay",
+                chatID
+            );
+            
+            // If the translation is the same, don't replace the node
+            if (translated == processedTranslated) {
+                node.textContent = processedTranslated;
+                return;
+            }
+
+            // Replace the old node with the new one
+            const newNode = document.createElement(
+                node.nodeType === Node.TEXT_NODE ? "span" : node.nodeName
+            );
+            newNode.innerHTML = processedTranslated;
+            node.parentNode.replaceChild(newNode, node);
         }
     }
 
@@ -335,6 +361,37 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             //skip if it's a script or style tag
             if(node.nodeName.toLowerCase() === 'script' || node.nodeName.toLowerCase() === 'style'){
                 return
+            }
+            // Check If a paragraph is a set of pure sentences
+            if (
+                node.nodeName.toLowerCase() === "p" &&
+                node instanceof HTMLElement
+            ) {
+                const children = Array.from(node.childNodes);
+                const blacklist = ["img", "iframe", "script", "style", "div"];
+                const hasBlacklistChild = children.some((child) =>
+                    blacklist.includes(child.nodeName.toLowerCase())
+                );
+                if (!hasBlacklistChild) {
+                    const text = getNodetextWithNewline(node);
+                    const sentences = text.split("\n");
+                    if (sentences.length > 1) {
+                        // Multiple sentences seperated by <br> tags
+                        // reconstruct the p tag
+                        node.innerHTML = "";
+                        for (const sentence of sentences) {
+                            const newNode = document.createElement("span");
+                            newNode.textContent = sentence;
+                            node.appendChild(newNode);
+                            await translateNodeText(newNode, true);
+                            node.appendChild(document.createElement("br"));
+                        }
+                    } else {
+                        // Single sentence
+                        await translateNodeText(node, true);
+                    }
+                    return;
+                }
             }
 
             for (const child of Array.from(node.childNodes)) {

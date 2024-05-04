@@ -523,3 +523,31 @@ export function appendLastPath(url, lastPath) {
     // Concat the url and lastPath
     return url + '/' + lastPath;
 }
+
+/**
+ * Retrieves the text content of a given Node object, including line breaks represented by <br> elements.
+ *
+ * @param {Node} node - The Node object from which the text content will be extracted.
+ * @returns {string} The text content of the Node, with line breaks represented by newline characters ('\n').
+ *
+ * @example
+ * const div = document.createElement('div');
+ * div.innerHTML = 'Hello<br>World';
+ * const text = getNodetextWithNewline(div);
+ * console.log(text); // Output: "Hello\nWorld"
+ */
+export function getNodetextWithNewline(node: Node) {
+    let result = '';
+    for (const child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) {
+            result += child.textContent;
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+            if (child.nodeName === 'BR') {
+                result += '\n';
+            } else {
+                result += getNodetextWithNewline(child);
+            }
+        }
+    }
+    return result;
+}
