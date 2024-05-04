@@ -211,6 +211,25 @@ export function isExpTranslator(){
 }
 
 export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number): Promise<string> {
+    let alwaysExistChar: character | groupChat | simpleCharacterArgument;
+    if(charArg !== ''){
+        if(typeof(charArg) === 'string'){
+            const db = get(DataBase)
+            const charId = get(selectedCharID)
+            alwaysExistChar = db.characters[charId]
+        }
+        else{
+            alwaysExistChar=charArg
+        }
+    } else {
+        alwaysExistChar = {
+            type: 'simple',
+            customscript: [],
+            virtualscript: null,
+            emotionImages: [],
+            chaId: 'simple'
+        }
+    }
     let db = get(DataBase)
     let DoingChat = get(doingChat)
     if(DoingChat){
@@ -342,16 +361,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
     if(charArg !== ''){
         let scripts:customscript[] = []
-        if(typeof(charArg) === 'string'){
-            const db = get(DataBase)
-            const charId = get(selectedCharID)
-            const char = db.characters[charId]
-            scripts = (getModuleRegexScripts() ?? []).concat(char?.customscript ?? [])
-        }
-        else{
-            scripts = (getModuleRegexScripts() ?? []).concat(charArg?.customscript ?? [])
-
-        }
+        scripts = (getModuleRegexScripts() ?? []).concat(alwaysExistChar?.customscript ?? [])
         for(const script of scripts){
             if(script.type === 'edittrans'){
                 const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
