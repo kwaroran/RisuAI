@@ -1490,7 +1490,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case 'ollama-hosted':{
-            const ollama = new Ollama({host: 'http://localhost:11434'})
+            const ollama = new Ollama({host: db.ollamaURL})
 
             const response = await ollama.chat({
                 model: db.ollamaModel,
