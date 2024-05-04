@@ -210,7 +210,7 @@ export function isExpTranslator(){
     return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
-export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = ''): Promise<string> {
+export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number): Promise<string> {
     let db = get(DataBase)
     let DoingChat = get(doingChat)
     if(DoingChat){
