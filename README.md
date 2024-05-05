@@ -37,5 +37,5 @@ You can get detailed information on https://github.com/kwaroran/RisuAI/wiki (Wor
 
 ## Installation
 
-[RisuAI Website](https://risuai.net) (Recommended)
-[Github Releases](https://github.com/kwaroran/RisuAI/releases)
+- [RisuAI Website](https://risuai.net) (Recommended)
+- [Github Releases](https://github.com/kwaroran/RisuAI/releases)
