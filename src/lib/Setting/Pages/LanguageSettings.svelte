@@ -10,6 +10,7 @@
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import Help from "src/lib/Others/Help.svelte";
     let langChanged = false
 
 </script>
@@ -112,5 +113,11 @@
 
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.autoTranslate} name={language.autoTranslation}/>
+    </div>
+
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.combineTranslation} name={language.combineTranslation}>
+            <Help key="combineTranslation"/>
+        </Check>
     </div>
 {/if}
