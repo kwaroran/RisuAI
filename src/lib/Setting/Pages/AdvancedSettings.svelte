@@ -68,6 +68,11 @@
     <Check bind:check={$DataBase.useExperimental} name={language.useExperimental}> <Help key="useExperimental"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.combineTranslation} name={language.combineTranslation}>
+        <Help key="combineTranslation"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">

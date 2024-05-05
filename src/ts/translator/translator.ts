@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
-import { DataBase, type customscript } from "../storage/database"
+import { DataBase, type character, type customscript, type groupChat } from "../storage/database"
 import { globalFetch } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
@@ -8,7 +8,8 @@ import { doingChat } from "../process"
 import type { simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
-import { sleep } from "../util"
+import { getNodetextWithNewline, sleep } from "../util"
+import { processScriptFull } from "../process/scripts"
 
 let cache={
     origin: [''],
@@ -210,7 +211,26 @@ export function isExpTranslator(){
     return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
-export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = ''): Promise<string> {
+export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number): Promise<string> {
+    let alwaysExistChar: character | groupChat | simpleCharacterArgument;
+    if(charArg !== ''){
+        if(typeof(charArg) === 'string'){
+            const db = get(DataBase)
+            const charId = get(selectedCharID)
+            alwaysExistChar = db.characters[charId]
+        }
+        else{
+            alwaysExistChar=charArg
+        }
+    } else {
+        alwaysExistChar = {
+            type: 'simple',
+            customscript: [],
+            virtualscript: null,
+            emotionImages: [],
+            chaId: 'simple'
+        }
+    }
     let db = get(DataBase)
     let DoingChat = get(doingChat)
     if(DoingChat){
@@ -279,7 +299,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
     }
 
-    async function translateNodeText(node:Node) {
+    async function translateNodeText(node:Node, reprocessDisplayScript:boolean = false) {
         if(node.textContent.trim().length !== 0){
             if(needSuperChunkedTranslate()){
                 const prm = new Promise<string>((resolve) => {
@@ -292,7 +312,32 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 return
             }
 
-            node.textContent = await translate(node.textContent || '', reverse);
+            // node.textContent = await translate(node.textContent || '', reverse);
+            let translated = await translate(node.textContent || "", reverse);
+            if (!reprocessDisplayScript) {
+                node.textContent = translated;
+                return;
+            }
+
+            const { data: processedTranslated } = await processScriptFull(
+                alwaysExistChar,
+                translated,
+                "editdisplay",
+                chatID
+            );
+            
+            // If the translation is the same, don't replace the node
+            if (translated == processedTranslated) {
+                node.textContent = processedTranslated;
+                return;
+            }
+
+            // Replace the old node with the new one
+            const newNode = document.createElement(
+                node.nodeType === Node.TEXT_NODE ? "span" : node.nodeName
+            );
+            newNode.innerHTML = processedTranslated;
+            node.parentNode.replaceChild(newNode, node);
         }
     }
 
@@ -316,6 +361,38 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             //skip if it's a script or style tag
             if(node.nodeName.toLowerCase() === 'script' || node.nodeName.toLowerCase() === 'style'){
                 return
+            }
+            // combineTranslation feature
+            if (
+                db.combineTranslation &&
+                node.nodeName.toLowerCase() === "p" &&
+                node instanceof HTMLElement
+            ) {
+                const children = Array.from(node.childNodes);
+                const blacklist = ["img", "iframe", "script", "style", "div"];
+                const hasBlacklistChild = children.some((child) =>
+                    blacklist.includes(child.nodeName.toLowerCase())
+                );
+                if (!hasBlacklistChild && (node as Element)?.getAttribute('translate') !== 'no'){
+                    const text = getNodetextWithNewline(node);
+                    const sentences = text.split("\n");
+                    if (sentences.length > 1) {
+                        // Multiple sentences seperated by <br> tags
+                        // reconstruct the p tag
+                        node.innerHTML = "";
+                        for (const sentence of sentences) {
+                            const newNode = document.createElement("span");
+                            newNode.textContent = sentence;
+                            node.appendChild(newNode);
+                            await translateNodeText(newNode, true);
+                            node.appendChild(document.createElement("br"));
+                        }
+                    } else {
+                        // Single sentence
+                        await translateNodeText(node, true);
+                    }
+                    return;
+                }
             }
 
             for (const child of Array.from(node.childNodes)) {
@@ -342,16 +419,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
     if(charArg !== ''){
         let scripts:customscript[] = []
-        if(typeof(charArg) === 'string'){
-            const db = get(DataBase)
-            const charId = get(selectedCharID)
-            const char = db.characters[charId]
-            scripts = (getModuleRegexScripts() ?? []).concat(char?.customscript ?? [])
-        }
-        else{
-            scripts = (getModuleRegexScripts() ?? []).concat(charArg?.customscript ?? [])
-
-        }
+        scripts = (getModuleRegexScripts() ?? []).concat(alwaysExistChar?.customscript ?? [])
         for(const script of scripts){
             if(script.type === 'edittrans'){
                 const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
