@@ -299,7 +299,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
     }
 
-    async function translateNodeText(node:Node, reapplyDisplayScript:boolean = false) {
+    async function translateNodeText(node:Node, reprocessDisplayScript:boolean = false) {
         if(node.textContent.trim().length !== 0){
             if(needSuperChunkedTranslate()){
                 const prm = new Promise<string>((resolve) => {
@@ -314,7 +314,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 
             // node.textContent = await translate(node.textContent || '', reverse);
             let translated = await translate(node.textContent || "", reverse);
-            if (!reapplyDisplayScript) {
+            if (!reprocessDisplayScript) {
                 node.textContent = translated;
                 return;
             }
@@ -362,8 +362,9 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             if(node.nodeName.toLowerCase() === 'script' || node.nodeName.toLowerCase() === 'style'){
                 return
             }
-            // Check If a paragraph is a set of pure sentences
+            // combineTranslation feature
             if (
+                db.combineTranslation &&
                 node.nodeName.toLowerCase() === "p" &&
                 node instanceof HTMLElement
             ) {
@@ -372,7 +373,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 const hasBlacklistChild = children.some((child) =>
                     blacklist.includes(child.nodeName.toLowerCase())
                 );
-                if (!hasBlacklistChild) {
+                if (!hasBlacklistChild && (node as Element)?.getAttribute('translate') !== 'no'){
                     const text = getNodetextWithNewline(node);
                     const sentences = text.split("\n");
                     if (sentences.length > 1) {

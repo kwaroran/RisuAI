@@ -399,6 +399,7 @@ export function setDatabase(data:Database){
     data.textAreaSize ??= 0
     data.sideBarSize ??= 0
     data.textAreaTextSize ??= 0
+    data.combineTranslation ??= false
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -653,6 +654,7 @@ export interface Database{
     textAreaSize:number
     sideBarSize:number
     textAreaTextSize:number
+    combineTranslation:boolean
 }
 
 export interface customscript{
