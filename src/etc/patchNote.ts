@@ -1,16 +1,12 @@
 export const patchNote = {
-    version: "1.101",
+    version: "1.102",
     content: 
 `
-# Update 1.101
-- Added ≤ (or <=) operator to {{calc::A}} cbs
-- Added ≥ (or >=) operator to {{calc::A}} cbs
-- Added = (or ==) operator to {{calc::A}} cbs
-- Now | and & operators' precedence is 1, instead of 0
-- || now works as alternative to | operator
-- && now works as alternative to & operator
-- {{calc::A}} cbs is now set to 0 by default, instead of NaN
-- {{calc::A}} cbs now automatically fills non-existing values with 0
+# Update 1.102
+- Changed download URL notification
+- Fixed hanurai to skip query chats when push to processor (#400)
+- Fixed ollama's hardcoded url (#404)
+- Added New Option Combine Translation (#405)
 `
 }
 
