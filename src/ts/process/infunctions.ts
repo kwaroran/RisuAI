@@ -16,7 +16,8 @@ function toRPN(expression:string) {
         '&': {precedence: 1, associativity: 'Left'},
         '≤': {precedence: 1, associativity: 'Left'},
         '≥': {precedence: 1, associativity: 'Left'},
-        '=': {precedence: 1, associativity: 'Left'}
+        '=': {precedence: 1, associativity: 'Left'},
+        '!': {precedence: 5, associativity: 'Right'},
     };
     const operatorsKeys = Object.keys(operators);
 
@@ -93,6 +94,7 @@ function calculateRPN(expression:string) {
                 case '≤': stack.push(a <= b ? 1 : 0); break;
                 case '≥': stack.push(a >= b ? 1 : 0); break;
                 case '=': stack.push(a === b ? 1 : 0); break;
+                case '!': stack.push(b ? 0 : 1); break;
             }
         }
     });
