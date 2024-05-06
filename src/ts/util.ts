@@ -569,7 +569,6 @@ export function applyMarkdownToNode(node: Node) {
         const text = node.textContent;
         if (text) {
             let markdown = mconverted.parseInline(text);
-            markdown = mconverted.parseInline(markdown)
             if (markdown !== text) {
                 const span = document.createElement('span');
                 span.innerHTML = markdown;
