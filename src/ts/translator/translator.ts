@@ -316,6 +316,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             let translated = await translate(node.textContent || "", reverse);
             if (!reprocessDisplayScript) {
                 node.textContent = translated;
+                applyMarkdownToNode(node);
                 return;
             }
             
@@ -325,12 +326,6 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 "editdisplay",
                 chatID
             );
-            
-            // If the translation is the same, don't replace the node
-            if (translated == processedTranslated) {
-                node.textContent = processedTranslated;
-                return;
-            }
 
             // Replace the old node with the new one
             const newNode = document.createElement(

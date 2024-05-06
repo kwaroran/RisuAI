@@ -574,10 +574,12 @@ export function applyMarkdownToNode(node: Node) {
                 span.innerHTML = markdown;
                 
                 // inherit inline style from the parent node
-                const parentStyle = (node.parentNode as HTMLElement).style;
-                for(let i=0;i<parentStyle.length;i++){
-                    span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
-                }   
+                const parentStyle = (node.parentNode as HTMLElement)?.style;
+                if(parentStyle){
+                    for(let i=0;i<parentStyle.length;i++){
+                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
+                    }   
+                }
                 (node as Element)?.replaceWith(span);
                 return
             }
