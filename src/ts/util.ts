@@ -8,6 +8,16 @@ import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { appWindow } from '@tauri-apps/api/window';
 import { isTauri } from "./storage/globalApi"
+import { Marked } from "marked"
+
+const mconverted = new Marked({
+    gfm: true,
+    breaks: true,
+    silent: true,
+    tokenizer: {
+
+    }
+})
 
 export interface Messagec extends Message{
     index: number
@@ -525,18 +535,18 @@ export function appendLastPath(url, lastPath) {
 }
 
 /**
- * Retrieves the text content of a given Node object, including line breaks represented by <br> elements.
+ * Converts the text content of a given Node object, including HTML elements, into a plain text sentence.
  *
  * @param {Node} node - The Node object from which the text content will be extracted.
- * @returns {string} The text content of the Node, with line breaks represented by newline characters ('\n').
+ * @returns {string} The plain text sentence representing the content of the Node object.
  *
  * @example
  * const div = document.createElement('div');
- * div.innerHTML = 'Hello<br>World';
- * const text = getNodetextWithNewline(div);
- * console.log(text); // Output: "Hello\nWorld"
+ * div.innerHTML = 'Hello<br>World<del>Deleted</del>';
+ * const sentence = getNodetextToSentence(div);
+ * console.log(sentence); // Output: "Hello\nWorld~Deleted~"
  */
-export function getNodetextWithNewline(node: Node) {
+export function getNodetextToSentence(node: Node): string {
     let result = '';
     for (const child of node.childNodes) {
         if (child.nodeType === Node.TEXT_NODE) {
@@ -544,10 +554,39 @@ export function getNodetextWithNewline(node: Node) {
         } else if (child.nodeType === Node.ELEMENT_NODE) {
             if (child.nodeName === 'BR') {
                 result += '\n';
+            } else if (child.nodeName === 'DEL') {
+                result += '~' + getNodetextToSentence(child) + '~';
             } else {
-                result += getNodetextWithNewline(child);
+                result += getNodetextToSentence(child);
             }
         }
     }
     return result;
+}
+
+export function applyMarkdownToNode(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (text) {
+            let markdown = mconverted.parseInline(text);
+            if (markdown !== text) {
+                const span = document.createElement('span');
+                span.innerHTML = markdown;
+                
+                // inherit inline style from the parent node
+                const parentStyle = (node.parentNode as HTMLElement)?.style;
+                if(parentStyle){
+                    for(let i=0;i<parentStyle.length;i++){
+                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
+                    }   
+                }
+                (node as Element)?.replaceWith(span);
+                return
+            }
+        }
+    } else {
+        for (const child of node.childNodes) {
+            applyMarkdownToNode(child);
+        }
+    }
 }

@@ -8,7 +8,7 @@ import { doingChat } from "../process"
 import type { simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
-import { getNodetextWithNewline, sleep } from "../util"
+import { getNodetextToSentence, sleep, applyMarkdownToNode } from "../util"
 import { processScriptFull } from "../process/scripts"
 
 let cache={
@@ -318,17 +318,17 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 node.textContent = translated;
                 return;
             }
-
+            
             const { data: processedTranslated } = await processScriptFull(
                 alwaysExistChar,
                 translated,
                 "editdisplay",
                 chatID
             );
-            
             // If the translation is the same, don't replace the node
             if (translated == processedTranslated) {
                 node.textContent = processedTranslated;
+                applyMarkdownToNode(node)
                 return;
             }
 
@@ -338,6 +338,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             );
             newNode.innerHTML = processedTranslated;
             node.parentNode.replaceChild(newNode, node);
+            applyMarkdownToNode(newNode);
         }
     }
 
@@ -374,7 +375,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                     blacklist.includes(child.nodeName.toLowerCase())
                 );
                 if (!hasBlacklistChild && (node as Element)?.getAttribute('translate') !== 'no'){
-                    const text = getNodetextWithNewline(node);
+                    const text = getNodetextToSentence(node);
                     const sentences = text.split("\n");
                     if (sentences.length > 1) {
                         // Multiple sentences seperated by <br> tags
@@ -389,6 +390,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                         }
                     } else {
                         // Single sentence
+                        node.innerHTML = sentences[0];
                         await translateNodeText(node, true);
                     }
                     return;

@@ -437,4 +437,5 @@ export const languageKorean = {
     modules: "모듈",
     useAdvancedEditor: "고급 에디터 사용",
     hanuraiMemory: "하느라이메모리",
+    combineTranslation: "결합 번역",
 }
