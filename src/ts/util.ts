@@ -554,9 +554,25 @@ export function getNodetextToSentence(node: Node): string {
         } else if (child.nodeType === Node.ELEMENT_NODE) {
             if (child.nodeName === 'BR') {
                 result += '\n';
-            } else if (child.nodeName === 'DEL') {
+                continue;
+            }
+            
+            // If a child has a style it's not for a markdown formatting
+            const childStyle = (child as HTMLElement)?.style;
+            if (childStyle?.cssText!== '') {
+                result += getNodetextToSentence(child);
+                continue;
+            }
+            
+            // convert HTML elements to markdown format
+            if (child.nodeName === 'DEL') {
                 result += '~' + getNodetextToSentence(child) + '~';
-            } else {
+            } else if (child.nodeName === 'STRONG' || child.nodeName === 'B') {
+                result += '**' + getNodetextToSentence(child) + '**';
+            } else if (child.nodeName === 'EM' || child.nodeName === 'I') {
+                result += '*' + getNodetextToSentence(child) + '*';
+            } 
+            else {
                 result += getNodetextToSentence(child);
             }
         }
