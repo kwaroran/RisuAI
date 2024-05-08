@@ -14,7 +14,7 @@
     if(step === 0){
         const browserLang = navigator.language
         const browserLangShort = browserLang.split('-')[0]
-        const usableLangs = ['de', 'en', 'ko', 'cn', 'vi']
+        const usableLangs = ['de', 'en', 'ko', 'cn', 'vi', 'zh-Hant']
         if(usableLangs.includes(browserLangShort)){
             changeLanguage(browserLangShort)
             $DataBase.language = browserLangShort
@@ -120,6 +120,11 @@
                             $DataBase.language='cn'
                             step = 1
                         }}>• 中文</button>
+                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                            changeLanguage('zh-Hant')
+                            $DataBase.language='zh-Hant'
+                            step = 1
+                        }}>• 中文(繁體)</button>
                         <button class="hover:text-green-500 transition-colors" on:click={() => {
                             changeLanguage('vi')
                             $DataBase.language='vi'
