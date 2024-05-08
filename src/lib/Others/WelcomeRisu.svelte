@@ -120,6 +120,11 @@
                             $DataBase.language='cn'
                             step = 1
                         }}>• 中文</button>
+                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                            changeLanguage('vi')
+                            $DataBase.language='vi'
+                            step = 1
+                        }}>• Tiếng Việt</button>
                     </div>
 
                 {:else}
