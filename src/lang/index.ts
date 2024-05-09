@@ -4,6 +4,7 @@ import { languageGerman } from "./de";
 import { languageEnglish } from "./en";
 import { languageKorean } from "./ko";
 import { LanguageVietnamese } from "./vi";
+import { languageChineseTraditional } from "./zh-Hant";
 
 export let language:typeof languageEnglish = languageEnglish
 
@@ -20,6 +21,9 @@ export function changeLanguage(lang:string){
     }
     else if(lang === 'vi'){
         language = merge(structuredClone(languageEnglish), LanguageVietnamese)
+    }
+    else if(lang === 'zh-Hant'){
+        language = merge(structuredClone(languageEnglish), languageChineseTraditional)
     }
     else{
         language = languageEnglish
