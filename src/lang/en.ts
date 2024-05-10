@@ -122,6 +122,7 @@ export const languageEnglish = {
         triggerScript: "Trigger Script is a custom script that runs when a condition is met. it can be used to modify the chat data, run a command, change variable, and etc. the type depends when it is triggered. it can also be run by buttons, which can be used with {{button::Display::TriggerName}}, or HTML buttons with `risu-trigger=\"<TriggerName>\"` attribute.",
         autoContinueChat: "If enabled, it will try to continue the chat if it doesn't ends with a punctuation. DONT USE THIS WITH LANGUAGES THAT DOESN'T USE PUNCTUATION.",
         combineTranslation: "If enabled, text that is one sentence but separated by HTML tags will be combined together and translated, then Modify Display script will be reapplied to the translated output.\nThis helps the translator to make the correct translation.\nIf the UI becomes weird when you enable this option, please turn off the option and report it.",
+        excludeEmptyAssets: "If enabled, excludes assets that do not exist on the character when sending chat to the AI.\nIn the long chat, This will reduces the possibility of the AI mentioning assets that don't exist on the character.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -590,4 +591,5 @@ export const languageEnglish = {
     run: "Run",
     noMessage: "Type something to start the chat.",
     combineTranslation : "Combine Translation",
+    excludeEmptyAssets : "Exclude non-existent assets"
 }

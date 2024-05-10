@@ -5,7 +5,7 @@ import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
-import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
+import { excludeEmptyAdditionalAssets, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
 import { metricaPlugin } from "../plugins/metrica";
@@ -210,6 +210,9 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 data = risuChatParser(data.replace(reg, outScript))
             }
         }
+    }
+    if(db.excludeEmptyAssets && char.type !== 'group' && mode === 'editprocess'){
+        data=await excludeEmptyAdditionalAssets(data, char)
     }
     return {data, emoChanged}
 }

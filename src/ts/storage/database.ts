@@ -400,6 +400,7 @@ export function setDatabase(data:Database){
     data.sideBarSize ??= 0
     data.textAreaTextSize ??= 0
     data.combineTranslation ??= false
+    data.excludeEmptyAssets ??= true
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -655,6 +656,7 @@ export interface Database{
     sideBarSize:number
     textAreaTextSize:number
     combineTranslation:boolean
+    excludeEmptyAssets:boolean
 }
 
 export interface customscript{

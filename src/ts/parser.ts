@@ -153,6 +153,60 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     return data
 }
 
+/**
+ * Removes empty additional assets and emotion images from the given data string.
+ *
+ * @param data - The input data string that may contain references to additional assets and emotion images.
+ * @param char - The character object containing additional assets and emotion images.
+ * @returns The modified data string with empty additional assets and emotion images removed.
+ */
+export async function excludeEmptyAdditionalAssets(data: string, char: simpleCharacterArgument | character): Promise<string> {
+    if (char.additionalAssets || char.emotionImages) {
+        // asset and emo import code is same as in parseAdditionalAssets
+        let assetPaths: {
+            [key: string]: {
+                path: string;
+                ext?: string;
+            };
+        } = {};
+        let emoPaths: {
+            [key: string]: {
+                path: string;
+            };
+        } = {};
+
+        if (char.additionalAssets) {
+            for (const asset of char.additionalAssets) {
+                const assetPath = await getFileSrc(asset[1]);
+                assetPaths[asset[0].toLocaleLowerCase()] = {
+                    path: assetPath,
+                    ext: asset[2],
+                };
+            }
+        }
+        if (char.emotionImages) {
+            for (const emo of char.emotionImages) {
+                const emoPath = await getFileSrc(emo[1]);
+                emoPaths[emo[0].toLocaleLowerCase()] = {
+                    path: emoPath,
+                };
+            }
+        }
+
+        data = data.replaceAll(
+            assetRegex,
+            (full: string, type: string, name: string) => {
+                name = name.toLocaleLowerCase();
+                const assetPath = assetPaths[name]?.path;
+                const emoPath = emoPaths[name]?.path;
+                const isExistAsset = Boolean(assetPath || emoPath);
+                return isExistAsset ? full : "";
+            }
+        );
+    }
+    return data;
+}
+
 async function parseInlayImages(data:string){
     const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
     if(inlayMatch){

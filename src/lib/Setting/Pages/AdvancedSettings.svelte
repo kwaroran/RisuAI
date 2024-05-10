@@ -71,6 +71,9 @@
     <Check bind:check={$DataBase.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.excludeEmptyAssets} name={language.excludeEmptyAssets}> <Help key="excludeEmptyAssets"/></Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.autofillRequestUrl} name={language.autoFillRequestURL}> <Help key="autoFillRequestURL"/></Check>
 </div>
 <div class="flex items-center mt-4">
