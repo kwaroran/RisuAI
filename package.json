@@ -24,6 +24,7 @@
     "@dqbd/tiktoken": "^1.0.7",
     "@huggingface/jinja": "^0.2.2",
     "@mlc-ai/web-tokenizers": "^0.1.2",
+    "@risuai/ccardlib": "^0.3.0",
     "@smithy/protocol-http": "^3.0.12",
     "@smithy/signature-v4": "^2.0.19",
     "@tauri-apps/api": "1.5.3",

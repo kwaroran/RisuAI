@@ -8,7 +8,7 @@ import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
 import { CurrentCharacter, selectedCharID } from "./stores"
 import { convertImage, hasher } from "./parser"
-
+import { CCardLib } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
@@ -70,6 +70,7 @@ async function importCharacterProcess(f:{
     
     // const readed = PngChunk.read(img, ['chara'])?.['chara']
     let readedChara = ''
+    let readedCCv3 = ''
     let img:Uint8Array
     const readGenerator = PngChunk.readGenerator(f.data, {
         returnTrimed: true
@@ -85,9 +86,15 @@ async function importCharacterProcess(f:{
             break
         }
         if(chunk.key === 'chara'){
-            //For memory reason, limit to 2MB
-            if(readedChara.length < 2 * 1024 * 1024){
+            //For memory reason, limit to 5MB
+            if(readedChara.length < 5 * 1024 * 1024){
                 readedChara = chunk.value
+            }
+            continue
+        }
+        if(chunk.key === 'ccv3'){
+            if(readedCCv3.length < 5 * 1024 * 1024){
+                readedCCv3 = chunk.value
             }
             continue
         }
@@ -99,9 +106,13 @@ async function importCharacterProcess(f:{
             assets[assetIndex] = assetId
         }
     }
-    if(!readedChara){
+    if(!readedChara && !readedCCv3){
         alertError(language.errors.noData)
         return
+    }
+
+    if(!readedChara){
+        readedChara = readedCCv3
     }
 
     if(!img){
@@ -164,10 +175,20 @@ async function importCharacterProcess(f:{
         }
     }
     else {
-        const charaData:CharacterCardV2 = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-        if(await importSpecv2(charaData, img, "normal", assets)){
-            let db = get(DataBase)
-            return db.characters.length - 1
+        const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        const checkedVersion = CCardLib.character.check(parsed)
+        if(checkedVersion === 'v2' || checkedVersion === 'v3'){
+            const charaData:CharacterCardV2 = CCardLib.character.convert(parsed, {
+                from: checkedVersion,
+                to: 'v2',
+                options: {
+                    convertRisuFields: true
+                }
+            })
+            if(await importSpecv2(charaData, img, "normal", assets)){
+                let db = get(DataBase)
+                return db.characters.length - 1
+            }
         }
     }
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
