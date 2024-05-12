@@ -30,7 +30,8 @@
                 'de',
                 'ko',
                 'cn',
-                'vi'
+                'vi',
+                'zh-Hant'
             ]
             const lang = parseInt(await alertSelect(langs))
             
@@ -54,6 +55,7 @@
     <OptionInput value="en" >English</OptionInput>
     <OptionInput value="ko" >한국어</OptionInput>
     <OptionInput value="cn" >中文</OptionInput>
+    <OptionInput value="zh-Hant" >中文(繁體)</OptionInput>
     <OptionInput value="vi" >Tiếng Việt</OptionInput>
     <OptionInput value="translang" >[Translate in your own language]</OptionInput>
 </SelectInput>
@@ -66,6 +68,9 @@
     <OptionInput value="ko" >Korean</OptionInput>
     <OptionInput value="ru" >Russian</OptionInput>
     <OptionInput value="zh" >Chinese</OptionInput>
+    {#if $DataBase.translatorType === 'google'}
+        <OptionInput value="zh-TW" >Chinese (Traditional)</OptionInput>
+    {/if}
     <OptionInput value="ja" >Japanese</OptionInput>
     <OptionInput value="fr" >French</OptionInput>
     <OptionInput value="es" >Spanish</OptionInput>
