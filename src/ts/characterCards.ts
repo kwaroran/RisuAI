@@ -912,7 +912,7 @@ export async function downloadRisuHub(id:string) {
             type: "wait",
             msg: "Downloading..."
         })
-        const res = await fetch(hubURL + '/hub/get/' + id, {
+        const res = await fetch("https://realm.risuai.net/api/v1/download/png-v3/" + id + '?cors=true', {
             headers: {
                 "x-risu-api-version": "4"
             }
