@@ -172,6 +172,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-large-latest':
         case 'gpt4_turbo_20240409':
         case 'gpt4_turbo':
+        case 'gpt4o':
+        case 'gpt4o-2024-05-13':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -417,6 +419,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4_0314' ? 'gpt-4-0314'
                     : requestModel === 'gpt4_turbo_20240409' ? 'gpt-4-turbo-2024-04-09'
                     : requestModel === 'gpt4_turbo' ? 'gpt-4-turbo'
+                    : requestModel === 'gpt4o' ? 'gpt-4o'
+                    : requestModel === 'gpt4o-2024-05-13' ? 'gpt-4o-2024-05-13'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,

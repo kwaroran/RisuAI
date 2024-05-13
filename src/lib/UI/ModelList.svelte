@@ -35,7 +35,10 @@
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35')}}>GPT-3.5 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('instructgpt35')}}>GPT-3.5 Instruct</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo')}}>GPT-4 Turbo</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o')}}>GPT-4o</button>
                 {#if showUnrec}
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4 (Old)</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K (Old)</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt35_16k')}}>GPT-3.5 Turbo 16K</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0314')}}>GPT-4 0314</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0613')}}>GPT-4 0613</button>
@@ -49,8 +52,7 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_0125')}}>GPT-4 Turbo 0125</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo_20240409')}}>GPT-4 Turbo 20240409</button>
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4 (Old)</button>
-                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K (Old)</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-2024-05-13')}}>GPT-4o 20240513</button>
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
