@@ -497,7 +497,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 // inlay models doesn't support logit_bias
                 // gpt-4-turbo supports both logit_bias and inlay image
                 if(!(
-                    aiModel.startsWith('gpt4') || 
+                    aiModel.startsWith('gpt') || 
                     (aiModel == 'reverse_proxy' && (
                         db.proxyRequestModel?.startsWith('gpt') ||
                         (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt'))
