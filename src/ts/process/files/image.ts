@@ -86,14 +86,17 @@ export async function getInlayImage(id: string){
 
 export function supportsInlayImage(){
     const db = get(DataBase)
-    return db.aiModel.startsWith('gptv') || db.aiModel === 'gemini-pro-vision' || db.aiModel.startsWith('claude-3') || db.aiModel.startsWith('gpt4_turbo') ||
+    return db.aiModel.startsWith('gptv') || db.aiModel === 'gemini-pro-vision' || db.aiModel.startsWith('claude-3') || db.aiModel.startsWith('gpt4_turbo') || db.aiModel.startsWith('gpt5') || db.aiModel.startsWith('gpt4o') ||
         (db.aiModel === 'reverse_proxy' && (
             db.proxyRequestModel?.startsWith('gptv') || db.proxyRequestModel === 'gemini-pro-vision' || db.proxyRequestModel?.startsWith('claude-3') || db.proxyRequestModel.startsWith('gpt4_turbo') ||
+            db.proxyRequestModel?.startsWith('gpt5') || db.proxyRequestModel?.startsWith('gpt4o') ||
             db.proxyRequestModel === 'custom'  && (
                 db.customProxyRequestModel?.startsWith('gptv') ||
                 db.customProxyRequestModel === 'gemini-pro-vision' ||
                 db.customProxyRequestModel?.startsWith('claude-3') ||
-                db.customProxyRequestModel.startsWith('gpt-4-turbo')
+                db.customProxyRequestModel.startsWith('gpt-4-turbo') ||
+                db.customProxyRequestModel?.startsWith('gpt5') ||
+                db.customProxyRequestModel?.startsWith('gpt4o')
             )
         ))
 }
