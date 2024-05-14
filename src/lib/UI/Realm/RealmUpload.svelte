@@ -29,8 +29,18 @@
         <span class="text-textcolor">{language.tags}</span>
         <span class="text-textcolor2 text-sm">Tags to search your character easily. latin alphabets only. seperate by comma.</span>
         <TextInput placeholder="" bind:value={tags} on:input={() => {
-            tags = tags.replace(/[^a-zA-Z,]/g, '').toLocaleLowerCase().replace(/ /g, '')
+            tags = tags.replace(/[^a-zA-Z,\-]/g, '').toLocaleLowerCase().replace(/ /g, '')
         }} />
+
+        <div class="peer-focus:block hidden hover:block flex-wrap">
+            {#each searchTagList(tags) as tag}
+                <button class="text-textcolor2 text-sm p-2 border border-bgcolor" on:click={() => {
+                    const splited = tags.split(',').map(e => e.trim())
+                    splited[splited.length - 1] = tag
+                    tags = splited.join(',') + ','
+                }}>{tag}</button>
+            {/each}
+        </div>
 
         {#if char.license !== 'CC BY-NC-SA 4.0' && char.license !== 'CC BY-SA 4.0'}
 
@@ -104,7 +114,7 @@
     import SelectInput from "../GUI/SelectInput.svelte";
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
-    import { parseMultilangString, sleep } from "src/ts/util";
+    import { TagList, parseMultilangString, searchTagList, sleep } from "src/ts/util";
     import MultiLangInput from "../GUI/MultiLangInput.svelte";
     export let close = () => {}
     export let char:character

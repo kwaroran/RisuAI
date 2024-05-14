@@ -934,3 +934,28 @@ export const TagList = [
         ]
     }
 ]
+
+export const searchTagList = (query:string) => {
+    const splited = query.split(',').map(v => v.trim())
+    if(splited.length > 10){
+        return []
+    }
+    const realQuery = splited.at(-1).trim().toLowerCase()
+
+    let result = []
+
+    for(const tag of TagList){
+        if(tag.value.startsWith(realQuery)){
+            result.push(tag.value)
+            continue
+        }
+        for(const alias of tag.alias){
+            if(alias.startsWith(realQuery)){
+                result.push(tag.value)
+                break
+            }
+        }
+    }
+
+    return result.filter(v => splited.indexOf(v) === -1)
+}
