@@ -1,12 +1,13 @@
 export const patchNote = {
-    version: "1.102",
+    version: "1.103",
     content: 
 `
-# Update 1.102
-- Changed download URL notification
-- Fixed hanurai to skip query chats when push to processor (#400)
-- Fixed ollama's hardcoded url (#404)
-- Added New Option Combine Translation (#405)
+# Update 1.103
+- Made logit_bias work for all gpt-based multimodal models (#418)
+- Added supports of gpt-4o tokenizer for reverse_proxy (#418)
+- Added GPT-4o in Custom (OpenAI-compatible) (#419)
+- Added Tag autocomplete in RisuRealm upload
+- Fixed GPT-4o image multimodal feature not working properly
 `
 }
 
