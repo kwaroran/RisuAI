@@ -35,6 +35,11 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
             case 'llama3':
                 return await tokenizeWebTokenizers(data, 'llama')
             default:
+                // Add exception for gpt-4o tokenizers on reverse_proxy
+                if(db.proxyRequestModel?.startsWith('gpt4o') || 
+                (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt-4o'))) {
+                    return await tikJS(data, 'o200k_base')
+                }
                 return await tikJS(data)
         }
     }
