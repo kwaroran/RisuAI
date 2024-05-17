@@ -99,6 +99,8 @@ export function getModelName(name:string){
             return 'GPT-4o (2024-05-13)'
         case 'gemini-1.5-pro-latest':
             return 'Gemini 1.5 Pro'
+        case 'gemini-1.5-flash':
+            return 'Gemini 1.5 Flash'
         case 'ollama-hosted':
             return 'Ollama'
         default:
