@@ -28,7 +28,7 @@
     <WalletIcon size={24} />
   </button>
   <button class="text-textcolor" on:click={() => {
-    openURL("mailto:amasio1234@proton.me")
+    openURL("mailto:risuai@proton.me")
   }}>
     <MailIcon size={24} />
   </button>
