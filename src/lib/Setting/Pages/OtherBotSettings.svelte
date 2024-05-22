@@ -243,7 +243,7 @@
         <div class="flex">
             <Check bind:check={$DataBase.hanuraiSplit} name="Text Spliting"/>
         </div>
-    {:else if $DataBase.supaMemoryType === 'hypav2'}
+    {:else if $DataBase.supaMemoryType === 'hypaV2'}
         <span class="text-textcolor mt-4">{language.HypaMemory} V2 is Experimental</span>
     {:else if $DataBase.supaMemoryType !== 'none'}
         <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
