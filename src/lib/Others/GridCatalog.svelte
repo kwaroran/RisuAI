@@ -53,7 +53,9 @@
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
         <h1 class="text-textcolor text-2xl font-bold mt-2 flex items-center mx-4 mb-2">
-            <button class="mr-2 hover:text-textcolor text-textcolor2"><ArrowLeft /></button>
+            <button class="mr-2 hover:text-textcolor text-textcolor2" on:click={() => {
+                endGrid()
+            }}><ArrowLeft /></button>
             <span>Catalog</span>
         </h1>
         <div class="mx-4 mb-6 flex flex-col">
