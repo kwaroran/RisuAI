@@ -145,8 +145,10 @@ export async function hypaMemoryV2(
     
     const processer = new HypaProcesser("nomic")
 
-    await processer.addText(data.chunks.map((v) => {
-        return "search_document: " + v.text
+    await processer.addText(data.chunks.filter(v => {
+        return v.text.trim().length > 0
+    }).map((v) => {
+        return "search_document: " + v.text.trim()
     }))
 
     let scoredResults:{[key:string]:number} = {}

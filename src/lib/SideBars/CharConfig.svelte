@@ -7,7 +7,7 @@
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertNormal, alertSelectChar, alertTOS } from "../../ts/alert";
+    import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
@@ -672,11 +672,6 @@
         <span class="text-textcolor mt-2">{language.additionalText} <Help key="additionalText" /></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.additionalText}></TextAreaInput>
 
-
-        {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
-            <span class="text-textcolor">{language.SuperMemory}</span>
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
-        {/if}
         {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
             <span class="text-textcolor">{language.personality} <Help key="personality" unrecommended/></span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.personality}></TextAreaInput>
@@ -815,6 +810,21 @@
             <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>
+
+        {#if $DataBase.supaMemoryType === 'hypaV2'}
+            <Button on:click={() => {
+                currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {
+                    chunks: [],
+                    mainChunks: []
+                }
+                showHypaV2Alert()
+            }}>
+                {language.HypaMemory} V2 Data
+            </Button>
+        {:else if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
+            <span class="text-textcolor">{language.SuperMemory}</span>
+            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
+        {/if}
 
         {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
             && currentChar.data.license !== 'CC BY-SA 4.0'

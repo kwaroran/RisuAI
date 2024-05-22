@@ -17,6 +17,7 @@
     import { getFetchData } from 'src/ts/storage/globalApi';
     import { CurrentChat } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
+    import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     let btn
     let input = ''
     let cardExportType = ''
@@ -77,7 +78,7 @@
                 <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -253,6 +254,47 @@
                             <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.response)}</code>
                         {/if}
                     {/await}
+                {/if}
+            {:else if $alertStore.type === 'hypaV2'}
+                <div class="flex flex-wrap gap-2 mb-4 max-w-full w-124">
+                    <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
+                        Chunks
+                    </Button>
+                    <Button selected={generationInfoMenuIndex === 1} size="sm" on:click={() => {generationInfoMenuIndex = 1}}>
+                        Summarized
+                    </Button>
+                    <button class="ml-auto" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: ''
+                        })
+                    }}>✖</button>
+                </div>
+                {#if generationInfoMenuIndex === 0}
+                    <div class="flex flex-col gap-2 w-full">
+                        {#each $CurrentChat.hypaV2Data.chunks as chunk}
+                            <TextAreaInput bind:value={chunk.text} />
+                        {/each}
+
+                        <Button on:click={() => {
+                            $CurrentChat.hypaV2Data.chunks.push({
+                                text: '',
+                                targetId: 'all'
+                            })
+                            $CurrentChat.hypaV2Data.chunks = $CurrentChat.hypaV2Data.chunks
+                        }}>+</Button>
+                    </div>
+                {:else}
+                    {#each $CurrentChat.hypaV2Data.chunks as chunk, i}
+                        <div class="flex flex-col p-2 rounded-md border-darkborderc border">
+                            {#if i === 0}
+                                <span class="text-green-500">Active</span>
+                            {:else}
+                                <span>Inactive</span>
+                            {/if}
+                            <TextAreaInput bind:value={chunk.text} />
+                        </div>
+                    {/each}
                 {/if}
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">

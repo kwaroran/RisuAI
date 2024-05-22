@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core"
 import { DataBase, type MessageGenerationInfo } from "./storage/database"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2',
     msg: string,
     submsg?: string
 }
@@ -274,5 +274,12 @@ export function alertRequestData(info:AlertGenerationInfoStoreData){
     alertStore.set({
         'type': 'requestdata',
         'msg': info.genInfo.generationId ?? 'none'
+    })
+}
+
+export function showHypaV2Alert(){
+    alertStore.set({
+        'type': 'hypaV2',
+        'msg': ""
     })
 }
