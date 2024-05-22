@@ -207,7 +207,7 @@
     </SelectInput>
 </Arcodion>
 
-<Arcodion name={language.SuperMemory}/{language.hanuraiMemory} styled>
+<Arcodion name={language.longTermMemory} styled>
     <span class="text-textcolor mt-4">{language.type}</span>
 
     <SelectInput value={

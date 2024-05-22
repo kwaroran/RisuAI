@@ -594,4 +594,5 @@ export const languageEnglish = {
     combineTranslation : "Combine Translation",
     dynamicAssets: "Dynamic Assets",
     dynamicAssetsEditDisplay: "Use Dynamic Assets in Display",
+    longTermMemory: "Long Term Memory",
 }
