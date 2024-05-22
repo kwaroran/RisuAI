@@ -1,13 +1,15 @@
 export const patchNote = {
-    version: "1.103",
+    version: "1.104",
     content: 
 `
-# Update 1.103
-- Made logit_bias work for all gpt-based multimodal models (#418)
-- Added supports of gpt-4o tokenizer for reverse_proxy (#418)
-- Added GPT-4o in Custom (OpenAI-compatible) (#419)
-- Added Tag autocomplete in RisuRealm upload
-- Fixed GPT-4o image multimodal feature not working properly
+# Update 1.104
+- Added experimental Hypamemory V2
+- Added catalog list menu
+- Added catalog trash menu
+- Added trash
+ - Now if you delete a character, it will be moved to the trash instead of being deleted permanently
+ - You can restore the character from the trash
+ - Characters in the trash will be deleted permanently after 3 days
 `
 }
 
