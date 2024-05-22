@@ -5,12 +5,13 @@ import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
-import { risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
+import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
 import { metricaPlugin } from "../plugins/metrica";
 import { OaiFixKorean } from "../plugins/fixer";
 import { getModuleRegexScripts } from "./modules";
+import { HypaProcesser } from "./memory/hypamemory";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -211,6 +212,26 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
+        const assetNames = char.additionalAssets.map((v) => v[0])
+        const processer = new HypaProcesser('MiniLM')
+        await processer.addText(assetNames)
+        const matches = data.matchAll(assetRegex)
+
+        for(const match of matches){
+            const type = match[1]
+            const assetName = match[2]
+            if(!assetNames.includes(assetName)){
+                const searched = await processer.similaritySearch(assetName)
+                const bestMatch = searched[0]
+                if(bestMatch){
+                    data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
+                }
+            }
+        }
+    }
+
     return {data, emoChanged}
 }
 

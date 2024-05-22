@@ -655,6 +655,7 @@ export interface Database{
     sideBarSize:number
     textAreaTextSize:number
     combineTranslation:boolean
+    dynamicAssets:boolean
 }
 
 export interface customscript{

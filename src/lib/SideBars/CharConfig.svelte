@@ -30,6 +30,7 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
+  import { shareRealmCard } from "src/ts/realm";
     
 
     let subMenu = 0
@@ -835,7 +836,8 @@
                     return
                 }
                 if(await alertTOS()){
-                    openHubUpload = true                    
+                    // openHubUpload = true
+                    shareRealmCard()
                 }
             }} className="mt-2">
                 {#if currentChar.data.realmId}

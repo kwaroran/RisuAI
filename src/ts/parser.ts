@@ -77,7 +77,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 })
 
 
-const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
+export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
