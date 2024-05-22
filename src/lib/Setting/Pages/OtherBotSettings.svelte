@@ -211,7 +211,7 @@
     <span class="text-textcolor mt-4">{language.type}</span>
 
     <SelectInput value={
-        $DataBase.hypaMemory ? 'hypav2' :
+        $DataBase.supaMemoryType === 'hypaV2' ? 'hypaV2' :
         $DataBase.supaMemoryType !== 'none' ? 'supaMemory' :
         $DataBase.hanuraiEnable ? 'hanuraiMemory' : 'none'
     } on:change={(v) => {
@@ -223,7 +223,7 @@
         } else if (value === 'hanuraiMemory'){
             $DataBase.supaMemoryType = 'none'
             $DataBase.hanuraiEnable = true
-        } else if (value === 'hypav2') {
+        } else if (value === 'hypaV2') {
             $DataBase.supaMemoryType = 'hypaV2'
             $DataBase.hanuraiEnable = false
         } else {
