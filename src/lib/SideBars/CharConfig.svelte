@@ -5,7 +5,7 @@
     import { selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
-    import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage } from "../../ts/characters";
+    import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
@@ -874,20 +874,7 @@
         {/if}
     {/if}
     <Button on:click={async () => {
-        const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
-        if(!conf){
-            return
-        }
-        const conf2 = await alertConfirm(language.removeConfirm2 + currentChar.data.name)
-        if(!conf2){
-            return
-        }
-        let chars = $DataBase.characters
-        chars.splice($selectedCharID, 1)
-        checkCharOrder()
-        $selectedCharID = -1
-        $DataBase.characters = chars
-
+        removeChar($selectedCharID, currentChar.data.name)
     }} className="mt-2" size="sm">{ currentChar.type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
 {/if}
 

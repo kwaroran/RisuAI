@@ -595,4 +595,8 @@ export const languageEnglish = {
     dynamicAssets: "Dynamic Assets",
     dynamicAssetsEditDisplay: "Use Dynamic Assets in Display",
     longTermMemory: "Long Term Memory",
+    grid: "Grid",
+    list: "List",
+    trash: "Trash",
+    trashDesc: "Deleted characters are moved to trash. you can restore or delete them permanently. deleted characters are automatically purged after 3 days.",
 }

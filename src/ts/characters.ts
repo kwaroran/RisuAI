@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc } from "./storage/database";
-import { alertError, alertNormal, alertSelect, alertStore } from "./alert";
+import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
@@ -508,4 +508,29 @@ export async function addDefaultCharacters() {
         type: 'none',
         msg: ''
     })
+}
+
+export async function removeChar(index:number,name:string, type:'normal'|'permanent'|'permanentForce' = 'normal'){
+    const db = get(DataBase)
+    if(type !== 'permanentForce'){
+        const conf = await alertConfirm(language.removeConfirm + name)
+        if(!conf){
+            return
+        }
+        const conf2 = await alertConfirm(language.removeConfirm2 + name)
+        if(!conf2){
+            return
+        }
+    }
+    let chars = db.characters
+    if(type === 'normal'){
+        chars[index].trashTime = Date.now()
+    }
+    else{
+        chars.splice(index, 1)
+    }
+    checkCharOrder()
+    db.characters = chars
+    setDatabase(db)
+    selectedCharID.set(-1)
 }

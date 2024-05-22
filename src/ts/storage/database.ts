@@ -772,6 +772,7 @@ export interface character{
     vits?: OnnxModelFiles
     realmId?:string
     imported?:boolean
+    trashTime?:number
 }
 
 
@@ -815,6 +816,7 @@ export interface groupChat{
     oneAtTime?:boolean
     virtualscript?:string
     lorePlus?:boolean
+    trashTime?:number
 }
 
 export interface botPreset{

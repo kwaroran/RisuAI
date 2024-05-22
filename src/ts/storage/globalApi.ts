@@ -977,6 +977,14 @@ async function checkNewFormat() {
     if(db.mainPrompt === oldJailbreak){
         db.mainPrompt = defaultJailbreak
     }
+    for(let i=0;i<db.characters.length;i++){
+        const trashTime = db.characters[i].trashTime
+        const targetTrashTime = trashTime ? trashTime + 1000 * 60 * 60 * 24 * 3 : 0
+        if(trashTime && targetTrashTime < Date.now()){
+            db.characters.splice(i,1)
+            i--
+        }
+    }
     setDatabase(db)
     checkCharOrder()
 }
@@ -997,10 +1005,13 @@ export function checkCharOrder() {
     let charIdList:string[] = []
 
     for(let i=0;i<db.characters.length;i++){
-        const charId = db.characters[i].chaId
-        charIdList.push(charId)
+        const char = db.characters[i]
+        const charId = char.chaId
+        if(!char.trashTime){
+            charIdList.push(charId)
+        }
         if(!ordered.includes(charId)){
-            if(charId !== '§temp' && charId !== '§playground'){
+            if(charId !== '§temp' && charId !== '§playground' && !char.trashTime){
                 db.characterOrder.push(charId)
             }
         }
