@@ -233,7 +233,7 @@
     }}>
         <OptionInput value="none" >None</OptionInput>
         <OptionInput value="supaMemory" >{language.SuperMemory}</OptionInput>
-        <OptionInput value="hypav2" >{language.HypaMemory} V2</OptionInput>
+        <OptionInput value="hypaV2" >{language.HypaMemory} V2</OptionInput>
         <OptionInput value="hanuraiMemory" >{language.hanuraiMemory}</OptionInput>
     </SelectInput>
 
