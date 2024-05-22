@@ -211,6 +211,7 @@
     <span class="text-textcolor mt-4">{language.type}</span>
 
     <SelectInput value={
+        $DataBase.hypaMemory ? 'hypav2' :
         $DataBase.supaMemoryType !== 'none' ? 'supaMemory' :
         $DataBase.hanuraiEnable ? 'hanuraiMemory' : 'none'
     } on:change={(v) => {
@@ -222,6 +223,9 @@
         } else if (value === 'hanuraiMemory'){
             $DataBase.supaMemoryType = 'none'
             $DataBase.hanuraiEnable = true
+        } else if (value === 'hypav2') {
+            $DataBase.supaMemoryType = 'hypaV2'
+            $DataBase.hanuraiEnable = false
         } else {
             $DataBase.supaMemoryType = 'none'
             $DataBase.hanuraiEnable = false
@@ -229,6 +233,7 @@
     }}>
         <OptionInput value="none" >None</OptionInput>
         <OptionInput value="supaMemory" >{language.SuperMemory}</OptionInput>
+        <OptionInput value="hypav2" >{language.HypaMemory} V2</OptionInput>
         <OptionInput value="hanuraiMemory" >{language.hanuraiMemory}</OptionInput>
     </SelectInput>
 
@@ -238,6 +243,8 @@
         <div class="flex">
             <Check bind:check={$DataBase.hanuraiSplit} name="Text Spliting"/>
         </div>
+    {:else if $DataBase.supaMemoryType === 'hypav2'}
+        <span class="text-textcolor mt-4">{language.HypaMemory} V2 is Experimental</span>
     {:else if $DataBase.supaMemoryType !== 'none'}
         <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
         <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>

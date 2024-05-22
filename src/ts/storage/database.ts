@@ -914,6 +914,7 @@ export interface Chat{
     localLore: loreBook[]
     sdData?:string
     supaMemoryData?:string
+    hypaV2Data?:HypaV2Data
     lastMemory?:string
     suggestMessages?:string[]
     isStreaming?:boolean
@@ -1217,6 +1218,7 @@ import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
+import type { HypaV2Data } from '../process/memory/hypav2';
 
 export async function downloadPreset(id:number){
     saveCurrentPreset()

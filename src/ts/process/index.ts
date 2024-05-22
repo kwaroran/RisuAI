@@ -26,6 +26,7 @@ import { runCharacterJS } from "../plugins/embedscript";
 import { addRerolls } from "./prereroll";
 import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
+import { hypaMemoryV2 } from "./memory/hypav2";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -667,6 +668,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
             chats = hn.chats
             currentTokens = hn.tokens
+        }
+        else if(db.supaMemoryType === 'hypaV2'){
+            const sp = await hypaMemoryV2(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
+            if(sp.error){
+                alertError(sp.error)
+                return false
+            }
+            chats = sp.chats
+            currentTokens = sp.currentTokens
+            currentChat.hypaV2Data = sp.memory ?? currentChat.hypaV2Data
+            db.characters[selectedChar].chats[selectedChat].hypaV2Data = currentChat.hypaV2Data
+            console.log(currentChat.hypaV2Data)
+            DataBase.set(db)
         }
         else{
             const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
