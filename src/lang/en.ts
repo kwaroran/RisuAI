@@ -123,6 +123,7 @@ export const languageEnglish = {
         autoContinueChat: "If enabled, it will try to continue the chat if it doesn't ends with a punctuation. DONT USE THIS WITH LANGUAGES THAT DOESN'T USE PUNCTUATION.",
         combineTranslation: "If enabled, text that is one sentence but separated by HTML tags will be combined together and translated, then Modify Display script will be reapplied to the translated output.\nThis helps the translator to make the correct translation.\nIf the UI becomes weird when you enable this option, please turn off the option and report it.",
         dynamicAssets: "If enabled, if the asset name is not found when processing data, it will try to find the closest asset name by using vector search and replace it with the closest asset name.",
+        dynamicAssetsEditDisplay: "If enabled, the dynamic assets will be applied to the Modify Display stage too. however, this can cause performance issues.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -592,4 +593,5 @@ export const languageEnglish = {
     noMessage: "Type something to start the chat.",
     combineTranslation : "Combine Translation",
     dynamicAssets: "Dynamic Assets",
+    dynamicAssetsEditDisplay: "Use Dynamic Assets in Display",
 }

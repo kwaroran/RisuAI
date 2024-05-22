@@ -656,6 +656,7 @@ export interface Database{
     textAreaTextSize:number
     combineTranslation:boolean
     dynamicAssets:boolean
+    dynamicAssetsEditDisplay:boolean
 }
 
 export interface customscript{

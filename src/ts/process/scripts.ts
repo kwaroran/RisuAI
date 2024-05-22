@@ -214,6 +214,9 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     }
 
     if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
+        if(!db.dynamicAssetsEditDisplay && mode === 'editdisplay'){
+            return {data, emoChanged}
+        }
         const assetNames = char.additionalAssets.map((v) => v[0])
         const processer = new HypaProcesser('MiniLM')
         await processer.addText(assetNames)

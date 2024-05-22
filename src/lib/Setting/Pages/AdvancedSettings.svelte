@@ -118,6 +118,13 @@
         <Help key="dynamicAssets"/>
     </Check>
 </div>
+{#if $DataBase.dynamicAssets}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.dynamicAssetsEditDisplay} name={language.dynamicAssetsEditDisplay}>
+            <Help key="dynamicAssetsEditDisplay"/>
+        </Check>
+    </div>
+{/if}
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
 </div>
