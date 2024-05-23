@@ -13,7 +13,7 @@
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import { exportChar, shareRisuHub } from "src/ts/characterCards";
+    import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
