@@ -912,6 +912,7 @@ export async function getRisuHub(arg:{
     sort:string
 }):Promise<hubType[]> {
     try {
+        arg.search += ' __shared'
         const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}`
 
         const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
