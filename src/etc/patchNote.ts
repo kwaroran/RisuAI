@@ -7,6 +7,7 @@ export const patchNote = {
  - Now it uses RisuRealm iframe instead of GUI provided by app
 - Added RisuRealm preset sharing support
 - Added new preset sharing screen
+- Added {{first_msg_index}} CBS #436
 - Removed RisuRCC dude to low usage
 `
 }
