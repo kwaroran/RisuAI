@@ -1,14 +1,12 @@
 <script lang="ts">
-    import { downloadRisuHub, getRisuHub, hubURL, type hubType } from "src/ts/characterCards";
-    import { ArrowLeft, ArrowRight, BookIcon, DownloadIcon, FlagIcon, MenuIcon, PaperclipIcon, SearchIcon, SmileIcon, TrashIcon, XIcon } from "lucide-svelte";
-    import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
-    import { parseMarkdownSafe } from "src/ts/parser";
+    import { downloadRisuHub, getRisuHub, type hubType } from "src/ts/characterCards";
+    import { ArrowLeft, ArrowRight, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
+    import { alertInput } from "src/ts/alert";
     import { language } from "src/lang";
     import RisuHubIcon from "./RealmHubIcon.svelte";
-    import { DataBase } from "src/ts/storage/database";
     import TextInput from "../GUI/TextInput.svelte";
-    import RealmPopUp from "./RealmPopUp.svelte";
     import { SizeStore } from "src/ts/stores";
+    import { Capacitor } from "@capacitor/core";
 
     let openedData:null|hubType = null
 
@@ -56,12 +54,14 @@
     </div>
 </div>
 <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
-        nsfw = !nsfw
-        getHub()
-    }}>
-        NSFW
-    </button>
+    {#if !Capacitor.isNativePlatform()}
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
+            nsfw = !nsfw
+            getHub()
+        }}>
+            NSFW
+        </button>
+    {/if}
     <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
     <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
         sort = ''
