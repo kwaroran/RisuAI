@@ -120,7 +120,7 @@
 {/if}
 
 {#if openedData}
-    <RealmPopUp bind:openedData={openedData} />
+    <!-- <RealmPopUp bind:openedData={openedData} /> -->
 {/if}
 
 

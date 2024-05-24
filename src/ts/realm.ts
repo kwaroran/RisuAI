@@ -16,11 +16,20 @@ window.addEventListener("message", (event) => {
     }
 });
 
-export async function shareRealmCard() {
+export async function shareRealmCardData():Promise<{ name: ArrayBuffer; data: ArrayBuffer; }> {
     const char = structuredClone(get(CurrentCharacter)) as character
+    const trimedName = char.name.replace(/[^a-zA-Z0-9]/g, '') || 'character';
     const writer = new VirtualWriter()
+    const namebuf = new TextEncoder().encode(trimedName + '.png')
     await exportSpecV2(char, 'png', {writer: writer})
-    openRealm(char.name, writer.buf.buffer)
+    alertStore.set({
+        type: 'none',
+        msg: ''
+    })
+    return {
+        name: namebuf.buffer,
+        data: writer.buf.buffer.buffer
+    }
 }
 
 export async function openRealm(name:string,data:ArrayBuffer) {
@@ -29,5 +38,4 @@ export async function openRealm(name:string,data:ArrayBuffer) {
     const trimedName = name.replace(/[^a-zA-Z0-9]/g, '') || 'character';
     const filedata = encodeURIComponent(Buffer.from(data).toString('base64')) + `&${trimedName}.png`;
     const url = `https://realm.risuai.net/upload?token=${tk}&token_id=${id}#filedata=${filedata}`
-    window.open(url, '_blank')
 }

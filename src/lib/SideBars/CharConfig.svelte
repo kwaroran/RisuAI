@@ -30,7 +30,7 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-  import { shareRealmCard } from "src/ts/realm";
+    import RealmFrame from "../UI/Realm/RealmFrame.svelte";
     
 
     let subMenu = 0
@@ -846,8 +846,7 @@
                     return
                 }
                 if(await alertTOS()){
-                    // openHubUpload = true
-                    shareRealmCard()
+                    openHubUpload = true
                 }
             }} className="mt-2">
                 {#if currentChar.data.realmId}
@@ -859,7 +858,8 @@
         {/if}
 
         {#if openHubUpload}
-            <RealmUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/>
+            <!-- <RealmUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/> -->
+            <RealmFrame close={() => {openHubUpload=false}}/>
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
