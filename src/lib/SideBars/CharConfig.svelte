@@ -2,7 +2,7 @@
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
-    import { selectedCharID } from "../../ts/stores";
+    import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar } from "../../ts/characters";
@@ -17,7 +17,6 @@
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
     import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
-    import RealmUpload from "../UI/Realm/RealmUpload.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
@@ -30,11 +29,9 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-    import RealmFrame from "../UI/Realm/RealmFrame.svelte";
     
 
     let subMenu = 0
-    let openHubUpload = false
     let emos:[string, string][] = []
     let tokens = {
         desc: 0,
@@ -833,7 +830,7 @@
             || $DataBase.tpo
         }
             <Button size="lg" on:click={async () => {
-                exportChar($selectedCharID)
+                const res = await exportChar($selectedCharID)
             }} className="mt-2">{language.exportCharacter}</Button>
         {/if}
 
@@ -846,7 +843,7 @@
                     return
                 }
                 if(await alertTOS()){
-                    openHubUpload = true
+                    $ShowRealmFrameStore = 'character'
                 }
             }} className="mt-2">
                 {#if currentChar.data.realmId}
@@ -855,11 +852,6 @@
                     {language.shareCloud}
                 {/if}
             </Button>
-        {/if}
-
-        {#if openHubUpload}
-            <!-- <RealmUpload bind:char={currentChar.data} close={() => {openHubUpload=false}}/> -->
-            <RealmFrame close={() => {openHubUpload=false}}/>
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}

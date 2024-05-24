@@ -40,6 +40,7 @@ export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
 export const CurrentVariablePointer = writable({} as {[key:string]: string|number|boolean})
 export const OpenRealmStore = writable(false)
+export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 
 function createSimpleCharacter(char:character|groupChat){

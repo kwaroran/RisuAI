@@ -1,7 +1,6 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import {ArrowRight} from 'lucide-svelte'
-    import { DynamicGUI, settingsOpen, sideBarStore } from './ts/stores';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore } from './ts/stores';
     import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
@@ -11,6 +10,7 @@
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
     import Settings from './lib/Setting/Settings.svelte';
     import { showRealmInfoStore } from './ts/characterCards';
+    import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
 
     let didFirstSetup: boolean  = false
     let gridOpen = false
@@ -59,5 +59,8 @@
     {/if}
     {#if $showRealmInfoStore}
         <RealmPopUp bind:openedData={$showRealmInfoStore} />
+    {/if}
+    {#if $ShowRealmFrameStore}
+        <RealmFrame />
     {/if}
 </main>

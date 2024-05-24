@@ -293,35 +293,27 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
     }
 }
 
-export async function exportChar(charaID:number) {
+export async function exportChar(charaID:number):Promise<string> {
     const db = get(DataBase)
     let char = structuredClone(db.characters[charaID])
 
     if(char.type === 'group'){
-        return
+        return ''
     }
 
     if(!char.image){
         alertError('Image Required')
-        return
-    }
-    const conf = await alertConfirm(language.exportConfirm)
-    if(!conf){
-        return
+        return ''
     }
 
     const option = await alertCardExport()
-    if(option.type === 'cancel'){
-        return
-    }
-    else if(option.type === 'rcc'){
-        char.license = option.license
-        exportSpecV2(char, 'rcc', {password:option.password})
-    }
-    else{
+    if(option.type === ''){
         exportSpecV2(char,'png')
     }
-    return
+    else{
+        return option.type
+    }
+    return ''
 }
 
 

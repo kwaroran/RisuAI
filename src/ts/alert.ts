@@ -205,11 +205,12 @@ export async function alertConfirm(msg:string){
     return get(alertStore).msg === 'yes'
 }
 
-export async function alertCardExport(){
+export async function alertCardExport(type:string = ''){
 
     alertStore.set({
         'type': 'cardexport',
-        'msg': ''
+        'msg': '',
+        'submsg': type
     })
 
     while(true){

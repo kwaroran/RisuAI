@@ -1,12 +1,14 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
     import { shareRealmCardData } from "src/ts/realm";
-    import { DataBase } from "src/ts/storage/database";
-    import { CurrentCharacter } from "src/ts/stores";
+    import { DataBase, downloadPreset } from "src/ts/storage/database";
+    import { CurrentCharacter, ShowRealmFrameStore } from "src/ts/stores";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
-    export let close: () => void
+    const close =  () => {
+        $ShowRealmFrameStore = ''
+    }
     let iframe: HTMLIFrameElement = null
     const tk = $DataBase?.account?.token;
     const id = $DataBase?.account?.id
@@ -25,7 +27,10 @@
         }
         if(e.data.type === 'success'){
             alertMd(`## Upload Success\n\nYour character has been uploaded to Realm successfully.\n\n${"```\nhttps://realm.risuai.net/character/" +  e.data.id + "\n```"}`)
-            if($CurrentCharacter.type === 'character'){
+            if($ShowRealmFrameStore.startsWith('preset')){
+                //TODO, add preset edit
+            }
+            else if($CurrentCharacter.type === 'character'){
                 loadingStage = 0
                 $CurrentCharacter.realmId = e.data.id
             }
@@ -47,7 +52,23 @@
     onMount(async () => {
         window.addEventListener('message', pmfunc)
 
-        const data = await shareRealmCardData()
+        let data:{
+            data: ArrayBuffer,
+            name: ArrayBuffer
+        }
+        
+        if($ShowRealmFrameStore.startsWith('preset')){
+            const predata = await downloadPreset(Number($ShowRealmFrameStore.split(':')[1]), 'return')
+            const encodedPredata = predata.buf
+            const encodedPredataName = new TextEncoder().encode(predata.data.name + '.risupreset')
+            data = {
+                data: encodedPredata.buffer,
+                name: encodedPredataName.buffer
+            }
+        }
+        else{
+            data = await shareRealmCardData()
+        }
 
         if(iframe){
             await waitPing()
@@ -61,7 +82,10 @@
 
     const getUrl = () => {
         let url = `https://realm.risuai.net/upload?token=${tk}&token_id=${id}`
-        if($CurrentCharacter.type === 'character' && $CurrentCharacter.realmId){
+        if($ShowRealmFrameStore.startsWith('preset')){
+            //TODO, add preset edit
+        }
+        else if($CurrentCharacter.type === 'character' && $CurrentCharacter.realmId){
             url += `&edit=${$CurrentCharacter.realmId}&edit-type=normal`
         }
         url += '#noLayout'

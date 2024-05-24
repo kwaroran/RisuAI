@@ -529,6 +529,7 @@ export const languageEnglish = {
     memoryLimitThickness: "Memory Limit Thickness",
     inputCardPassword: "Input Card Password",
     ccv2Desc: 'Character Card V2 is is a format widely used in chatbot programs.',
+    realmDesc: 'RisuRealm is a content sharing platform for RisuAI. you can share your character to other users.',
     rccDesc: 'Risu Refined Character Card is a format with additional features like password, integrity check and etc.',
     password: "Password",
     license: "License",
@@ -599,4 +600,7 @@ export const languageEnglish = {
     list: "List",
     trash: "Trash",
     trashDesc: "Deleted characters are moved to trash. you can restore or delete them permanently. deleted characters are automatically purged after 3 days.",
+    shareExport: "Share/Export",
+    risupresetDesc: "Risupreset format is a format specifically designed for RisuAI presets.",
+    jsonDesc: "JSON format is a format that is easy to read and write for both humans and machines.",
 }

@@ -1,10 +1,11 @@
-<script>
-    import { alertConfirm, alertError } from "../../ts/alert";
+<script lang="ts">
+    import { alertCardExport, alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset, presetTemplate } from "../../ts/storage/database";
-    import { CopyIcon, DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { DataBase, changeToPreset, copyPreset, downloadPreset, importPreset } from "../../ts/storage/database";
+    import { CopyIcon, Share2Icon, PencilIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
+    import { ShowRealmFrameStore } from "src/ts/stores";
 
     let editMode = false
     export let close = () => {}
@@ -43,12 +44,26 @@
                     }}>
                         <CopyIcon size={18}/>
                     </button>
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={async (e) => {
                         e.stopPropagation()
-                        downloadPreset(i)
+                        const data = await alertCardExport('preset')
+                        console.log(data.type)
+                        if(data.type === ''){
+                            downloadPreset(i, 'risupreset')
+                        }
+                        if(data.type === 'json'){
+                            downloadPreset(i, 'json')
+                        }
+                        if(data.type === 'realm'){
+                            if(!$DataBase.account){
+                                alertError(language.notLoggedIn)
+                                return
+                            }
+                            $ShowRealmFrameStore = `preset:${i}`
+                        }
                     }}>
 
-                        <DownloadIcon size={18} />
+                        <Share2Icon size={18} />
                     </button>
                     <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
@@ -89,7 +104,7 @@
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={() => {
                 editMode = !editMode
             }}>
-                <EditIcon size={18}/>
+                <PencilIcon size={18}/>
             </button>
         </div>
         <span class="text-textcolor2 text-sm">{language.quickPreset}</span>
