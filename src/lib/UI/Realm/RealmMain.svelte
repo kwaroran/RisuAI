@@ -8,6 +8,7 @@
     import { SizeStore } from "src/ts/stores";
     import { Capacitor } from "@capacitor/core";
   import RealmPopUp from "./RealmPopUp.svelte";
+  import { googleBuild } from "src/ts/storage/globalApi";
 
     let openedData:null|hubType = null
 
@@ -55,15 +56,15 @@
     </div>
 </div>
 <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-    {#if !Capacitor.isNativePlatform()}
+    {#if !googleBuild}
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
             nsfw = !nsfw
             getHub()
         }}>
             NSFW
         </button>
+        <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
     {/if}
-    <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
     <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
         sort = ''
         getHub()

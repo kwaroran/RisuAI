@@ -39,6 +39,7 @@ export const isTauri = !!window.__TAURI__
 //@ts-ignore
 export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
+export const googleBuild = false
 
 interface fetchLog{
     body:string

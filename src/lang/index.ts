@@ -5,6 +5,7 @@ import { languageEnglish } from "./en";
 import { languageKorean } from "./ko";
 import { LanguageVietnamese } from "./vi";
 import { languageChineseTraditional } from "./zh-Hant";
+import { googleBuild } from "src/ts/storage/globalApi";
 
 export let language:typeof languageEnglish = languageEnglish
 
@@ -27,5 +28,12 @@ export function changeLanguage(lang:string){
     }
     else{
         language = languageEnglish
+    }
+
+    if(googleBuild){
+        language.jailbreakPrompt = "Togglable Prompt"
+        language.help.jailbreak = ''
+        language.help.toggleNsfw = ''
+        language.jailbreakToggle = 'Toggle Togglable Prompt'
     }
 }
