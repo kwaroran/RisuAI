@@ -10,6 +10,13 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
     import { installPython } from "src/ts/process/models/local";
+  import { Capacitor } from "@capacitor/core";
+  import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
+
+    let estaStorage:{
+        key:string,
+        size:string,
+    }[] = []
 
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
@@ -151,6 +158,26 @@
     class="drop-shadow-lg p-3 border-borderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
     {language.ShowLog}
 </button>
+{#if Capacitor.isNativePlatform()}
+    <button
+        on:click={async () => {
+            estaStorage = await capStorageInvestigation()
+        }}
+        class="drop-shadow-lg p-3 border-borderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+        Investigate Storage
+    </button>
+
+    {#if estaStorage.length > 0}
+        <div class="mt-4 flex flex-col w-full p-2">
+            {#each estaStorage as item}
+                <div class="flex p-2 rounded-md items-center justify-between">
+                    <span class="text-textcolor">{item.key}</span>
+                    <span class="text-textcolor ml-2">{item.size}</span>
+                </div>
+            {/each}
+        </div>
+    {/if}
+{/if}
 {#if $DataBase.tpo}
     <button
         on:click={async () => {
