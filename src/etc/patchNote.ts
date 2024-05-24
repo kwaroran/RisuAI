@@ -1,15 +1,13 @@
 export const patchNote = {
-    version: "1.104",
+    version: "1.105",
     content: 
 `
-# Update 1.104
-- Added experimental Hypamemory V2
-- Added catalog list menu
-- Added catalog trash menu
-- Added trash
- - Now if you delete a character, it will be moved to the trash instead of being deleted permanently
- - You can restore the character from the trash
- - Characters in the trash will be deleted permanently after 3 days
+# Update 1.105
+- Reworked RisuRealm share screen
+ - Now it uses RisuRealm iframe instead of GUI provided by app
+- Added RisuRealm preset sharing support
+- Added new preset sharing screen
+- Removed RisuRCC dude to low usage
 `
 }
 
