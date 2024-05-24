@@ -32,6 +32,7 @@ import { language } from "src/lang";
 import { startObserveDom } from "../observer";
 import { removeDefaultHandler } from "src/main";
 import { updateGuisize } from "../gui/guisize";
+import { encodeCapKeySafe } from "./mobileStorage";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -87,16 +88,16 @@ let checkedPaths:string[] = []
 
 async function checkCapFileExists(getUriOptions: CapFS.GetUriOptions): Promise<boolean> {
     try {
-      await CapFS.Filesystem.stat(getUriOptions);
-      return true;
+        await CapFS.Filesystem.stat(getUriOptions);
+        return true;
     } catch (checkDirException) {
-      if (checkDirException.message === 'File does not exist') {
-        return false;
-      } else {
-        throw checkDirException;
-      }
+        if (checkDirException.message === 'File does not exist') {
+            return false;
+        } else {
+            throw checkDirException;
+        }
     }
-  }
+}
 export async function getFileSrc(loc:string) {
     if(isTauri){
         if(loc.startsWith('assets')){
@@ -120,13 +121,13 @@ export async function getFileSrc(loc:string) {
     }
     if(Capacitor.isNativePlatform()){
         if(!await checkCapFileExists({
-            path: loc,
+            path: encodeCapKeySafe(loc),
             directory: CapFS.Directory.External
         })){
             return ''
         }
         const uri = await CapFS.Filesystem.getUri({
-            path: loc,
+            path: encodeCapKeySafe(loc),
             directory: CapFS.Directory.External
         })
         return Capacitor.convertFileSrc(uri.uri)
