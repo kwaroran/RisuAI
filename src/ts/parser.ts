@@ -536,11 +536,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return chatID.toString() 
             }
             case 'first_msg_index':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    return selchar.firstMsgIndex
-                }
-                return null;
+                const selchar = db.characters[get(selectedCharID)]
+                return selchar.firstMsgIndex
             }
             case 'blank':
             case 'none':{
