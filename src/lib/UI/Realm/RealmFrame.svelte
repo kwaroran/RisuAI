@@ -24,7 +24,7 @@
             close()
         }
         if(e.data.type === 'success'){
-            alertMd('## Upload Success\n\nYour character has been uploaded to Realm successfully.')
+            alertMd(`## Upload Success\n\nYour character has been uploaded to Realm successfully.\n\n${"```\nhttps://realm.risuai.net/character/" +  e.data.id + "\n```"}`)
             if($CurrentCharacter.type === 'character'){
                 loadingStage = 0
                 $CurrentCharacter.realmId = e.data.id
