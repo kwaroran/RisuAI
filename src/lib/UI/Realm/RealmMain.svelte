@@ -7,6 +7,7 @@
     import TextInput from "../GUI/TextInput.svelte";
     import { SizeStore } from "src/ts/stores";
     import { Capacitor } from "@capacitor/core";
+  import RealmPopUp from "./RealmPopUp.svelte";
 
     let openedData:null|hubType = null
 
@@ -120,7 +121,7 @@
 {/if}
 
 {#if openedData}
-    <!-- <RealmPopUp bind:openedData={openedData} /> -->
+    <RealmPopUp bind:openedData={openedData} />
 {/if}
 
 
