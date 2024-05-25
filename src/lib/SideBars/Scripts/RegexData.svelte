@@ -5,6 +5,7 @@
     import type { customscript } from "src/ts/storage/database";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
+    import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
 
@@ -57,7 +58,7 @@
             <span class="text-textcolor mt-6">IN:</span>
             <TextInput size="sm" bind:value={value.in} />
             <span class="text-textcolor mt-6">OUT:</span>
-            <TextInput size="sm" bind:value={value.out} />
+            <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} />
             {#if value.ableFlag}
                 <span class="text-textcolor mt-6">FLAG:</span>
                 <TextInput size="sm" bind:value={value.flag} />

@@ -122,7 +122,7 @@
                             <OptionInput value="regex">{language.triggerMatchRegex}</OptionInput>
                         </SelectInput>
                         <span  class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextInput size="sm" bind:value={cond.value} />
+                        <TextAreaInput highlight bind:value={cond.value} />
 
                         <span  class="text-textcolor2 text-sm">{language.searchDepth}</span>
                         <NumberInput size="sm" bind:value={cond.depth} />
@@ -133,7 +133,7 @@
                             <TextInput size="sm" bind:value={cond.var} />
                         {/if}
                         {#if cond.type === 'value'}
-                            <TextInput size="sm" bind:value={cond.var} />
+                            <TextAreaInput highlight size="sm" bind:value={cond.var} />
                         {/if}
                         <span  class="text-textcolor2 text-sm">{language.value}</span>
                         <SelectInput bind:value={cond.operator} size="sm">
@@ -147,7 +147,7 @@
 
                         </SelectInput>
                         {#if cond.operator !== 'null'}
-                            <TextInput size="sm" bind:value={cond.value} />
+                            <TextAreaInput highlight size="sm" bind:value={cond.value} />
                         {/if}
                     {/if}
                 {/each}
@@ -255,7 +255,7 @@
                             <OptionInput value="promptend">{language.promptend}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput bind:value={effect.value} />
+                        <TextAreaInput highlight bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'setvar'}
                         <span class="text-textcolor2 text-sm">{language.varableName}</span>
@@ -269,7 +269,7 @@
                             <OptionInput value="/=">{language.TriggerDivToVar}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextInput bind:value={effect.value} />
+                        <TextAreaInput highlight bind:value={effect.value} />
                     {/if}
 
                     {#if effect.type === 'runtrigger'}
@@ -278,7 +278,7 @@
                     {/if}
                     {#if effect.type === 'command'}
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput bind:value={effect.value} />
+                        <TextAreaInput highlight bind:value={effect.value} />
                     {/if}
                     {#if effect.type === 'impersonate'}
                         <span class="text-textcolor2 text-sm">{language.role}</span>
@@ -287,7 +287,7 @@
                             <OptionInput value="char">{language.character}</OptionInput>
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
-                        <TextAreaInput bind:value={effect.value} />
+                        <TextAreaInput highlight bind:value={effect.value} />
                     {/if}
                 {/each}
             </div>

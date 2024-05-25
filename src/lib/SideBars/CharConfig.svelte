@@ -178,10 +178,10 @@
     {#if currentChar.type !== 'group' && licensed !== 'private'}
         <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
         <span class="text-textcolor">{language.description} <Help key="charDesc"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.desc}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.desc}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm">{tokens.desc} {language.tokens}</span>
         <span class="text-textcolor">{language.firstMessage} <Help key="charFirstMessage"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.firstMessage}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.firstMessage}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm">{tokens.firstMsg} {language.tokens}</span>
 
     {:else if licensed !== 'private' && currentChar.type === 'group'}
@@ -239,6 +239,7 @@
         margin="both"
         autocomplete="off"
         bind:value={currentChar.data.chats[currentChar.data.chatPage].note}
+        highlight
         placeholder={getAuthorNoteDefaultText()}
     />
     <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
@@ -468,7 +469,7 @@
 
         {#if currentChar.data.inlayViewScreen}
             <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
-            <TextAreaInput bind:value={currentChar.data.newGenData.emotionInstructions} />
+            <TextAreaInput highlight bind:value={currentChar.data.newGenData.emotionInstructions} />
         {/if}
 
         <CheckInput bind:check={currentChar.data.inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
@@ -488,11 +489,11 @@
         <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
         
         <span class="text-textcolor mt-2">{language.imgGenPrompt}</span>
-        <TextAreaInput bind:value={currentChar.data.newGenData.prompt} />
+        <TextAreaInput highlight bind:value={currentChar.data.newGenData.prompt} />
         <span class="text-textcolor mt-2">{language.imgGenNegatives}</span>
-        <TextAreaInput bind:value={currentChar.data.newGenData.negative} />
+        <TextAreaInput highlight bind:value={currentChar.data.newGenData.negative} />
         <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
-        <TextAreaInput bind:value={currentChar.data.newGenData.instructions} />
+        <TextAreaInput highlight bind:value={currentChar.data.newGenData.instructions} />
 
         <CheckInput bind:check={currentChar.data.inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
             if(currentChar.type === 'character'){
@@ -727,7 +728,7 @@
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
     {#if currentChar.type !== 'group'}
         <span class="text-textcolor">{language.exampleMessage} <Help key="exampleMessage"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>
 
         <span class="text-textcolor">{language.creatorNotes} <Help key="creatorQuotes"/></span>
         <MultiLangInput bind:value={currentChar.data.creatorNotes} className="my-2" onInput={() => {
@@ -735,25 +736,25 @@
         }}></MultiLangInput>
 
         <span class="text-textcolor">{language.systemPrompt} <Help key="systemPrompt"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.systemPrompt}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.systemPrompt}></TextAreaInput>
 
         <span class="text-textcolor">{language.replaceGlobalNote} <Help key="replaceGlobalNote"/></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.replaceGlobalNote}></TextAreaInput>
 
         <span class="text-textcolor mt-2">{language.additionalText} <Help key="additionalText" /></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.additionalText}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.additionalText}></TextAreaInput>
 
         {#if $DataBase.showUnrecommended || currentChar.data.personality.length > 3}
             <span class="text-textcolor">{language.personality} <Help key="personality" unrecommended/></span>
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.personality}></TextAreaInput>
+            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.personality}></TextAreaInput>
         {/if}
         {#if $DataBase.showUnrecommended || currentChar.data.scenario.length > 3}
             <span class="text-textcolor">{language.scenario} <Help key="scenario" unrecommended/></span>
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.scenario}></TextAreaInput>
+            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.scenario}></TextAreaInput>
         {/if}
 
         <span class="text-textcolor mt-2">{language.backgroundHTML} <Help key="backgroundHTML" /></span>
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></TextAreaInput>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></TextAreaInput>
 
         <span class="text-textcolor">{language.creator}</span>
         <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
@@ -795,7 +796,7 @@
                 {#each currentChar.data.alternateGreetings as bias, i}
                     <tr>
                         <td class="font-medium truncate">
-                            <TextAreaInput bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." fullwidth />
+                            <TextAreaInput highlight bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." fullwidth />
                         </td>
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={() => {

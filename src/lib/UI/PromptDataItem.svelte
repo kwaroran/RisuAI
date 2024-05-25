@@ -68,7 +68,7 @@
             <OptionInput value="globalNote">{language.globalNote}</OptionInput>
         </SelectInput>
         <span>{language.prompt}</span>
-        <TextAreaInput bind:value={promptItem.text} />
+        <TextAreaInput highlight bind:value={promptItem.text} />
         <span>{language.role}</span>
         <SelectInput bind:value={promptItem.role}>
             <OptionInput value="user">{language.user}</OptionInput>
@@ -115,7 +115,7 @@
             }} />
         {:else}
             <span>{language.innerFormat}</span>
-            <TextAreaInput bind:value={promptItem.innerFormat}/>
+            <TextAreaInput highlight bind:value={promptItem.innerFormat}/>
             <CheckInput name={language.customInnerFormat} check={true} className="mt-2" onChange={() => {
                 if(promptItem.type === 'persona' || promptItem.type === 'description' || promptItem.type === 'authornote' || promptItem.type === 'memory'){
                     promptItem.innerFormat = null

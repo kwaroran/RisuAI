@@ -86,7 +86,7 @@
                 <NumberInput size="sm" bind:value={value.insertorder} min={0} max={1000}/>
             {/if}
             <span class="text-textcolor mt-4 mb-2">{language.prompt}</span>
-            <TextAreaInput autocomplete="off" bind:value={value.content} />
+            <TextAreaInput highlight autocomplete="off" bind:value={value.content} />
             {#await getTokens(value.content)}
                 <span class="text-textcolor2 mt-2 mb-2 text-sm">{tokens} {language.tokens}</span>
             {:then e}

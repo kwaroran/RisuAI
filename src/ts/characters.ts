@@ -333,6 +333,9 @@ export function characterFormatUpdate(index:number|character){
             model: '',
             language: 'en'
         }
+        cha.backgroundHTML ??= ''
+        cha.backgroundCSS ??= ''
+        cha.creation_date ??= Date.now()
         if(!cha.newGenData){
             cha = updateInlayScreen(cha)
         }

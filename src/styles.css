@@ -191,3 +191,28 @@ html, body{
 .x-risu-risu-comment{
   @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
 }
+
+
+::highlight(cbsnest3) {
+  @apply text-amber-500;
+}
+::highlight(cbsnest2) {
+  @apply text-green-500;
+}
+::highlight(cbsnest1) {
+  @apply text-blue-500;
+}
+::highlight(cbsnest0) {
+  @apply text-purple-500;
+}
+::highlight(cbsnest4) {
+  @apply text-pink-500;
+}
+
+::highlight(decorator) {
+  color: var(--risu-theme-draculared);
+}
+::highlight(deprecated) {
+  color: var(--risu-theme-textcolor2);
+  text-decoration: line-through;
+}
