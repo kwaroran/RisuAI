@@ -72,7 +72,7 @@ export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgc
     }
 }
 
-export async function selectCharImg(charId:number) {
+export async function selectCharImg(charIndex:number) {
     const selected = await selectSingleFile(['png', 'webp', 'gif', 'jpg', 'jpeg'])
     if(!selected){
         return
@@ -80,7 +80,37 @@ export async function selectCharImg(charId:number) {
     const img = selected.data
     let db = get(DataBase)
     const imgp = await saveImage(await reencodeImage(img))
-    db.characters[charId].image = imgp
+    dumpCharImage(charIndex)
+    db.characters[charIndex].image = imgp
+    setDatabase(db)
+}
+
+export function dumpCharImage(charIndex:number) {
+    let db = get(DataBase)
+    const char = db.characters[charIndex] as character
+    if(!char.image || char.image === ''){
+        return
+    }
+    char.ccAssets ??= []
+    char.ccAssets.push({
+        type: 'icon',
+        name: 'iconx',
+        uri: char.image,
+        ext: 'png'
+    })
+    char.image = ''
+    db.characters[charIndex] = char
+    setDatabase(db)
+}
+
+export function changeCharImage(charIndex:number,changeIndex:number) {
+    let db = get(DataBase)
+    const char = db.characters[charIndex] as character
+    const image = char.ccAssets[changeIndex].uri
+    char.ccAssets.splice(changeIndex, 1)
+    dumpCharImage(charIndex)
+    char.image = image
+    db.characters[charIndex] = char
     setDatabase(db)
 }
 

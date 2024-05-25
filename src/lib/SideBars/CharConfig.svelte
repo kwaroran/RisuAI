@@ -5,7 +5,7 @@
     import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
-    import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar } from "../../ts/characters";
+    import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
@@ -292,17 +292,43 @@
 {:else if subMenu === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
     <span class="text-textcolor mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
-    <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
-        {#if currentChar.data.image === ''}
-            <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
-        {:else}
-            {#await getCharImage(currentChar.data.image, (currentChar.type === 'character' && currentChar.data.largePortrait) ? 'lgcss' : 'css')}
-                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
+    {#if currentChar.type === 'group'}
+        <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
+            {#await getCharImage(currentChar.data.image, 'css')}
+                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
             {:then im}
-                <div class="rounded-md h-32 w-32 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />     
+                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im} />     
             {/await}
-        {/if}
-    </button>
+        </button>
+    {:else}
+        <div class="p-2 border-darkborderc border rounded-md flex flex-wrap gap-2">
+            {#if currentChar.data.image !== '' && currentChar.data.image}
+                <button>
+                    {#await getCharImage(currentChar.data.image, currentChar.data.largePortrait ? 'lgcss' : 'css')}
+                        <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
+                    {:then im}
+                        <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im} />     
+                    {/await}
+                </button>
+            {/if}
+            {#if currentChar.data.ccAssets}
+                {#each currentChar.data.ccAssets as assets, i}
+                    <button on:click={async () => {changeCharImage($selectedCharID, i);currentChar = currentChar}}>
+                        {#await getCharImage(assets.uri, currentChar.data.largePortrait ? 'lgcss' : 'css')}
+                            <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"></div>
+                        {:then im}
+                            <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow" style={im} />     
+                        {/await}
+                    </button>
+                {/each}
+            {/if}
+            <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
+                <div class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500">
+                    <PlusIcon />
+                </div>
+            </button>
+        </div>
+    {/if}
 
     {#if currentChar.type === 'character' && currentChar.data.image !== ''}
         <div class="flex items-center mt-4">

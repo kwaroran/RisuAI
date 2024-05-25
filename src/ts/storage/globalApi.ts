@@ -807,6 +807,11 @@ export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basenam
                     addUnparge(vit)
                 }
             }
+            if(cha.ccAssets){
+                for(const asset of cha.ccAssets){
+                    addUnparge(asset.uri)
+                }
+            }
         }
     }
 
