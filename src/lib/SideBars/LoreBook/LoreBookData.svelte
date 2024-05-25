@@ -56,7 +56,7 @@
             <span class="text-textcolor mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
             {#if !lorePlus}
-                {#if !value.alwaysActive}
+                {#if !value.alwaysActive && !value.useRegex}
                     <span class="text-textcolor mt-6">{language.activationKeys} <Help key="loreActivationKey"/></span>
                     <span class="text-xs text-textcolor2">{language.activationKeysInfo}</span>
                     <TextInput size="sm" bind:value={value.key}/>
@@ -95,10 +95,16 @@
             <div class="flex items-center mt-4">
                 <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
             </div>
-            {#if !lorePlus}
+            {#if !lorePlus && !value.useRegex}
                 <div class="flex items-center mt-2">
                     <Check bind:check={value.selective} name={language.selective}/>
                     <Help key="loreSelective" name={language.selective}/>
+                </div>
+            {/if}
+            {#if !lorePlus && !value.alwaysActive}
+                <div class="flex items-center mt-2">
+                    <Check bind:check={value.useRegex} name={language.useRegexLorebook}/>
+                    <Help key="useRegexLorebook" name={language.useRegexLorebook}/>
                 </div>
             {/if}
             {#if !lorePlus}
