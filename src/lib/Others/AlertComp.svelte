@@ -394,9 +394,9 @@
             <span class="text-textcolor mt-4">{language.type}</span>
             {#if cardExportType === ''}
                 {#if $alertStore.submsg !== 'preset'}
-                    <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
-                {:else}
                     <span class="text-textcolor2 text-sm">{language.ccv3Desc}</span>
+                {:else}
+                    <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {/if}
             {:else if cardExportType === 'json'}
                 <span class="text-textcolor2 text-sm">{language.jsonDesc}</span>
