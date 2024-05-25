@@ -208,6 +208,9 @@ html, body{
 ::highlight(cbsnest4) {
   @apply text-pink-500;
 }
+::highlight(cbsdisplay) {
+  @apply text-cyan-500;
+}
 
 ::highlight(decorator) {
   color: var(--risu-theme-draculared);

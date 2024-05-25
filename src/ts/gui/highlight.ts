@@ -1,4 +1,4 @@
-type HighlightType = 'decorator'|'deprecated'|'cbsnest0'|'cbsnest1'|'cbsnest2'|'cbsnest3'|'cbsnest4'
+type HighlightType = 'decorator'|'deprecated'|'cbsnest0'|'cbsnest1'|'cbsnest2'|'cbsnest3'|'cbsnest4'|'cbsdisplay'|'comment'
 
 type HighlightInt = [Range, HighlightType]
 
@@ -25,24 +25,7 @@ export const highlighter = (highlightDom:HTMLElement, id:number) => {
         const ranges:HighlightInt[] = []
 
         nodes.map((el) => {
-            // const indices = [];
             const text = el.textContent.toLowerCase()
-            // let startPos = 0;
-            // while (startPos < text.length) {
-            //     const index = text.indexOf(str, startPos);
-            //     if (index === -1) break;
-            //     indices.push(index);
-            //     startPos = index + str.length;
-            // }
-
-            // // Create a range object for each instance of
-            // // str we found in the text node.
-            // return indices.map((index) => {
-            //     const range = new Range();
-            //     range.setStart(el, index);
-            //     range.setEnd(el, index + str.length);
-            //     return range;
-            // });
 
             const cbsParsed = simpleCBSHighlightParser(el,text)
             ranges.push(...cbsParsed)
@@ -113,11 +96,15 @@ const normalCBSwithParams = [
     'previous_chat_log', 'tonumber', 'arrayelement', 'array_element', 'arrayshift', 'array_shift',
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
-    'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'comment'
+    'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse'
 ]
 
+const displayRelatedCBS = [
+    'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment'
+];
+
 const specialCBS = [
-    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ', 'comment: ',
+    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ',
 ]
 
 const deprecatedCBS = [
@@ -204,6 +191,15 @@ function simpleCBSHighlightParser(node:Node,text:string){
                     }
                 }
             }
+            
+            if(highlightMode[depth] === 10){
+                for(const arg of displayRelatedCBS){
+                    if(upString.startsWith(arg + '::')){
+                        highlightMode[depth] = 2
+                        break
+                    }
+                }
+            }
 
             if(highlightMode[depth] === 10){
                 for(const arg of specialCBS){
@@ -226,6 +222,9 @@ function simpleCBSHighlightParser(node:Node,text:string){
             switch(highlightMode[depth]){
                 case 1:
                     ranges.push([range, `cbsnest${depth % 5}` as HighlightType])
+                    break;
+                case 2:
+                    ranges.push([range, 'cbsdisplay'])
                     break;
                 case 3:
                     ranges.push([range, 'deprecated'])

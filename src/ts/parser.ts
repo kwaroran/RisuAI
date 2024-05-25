@@ -1035,7 +1035,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             if(!matcherArg.displaying){
                 return ''
             }
-            return `<div class="risu-comment">${p1.substring(8)}</div>`
+            return `<div class="risu-comment">${p1.substring(p1[8] === ':' ? 9 : 8)}</div>`
         }
         return null        
     } catch (error) {
