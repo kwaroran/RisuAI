@@ -13,6 +13,7 @@
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
+  import { longpress } from "src/ts/gui/longtouch";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -34,7 +35,7 @@
 
     let msgDisplay = ''
     let translated = get(DataBase).autoTranslate
-    async function rm(e:MouseEvent){
+    async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){
             let msg = $CurrentChat.message
             msg = msg.slice(0, idx)
@@ -44,7 +45,7 @@
 
         const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
-            if($DataBase.instantRemove){
+            if($DataBase.instantRemove || rec){
                 const r = await alertConfirm(language.instantRemoveConfirm)
                 let msg = $CurrentChat.message
                 if(!r){
@@ -199,7 +200,7 @@
                         }}>
                             <PencilIcon size={20}/>
                         </button>
-                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={rm}>
+                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
                             <TrashIcon size={20}/>
                         </button>
                     {/if}
