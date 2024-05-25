@@ -959,3 +959,10 @@ export const searchTagList = (query:string) => {
 
     return result.filter(v => splited.indexOf(v) === -1)
 }
+
+export const isKnownUri = (uri:string) => {
+    return uri.startsWith('http://')
+            || uri.startsWith('https://')
+            || uri.startsWith('ccdefault:')
+            || uri.startsWith('embeded://')
+}

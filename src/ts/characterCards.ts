@@ -1,7 +1,7 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
 import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
-import { checkNullish, decryptBuffer, encryptBuffer, selectFileByDom, selectMultipleFile, sleep } from "./util"
+import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
@@ -320,7 +320,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
 
     const data = card.data
     console.log(card)
-    const im = img ? await saveAsset(await reencodeImage(img)) : undefined
+    let im = img ? await saveAsset(await reencodeImage(img)) : undefined
     let db = get(DataBase)
 
     const risuext = structuredClone(data.extensions.risuai)
@@ -431,24 +431,31 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                 })
                 await sleep(10)
                 let fileName = ''
+                let imgp = ''
                 if(data.assets[i].name){
                     fileName = data.assets[i].name
                 }
                 if(data.assets[i].uri.startsWith('__asset:')){
                     const key = data.assets[i].uri.replace('__asset:', '')
-                    const imgp = assetDict[key]
+                    imgp = assetDict[key]
                     if(!imgp){
                         throw new Error('Error while importing, asset ' + key + ' not found')
                     }
-                    extAssets.push([fileName,imgp,data.assets[i].ext])
+                }
+                else if(data.assets[i].uri === 'ccdefault:'){
+                    imgp = im
+                }
+                else{
                     continue
                 }
-                const imgp = await saveAsset(mode === 'hub' ? (await getHubResources(data.assets[i].uri)) :Buffer.from(data.assets[i].uri, 'base64'), '', fileName)
                 if(data.assets[i].type === 'emotion'){
                     emotions.push([fileName,imgp])
                 }
                 else if(data.assets[i].type === 'x-risu-asset'){
                     extAssets.push([fileName,imgp, data.assets[i].ext ?? 'unknown'])
+                }
+                else if(data.assets[i].type === 'icon' && data.assets[i].name === 'main'){
+                    im = imgp
                 }
                 else{
                     ccAssets.push({
@@ -457,6 +464,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                         name: fileName,
                         ext: data.assets[i].ext ?? 'unknown'
                     })
+                    console.log(ccAssets)
                 }
             }
         }
@@ -568,6 +576,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         ttsMode: vits ? 'vits' : 'normal',
         imported: true,
         source: card?.data?.extensions?.risuai?.source ?? [],
+        ccAssets: ccAssets,
     }
 
     if(card.spec === 'chara_card_v3'){
@@ -774,6 +783,9 @@ export async function exportCharacterCard(char:character, type:'png'|'json' = 'p
                         msg: `Loading... (Adding Assets ${i} / ${card.data.assets.length})`
                     })
                     const key = card.data.assets[i].uri
+                    if(isKnownUri(key)){
+                        continue
+                    }
                     const rData = await readImage(key)
                     const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
                     assetIndex++
@@ -838,6 +850,12 @@ export function createBaseV3(char:character){
         })
     }
 
+    assets.push({
+        type: 'icon',
+        uri: 'ccdefault:',
+        name: 'main',
+        ext: 'png'
+    })
 
     for(const lore of char.globalLore){
         let ext:{
