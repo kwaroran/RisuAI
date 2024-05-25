@@ -245,7 +245,9 @@
                 </div>
             {/if}
             {#if editMode}
-                <AutoresizeArea bind:value={message} />
+                <AutoresizeArea bind:value={message} handleLongPress={(e) => {
+                    editMode = false
+                }} />
             {:else if blankMessage}
                 <div class="w-full flex justify-center text-textcolor2 italic mb-12">
                     {language.noMessage}
