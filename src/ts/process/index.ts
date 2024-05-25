@@ -4,7 +4,7 @@ import { CharEmotion, selectedCharID } from "../stores";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { loadLoreBookPrompt } from "./lorebook";
+import { loadLoreBookPrompt, loadLoreBookV3Prompt } from "./lorebook";
 import { findCharacterbyId, getAuthorNoteDefaultText, isLastCharPunctuation, trimUntilPunctuation } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
@@ -338,11 +338,36 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    const lorepmt = await loadLoreBookPrompt()
-    unformated.lorebook.push({
-        role: 'system',
-        content: risuChatParser(lorepmt.act, {chara: currentChar})
+    const lorepmt = await loadLoreBookV3Prompt()
+    const normalActives = lorepmt.actives.filter(v => {
+        return v.pos === ''
     })
+    console.log(normalActives)
+
+    for(const lorebook of normalActives){
+        unformated.lorebook.push({
+            role: lorebook.role,
+            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+        })
+    }
+
+    const descActives = lorepmt.actives.filter(v => {
+        return v.pos === 'after_desc' || v.pos === 'before_desc' || v.pos === 'personality' || v.pos === 'scenario'
+    })
+
+    for(const lorebook of descActives){
+        const c = {
+            role: lorebook.role,
+            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+        }
+        if(lorebook.pos === 'before_desc'){
+            unformated.description.unshift(c)
+        }
+        else{
+            unformated.description.push(c)
+        }
+    }
+
     if(db.personaPrompt){
         unformated.personaPrompt.push({
             role: 'system',
@@ -365,10 +390,24 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         }
     }
 
-    if(lorepmt.special_act){
+    const postEverythingLorebooks = lorepmt.actives.filter(v => {
+        return v.pos === 'depth' && v.depth === 0 && v.role !== 'assistant'
+    })
+    for(const lorebook of postEverythingLorebooks){
         unformated.postEverything.push({
-            role: 'system',
-            content: risuChatParser(lorepmt.special_act, {chara: currentChar})
+            role: lorebook.role,
+            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+        })
+    }
+
+    //Since assistant needs to be prefill, we need to add assistant lorebooks after user/system lorebooks
+    const postEverythingAssistantLorebooks = lorepmt.actives.filter(v => {
+        return v.pos === 'depth' && v.depth === 0 && v.role === 'assistant'
+    })
+    for(const lorebook of postEverythingAssistantLorebooks){
+        unformated.postEverything.push({
+            role: lorebook.role,
+            content: risuChatParser(lorebook.prompt, {chara: currentChar})
         })
     }
 
@@ -652,6 +691,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         index++
     }
 
+    const depthPrompts = lorepmt.actives.filter(v => {
+        return (v.pos === 'depth' && v.depth > 0) || v.pos === 'reverse_depth'
+    })
+
+    for(const depthPrompt of depthPrompts){
+        const chat:OpenAIChat = {
+            role: depthPrompt.role,
+            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+        }
+        currentTokens += await tokenizer.tokenizeChat(chat)
+    }
     
     if(nowChatroom.supaMemory && (db.supaMemoryType !== 'none' || db.hanuraiEnable)){
         chatProcessStage.set(2)
@@ -746,6 +796,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         return v.content !== ''
     })
 
+    for(const depthPrompt of depthPrompts){
+        const chat:OpenAIChat = {
+            role: depthPrompt.role,
+            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+        }
+        const depth = depthPrompt.pos === 'depth' ? (depthPrompt.depth) : (unformated.chats.length - depthPrompt.depth)
+        unformated.chats.splice(depth,0,chat)
+    }
 
     if(triggerResult){
         if(triggerResult.additonalSysPrompt.promptend){
