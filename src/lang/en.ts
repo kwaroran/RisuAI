@@ -124,6 +124,7 @@ export const languageEnglish = {
         combineTranslation: "If enabled, text that is one sentence but separated by HTML tags will be combined together and translated, then Modify Display script will be reapplied to the translated output.\nThis helps the translator to make the correct translation.\nIf the UI becomes weird when you enable this option, please turn off the option and report it.",
         dynamicAssets: "If enabled, if the asset name is not found when processing data, it will try to find the closest asset name by using vector search and replace it with the closest asset name.",
         dynamicAssetsEditDisplay: "If enabled, the dynamic assets will be applied to the Modify Display stage too. however, this can cause performance issues.",
+        nickname: "Nickname would used be in {{char}} or <char> in chat instead of character's name if it is set.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -604,4 +605,5 @@ export const languageEnglish = {
     shareExport: "Share/Export",
     risupresetDesc: "Risupreset format is a format specifically designed for RisuAI presets.",
     jsonDesc: "JSON format is a format that is easy to read and write for both humans and machines.",
+    nickname: "Nickname",
 }

@@ -829,6 +829,7 @@ export interface groupChat{
     virtualscript?:string
     lorePlus?:boolean
     trashTime?:number
+    nickname?:string
 }
 
 export interface botPreset{

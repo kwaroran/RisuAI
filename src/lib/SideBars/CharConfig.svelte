@@ -761,6 +761,9 @@
         <span class="text-textcolor">{language.CharVersion}</span>
         <TextInput size="sm" bind:value={currentChar.data.additionalData.character_version}/>
 
+        <span class="text-textcolor">{language.nickname} <Help key="nickname" /></span>
+        <TextInput size="sm" bind:value={currentChar.data.nickname}/>
+
         <span class="text-textcolor">{language.depthPrompt}</span>
         <div class="flex justify-center items-center">
             <NumberInput size="sm" bind:value={currentChar.data.depth_prompt.depth} className="w-12"/>

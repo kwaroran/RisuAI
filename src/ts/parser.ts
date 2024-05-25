@@ -445,7 +445,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 let selectedChar = get(selectedCharID)
                 let currentChar = db.characters[selectedChar]
                 if(currentChar && currentChar.type !== 'group'){
-                    return currentChar.name
+                    return currentChar.nickname || currentChar.name
                 }
                 if(chara){
                     if(typeof(chara) === 'string'){
@@ -455,7 +455,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                         return chara.name
                     }
                 }
-                return currentChar.name
+                return currentChar.nickname || currentChar.name
             }
             case 'user':{
                 if(matcherArg.consistantChar){
@@ -1087,7 +1087,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
             let selectedChar = get(selectedCharID)
             let currentChar = db.characters[selectedChar]
             if(currentChar && currentChar.type !== 'group'){
-                return currentChar.name
+                return currentChar.nickname || currentChar.name
             }
             if(chara){
                 if(typeof(chara) === 'string'){
@@ -1097,7 +1097,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
                     return chara.name
                 }
             }
-            return currentChar.name
+            return currentChar.nickname || currentChar.name
         }
         case 'user':{
             if(matcherArg.consistantChar){
