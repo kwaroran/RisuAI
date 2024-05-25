@@ -33,8 +33,8 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       '@risuai/ccardlib':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.1
+        version: 0.4.1
       '@smithy/protocol-http':
         specifier: ^3.0.12
         version: 3.0.12
@@ -676,8 +676,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@risuai/ccardlib@0.3.0':
-    resolution: {integrity: sha512-NQG+xtsDwROFaqi2eFia5P4kJe60+4HgbRN3jjj0xfkTJDiBoxjQjqYWLeHX52aM1+OAyRbL5Bq7ZQ58XJidNw==}
+  '@risuai/ccardlib@0.4.1':
+    resolution: {integrity: sha512-b9xL0umf772icKnKfTIyP/hU1Skfikd5/MbmUFI9PXpbpMxbGQMw0NqpTFHda2iFu6Qxhpigr8bheAE8zxoYnw==}
 
   '@rollup/plugin-virtual@3.0.2':
     resolution: {integrity: sha512-10monEYsBp3scM4/ND4LNH5Rxvh3e/cVeL3jWTgZ2SrQ+BmUoQcopVQvnaMcOnykb1VkxUFuDAN+0FnpTFRy2A==}
@@ -4110,7 +4110,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@risuai/ccardlib@0.3.0': {}
+  '@risuai/ccardlib@0.4.1': {}
 
   '@rollup/plugin-virtual@3.0.2(rollup@3.29.4)':
     optionalDependencies:

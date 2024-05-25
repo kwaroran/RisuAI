@@ -687,7 +687,8 @@ export interface loreBook{
     loreCache?:{
         key:string
         data:string[]
-    }
+    },
+    useRegex?:boolean
 }
 
 export interface character{
@@ -773,6 +774,17 @@ export interface character{
     realmId?:string
     imported?:boolean
     trashTime?:number
+    nickname?:string
+    source?:string[]
+    group_only_greetings?:string[]
+    creation_date?:number
+    modification_date?:number
+    ccAssets?: Array<{
+        type: string
+        uri: string
+        name: string
+        ext: string
+    }>
 }
 
 

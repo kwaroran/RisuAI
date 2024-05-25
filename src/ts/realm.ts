@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { exportSpecV2 } from "./characterCards";
+import { exportCharacterCard } from "./characterCards";
 import { VirtualWriter, isTauri, openURL } from "./storage/globalApi";
 import { sleep } from "./util";
 import { CurrentCharacter } from "./stores";
@@ -21,7 +21,7 @@ export async function shareRealmCardData():Promise<{ name: ArrayBuffer; data: Ar
     const trimedName = char.name.replace(/[^a-zA-Z0-9]/g, '') || 'character';
     const writer = new VirtualWriter()
     const namebuf = new TextEncoder().encode(trimedName + '.png')
-    await exportSpecV2(char, 'png', {writer: writer})
+    await exportCharacterCard(char, 'png', {writer: writer})
     alertStore.set({
         type: 'none',
         msg: ''
