@@ -187,3 +187,7 @@ html, body{
   /* transition colors */
   transition: border-color 0.5s;
 }
+
+.x-risu-risu-comment{
+  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
+}
