@@ -211,6 +211,9 @@ html, body{
 ::highlight(cbsdisplay) {
   @apply text-cyan-500;
 }
+::highlight(comment) {
+  color: var(--risu-theme-textcolor2);
+}
 
 ::highlight(decorator) {
   color: var(--risu-theme-draculared);

@@ -210,6 +210,10 @@ function simpleCBSHighlightParser(node:Node,text:string){
                 }
             }
 
+            if(upString.startsWith('// ')){
+                highlightMode[depth] = 4
+            }
+
             colorHighlight()
         }
     }
@@ -228,6 +232,9 @@ function simpleCBSHighlightParser(node:Node,text:string){
                     break;
                 case 3:
                     ranges.push([range, 'deprecated'])
+                    break;
+                case 4:
+                    ranges.push([range, 'comment'])
                     break;
             }
         }
