@@ -32,6 +32,7 @@
     
 
     let subMenu = 0
+    let iconRemoveMode = false
     let emos:[string, string][] = []
     let tokens = {
         desc: 0,
@@ -303,29 +304,76 @@
     {:else}
         <div class="p-2 border-darkborderc border rounded-md flex flex-wrap gap-2">
             {#if currentChar.data.image !== '' && currentChar.data.image}
-                <button>
+                <button on:click={() => {
+                    if(
+                        currentChar.type === 'character' &&
+                        currentChar.data.image !== '' &&
+                        currentChar.data.image &&
+                        iconRemoveMode
+                    ){
+                        currentChar.data.image = ''
+                        if(currentChar.data.ccAssets && currentChar.data.ccAssets.length > 0){
+                            changeCharImage($selectedCharID, 0)
+                            currentChar = currentChar
+                        }
+                        iconRemoveMode = false
+                    }
+                }}>
                     {#await getCharImage(currentChar.data.image, currentChar.data.largePortrait ? 'lgcss' : 'css')}
-                        <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
+                        <div
+                            class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                            class:ring-red-500={iconRemoveMode}
+                        />
                     {:then im}
-                        <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im} />     
+                        <div
+                            class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                            class:ring-red-500={iconRemoveMode}
+                            style={im}
+                        />     
                     {/await}
                 </button>
             {/if}
             {#if currentChar.data.ccAssets}
                 {#each currentChar.data.ccAssets as assets, i}
-                    <button on:click={async () => {changeCharImage($selectedCharID, i);currentChar = currentChar}}>
+                    <button on:click={async () => {
+                        if(!iconRemoveMode){
+                            changeCharImage($selectedCharID, i)
+                            currentChar = currentChar
+                        }
+                        else if(currentChar.type === 'character'){
+                            currentChar.data.ccAssets.splice(i, 1)
+                            currentChar.data.ccAssets = currentChar.data.ccAssets
+                            iconRemoveMode = false
+                        }
+                    }}>
                         {#await getCharImage(assets.uri, currentChar.data.largePortrait ? 'lgcss' : 'css')}
-                            <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"></div>
+                            <div
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
+                                class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                            />
                         {:then im}
-                            <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow" style={im} />     
+                            <div
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
+                                style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                            />     
                         {/await}
                     </button>
                 {/each}
             {/if}
             <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
-                <div class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500">
+                <div
+                    class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500"
+                    style={currentChar.data.largePortrait ? 'height: 10.66rem;' : ''}
+                >
                     <PlusIcon />
                 </div>
+            </button>
+        </div>
+        <div class="flex w-full items-end justify-end mt-2">
+            <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} on:click={() => {
+                iconRemoveMode = !iconRemoveMode
+            }}>
+                <TrashIcon size="18" />
             </button>
         </div>
     {/if}
