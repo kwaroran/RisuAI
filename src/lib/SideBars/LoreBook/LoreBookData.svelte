@@ -56,7 +56,7 @@
             <span class="text-textcolor mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
             {#if !lorePlus}
-                {#if !value.alwaysActive && !value.useRegex}
+                {#if !value.alwaysActive}
                     <span class="text-textcolor mt-6">{language.activationKeys} <Help key="loreActivationKey"/></span>
                     <span class="text-xs text-textcolor2">{language.activationKeysInfo}</span>
                     <TextInput size="sm" bind:value={value.key}/>
