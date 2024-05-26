@@ -247,6 +247,7 @@ export async function loadLoreBookV3Prompt(){
                     return false
                 }
             }
+            return false
         }
 
         mText = mText.toLowerCase()
