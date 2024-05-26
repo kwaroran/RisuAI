@@ -283,6 +283,9 @@ export async function loadLoreBookV3Prompt(){
             if(activatedIndexes.includes(i)){
                 continue
             }
+            if(!fullLore[i].alwaysActive && !fullLore[i].key){
+                continue
+            }
             let activated = true
             let pos = ''
             let depth = 0
