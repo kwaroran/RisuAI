@@ -511,7 +511,7 @@ export async function loadLoreBookV3Prompt(){
     })
 
     return {
-        actives: activesFiltered,
+        actives: activesFiltered.reverse()
     }
 
 }
