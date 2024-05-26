@@ -10,6 +10,8 @@ import { appWindow } from '@tauri-apps/api/window';
 import { isTauri } from "./storage/globalApi"
 import { Marked } from "marked"
 
+const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+
 const mconverted = new Marked({
     gfm: true,
     breaks: true,

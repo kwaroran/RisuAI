@@ -73,6 +73,7 @@
             on:keydown={(e) => {
                 onInput()
             }}
+            translate="no"
         >{value ?? ''}</div>
     {/if}
 </div>
