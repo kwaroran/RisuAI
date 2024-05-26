@@ -364,6 +364,9 @@ export async function loadLoreBookV3Prompt(){
                         if(Number.isNaN(int)){
                             return false
                         }
+                        if(((char.firstMsgIndex ?? -1) + 1) !== int){
+                            activated = false
+                        }
                     }
                     case 'position':{
                         if(["after_desc", "before_desc", "personality", "scenario"].includes(arg[0])){
