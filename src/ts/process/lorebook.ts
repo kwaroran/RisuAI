@@ -231,7 +231,9 @@ export async function loadLoreBookV3Prompt(){
         fullWordMatching:boolean
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
-        let mText = sliced.join(" ") + recursiveAdditionalPrompt
+        let mText = sliced.map((msg) => {
+            return msg.data
+        }).join('||')
         if(arg.regex){
             const regexString = arg.keys[0]
             if(!regexString.startsWith('/')){
@@ -254,16 +256,21 @@ export async function loadLoreBookV3Prompt(){
 
         if(arg.fullWordMatching){
             const splited = mText.split(' ')
-            return arg.keys.some((key) => {
-                return splited.includes(key)
-            })
+            for(const key of arg.keys){
+                if(splited.includes(key)){
+                    return true
+                }
+            }
         }
         else{
             mText = mText.replace(/ /g,'')
-            return arg.keys.some((key) => {
-                return mText.includes(key.toLowerCase())
-            })
+            for(const key of arg.keys){
+                if(mText.includes(key)){
+                    return true
+                }
+            }
         }
+        return false
     
     }
 
