@@ -5,6 +5,7 @@ import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../al
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
 import { sendChat } from ".";
+import { loadLoreBookV3Prompt } from "./lorebook";
 
 export async function processMultiCommand(command:string) {
     let pipe = ''
@@ -212,6 +213,11 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             chat.scriptstate = chat.scriptstate ?? {}
             pipe = (chat.scriptstate['$' + namedArg['key']]).toString() ?? 'null'
             return pipe
+        }
+        case 'test_lorebook':{
+            const p = await loadLoreBookV3Prompt()
+            console.log(p)
+            return JSON.stringify(p)
         }
         case '?':{
             alertMd(`
