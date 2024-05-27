@@ -693,6 +693,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'jbtoggled':{
                 return db.jailbreakToggle ? '1' : '0'
             }
+            case 'cottoggled':{
+                return db.chainOfThought ? '1' : '0'
+            }
             case 'random':{
                 return Math.random().toString()
             }

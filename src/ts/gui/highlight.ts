@@ -85,7 +85,7 @@ const normalCBS = [
     'example_message', 'persona', 'user_persona', 'lorebook', 'world_info', 'history', 'messages',
     'chat_index', 'first_msg_index', 'blank', 'none', 'message_time', 'message_date', 'time',
     'date', 'isotime', 'isodate', 'message_idle_duration', 'idle_duration', 'br', 'newline',
-    'model', 'axmodel', 'role', 'jbtoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
+    'model', 'axmodel', 'role', 'jbtoggled', 'cottoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
     'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure',
 ]
 
