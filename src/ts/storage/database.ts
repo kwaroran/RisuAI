@@ -667,6 +667,7 @@ export interface Database{
     templateDefaultVariables:string
     hypaAllocatedTokens:number
     hypaChunkSize:number
+    cohereAPIKey:string
 }
 
 export interface customscript{
