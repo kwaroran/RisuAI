@@ -100,7 +100,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
 
     function getVar(key:string){
-        return `${chat.scriptstate?.['$' + key]}`
+        return `${chat.scriptstate?.['$' + key] ?? "null"}`
     }
 
     function setVar(key:string, value:string){

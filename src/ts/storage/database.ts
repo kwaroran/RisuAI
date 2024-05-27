@@ -657,6 +657,7 @@ export interface Database{
     combineTranslation:boolean
     dynamicAssets:boolean
     dynamicAssetsEditDisplay:boolean
+    
 }
 
 export interface customscript{
