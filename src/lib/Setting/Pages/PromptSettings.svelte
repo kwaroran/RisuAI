@@ -120,4 +120,6 @@
     <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
     <span class="text-textcolor mt-4">{language.customPromptTemplateToggle} <Help key='customPromptTemplateToggle' /></span>
     <TextAreaInput bind:value={$DataBase.customPromptTemplateToggle}/>
+    <span class="text-textcolor mt-4">{language.defaultVariables} <Help key='defaultVariables' /></span>
+    <TextAreaInput bind:value={$DataBase.templateDefaultVariables}/>
 {/if}

@@ -254,6 +254,7 @@
             }} />
         </div>
     {/each}
+
     
     {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
         {#if $DataBase.hanuraiEnable}
@@ -763,6 +764,9 @@
 
         <span class="text-textcolor mt-2">{language.backgroundHTML} <Help key="backgroundHTML" /></span>
         <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.backgroundHTML}></TextAreaInput>
+
+        <span class="text-textcolor mt-2">{language.defaultVariables} <Help key="defaultVariables" /></span>
+        <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.defaultVariables}></TextAreaInput>
 
         <span class="text-textcolor">{language.creator}</span>
         <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />

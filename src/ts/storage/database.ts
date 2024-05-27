@@ -402,6 +402,7 @@ export function setDatabase(data:Database){
     data.combineTranslation ??= false
     data.customPromptTemplateToggle ??= ''
     data.globalChatVariables ??= {}
+    data.templateDefaultVariables ??= ''
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -661,6 +662,7 @@ export interface Database{
     dynamicAssetsEditDisplay:boolean
     customPromptTemplateToggle:string
     globalChatVariables:{[key:string]:string}
+    templateDefaultVariables:string
 }
 
 export interface customscript{
@@ -789,6 +791,7 @@ export interface character{
         name: string
         ext: string
     }>
+    defaultVariables?:string
 }
 
 
@@ -834,6 +837,7 @@ export interface groupChat{
     lorePlus?:boolean
     trashTime?:number
     nickname?:string
+    defaultVariables?:string
 }
 
 export interface botPreset{
@@ -882,6 +886,7 @@ export interface botPreset{
     openrouterProvider?:string
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
+    templateDefaultVariables?:string
 }
 
 
@@ -1149,7 +1154,8 @@ export function saveCurrentPreset(){
         top_a: db.top_a,
         openrouterProvider: db.openrouterProvider,
         useInstructPrompt: db.useInstructPrompt,
-        customPromptTemplateToggle: db.customPromptTemplateToggle ?? ""
+        customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
+        templateDefaultVariables: db.templateDefaultVariables ?? ""
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1233,6 +1239,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.openrouterProvider = newPres.openrouterProvider
     db.useInstructPrompt = newPres.useInstructPrompt ?? false
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
+    db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
     return db
 }
 

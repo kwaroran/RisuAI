@@ -5,6 +5,7 @@ import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
 import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
 import { processMultiCommand } from "./command";
+import { parseKeyValue } from "../util";
 
 export interface triggerscript{
     comment: string;
@@ -94,13 +95,25 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         promptend: ''
     }
     const triggers = char.triggerscript.concat(getModuleTriggers())
+    const db = get(DataBase)
+    const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = structuredClone(arg.chat ?? char.chats[char.chatPage])
     if((!triggers) || (triggers.length === 0)){
         return null
     }
 
     function getVar(key:string){
-        return `${chat.scriptstate?.['$' + key] ?? "null"}`
+        const state = chat.scriptstate?.['$' + key]
+        if(state === undefined || state === null){
+            const findResult = defaultVariables.find((f) => {
+                return f[0] === key
+            })
+            if(findResult){
+                return findResult[1]
+            }
+            return 'null'
+        }
+        return state.toString()
     }
 
     function setVar(key:string, value:string){
