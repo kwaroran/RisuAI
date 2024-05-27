@@ -1,4 +1,6 @@
+import { get } from "svelte/store";
 import { tokenizeAccurate } from "../tokenizer";
+import type { Database } from "../storage/database";
 
 export type PromptItem = PromptItemPlain|PromptItemTyped|PromptItemChat|PromptItemAuthorNote;
 export type PromptType = PromptItem['type'];
@@ -61,4 +63,21 @@ export async function tokenizePreset(prompts:PromptItem[], consti:boolean = fals
         }
     }
     return total
+}
+
+export function getCustomToggles(template:string){
+    if(!template){
+        return []
+    }
+
+    const keyValue:[string, string][] = []
+
+    for(const line of template.split('\n')){
+        const [key, value] = line.split('=')
+        if(key && value){
+            keyValue.push([key, value])
+        }
+    }
+
+    return keyValue
 }

@@ -400,6 +400,8 @@ export function setDatabase(data:Database){
     data.sideBarSize ??= 0
     data.textAreaTextSize ??= 0
     data.combineTranslation ??= false
+    data.customPromptTemplateToggle ??= ''
+    data.globalChatVariables ??= {}
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -657,7 +659,8 @@ export interface Database{
     combineTranslation:boolean
     dynamicAssets:boolean
     dynamicAssetsEditDisplay:boolean
-    
+    customPromptTemplateToggle:string
+    globalChatVariables:{[key:string]:string}
 }
 
 export interface customscript{
@@ -878,6 +881,7 @@ export interface botPreset{
     top_a?:number
     openrouterProvider?:string
     useInstructPrompt?:boolean
+    customPromptTemplateToggle?:string
 }
 
 
@@ -1144,7 +1148,8 @@ export function saveCurrentPreset(){
         min_p: db.min_p,
         top_a: db.top_a,
         openrouterProvider: db.openrouterProvider,
-        useInstructPrompt: db.useInstructPrompt
+        useInstructPrompt: db.useInstructPrompt,
+        customPromptTemplateToggle: db.customPromptTemplateToggle ?? ""
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1227,6 +1232,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.top_a = newPres.top_a
     db.openrouterProvider = newPres.openrouterProvider
     db.useInstructPrompt = newPres.useInstructPrompt ?? false
+    db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     return db
 }
 

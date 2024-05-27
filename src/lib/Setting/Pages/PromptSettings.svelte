@@ -9,6 +9,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
   import Help from "src/lib/Others/Help.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
 
     let sorted = 0
     let opened = 0
@@ -117,4 +118,6 @@
     {/if}
     <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
     <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
+    <span class="text-textcolor mt-4">{language.customPromptTemplateToggle} <Help key='customPromptTemplateToggle' /></span>
+    <TextAreaInput bind:value={$DataBase.customPromptTemplateToggle}/>
 {/if}

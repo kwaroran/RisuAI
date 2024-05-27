@@ -783,6 +783,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     }
                     return null
                 }
+                case 'getglobalvar':{
+                    return getGlobalChatVar(v)
+                }
                 case 'button':{
                     return `<button class="button-default" risu-trigger="${arra[2]}">${arra[1]}</button>`
                 }
@@ -1459,6 +1462,11 @@ export function getChatVar(key:string){
     const chat = char.chats[char.chatPage]
     chat.scriptstate = chat.scriptstate ?? {}
     return (chat.scriptstate['$' + key])?.toString() ?? 'null'
+}
+
+export function getGlobalChatVar(key:string){
+    const db = get(DataBase)
+    return db.globalChatVariables[key] ?? 'null'
 }
 
 export function setChatVar(key:string, value:string){

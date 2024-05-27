@@ -29,6 +29,7 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
+  import { getCustomToggles } from "src/ts/process/prompt";
     
 
     let subMenu = 0
@@ -246,6 +247,14 @@
     <div class="flex mt-6 items-center">
         <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
     </div>
+
+    {#each getCustomToggles($DataBase.customPromptTemplateToggle) as toggle}
+        <div class="flex mt-2 items-center">
+            <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+            }} />
+        </div>
+    {/each}
     
     {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
         {#if $DataBase.hanuraiEnable}

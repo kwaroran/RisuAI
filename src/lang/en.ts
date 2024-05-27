@@ -127,6 +127,7 @@ export const languageEnglish = {
         nickname: "Nickname would used be in {{char}} or <char> in chat instead of character's name if it is set.",
         useRegexLorebook: "If enabled, it will use regex for lorebook search, instead of string matching. it uses /regex/flags format.",
         customChainOfThought: "Warning: chain of thought toggle is no longer recommended to use. put chain of thought prompt in other prompt entries instead.",
+        customPromptTemplateToggle: "Here you can define your own prompt toggles. use `<toggle variable>=<toggle name>` format, seperated by newline. for example, `cot=Toggle COT`. you can use these toggles in prompt by using `{{getglobalvar::toggle_<toggle variable>}}`. like `{{getglobalvar::toggle_cot}}`.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -608,5 +609,6 @@ export const languageEnglish = {
     risupresetDesc: "Risupreset format is a format specifically designed for RisuAI presets.",
     jsonDesc: "JSON format is a format that is easy to read and write for both humans and machines.",
     nickname: "Nickname",
-    useRegexLorebook: "Use Regex"
+    useRegexLorebook: "Use Regex",
+    customPromptTemplateToggle: "Custom Toggles",
 }
