@@ -403,6 +403,8 @@ export function setDatabase(data:Database){
     data.customPromptTemplateToggle ??= ''
     data.globalChatVariables ??= {}
     data.templateDefaultVariables ??= ''
+    data.hypaAllocatedTokens ??= 3000
+    data.hypaChunkSize ??= 3000
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -663,6 +665,8 @@ export interface Database{
     customPromptTemplateToggle:string
     globalChatVariables:{[key:string]:string}
     templateDefaultVariables:string
+    hypaAllocatedTokens:number
+    hypaChunkSize:number
 }
 
 export interface customscript{

@@ -238,14 +238,20 @@
     </SelectInput>
 
     {#if $DataBase.hanuraiEnable}
+        <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hanuraiDesc}</span>
         <span>Chunk Size</span>
         <NumberInput size="sm" marginBottom bind:value={$DataBase.hanuraiTokens} min={100} />
         <div class="flex">
             <Check bind:check={$DataBase.hanuraiSplit} name="Text Spliting"/>
         </div>
     {:else if $DataBase.supaMemoryType === 'hypaV2'}
-        <span class="text-textcolor mt-4">{language.HypaMemory} V2 is Experimental</span>
+        <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV2Desc}</span>
+        <span class="text-textcolor">{language.hypaChunkSize}</span>
+        <NumberInput size="sm" marginBottom bind:value={$DataBase.hypaChunkSize} min={100} />
+        <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
+        <NumberInput size="sm" marginBottom bind:value={$DataBase.hypaAllocatedTokens} min={100} />
     {:else if $DataBase.supaMemoryType !== 'none'}
+        <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
         <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
         <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
             <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>

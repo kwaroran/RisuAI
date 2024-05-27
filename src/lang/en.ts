@@ -612,5 +612,10 @@ export const languageEnglish = {
     nickname: "Nickname",
     useRegexLorebook: "Use Regex",
     customPromptTemplateToggle: "Custom Toggles",
-    defaultVariables: "Default Variables"
+    defaultVariables: "Default Variables",
+    hypaAllocatedTokens: "Allocated Tokens",
+    hypaChunkSize: "Chunk Size",
+    hypaV2Desc: "HypaMemory V2 is a long-term memory system that use both summarized data and vector search.",
+    supaDesc: "SupaMemory is a long-term memory system that uses summarized data to AI.",
+    hanuraiDesc: "HanuraiMemory is a memory system that uses vector search.",
 }

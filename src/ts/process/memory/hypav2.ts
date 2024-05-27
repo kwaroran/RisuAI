@@ -67,7 +67,8 @@ export async function hypaMemoryV2(
     
     //this is for the prompt
 
-    let allocatedTokens = 3000
+    let allocatedTokens = db.hypaAllocatedTokens
+    let chunkSize = db.hypaChunkSize
     currentTokens += allocatedTokens
     currentTokens += 50 //this is for the template prompt
     let mainPrompt = ""
@@ -93,13 +94,20 @@ export async function hypaMemoryV2(
 
     while(currentTokens >= maxContextTokens){
     
-        const idx = (Math.floor(chats.length/2))
-        const targetId = chats[idx].memo
-        const halfData = chats.slice(idx)
+        let idx = 0
+        let targetId = ''
+        const halfData:OpenAIChat[] = []
 
         let halfDataTokens = 0
-        for(const chat of halfData){
+        while(halfDataTokens < chunkSize){
+            const chat = chats[idx]
+            if(!chat){
+                break
+            }
             halfDataTokens += await tokenizer.tokenizeChat(chat)
+            halfData.push(chat)
+            idx++
+            targetId = chat.memo
         }
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n')
