@@ -110,11 +110,13 @@
         <Help key="experimental"/>
     </Check>
 </div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.chainOfThought} name={language.cot}>
-        <Help key="chainOfThought"/><Help key="experimental"/>
-    </Check>
-</div>
+{#if $DataBase.showUnrecommended}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.chainOfThought} name={language.cot}>
+            <Help key="customChainOfThought" unrecommended/>
+        </Check>
+    </div>
+{/if}
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.removePunctuationHypa} name={language.removePunctuationHypa}>
         <Help key="removePunctuationHypa"/>
@@ -132,9 +134,11 @@
         </Check>
     </div>
 {/if}
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
-</div>
+{#if $DataBase.showUnrecommended}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
+    </div>
+{/if}
 <div class="flex items-center mt-4">
     <Check check={$DataBase.tpo} name="Alpha DevMode" onChange={() => {
         // access code is "tendo"
