@@ -35,6 +35,7 @@ async function summary(stringlizedChat:string):Promise<{
         formated: promptbody,
         bias: {},
         useStreaming: false,
+        noMultiGen: true
     }, 'model')
     if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
         return {

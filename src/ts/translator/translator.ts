@@ -463,6 +463,8 @@ async function translateLLM(text:string, arg:{to:string}){
         ],
         bias: {},
         useStreaming: false,
+        noMultiGen: true,
+        maxTokens: 1000,
     }, 'submodel')
 
     if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){

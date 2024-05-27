@@ -264,7 +264,9 @@ export async function supaMemory(
                 ]
                 const da = await requestChatData({
                     formated: promptbody,
-                    bias: {}
+                    bias: {},
+                    useStreaming: false,
+                    noMultiGen: true
                 }, 'submodel')
                 if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
                     return {

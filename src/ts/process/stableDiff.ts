@@ -34,7 +34,9 @@ export async function stableDiff(currentChar:character,prompt:string){
         currentChar: currentChar,
         temperature: 0.2,
         maxTokens: 300,
-        bias: {}
+        bias: {},
+        useStreaming: false,
+        noMultiGen: true
     }, 'submodel')
 
 
