@@ -669,7 +669,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             formatedChat = name + ': ' + formatedChat
             attr.push('nameAdded')
         }
-        if(usingPromptTemplate && db.promptSettings.customChainOfThought && db.promptSettings.maxThoughtTagDepth !== -1){
+        if(usingPromptTemplate && db.promptSettings.maxThoughtTagDepth !== -1){
             const depth = ms.length - index
             if(depth >= db.promptSettings.maxThoughtTagDepth){
                 formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')

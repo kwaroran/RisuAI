@@ -8,6 +8,7 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+  import Help from "src/lib/Others/Help.svelte";
 
     let sorted = 0
     let opened = 0
@@ -109,9 +110,11 @@
     <Check bind:check={$DataBase.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
     <Check bind:check={$DataBase.promptSettings.sendName} name={language.sendName} className="mt-4"/>
     <Check bind:check={$DataBase.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
-    <Check bind:check={$DataBase.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4"/>
-    {#if $DataBase.promptSettings.customChainOfThought}
-        <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
-        <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
+    {#if $DataBase.showUnrecommended}
+        <Check bind:check={$DataBase.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4">
+            <Help unrecommended key='customChainOfThought' />
+        </Check>
     {/if}
+    <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
+    <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
 {/if}

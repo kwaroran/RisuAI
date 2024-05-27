@@ -126,6 +126,7 @@ export const languageEnglish = {
         dynamicAssetsEditDisplay: "If enabled, the dynamic assets will be applied to the Modify Display stage too. however, this can cause performance issues.",
         nickname: "Nickname would used be in {{char}} or <char> in chat instead of character's name if it is set.",
         useRegexLorebook: "If enabled, it will use regex for lorebook search, instead of string matching. it uses /regex/flags format.",
+        customChainOfThought: "If enabled, it will use custom chain of thought prompt instead of default one if chain of thought prompt is enabled. Warning: chain of thought toggle is no longer recommended to use. put chain of thought prompt in other prompt entries instead.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
