@@ -82,11 +82,14 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
     if(db.aiModel.startsWith('gemini')){
         return await tokenizeWebTokenizers(data, 'gemma')
     }
+    if(db.aiModel.startsWith('cohere')){
+        return await tokenizeWebTokenizers(data, 'cohere')
+    }
 
     return await tikJS(data)
 }
 
-type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'
+type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'
 
 let tikParser:Tiktoken = null
 let tokenizersTokenizer:Tokenizer = null
@@ -162,6 +165,11 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
             case 'llama3':
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromJSON(
                     await (await fetch("/token/llama/llama3.json")
+                ).arrayBuffer())
+                break
+            case 'cohere':
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromJSON(
+                    await (await fetch("/token/cohere/tokenizer.json")
                 ).arrayBuffer())
                 break
             case 'novelai':
