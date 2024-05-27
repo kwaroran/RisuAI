@@ -217,6 +217,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
         case 'test_lorebook':{
             const p = await loadLoreBookV3Prompt()
             console.log(p)
+            alertNormal(p.actives.map((e)=>e.prompt).join('§'))
             return JSON.stringify(p)
         }
         case '?':{

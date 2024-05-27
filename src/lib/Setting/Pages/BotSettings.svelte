@@ -206,6 +206,10 @@
     <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
 {/if}
+{#if $DataBase.aiModel.startsWith('cohere')}
+    <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
+{/if}
 {#if $DataBase.aiModel === 'ollama-hosted'}
     <span class="text-textcolor mt-4">Ollama URL</span>
     <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.ollamaURL} />
@@ -350,7 +354,7 @@
 {/if}
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
 
-{#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3')}
+{#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')}
     <span class="text-textcolor">Top K</span>
     <SliderInput min={0} max={100} step={1} bind:value={$DataBase.top_k}/>
     <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_k).toFixed(0)}</span>
