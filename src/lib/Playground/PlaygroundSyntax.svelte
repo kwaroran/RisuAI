@@ -20,7 +20,7 @@
 
 <span class="text-textcolor text-lg">Input</span>
 
-<TextAreaInput onInput={onInput} bind:value={input} optimaizedInput={false} />
+<TextAreaInput highlight onInput={onInput} bind:value={input} optimaizedInput={false} />
 
 <span class="text-textcolor text-lg">Result</span>
 
