@@ -7,11 +7,10 @@
     import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
-    import { findCharacterbyId } from "src/ts/util";
+    import { findCharacterbyId, parseKeyValue } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { CurrentCharacter } from "src/ts/stores";
-    import { getCustomToggles } from "src/ts/process/prompt";
     export let chara:character|groupChat
     let editMode = false
 </script>
@@ -111,7 +110,7 @@
                 <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
             </div>
             
-            {#each getCustomToggles($DataBase.customPromptTemplateToggle) as toggle}
+            {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
                 <div class="flex mt-2 items-center">
                     <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
                         $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'

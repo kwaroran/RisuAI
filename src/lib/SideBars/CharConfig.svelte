@@ -9,7 +9,7 @@
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId, getAuthorNoteDefaultText, selectMultipleFile } from "../../ts/util";
+    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
@@ -29,7 +29,6 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-  import { getCustomToggles } from "src/ts/process/prompt";
     
 
     let subMenu = 0
@@ -248,7 +247,7 @@
         <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
     </div>
 
-    {#each getCustomToggles($DataBase.customPromptTemplateToggle) as toggle}
+    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
         <div class="flex mt-2 items-center">
             <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
                 $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'

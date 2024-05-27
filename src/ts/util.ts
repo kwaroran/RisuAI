@@ -968,3 +968,20 @@ export const isKnownUri = (uri:string) => {
             || uri.startsWith('ccdefault:')
             || uri.startsWith('embeded://')
 }
+
+export function parseKeyValue(template:string){
+    if(!template){
+        return []
+    }
+
+    const keyValue:[string, string][] = []
+
+    for(const line of template.split('\n')){
+        const [key, value] = line.split('=')
+        if(key && value){
+            keyValue.push([key, value])
+        }
+    }
+
+    return keyValue
+}
