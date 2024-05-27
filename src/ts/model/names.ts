@@ -131,6 +131,9 @@ export function getModelShortName(model:string){
     if(model.startsWith("cohere-")){
         return model.replace("cohere-", "")
     }
+    if(model.startsWith("gpt4o")){
+        return "GPT-4o"
+    }
     if(model.startsWith("gpt4")){
         return "GPT-4"
     }
