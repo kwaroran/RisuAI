@@ -1308,7 +1308,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const url = PROJECT_ID !== 'aigoogle' ?
                 `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${aiModel}:streamGenerateContent`
-                : `https://generativelanguage.googleapis.com/v1/models/${aiModel}:generateContent?key=${db.google.accessToken}`
+                : `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${db.google.accessToken}`
             const res = await globalFetch(url, {
                 headers: headers,
                 body: body,
