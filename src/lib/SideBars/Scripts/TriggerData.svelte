@@ -149,7 +149,7 @@
                             <OptionInput value="null">{language.isNull}</OptionInput>
 
                         </SelectInput>
-                        {#if cond.operator !== 'null'}
+                        {#if cond.operator !== 'null' && cond.operator !== 'true'}
                             <TextAreaInput highlight size="sm" bind:value={cond.value} />
                         {/if}
                     {/if}
