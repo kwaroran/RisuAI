@@ -26,13 +26,13 @@ export type triggerConditionsVar = {
     type:'var'|'value'
     var:string
     value:string
-    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'
+    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'|'true'
 }
 
 export type triggerConditionsChatIndex = {
     type:'chatindex'
     value:string
-    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'
+    operator:'='|'!='|'>'|'<'|'>='|'<='|'null'|'true'
 }
 
 export type triggerConditionsExists ={
@@ -186,6 +186,12 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const conditionValue = risuChatParser(condition.value,{chara:char})
                     varValue = risuChatParser(varValue,{chara:char})
                     switch(condition.operator){
+                        case 'true': {
+                            if(varValue !== 'true' && varValue !== '1'){
+                                pass = false
+                            }
+                            break
+                        }
                         case '=':
                             if(varValue !== conditionValue){
                                 pass = false

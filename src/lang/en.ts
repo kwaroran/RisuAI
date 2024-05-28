@@ -632,4 +632,5 @@ export const languageEnglish = {
     select: "Select",
     lowLevelAccessConfirm: "This character uses Low Level Access. which means this character can access the AI model and your storage directly. do you really want to import this character?",
     triggerLowLevelOnly: "This trigger only works with Low Level Access. to enable this trigger, enable Low Level Access in advanced settings in the character.",
+    truthy: "Truthy",
 }

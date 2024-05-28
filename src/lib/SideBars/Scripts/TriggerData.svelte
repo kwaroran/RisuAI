@@ -63,7 +63,7 @@
                     value.conditions.push({
                         type: 'value',
                         value: '',
-                        operator: '=',
+                        operator: 'true',
                         var: ''
                     })
                     value.conditions = value.conditions
@@ -139,6 +139,7 @@
                         {/if}
                         <span  class="text-textcolor2 text-sm">{language.value}</span>
                         <SelectInput bind:value={cond.operator} size="sm">
+                            <OptionInput value="true">{language.truthy}</OptionInput>
                             <OptionInput value="=">{language.equal}</OptionInput>
                             <OptionInput value="!=">{language.notEqual}</OptionInput>
                             <OptionInput value=">">{language.greater}</OptionInput>
