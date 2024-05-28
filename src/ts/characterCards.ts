@@ -848,30 +848,34 @@ export function createBaseV3(char:character){
         ext: string
     }> = structuredClone(char.ccAssets ?? [])
 
-    for(const asset of char.additionalAssets){
-        assets.push({
-            type: 'x-risu-asset',
-            uri: asset[1],
-            name: asset[0],
-            ext: asset[2] || 'unknown'
-        })
+    if(char.additionalAssets){
+        for(const asset of char.additionalAssets){
+            assets.push({
+                type: 'x-risu-asset',
+                uri: asset[1],
+                name: asset[0],
+                ext: asset[2] || 'unknown'
+            })
+        }
     }
 
-    for(const asset of char.emotionImages){
+    if(char.emotionImages){
+        for(const asset of char.emotionImages){
+            assets.push({
+                type: 'emotion',
+                uri: asset[1],
+                name: asset[0],
+                ext: 'unknown'
+            })
+        }
+    
         assets.push({
-            type: 'emotion',
-            uri: asset[1],
-            name: asset[0],
-            ext: 'unknown'
+            type: 'icon',
+            uri: 'ccdefault:',
+            name: 'main',
+            ext: 'png'
         })
     }
-
-    assets.push({
-        type: 'icon',
-        uri: 'ccdefault:',
-        name: 'main',
-        ext: 'png'
-    })
 
     for(const lore of char.globalLore){
         let ext:{
