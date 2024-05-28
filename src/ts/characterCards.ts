@@ -479,6 +479,12 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         sdData = risuext.sdData ?? sdData
     }
 
+    if(risuext.lowLevelAccess){
+        const conf = alertConfirm(language.lowLevelAccessConfirm)
+        if(!conf){
+            return false
+        }
+    }
     const charbook = data.character_book
     let lorebook:loreBook[] = []
     let loresettings:undefined|loreSettings = undefined
@@ -586,6 +592,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         imported: true,
         source: card?.data?.extensions?.risuai?.source ?? [],
         ccAssets: ccAssets,
+        lowLevelAccess: risuext.lowLevelAccess ?? false
     }
 
     if(card.spec === 'chara_card_v3'){
@@ -939,7 +946,8 @@ export function createBaseV3(char:character){
                     lorePlus: char.lorePlus,
                     inlayViewScreen: char.inlayViewScreen,
                     newGenData: char.newGenData,
-                    vits: {}
+                    vits: {},
+                    lowLevelAccess: char.lowLevelAccess ?? false
                 },
                 depth_prompt: char.depth_prompt
             },

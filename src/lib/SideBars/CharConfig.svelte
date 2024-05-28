@@ -894,6 +894,11 @@
         </div>
 
         <div class="flex items-center mt-4">
+            <Check bind:check={currentChar.data.lowLevelAccess} name={language.lowLevelAccess}/>
+            <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
+        </div>
+
+        <div class="flex items-center mt-4">
             <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>
@@ -954,6 +959,11 @@
                 <Help key="experimental" name={language.useCharLorebook}/>
             </div>
         {/if}
+
+        <div class="flex items-center mt-4">
+            <Check bind:check={currentChar.data.lowLevelAccess} name={language.lowLevelAccess}/>
+            <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
+        </div>
     {/if}
     <Button on:click={async () => {
         removeChar($selectedCharID, currentChar.data.name)

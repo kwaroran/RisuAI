@@ -1087,6 +1087,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
 
     let result = ''
     let emoChanged = false
+    let resendChat = false
     
     if(abortSignal.aborted === true){
         return false
@@ -1150,6 +1151,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         const triggerResult = await runTrigger(currentChar, 'output', {chat:currentChat})
         if(triggerResult && triggerResult.chat){
             currentChat = triggerResult.chat
+        }
+        if(triggerResult && triggerResult.sendAIprompt){
+            resendChat = true
         }
         const inlayr = runInlayScreen(currentChar, currentChat.message[msgIndex].data)
         currentChat.message[msgIndex].data = inlayr.text
@@ -1236,6 +1240,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             db.characters[selectedChar].chats[selectedChat] = triggerResult.chat
             setDatabase(db)
         }
+        if(triggerResult && triggerResult.sendAIprompt){
+            resendChat = true
+        }
     }
 
     let needsAutoContinue = false
@@ -1256,6 +1263,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             continue: true,
             signal: abortSignal,
             usedContinueTokens: resultTokens
+        })
+    }
+
+    if(resendChat){
+        doingChat.set(false)
+        return await sendChat(chatProcessIndex, {
+            signal: abortSignal
         })
     }
 

@@ -797,6 +797,7 @@ export interface character{
         ext: string
     }>
     defaultVariables?:string
+    lowLevelAccess?:boolean
 }
 
 
@@ -843,6 +844,7 @@ export interface groupChat{
     trashTime?:number
     nickname?:string
     defaultVariables?:string
+    lowLevelAccess?:boolean
 }
 
 export interface botPreset{

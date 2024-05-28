@@ -13,6 +13,7 @@ import { findCharacterbyId, parseKeyValue, sfc32, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
 import { autoMarkNew } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
+import { HypaProcesser } from './process/memory/hypamemory';
 
 const mconverted = new Marked({
     gfm: true,

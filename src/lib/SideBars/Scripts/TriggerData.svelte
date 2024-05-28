@@ -9,6 +9,8 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+  import Help from "src/lib/Others/Help.svelte";
+  import { CurrentCharacter } from "src/ts/stores";
 
     export let value:triggerscript
     export let onRemove: () => void = () => {}
@@ -231,6 +233,29 @@
                                 value: ''
                             }
                         }
+                        if(effect.type === 'runLLM'){
+                            effect = {
+                                type: 'runLLM',
+                                value: '',
+                                inputVar: ''
+                            }
+                        }
+                        if(effect.type === 'checkSimilarity'){
+                            effect = {
+                                type: 'checkSimilarity',
+                                source: '',
+                                value: '',
+                                inputVar: ''
+                            }
+                        }
+                        if(effect.type === 'showAlert'){
+                            effect = {
+                                type: 'showAlert',
+                                alertType: 'normal',
+                                value: '',
+                                inputVar: ''
+                            }
+                        }
                     }}>
                         <OptionInput value="setvar">{language.triggerEffSetVar}</OptionInput>
                         <OptionInput value="impersonate">{language.triggerEffImperson}</OptionInput>
@@ -242,11 +267,26 @@
                             <OptionInput value="stop">{language.triggerEffStop}</OptionInput>
                         {/if}
                         <OptionInput value="runtrigger">{language.triggerEffRunTrigger}</OptionInput>
-
+                        <OptionInput value="runLLM">{language.triggerEffRunLLM}</OptionInput>
+                        <OptionInput value="checkSimilarity">{language.triggerEffCheckSim}</OptionInput>
+                        <OptionInput value="showAlert">{language.triggerEffShowAlert}</OptionInput>
+                        {#if effect.type === 'sendAIprompt' || value.type === 'output'}
+                            <OptionInput value="sendAIprompt">{language.triggerEffectSendAI}</OptionInput>
+                        {/if}
                     </SelectInput>
-                    {#if value.type !== 'start' && (effect.type === 'systemprompt' || effect.type === 'stop')}
+                    {#if
+                        (value.type !== 'start' && (effect.type === 'systemprompt' || effect.type === 'stop')) ||
+                        (value.type === 'output' && effect.type === 'sendAIprompt')
+                    }
                         <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
                     {/if}
+                    {#if
+                        !$CurrentCharacter.lowLevelAccess && (effect.type === 'runLLM' || effect.type === 'checkSimilarity' || effect.type === 'showAlert' || effect.type === 'sendAIprompt')
+                    }
+                        <span class="text-red-400 text-sm">{language.triggerLowLevelOnly}</span>
+
+                    {/if}
+
                     {#if effect.type === 'systemprompt'}
                         <span class="text-textcolor2 text-sm">{language.location}</span>
                         <SelectInput bind:value={effect.location}>
@@ -279,6 +319,38 @@
                     {#if effect.type === 'command'}
                         <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextAreaInput highlight bind:value={effect.value} />
+                    {/if}
+                    {#if effect.type === 'runLLM'}
+                        <span class="text-textcolor2 text-sm">{language.prompt} <Help key="triggerLLMPrompt" /></span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultStoredVar}</span>
+                        <TextInput bind:value={effect.inputVar} />
+                    {/if}
+                    {#if effect.type === 'checkSimilarity'}
+                        <span class="text-textcolor2 text-sm">{language.prompt}</span>
+                        <TextAreaInput highlight bind:value={effect.source} />
+
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultStoredVar}</span>
+                        <TextInput bind:value={effect.inputVar} />
+                    {/if}
+                    {#if effect.type === 'showAlert'}
+                        <span class="text-textcolor2 text-sm">{language.type}</span>
+                        <SelectInput bind:value={effect.alertType}>
+                            <OptionInput value="normal">{language.normal}</OptionInput>
+                            <OptionInput value="error">{language.error}</OptionInput>
+                            <OptionInput value="input">{language.input}</OptionInput>
+                            <OptionInput value="select">{language.select}</OptionInput>
+                        </SelectInput>
+
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultStoredVar}</span>
+                        <TextInput bind:value={effect.inputVar} />
                     {/if}
                     {#if effect.type === 'impersonate'}
                         <span class="text-textcolor2 text-sm">{language.role}</span>
