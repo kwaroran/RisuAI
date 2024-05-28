@@ -480,7 +480,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     }
 
     if(risuext.lowLevelAccess){
-        const conf = alertConfirm(language.lowLevelAccessConfirm)
+        const conf = await alertConfirm(language.lowLevelAccessConfirm)
         if(!conf){
             return false
         }
