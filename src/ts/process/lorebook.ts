@@ -253,12 +253,12 @@ export async function loadLoreBookV3Prompt(){
             return false
         }
 
-        mText = mText.toLowerCase()
+        mText = mText.toLocaleLowerCase()
 
         if(arg.fullWordMatching){
             const splited = mText.split(' ')
             for(const key of arg.keys){
-                if(splited.includes(key)){
+                if(splited.includes(key.toLocaleLowerCase())){
                     return true
                 }
             }
@@ -266,7 +266,7 @@ export async function loadLoreBookV3Prompt(){
         else{
             mText = mText.replace(/ /g,'')
             for(const key of arg.keys){
-                if(mText.includes(key)){
+                if(mText.includes(key.toLocaleLowerCase())){
                     return true
                 }
             }
