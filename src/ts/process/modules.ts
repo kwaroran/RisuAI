@@ -1,5 +1,5 @@
 import { language } from "src/lang"
-import { alertError, alertNormal } from "../alert"
+import { alertConfirm, alertError, alertNormal } from "../alert"
 import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
 import { downloadFile } from "../storage/globalApi"
 import { get } from "svelte/store"
@@ -45,6 +45,13 @@ export async function importModule(){
                 return
             }
             importData.id = v4()
+
+            if(importData.lowLevelAccess){
+                const conf = await alertConfirm(language.lowLevelAccessConfirm)
+                if(!conf){
+                    return false
+                }
+            }
             db.modules.push(importData)
             setDatabase(db)
             return
