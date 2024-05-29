@@ -1,16 +1,15 @@
 export const patchNote = {
-    version: "1.108",
+    version: "1.109",
     content: 
 `
-# Update 1.108 (Low Level Access)
-- Added new character field: Low Level Access
-   - Enabling this field will allow you to access the low level functions, like accessing the AI model via triggers
-   - Added Run Main Model trigger
-   - Added Resend AI trigger
-   - Added Check Similarity trigger
-   - Added Show Alert trigger
-- Added is Truthy condition in trigger
-- Fixed lorebook not threatening as a match if the key is not lowercase
+# Update 1.109 (More triggers update)
+- Added new triggers
+  - Added Image Generation trigger
+  - Added Extract Text with Regex trigger
+  - Added Cut Chat trigger
+  - Added Modify Chat trigger
+- Now modules can have low level access
+- Fixed Lorebooks not matching with spaces
 `
 }
 
