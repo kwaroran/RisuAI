@@ -1,11 +1,12 @@
 import { get } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
-import { selectedCharID } from "../stores";
+import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
 import { sendChat } from ".";
 import { loadLoreBookV3Prompt } from "./lorebook";
+import { runTrigger } from "./triggers";
 
 export async function processMultiCommand(command:string) {
     let pipe = ''
@@ -219,6 +220,20 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             console.log(p)
             alertNormal(p.actives.map((e)=>e.prompt).join('§'))
             return JSON.stringify(p)
+        }
+        case 'trigger':{
+            const currentChar = get(CurrentCharacter)
+            if(currentChar.type === 'group'){
+                return;
+            }
+            const triggerResult = await runTrigger(currentChar, 'manual', {
+                chat: get(CurrentChat),
+                manualName: arg
+            });
+
+            if(triggerResult){
+               CurrentChat.set(triggerResult.chat);
+            }
         }
         case '?':{
             alertMd(`
