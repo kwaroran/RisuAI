@@ -234,6 +234,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             if(triggerResult){
                CurrentChat.set(triggerResult.chat);
             }
+            return
         }
         case '?':{
             alertMd(`
