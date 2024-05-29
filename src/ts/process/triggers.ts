@@ -10,17 +10,20 @@ import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
 import type { OpenAIChat } from ".";
 import { HypaProcesser } from "./memory/hypamemory";
 import { requestChatData } from "./request";
+import { generateAIImage } from "./stableDiff";
+import { writeInlayImage } from "./files/image";
 
 export interface triggerscript{
     comment: string;
     type: 'start'|'manual'|'output'|'input'
     conditions: triggerCondition[]
     effect:triggerEffect[]
+    lowLevelAccess?: boolean
 }
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
+export type triggerEffect = triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -66,6 +69,15 @@ export interface triggerEffectCommand{
     value: string
 }
 
+export interface triggerEffectRegex{
+    type: 'extractRegex',
+    value: string
+    regex: string
+    flags: string
+    result: string
+    inputVar: string
+}
+
 export interface triggerEffectShowAlert{
     type: 'showAlert',
     alertType: string
@@ -85,6 +97,14 @@ export interface triggerEffectStop{
 export interface triggerEffectSendAIprompt{
     type: 'sendAIprompt'
 }
+
+export interface triggerEffectImgGen{
+    type: 'runImgGen',
+    value: string,
+    negValue: string,
+    inputVar: string
+}
+
 
 export interface triggerEffectCheckSimilarity{
     type: 'checkSimilarity',
@@ -116,7 +136,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     char = structuredClone(char)
     let varChanged = false
     let stopSending = arg.stopSending ?? false
-    let lowLevelAccess = char.lowLevelAccess ?? false
+    const CharacterlowLevelAccess = char.lowLevelAccess ?? false
     let sendAIprompt = false
     const currentChat = get(CurrentChat)
     let additonalSysPrompt:additonalSysPrompt = arg.additonalSysPrompt ?? {
@@ -124,7 +144,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         historyend: '',
         promptend: ''
     }
-    const triggers = char.triggerscript.concat(getModuleTriggers())
+    const triggers = char.triggerscript.map((v) => {
+        v.lowLevelAccess = CharacterlowLevelAccess
+        return v
+    }).concat(getModuleTriggers())
     const db = get(DataBase)
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = structuredClone(arg.chat ?? char.chats[char.chatPage])
@@ -305,7 +328,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     break
                 }
                 case 'runtrigger':{
-                    if(arg.recursiveCount < 10 || lowLevelAccess){
+                    if(arg.recursiveCount < 10 || trigger.lowLevelAccess){
                         arg.recursiveCount++
                         const r = await runTrigger(char,'manual',{
                             chat,
@@ -325,7 +348,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
 
                 // low level access only
                 case 'showAlert':{
-                    if(!lowLevelAccess){
+                    if(!trigger.lowLevelAccess){
                         break
                     }
 
@@ -354,7 +377,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
 
                 case 'sendAIprompt':{
-                    if(!lowLevelAccess){
+                    if(!trigger.lowLevelAccess){
                         break
                     }
                     sendAIprompt = true
@@ -362,7 +385,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
 
                 case 'runLLM':{
-                    if(!lowLevelAccess){
+                    if(!trigger.lowLevelAccess){
                         break
                     }
                     const effectValue = risuChatParser(effect.value,{chara:char})
@@ -420,7 +443,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
 
                 case 'checkSimilarity':{
-                    if(!lowLevelAccess){
+                    if(!trigger.lowLevelAccess){
                         break
                     }
 
@@ -430,6 +453,42 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     await processer.addText(effectValue.split('§'))
                     const val = await processer.similaritySearch(source)
                     setVar(effect.inputVar, val.join('§'))
+                    break
+                }
+
+                case 'extractRegex':{
+                    if(!trigger.lowLevelAccess){
+                        break
+                    }
+
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    const regex = new RegExp(effect.regex, effect.flags)
+                    const regexResult = regex.exec(effectValue)
+                    const result = effect.result.replace(/\$[0-9]+/g, (match) => {
+                        const index = Number(match.slice(1))
+                        return regexResult[index]
+                    }).replace(/\$&/g, regexResult[0]).replace(/\$\$/g, '$')
+
+                    setVar(effect.inputVar, result)
+                    break
+                }
+
+                case 'runImgGen':{
+                    if(!trigger.lowLevelAccess){
+                        break
+                    }
+
+                    const effectValue = risuChatParser(effect.value,{chara:char})
+                    const negValue = risuChatParser(effect.negValue,{chara:char})
+                    const gen = await generateAIImage(effectValue, char, negValue, 'inlay')
+                    if(!gen){
+                        return ''
+                    }
+                    const imgHTML = new Image()
+                    imgHTML.src = gen
+                    const inlay = await writeInlayImage(imgHTML)
+                    const res = `{{inlay::${inlay}}}`
+                    setVar(effect.inputVar, res)
                     break
                 }
             }

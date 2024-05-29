@@ -16,6 +16,7 @@ export interface RisuModule{
     cjs?: string
     trigger?: triggerscript[]
     id: string
+    lowLevelAccess?: boolean
 }
 
 export async function exportModule(module:RisuModule){
@@ -152,7 +153,10 @@ export function getModuleTriggers() {
             continue
         }
         if (module.trigger) {
-            triggers = triggers.concat(module.trigger)
+            triggers = triggers.concat(module.trigger.map((t) => {
+                t.lowLevelAccess = module.lowLevelAccess
+                return t
+            }))
         }
     }
     return triggers
