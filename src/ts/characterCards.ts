@@ -592,7 +592,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         imported: true,
         source: card?.data?.extensions?.risuai?.source ?? [],
         ccAssets: ccAssets,
-        lowLevelAccess: risuext.lowLevelAccess ?? false
+        lowLevelAccess: risuext?.lowLevelAccess ?? false
     }
 
     if(card.spec === 'chara_card_v3'){
