@@ -266,7 +266,8 @@ export async function loadLoreBookV3Prompt(){
         else{
             mText = mText.replace(/ /g,'')
             for(const key of arg.keys){
-                if(mText.includes(key.toLocaleLowerCase())){
+                const realKey = key.toLocaleLowerCase().replace(/ /g,'')
+                if(mText.includes(realKey)){
                     return true
                 }
             }
