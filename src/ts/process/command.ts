@@ -286,6 +286,8 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             # /getvar key=[key]
             - Get variable
             - Example: /getvar key=damage
+            # /trigger [name]
+            - Run trigger
             # /?
             - Show help
             `)
