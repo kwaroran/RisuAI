@@ -203,7 +203,7 @@
                                 location: 'historyend'
                             }
                         }
-                        if(effect.type === 'setvar'){
+                        else if(effect.type === 'setvar'){
                             effect = {
                                 type: 'setvar',
                                 var: '',
@@ -211,38 +211,38 @@
                                 operator: '='
                             }
                         }
-                        if(effect.type === 'impersonate'){
+                        else if(effect.type === 'impersonate'){
                             effect = {
                                 type: 'impersonate',
                                 role: 'char',
                                 value: ''
                             }
                         }
-                        if(effect.type === 'command'){
+                        else if(effect.type === 'command'){
                             effect = {
                                 type: 'command',
                                 value: ''
                             }
                         }
-                        if(effect.type === 'stop'){
+                        else if(effect.type === 'stop'){
                             effect = {
                                 type: 'stop',
                             }
                         }
-                        if(effect.type === 'runtrigger'){
+                        else if(effect.type === 'runtrigger'){
                             effect = {
                                 type: 'runtrigger',
                                 value: ''
                             }
                         }
-                        if(effect.type === 'runLLM'){
+                        else if(effect.type === 'runLLM'){
                             effect = {
                                 type: 'runLLM',
                                 value: '',
                                 inputVar: ''
                             }
                         }
-                        if(effect.type === 'checkSimilarity'){
+                        else if(effect.type === 'checkSimilarity'){
                             effect = {
                                 type: 'checkSimilarity',
                                 source: '',
@@ -250,7 +250,7 @@
                                 inputVar: ''
                             }
                         }
-                        if(effect.type === 'showAlert'){
+                        else if(effect.type === 'showAlert'){
                             effect = {
                                 type: 'showAlert',
                                 alertType: 'normal',
@@ -258,23 +258,58 @@
                                 inputVar: ''
                             }
                         }
+                        else if(effect.type === 'extractRegex'){
+                            effect ={
+                                type: 'extractRegex',
+                                value: '',
+                                regex: '',
+                                flags: '',
+                                inputVar: '',
+                                result:''
+                            }
+                        }
+                        else if(effect.type === 'runImgGen'){
+                            effect = {
+                                type: 'runImgGen',
+                                value: '',
+                                negValue: '',
+                                inputVar: ''
+                            }
+                        }
+                        else if(effect.type === 'sendAIprompt'){
+                            effect = {
+                                type: 'sendAIprompt'                           
+                            }
+                        }
+                        else if(effect.type === 'cutchat'){
+                            effect = {
+                                type: 'cutchat',
+                                start: '',
+                                end: ''                           
+                            }
+                        }
+                        else if(effect.type === 'modifychat'){
+                            effect = {
+                                type: 'modifychat',
+                                value: '',
+                                index: ''
+                            }
+                        }
                     }}>
                         <OptionInput value="setvar">{language.triggerEffSetVar}</OptionInput>
                         <OptionInput value="impersonate">{language.triggerEffImperson}</OptionInput>
                         <OptionInput value="command">{language.triggerEffCommand}</OptionInput>
-                        {#if effect.type === 'systemprompt' || value.type === 'start'}
-                            <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
-                        {/if}
-                        {#if effect.type === 'stop' || value.type === 'start'}
-                            <OptionInput value="stop">{language.triggerEffStop}</OptionInput>
-                        {/if}
+                        <OptionInput value="systemprompt">{language.triggerEffSysPrompt}</OptionInput>
+                        <OptionInput value="stop">{language.triggerEffStop}</OptionInput>
                         <OptionInput value="runtrigger">{language.triggerEffRunTrigger}</OptionInput>
                         <OptionInput value="runLLM">{language.triggerEffRunLLM}</OptionInput>
                         <OptionInput value="checkSimilarity">{language.triggerEffCheckSim}</OptionInput>
                         <OptionInput value="showAlert">{language.triggerEffShowAlert}</OptionInput>
-                        {#if effect.type === 'sendAIprompt' || value.type === 'output'}
-                            <OptionInput value="sendAIprompt">{language.triggerEffectSendAI}</OptionInput>
-                        {/if}
+                        <OptionInput value="sendAIprompt">{language.triggerEffectSendAI}</OptionInput>
+                        <OptionInput value="extractRegex">{language.extractRegex}</OptionInput>
+                        <OptionInput value="runImgGen">{language.runImgGen}</OptionInput>
+                        <OptionInput value="cutchat">{language.cutChat}</OptionInput>
+                        <OptionInput value="modifychat">{language.modifyChat}</OptionInput>
                     </SelectInput>
                     {#if
                         (value.type !== 'start' && (effect.type === 'systemprompt' || effect.type === 'stop')) ||
@@ -283,7 +318,14 @@
                         <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
                     {/if}
                     {#if
-                        !lowLevelAble && (effect.type === 'runLLM' || effect.type === 'checkSimilarity' || effect.type === 'showAlert' || effect.type === 'sendAIprompt')
+                        !lowLevelAble && (
+                            effect.type === 'runLLM' ||
+                            effect.type === 'checkSimilarity' ||
+                            effect.type === 'showAlert' ||
+                            effect.type === 'sendAIprompt' ||
+                            effect.type === 'extractRegex' ||
+                            effect.type === 'runImgGen'
+                        )
                     }
                         <span class="text-red-400 text-sm">{language.triggerLowLevelOnly}</span>
 
@@ -362,6 +404,51 @@
                         </SelectInput>
                         <span class="text-textcolor2 text-sm">{language.value}</span>
                         <TextAreaInput highlight bind:value={effect.value} />
+                    {/if}
+
+                    {#if effect.type === 'extractRegex'}
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+
+                        <span class="text-textcolor2 text-sm">{language.regex}</span>
+                        <TextInput bind:value={effect.regex} />
+
+                        <span class="text-textcolor2 text-sm">{language.flags}</span>
+                        <TextInput bind:value={effect.flags} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultFormat}</span>
+                        <TextInput bind:value={effect.result} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultStoredVar}</span>
+                        <TextInput bind:value={effect.inputVar} />
+                    {/if}
+
+                    {#if effect.type === 'runImgGen'}
+                        <span class="text-textcolor2 text-sm">{language.prompt}</span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+
+                        <span class="text-textcolor2 text-sm">{language.negPrompt}</span>
+                        <TextAreaInput highlight bind:value={effect.negValue} />
+
+                        <span class="text-textcolor2 text-sm">{language.resultStoredVar}</span>
+                        <TextInput bind:value={effect.inputVar} />
+                    {/if}
+
+                    {#if effect.type === 'cutchat'}
+                        <span class="text-textcolor2 text-sm">{language.start}</span>
+                        <TextInput bind:value={effect.start} />
+
+                        <span class="text-textcolor2 text-sm">{language.end}</span>
+                        <TextInput bind:value={effect.end} />
+                    {/if}
+
+                    {#if effect.type === 'modifychat'}
+                        <span class="text-textcolor2 text-sm">{language.index}</span>
+                        <TextInput bind:value={effect.index} />
+
+                        <span class="text-textcolor2 text-sm">{language.value}</span>
+                        <TextAreaInput highlight bind:value={effect.value} />
+                    
                     {/if}
                 {/each}
             </div>

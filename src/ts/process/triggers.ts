@@ -23,7 +23,7 @@ export interface triggerscript{
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
+export type triggerEffect = triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -50,6 +50,18 @@ export interface triggerEffectSetvar{
     operator: '='|'+='|'-='|'*='|'/='
     var:string
     value:string
+}
+
+export interface triggerEffectCutChat{
+    type: 'cutchat',
+    start: string,
+    end: string
+}
+
+export interface triggerEffectModifyChat{
+    type: 'modifychat',
+    index: string,
+    value: string
 }
 
 export interface triggerEffectSystemPrompt{
@@ -342,6 +354,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             chat = r.chat
                             stopSending = r.stopSending
                         }
+                    }
+                    break
+                }
+                case 'cutchat':{
+                    const start = Number(risuChatParser(effect.start,{chara:char}))
+                    const end = Number(risuChatParser(effect.end,{chara:char}))
+                    chat.message = chat.message.slice(start,end)
+                    break
+                }
+                case 'modifychat':{
+                    const index = Number(risuChatParser(effect.index,{chara:char}))
+                    const value = risuChatParser(effect.value,{chara:char})
+                    if(chat.message[index]){
+                        chat.message[index].data = value
                     }
                     break
                 }
