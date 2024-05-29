@@ -8,6 +8,7 @@
     import { alertConfirm } from "src/ts/alert";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
+  import Help from "src/lib/Others/Help.svelte";
 
 
     export let currentModule:RisuModule
@@ -113,11 +114,11 @@
     <button class={(!Array.isArray(currentModule.regex)) ? 'p-4' : "p-4 bg-selected rounded-tr-md"} on:click={toggleRegex}>
         {language.regexScript}
     </button>
-    <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-tr-md"} on:click={toggleTrigger}>
+    <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleTrigger}>
         {language.triggerScript}
     </button>
-    <button class="p-4">
-        
+    <button class={(!currentModule.lowLevelAccess) ? 'p-4' : "p-4 bg-selected rounded-br-md"} on:click={() => {currentModule.lowLevelAccess = !currentModule.lowLevelAccess}}>
+        {language.lowLevelAccess} <Help key="lowLevelAccess" />
     </button>
 </div>
 
@@ -146,7 +147,7 @@
 
 {#if (Array.isArray(currentModule.trigger))}
     <span class="mt-8 text-xl">{language.triggerScript}</span>
-    <TriggerList bind:value={currentModule.trigger}/>
+    <TriggerList bind:value={currentModule.trigger} lowLevelAble={currentModule.lowLevelAccess} />
     <button on:click={() => {addTrigger()}} class="hover:text-textcolor cursor-pointer">
         <PlusIcon />
     </button>

@@ -9,10 +9,11 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import Help from "src/lib/Others/Help.svelte";
-  import { CurrentCharacter } from "src/ts/stores";
+    import Help from "src/lib/Others/Help.svelte";
+    import { CurrentCharacter } from "src/ts/stores";
 
     export let value:triggerscript
+    export let lowLevelAble:boolean = false
     export let onRemove: () => void = () => {}
     export let onClose: () => void = () => {}
     export let onOpen: () => void = () => {}
@@ -282,7 +283,7 @@
                         <span class="text-red-400 text-sm">{language.invaildTriggerEffect}</span>
                     {/if}
                     {#if
-                        !$CurrentCharacter.lowLevelAccess && (effect.type === 'runLLM' || effect.type === 'checkSimilarity' || effect.type === 'showAlert' || effect.type === 'sendAIprompt')
+                        !lowLevelAble && (effect.type === 'runLLM' || effect.type === 'checkSimilarity' || effect.type === 'showAlert' || effect.type === 'sendAIprompt')
                     }
                         <span class="text-red-400 text-sm">{language.triggerLowLevelOnly}</span>
 

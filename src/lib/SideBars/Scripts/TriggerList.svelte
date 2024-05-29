@@ -2,6 +2,7 @@
     import type { triggerscript } from "src/ts/storage/database";
     import TriggerData from "./TriggerData.svelte";
     export let value:triggerscript[] = []
+    export let lowLevelAble = false
     let ele: HTMLDivElement
     let sorted = 0
 
@@ -13,7 +14,7 @@
     {/if}
     {#key sorted}
         {#each value as triggerscript, i}
-            <TriggerData idx={i} bind:value={value[i]} onRemove={() => {
+            <TriggerData idx={i} bind:value={value[i]} lowLevelAble={lowLevelAble} onRemove={() => {
                 let triggerscript = value
                 triggerscript.splice(i, 1)
                 value = triggerscript

@@ -579,7 +579,7 @@
         }}><PlusIcon /></button>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
-        <TriggerList bind:value={currentChar.data.triggerscript} />
+        <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
                 let script = currentChar.data.triggerscript
