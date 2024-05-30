@@ -1,15 +1,16 @@
 export const patchNote = {
-    version: "1.109",
+    version: "1.110",
     content: 
 `
-# Update 1.109 (More triggers update)
-- Added new triggers
-  - Added Image Generation trigger
-  - Added Extract Text with Regex trigger
-  - Added Cut Chat trigger
-  - Added Modify Chat trigger
-- Now modules can have low level access
-- Fixed Lorebooks not matching with spaces
+# Update 1.110 (Modules Update)
+- Improved module GUI
+  - Added search bar
+  - Now modules are ordered by name
+  - Now global modules are ordered in the end of the list in the chat GUI
+- Added module export and import from Realm
+- Added preset import from Realm
+- Added \`{{position::<name>}}\` CBS
+   - This CBS will be replaced to lorebooks that uses \`@@position tk_<name>\` decorator
 `
 }
 
