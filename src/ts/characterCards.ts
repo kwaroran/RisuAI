@@ -1,9 +1,9 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript } from "./storage/database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset } from "./storage/database"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
 import { CurrentCharacter, selectedCharID } from "./stores"
@@ -241,6 +241,35 @@ export async function characterURLImport() {
     } catch (error) {
         alertError(language.errors.noData)
         return null
+    }
+
+
+    const hash = location.hash
+    if(hash.startsWith('#import_module=')){
+        const data = hash.replace('#import_module=', '')
+        const importData = JSON.parse(Buffer.from(decodeURIComponent(data), 'base64').toString('utf-8'))
+        importData.id = v4()
+
+        const db = get(DataBase)
+        if(importData.lowLevelAccess){
+            const conf = await alertConfirm(language.lowLevelAccessConfirm)
+            if(!conf){
+                return false
+            }
+        }
+        db.modules.push(importData)
+        setDatabase(db)
+        return
+    }
+    if(hash.startsWith('#import_preset=')){
+        const data = hash.replace('#import_preset=', '')
+        const importData =Buffer.from(decodeURIComponent(data), 'base64')
+        await importPreset({
+            name: 'imported.risupreset',
+            data: importData
+        })
+        return
+    
     }
 }
 

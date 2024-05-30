@@ -1301,8 +1301,13 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
 }
 
 
-export async function importPreset(){
-    const f = await selectSingleFile(["json", "preset", "risupreset"])
+export async function importPreset(f:{
+    name:string
+    data:Uint8Array
+}|null = null){
+    if(!f){
+        f = await selectSingleFile(["json", "preset", "risupreset"])
+    }
     if(!f){
         return
     }
