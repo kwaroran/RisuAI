@@ -82,16 +82,17 @@
                                     alertError(language.notLoggedIn)
                                     return
                                 }
-                                $ShowRealmFrameStore = `module:${i}`
+                                const index = $DataBase.modules.findIndex((v) => v.id === rmodule.id)
+                                $ShowRealmFrameStore = `module:${index}`
                             }
                         }}>
                             <Share2Icon size={18}/>
                         </button>
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.edit} on:click={async (e) => {
                             e.stopPropagation()
-
+                            const index = $DataBase.modules.findIndex((v) => v.id === rmodule.id)
                             tempModule = rmodule
-                            editModuleIndex = i
+                            editModuleIndex = index
                             mode = 2
                         }}>
                             <Edit size={18}/>
