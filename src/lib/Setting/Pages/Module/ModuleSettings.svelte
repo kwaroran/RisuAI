@@ -8,6 +8,7 @@
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertConfirm } from "src/ts/alert";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     let tempModule:RisuModule = {
         name: '',
         description: '',
@@ -15,15 +16,38 @@
     }
     let mode = 0
     let editModuleIndex = -1
+    let moduleSearch = ''
+
+    function sortModules(modules:RisuModule[], search:string){
+        const db = $DataBase
+        return modules.filter((v) => {
+            if(search === '') return true
+            return v.name.toLowerCase().includes(search.toLowerCase())
+        
+        }).sort((a, b) => {
+            let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+
+            if(db.enabledModules.includes(a.id)){
+                score += 1000
+            }
+            if(db.enabledModules.includes(b.id)){
+                score -= 1000
+            }
+
+            return score
+        })
+    }
 </script>
 {#if mode === 0}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.modules}</h2>
 
-    <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md">
+    <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
+
+    <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md flex-1 overflow-y-auto">
         {#if $DataBase.modules.length === 0}
             <div class="text-textcolor2 p-3">{language.noModules}</div>
         {:else}
-            {#each $DataBase.modules as rmodule, i}
+            {#each sortModules($DataBase.modules, moduleSearch) as rmodule, i}
                 {#if i !== 0}
                     <div class="border-t-1 border-selected"></div>
                 {/if}
