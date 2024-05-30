@@ -104,6 +104,7 @@
     "typescript": "^5.3.3",
     "vite": "^5.0.13",
     "vite-plugin-top-level-await": "^1.4.1",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-wasm": "^3.3.0",
+    "@swc/core": "^1.5.22"
   }
 }
