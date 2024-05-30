@@ -6,7 +6,7 @@ import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { CurrentCharacter, selectedCharID } from "./stores"
+import { CurrentCharacter, SettingsMenuIndex, selectedCharID, settingsOpen } from "./stores"
 import { convertImage, hasher } from "./parser"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
@@ -260,7 +260,8 @@ export async function characterURLImport() {
         db.modules.push(importData)
         setDatabase(db)
         alertNormal(language.successImport)
-
+        SettingsMenuIndex.set(1)
+        settingsOpen.set(true)
         return
     }
     if(hash.startsWith('#import_preset=')){
@@ -270,6 +271,8 @@ export async function characterURLImport() {
             name: 'imported.risupreset',
             data: importData
         })
+        SettingsMenuIndex.set(14)
+        settingsOpen.set(true)
         return
     
     }
