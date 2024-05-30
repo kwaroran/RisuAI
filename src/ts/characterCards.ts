@@ -259,6 +259,8 @@ export async function characterURLImport() {
         }
         db.modules.push(importData)
         setDatabase(db)
+        alertNormal(language.successImport)
+
         return
     }
     if(hash.startsWith('#import_preset=')){
