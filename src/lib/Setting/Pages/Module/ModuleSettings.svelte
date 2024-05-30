@@ -100,7 +100,8 @@
                             e.stopPropagation()
                             const d = await alertConfirm(`${language.removeConfirm}` + rmodule.name)
                             if(d){
-                                $DataBase.modules.splice(i, 1)
+                                const index = $DataBase.modules.findIndex((v) => v.id === rmodule.id)
+                                $DataBase.modules.splice(index, 1)
                                 $DataBase.modules = $DataBase.modules
                             }
                         }}>
