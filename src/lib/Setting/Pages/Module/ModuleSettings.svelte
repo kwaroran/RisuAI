@@ -4,11 +4,12 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, type RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, Edit, TrashIcon, Globe } from "lucide-svelte";
+    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
-    import { alertConfirm } from "src/ts/alert";
+    import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+  import { ShowRealmFrameStore } from "src/ts/stores";
     let tempModule:RisuModule = {
         name: '',
         description: '',
@@ -72,9 +73,19 @@
                         </button>
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.download} on:click={async (e) => {
                             e.stopPropagation()
-                            exportModule(rmodule)
+                            const data = await alertCardExport('module')
+                            if(data.type === ''){
+                                exportModule(rmodule)
+                            }
+                            if(data.type === 'realm'){
+                                if(!$DataBase.account){
+                                    alertError(language.notLoggedIn)
+                                    return
+                                }
+                                $ShowRealmFrameStore = `module:${i}`
+                            }
                         }}>
-                            <DownloadIcon size={18}/>
+                            <Share2Icon size={18}/>
                         </button>
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.edit} on:click={async (e) => {
                             e.stopPropagation()

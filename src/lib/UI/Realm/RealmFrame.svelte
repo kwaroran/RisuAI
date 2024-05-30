@@ -27,7 +27,7 @@
         }
         if(e.data.type === 'success'){
             alertMd(`## Upload Success\n\nYour character has been uploaded to Realm successfully.\n\n${"```\nhttps://realm.risuai.net/character/" +  e.data.id + "\n```"}`)
-            if($ShowRealmFrameStore.startsWith('preset')){
+            if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
                 //TODO, add preset edit
             }
             else if($CurrentCharacter.type === 'character'){
@@ -66,6 +66,17 @@
                 name: encodedPredataName.buffer
             }
         }
+        else if($ShowRealmFrameStore.startsWith('module')){
+            const predata = $DataBase.modules[Number($ShowRealmFrameStore.split(':')[1])]
+            //@ts-ignore
+            predata.type = 'risuModule'
+            const encodedPredata = new TextEncoder().encode(JSON.stringify(predata))
+            const encodedPredataName = new TextEncoder().encode(predata.name + '.json')
+            data = {
+                data: encodedPredata.buffer,
+                name: encodedPredataName.buffer
+            }
+        }
         else{
             data = await shareRealmCardData()
         }
@@ -82,7 +93,7 @@
 
     const getUrl = () => {
         let url = `https://realm.risuai.net/upload?token=${tk}&token_id=${id}`
-        if($ShowRealmFrameStore.startsWith('preset')){
+        if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
             //TODO, add preset edit
         }
         else if($CurrentCharacter.type === 'character' && $CurrentCharacter.realmId){
