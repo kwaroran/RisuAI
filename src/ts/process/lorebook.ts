@@ -379,7 +379,7 @@ export async function loadLoreBookV3Prompt(){
                         }
                     }
                     case 'position':{
-                        if(["after_desc", "before_desc", "personality", "scenario"].includes(arg[0])){
+                        if(arg[0].startsWith('pt_') || ["after_desc", "before_desc", "personality", "scenario"].includes(arg[0])){
                             pos = arg[0]
                             return
                         }

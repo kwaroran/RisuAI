@@ -418,6 +418,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
     //for unexpected error
     currentTokens += 50
     
+    const positionRegex = /{{position::(.+?)}}/g
+    const positionParser = (text:string) => {
+        return text.replace(positionRegex, (match, p1) => {
+            const MatchingLorebooks = lorepmt.actives.filter(v => {
+                return v.pos === ('pt_' + p1)
+            })
+
+            return MatchingLorebooks.map(v => {
+                return v.prompt
+            }).join('\n')
+        })
+    }
 
     if(promptTemplate){
         const template = promptTemplate
@@ -429,14 +441,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             }
         }
 
-
         for(const card of template){
             switch(card.type){
                 case 'persona':{
                     let pmt = structuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -447,7 +458,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = structuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -458,7 +469,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = structuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
                         }
                     }
 
@@ -495,7 +506,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         "bot": "assistant"
                     } as const
 
-                    let content = card.text
+                    let content = positionParser(card.text)
 
                     if(card.type2 === 'globalNote'){
                         content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara: currentChar, role: card.role}))
@@ -877,7 +888,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = structuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -888,7 +899,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = structuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -899,7 +910,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                     let pmt = structuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
                         }
                     }
 
@@ -936,7 +947,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                         "bot": "assistant"
                     } as const
 
-                    let content = card.text
+                    let content = positionParser(card.text)
 
                     if(card.type2 === 'globalNote'){
                         content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar, role: card.role}))
