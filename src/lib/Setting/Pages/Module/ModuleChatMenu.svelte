@@ -2,10 +2,34 @@
     import { CheckCircle2Icon, Globe, XIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import type { RisuModule } from "src/ts/process/modules";
     import { DataBase } from "src/ts/storage/database";
     import { CurrentChat } from "src/ts/stores";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     export let close = () => {}
+
+    let moduleSearch = ''
+
+    function sortModules(modules:RisuModule[], search:string){
+        const db = $DataBase
+        return modules.filter((v) => {
+            if(search === '') return true
+            return v.name.toLowerCase().includes(search.toLowerCase())
+        
+        }).sort((a, b) => {
+            let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+
+            if(db.enabledModules.includes(a.id)){
+                score += 1000
+            }
+            if(db.enabledModules.includes(b.id)){
+                score -= 1000
+            }
+
+            return score
+        })
+    }
 
 </script>
 
@@ -20,22 +44,28 @@
                 </button>
             </div>
         </div>
+
         <span class="text-sm text-textcolor2">{language.chatModulesInfo}</span>
+
+        <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
 
         <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md">
             {#if $DataBase.modules.length === 0}
                 <div class="text-textcolor2 p-3">{language.noModules}</div>
             {:else}
-                {#each $DataBase.modules as rmodule, i}
+                {#each sortModules($DataBase.modules, moduleSearch) as rmodule, i}
                     {#if i !== 0}
                         <div class="border-t-1 border-selected"></div>
                     {/if}
-                    <div class="pl-3 pt-3 text-left flex">
-                        <span class="text-lg">{rmodule.name}</span>
+                    <div class="pl-3 py-3 text-left flex">
+                        {#if $DataBase.enabledModules.includes(rmodule.id)}
+                            <span class="text-textcolor2">{rmodule.name}</span>
+                        {:else}
+                            <span class="">{rmodule.name}</span>
+                        {/if}
                         <div class="flex-grow flex justify-end">
                             {#if $DataBase.enabledModules.includes(rmodule.id)}
-                                <button class="mr-2 cursor-pointer text-blue-500">
-                                    <Globe size={18}/>
+                                <button class="mr-2 text-textcolor2 cursor-not-allowed">
                                 </button>
                             {:else}
                                 <button class={(!$CurrentChat.modules.includes(rmodule.id)) ?
@@ -55,9 +85,6 @@
                                 </button>
                             {/if}
                         </div>
-                    </div>
-                    <div class="mt-1 mb-3 pl-3">
-                        <span class="text-sm text-textcolor2">{rmodule.description || 'No description provided'}</span>
                     </div>
                 {/each}
             {/if}

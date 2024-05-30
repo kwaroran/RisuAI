@@ -644,4 +644,5 @@ export const languageEnglish = {
     start: "Start",
     end: "End",
     index: "Index",
+    search: "Search",
 }
