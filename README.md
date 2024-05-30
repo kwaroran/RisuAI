@@ -16,7 +16,7 @@ RisuAI, or Risu for short, is a cross platform AI chatting software / web applic
 
 ## Features
  - **Multiple API Supports**: Supports OAI, Claude, Ooba, OpenRouter... and More!
- - **Emotion Images**: Display the image of the current character, accoding to his/her expressions!
+ - **Emotion Images**: Display the image of the current character, according to his/her expressions!
  - **Group Chats**: Multiple characters in one chat.
  - **Plugins**: Add your features and providers, and simple share.
  - **Regex Script**: Modify model's output by regex, to make a custom gui and others
