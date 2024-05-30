@@ -1,6 +1,5 @@
 <script type="ts" lang="ts">
     import { language } from "src/lang";
-    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
     import type { RisuModule } from "src/ts/process/modules";
@@ -8,6 +7,7 @@
     import { alertConfirm } from "src/ts/alert";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
+    import Check from "src/lib/UI/GUI/CheckInput.svelte";
   import Help from "src/lib/Others/Help.svelte";
 
 
@@ -117,9 +117,7 @@
     <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleTrigger}>
         {language.triggerScript}
     </button>
-    <button class={(!currentModule.lowLevelAccess) ? 'p-4' : "p-4 bg-selected rounded-br-md"} on:click={() => {currentModule.lowLevelAccess = !currentModule.lowLevelAccess}}>
-        {language.lowLevelAccess} <Help key="lowLevelAccess" />
-    </button>
+    <button></button>
 </div>
 
 {#if (Array.isArray(currentModule.lorebook))}
@@ -151,4 +149,9 @@
     <button on:click={() => {addTrigger()}} class="hover:text-textcolor cursor-pointer">
         <PlusIcon />
     </button>
+
+    <div class="flex items-center mt-4">
+        <Check bind:check={currentModule.lowLevelAccess} name={language.lowLevelAccess}/>
+        <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
+    </div>
 {/if}
