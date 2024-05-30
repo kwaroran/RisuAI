@@ -86,7 +86,7 @@ const normalCBS = [
     'chat_index', 'first_msg_index', 'blank', 'none', 'message_time', 'message_date', 'time',
     'date', 'isotime', 'isodate', 'message_idle_duration', 'idle_duration', 'br', 'newline',
     'model', 'axmodel', 'role', 'jbtoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
-    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure', 'slot'
+    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure', 'slot', 'module_enabled'
 ]
 
 const normalCBSwithParams = [

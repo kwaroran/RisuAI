@@ -963,6 +963,18 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 case 'date_time_format':{
                     return dateTimeFormat(arra[1])
                 }
+                case 'module_enabled':{
+                    const selchar = db.characters[get(selectedCharID)]
+                    let enabledChatModules:string[] = []
+                    if(!selchar){
+                        enabledChatModules = selchar.chats[selchar.chatPage].modules ?? []
+
+                    }
+                    const moduleId = db.modules.find((f) => {
+                        return f.name === arra[1]
+                    }).id
+                    return (db.enabledModules.includes(moduleId) || enabledChatModules.includes(moduleId)) ? '1' : '0'
+                }
             }
         }
         if(p1.startsWith('random')){
