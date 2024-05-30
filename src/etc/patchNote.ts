@@ -10,7 +10,7 @@ export const patchNote = {
 - Added module export and import from Realm
 - Added preset import from Realm
 - Added \`{{position::<name>}}\` CBS
-   - This CBS will be replaced to lorebooks that uses \`@@position tk_<name>\` decorator
+   - This CBS will be replaced to lorebooks that uses \`@@position pt_<name>\` decorator
 `
 }
 
