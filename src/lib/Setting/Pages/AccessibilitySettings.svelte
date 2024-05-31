@@ -40,6 +40,10 @@
 </div>
 
 <div class="flex items-center mt-2">
+    <Check bind:check={$DataBase.goCharacterOnImport} name={language.goCharacterOnImport}/>
+</div>
+
+<div class="flex items-center mt-2">
     <Check bind:check={$DataBase.sideMenuRerollButton} name={language.sideMenuRerollButton}/>
 </div>
 

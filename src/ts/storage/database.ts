@@ -668,6 +668,7 @@ export interface Database{
     hypaAllocatedTokens:number
     hypaChunkSize:number
     cohereAPIKey:string
+    goCharacterOnImport:boolean
 }
 
 export interface customscript{

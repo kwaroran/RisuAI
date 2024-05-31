@@ -96,7 +96,7 @@
                 downloadRisuHub(openedData.id)
                 openedData = null
             }}>
-                Download
+                Chat
             </button>
             
         </div>

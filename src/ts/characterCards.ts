@@ -1147,6 +1147,12 @@ export async function downloadRisuHub(id:string) {
                 data: res.body
             })
             checkCharOrder()
+            let db = get(DataBase)
+            if(db.characters[db.characters.length-1] && db.goCharacterOnImport){
+                const index = db.characters.length-1
+                characterFormatUpdate(index);
+                selectedCharID.set(index);
+            }   
             return
         }
     
@@ -1157,7 +1163,7 @@ export async function downloadRisuHub(id:string) {
         await importCharacterCardSpec(data, await getHubResources(img), 'hub')
         checkCharOrder()
         let db = get(DataBase)
-        if(db.characters[db.characters.length-1]){
+        if(db.characters[db.characters.length-1] && db.goCharacterOnImport){
             const index = db.characters.length-1
             characterFormatUpdate(index);
             selectedCharID.set(index);
