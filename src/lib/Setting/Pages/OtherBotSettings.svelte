@@ -194,8 +194,17 @@
     {/if}
 
 
-    <span class="text-textcolor">OpenAI API Key</span>
-    <TextInput size="sm" marginBottom placeholder="sk-..." bind:value={$DataBase.openAIKey}/>
+    {#if $DataBase.sdProvider === 'dalle'}
+        <span class="text-textcolor">OpenAI API Key</span>
+        <TextInput size="sm" marginBottom placeholder="sk-..." bind:value={$DataBase.openAIKey}/>
+
+        <span class="text-textcolor mt-4">Dall-E Quality</span>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.dallEQuality}>
+            <OptionInput value="standard" >Standard</OptionInput>
+            <OptionInput value="hd" >HD</OptionInput>
+        </SelectInput>
+
+    {/if}
 </Arcodion>
 
 <Arcodion name="TTS" styled>

@@ -405,6 +405,7 @@ export function setDatabase(data:Database){
     data.templateDefaultVariables ??= ''
     data.hypaAllocatedTokens ??= 3000
     data.hypaChunkSize ??= 3000
+    data.dallEQuality ??= 'standard'
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -669,6 +670,7 @@ export interface Database{
     hypaChunkSize:number
     cohereAPIKey:string
     goCharacterOnImport:boolean
+    dallEQuality:string
 }
 
 export interface customscript{
