@@ -24,25 +24,13 @@
         resize();
     });
 </script>
-
-<style>
-    textarea {
-        overflow: hidden;
-        resize: none;
-        box-sizing: border-box;
-        background: transparent;
-        color: var(--risu-theme-textcolor);
-        border: 1px solid rgba(98, 114, 164, 0.5);
-        max-width: calc(95% - 2rem);
-        padding: 1rem;
-    }
-</style>
   
 <textarea
     bind:this={textarea}
     on:input={handleInput}
     use:longpress={handleLongPress}
     bind:value={value}
+    class="rounded-md p-2 text-textcolor bg-transparent resize-none overflow-y-hidden border border-darkborderc"
     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
     style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
 />
