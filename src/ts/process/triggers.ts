@@ -508,7 +508,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const negValue = risuChatParser(effect.negValue,{chara:char})
                     const gen = await generateAIImage(effectValue, char, negValue, 'inlay')
                     if(!gen){
-                        return ''
+                        setVar(effect.inputVar, 'Error: Image generation failed')
+                        break
                     }
                     const imgHTML = new Image()
                     imgHTML.src = gen
