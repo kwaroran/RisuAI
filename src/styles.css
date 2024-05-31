@@ -146,12 +146,6 @@ html, body{
   height: 100%;
 }
 
-.input-text{
-  border: none;
-  outline: 0;
-  border-bottom: 1px solid var(--risu-theme-borderc);
-}
-
 .bgc{
   border-top: 1px solid rgba(98, 114, 164, 0.7);
 }

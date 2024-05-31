@@ -404,7 +404,7 @@
                 loadPages += 15
             }
         }}>
-            <div class="flex items-end mt-2 mb-2 w-full">
+            <div class="flex items-stretch mt-2 mb-2 w-full">
                 {#if $DataBase.useChatSticker && currentCharacter.type !== 'group'}
                     <div on:click={()=>{toggleStickers = !toggleStickers}}
                             class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}>
@@ -413,7 +413,7 @@
                 {/if}
 
                 {#if !$DataBase.useAdvancedEditor}
-                <textarea class="text-textcolor p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
                     on:keydown={(e) => {
@@ -441,23 +441,32 @@
 
                 
                 {#if $doingChat || doingChatInputTranslate} 
-                    <div
-                        class="mr-2 bg-selected flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors" on:click={abortChat}>
-                        <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}>
-                        </div>
-                    </div>
+                    <button
+                        class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" on:click={abortChat}
+                        style:height={inputHeight}
+                    >
+                        <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode} />
+                    </button>
                 {:else}
-                    <div on:click={send}
-                        class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Send />
-                    </div>
+                    <button
+                        on:click={send}
+                        class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors"
+                        style:height={inputHeight}
+                    >
+                        <Send />
+                    </button>
                 {/if}
                 {#if $CurrentCharacter?.chaId !== '§playground'}
-                    <div on:click={(e) => {
-                        openMenu = !openMenu
-                        e.stopPropagation()
-                    }}
-                    class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><MenuIcon />
-                    </div>
+                    <button
+                        on:click={(e) => {
+                            openMenu = !openMenu
+                            e.stopPropagation()
+                        }}
+                        class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                        style:height={inputHeight}
+                    >
+                        <MenuIcon />
+                    </button>
                 {:else}
                     <div on:click={(e) => {
                         $CurrentChat.message.push({
@@ -466,7 +475,10 @@
                         })
                         $CurrentChat = $CurrentChat
                     }}
-                        class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors"><Plus />
+                        class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                        style:height={inputHeight}
+                    >
+                        <Plus />
                     </div>
                 {/if}
             </div>
@@ -475,7 +487,7 @@
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-textcolor p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                         bind:value={messageInputTranslate}
                         bind:this={inputTranslateEle}
                         on:keydown={(e) => {
