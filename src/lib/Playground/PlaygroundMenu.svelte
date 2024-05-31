@@ -10,6 +10,7 @@
     import { characterFormatUpdate, createBlankChar } from "src/ts/characters";
     import { get } from "svelte/store";
     import { DataBase, setDatabase, type character } from "src/ts/storage/database";
+  import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
 
     const playgroundChat = () => {
         let db = get(DataBase)
@@ -69,6 +70,11 @@
             }}>
                 <h1 class="text-2xl font-bold text-start">Jinja</h1>
             </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                PlaygroundStore.set(7)
+            }}>
+                <h1 class="text-2xl font-bold text-start">{language.imageGeneration}</h1>
+            </button>
         </div>
     {:else}
         {#if $SizeStore.w < 1024}
@@ -96,6 +102,9 @@
             {#if $PlaygroundStore === 6}
                 <PlaygroundJinja/>
             {/if}
+            {#if $PlaygroundStore === 7}
+                <PlaygroundImageGen/>
+            {/if}  
         </div>
     {/if}
 </div>

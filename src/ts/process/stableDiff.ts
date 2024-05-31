@@ -54,7 +54,7 @@ export async function stableDiff(currentChar:character,prompt:string){
     return await generateAIImage(genPrompt, currentChar, neg, '')
 }
 
-export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string){
+export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string):Promise<string|false>{
     const db = get(DataBase)
     if(db.sdProvider === 'webui'){
 
@@ -91,8 +91,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     return ''
                 }
             }
-
-            if(da.ok){
+            else if(da.ok){
                 let charemotions = get(CharEmotion)
                 const img = `data:image/png;base64,${da.data.images[0]}`
                 console.log(img)
@@ -300,7 +299,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 }
             }
 
-            if(da.ok){
+            else if(da.ok){
                 let charemotions = get(CharEmotion)
                 const img = await processZip(da.data);
                 const emos:[string, string,number][] = [[img, img, Date.now()]]
@@ -321,7 +320,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     if(db.sdProvider === 'dalle'){
-        const data = await globalFetch("https://api.openai.com/v1/images/generations", {
+        const da = await globalFetch("https://api.openai.com/v1/images/generations", {
             body: {
                 "prompt": genPrompt,
                 "model": "dall-e-3",
@@ -333,7 +332,34 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             }
         })
 
-        return data?.data?.url ?? ""
+        console.log(da)
+
+        if(returnSdData === 'inlay'){
+            let res = da?.data?.data?.[0]?.b64_json
+            if(!res){
+                alertError(JSON.stringify(da.data))
+                return ''
+            }
+            return `data:image/png;base64,${res}`
+        }
+
+        else if(da.ok){
+            let charemotions = get(CharEmotion)
+            let img = da?.data?.data?.[0]?.b64_json
+            if(!img){
+                alertError(JSON.stringify(da.data))
+                return false
+            }
+            img = `data:image/png;base64,${img}`
+            const emos:[string, string,number][] = [[img, img, Date.now()]]
+            charemotions[currentChar.chaId] = emos
+            CharEmotion.set(charemotions)
+        }
+        else{
+            alertError(Buffer.from(da.data).toString())
+            return false   
+        }
+        return returnSdData
     }
     return ''
 }
