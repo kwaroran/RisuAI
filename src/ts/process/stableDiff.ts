@@ -325,7 +325,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 "prompt": genPrompt,
                 "model": "dall-e-3",
                 "response_format": "b64_json",
-                "style": "natural"
+                "style": "natural",
+                "quality": db.dallEQuality || 'standard'
             },
             headers: {
                 "Authorization": "Bearer " + db.openAIKey
