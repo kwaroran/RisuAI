@@ -10,50 +10,16 @@
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
     import Title from "./Title.svelte";
     import { getPatchNote } from "src/etc/patchNote";
-    import { parseMarkdownSafe } from "src/ts/parser";
-  const patch = getPatchNote(appVer)
-  let patchNodeHidden = true
 
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !$OpenRealmStore}
-    
-      {#if patch.content}
-        <div class="w-full max-w-4xl pl-4 pr-4 pt-4 relative">
-          {#if patchNodeHidden}
-            <div class="bg-darkbg rounded-md p-2 flex flex-col transition-shadow overflow-y-hidden shadow-inner text-sm"
-              class:text-textcolor2={patch.version === $DataBase.lastPatchNoteCheckVersion}
-              class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-              class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-              on:click={() => {
-                patchNodeHidden = false
-                $DataBase.lastPatchNoteCheckVersion = patch.version
-              }}
-            >
-              Update {patch.version} patch notes are available. Click to view.
-            </div>
-          {:else}
-            <div class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow overflow-y-hidden shadow-inner"
-              class:border={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-              class:border-red-500={patch.version !== $DataBase.lastPatchNoteCheckVersion}
-              on:click={() => {
-                patchNodeHidden = true
-              }}
-            >
-              <div class="prose prose-invert">
-                {@html parseMarkdownSafe(patch.content)}
-              </div>
-            </div>
-          {/if}
-        </div>
-      {/if}
       <Title />
       {#if (!isTauri) && (!isNodeServer)}
         <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
       {:else}
         <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
       {/if}
-      <GithubStars />
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
