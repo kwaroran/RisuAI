@@ -320,5 +320,20 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             return false   
         }
     }
+    if(db.sdProvider === 'dalle'){
+        const data = await globalFetch("https://api.openai.com/v1/images/generations", {
+            body: {
+                "prompt": genPrompt,
+                "model": "dall-e-3",
+                "response_format": "b64_json",
+                "style": "natural"
+            },
+            headers: {
+                "Authorization": "Bearer " + db.openAIKey
+            }
+        })
+
+        return data?.data?.url ?? ""
+    }
     return ''
 }

@@ -14,6 +14,21 @@
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     $:{
+        $DataBase.NAIImgConfig ??= {
+            width: 512,
+            height: 512,
+            sampler: 'k_euler',
+            steps: 100,
+            scale: 1,
+            sm: false,
+            sm_dyn: false,
+            strength: 0.5,
+            noise: 0.5,
+            image: '',
+            InfoExtracted: 0.5,
+            RefStrength: 0.5,
+            refimage: ''
+        }
         if ($DataBase.NAIImgConfig.sampler === 'ddim_v3'){
             $DataBase.NAIImgConfig.sm = false
             $DataBase.NAIImgConfig.sm_dyn = false
@@ -29,8 +44,7 @@
         <OptionInput value="" >None</OptionInput>
         <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
         <OptionInput value="novelai" >Novel AI</OptionInput>
-        <!-- TODO -->
-        <!-- <OptionInput value="runpod" >Runpod Serverless</OptionInput> -->
+        <OptionInput value="dalle" >Dall-E</OptionInput>
     </SelectInput>
     
     {#if $DataBase.sdProvider === 'webui'}
@@ -178,6 +192,10 @@
             </button>
         {/if}
     {/if}
+
+
+    <span class="text-textcolor">OpenAI API Key</span>
+    <TextInput size="sm" marginBottom placeholder="sk-..." bind:value={$DataBase.openAIKey}/>
 </Arcodion>
 
 <Arcodion name="TTS" styled>
