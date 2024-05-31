@@ -17,13 +17,7 @@
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !$OpenRealmStore}
-      <Title />
-      {#if (!isTauri) && (!isNodeServer)}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
-      {:else}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
-      {/if}
-      <GithubStars />
+    
       {#if patch.content}
         <div class="w-full max-w-4xl pl-4 pr-4 pt-4 relative">
           {#if patchNodeHidden}
@@ -53,6 +47,13 @@
           {/if}
         </div>
       {/if}
+      <Title />
+      {#if (!isTauri) && (!isNodeServer)}
+        <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
+      {:else}
+        <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
+      {/if}
+      <GithubStars />
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
