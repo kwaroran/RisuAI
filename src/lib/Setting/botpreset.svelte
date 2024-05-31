@@ -55,10 +55,6 @@
                             downloadPreset(i, 'json')
                         }
                         if(data.type === 'realm'){
-                            if(!$DataBase.account){
-                                alertError(language.notLoggedIn)
-                                return
-                            }
                             $ShowRealmFrameStore = `preset:${i}`
                         }
                     }}>

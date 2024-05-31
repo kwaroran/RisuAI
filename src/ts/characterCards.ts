@@ -6,7 +6,7 @@ import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { CurrentCharacter, SettingsMenuIndex, selectedCharID, settingsOpen } from "./stores"
+import { CurrentCharacter, SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
 import { convertImage, hasher } from "./parser"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
@@ -339,6 +339,9 @@ export async function exportChar(charaID:number):Promise<string> {
     }
     else if(option.type === 'ccv2'){
         exportCharacterCard(char,'png', {spec: 'v2'})
+    }
+    else if(option.type === 'realm'){
+        ShowRealmFrameStore.set("character")
     }
     else{
         return option.type

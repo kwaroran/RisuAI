@@ -933,10 +933,6 @@
             && currentChar.data.license !== 'CC BY-SA 4.0'
         }
             <Button size="lg" on:click={async () => {
-                if(!$DataBase.account){
-                    alertNormal(language.notLoggedIn)
-                    return
-                }
                 if(await alertTOS()){
                     $ShowRealmFrameStore = 'character'
                 }

@@ -78,10 +78,6 @@
                                 exportModule(rmodule)
                             }
                             if(data.type === 'realm'){
-                                if(!$DataBase.account){
-                                    alertError(language.notLoggedIn)
-                                    return
-                                }
                                 const index = $DataBase.modules.findIndex((v) => v.id === rmodule.id)
                                 $ShowRealmFrameStore = `module:${index}`
                             }

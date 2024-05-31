@@ -20,7 +20,7 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     let btn
     let input = ''
-    let cardExportType = ''
+    let cardExportType = 'realm'
     let cardExportPassword = ''
     let cardLicense = ''
     let generationInfoMenuIndex = 0
@@ -32,7 +32,7 @@
             input = ''
         }
         if($alertStore.type !== 'cardexport'){
-            cardExportType = ''
+            cardExportType = 'realm'
             cardExportPassword = ''
             cardLicense = ''
         }
@@ -418,6 +418,7 @@
                 {:else}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Character Card V3</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1 ml-2" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                 {/if}
             </div>
             <Button className="mt-4" on:click={() => {

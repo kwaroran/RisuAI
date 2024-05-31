@@ -92,7 +92,7 @@
     })
 
     const getUrl = () => {
-        let url = `https://realm.risuai.net/upload?token=${tk}&token_id=${id}`
+        let url = tk ? `https://realm.risuai.net/upload?token=${tk}&token_id=${id}` : 'https://realm.risuai.net/upload'
         if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
             //TODO, add preset edit
         }
