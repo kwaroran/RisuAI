@@ -14,7 +14,7 @@
     import Help from "src/lib/Others/Help.svelte";
     let langChanged = false
 
-    </script>
+</script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
 <span class="text-textcolor mt-4">{language.UiLanguage}</span>
@@ -127,4 +127,4 @@
             <Help key="combineTranslation"/>
         </Check>
     </div>
-    {/if}
+{/if}
