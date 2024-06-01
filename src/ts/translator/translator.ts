@@ -464,7 +464,7 @@ async function translateLLM(text:string, arg:{to:string}){
         bias: {},
         useStreaming: false,
         noMultiGen: true,
-        maxTokens: 1000,
+        maxTokens: db.translatorMaxResponse,
     }, 'submodel')
 
     if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){

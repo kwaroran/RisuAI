@@ -93,6 +93,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.translator)){
         data.translator = ''
     }
+    if(checkNullish(data.translatorMaxResponse)){
+        data.translatorMaxResponse = 1000
+    }
     if(checkNullish(data.currentPluginProvider)){
         data.currentPluginProvider = ''
     }
@@ -610,6 +613,7 @@ export interface Database{
     huggingfaceKey:string
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
+    translatorMaxResponse:number
     top_p: number,
     google: {
         accessToken: string
@@ -897,6 +901,7 @@ export interface botPreset{
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
+    translatorMaxResponse: number
 }
 
 
@@ -1101,7 +1106,7 @@ export const presetTemplate:botPreset = {
     },
     top_p: 1,
     useInstructPrompt: false,
-
+    translatorMaxResponse: 1000,
 }
 
 const defaultSdData:[string,string][] = [
@@ -1165,7 +1170,8 @@ export function saveCurrentPreset(){
         openrouterProvider: db.openrouterProvider,
         useInstructPrompt: db.useInstructPrompt,
         customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
-        templateDefaultVariables: db.templateDefaultVariables ?? ""
+        templateDefaultVariables: db.templateDefaultVariables ?? "",
+        translatorMaxResponse: db.translatorMaxResponse
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1250,6 +1256,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.useInstructPrompt = newPres.useInstructPrompt ?? false
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
+    db.translatorMaxResponse = newPres.translatorMaxResponse ?? db.translatorMaxResponse
     return db
 }
 
