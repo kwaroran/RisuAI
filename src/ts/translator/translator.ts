@@ -416,8 +416,8 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     // Serialize the DOM back to HTML
     const serializer = new XMLSerializer();
     let translatedHTML = serializer.serializeToString(dom);
-    // Remove the outer <body> tags
-    translatedHTML = translatedHTML.replace(/^<body[^>]*>|<\/body>$/g, '');
+    // Remove the outer <html|body|head> tags
+    translatedHTML = translatedHTML.replace(/<\/?(html|body|head)[^>]*>/g, '');
 
     if(charArg !== ''){
         let scripts:customscript[] = []
