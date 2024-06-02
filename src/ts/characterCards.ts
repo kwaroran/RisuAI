@@ -5,13 +5,14 @@ import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
+import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
 import { CurrentCharacter, SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
 import { convertImage, hasher } from "./parser"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
+import { CharXWriter } from "./process/processzip"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -335,7 +336,7 @@ export async function exportChar(charaID:number):Promise<string> {
 
     const option = await alertCardExport()
     if(option.type === ''){
-        exportCharacterCard(char,'png', {spec: 'v3'})
+        exportCharacterCard(char, option.type2 === 'json' ? 'json' : (option.type2 === 'charx' ? 'charx' : 'png'), {spec: 'v3'})
     }
     else if(option.type === 'ccv2'){
         exportCharacterCard(char,'png', {spec: 'v2'})
@@ -748,7 +749,7 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportCharacterCard(char:character, type:'png'|'json' = 'png', arg:{
+export async function exportCharacterCard(char:character, type:'png'|'json'|'charx' = 'png', arg:{
     password?:string
     writer?:LocalWriter|VirtualWriter,
     spec?:'v2'|'v3'
@@ -759,10 +760,17 @@ export async function exportCharacterCard(char:character, type:'png'|'json' = 'p
         char.image = ''
         img = await reencodeImage(img)
         const localWriter = arg.writer ?? (new LocalWriter())
-        if(!arg.writer){
-            await (localWriter as LocalWriter).init(`Image file`, ['png'])
+        if(!arg.writer && type !== 'json'){
+            const nameExt = {
+                'png': ['Image File', 'png'],
+                'json': ['JSON File', 'json'],
+                'charx': ['CharX File', 'charx']
+            }
+            const ext = nameExt[type]
+            console.log(ext)
+            await (localWriter as LocalWriter).init(ext[0], [ext[1]])
         }
-        const writer = new PngChunk.streamWriter(img, localWriter)
+        const writer = type === 'charx' ? (new CharXWriter(localWriter)) : type === 'json' ? (new BlankWriter()) : (new PngChunk.streamWriter(img, localWriter))
         await writer.init()
         let assetIndex = 0
         if(spec === 'v2'){
@@ -835,15 +843,55 @@ export async function exportCharacterCard(char:character, type:'png'|'json' = 'p
                         type: 'wait',
                         msg: `Loading... (Adding Assets ${i} / ${card.data.assets.length})`
                     })
-                    const key = card.data.assets[i].uri
-                    if(isKnownUri(key)){
+                    let key = card.data.assets[i].uri
+                    let rData:Uint8Array
+                    if(key === 'ccdefault:' && type !== 'png'){
+                        key = char.image
+                        rData = img
+                    }
+                    else if(isKnownUri(key)){
                         continue
                     }
-                    const rData = await readImage(key)
-                    const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                    else{
+                        rData = await readImage(key)
+                    }
                     assetIndex++
-                    card.data.assets[i].uri = `__asset:${assetIndex}`
-                    await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                    if(type === 'png'){
+                        const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                        card.data.assets[i].uri = `__asset:${assetIndex}`
+                        await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                    }
+                    else if(type === 'json'){
+                        const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
+                        card.data.assets[i].uri = `data:application/octet-stream;base64,${b64encoded}`
+                    }
+                    else{
+                        let type = 'other'
+                        switch(card.data.assets[i].type){
+                            case 'emotion':
+                                type = 'emotion'
+                                break
+                            case 'background':
+                                type = 'background'
+                                break
+                            case 'user_icon':
+                                type = 'user_icon'
+                                break
+                            case 'icon':
+                                type = 'icon'
+                                break
+                        }
+                        let path = ''
+                        const name = `${assetIndex}`
+                        if(card.data.assets[i].ext === 'unknown'){
+                            path = `assets/${type}/${name}.png`
+                        }
+                        else{
+                            path = `assets/${type}/${name}.${card.data.assets[i].ext}`
+                        }
+                        card.data.assets[i].uri = 'embeded://' + path
+                        await writer.write(path, rData)
+                    }
                 }
             }
             if(type === 'json'){
@@ -858,7 +906,12 @@ export async function exportCharacterCard(char:character, type:'png'|'json' = 'p
                 msg: 'Loading... (Writing)'
             })
     
-            await writer.write("ccv3", Buffer.from(JSON.stringify(card)).toString('base64'))     
+            if(type === 'charx'){
+                await writer.write("card.json", Buffer.from(JSON.stringify(card, null, 4)))
+            }
+            else{
+                await writer.write("ccv3", Buffer.from(JSON.stringify(card)).toString('base64'))
+            }
         }
         await writer.end()
 

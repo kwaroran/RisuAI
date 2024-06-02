@@ -646,4 +646,5 @@ export const languageEnglish = {
     index: "Index",
     search: "Search",
     goCharacterOnImport: "Go to Character on Realm Import",
+    format: "Format",
 }

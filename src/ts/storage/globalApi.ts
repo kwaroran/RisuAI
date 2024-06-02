@@ -1144,7 +1144,7 @@ export function getModelMaxContext(model:string):number|undefined{
     return undefined
 }
 
-class TauriWriter{
+export class TauriWriter{
     path: string
     firstWrite: boolean = true
     constructor(path: string){
@@ -1559,5 +1559,20 @@ export function updateHeightMode(){
         case 'percent':
             root.style.setProperty('--risu-height-size', '100%');
             break
+    }
+}
+
+export class BlankWriter{
+    constructor(){
+    }
+    async init(){
+        //do nothing, just to make compatible with other writer
+
+    }
+    async write(key:string,data:Uint8Array|string){
+        //do nothing, just to make compatible with other writer
+    }
+    async end(){
+        //do nothing, just to make compatible with other writer
     }
 }

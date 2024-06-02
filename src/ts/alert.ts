@@ -222,8 +222,7 @@ export async function alertCardExport(type:string = ''){
 
     return JSON.parse(get(alertStore).msg) as {
         type: string,
-        password: string,
-        license: string
+        type2: string,
     }
 }
 

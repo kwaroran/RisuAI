@@ -34,7 +34,7 @@ class StreamChunkWriter{
             }
         }
     }
-    async write(key:string, val:string){
+    async write(key:string, val:string|Uint8Array){
 
         const keyData = new TextEncoder().encode(key)
         const value = Buffer.from(val)

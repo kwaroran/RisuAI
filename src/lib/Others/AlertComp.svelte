@@ -21,7 +21,7 @@
     let btn
     let input = ''
     let cardExportType = 'realm'
-    let cardExportPassword = ''
+    let cardExportType2 = ''
     let cardLicense = ''
     let generationInfoMenuIndex = 0
     $: {
@@ -33,7 +33,7 @@
         }
         if($alertStore.type !== 'cardexport'){
             cardExportType = 'realm'
-            cardExportPassword = ''
+            cardExportType2 = ''
             cardLicense = ''
         }
     }
@@ -383,8 +383,7 @@
                         type: 'none',
                         msg: JSON.stringify({
                             type: 'cancel',
-                            password: cardExportPassword,
-                            license: cardLicense
+                            type2: cardExportType2
                         })
                     })
                 }}>
@@ -421,13 +420,20 @@
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                 {/if}
             </div>
+            {#if $alertStore.submsg === '' && cardExportType === ''}
+                <span class="text-textcolor mt-4">{language.format}</span>
+                <SelectInput bind:value={cardExportType2} className="mt-2">
+                    <OptionInput value="">PNG</OptionInput>
+                    <OptionInput value="json">JSON</OptionInput>
+                    <OptionInput value="charx">CHARX</OptionInput>
+                </SelectInput>
+            {/if}
             <Button className="mt-4" on:click={() => {
                 alertStore.set({
                     type: 'none',
                     msg: JSON.stringify({
                         type: cardExportType,
-                        password: cardExportPassword,
-                        license: cardLicense
+                        type2: cardExportType2
                     })
                 })
             }}>{cardExportType === 'realm' ? language.shareCloud : language.export}</Button>
