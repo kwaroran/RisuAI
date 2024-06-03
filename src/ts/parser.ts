@@ -1013,7 +1013,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return arr[randomIndex]?.replace(/§X/g, ',') ?? ''
             }
         }
-        if(p1.startsWith('roll')){
+        if(p1.startsWith('roll:') || p1.startsWith('rollp:')){
+            const p = p1.startsWith('rollp:')
             const arr = p1.split(/\:|\ /g)
             let ina = arr.at(-1)
     
@@ -1024,6 +1025,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             const maxRoll = parseInt(ina)
             if(isNaN(maxRoll)){
                 return 'NaN'
+            }
+            if(p){
+                const selchar = db.characters[get(selectedCharID)]
+                const rand = sfc32(uuidtoNumber(selchar.chaId), chatID, uuidtoNumber(selchar.chaId), chatID)
+                return (Math.floor(rand() * maxRoll) + 1).toString()
             }
             return (Math.floor(Math.random() * maxRoll) + 1).toString()
         }
