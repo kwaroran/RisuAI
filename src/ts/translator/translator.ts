@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
 import { DataBase, type character, type customscript, type groupChat } from "../storage/database"
-import { globalFetch } from "../storage/globalApi"
+import { globalFetch, isTauri } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
 import { doingChat } from "../process"
@@ -10,6 +10,7 @@ import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep, applyMarkdownToNode } from "../util"
 import { processScriptFull } from "../process/scripts"
+import { Capacitor } from "@capacitor/core"
 
 let cache={
     origin: [''],
@@ -238,7 +239,10 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             return html
         }
     }
-
+    if(db.translatorType === 'llm' && (isTauri || Capacitor.isNativePlatform())){
+        const tr = db.translator || 'en'
+        return translateLLM(html, {to: tr})
+    }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
 
