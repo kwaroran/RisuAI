@@ -648,4 +648,5 @@ export const languageEnglish = {
     search: "Search",
     goCharacterOnImport: "Go to Character on Realm Import",
     format: "Format",
+    v2Warning: "Warning: V2 card is no longer supported. it may not contain all the data.",
 }

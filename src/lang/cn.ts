@@ -567,5 +567,6 @@ export const languageChinese = {
 	"syntax": "Syntax（语法）",
 	"run": "运行",
 	"noMessage": "输入一些文字开始聊天。",
-	"combineTranslation": "合并翻译"
+	"combineTranslation": "合并翻译",
+	"v2Warning": "警告：V2 不再受支持。它可能不包含所有数据。"
   }

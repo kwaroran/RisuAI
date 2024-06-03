@@ -403,21 +403,22 @@
                 <span class="text-textcolor2 text-sm">{language.jsonDesc}</span>
             {:else if cardExportType === 'ccv2'}
                 <span class="text-textcolor2 text-sm">{language.ccv2Desc}</span>
+                <span class="text-red-500 text-sm">{language.v2Warning}</span>
             {:else}
                 <span class="text-textcolor2 text-sm">{language.realmDesc}</span>
             {/if}
             <div class="flex items-center flex-wrap mt-2">
                 {#if $alertStore.submsg === 'preset'}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg  flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Risupreset</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'json'} on:click={() => {cardExportType = 'json'}}>JSON</button>
                 {:else if $alertStore.submsg === 'module'}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>JSON</button>
                 {:else}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Character Card V3</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}
             </div>
             {#if $alertStore.submsg === '' && cardExportType === ''}
