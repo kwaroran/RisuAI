@@ -254,6 +254,7 @@ export async function loadLoreBookV3Prompt(){
         }
 
         mText = mText.toLocaleLowerCase()
+        mText = mText.replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
 
         if(arg.fullWordMatching){
             const splited = mText.split(' ')
