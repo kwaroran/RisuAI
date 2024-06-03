@@ -5,7 +5,8 @@
     import { sleep } from "src/ts/util";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-    import { alertNormal, alertSelect } from "src/ts/alert";
+    import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+    import { alertNormal, alertSelect, alertConfirm } from "src/ts/alert";
     import { downloadFile, isTauri } from "src/ts/storage/globalApi";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -111,7 +112,8 @@
     {/if}
     
     {#if $DataBase.translatorType === 'llm'}
-        <span class="text-textcolor mt-4">{language.translationPrompt}</span>
+        <span class="text-textcolor mt-4">{language.translationResponseSize}</span>
+        <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.translatorMaxResponse}/>
         <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
