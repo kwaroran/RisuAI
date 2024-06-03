@@ -236,21 +236,22 @@ export async function loadLoreBookV3Prompt(){
             return msg.data
         }).join('||')
         if(arg.regex){
-            const regexString = arg.keys[0]
-            if(!regexString.startsWith('/')){
-                return false
-            }
-            const regexFlag = regexString.split('/').pop()
-            if(regexFlag){
-                arg.keys[0] = regexString.replace('/'+regexFlag,'')
-                try {
-                    const regex = new RegExp(arg.keys[0],regexFlag)
-                    return regex.test(mText)
-                } catch (error) {
+            for(const regexString of arg.keys){
+                if(!regexString.startsWith('/')){
                     return false
                 }
+                const regexFlag = regexString.split('/').pop()
+                if(regexFlag){
+                    arg.keys[0] = regexString.replace('/'+regexFlag,'')
+                    try {
+                        const regex = new RegExp(arg.keys[0],regexFlag)
+                        return regex.test(mText)
+                    } catch (error) {
+                        return false
+                    }
+                }
+                return false
             }
-            return false
         }
 
         mText = mText.toLocaleLowerCase()
@@ -433,18 +434,6 @@ export async function loadLoreBookV3Prompt(){
             if(!activated || forceState !== 'none' || fullLore[i].alwaysActive){
                 //if the lore is not activated or force activated, skip the search
             }
-            else if(fullLore[i].useRegex){
-                const match = searchMatch(currentChat, {
-                    keys: [fullLore[i].key],
-                    searchDepth: scanDepth,
-                    regex: true,
-                    fullWordMatching: fullWordMatching
-                })
-
-                if(!match){
-                    activated = false
-                }
-            }
             else{
                 searchQueries.push({
                     keys: fullLore[i].key.split(','),
@@ -455,7 +444,7 @@ export async function loadLoreBookV3Prompt(){
                     const result = searchMatch(currentChat, {
                         keys: query.keys,
                         searchDepth: scanDepth,
-                        regex: false,
+                        regex: fullLore[i].useRegex,
                         fullWordMatching: fullWordMatching
                     })
                     if(query.negative){
