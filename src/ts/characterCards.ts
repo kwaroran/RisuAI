@@ -762,13 +762,13 @@ async function createBaseV2(char:character) {
             character_version: `${char.additionalData?.character_version}` ?? '',
             extensions: {
                 risuai: {
-                    emotions: char.emotionImages,
+                    // emotions: char.emotionImages,
                     bias: char.bias,
                     viewScreen: char.viewScreen,
                     customScripts: char.customscript,
                     utilityBot: char.utilityBot,
                     sdData: char.sdData,
-                    additionalAssets: char.additionalAssets,
+                    // additionalAssets: char.additionalAssets,
                     backgroundHTML: char.backgroundHTML,
                     license: char.license,
                     triggerscript: char.triggerscript,
