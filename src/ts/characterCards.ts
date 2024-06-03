@@ -523,6 +523,17 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                         throw new Error('Error while importing, asset ' + key + ' not found')
                     }
                 }
+                else if(data.assets[i].uri.startsWith('data:')){
+                    //data uri
+                    const b64 = data.assets[i].uri.split(',')[1]
+                    if(b64.length < 50 * 1024 * 1024){
+                        imgp = await saveAsset(Buffer.from(b64, 'base64'))
+                    }
+                    else{
+                        alertError('Data URI too large')
+                        continue
+                    }
+                }
                 else{
                     continue
                 }
