@@ -1,6 +1,8 @@
-import { AppendableBuffer, saveAsset, type LocalWriter, type VirtualWriter } from "../storage/globalApi";
+import { AppendableBuffer, isTauri, saveAsset, type LocalWriter, type VirtualWriter } from "../storage/globalApi";
 import * as fflate from "fflate";
 import { sleep } from "../util";
+import { alertStore } from "../alert";
+import { Capacitor } from "@capacitor/core";
 
 export async function processZip(dataArray: Uint8Array): Promise<string> {
     const jszip = await import("jszip");
@@ -111,33 +113,90 @@ export class CharXReader{
         }
     }
 
-    async read(data:Uint8Array|File|ReadableStream<Uint8Array>){
-        if(data instanceof Uint8Array){
-            this.unzip.push(data, true)
-        }
-        if(data instanceof File){
-            const reader = data.stream().getReader()
+    async push(data:Uint8Array, final:boolean = false){
+
+        if(data.byteLength > 1024 * 1024){
+            let pointer = 0
             while(true){
-                const {done, value} = await reader.read()
-                if(done){
+                const chunk = data.slice(pointer, pointer + 1024 * 1024)
+                this.unzip.push(chunk, false)
+                await Promise.all(this.assetPromises)
+                if(pointer + 1024 * 1024 >= data.byteLength){
+                    if(final){
+                        this.unzip.push(new Uint8Array(0), final)
+                    }
                     break
                 }
-                this.unzip.push(value, false)
+                pointer += 1024 * 1024
             }
-            this.unzip.push(new Uint8Array(0), true)
+            return
         }
+
+        this.unzip.push(data, final)
+        await Promise.all(this.assetPromises)
+    }
+
+    async read(data:Uint8Array|File|ReadableStream<Uint8Array>, arg:{
+        alertInfo?:boolean
+    } = {}){
+
         if(data instanceof ReadableStream){
             const reader = data.getReader()
             while(true){
                 const {done, value} = await reader.read()
+                if(value){
+                    await this.push(value, false)
+                }
                 if(done){
+                    await this.push(new Uint8Array(0), true)
                     break
                 }
-                this.unzip.push(value, false)
             }
-            this.unzip.push(new Uint8Array(0), true)
+            await this.push(new Uint8Array(0), true)
+            return
         }
-        await sleep(500)
-        await Promise.all(this.assetPromises)
+
+        const getSlice = async (start:number, end:number) => {
+            if(data instanceof Uint8Array){
+                return data.slice(start, end)
+            }
+            if(data instanceof File){
+                return new Uint8Array(await data.slice(start, end).arrayBuffer())
+            }
+        }
+
+        const getLength = () => {
+            if(data instanceof Uint8Array){
+                return data.byteLength
+            }
+            if(data instanceof File){
+                return data.size
+            }
+        }
+
+        const alertInfo = () => {
+            if(arg.alertInfo){
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Getting Data: ${Math.floor(pointer / getLength() * 100)}%)`
+                })
+            }
+        }
+
+        let pointer = 0
+        while(true){
+            const chunk = await getSlice(pointer, pointer + 1024 * 1024)
+            await this.push(chunk, false)
+            alertInfo()
+            if(pointer + 1024 * 1024 >= getLength()){
+                await this.push(new Uint8Array(0), true)
+                break
+            }
+            pointer += 1024 * 1024
+            if(!isTauri && !Capacitor.isNativePlatform()){
+                await sleep(1000)
+            }
+        }
+        await sleep(100)
     }
 }

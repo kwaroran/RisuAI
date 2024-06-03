@@ -66,12 +66,14 @@ async function importCharacterProcess(f:{
 
     if(f.name.endsWith('charx')){
         console.log('reading charx')
-        const reader = new CharXReader()
         alertStore.set({
             type: 'wait',
             msg: 'Loading... (Reading)'
         })
-        await reader.read(f.data)
+        const reader = new CharXReader()
+        await reader.read(f.data, {
+            alertInfo: true
+        })
         const cardData = reader.cardData
         if(!cardData){
             alertError(language.errors.noData)
