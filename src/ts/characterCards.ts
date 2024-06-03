@@ -558,11 +558,13 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
             }
         }
 
-        bias = risuext.bias ?? bias
-        viewScreen = risuext.viewScreen ?? viewScreen
-        customScripts = risuext.customScripts ?? customScripts
-        utilityBot = risuext.utilityBot ?? utilityBot
-        sdData = risuext.sdData ?? sdData
+        if(risuext){
+            bias = risuext.bias ?? bias
+            viewScreen = risuext.viewScreen ?? viewScreen
+            customScripts = risuext.customScripts ?? customScripts
+            utilityBot = risuext.utilityBot ?? utilityBot
+            sdData = risuext.sdData ?? sdData
+        }
     }
 
     if(risuext && risuext?.lowLevelAccess){
