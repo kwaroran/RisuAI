@@ -96,7 +96,7 @@ const normalCBSwithParams = [
     'previous_chat_log', 'tonumber', 'arrayelement', 'array_element', 'arrayshift', 'array_shift',
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
-    'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot'
+    'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot', 'rollp'
 ]
 
 const displayRelatedCBS = [
