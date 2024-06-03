@@ -207,6 +207,11 @@ async function importCharacterProcess(f:{
     }
     else {
         const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        //fix readedChara version pointing number instead of string because of previous version
+        if(typeof (parsed as CharacterCardV2Risu)?.data?.character_version === 'number'){
+            (parsed as CharacterCardV2Risu).data.character_version = (parsed as CharacterCardV2Risu).data.character_version.toString()
+        }
+
         const checkedVersion = CCardLib.character.check(parsed)
         if(checkedVersion === 'v2' || checkedVersion === 'v3'){
             if(await importCharacterCardSpec(parsed, img, "normal", assets)){
@@ -226,6 +231,7 @@ async function importCharacterProcess(f:{
         }
     }
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+    console.log(charaData)
     const imgp = await saveAsset(await reencodeImage(img))
     let db = get(DataBase)
     db.characters.push(convertOldTavernAndJSON(charaData, imgp))
