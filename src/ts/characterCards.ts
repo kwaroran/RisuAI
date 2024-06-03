@@ -214,6 +214,16 @@ async function importCharacterProcess(f:{
                 return db.characters.length - 1
             }
         }
+        if(checkedVersion === 'v1'){
+            const converted = CCardLib.character.convert(parsed, {
+                from: 'v1',
+                to: 'v2'
+            })
+            if(await importCharacterCardSpec(converted, img, "normal", assets)){
+                let db = get(DataBase)
+                return db.characters.length - 1
+            }
+        }
     }
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
     const imgp = await saveAsset(await reencodeImage(img))
