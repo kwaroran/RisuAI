@@ -114,7 +114,7 @@ function executeRPNCalculation(text:string) {
             return "0"
         }
         return parsed.toString()
-    }).replace(/&&/g, '&').replace(/\|\|/g, '|').replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/==/g, '=')
+    }).replace(/&&/g, '&').replace(/\|\|/g, '|').replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/==/g, '=').replace(/null/gi, '0')
     const expression = toRPN(text);
     const evaluated = calculateRPN(expression);
     return evaluated
