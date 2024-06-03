@@ -125,11 +125,14 @@ export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.multiple = multiple === 'multiple';
-    
-        if(!(get(DataBase).allowAllExtentionFiles || checkIsIos())){
+        const acceptAll = (get(DataBase).allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
+        if(!acceptAll){
             if (allowedExtensions && allowedExtensions.length) {
                 fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
             }
+        }
+        else{
+            fileInput.accept = '*'
         }
 
     
@@ -139,10 +142,10 @@ export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|
                 return;
             }
     
-            const files = Array.from(fileInput.files).filter(file => {
+            const files = acceptAll ? Array.from(fileInput.files) :(Array.from(fileInput.files).filter(file => {
                 const fileExtension = file.name.split('.').pop().toLowerCase();
                 return !allowedExtensions || allowedExtensions.includes(fileExtension);
-            });
+            })) 
     
             fileInput.remove()
             resolve(files);

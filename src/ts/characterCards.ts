@@ -12,13 +12,13 @@ import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccar
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
-import { CharXWriter } from "./process/processzip"
+import { CharXReader, CharXWriter } from "./process/processzip"
 
 export const hubURL = "https://sv.risuai.xyz"
 
 export async function importCharacter() {
     try {
-        const files = await selectFileByDom(['png', 'json'], 'multiple')
+        const files = await selectFileByDom(["*"], 'multiple')
         if(!files){
             return
         }
@@ -63,6 +63,36 @@ async function importCharacterProcess(f:{
             return
         }
     }
+
+    if(f.name.endsWith('charx')){
+        console.log('reading charx')
+        const reader = new CharXReader()
+        alertStore.set({
+            type: 'wait',
+            msg: 'Loading... (Reading)'
+        })
+        await reader.read(f.data)
+        const cardData = reader.cardData
+        if(!cardData){
+            alertError(language.errors.noData)
+            return
+        }
+        const card = JSON.parse(cardData)
+        if(CCardLib.character.check(card) !== 'v3'){
+            alertError(language.errors.noData)
+            return
+        }
+        await importCharacterCardSpec(card, undefined, 'normal', reader.assets)
+        let db = get(DataBase)
+        return db.characters.length - 1
+    }
+
+    if(!f.name.endsWith('png')){
+        alertError(language.errors.noData)
+        return
+    }
+    
+
     alertStore.set({
         type: 'wait',
         msg: 'Loading... (Reading)'
@@ -485,6 +515,13 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                 }
                 else if(data.assets[i].uri === 'ccdefault:'){
                     imgp = im
+                }
+                else if(data.assets[i].uri.startsWith('embeded://')){
+                    const key = data.assets[i].uri.replace('embeded://', '')
+                    imgp = assetDict[key]
+                    if(!imgp){
+                        throw new Error('Error while importing, asset ' + key + ' not found')
+                    }
                 }
                 else{
                     continue
