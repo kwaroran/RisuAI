@@ -115,7 +115,7 @@ export async function LoadLocalBackup(){
                         const dbData = await decodeRisuSave(db)
                         DataBase.set(dbData)
                         if(isTauri){
-                            await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
+                            await writeBinaryFile('database/database.bin', db, {dir: BaseDirectory.AppData})
                             relaunch()
                             alertStore.set({
                                 type: "wait",
@@ -123,7 +123,7 @@ export async function LoadLocalBackup(){
                             })
                         }
                         else{
-                            await forageStorage.setItem('database/database.bin', dbData)
+                            await forageStorage.setItem('database/database.bin', db)
                             location.search = ''
                             alertStore.set({
                                 type: "wait",
