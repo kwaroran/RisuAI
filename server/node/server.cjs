@@ -201,9 +201,12 @@ app.get('/api/list', async (req, res, next) => {
         return
     }
     try {
+        const data = (await fs.readdir(path.join(savePath))).map((v) => {
+            return Buffer.from(v, 'hex').toString('utf-8')
+        })
         res.send({
             success: true,
-            content: await fs.readdir(path.join(savePath))
+            content: data
         });
     } catch (error) {
         next(error);
