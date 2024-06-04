@@ -242,22 +242,26 @@ async function importCharacterProcess(f:{
     return db.characters.length - 1
 }
 
+export const getRealmInfo = async (realmPath:string) => {
+    const url = new URL(location.href);
+    url.searchParams.delete('realm');
+    window.history.pushState(null, '', url.toString());
+
+    const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
+    if(res.status !== 200){
+        alertError(await res.text())
+        return
+    }
+    showRealmInfoStore.set(await res.json())
+}
+
 export const showRealmInfoStore:Writable<null|hubType> = writable(null)
 
 export async function characterURLImport() {
     const realmPath = (new URLSearchParams(location.search)).get('realm')
     try {
         if(realmPath){
-            const url = new URL(location.href);
-            url.searchParams.delete('realm');
-            window.history.pushState(null, '', url.toString());
-
-            const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
-            if(res.status !== 200){
-                alertError(await res.text())
-                return
-            }
-            showRealmInfoStore.set(await res.json())
+           getRealmInfo(realmPath)
         }
     } catch (error) {
         
@@ -1221,6 +1225,8 @@ export type hubType = {
     hot:number
     license:string
     authorname?:string
+    original?:string
+    type:string
 }
 
 export async function getRisuHub(arg:{

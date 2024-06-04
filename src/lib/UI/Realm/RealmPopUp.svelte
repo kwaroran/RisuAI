@@ -2,7 +2,7 @@
     import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
-    import { hubURL, type hubType, downloadRisuHub } from "src/ts/characterCards";
+    import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
     import { parseMarkdownSafe } from "src/ts/parser";
     import { DataBase } from "src/ts/storage/database";
     import RealmLicense from "./RealmLicense.svelte";
@@ -23,6 +23,13 @@
             <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
             {#if openedData.authorname}
                 <span class="text-borderc">Made by {openedData.authorname}</span>
+            {/if}
+            {#if openedData.original}
+                <button class="text-blue-400 text-start" on:click={() => {
+                    const original = openedData.original
+                    openedData = null
+                    getRealmInfo(original)
+                }}>Forked</button>
             {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
