@@ -7,7 +7,8 @@ const bodyParser = require('body-parser');
 const fs = require('fs/promises')
 const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
-app.use(bodyParser.json({ limit: 100000000 }));
+app.use(bodyParser.raw({ limit: 100000000 }));
+app.use(bodyParser.json())
 const {pipeline} = require('stream/promises')
 
 let password = ''
@@ -148,17 +149,11 @@ app.get('/api/read', async (req, res, next) => {
     }
     try {
         if(!existsSync(path.join(savePath, filePath))){
-            res.send({
-                success: true,
-                content: null
-            });
+            res.send();
         }
         else{
-            const data = await fs.readFile(path.join(savePath, filePath));
-            res.send({
-                success: true,
-                content: data.toString('base64')
-            });
+            res.setHeader('Content-Type','application/octet-stream');
+            res.sendFile(path.join(savePath, filePath));
         }
     } catch (error) {
         next(error);
@@ -206,12 +201,9 @@ app.get('/api/list', async (req, res, next) => {
         return
     }
     try {
-        const data = (await fs.readdir(path.join(savePath))).map((v) => {
-            return Buffer.from(v, 'hex').toString('utf-8')
-        })
         res.send({
             success: true,
-            content: data
+            content: await fs.readdir(path.join(savePath))
         });
     } catch (error) {
         next(error);
@@ -227,7 +219,7 @@ app.post('/api/write', async (req, res, next) => {
         return
     }
     const filePath = req.headers['file-path'];
-    const fileContent = Buffer.from(req.body.content, 'base64');
+    const fileContent = req.body
     if (!filePath || !fileContent) {
         res.status(400).send({
             error:'File path required'

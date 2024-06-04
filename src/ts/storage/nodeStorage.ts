@@ -9,11 +9,9 @@ export class NodeStorage{
         await this.checkAuth()
         const da = await fetch('/api/write', {
             method: "POST",
-            body: JSON.stringify({
-                content: Buffer.from(value).toString('base64')
-            }),
+            body: value,
             headers: {
-                'content-type': 'application/json',
+                'content-type': 'application/octet-stream',
                 'file-path': Buffer.from(key, 'utf-8').toString('hex'),
                 'risu-auth': auth
             }
@@ -35,17 +33,15 @@ export class NodeStorage{
                 'risu-auth': auth
             }
         })
-        const data = await da.json()
         if(da.status < 200 || da.status >= 300){
             throw "getItem Error"
         }
-        if(data.error){
-            throw data.error
-        }
-        if(data.content === null){
+
+        const data = Buffer.from(await da.arrayBuffer())
+        if (data.length == 0){
             return null
         }
-        return Buffer.from(data.content, 'base64')
+        return data
     }
     async keys():Promise<string[]>{
         await this.checkAuth()
