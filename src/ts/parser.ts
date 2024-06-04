@@ -996,9 +996,10 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         }
         if(p1.startsWith('pick')){
             const selchar = db.characters[get(selectedCharID)]
-            const rand = sfc32(uuidtoNumber(selchar.chaId), chatID, uuidtoNumber(selchar.chaId), chatID)
+            const selChat = selchar.chats[selchar.chatPage]
+            const cid = (chatID < 0) ? selChat.message.length : chatID
             if(p1.startsWith('pick::')){
-                const randomIndex = Math.floor(rand() * (arra.length - 1)) + 1
+                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId) * (arra.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
                 }
@@ -1006,7 +1007,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             else{
                 const arr = p1.replace(/\\,/g, '§X').split(/\:|\,/g)
-                const randomIndex = Math.floor(rand() * (arr.length - 1)) + 1
+                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId) * (arr.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
                 }
@@ -1028,8 +1029,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             if(p){
                 const selchar = db.characters[get(selectedCharID)]
-                const rand = sfc32(uuidtoNumber(selchar.chaId), chatID, uuidtoNumber(selchar.chaId), chatID)
-                return (Math.floor(rand() * maxRoll) + 1).toString()
+                const selChat = selchar.chats[selchar.chatPage]
+                const cid = (chatID < 0) ? selChat.message.length : chatID
+                return (Math.floor(pickHashRand(cid, selchar.chaId) * maxRoll) + 1).toString()
             }
             return (Math.floor(Math.random() * maxRoll) + 1).toString()
         }
@@ -1063,6 +1065,18 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
     } catch (error) {
         return null   
     }
+}
+
+function pickHashRand(cid:number,word:string) {
+    let hashAddress = cid * 23515
+    const rand = (word:string) => {
+        for (let counter = 0; counter<word.length; counter++){
+            hashAddress = ((hashAddress << 5) + hashAddress) + word.charCodeAt(counter)
+        }
+        return hashAddress
+    }
+    const randF = sfc32(rand(word), rand(word), rand(word), rand(word))
+    return randF()
 }
 
 const dateTimeFormat = (main:string) => {
