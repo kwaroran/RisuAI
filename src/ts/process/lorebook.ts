@@ -424,6 +424,11 @@ export async function loadLoreBookV3Prompt(){
                         }
                         return false
                     }
+                    case 'probability':{
+                        if(Math.random() * 100 > parseInt(arg[0])){
+                            activated = false
+                        }
+                    }
                     default:{
                         return false
                     }

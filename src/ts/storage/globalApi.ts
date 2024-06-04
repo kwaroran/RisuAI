@@ -33,6 +33,7 @@ import { startObserveDom } from "../observer";
 import { removeDefaultHandler } from "src/main";
 import { updateGuisize } from "../gui/guisize";
 import { encodeCapKeySafe } from "./mobileStorage";
+import { updateLorebooks } from "../characters";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -891,6 +892,12 @@ async function checkNewFormat() {
         return v !== null
     })
 
+    db.modules = (db.modules ?? []).map((v) => {
+        if(v.lorebook){
+            v.lorebook = updateLorebooks(v.lorebook)
+        }
+        return v
+    })
 
     if(!db.formatversion){
         function checkParge(data:string){

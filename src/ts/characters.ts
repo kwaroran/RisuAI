@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc } from "./storage/database";
+import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook } from "./storage/database";
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
@@ -336,6 +336,7 @@ export function characterFormatUpdate(index:number|character){
         cha.backgroundHTML ??= ''
         cha.backgroundCSS ??= ''
         cha.creation_date ??= Date.now()
+        cha.globalLore = updateLorebooks(cha.globalLore)
         if(!cha.newGenData){
             cha = updateInlayScreen(cha)
         }
@@ -365,6 +366,24 @@ export function characterFormatUpdate(index:number|character){
     return cha
 }
 
+export function updateLorebooks(book:loreBook[]){
+    return book.map((v) => {
+        v.bookVersion ??= 1
+        if(v.bookVersion >= 2){
+            return v
+        }
+        if(v.activationPercent){
+            const perc = v.activationPercent
+            v.activationPercent = null
+
+            v.content = `@@probability ${perc}\n${v.content}`
+        }
+        v.content = v.content.replace(/@@@?end/g, '@@depth 0').replace(/\<(char|bot)\>/g, '{{char}}').replace(/\<(user)\>/g, '{{user}}')
+        v.bookVersion = 2
+        return v
+    })
+
+}
 
 export function createBlankChar():character{
     return {

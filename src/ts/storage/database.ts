@@ -707,6 +707,7 @@ export interface loreBook{
         data:string[]
     },
     useRegex?:boolean
+    bookVersion?:number
 }
 
 export interface character{
