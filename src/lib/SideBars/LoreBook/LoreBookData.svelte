@@ -107,16 +107,6 @@
                     <Help key="useRegexLorebook" name={language.useRegexLorebook}/>
                 </div>
             {/if}
-            {#if !lorePlus}
-                <div class="flex items-center mt-2 mb-6">
-                    {#if value.activationPercent === undefined || value.activationPercent === null}
-                        <Check name={language.loreRandomActivation} check={false} onChange={() => {value.activationPercent = 50}}/>
-                    {:else}
-                        <Check name={language.loreRandomActivation} check={true} onChange={() => {value.activationPercent = null}}/>
-                    {/if}
-                    <span><Help name={language.loreRandomActivation} key="loreRandomActivation"/></span>
-                </div>
-            {/if}
         </div>
     {/if}
 </div>
