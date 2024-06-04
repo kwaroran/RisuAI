@@ -9,6 +9,7 @@
     import { Capacitor } from "@capacitor/core";
   import RealmPopUp from "./RealmPopUp.svelte";
   import { googleBuild } from "src/ts/storage/globalApi";
+  import { split } from "lodash";
 
     let openedData:null|hubType = null
 
@@ -146,7 +147,7 @@
                 const input = await alertInput('Input URL or ID')
                 if(input.startsWith("http")){
                     const url = new URL(input)
-                    const id = url.searchParams.get("realm") ?? url.searchParams.get("code")
+                    const id = url.searchParams.get("realm") ?? url.searchParams.get("code") ?? input.split("/").at(-1)
                     if(id){
                         downloadRisuHub(id)
                         return
