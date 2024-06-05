@@ -29,6 +29,7 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
+  import { applyModule } from "src/ts/process/modules";
     
 
     let subMenu = 0
@@ -904,19 +905,29 @@
         </div>
 
         {#if $DataBase.supaMemoryType === 'hypaV2'}
-            <Button on:click={() => {
-                currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {
-                    chunks: [],
-                    mainChunks: []
-                }
-                showHypaV2Alert()
-            }}>
+            <Button
+                on:click={() => {
+                    currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {
+                        chunks: [],
+                        mainChunks: []
+                    }
+                    showHypaV2Alert()
+                }}
+                className="mt-4"
+            >
                 {language.HypaMemory} V2 Data
             </Button>
         {:else if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
-            <span class="text-textcolor">{language.SuperMemory}</span>
+            <span class="text-textcolor mt-4">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
         {/if}
+
+        <Button
+            on:click={applyModule}
+            className="mt-4"
+        >
+            {language.applyModule}
+        </Button>
 
         {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
             && currentChar.data.license !== 'CC BY-SA 4.0'
@@ -946,14 +957,8 @@
         {/if}
     {:else}
         {#if currentChar.data.chats[currentChar.data.chatPage].supaMemoryData && currentChar.data.chats[currentChar.data.chatPage].supaMemoryData.length > 4 || currentChar.data.supaMemory}
-            <span class="text-textcolor">{language.SuperMemory}</span>
+            <span class="text-textcolor mt-4">{language.SuperMemory}</span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.chats[currentChar.data.chatPage].supaMemoryData}></TextAreaInput>
-        {/if}
-        {#if $DataBase.useExperimental}
-            <div class="flex mb-2 items-center">
-                <Check bind:check={currentChar.data.useCharacterLore} name={language.useCharLorebook}/>
-                <Help key="experimental" name={language.useCharLorebook}/>
-            </div>
         {/if}
 
         <div class="flex items-center mt-4">

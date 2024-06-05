@@ -7,8 +7,8 @@
     import { DataBase } from "src/ts/storage/database";
     import { CurrentChat } from "src/ts/stores";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
-    export let close = () => {}
-
+    export let close = (i:string) => {}
+    export let alertMode = false
     let moduleSearch = ''
 
     function sortModules(modules:RisuModule[], search:string){
@@ -20,11 +20,13 @@
         }).sort((a, b) => {
             let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
 
-            if(db.enabledModules.includes(a.id)){
-                score += 1000
-            }
-            if(db.enabledModules.includes(b.id)){
-                score -= 1000
+            if(!alertMode){
+                if(db.enabledModules.includes(a.id)){
+                    score += 1000
+                }
+                if(db.enabledModules.includes(b.id)){
+                    score -= 1000
+                }
             }
 
             return score
@@ -39,7 +41,9 @@
         <div class="flex items-center text-textcolor">
             <h2 class="mt-0 mb-0 text-lg">{language.modules}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" on:click={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" on:click={() => {
+                    close('')
+                }}>
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -64,15 +68,21 @@
                             <span class="">{rmodule.name}</span>
                         {/if}
                         <div class="flex-grow flex justify-end">
-                            {#if $DataBase.enabledModules.includes(rmodule.id)}
+                            {#if $DataBase.enabledModules.includes(rmodule.id) && !alertMode}
                                 <button class="mr-2 text-textcolor2 cursor-not-allowed">
                                 </button>
                             {:else}
-                                <button class={(!$CurrentChat.modules.includes(rmodule.id)) ?
+                                <button class={(!$CurrentChat.modules.includes(rmodule.id) && !alertMode) ?
                                         "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" :
                                         "mr-2 cursor-pointer text-blue-500"
                                 } on:click={async (e) => {
                                     e.stopPropagation()
+
+                                    if(alertMode){
+                                        close(rmodule.id)
+                                        return
+                                    }
+
                                     if($CurrentChat.modules.includes(rmodule.id)){
                                         $CurrentChat.modules.splice($CurrentChat.modules.indexOf(rmodule.id), 1)
                                     }
@@ -93,7 +103,7 @@
             <Button className="mt-4 flex-grow-0" size="sm" on:click={() => {
                 $SettingsMenuIndex = 14
                 $settingsOpen = true
-                close()
+                close('')
             }}>{language.edit}</Button>
         </div>
     </div>

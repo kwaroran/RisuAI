@@ -1,9 +1,9 @@
 import { language } from "src/lang"
-import { alertConfirm, alertError, alertNormal } from "../alert"
+import { alertConfirm, alertError, alertModuleSelect, alertNormal } from "../alert"
 import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
 import { downloadFile } from "../storage/globalApi"
 import { get } from "svelte/store"
-import { CurrentChat } from "../stores"
+import { CurrentCharacter, CurrentChat } from "../stores"
 import { selectSingleFile } from "../util"
 import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook"
@@ -186,4 +186,42 @@ export function getModuleRegexScripts() {
         }
     }
     return customscripts
+}
+
+export async function applyModule() {
+    const sel = await alertModuleSelect()
+    if (!sel) {
+        return
+    }
+
+    const module = structuredClone(getModuleById(sel))
+    if (!module) {
+        return
+    }
+
+    const currentChar = get(CurrentCharacter)
+    if (!currentChar) {
+        return
+    }
+    if(currentChar.type === 'group'){
+        return
+    }
+
+    if (module.lorebook) {
+        for (const lore of module.lorebook) {
+            currentChar.globalLore.push(lore)
+        }
+    }
+    if (module.regex) {
+        for (const regex of module.regex) {
+            currentChar.customscript.push(regex)
+        }
+    }
+    if (module.trigger) {
+        for (const trigger of module.trigger) {
+            currentChar.triggerscript.push(trigger)
+        }
+    }
+
+    alertNormal(language.successApplyModule)
 }

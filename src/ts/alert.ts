@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core"
 import { DataBase, type MessageGenerationInfo } from "./storage/database"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2',
+    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule',
     msg: string,
     submsg?: string
 }
@@ -257,6 +257,23 @@ export async function alertInput(msg:string){
     alertStore.set({
         'type': 'input',
         'msg': msg
+    })
+
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+
+    return get(alertStore).msg
+}
+
+export async function alertModuleSelect(){
+
+    alertStore.set({
+        'type': 'selectModule',
+        'msg': ''
     })
 
     while(true){

@@ -18,6 +18,7 @@
     import { CurrentChat } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
+  import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
     let btn
     let input = ''
     let cardExportType = 'realm'
@@ -58,7 +59,7 @@
     }
 }}></svelte:window>
 
-{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport'}
+{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'selectModule'}
     <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
@@ -450,6 +451,13 @@
             })
         }}
     >{$alertStore.msg}</div>
+{:else if $alertStore.type === 'selectModule'}
+    <ModuleChatMenu alertMode close={(d) => {
+        alertStore.set({
+            type: 'none',
+            msg: d
+        })
+    }} />
 {/if}
 
 <style>

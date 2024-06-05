@@ -14,7 +14,7 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "1.111.6"
+export let appVer = "1.111.7"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
