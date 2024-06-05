@@ -223,5 +223,7 @@ export async function applyModule() {
         }
     }
 
+    CurrentCharacter.set(currentChar)
+
     alertNormal(language.successApplyModule)
 }

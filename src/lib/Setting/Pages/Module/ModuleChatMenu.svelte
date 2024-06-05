@@ -62,26 +62,30 @@
                         <div class="border-t-1 border-selected"></div>
                     {/if}
                     <div class="pl-3 py-3 text-left flex">
-                        {#if $DataBase.enabledModules.includes(rmodule.id)}
+                        {#if !alertMode && $DataBase.enabledModules.includes(rmodule.id)}
                             <span class="text-textcolor2">{rmodule.name}</span>
                         {:else}
                             <span class="">{rmodule.name}</span>
                         {/if}
                         <div class="flex-grow flex justify-end">
-                            {#if $DataBase.enabledModules.includes(rmodule.id) && !alertMode}
+
+                            {#if alertMode}
+                                <button class={"text-textcolor2 mr-2 cursor-pointer hover:text-blue-500 transition-colors"} on:click={async (e) => {
+                                    e.stopPropagation()
+
+                                    close(rmodule.id)
+                                }}>
+                                    <CheckCircle2Icon size={18}/>
+                                </button>
+                            {:else if $DataBase.enabledModules.includes(rmodule.id)}
                                 <button class="mr-2 text-textcolor2 cursor-not-allowed">
                                 </button>
                             {:else}
-                                <button class={(!$CurrentChat.modules.includes(rmodule.id) && !alertMode) ?
+                                <button class={(!$CurrentChat.modules.includes(rmodule.id)) ?
                                         "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" :
                                         "mr-2 cursor-pointer text-blue-500"
                                 } on:click={async (e) => {
                                     e.stopPropagation()
-
-                                    if(alertMode){
-                                        close(rmodule.id)
-                                        return
-                                    }
 
                                     if($CurrentChat.modules.includes(rmodule.id)){
                                         $CurrentChat.modules.splice($CurrentChat.modules.indexOf(rmodule.id), 1)
