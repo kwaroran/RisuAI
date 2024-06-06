@@ -39,7 +39,9 @@
                 })
                 chara.chats = newValue
                 chara.chatPage = newChatPage
-                stb.destroy()
+                try {
+                    stb.destroy()
+                } catch (error) {}
                 sorted += 1
                 await sleep(1)
                 createStb()
@@ -52,7 +54,9 @@
 
     onDestroy(() => {
         if(stb){
-            stb.destroy()
+            try {
+                stb.destroy()
+            } catch (error) {}
         }
     })
 </script>
