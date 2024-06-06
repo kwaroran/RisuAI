@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { character, groupChat } from "src/ts/storage/database";
+    import type { Chat, character, groupChat } from "src/ts/storage/database";
     import { DataBase } from "src/ts/storage/database";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
@@ -7,12 +7,54 @@
     import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
-    import { findCharacterbyId, parseKeyValue } from "src/ts/util";
+    import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { CurrentCharacter } from "src/ts/stores";
+    import Sortable from 'sortablejs/modular/sortable.core.esm.js';
+  import { onDestroy, onMount } from "svelte";
+
     export let chara:character|groupChat
     let editMode = false
+
+    let stb: Sortable = null
+    let ele: HTMLDivElement
+    let sorted = 0
+    let opened = 0
+    const createStb = () => {
+        stb = Sortable.create(ele, {
+            onEnd: async () => {
+                let idx:number[] = []
+                ele.querySelectorAll('[data-risu-idx]').forEach((e, i) => {
+                    idx.push(parseInt(e.getAttribute('data-risu-idx')))
+                })
+                console.log(idx)
+                let newValue:Chat[] = []
+                let newChatPage = chara.chatPage
+                idx.forEach((i) => {
+                    newValue.push(chara.chats[i])
+                    if(chara.chatPage === i){
+                        newChatPage = newValue.length - 1
+                    }
+                })
+                chara.chats = newValue
+                chara.chatPage = newChatPage
+                stb.destroy()
+                sorted += 1
+                await sleep(1)
+                createStb()
+            },
+            ...sortableOptions
+        })
+    }
+
+    onMount(createStb)
+
+    onDestroy(() => {
+        if(stb){
+            stb.destroy()
+        }
+    })
 </script>
 <div class="flex flex-col w-full h-[calc(100%-2rem)] max-h-[calc(100%-2rem)]">
 
@@ -35,10 +77,10 @@
         chara.chats = chats
         chara.chatPage = 0
     }}>New Chat</Button>
-    <div class="flex flex-col w-full mt-2 overflow-y-auto flex-grow">
-    
+    <div class="flex flex-col w-full mt-2 overflow-y-auto flex-grow" bind:this={ele}>
+        {#key sorted}
         {#each chara.chats as chat, i}
-        <button on:click={() => {
+        <button data-risu-idx={i} on:click={() => {
             if(!editMode){
                 chara.chatPage = i
             }
@@ -88,7 +130,8 @@
                 </button>
             </div>
         </button>
-    {/each}
+        {/each}
+        {/key}
     </div>
     
     <div class="border-t border-selected mt-2">

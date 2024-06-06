@@ -4,7 +4,7 @@
     import { CurrentChat, CurrentCharacter } from "src/ts/stores";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
-    import { sleep } from "src/ts/util";
+    import { sleep, sortableOptions } from "src/ts/util";
 
     export let globalMode = false
     export let submenu = 0
@@ -44,10 +44,11 @@
                 sorted += 1
                 await sleep(1)
                 createStb()
-            }
+            },
+            ...sortableOptions
         })
     }
-    // onMount(createStb)
+    onMount(createStb)
 
     let opened = 0
     
@@ -59,9 +60,9 @@
     }
     const onClose = () => {
         opened -= 1
-        // if(opened === 0){
-        //     createStb()
-        // }
+        if(opened === 0){
+            createStb()
+        }
     }
 
     onDestroy(() => {

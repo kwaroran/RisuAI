@@ -65,7 +65,7 @@
                 const cha = $CurrentCharacter
                 const len = $CurrentCharacter.chats.length
                 let chats = $CurrentCharacter.chats
-                chats.push({
+                chats.unshift({
                     message:[], note:'', name:`New Chat ${len + 1}`, localLore:[]
                 })
                 if(cha.type === 'group'){

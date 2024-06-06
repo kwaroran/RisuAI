@@ -988,3 +988,8 @@ export function parseKeyValue(template:string){
 
     return keyValue
 }
+
+export const sortableOptions = {
+	delay: 300, // time in milliseconds to define when the sorting should start
+	delayOnTouchOnly: true
+} as const

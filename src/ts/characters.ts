@@ -232,7 +232,7 @@ export async function importChat(){
                 return
             }
 
-            db.characters[selectedID].chats.push(newChat)
+            db.characters[selectedID].chats.unshift(newChat)
             setDatabase(db)
             alertNormal(language.successImport)
         }
@@ -241,7 +241,7 @@ export async function importChat(){
             if(json.type === 'risuChat' && json.ver === 1){
                 const das:Chat = json.data
                 if(!(checkNullish(das.message) || checkNullish(das.note) || checkNullish(das.name) || checkNullish(das.localLore))){
-                    db.characters[selectedID].chats.push(das)
+                    db.characters[selectedID].chats.unshift(das)
                     setDatabase(db)
                     alertNormal(language.successImport)
                     return
