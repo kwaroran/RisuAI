@@ -413,6 +413,8 @@ export function setDatabase(data:Database){
     data.dallEQuality ??= 'standard'
     data.customTextTheme.FontColorQuote1 ??= '#8BE9FD'
     data.customTextTheme.FontColorQuote2 ??= '#FFB86C'
+    data.font ??= 'default'
+    data.customFont ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -680,6 +682,8 @@ export interface Database{
     cohereAPIKey:string
     goCharacterOnImport:boolean
     dallEQuality:string
+    font: string
+    customFont: string
 }
 
 export interface customscript{

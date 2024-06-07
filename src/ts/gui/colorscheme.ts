@@ -225,4 +225,19 @@ export function updateTextTheme(){
             break
         }
     }
+
+    switch(db.font){
+        case "default":{
+            root.style.setProperty('--risu-font-family', 'Arial, sans-serif');
+            break
+        }
+        case "timesnewroman":{
+            root.style.setProperty('--risu-font-family', 'Times New Roman, serif');
+            break
+        }
+        case "custom":{
+            root.style.setProperty('--risu-font-family', db.customFont);
+            break
+        }
+    }
 }

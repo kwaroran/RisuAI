@@ -29,6 +29,7 @@ body{
   --risu-theme-darkborderc: #4b5563;
   --risu-theme-darkbutton: #374151;
   --risu-height-size: 100%;
+  --risu-font-family: Arial, sans-serif, serif;
 
 }
 
@@ -126,7 +127,7 @@ html, body{
 }
 
 *{
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--risu-font-family);
 }
 
 .chattext p:first-child{

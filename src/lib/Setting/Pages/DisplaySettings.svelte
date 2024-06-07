@@ -12,6 +12,7 @@
     import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
 
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
+  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -135,6 +136,17 @@
         <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorQuote2} on:change={updateTextTheme}>
         <span class="ml-2">Double Quote Text</span>
     </div>
+{/if}
+
+<span class="text-textcolor mt-4">{language.font}</span>
+<SelectInput className="mt-2" bind:value={$DataBase.font} on:change={updateTextTheme}>
+    <OptionInput value="default" >Default</OptionInput>
+    <OptionInput value="timesnewroman" >Times New Roman</OptionInput>
+    <OptionInput value="custom" >Custom</OptionInput>
+</SelectInput>
+
+{#if $DataBase.font === "custom"}
+    <TextInput bind:value={$DataBase.customFont} on:change={updateTextTheme} />
 {/if}
 
 <span class="text-textcolor mt-4">{language.UISize}</span>
