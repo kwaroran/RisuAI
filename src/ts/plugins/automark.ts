@@ -75,6 +75,7 @@ export function risuFormater(dat:string){
         
 
         if(dat[i] === '\n' && lines[lines.length-1][0] === ''){
+            lines.push(['newline','\n'])
             lines.push(['',''])
         }
         else{
@@ -180,7 +181,7 @@ export function risuFormater(dat:string){
 
         console.log(lineResult)
 
-        result += lineResult + '\n'
+        result += lineResult
     }
 
     return result.trim()
