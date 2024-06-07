@@ -175,8 +175,10 @@ export function risuFormater(dat:string){
             lineResult = lineResult.substring(1)
         }
         if(lineResult.endsWith(' ')){
-            lineResult = lineResult.substring(0,result.length-1)
+            lineResult = lineResult.substring(0,lineResult.length-1)
         }
+
+        console.log(lineResult)
 
         result += lineResult + '\n'
     }
