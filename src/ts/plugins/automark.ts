@@ -89,7 +89,7 @@ export function risuFormater(dat:string){
             continue
         }
 
-        const line = lines[i][1]
+        let line = lines[i][1]
         let isNumbered = false
         let endMarked = false
         if(excludesDat.includes(line[0]) || (line[1] === '.' && ['1','2','3','4','5','6','7','8','9'].includes(line[0]))){
@@ -107,6 +107,10 @@ export function risuFormater(dat:string){
         let depth = 0
         let depthChunk:string[] = ['']
         let depthChunkType:string[] = ['']
+
+        //spaces for detection
+        line = ' ' + line + ' '
+
         for(let j=0;j<line.length;j++){
             switch(line[j]){
                 case '"':
@@ -129,7 +133,7 @@ export function risuFormater(dat:string){
                 case '‘':
                 case '’':{
                     if(depthChunkType[depth] === "'"){
-                        if(line[j-1] === '' || (line[j-2] === 'i' && line[j-1] === 'n')){
+                        if(line[j-1] === ' ' || line[j+1] !== ' ' || (line[j-2] === 'i' && line[j-1] === 'n')){
                             //this is not a quote
                             depthChunk[depth] += line[j]
                         }
@@ -163,6 +167,13 @@ export function risuFormater(dat:string){
 
         while(depthChunk.length > 0){
             result += depthChunk.pop()
+        }
+
+        if(result.startsWith(' ')){
+            result = result.substring(1)
+        }
+        if(result.endsWith(' ')){
+            result = result.substring(0,result.length-1)
         }
 
         result += '\n'
