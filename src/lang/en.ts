@@ -652,4 +652,5 @@ export const languageEnglish = {
     applyModule: "Apply Module",
     successApplyModule: "Module is successfully applied",
     font: "Font",
+    lineHeight: "Line Height",
 }

@@ -153,6 +153,10 @@
 <SliderInput  min={50} max={200} bind:value={$DataBase.zoomsize} />
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.zoomsize)}%</span>
 
+<span class="text-textcolor mt-4">{language.lineHeight}</span>
+<SliderInput  min={0.5} max={3} step={0.05} bind:value={$DataBase.lineHeight} />
+<span class="text-textcolor2 mb-6 text-sm">{($DataBase.lineHeight)}</span>
+
 <span class="text-textcolor">{language.iconSize}</span>
 <SliderInput min={50} max={200} bind:value={$DataBase.iconsize} />
 <span class="text-textcolor2 mb-6 text-sm">{($DataBase.iconsize)}%</span>

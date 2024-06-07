@@ -415,6 +415,7 @@ export function setDatabase(data:Database){
     data.customTextTheme.FontColorQuote2 ??= '#FFB86C'
     data.font ??= 'default'
     data.customFont ??= ''
+    data.lineHeight ??= 1.25
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -684,6 +685,7 @@ export interface Database{
     dallEQuality:string
     font: string
     customFont: string
+    lineHeight: number
 }
 
 export interface customscript{

@@ -261,7 +261,7 @@
                     }
                 }}
                     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+                    style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
                 >
                     {#key $CurrentVariablePointer}
                         {#await markParsing(msgDisplay, character, 'normal', idx, translated)}

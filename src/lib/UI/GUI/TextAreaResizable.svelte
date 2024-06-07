@@ -32,5 +32,5 @@
     bind:value={value}
     class="rounded-md p-2 text-textcolor bg-transparent resize-none overflow-y-hidden border border-darkborderc"
     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-    style:line-height="{1.25 * ($DataBase.zoomsize / 100)}rem"
+    style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
 />
