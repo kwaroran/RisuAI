@@ -127,6 +127,14 @@
         <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorItalicBold} on:change={updateTextTheme}>
         <span class="ml-2">Italic Bold Text</span>
     </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorQuote1} on:change={updateTextTheme}>
+        <span class="ml-2">Single Quote Text</span>
+    </div>
+    <div class="flex items-center mt-2">
+        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorQuote2} on:change={updateTextTheme}>
+        <span class="ml-2">Double Quote Text</span>
+    </div>
 {/if}
 
 <span class="text-textcolor mt-4">{language.UISize}</span>

@@ -11,7 +11,7 @@ import { selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
-import { autoMarkNew } from './plugins/automark';
+import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
 import { HypaProcesser } from './process/memory/hypamemory';
 
@@ -194,20 +194,14 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         data = await parseAdditionalAssets(data, char, mode, 'post')
     }
     data = await parseInlayImages(data)
-    if(db.automark){
-        return (DOMPurify.sanitize(autoMarkNew(data), {
-            ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger'],
-        }))
-    }
-    else{
-        data = encodeStyle(data)
-        data = mconverted.parse(data)
-        return decodeStyle(DOMPurify.sanitize(data, {
-            ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger'],
-        }))
-    }
+
+    data = encodeStyle(data)
+    data = risuFormater(data)
+    data = mconverted.parse(data)
+    return decodeStyle(DOMPurify.sanitize(data, {
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
+    }))
 }
 
 export function parseMarkdownSafe(data:string) {

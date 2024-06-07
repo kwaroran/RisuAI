@@ -105,11 +105,6 @@
         <Help key="experimental"/><Help key="oaiRandomUser"/>
     </Check>
 </div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.automark} name={language.nativeAutomark}>
-        <Help key="experimental"/>
-    </Check>
-</div>
 {#if $DataBase.showUnrecommended}
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.chainOfThought} name={language.cot}>

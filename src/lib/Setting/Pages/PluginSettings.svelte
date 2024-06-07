@@ -19,12 +19,6 @@
 
 <div class="border-solid border-borderc p-2 flex flex-col border-1">
     <div class="flex">
-        <span class="font-bold flex-grow">AutoMark <span class="text-green-500 italic">(Official Plugin)</span></span>
-    </div>
-    <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.officialplugins.automark} name={language.able}/>
-    </div>
-    <div class="flex">
         <span class="font-bold flex-grow">Metric Systemizer <Help key="metrica" /> <span class="text-green-500 italic">(Official Plugin)</span></span>
     </div>
     <div class="flex items-center mt-2">

@@ -16,6 +16,8 @@ body{
   --FontColorBold : ##e5e5e5;
   --FontColorItalic : #8C8D93;
   --FontColorItalicBold : #8C8D93;
+  --FontColorQuote1 : #8C8D93;
+  --FontColorQuote2 : #8C8D93;
   --risu-animation-speed: 0.2s;
   --risu-theme-bgcolor: #282a36;
   --risu-theme-darkbg:  #21222c;
@@ -70,6 +72,16 @@ html, body{
   color: var(--FontColorItalicBold);
   font-style: italic;
   font-weight: bold;
+}
+
+.chattext mark[risu-mark=quote1]{
+  background-color: transparent;
+  color: var(--FontColorQuote1);
+}
+
+.chattext mark[risu-mark=quote2]{
+  background-color: transparent;
+  color: var(--FontColorQuote2);
 }
 
 .strokeme {

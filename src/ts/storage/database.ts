@@ -270,7 +270,9 @@ export function setDatabase(data:Database){
             FontColorStandard: "#f8f8f2",
             FontColorBold: "#f8f8f2",
             FontColorItalic: "#8C8D93",
-            FontColorItalicBold: "#8C8D93"
+            FontColorItalicBold: "#8C8D93",
+            FontColorQuote1: '#8BE9FD',
+            FontColorQuote2: '#FFB86C'
         }
     }
     if(checkNullish(data.hordeConfig)){
@@ -409,7 +411,8 @@ export function setDatabase(data:Database){
     data.hypaAllocatedTokens ??= 3000
     data.hypaChunkSize ??= 3000
     data.dallEQuality ??= 'standard'
-
+    data.customTextTheme.FontColorQuote1 ??= '#8BE9FD'
+    data.customTextTheme.FontColorQuote2 ??= '#FFB86C'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -500,6 +503,8 @@ export interface Database{
         FontColorBold : string,
         FontColorItalic : string,
         FontColorItalicBold : string,
+        FontColorQuote1 : string,
+        FontColorQuote2 : string
     }
     requestRetrys:number
     emotionPrompt2:string

@@ -6,7 +6,6 @@ import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
-import { autoMarkPlugin } from "../plugins/automark";
 import { runCharacterJS } from "../plugins/embedscript";
 import { metricaPlugin } from "../plugins/metrica";
 import { OaiFixKorean } from "../plugins/fixer";
@@ -63,9 +62,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
-    if(db.officialplugins.automark && mode === 'editdisplay'){
-        data = autoMarkPlugin(data)
-    }
     if(db.officialplugins.metrica && mode === 'editdisplay'){
         data = metricaPlugin(data, 'metrics')
     }

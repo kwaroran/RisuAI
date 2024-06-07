@@ -1,159 +1,172 @@
-const reg:[RegExp,string][] = []
 
+const excludesDat = ['<','>','{','}','[',']','(',')','-',':',';','…','—','–','_','*','+','/','\\','|','!','?','.',',',' ']
+const selfClosingTags = ['br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr']
 
-export function autoMarkPlugin(data:string){
-    if(reg.length === 0){
-        const pluginRegex = [
-          {"comment":"[ 💱 ]ㅤ구조변환 #1ㅤ=ㅤ대사 부호 수정","in":"“|”","out":"\"","type":"editdisplay","ableFlag":false},
-          {"comment":"[ 💱 ]ㅤ구조변환 #2ㅤ=ㅤ생각 부호 수정","in":"‘|’","out":"'","type":"editdisplay","ableFlag":false},
-          {"comment":"[ 🧷 ]ㅤ이탈릭체 #1ㅤ=ㅤ문장 앞 묶음 추가","in":"^(?!\\d\\.)([\\wㄱ-ㅎ가-힣'])(?!.*[{<>}])|(?<=^\\[.*\\] *|^\\(.*\\) *)([\\wㄱ-ㅎ가-힣'])(?!.*[{<>}])","out":"<em>$1$2","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 🧷 ]ㅤ이탈릭체 #2ㅤ=ㅤ문장 뒤 묶음 추가","in":"(?<!^ +.*)(\".*|<em>.*)(?<!\")$","out":"$1</em>","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 🧷 ]ㅤ대사묶음 #1ㅤ=ㅤ대사 앞 묶음 추가","in":"(?<=<em>.*|^\".*)( +\"[\\S])|(?<=<em>.*|\" +.*)( *\\[)","out":"</em>$1$2","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 🧷 ]ㅤ대사묶음 #2ㅤ=ㅤ대사 뒤 묶음 추가","in":"(?<=^\".*|<\\/em>.*)([\\S]\" +|[\\S]\"(?=[,.…ㄱ-ㅎ가-힣]))|(?<=<\\/em>.*)( *\\] *)","out":"$1$2<em>","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 🧷 ]ㅤ생각묶음 #1ㅤ=ㅤ생각 앞 묶음 추가","in":"(?<=<em>.*? +|\\[|\\[.* +|\\(|\\(.* +|\"|\".*? +)(?<!style=.*)(')|(?<=<em>)('[\\wㄱ-ㅎ가-힣])","out":"<strong><em>$1$2","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 🧷 ]ㅤ생각묶음 #2ㅤ=ㅤ생각 뒤 묶음 추가","in":"(?<=<strong><em>')(.*?')(?= +.+?|[ㄱ-ㅎ가-힣?!:;,.…—-])|(?<=<strong><em>'.*)(')(?=<\\/em>|\")|(?<=\\(<strong><em>')(?=\\))","out":"$1$2</em></strong>","type":"editdisplay","ableFlag":true,"flag":"gm"},
-          {"comment":"[ 📝 ]ㅤ추가핫키 #1ㅤ=ㅤ따옴표 추가 : (`)","in":"(?<!`)`(?!`)","out":"\"","type":"editinput","ableFlag":false},
-          {"comment":"[ 📝 ]ㅤ추가핫키 #2ㅤ=ㅤOOC 추가 : (``)","in":"^``(?!`) *(.*)$","out":"(OOC: $1)","type":"editinput","ableFlag":true,"flag":"gm"}
-        ]
-        for(const r of pluginRegex){
-            reg.push([new RegExp(r.in, r.ableFlag ? r.flag : 'g'),r.out])
+const checkSelfClosingTag = (dat:string) => {
+    for(const tag of selfClosingTags){
+        if(dat.startsWith(tag)){
+            return true
         }
     }
-    for(let i=0;i<reg.length;i++){
-        data = data.replace(reg[i][0], reg[i][1])
-    }
-
-
-    
-    return data
+    return false
 }
 
-export function autoMarkNew(dat:string){
-    const excludeTexts = ["#","1.","2.","3.","4.","5.","6.","7.","8.","9.","0."]
-    const mark = (data:string) => {
-        for(const text of excludeTexts){
-            if(data.startsWith(text)){
-                return document.createTextNode(data)
+export function risuFormater(dat:string){
+    const lines:[string,string][] = [['','']] // [type, content]
+    let htmlType = 0 // 0: not inside tag, 1: closing tag, 2: opening tag
+    for(let i=0;i<dat.length;i++){
+
+        //html tag handling
+        if(dat[i] === '<' && lines[lines.length-1][0] !== 'code-block'){
+            lines.push(['html-tag',''])
+            if(dat[i+1] === '/'){
+                htmlType = 1
+            }
+            else{
+                htmlType = 2
             }
         }
 
-        let index = 0
-        let stacks:Node[] = [document.createElement('p')]
-        let stackText = [""]
-        let stackType:number[] = [0]
-        function isAlpha(str:string) {
-            //check if string is alphabet, including extended latin by charcode. string.length === 1
-            const code = str.charCodeAt(0)
-            return (code > 64 && code < 91) || (code > 96 && code < 123) || (code > 127 && code < 256)
+        if(dat[i] === '>' && lines[lines.length-1][0] === 'html-tag'){
+            const pop = lines.pop()
+            const tagAttr = pop[1].substring(1).trim()
+            if(htmlType === 1){
+                const pop2 = lines.pop() //probably html-inner
+                const chunk = pop2[1] + pop[1] + '>'
+                if(lines[lines.length-1][0] === ''){
+                    lines.push(['html-chunk',chunk])
+                    lines.push(['',''])
+                }
+                else{
+                    lines[lines.length-1][1] += chunk
+                }
+                continue
+            }
+            else if(checkSelfClosingTag(tagAttr)){
+                const chunk = pop[1] + '>'
+                if(lines[lines.length-1][0] === ''){
+                    lines.push(['html-chunk',chunk])
+                    lines.push(['',''])
+                }
+                else{
+                    lines[lines.length-1][1] += chunk
+                }
+                continue
+            }
+            else{
+                lines.push(['html-inner',pop[1]])
+            }
+            htmlType = 0
         }
-        let stackIndex = 0
-        while(index < data.length){
-            switch(data[index]){
+
+        //code block handling
+
+        if(dat[i] === '`' && dat[i+1] === '`' && dat[i+2] === '`' && lines[lines.length-1][0] === ''){
+            if(lines[lines.length-1][0] === 'code-block'){
+                lines[lines.length-1][1] += '```'
+                lines.push(['',''])
+            }
+            else{
+                lines.push(['code-block','```'])
+            }
+            i += 2
+            continue
+        }
+        
+
+        if(dat[i] === '\n' && lines[lines.length-1][0] === ''){
+            lines.push(['',''])
+        }
+        else{
+            lines[lines.length-1][1] += dat[i]
+        }
+    }
+
+    let result = ''
+    for(let i=0;i<lines.length;i++){
+        if(lines[i][0] !== ''){
+            result += lines[i][1] + '\n'
+            continue
+        }
+
+        const line = lines[i][1]
+        let isNumbered = false
+        let endMarked = false
+        if(excludesDat.includes(line[0]) || (line[1] === '.' && ['1','2','3','4','5','6','7','8','9'].includes(line[0]))){
+            isNumbered = true
+        }
+        if(line.endsWith('>') || line.endsWith('}') || line.startsWith('<')){
+            endMarked = true
+        }
+
+        if(isNumbered || endMarked){
+            result += line + '\n'
+            continue
+        }
+
+        let depth = 0
+        let depthChunk:string[] = ['']
+        let depthChunkType:string[] = ['']
+        for(let j=0;j<line.length;j++){
+            switch(line[j]){
                 case '"':
                 case '“':
                 case '”':{
-                    if(stackType[stackIndex] === 1){
-                        const stack = stacks.pop()
-                        stackText[stackIndex] += data[index]
-                        stack.appendChild(document.createTextNode(stackText.pop()))
-                        stackType.pop()
-                        stackIndex--
-                        stacks[stackIndex].appendChild(stack)
+                    if(depthChunkType[depth] === '"'){
+                        depthChunkType.pop()
+                        const pop = depthChunk.pop()
+                        depth--
+                        depthChunk[depth] += `<mark risu-mark="quote2">${pop}${line[j]}</mark>`
                     }
                     else{
-                        stacks[stackIndex].appendChild(document.createTextNode(stackText[stackIndex]))
-                        stackText[stackIndex] = ""
-                        stacks.push(document.createElement('x-placeholder'))
-                        stackText.push(data[index])
-                        stackType.push(1)
-                        stackIndex++
+                        depthChunkType.push('"')
+                        depthChunk.push(line[j])
+                        depth++
                     }
                     break
                 }
                 case "'":
-                case "‘":
-                case "’":{
-                    if(stackType[stackIndex] === 2){
-                        if(data[index+1] === undefined || !isAlpha(data[index+1])){
-                            const stack = stacks.pop()
-                            stackText[stackIndex] += data[index]
-                            stack.appendChild(document.createTextNode(stackText.pop()))
-                            stackType.pop()
-                            stackIndex--
-                            stacks[stackIndex].appendChild(stack)
+                case '‘':
+                case '’':{
+                    if(depthChunkType[depth] === "'"){
+                        if(line[j-1] === '' || (line[j-2] === 'i' && line[j-1] === 'n')){
+                            //this is not a quote
+                            depthChunk[depth] += line[j]
                         }
                         else{
-                            stackText[stackIndex] += data[index]
+                            depthChunkType.pop()
+                            const pop = depthChunk.pop()
+                            depth--
+                            depthChunk[depth] += `<mark risu-mark="quote1">${pop}${line[j]}</mark>`
                         }
                     }
                     else{
-                        if(data[index-1] === ' ' || data[index-1] === '\n' || data[index-1] === undefined){
-                            stacks[stackIndex].appendChild(document.createTextNode(stackText[stackIndex]))
-                            stackText[stackIndex] = ""
-                            stacks.push(document.createElement('x-em'))
-                            stackText.push(data[index])
-                            stackType.push(2)
-                            stackIndex++
+                        if(line[j-1] !== ' ' || line[j+1] === ' '){
+                            //this is not a quote
+                            depthChunk[depth] += line[j]
                         }
                         else{
-                            stackText[stackIndex] += data[index]
+                            depthChunkType.push("'")
+                            depthChunk.push(line[j])
+                            depth++
                         }
-
                     }
                     break
+                
                 }
-                case '\n':{
-                    stacks[stackIndex].appendChild(document.createTextNode(stackText[stackIndex]))
-                    stackText[stackIndex] = ""
-                    stacks[stackIndex].appendChild(document.createElement('br'))
-                }
+
                 default:{
-                    stackText[stackIndex] += data[index]
+                    depthChunk[depth] += line[j]
                 }
             }
-            index++
-        }
-        for(let i=stackIndex;i>0;i--){
-            stacks[i-1].appendChild(document.createTextNode(stackText[i]))
-            stacks[i-1].appendChild(stacks[i])
-        }
-        stacks[0].appendChild(document.createTextNode(stackText[0]))
-        const childs = stacks[0].childNodes
-        for(let i=0;i<childs.length;i++){
-            if(childs[i].nodeType === 3){
-                const marked = document.createElement('em')
-                marked.appendChild(document.createTextNode(childs[i].textContent))
-                stacks[0].replaceChild(marked, childs[i])
-            }
         }
 
-        return stacks[0]
+        while(depthChunk.length > 0){
+            result += depthChunk.pop()
+        }
+
+        result += '\n'
     }
 
-    const domparser = new DOMParser()
-    const doc = domparser.parseFromString(`<body>${dat}</body>`, 'text/html')
-    const body = doc.body
-    console.log(body.innerHTML)
-    let newChilds:Node[] = []
-    for(let i=0;i<body.childNodes.length;i++){
-        if(body.childNodes[i].nodeType === 3){
-            const lines = body.childNodes[i].textContent.split('\n')
-            for(let j=0;j<lines.length;j++){
-                newChilds.push(mark(lines[j]))
-            }
-        }
-        else{
-            newChilds.push(body.childNodes[i])
-        }
-    }
-
-    const newBody = document.createElement('body')
-    for(let i=0;i<newChilds.length;i++){
-        if(newChilds[i] === null){
-            continue
-        }
-        newBody.appendChild(newChilds[i])
-    }
-    
-    return newBody.innerHTML
+    return result.trim()
 }

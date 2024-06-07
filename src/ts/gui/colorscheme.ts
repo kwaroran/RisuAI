@@ -184,11 +184,15 @@ export function updateTextTheme(){
                 root.style.setProperty('--FontColorItalic', '#8C8D93');
                 root.style.setProperty('--FontColorBold', '#fafafa');
                 root.style.setProperty('--FontColorItalicBold', '#8C8D93');
+                root.style.setProperty('--FontColorQuote1', '#8BE9FD');
+                root.style.setProperty('--FontColorQuote2', '#FFB86C');
             }else{
                 root.style.setProperty('--FontColorStandard', '#0f172a');
                 root.style.setProperty('--FontColorItalic', '#8C8D93');
                 root.style.setProperty('--FontColorBold', '#0f172a');
                 root.style.setProperty('--FontColorItalicBold', '#8C8D93');
+                root.style.setProperty('--FontColorQuote1', '#8BE9FD');
+                root.style.setProperty('--FontColorQuote2', '#FFB86C');
             }
             break
         }
@@ -198,12 +202,16 @@ export function updateTextTheme(){
                 root.style.setProperty('--FontColorItalic', '#F1FA8C');
                 root.style.setProperty('--FontColorBold', '#8BE9FD');
                 root.style.setProperty('--FontColorItalicBold', '#FFB86C');
+                root.style.setProperty('--FontColorQuote1', '#8BE9FD');
+                root.style.setProperty('--FontColorQuote2', '#FFB86C');
             }
             else{
                 root.style.setProperty('--FontColorStandard', '#0f172a');
                 root.style.setProperty('--FontColorItalic', '#F1FA8C');
                 root.style.setProperty('--FontColorBold', '#8BE9FD');
                 root.style.setProperty('--FontColorItalicBold', '#FFB86C');
+                root.style.setProperty('--FontColorQuote1', '#8BE9FD');
+                root.style.setProperty('--FontColorQuote2', '#FFB86C');
             }
             break
         }
@@ -212,6 +220,8 @@ export function updateTextTheme(){
             root.style.setProperty('--FontColorItalic', db.customTextTheme.FontColorItalic);
             root.style.setProperty('--FontColorBold', db.customTextTheme.FontColorBold);
             root.style.setProperty('--FontColorItalicBold', db.customTextTheme.FontColorItalicBold);
+            root.style.setProperty('--FontColorQuote1', db.customTextTheme.FontColorQuote1);
+            root.style.setProperty('--FontColorQuote2', db.customTextTheme.FontColorQuote2);
             break
         }
     }
