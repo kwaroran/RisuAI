@@ -1,5 +1,4 @@
 import DOMPurify from 'isomorphic-dompurify';
-import showdown from 'showdown';
 import { Marked } from 'marked';
 
 import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
@@ -13,7 +12,6 @@ import { findCharacterbyId, parseKeyValue, sfc32, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
 import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
-import { HypaProcesser } from './process/memory/hypamemory';
 
 const mconverted = new Marked({
     gfm: true,
