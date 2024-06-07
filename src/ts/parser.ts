@@ -20,26 +20,19 @@ const mconverted = new Marked({
     breaks: true,
     silent: true,
     tokenizer: {
-
-    }
-})
-
-mconverted.use({
-    tokenizer: {
         del(src) {
-            const cap = /^~~+(?=\S)([\s\S]*?\S)~~+/.exec(src);
-            if (cap) {
-                return {
-                    type: 'del',
-                    raw: cap[0],
-                    text: cap[2],
-                    tokens: []
-                };
-            }
-            return false;
+          const cap = /^~~~(?=\S)([\s\S]*?\S)~~~/.exec(src);
+          if (cap) {
+            return {
+              type: 'del',
+              raw: cap[0],
+              text: cap[1],
+              tokens: this.lexer.inlineTokens(cap[1])
+            };
+          }
         }
     }
-});
+})
 
 
 
