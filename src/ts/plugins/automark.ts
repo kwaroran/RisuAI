@@ -165,18 +165,20 @@ export function risuFormater(dat:string){
             }
         }
 
+        let lineResult = ''
+
         while(depthChunk.length > 0){
-            result += depthChunk.pop()
+            lineResult = depthChunk.pop() + lineResult
         }
 
-        if(result.startsWith(' ')){
-            result = result.substring(1)
+        if(lineResult.startsWith(' ')){
+            lineResult = lineResult.substring(1)
         }
-        if(result.endsWith(' ')){
-            result = result.substring(0,result.length-1)
+        if(lineResult.endsWith(' ')){
+            lineResult = lineResult.substring(0,result.length-1)
         }
 
-        result += '\n'
+        result += lineResult + '\n'
     }
 
     return result.trim()
