@@ -83,10 +83,12 @@ export function risuFormater(dat:string){
         }
     }
 
+    console.log(lines)
+
     let result = ''
     for(let i=0;i<lines.length;i++){
         if(lines[i][0] !== ''){
-            result += lines[i][1] + '\n'
+            result += lines[i][1]
             continue
         }
 
@@ -101,7 +103,7 @@ export function risuFormater(dat:string){
         }
 
         if(isNumbered || endMarked){
-            result += line + '\n'
+            result += line
             continue
         }
 
@@ -184,5 +186,6 @@ export function risuFormater(dat:string){
         result += lineResult
     }
 
+    console.log(result)
     return result.trim()
 }
