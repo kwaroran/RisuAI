@@ -419,11 +419,11 @@
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>JSON</button>
                 {:else}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {
-                        cardExportType = 'realm'
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {
+                        cardExportType = ''
                         cardExportType2 = isCharacterHasAssets($CurrentCharacter) ? 'charx' : ''
-                    }}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Character Card V3</button>
+                    }}>Character Card V3</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}
             </div>
