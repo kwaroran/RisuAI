@@ -155,6 +155,9 @@ importers:
       streamsaver:
         specifier: ^2.0.6
         version: 2.0.6
+      svelte-awesome-color-picker:
+        specifier: ^3.1.0
+        version: 3.1.0(svelte@4.2.8)
       three:
         specifier: ^0.154.0
         version: 0.154.0
@@ -1385,6 +1388,9 @@ packages:
   color@4.2.3:
     resolution: {integrity: sha512-1rXeuUUiGGrykh+CeBdu5Ie7OJwinCgQY0bc7GCRxy5xVHy+moaqkpL/jqQq0MtQOeYcrqEz4abc5f0KtU7W4A==}
     engines: {node: '>=12.5.0'}
+
+  colord@2.9.3:
+    resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
 
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
@@ -3247,6 +3253,16 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  svelte-awesome-color-picker@3.1.0:
+    resolution: {integrity: sha512-na9B9qLaV8XQ6W6eyP6vFyDV2TBF4qvGad6799D4GzbazkiFtoO+lbaFFViAWanz/eECwe/WUAUdg6Jy7LIKFw==}
+    peerDependencies:
+      svelte: ^3.55.1 || ^4.0.0
+
+  svelte-awesome-slider@1.1.0:
+    resolution: {integrity: sha512-MgY6ZdBON42HVZqNWNjq2HOgyDlC35q0TNbV/YO1l1/bcb5yhM8EE97h1AJ/7F6t6sLzXhQ3qPf5nGyCdDSnCg==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0
+
   svelte-check@3.6.3:
     resolution: {integrity: sha512-Q2nGnoysxUnB9KjnjpQLZwdjK62DHyW6nuH/gm2qteFnDk0lCehe/6z8TsIvYeKjC6luKaWxiNGyOcWiLLPSwA==}
     hasBin: true
@@ -4862,6 +4878,8 @@ snapshots:
     dependencies:
       color-convert: 2.0.1
       color-string: 1.9.1
+
+  colord@2.9.3: {}
 
   combined-stream@1.0.8:
     dependencies:
@@ -6850,6 +6868,16 @@ snapshots:
       has-flag: 3.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  svelte-awesome-color-picker@3.1.0(svelte@4.2.8):
+    dependencies:
+      colord: 2.9.3
+      svelte: 4.2.8
+      svelte-awesome-slider: 1.1.0(svelte@4.2.8)
+
+  svelte-awesome-slider@1.1.0(svelte@4.2.8):
+    dependencies:
+      svelte: 4.2.8
 
   svelte-check@3.6.3(postcss-load-config@4.0.2(postcss@8.4.33)(ts-node@10.9.2(@swc/core@1.5.7)(@types/node@18.19.7)(typescript@5.3.3)))(postcss@8.4.33)(svelte@4.2.8):
     dependencies:

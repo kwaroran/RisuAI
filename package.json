@@ -65,6 +65,7 @@
     "showdown": "^2.1.0",
     "sortablejs": "^1.15.2",
     "streamsaver": "^2.0.6",
+    "svelte-awesome-color-picker": "^3.1.0",
     "three": "^0.154.0",
     "tippy.js": "^6.3.7",
     "uuid": "^9.0.1",

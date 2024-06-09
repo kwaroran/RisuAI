@@ -10,9 +10,9 @@
     import { updateAnimationSpeed } from "src/ts/gui/animation";
     import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
     import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
-
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
-  import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -54,39 +54,39 @@
         <OptionInput value="dark">Dark</OptionInput>
     </SelectInput>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.bgcolor} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.bgcolor} on:input={updateColorScheme} />
         <span class="ml-2">Background</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkbg} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.darkbg} on:input={updateColorScheme} />
         <span class="ml-2">Dark Background</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.borderc} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.borderc} on:input={updateColorScheme} />
         <span class="ml-2">Color 1</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.selected} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.selected} on:input={updateColorScheme} />
         <span class="ml-2">Color 2</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.draculared} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.draculared} on:input={updateColorScheme} />
         <span class="ml-2">Color 3</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkBorderc} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.darkBorderc} on:input={updateColorScheme} />
         <span class="ml-2">Color 4</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.darkbutton} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.darkbutton} on:input={updateColorScheme} />
         <span class="ml-2">Color 5</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.textcolor} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.textcolor} on:input={updateColorScheme} />
         <span class="ml-2">Text Color</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.colorScheme.textcolor2} on:change={updateColorScheme}>
+        <ColorInput bind:value={$DataBase.colorScheme.textcolor2} on:input={updateColorScheme} />
         <span class="ml-2">Text Color 2</span>
     </div>
     <div class="flex-grow flex justify-end">
@@ -113,27 +113,27 @@
 
 {#if $DataBase.textTheme === "custom"}
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorStandard} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorStandard} on:input={updateTextTheme} />
         <span class="ml-2">Normal Text</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorItalic} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalic} on:input={updateTextTheme} />
         <span class="ml-2">Italic Text</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorBold} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorBold} on:input={updateTextTheme} />
         <span class="ml-2">Bold Text</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorItalicBold} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalicBold} on:input={updateTextTheme} />
         <span class="ml-2">Italic Bold Text</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorQuote1} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorQuote1} on:input={updateTextTheme} />
         <span class="ml-2">Single Quote Text</span>
     </div>
     <div class="flex items-center mt-2">
-        <input type="color" class="style2 text-sm" bind:value={$DataBase.customTextTheme.FontColorQuote2} on:change={updateTextTheme}>
+        <ColorInput bind:value={$DataBase.customTextTheme.FontColorQuote2} on:input={updateTextTheme} />
         <span class="ml-2">Double Quote Text</span>
     </div>
 {/if}
