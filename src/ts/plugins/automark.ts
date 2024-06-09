@@ -3,8 +3,10 @@ const excludesDat = ['<','>','{','}','[',']','(',')','-',':',';','…','—','�
 const selfClosingTags = [
     'br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr',
     //self closing tags defined by HTML5
-    '!'
+    '!',
     //for doctype <!DOCTYPE html> and comment <!-- -->
+    'user', 'bot', 'char'
+    //special tags for user, bot, and char
 ]
 
 const checkSelfClosingTag = (dat:string) => {
