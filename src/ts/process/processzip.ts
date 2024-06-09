@@ -1,4 +1,4 @@
-import { AppendableBuffer, isTauri, saveAsset, type LocalWriter, type VirtualWriter } from "../storage/globalApi";
+import { AppendableBuffer, isNodeServer, isTauri, saveAsset, type LocalWriter, type VirtualWriter } from "../storage/globalApi";
 import * as fflate from "fflate";
 import { sleep } from "../util";
 import { alertStore } from "../alert";
@@ -193,8 +193,10 @@ export class CharXReader{
                 break
             }
             pointer += 1024 * 1024
-            if(!isTauri && !Capacitor.isNativePlatform()){
-                await sleep(1000)
+            if(!isTauri && !Capacitor.isNativePlatform() &&!isNodeServer){
+                const promiseLength = this.assetPromises.length
+                this.assetPromises = []
+                await sleep(promiseLength * 100)
             }
         }
         await sleep(100)
