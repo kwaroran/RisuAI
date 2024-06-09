@@ -1,6 +1,9 @@
 
 const excludesDat = ['<','>','{','}','[',']','(',')','-',':',';','…','—','–','_','*','+','/','\\','|','!','?','.',',',' ']
-const selfClosingTags = ['br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr']
+const selfClosingTags = [
+    'br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr',
+    '!' //for doctype <!DOCTYPE html> and comment <!-- -->
+]
 
 const checkSelfClosingTag = (dat:string) => {
     for(const tag of selfClosingTags){
