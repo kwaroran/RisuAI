@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { hubURL } from "../characterCards"
 import { DataBase } from "../storage/database"
-import { alertError } from "../alert"
+import { alertError, alertSelect } from "../alert"
 
 export async function risuLogin() {
     const win = window.open(hubURL + '/hub/login')
@@ -49,4 +49,34 @@ export async function loadRisuAccountData() {
         return
     }
     db.account.data = await s.json()
+}
+
+export async function loadRisuAccountBackup() {
+    const db = get(DataBase)
+    if(!db.account){
+        alertError("Not logged in error")
+        return
+    }
+    const s = await fetch(hubURL + '/hub/backup/list', {
+        method: "GET",
+        headers: {
+            "x-risu-auth": db.account.token
+        }
+    })
+    if(s.status !== 200){
+        alertError(await s.text())
+        return
+    }
+    const backups = await s.json()
+    if(!backups.length){
+        alertError("No backups found")
+        return
+    }
+    const backupIdStr = await alertSelect(backups)
+    const backupIdNum = parseInt(backupIdStr)
+    if(isNaN(backupIdNum)){
+        alertError("Invalid backup id")
+        return
+    }
+    const backupId = backups[backupIdNum]
 }

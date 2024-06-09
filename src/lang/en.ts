@@ -653,4 +653,5 @@ export const languageEnglish = {
     successApplyModule: "Module is successfully applied",
     font: "Font",
     lineHeight: "Line Height",
+    loadAutoServerBackup: "Load Auto Server Backup",
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
-    import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
+    import { loadRisuAccountBackup, loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm, alertNormal } from "src/ts/alert";
@@ -43,18 +43,6 @@
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
 
-{#await persistantStorageRecommended() then a}
-    {#if a}
-        <button
-            class="flex justify-center p-3 text-left items-start border-red-300 cursor-pointer hover:border-red-700 border-solid mt-2 border-2 hover:bg-red-600 text-textcolor hover:text-white transition-colors rounded-md flex-col"
-            on:click={requestPersistantStorage}
-        >
-            <h3 class="text-xl">{language.persistentStorageRecommended}</h3>
-            <span class="text-gray-200">{language.persistentStorageDesc}</span>
-        </button>
-    {/if}
-{/await}
-
 <Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
@@ -72,6 +60,17 @@
     }} className="mt-2">
     {language.loadBackupLocal}
 </Button>
+
+<!-- {#if $DataBase.account}
+    <Button
+        on:click={async () => {
+            if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
+                loadRisuAccountBackup()
+            }
+        }} className="mt-2">
+        {language.loadAutoServerBackup}
+    </Button>
+{/if} -->
 
 <Button
     on:click={async () => {
