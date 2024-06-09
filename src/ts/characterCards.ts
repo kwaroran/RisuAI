@@ -939,6 +939,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                     }
                     else{
                         let type = 'other'
+                        let itype = 'other'
                         switch(card.data.assets[i].type){
                             case 'emotion':
                                 type = 'emotion'
@@ -953,13 +954,56 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                                 type = 'icon'
                                 break
                         }
+                        switch(card.data.assets[i].ext){
+                            case 'png':
+                            case 'jpg':
+                            case 'jpeg':
+                            case 'gif':
+                            case 'webp':
+                            case 'avif':
+                                itype = 'image'
+                                break
+                            case 'mp3':
+                            case 'wav':
+                            case 'ogg':
+                            case 'flac':
+                                itype = 'audio'
+                                break
+                            case 'mp4':
+                            case 'webm':
+                            case 'mov':
+                            case 'avi':
+                            case 'mkv':
+                                itype = 'video'
+                                break
+                            case 'mmd':
+                            case 'obj':
+                                itype = 'model'
+                                break
+                            case 'safetensors':
+                            case 'cpkt':
+                            case 'onnx':
+                                itype = 'ai'
+                                break
+                            case 'otf':
+                            case 'ttf':
+                            case 'woff':
+                            case 'woff2':
+                                itype = 'fonts'
+                                break
+                            case 'js':
+                            case 'ts':
+                            case 'lua':
+                                itype = 'code'
+                        }
+
                         let path = ''
                         const name = `${assetIndex}`
                         if(card.data.assets[i].ext === 'unknown'){
-                            path = `assets/${type}/${name}.png`
+                            path = `assets/${type}/image/${name}.png`
                         }
                         else{
-                            path = `assets/${type}/${name}.${card.data.assets[i].ext}`
+                            path = `assets/${type}/${itype}/${name}.${card.data.assets[i].ext}`
                         }
                         card.data.assets[i].uri = 'embeded://' + path
                         await writer.write(path, rData)
