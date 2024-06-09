@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset } from "./storage/database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat } from "./storage/database"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -1309,6 +1309,25 @@ export async function getHubResources(id:string) {
     return Buffer.from(await (res).arrayBuffer())
 }
 
+export function isCharacterHasAssets(char:character|groupChat){
+    if(char.type === 'group'){
+        return false
+    }
+
+    if(char.additionalAssets && char.additionalAssets.length > 0){
+        return true
+    }
+
+    if(char.emotionImages && char.emotionImages.length > 0){
+        return true
+    }
+
+    if(char.ccAssets && char.ccAssets.length > 0){
+        return true
+    }
+
+    return false
+}
 
 
 type CharacterCardV2Risu = {

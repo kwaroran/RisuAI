@@ -5,20 +5,19 @@
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
     import { ChevronRightIcon, User } from 'lucide-svelte';
-    import { hubURL } from 'src/ts/characterCards';
+    import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/storage/globalApi';
     import Button from '../UI/GUI/Button.svelte';
     import { XIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
-    import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
     import { getFetchData } from 'src/ts/storage/globalApi';
-    import { CurrentChat } from "src/ts/stores";
+    import { CurrentChat, CurrentCharacter } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-  import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
+    import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
     let btn
     let input = ''
     let cardExportType = 'realm'
@@ -399,6 +398,9 @@
                     <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {:else}
                     <span class="text-textcolor2 text-sm">{language.ccv3Desc}</span>
+                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets($CurrentCharacter)}
+                        <span class="text-red-500 text-sm">{language.notCharxWarn}</span>
+                    {/if}
                 {/if}
             {:else if cardExportType === 'json'}
                 <span class="text-textcolor2 text-sm">{language.jsonDesc}</span>
@@ -417,7 +419,10 @@
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>JSON</button>
                 {:else}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {
+                        cardExportType = 'realm'
+                        cardExportType2 = isCharacterHasAssets($CurrentCharacter) ? 'charx' : ''
+                    }}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Character Card V3</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}
