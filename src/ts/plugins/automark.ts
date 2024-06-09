@@ -2,10 +2,14 @@
 const excludesDat = ['<','>','{','}','[',']','(',')','-',':',';','…','—','–','_','*','+','/','\\','|','!','?','.',',',' ']
 const selfClosingTags = [
     'br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr',
-    '!' //for doctype <!DOCTYPE html> and comment <!-- -->
+    //self closing tags defined by HTML5
+    '!'
+    //for doctype <!DOCTYPE html> and comment <!-- -->
 ]
 
 const checkSelfClosingTag = (dat:string) => {
+    dat = dat.substring(0, 10) //we only need to check the first 10 characters, to avoid checking the whole string
+    dat = dat.toLowerCase() //we don't care about the case
     for(const tag of selfClosingTags){
         if(dat.startsWith(tag)){
             return true
