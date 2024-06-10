@@ -97,7 +97,7 @@ const normalCBSwithParams = [
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
     'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot', 'rollp',
-    'and', 'or', 'not',
+    'and', 'or', 'not', 'message_time_array'
 ]
 
 const displayRelatedCBS = [

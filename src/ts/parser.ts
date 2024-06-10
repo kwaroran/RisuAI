@@ -564,6 +564,17 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 //output date in format like Aug 23, 2021
                 return date.toLocaleDateString()
             }
+            case 'message_unixtime_array':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.map((f) => {
+                    return f.time ?? 0
+                }).join('§')
+            }
+            case 'unixtime':{
+                const now = new Date()
+                return (now.getTime() / 1000).toFixed(0)
+            }
             case 'time':{
                 const now = new Date()
                 return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
@@ -946,7 +957,15 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 case 'time':
                 case 'datetimeformat':
                 case 'date_time_format':{
-                    return dateTimeFormat(arra[1])
+                    const secondParam = arra[2]
+                    let t = 0
+                    if(secondParam){
+                        t = (Number(secondParam) / 1000)
+                        if(isNaN(t)){
+                            t = 0
+                        }
+                    }
+                    return dateTimeFormat(arra[1],t)
                 }
                 case 'module_enabled':{
                     const selchar = db.characters[get(selectedCharID)]
@@ -1064,8 +1083,8 @@ function pickHashRand(cid:number,word:string) {
     return randF()
 }
 
-const dateTimeFormat = (main:string) => {
-    const date = new Date()
+const dateTimeFormat = (main:string, time = 0) => {
+    const date = time === 0 ? (new Date()) : (new Date(time))
     if(!main){
         return ''
     }
