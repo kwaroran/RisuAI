@@ -6,7 +6,7 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
@@ -763,6 +763,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'unixtime':{
                 return (Date.now() / 1000).toFixed(2)
+            }
+            case 'screen_width':{
+                return get(SizeStore).w.toString()
+            }
+            case 'screen_height':{
+                return get(SizeStore).h.toString()
             }
         }
         const arra = p1.split("::")
