@@ -1274,7 +1274,7 @@ export type hubType = {
     type:string
 }
 
-let hubAdditionalHTML = ''
+export let hubAdditionalHTML = ''
 
 export async function getRisuHub(arg:{
     search:string,

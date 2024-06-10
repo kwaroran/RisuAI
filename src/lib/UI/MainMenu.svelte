@@ -5,7 +5,7 @@
     import { ArrowLeft } from "lucide-svelte";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import { language } from "src/lang";
-    import { getRisuHub } from "src/ts/characterCards";
+    import { getRisuHub, hubAdditionalHTML } from "src/ts/characterCards";
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
     import Title from "./Title.svelte";
 
@@ -33,6 +33,7 @@
                   sort: ''
               }) then charas}
             {#if charas.length > 0}
+              {@html hubAdditionalHTML}
               <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
                   {#each charas as chara}
                       <RisuHubIcon onClick={() => {$OpenRealmStore = true}} chara={chara} />
