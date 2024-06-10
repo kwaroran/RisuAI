@@ -513,6 +513,33 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return f.role + ': ' + f.data
                 }).join("§\n")
             }
+
+            case 'user_history':
+            case 'user_messages':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.map((f) => {
+                    if(f.role === 'user'){
+                        return f.data
+                    }
+                    return ''
+                }).filter((f) => {
+                    return f !== ''
+                }).join("§\n")
+            }
+            case 'char_history':
+            case 'char_messages':{
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.message.map((f) => {
+                    if(f.role === 'char'){
+                        return f.data
+                    }
+                    return ''
+                }).filter((f) => {
+                    return f !== ''
+                }).join("§\n")
+            }
             case 'ujb':
             case 'global_note':
             case 'system_note':{
@@ -896,7 +923,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'arrayelement':
                 case 'array_element':{
-                    return arra[1].split('§')[Number(arra[2])]
+                    return arra[1].split('§').at(Number(arra[2])) ?? 'null'
                 }
                 case 'arrayshift':
                 case 'array_shift':{
