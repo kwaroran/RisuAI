@@ -1294,7 +1294,7 @@ export async function getRisuHub(arg:{
         if(Array.isArray(jso)){
             return jso
         }
-        hubAdditionalHTML = jso.additionalHTML || ''
+        hubAdditionalHTML = jso.additionalHTML || hubAdditionalHTML
         return jso.cards
     } catch (error) {
         return[]
