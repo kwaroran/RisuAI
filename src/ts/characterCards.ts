@@ -5,7 +5,7 @@ import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
+import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
 import { CurrentCharacter, SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
 import { convertImage, hasher } from "./parser"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
@@ -13,6 +13,7 @@ import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
 import { CharXReader, CharXWriter } from "./process/processzip"
+import { Capacitor } from "@capacitor/core"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -1273,6 +1274,8 @@ export type hubType = {
     type:string
 }
 
+let hubAdditionalHTML = ''
+
 export async function getRisuHub(arg:{
     search:string,
     page:number,
@@ -1281,13 +1284,18 @@ export async function getRisuHub(arg:{
 }):Promise<hubType[]> {
     try {
         arg.search += ' __shared'
-        const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}`
+        const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}&&web==${(!isNodeServer && !Capacitor.isNativePlatform() && !isTauri) ? 'web' : 'other'}`
 
         const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
         if(da.status !== 200){
             return []
         }
-        return da.json()   
+        const jso = await da.json()
+        if(Array.isArray(jso)){
+            return jso
+        }
+        hubAdditionalHTML = jso.additionalHTML || ''
+        return jso.cards
     } catch (error) {
         return[]
     }
