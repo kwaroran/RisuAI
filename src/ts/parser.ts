@@ -1014,8 +1014,24 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'filter':{
                     const array = arra[1].split('§')
+                    const filterTypes = [
+                        'all',
+                        'nonempty',
+                        'unique',
+                    ]
+                    let filterType = filterTypes.indexOf(arra[2])
+                    if(filterType === -1){
+                        filterType = 0
+                    }
                     return array.filter((f, i) => {
-                        return f !== '' && i === array.indexOf(f)
+                        switch(filterType){
+                            case 0:
+                                return f !== '' && i === array.indexOf(f)
+                            case 1:
+                                return f !== ''
+                            case 2:
+                                return i === array.indexOf(f)               
+                        }
                     }).join('§')
                 }
             }
