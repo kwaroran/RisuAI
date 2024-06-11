@@ -1012,6 +1012,12 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     }).id
                     return (db.enabledModules.includes(moduleId) || enabledChatModules.includes(moduleId)) ? '1' : '0'
                 }
+                case 'filter':{
+                    const array = arra[1].split('§')
+                    return array.filter((f) => {
+                        return f !== '' && array.indexOf(f) === array.lastIndexOf(f)
+                    }).join('§')
+                }
             }
         }
         if(p1.startsWith('random')){
