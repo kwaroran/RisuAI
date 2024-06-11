@@ -1014,8 +1014,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'filter':{
                     const array = arra[1].split('§')
-                    return array.filter((f) => {
-                        return f !== '' && array.indexOf(f) === array.lastIndexOf(f)
+                    return array.filter((f, i) => {
+                        return f !== '' && i === array.indexOf(f)
                     }).join('§')
                 }
             }
