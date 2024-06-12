@@ -273,6 +273,19 @@
         </div>
     {:else if $DataBase.supaMemoryType === 'hypaV2'}
         <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV2Desc}</span>
+        <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
+        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+            <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
+            <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
+            <OptionInput value="subModel" >{language.submodel}</OptionInput>
+        </SelectInput>
+        <span class="text-textcolor">{language.SuperMemory} Prompt</span>
+        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
+        <span class="text-textcolor">{language.HypaMemory} Model</span>
+        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.hypaModel}>
+            <OptionInput value="MiniLM" >MiniLM-L6-v2 (Free / Local)</OptionInput>
+            <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
+        </SelectInput>
         <span class="text-textcolor">{language.hypaChunkSize}</span>
         <NumberInput size="sm" marginBottom bind:value={$DataBase.hypaChunkSize} min={100} />
         <span class="text-textcolor">{language.hypaAllocatedTokens}</span>

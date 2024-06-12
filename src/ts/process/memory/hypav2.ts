@@ -17,37 +17,6 @@ export interface HypaV2Data{
 }
 
 
-async function summary(stringlizedChat:string):Promise<{
-    success:boolean
-    data:string
-}>{
-    const promptbody:OpenAIChat[] = [
-        {
-            role: "user",
-            content: stringlizedChat
-        },
-        {
-            role: "system",
-            content: "Summarize this roleplay scene in a coherent narrative format for future reference. Summarize what happened, focusing on events and interactions between them. If someone or something is new or changed, include a brief characterization of them."
-        }
-    ]
-    const da = await requestChatData({
-        formated: promptbody,
-        bias: {},
-        useStreaming: false,
-        noMultiGen: true
-    }, 'model')
-    if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
-        return {
-            data: "Hypamemory HTTP: " + da.result,
-            success: false
-        }
-    }
-    return {
-        data: da.result,
-        success: true
-    }
-}
 
 export async function hypaMemoryV2(
     chats:OpenAIChat[],
@@ -109,6 +78,38 @@ export async function hypaMemoryV2(
             halfData.push(chat)
             idx++
             targetId = chat.memo
+        }
+
+        async function summary(stringlizedChat:string):Promise<{
+            success:boolean
+            data:string
+        }>{
+            const promptbody:OpenAIChat[] = [
+                {
+                    role: "user",
+                    content: stringlizedChat
+                },
+                {
+                    role: "system",
+                    content: "Summarize this roleplay scene in a coherent narrative format for future reference. Summarize what happened, focusing on events and interactions between them. If someone or something is new or changed, include a brief characterization of them."
+                }
+            ]
+            const da = await requestChatData({
+                formated: promptbody,
+                bias: {},
+                useStreaming: false,
+                noMultiGen: true
+            }, 'model')
+            if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
+                return {
+                    data: "Hypamemory HTTP: " + da.result,
+                    success: false
+                }
+            }
+            return {
+                data: da.result,
+                success: true
+            }
         }
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n')
