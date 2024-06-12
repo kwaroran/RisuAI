@@ -416,6 +416,8 @@ export function setDatabase(data:Database){
     data.font ??= 'default'
     data.customFont ??= ''
     data.lineHeight ??= 1.25
+    data.stabilityModel ??= 'sd3-large'
+    data.stabllityStyle ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -686,6 +688,9 @@ export interface Database{
     font: string
     customFont: string
     lineHeight: number
+    stabilityModel: string
+    stabilityKey: string
+    stabllityStyle: string
 }
 
 export interface customscript{
