@@ -45,6 +45,7 @@
         <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
         <OptionInput value="novelai" >Novel AI</OptionInput>
         <OptionInput value="dalle" >Dall-E</OptionInput>
+        <OptionInput value="stability" >Stability API</OptionInput>
     </SelectInput>
     
     {#if $DataBase.sdProvider === 'webui'}
@@ -204,6 +205,43 @@
             <OptionInput value="hd" >HD</OptionInput>
         </SelectInput>
 
+    {/if}
+
+    {#if $DataBase.sdProvider === 'stability'}
+        <span class="text-textcolor">Stability API Key</span>
+        <TextInput size="sm" marginBottom placeholder="..." bind:value={$DataBase.stabilityKey}/>
+
+        <span class="text-textcolor">Stability Model</span>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.stabilityModel}>
+            <OptionInput value="ultra" >SD Ultra</OptionInput>
+            <OptionInput value="core" >SD Core</OptionInput>
+            <OptionInput value="sd3-large" >SD3 Large</OptionInput>
+            <OptionInput value="sd3-medium" >SD3 Medium</OptionInput>
+        </SelectInput>
+
+        {#if $DataBase.stabilityModel === 'core'}
+            <span class="text-textcolor">SD Core Style</span>
+            <SelectInput className="mt-2 mb-4" bind:value={$DataBase.stabllityStyle}>
+                <OptionInput value="" >Unspecified</OptionInput>
+                <OptionInput value="3d-model" >3D Model</OptionInput>
+                <OptionInput value="analog-film" >Analog Film</OptionInput>
+                <OptionInput value="anime" >Anime</OptionInput>
+                <OptionInput value="cinematic" >Cinematic</OptionInput>
+                <OptionInput value="comic-book" >Comic Book</OptionInput>
+                <OptionInput value="digital-art" >Digital Art</OptionInput>
+                <OptionInput value="enhance" >Enhance</OptionInput>
+                <OptionInput value="fantasy-art" >Fantasy Art</OptionInput>
+                <OptionInput value="isometric" >Isometric</OptionInput>
+                <OptionInput value="line-art" >Line Art</OptionInput>
+                <OptionInput value="low-poly" >Low Poly</OptionInput>
+                <OptionInput value="modeling-compound" >Modeling Compound</OptionInput>
+                <OptionInput value="neon-punk" >Neon Punk</OptionInput>
+                <OptionInput value="origami" >Origami</OptionInput>
+                <OptionInput value="photographic" >Photographic</OptionInput>
+                <OptionInput value="pixel-art" >Pixel Art</OptionInput>
+                <OptionInput value="tile-texture" >Tile Texture</OptionInput>
+            </SelectInput>
+        {/if}
     {/if}
 </Arcodion>
 

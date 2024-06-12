@@ -56,6 +56,7 @@ export async function stableDiff(currentChar:character,prompt:string){
 
 export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string):Promise<string|false>{
     const db = get(DataBase)
+    console.log(db.sdProvider)
     if(db.sdProvider === 'webui'){
 
 
@@ -361,6 +362,57 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             return false   
         }
         return returnSdData
+    }
+    if(db.sdProvider === 'stability'){
+        const formData = new FormData()
+        const model = db.stabilityModel
+        formData.append('prompt', genPrompt)
+        if(model !== 'core' && model !== 'ultra'){
+            formData.append('negative_prompt', neg)
+            formData.append('model', model)
+        }
+        if(model === 'core'){
+            if(db.stabllityStyle){
+                formData.append('style_preset', db.stabllityStyle)
+            }
+        }
+        if(model === 'ultra'){
+            formData.append('negative_prompt', neg)
+        }
+
+        const uri = model === 'core' ? 'core' : model === 'ultra' ? 'ultra' : 'sd3'
+        const da = await fetch("https://api.stability.ai/v2beta/stable-image/generate/" + uri, {
+            body: formData,
+            headers:{
+                "authorization": "Bearer " + db.stabilityKey,
+                "accept": "image/*"
+            },
+            method: 'POST'
+        })
+
+        const res = await da.arrayBuffer()
+        if(!da.ok){
+            alertError(Buffer.from(res).toString())
+            return false
+        }
+
+        if((da.headers["content-type"] ?? "").startsWith('application/json')){
+            alertError(Buffer.from(res).toString())
+            return false
+        }
+
+        if(returnSdData === 'inlay'){
+            return `data:image/png;base64,${Buffer.from(res).toString('base64')}`
+        }
+
+        let charemotions = get(CharEmotion)
+        const img = `data:image/png;base64,${Buffer.from(res).toString('base64')}`
+        const emos:[string, string,number][] = [[img, img, Date.now()]]
+        charemotions[currentChar.chaId] = emos
+        CharEmotion.set(charemotions)
+        return returnSdData
+
+
     }
     return ''
 }
