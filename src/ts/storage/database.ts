@@ -568,6 +568,7 @@ export interface Database{
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
     hypaMemory:boolean
+    hypav2:boolean
     proxyRequestModel:string
     ooba:OobaSettings
     ainconfig: AINsettings
