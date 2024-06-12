@@ -321,6 +321,10 @@
             <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
             <OptionInput value="subModel">{language.submodel}</OptionInput>
         </SelectInput>
+        {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
+        <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
+        <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
+        {/if}
         <span class="text-textcolor">{language.SuperMemory} Prompt</span>
         <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
         <span class="text-textcolor">{language.HypaMemory} Model</span>
