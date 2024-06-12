@@ -210,9 +210,9 @@ export async function hypaMemoryV2(
         }
     }
 
-    const processer = new HypaProcesser(db.hypaModel);
-
-    await processer.addText(data.chunks.filter(v => {
+    const processor = new HypaProcesser(db.hypaModel);
+    processor.oaikey = db.supaMemoryKey;
+    await processor.addText(data.chunks.filter(v => {
         return v.text.trim().length > 0;
     }).map((v) => {
         return "search_document: " + v.text.trim();
@@ -224,7 +224,7 @@ export async function hypaMemoryV2(
         if (!pop) {
             break;
         }
-        const searched = await processer.similaritySearchScored(`search_query: ${pop.content}`);
+        const searched = await processor.similaritySearchScored(`search_query: ${pop.content}`);
         for (const result of searched) {
             const score = result[1] / (i + 1);
             if (scoredResults[result[0]]) {
