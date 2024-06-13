@@ -220,7 +220,7 @@ export async function hypaMemoryV2(
     await processor.addText(data.chunks.filter(v => {
         return v.text.trim().length > 0;
     }).map((v) => {
-        return "search_document: " + v.text.trim();hy
+        return "search_document: " + v.text.trim();
     }));
 
     let scoredResults: { [key: string]: number } = {};
