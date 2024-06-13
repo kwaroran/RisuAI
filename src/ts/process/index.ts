@@ -730,7 +730,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             chats = hn.chats
             currentTokens = hn.tokens
         }
-        else if(db.supaMemoryType === 'hypaV2'){
+        else if(db.supaMemoryType !== 'none' && db.hypav2){ //HypaV2 support needs to be changed like this.
             const sp = await hypaMemoryV2(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
             if(sp.error){
                 alertError(sp.error)

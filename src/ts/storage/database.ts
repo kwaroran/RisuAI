@@ -568,7 +568,7 @@ export interface Database{
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
     hypaMemory:boolean
-    hypav2:boolean
+    hypav2:boolean // Why this is not appended?
     proxyRequestModel:string
     ooba:OobaSettings
     ainconfig: AINsettings

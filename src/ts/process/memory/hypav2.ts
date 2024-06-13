@@ -18,9 +18,14 @@ export interface HypaV2Data {
     }[];
 }
 
-async function summarize(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
+async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
     const db = get(DataBase);
-
+    /**
+     * Generates a summary of a given chat by using either the OpenAI API or a submodel or distilbart summarizer.
+     *
+     * @param {string} stringlizedChat - The chat to be summarized, represented as a string.
+     * @return {Promise<{ success: boolean; data: string }>} A promise that resolves to an object containing the success status and the generated summary.
+     */
     if (db.supaMemoryType === 'distilbart') {
         try {
             const sum = await runSummarizer(stringlizedChat);
@@ -36,12 +41,10 @@ async function summarize(stringlizedChat: string): Promise<{ success: boolean; d
     const supaPrompt = db.supaMemoryPrompt === '' ?
         "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
         : db.supaMemoryPrompt;
-
     let result = '';
 
     if (db.supaMemoryType !== 'subModel') {
         const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:";
-
         const da = await globalFetch("https://api.openai.com/v1/completions", {
             headers: {
                 "Content-Type": "application/json",
@@ -57,6 +60,7 @@ async function summarize(stringlizedChat: string): Promise<{ success: boolean; d
                 "temperature": 0
             }
         });
+        console.log("Using openAI instruct 3.5 for SupaMemory")
 
         try {
             if (!da.ok) {
@@ -93,6 +97,7 @@ async function summarize(stringlizedChat: string): Promise<{ success: boolean; d
                 content: supaPrompt
             }
         ];
+        console.log("Using submodel: ", db.subModel, "for supaMemory model")
         const da = await requestChatData({
             formated: promptbody,
             bias: {},
@@ -171,7 +176,7 @@ export async function hypaMemoryV2(
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n');
 
-        const summaryData = await summarize(stringlizedChat);
+        const summaryData = await summary(stringlizedChat);
 
         if (!summaryData.success) {
             return {
@@ -192,7 +197,7 @@ export async function hypaMemoryV2(
         });
 
         if (allocatedTokens < 1500) {
-            const summarizedMp = await summarize(mainPrompt);
+            const summarizedMp = await summary(mainPrompt);
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             const summaryToken = await tokenizer.tokenizeChat({ role: 'system', content: summarizedMp.data });
 
@@ -215,7 +220,7 @@ export async function hypaMemoryV2(
     await processor.addText(data.chunks.filter(v => {
         return v.text.trim().length > 0;
     }).map((v) => {
-        return "search_document: " + v.text.trim();
+        return "search_document: " + v.text.trim();hy
     }));
 
     let scoredResults: { [key: string]: number } = {};

@@ -904,12 +904,12 @@
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>
 
-        {#if $DataBase.supaMemoryType === 'hypaV2'}
+        {#if $DataBase.supaMemoryType !== 'none' && $DataBase.hypav2}
             <Button
                 on:click={() => {
                     currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {
                         chunks: [],
-                        mainChunks: []
+                        mainChunks: []  
                     }
                     showHypaV2Alert()
                 }}
