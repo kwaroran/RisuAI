@@ -187,8 +187,10 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     data = await parseInlayImages(data)
 
     data = encodeStyle(data)
-    data = risuFormater(data)
-    data = mconverted.parse(data)
+    if(mode !== 'back'){
+        data = risuFormater(data)
+        data = mconverted.parse(data)
+    }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
