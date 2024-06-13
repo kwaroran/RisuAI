@@ -230,8 +230,8 @@ export function setDatabase(data:Database){
     if(checkNullish(data.supaMemoryKey)){
         data.supaMemoryKey = ""
     }
-    if(checkNullish(data.supaMemoryType)){
-        data.supaMemoryType = "none"
+    if(checkNullish(data.supaModelType)){
+        data.supaModelType = "none"
     }
     if(checkNullish(data.askRemoval)){
         data.askRemoval = true
@@ -526,7 +526,7 @@ export interface Database{
     useStreaming:boolean
     palmAPI:string,
     supaMemoryKey:string
-    supaMemoryType:string
+    supaModelType:string
     textScreenColor?:string
     textBorder?:boolean
     textScreenRounded?:boolean
@@ -568,7 +568,8 @@ export interface Database{
     useAdditionalAssetsPreview:boolean,
     usePlainFetch:boolean
     hypaMemory:boolean
-    hypav2:boolean // Why this is not appended?
+    hypav2:boolean
+    memoryAlgorithmType:string // To enable new memory module/algorithms 
     proxyRequestModel:string
     ooba:OobaSettings
     ainconfig: AINsettings

@@ -714,7 +714,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
     
-    if(nowChatroom.supaMemory && (db.supaMemoryType !== 'none' || db.hanuraiEnable || db.hypav2)){
+    if(nowChatroom.supaMemory && (db.supaModelType !== 'none' || db.hanuraiEnable || db.hypav2)){
         chatProcessStage.set(2)
         if(db.hanuraiEnable){
             const hn = await hanuraiMemory(chats, {
