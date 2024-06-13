@@ -763,9 +763,6 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'prefill_supported':{
                 return db.aiModel.startsWith('claude') ? '1' : '0'
             }
-            case 'unixtime':{
-                return (Date.now() / 1000).toFixed(2)
-            }
             case 'screen_width':{
                 return get(SizeStore).w.toString()
             }
