@@ -291,7 +291,7 @@
             $DataBase.hypav2 = false
             $DataBase.hanuraiEnable = true
         } else if (value === 'hypaV2') {
-            $DataBase.supaMemoryType = 'hypaV2'
+            $DataBase.supaMemoryType = 'distilbart'
             $DataBase.hypav2= true
             $DataBase.hanuraiEnable = false
         } else {
