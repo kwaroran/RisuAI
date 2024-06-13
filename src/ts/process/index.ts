@@ -714,7 +714,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
     
-    if(nowChatroom.supaMemory && (db.supaMemoryType !== 'none' || db.hanuraiEnable)){
+    if(nowChatroom.supaMemory && (db.supaModelType !== 'none' || db.hanuraiEnable)){
         chatProcessStage.set(2)
         if(db.hanuraiEnable){
             const hn = await hanuraiMemory(chats, {
@@ -730,7 +730,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             chats = hn.chats
             currentTokens = hn.tokens
         }
-        else if(db.supaMemoryType !== 'none' && db.hypav2){ //HypaV2 support needs to be changed like this.
+        else if(db.hypav2){ //HypaV2 support needs to be changed like this.
             const sp = await hypaMemoryV2(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
             if(sp.error){
                 alertError(sp.error)

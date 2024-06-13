@@ -26,7 +26,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
      * @param {string} stringlizedChat - The chat to be summarized, represented as a string.
      * @return {Promise<{ success: boolean; data: string }>} A promise that resolves to an object containing the success status and the generated summary.
      */
-    if (db.supaMemoryType === 'distilbart') {
+    if (db.supaModelType === 'distilbart') {
         try {
             const sum = await runSummarizer(stringlizedChat);
             return { success: true, data: sum };
@@ -43,7 +43,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
         : db.supaMemoryPrompt;
     let result = '';
 
-    if (db.supaMemoryType !== 'subModel') {
+    if (db.supaModelType !== 'subModel') {
         const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:";
         const da = await globalFetch("https://api.openai.com/v1/completions", {
             headers: {
@@ -52,8 +52,8 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             },
             method: "POST",
             body: {
-                "model": db.supaMemoryType === 'curie' ? "text-curie-001"
-                    : db.supaMemoryType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
+                "model": db.supaModelType === 'curie' ? "text-curie-001"
+                    : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
                         : "text-davinci-003",
                 "prompt": promptbody,
                 "max_tokens": 600,
@@ -220,7 +220,7 @@ export async function hypaMemoryV2(
     await processor.addText(data.chunks.filter(v => {
         return v.text.trim().length > 0;
     }).map((v) => {
-        return "search_document: " + v.text.trim();hy
+        return "search_document: " + v.text.trim();
     }));
 
     let scoredResults: { [key: string]: number } = {};

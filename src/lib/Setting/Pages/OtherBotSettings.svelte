@@ -277,25 +277,29 @@
 
     <SelectInput value={
         $DataBase.hypav2 ? 'hypaV2' :
-        $DataBase.supaMemoryType !== 'none' ? 'supaMemory' :
+        $DataBase.supaModelType !== 'none' ? 'supaMemory' :
         $DataBase.hanuraiEnable ? 'hanuraiMemory' : 'none'
     } on:change={(v) => {
         //@ts-ignore
         const value = v.target.value
         if (value === 'supaMemory'){
-            $DataBase.supaMemoryType = 'distilbart'
+            $DataBase.supaModelType = 'distilbart'
+            $DataBase.memoryAlgorithmType = 'supaMemory'
             $DataBase.hypav2 = false
             $DataBase.hanuraiEnable = false
         } else if (value === 'hanuraiMemory'){
-            $DataBase.supaMemoryType = 'none'
+            $DataBase.supaModelType = 'none'
+            $DataBase.memoryAlgorithmType = 'hanuraiMemory'
             $DataBase.hypav2 = false
             $DataBase.hanuraiEnable = true
         } else if (value === 'hypaV2') {
-            $DataBase.supaMemoryType = 'hypaV2'
+            $DataBase.supaModelType = 'hypaV2'
+            $DataBase.memoryAlgorithmType = 'hypaMemoryV2'
             $DataBase.hypav2= true
             $DataBase.hanuraiEnable = false
         } else {
-            $DataBase.supaMemoryType = 'none'
+            $DataBase.supaModelType = 'none'
+            $DataBase.memoryAlgorithmType = 'none'
             $DataBase.hypav2 = false
             $DataBase.hanuraiEnable = false
         }
@@ -316,12 +320,12 @@
     {:else if $DataBase.hypav2}
         <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV2Desc}</span>
         <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
-        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaModelType}>
             <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
             <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
             <OptionInput value="subModel">{language.submodel}</OptionInput>
         </SelectInput>
-        {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
+        {#if $DataBase.supaModelType === 'davinci' || $DataBase.supaModelType === 'curie' || $DataBase.supaModelType === 'instruct35'}
         <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
         <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
         {/if}
@@ -337,21 +341,21 @@
         <NumberInput size="sm" marginBottom bind:value={$DataBase.hypaChunkSize} min={100} />
         <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
         <NumberInput size="sm" marginBottom bind:value={$DataBase.hypaAllocatedTokens} min={100} />
-    {:else if ($DataBase.supaMemoryType !== 'none' && $DataBase.hypav2 === false)}
+    {:else if ($DataBase.supaModelType !== 'none' && $DataBase.hypav2 === false)}
         <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
         <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
-        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaMemoryType}>
+        <SelectInput className="mt-2 mb-2" bind:value={$DataBase.supaModelType}>
             <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
             <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
             <OptionInput value="subModel" >{language.submodel}</OptionInput>
         </SelectInput>
         <span class="text-textcolor">{language.maxSupaChunkSize}</span>
         <NumberInput size="sm" marginBottom bind:value={$DataBase.maxSupaChunkSize} min={100} />
-        {#if $DataBase.supaMemoryType === 'davinci' || $DataBase.supaMemoryType === 'curie' || $DataBase.supaMemoryType === 'instruct35'}
+        {#if $DataBase.supaModelType === 'davinci' || $DataBase.supaModelType === 'curie' || $DataBase.supaModelType === 'instruct35'}
             <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
             <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryKey}/>
         {/if}
-        {#if $DataBase.supaMemoryType !== 'none'}
+        {#if $DataBase.supaModelType !== 'none'}
             <span class="text-textcolor">{language.SuperMemory} Prompt</span>
             <TextInput size="sm" marginBottom bind:value={$DataBase.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
         {/if}
