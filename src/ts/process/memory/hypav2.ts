@@ -126,7 +126,6 @@ export async function hypaMemoryV2(
 ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?: string; memory?: HypaV2Data; }> {
 
     const db = get(DataBase);
-
     const data: HypaV2Data = room.hypaV2Data ?? {
         chunks: [],
         mainChunks: []
@@ -134,40 +133,35 @@ export async function hypaMemoryV2(
 
     let allocatedTokens = db.hypaAllocatedTokens;
     let chunkSize = db.hypaChunkSize;
-    currentTokens += allocatedTokens;
-    currentTokens += 50; // this is for the template prompt
+    currentTokens += allocatedTokens + 50;
     let mainPrompt = "";
 
-    while (data.mainChunks.length > 0) {
+    // Processing mainChunks
+    if (data.mainChunks.length > 0) {
         const chunk = data.mainChunks[0];
         const ind = chats.findIndex(e => e.memo === chunk.targetId);
-        if (ind === -1) {
-            data.mainChunks.shift();
-            continue;
+        if (ind !== -1) {
+            const removedChats = chats.splice(0, ind);
+            for (const chat of removedChats) {
+                currentTokens -= await tokenizer.tokenizeChat(chat);
+            }
+            chats = chats.slice(ind);
+            mainPrompt = chunk.text;
+            const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
+            allocatedTokens -= mpToken;
         }
-
-        const removedChats = chats.splice(0, ind);
-        for (const chat of removedChats) {
-            currentTokens -= await tokenizer.tokenizeChat(chat);
-        }
-        chats = chats.slice(ind);
-        mainPrompt = chunk.text;
-        const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
-        allocatedTokens -= mpToken;
-        break;
+        data.mainChunks.shift();
     }
 
+    // Token management loop
     while (currentTokens >= maxContextTokens) {
         let idx = 0;
         let targetId = '';
         const halfData: OpenAIChat[] = [];
 
         let halfDataTokens = 0;
-        while (halfDataTokens < chunkSize) {
+        while (halfDataTokens < chunkSize && chats[idx]) {
             const chat = chats[idx];
-            if (!chat) {
-                break;
-            }
             halfDataTokens += await tokenizer.tokenizeChat(chat);
             halfData.push(chat);
             idx++;
@@ -175,7 +169,6 @@ export async function hypaMemoryV2(
         }
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n');
-
         const summaryData = await summary(stringlizedChat);
 
         if (!summaryData.success) {
@@ -187,7 +180,7 @@ export async function hypaMemoryV2(
         }
 
         const summaryDataToken = await tokenizer.tokenizeChat({ role: 'system', content: summaryData.data });
-        mainPrompt += `\n\n${summaryData.data}`;
+        mainPrompt = summaryData.data;  // Ensure mainPrompt only contains the latest summary
         currentTokens -= halfDataTokens;
         allocatedTokens -= summaryDataToken;
 
@@ -196,8 +189,11 @@ export async function hypaMemoryV2(
             targetId: targetId
         });
 
-        if (allocatedTokens < 1500) {
+        if (allocatedTokens < 1000) {
+            console.log("Currently allocatedTokens for HypaMemoryV2 is short, thus summarizing mainPrompt twice.", allocatedTokens);
+            console.log("This is mainPrompt(summarized data): ", mainPrompt)
             const summarizedMp = await summary(mainPrompt);
+            console.log("Re-summarized, expected behavior: ", summarizedMp.data)
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             const summaryToken = await tokenizer.tokenizeChat({ role: 'system', content: summarizedMp.data });
 
@@ -217,50 +213,32 @@ export async function hypaMemoryV2(
 
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
-    await processor.addText(data.chunks.filter(v => {
-        return v.text.trim().length > 0;
-    }).map((v) => {
-        return "search_document: " + v.text.trim();
-    }));
+    await processor.addText(data.chunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
     for (let i = 0; i < 3; i++) {
         const pop = chats[chats.length - i - 1];
-        if (!pop) {
-            break;
-        }
+        if (!pop) break;
         const searched = await processor.similaritySearchScored(`search_query: ${pop.content}`);
         for (const result of searched) {
             const score = result[1] / (i + 1);
-            if (scoredResults[result[0]]) {
-                scoredResults[result[0]] += score;
-            } else {
-                scoredResults[result[0]] = score;
-            }
+            scoredResults[result[0]] = (scoredResults[result[0]] || 0) + score;
         }
     }
 
     const scoredArray = Object.entries(scoredResults).sort((a, b) => b[1] - a[1]);
 
     let chunkResultPrompts = "";
-    while (allocatedTokens > 0) {
+    while (allocatedTokens > 0 && scoredArray.length > 0) {
         const target = scoredArray.shift();
-        if (!target) {
-            break;
-        }
-        const tokenized = await tokenizer.tokenizeChat({
-            role: 'system',
-            content: target[0].substring(14)
-        });
-        if (tokenized > allocatedTokens) {
-            break;
-        }
+        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: target[0].substring(14) });
+        if (tokenized > allocatedTokens) break;
         chunkResultPrompts += target[0].substring(14) + '\n\n';
         allocatedTokens -= tokenized;
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
-
+    console.log(fullResult, " This chat is added to system prompt for memory. ");
     chats.unshift({
         role: "system",
         content: fullResult,
