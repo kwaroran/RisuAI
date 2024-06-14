@@ -38,11 +38,6 @@ jobs:
         shell: bash
         run: |
           echo "VERSION_JSON=$(jq -c . < version.json)" >> $GITHUB_ENV
-      - name: "Set TAURI_PRIVATE_KEY env variable for signing"
-        shell: bash
-        run: |
-          export TAURI_PRIVATE_KEY="${{ secrets.TAURI_PRIVATE_KEY }}"
-          export TAURI_KEY_PASSWORD="${{ secrets.TAURI_KEY_PASSWORD }}"
       - name: install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -73,6 +68,8 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           tagName: 'v__VERSION__' # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'v__VERSION__'
