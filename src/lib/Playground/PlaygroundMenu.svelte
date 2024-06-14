@@ -11,6 +11,7 @@
     import { get } from "svelte/store";
     import { DataBase, setDatabase, type character } from "src/ts/storage/database";
   import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
+  import PlaygroundParser from "./PlaygroundParser.svelte";
 
     const playgroundChat = () => {
         let db = get(DataBase)
@@ -75,6 +76,11 @@
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.imageGeneration}</h1>
             </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                PlaygroundStore.set(8)
+            }}>
+                <h1 class="text-2xl font-bold text-start">Parser</h1>
+            </button>
         </div>
     {:else}
         {#if $SizeStore.w < 1024}
@@ -104,6 +110,9 @@
             {/if}
             {#if $PlaygroundStore === 7}
                 <PlaygroundImageGen/>
+            {/if}  
+            {#if $PlaygroundStore === 8}
+                <PlaygroundParser/>
             {/if}  
         </div>
     {/if}

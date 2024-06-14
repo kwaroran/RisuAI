@@ -187,8 +187,10 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     data = await parseInlayImages(data)
 
     data = encodeStyle(data)
-    data = risuFormater(data)
-    data = mconverted.parse(data)
+    if(mode !== 'back'){
+        data = risuFormater(data)
+        data = mconverted.parse(data)
+    }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
@@ -761,9 +763,6 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'prefill_supported':{
                 return db.aiModel.startsWith('claude') ? '1' : '0'
             }
-            case 'unixtime':{
-                return (Date.now() / 1000).toFixed(2)
-            }
             case 'screen_width':{
                 return get(SizeStore).w.toString()
             }
@@ -1056,9 +1055,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         if(p1.startsWith('pick')){
             const selchar = db.characters[get(selectedCharID)]
             const selChat = selchar.chats[selchar.chatPage]
-            const cid = (chatID < 0) ? selChat.message.length : chatID
+            const cid = selChat.message.length
             if(p1.startsWith('pick::')){
-                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId) * (arra.length - 1)) + 1
+                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId + (selChat.id ?? '')) * (arra.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
                 }
@@ -1066,7 +1065,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             else{
                 const arr = p1.replace(/\\,/g, '§X').split(/\:|\,/g)
-                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId) * (arr.length - 1)) + 1
+                const randomIndex = Math.floor(pickHashRand(cid, selchar.chaId + (selChat.id ?? '')) * (arr.length - 1)) + 1
                 if(matcherArg.tokenizeAccurate){
                     return arra[0]
                 }
@@ -1089,8 +1088,8 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             if(p){
                 const selchar = db.characters[get(selectedCharID)]
                 const selChat = selchar.chats[selchar.chatPage]
-                const cid = (chatID < 0) ? selChat.message.length : chatID
-                return (Math.floor(pickHashRand(cid, selchar.chaId) * maxRoll) + 1).toString()
+                const cid = selChat.message.length
+                return (Math.floor(pickHashRand(cid, selchar.chaId + (selChat.id ?? '')) * maxRoll) + 1).toString()
             }
             return (Math.floor(Math.random() * maxRoll) + 1).toString()
         }
@@ -1127,7 +1126,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
 }
 
 function pickHashRand(cid:number,word:string) {
-    let hashAddress = cid * 23515
+    let hashAddress = 5515
     const rand = (word:string) => {
         for (let counter = 0; counter<word.length; counter++){
             hashAddress = ((hashAddress << 5) + hashAddress) + word.charCodeAt(counter)
@@ -1135,6 +1134,10 @@ function pickHashRand(cid:number,word:string) {
         return hashAddress
     }
     const randF = sfc32(rand(word), rand(word), rand(word), rand(word))
+    const v = cid % 1000
+    for (let i = 0; i < v; i++){
+        randF()
+    }
     return randF()
 }
 
