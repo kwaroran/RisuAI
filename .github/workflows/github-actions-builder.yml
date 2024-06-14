@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "VERSION_JSON=$(jq -c . < version.json)" >> $GITHUB_ENV
       - name: "Set TAURI_PRIVATE_KEY env variable for signing"
-        shell: bash,
+        shell: bash
         run: |
           export TAURI_PRIVATE_KEY="${{ secrets.TAURI_PRIVATE_KEY }}"
           export TAURI_KEY_PASSWORD="${{ secrets.TAURI_KEY_PASSWORD }}"
