@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - production
+  workflow_dispatch: {}
 
 jobs:
   publish-tauri:
@@ -11,9 +12,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest,macos-latest,windows-latest]
-
-    runs-on: ${{ matrix.platform }}
+        # platform: [ubuntu-latest,macos-latest,windows-latest]
+        settings:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-latest' # for Tauri v1 you could replace this with ubuntu-20.04.
+            args: '--target x86_64-unknown-linux-gnu'
+          - platform: 'windows-latest'
+            args: '--target x86_64-pc-windows-msvc'
+          
+    runs-on: ${{ matrix.settings.platform }}
     steps:
       - uses: actions/checkout@v4
       - name: setup node
@@ -21,7 +31,7 @@ jobs:
         with:
           node-version: 21
       - id: set_var_win
-        if: matrix.platform == 'windows-latest'
+        if: matrix.settings.platform == 'windows-latest'
         run: |
           choco install jq -y
       - id: set_var
@@ -33,7 +43,7 @@ jobs:
         with:
           version: latest
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.settings.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
@@ -51,61 +61,20 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - name: install frontend dependencies
         run: pnpm install --no-frozen-lockfile # change this to npm or pnpm depending on which one you use
-      - if: matrix.platform == 'ubuntu-latest'
-        run: pnpm tauri build --target x86_64-unknown-linux-gnu
-      - if: matrix.platform == 'ubuntu-latest'
-        uses: "softprops/action-gh-release@v2"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
-          name: "${{fromJson(env.VERSION_JSON).version}}"
-          generate_release_notes: true
-          files: |
-            src-tauri/target/x86_64-unknown-linux-gnu/release/**/*.deb
-            src-tauri/target/x86_64-unknown-linux-gnu/release/**/*.AppImage
-      - if: matrix.platform == 'macos-latest'
+      - if: matrix.settings.platform == 'macos-latest'
         run: rustup target add x86_64-apple-darwin
-      - if: matrix.platform == 'macos-latest'
-        run: pnpm tauri build --target x86_64-apple-darwin
-      - if: matrix.platform == 'macos-latest'
+      - if: matrix.settings.platform == 'macos-latest'
         run: rustup target add aarch64-apple-darwin
-      - if: matrix.platform == 'macos-latest'
-        run: pnpm tauri build --target aarch64-apple-darwin
-      - if: matrix.platform == 'macos-latest'
-        uses: "softprops/action-gh-release@v2"
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
-          name: "${{fromJson(env.VERSION_JSON).version}}"
-          generate_release_notes: true
-          files: |
-            src-tauri/target/*/release/bundle/macos/*.app
-            src-tauri/target/*/release/bundle/dmg/*.dmg
-      - if: matrix.platform == 'windows-latest'
-        run: pnpm tauri build
-      - if: matrix.platform == 'windows-latest'
-        uses: "softprops/action-gh-release@v2"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
-          name: "${{fromJson(env.VERSION_JSON).version}}"
-          generate_release_notes: true
-          files: |
-            src-tauri/target/x86_64-pc-windows-msvc/release/**/*.msi
-      # publish dist as zip when building on ubuntu
-      # first, zip the dist
-      - if: matrix.platform == 'ubuntu-latest'
-        run: zip -r built_code.zip dist
-      # then, publish the zip file
-      - if: matrix.platform == 'ubuntu-latest'
-        uses: "softprops/action-gh-release@v2"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          tag_name: "v${{fromJson(env.VERSION_JSON).version}}"
-          name: "${{fromJson(env.VERSION_JSON).version}}"
-          generate_release_notes: true
-          files: built_code.zip
+          tagName: 'v__VERSION__' # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: 'v__VERSION__'
+          releaseBody: 'Release of v__VERSION__'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.settings.args }}
+          tauriScript: "pnpm tauri"

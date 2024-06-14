@@ -1,49 +1,30 @@
-import { fetch } from "@tauri-apps/api/http";
-import { DataBase, appVer, setDatabase } from "./storage/database";
-import { alertConfirm, alertError, alertMd } from "./alert";
+import { alertConfirm, alertWait } from "./alert";
 import { language } from "../lang";
-import { get } from "svelte/store";
-import {open} from '@tauri-apps/api/shell'
 import { Capacitor } from "@capacitor/core";
+import {
+    checkUpdate,
+    installUpdate,
+} from '@tauri-apps/api/updater'
+import { relaunch } from '@tauri-apps/api/process'
 
-export async function checkUpdate(){
+export async function checkRisuUpdate(){
+
+    if(Capacitor.isNativePlatform()){
+        return
+    }
+
     try {
-
-        if(Capacitor.isNativePlatform()){
-            return
-        }
-
-         let db = get(DataBase)
-        const da = await fetch('https://raw.githubusercontent.com/kwaroran/RisuAI-release/main/version.json')
-        //@ts-ignore
-        const v:string = da.data.version
-        if(!v){
-            return
-        }
-        if(v === db.lastup){
-            return
-        }
-        const nextVer = versionStringToNumber(v)
-        if(isNaN(nextVer) || (!nextVer)){
-            return
-        }
-        const appVerNum = versionStringToNumber(appVer)
-
-        if(appVerNum < nextVer){
+        const checked = await checkUpdate()     
+        if(checked.shouldUpdate){
             const conf = await alertConfirm(language.newVersion)
             if(conf){
-                open("https://risuai.net/?page=download")
-            }
-            else{
-                db = get(DataBase)
-                db.lastup = v
-                setDatabase(db)
+                alertWait(`Updating to ${checked.manifest.version}...`)
+                await installUpdate()
+                await relaunch()
             }
         }
-        
     } catch (error) {
-        alertError(error)
-        return
+        
     }
 }
 
