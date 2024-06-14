@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: 21
       - id: set_var_win
-        if: matrix.platform == 'windows-latest'
+        if: matrix.settings.platform == 'windows-latest'
         run: |
           choco install jq -y
       - id: set_var
@@ -48,7 +48,7 @@ jobs:
         with:
           version: latest
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.settings.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
@@ -66,9 +66,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - name: install frontend dependencies
         run: pnpm install --no-frozen-lockfile # change this to npm or pnpm depending on which one you use
-      - if: matrix.platform == 'macos-latest'
+      - if: matrix.settings.platform == 'macos-latest'
         run: rustup target add x86_64-apple-darwin
-      - if: matrix.platform == 'macos-latest'
+      - if: matrix.settings.platform == 'macos-latest'
         run: rustup target add aarch64-apple-darwin
       - uses: tauri-apps/tauri-action@v0
         env:
