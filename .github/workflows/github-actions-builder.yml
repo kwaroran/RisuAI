@@ -2,7 +2,7 @@ name: 'publish'
 on:
   push:
     branches:
-      - production
+      - main
   workflow_dispatch: {}
 
 jobs:
