@@ -96,7 +96,13 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "endpoints": ["https://sv.risuai.xyz/hub/update"],
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU2ODMzOTIxMDMxOTY1MUYKUldRZlpSa0RJVG1EVmx5Vm1WYlhFM29HMEJrUTRrYmg5dDQ0RFpvdUphNDdxQmVlWXJHVmV5TEYK",
+      "windows": {
+        "installMode": "passive"
+      }
     },
     "windows": [
       {
