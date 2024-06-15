@@ -28,7 +28,7 @@
           {#if !$DataBase.hideRealm}
             {#await getRisuHub({
                   search: '',
-                  page: -10,
+                  page: 0,
                   nsfw: false,
                   sort: ''
               }) then charas}
