@@ -1,5 +1,7 @@
 
 const excludesDat = ['<','>','{','}','[',']','(',')','-',':',';','…','—','–','_','*','+','/','\\','|','!','?','.',',',' ']
+const symbols = ['<','>','{','}','[',']','(',')','-',':',';','…','—','–','_','*','+','/','\\','|','!','?','.',',',' ', '\n', '。', '、', '！', '？', '，', '；', '：', '（', '）', '【', '】', '「', '」', '『', '』', '“', '”', '‘', '’', '《', '》', '〈', '〉', '‹', '›', '«', '»', '‟', '„']
+
 const selfClosingTags = [
     'br','hr','img','input','meta','link','base','area','col','command','embed','keygen','param','source','track','wbr',
     //self closing tags defined by HTML5
@@ -123,6 +125,10 @@ export function risuFormater(dat:string){
         //spaces for detection
         line = ' ' + line + ' '
 
+        const isNotCharacter = (t:string) => {
+            return symbols.includes(t)
+        }
+
         for(let j=0;j<line.length;j++){
             switch(line[j]){
                 case '"':
@@ -145,7 +151,7 @@ export function risuFormater(dat:string){
                 case '‘':
                 case '’':{
                     if(depthChunkType[depth] === "'"){
-                        if(line[j-1] === ' ' || line[j+1] !== ' ' || (line[j-2] === 'i' && line[j-1] === 'n')){
+                        if(isNotCharacter(line[j-1]) || !isNotCharacter(line[j+1]) || (line[j-2] === 'i' && line[j-1] === 'n')){
                             //this is not a quote
                             depthChunk[depth] += line[j]
                         }
@@ -157,7 +163,7 @@ export function risuFormater(dat:string){
                         }
                     }
                     else{
-                        if(line[j-1] !== ' ' || line[j+1] === ' '){
+                        if(!isNotCharacter(line[j-1]) || isNotCharacter(line[j+1])){
                             //this is not a quote
                             depthChunk[depth] += line[j]
                         }
