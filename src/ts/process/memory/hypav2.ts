@@ -20,6 +20,7 @@ export interface HypaV2Data {
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
     const db = get(DataBase);
+    console.log("Summarizing with supa model: " + db.supaModelType);
     /**
      * Generates a summary of a given chat by using either the OpenAI API or a submodel or distilbart summarizer.
      *
@@ -137,20 +138,23 @@ export async function hypaMemoryV2(
     let mainPrompt = "";
 
     // Processing mainChunks
-    if (data.mainChunks.length > 0) {
-        const chunk = data.mainChunks[0];
-        const ind = chats.findIndex(e => e.memo === chunk.targetId);
-        if (ind !== -1) {
-            const removedChats = chats.splice(0, ind);
-            for (const chat of removedChats) {
-                currentTokens -= await tokenizer.tokenizeChat(chat);
-            }
-            chats = chats.slice(ind);
-            mainPrompt = chunk.text;
-            const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
-            allocatedTokens -= mpToken;
+    while(data.mainChunks.length > 0){
+        const chunk = data.mainChunks[0]
+        const ind = chats.findIndex(e => e.memo === chunk.targetId)
+        if(ind === -1){
+            data.mainChunks.shift()
+            continue
         }
-        data.mainChunks.shift();
+
+        const removedChats = chats.splice(0, ind)
+        for(const chat of removedChats){
+            currentTokens -= await tokenizer.tokenizeChat(chat)
+        }
+        chats = chats.slice(ind)
+        mainPrompt = chunk.text
+        const mpToken = await tokenizer.tokenizeChat({role:'system', content:mainPrompt})
+        allocatedTokens -= mpToken
+        break
     }
 
     // Token management loop
@@ -166,6 +170,7 @@ export async function hypaMemoryV2(
             halfData.push(chat);
             idx++;
             targetId = chat.memo;
+            console.log("current target chat: ", chat)   
         }
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n');
@@ -213,7 +218,11 @@ export async function hypaMemoryV2(
 
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
-    await processor.addText(data.chunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
+    await processor.addText(data.chunks.filter(v => {
+        return v.text.trim().length > 0
+    }).map((v) => {
+        return "search_document: " + v.text.trim()
+    }))
 
     let scoredResults: { [key: string]: number } = {};
     for (let i = 0; i < 3; i++) {
@@ -221,32 +230,44 @@ export async function hypaMemoryV2(
         if (!pop) break;
         const searched = await processor.similaritySearchScored(`search_query: ${pop.content}`);
         for (const result of searched) {
-            const score = result[1] / (i + 1);
-            scoredResults[result[0]] = (scoredResults[result[0]] || 0) + score;
-        }
+            const score = result[1]/(i+1)
+            if(scoredResults[result[0]]){
+                scoredResults[result[0]] += score
+            }else{
+                scoredResults[result[0]] = score
+            }
     }
 
     const scoredArray = Object.entries(scoredResults).sort((a, b) => b[1] - a[1]);
 
     let chunkResultPrompts = "";
-    while (allocatedTokens > 0 && scoredArray.length > 0) {
-        const target = scoredArray.shift();
-        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: target[0].substring(14) });
-        if (tokenized > allocatedTokens) break;
-        chunkResultPrompts += target[0].substring(14) + '\n\n';
-        allocatedTokens -= tokenized;
+    while(allocatedTokens > 0){
+        const target = scoredArray.shift()
+        if(!target){
+            break
+        }
+        const tokenized = await tokenizer.tokenizeChat({
+            role: 'system',
+            content: target[0].substring(14)
+        })
+        if(tokenized > allocatedTokens){
+            break
+        }
+        chunkResultPrompts += target[0].substring(14) + '\n\n'
+        allocatedTokens -= tokenized
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
-    console.log(fullResult, " This chat is added to system prompt for memory. ");
     chats.unshift({
         role: "system",
         content: fullResult,
         memo: "supaMemory"
     });
+    console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats,"\nMemory data, with all the chunks: ", data);
     return {
         currentTokens: currentTokens,
         chats: chats,
         memory: data
     };
+  }
 }
