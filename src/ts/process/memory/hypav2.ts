@@ -41,8 +41,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
 
     if (db.supaModelType !== 'subModel') {
         const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:";
-
-        const da = await globalFetch("https://api.openai.com/v1/completions", {
+        const da = await globalFetch("https://api.openai.com/v1/completions",{
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + db.supaMemoryKey
@@ -139,6 +138,7 @@ export async function hypaMemoryV2(
             for (const chat of removedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
+            chats = chats.slice(ind);
             mainPrompt = chunk.text;
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             allocatedTokens -= mpToken;
@@ -179,32 +179,28 @@ export async function hypaMemoryV2(
         allocatedTokens -= summaryDataToken;
 
         data.mainChunks.unshift({
-            text: mainPrompt,
+            text: summaryData.data,
             targetId: targetId
         });
 
-        if (allocatedTokens < 1000) {
-            console.log("Currently allocatedTokens for HypaMemoryV2 is short, thus summarizing mainPrompt twice.", allocatedTokens);
-            console.log("This is mainPrompt(summarized data): ", mainPrompt);
-            const summarizedMp = await summary(mainPrompt);
-            console.log("Re-summarized, expected behavior: ", summarizedMp.data);
-            const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
-            const summaryToken = await tokenizer.tokenizeChat({ role: 'system', content: summarizedMp.data });
-
-            allocatedTokens -= summaryToken;
-            allocatedTokens += mpToken;
-
-            const splited = mainPrompt.split('\n\n').map(e => e.trim()).filter(e => e.length > 0);
-
-            data.chunks.push(...splited.map(e => ({
-                text: e,
-                targetId: targetId
-            })));
-
-            data.mainChunks[0].text = mainPrompt;
-        }
+        // Update chunks with the new summary
+        data.chunks.push({
+            text: summaryData.data,
+            targetId: targetId
+        });
     }
 
+    // Construct the mainPrompt from mainChunks until half of the allocatedTokens are used
+    mainPrompt = "";
+    let mainPromptTokens = 0;
+    for (const chunk of data.mainChunks) {
+        const chunkTokens = await tokenizer.tokenizeChat({ role: 'system', content: chunk.text });
+        if (mainPromptTokens + chunkTokens > allocatedTokens / 2) break;
+        mainPrompt += `\n\n${chunk.text}`;
+        mainPromptTokens += chunkTokens;
+    }
+
+    // Fetch additional memory from chunks
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
     await processor.addText(data.chunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
@@ -222,12 +218,12 @@ export async function hypaMemoryV2(
 
     const scoredArray = Object.entries(scoredResults).sort((a, b) => b[1] - a[1]);
     let chunkResultPrompts = "";
-    while (allocatedTokens > 0 && scoredArray.length > 0) {
+    while (allocatedTokens - mainPromptTokens > 0 && scoredArray.length > 0) {
         const target = scoredArray.shift();
         const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: target[0].substring(14) });
-        if (tokenized > allocatedTokens) break;
+        if (tokenized > allocatedTokens - mainPromptTokens) break;
         chunkResultPrompts += target[0].substring(14) + '\n\n';
-        allocatedTokens -= tokenized;
+        mainPromptTokens += tokenized;
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
