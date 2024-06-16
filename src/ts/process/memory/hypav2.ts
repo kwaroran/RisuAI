@@ -20,7 +20,7 @@ export interface HypaV2Data {
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
     const db = get(DataBase);
-    console.log(db.supaModelType, " is being used for Summarization task on HypaV2Memory");
+    console.log("Summarization actively called");
 
     if (db.supaModelType === 'distilbart') {
         try {
@@ -48,15 +48,16 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
                 "Authorization": "Bearer " + db.supaMemoryKey
             },
             method: "POST",
-            body: JSON.stringify({
+            body: {
                 "model": db.supaModelType === 'curie' ? "text-curie-001"
-                : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct' : "text-davinci-003",
+                    : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
+                    : "text-davinci-003",
                 "prompt": promptbody,
                 "max_tokens": 600,
                 "temperature": 0
-            })
-        });
-        console.log("Using Chatgpt 3.5 instruct for SupaMemory");
+            }
+        })
+        console.log("Using openAI instruct 3.5 for SupaMemory");
 
         try {
             if (!da.ok) {
@@ -138,7 +139,6 @@ export async function hypaMemoryV2(
             for (const chat of removedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
-            chats = chats.slice(ind);
             mainPrompt = chunk.text;
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             allocatedTokens -= mpToken;
@@ -239,11 +239,12 @@ export async function hypaMemoryV2(
     });
 
     // Add the remaining chats after the last mainChunk's targetId
-    if (data.mainChunks.length > 0) {
-        const lastTargetId = data.mainChunks[0].targetId;
+    const lastTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
+    if (lastTargetId) {
         const lastIndex = chats.findIndex(chat => chat.memo === lastTargetId);
         if (lastIndex !== -1) {
-            chats.push(...chats.slice(lastIndex + 1));
+            const remainingChats = chats.slice(lastIndex + 1);
+            chats = chats.slice(0, 1).concat(remainingChats);
         }
     }
 
