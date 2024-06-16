@@ -1,4 +1,4 @@
-import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database";
+import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database"; 
 import type { OpenAIChat } from "..";
 import type { ChatTokenizer } from "src/ts/tokenizer";
 import { get } from "svelte/store";
@@ -20,13 +20,8 @@ export interface HypaV2Data {
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
     const db = get(DataBase);
-    console.log("Summarizing with supa model: " + db.supaModelType);
-    /**
-     * Generates a summary of a given chat by using either the OpenAI API or a submodel or distilbart summarizer.
-     *
-     * @param {string} stringlizedChat - The chat to be summarized, represented as a string.
-     * @return {Promise<{ success: boolean; data: string }>} A promise that resolves to an object containing the success status and the generated summary.
-     */
+    console.log(db.supaModelType, " is being used for Summarization task on HypaV2Memory");
+
     if (db.supaModelType === 'distilbart') {
         try {
             const sum = await runSummarizer(stringlizedChat);
@@ -46,28 +41,28 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
 
     if (db.supaModelType !== 'subModel') {
         const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:";
+
         const da = await globalFetch("https://api.openai.com/v1/completions", {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + db.supaMemoryKey
             },
             method: "POST",
-            body: {
+            body: JSON.stringify({
                 "model": db.supaModelType === 'curie' ? "text-curie-001"
-                    : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
-                        : "text-davinci-003",
+                : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct' : "text-davinci-003",
                 "prompt": promptbody,
                 "max_tokens": 600,
                 "temperature": 0
-            }
+            })
         });
-        console.log("Using openAI instruct 3.5 for SupaMemory")
+        console.log("Using Chatgpt 3.5 instruct for SupaMemory");
 
         try {
             if (!da.ok) {
                 return {
                     success: false,
-                    data: "SupaMemory: HTTP: " + JSON.stringify(da.data)
+                    data: "SupaMemory: HTTP: " + JSON.stringify(da)
                 };
             }
 
@@ -76,7 +71,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             if (!result) {
                 return {
                     success: false,
-                    data: "SupaMemory: HTTP: " + JSON.stringify(da.data)
+                    data: "SupaMemory: HTTP: " + JSON.stringify(da)
                 };
             }
 
@@ -98,7 +93,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
                 content: supaPrompt
             }
         ];
-        console.log("Using submodel: ", db.subModel, "for supaMemory model")
+        console.log("Using submodel: ", db.subModel, "for supaMemory model");
         const da = await requestChatData({
             formated: promptbody,
             bias: {},
@@ -127,10 +122,7 @@ export async function hypaMemoryV2(
 ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?: string; memory?: HypaV2Data; }> {
 
     const db = get(DataBase);
-    const data: HypaV2Data = room.hypaV2Data ?? {
-        chunks: [],
-        mainChunks: []
-    };
+    const data: HypaV2Data = room.hypaV2Data ?? { chunks: [], mainChunks: [] };
 
     let allocatedTokens = db.hypaAllocatedTokens;
     let chunkSize = db.hypaChunkSize;
@@ -138,23 +130,20 @@ export async function hypaMemoryV2(
     let mainPrompt = "";
 
     // Processing mainChunks
-    while(data.mainChunks.length > 0){
-        const chunk = data.mainChunks[0]
-        const ind = chats.findIndex(e => e.memo === chunk.targetId)
-        if(ind === -1){
-            data.mainChunks.shift()
-            continue
+    if (data.mainChunks.length > 0) {
+        const chunk = data.mainChunks[0];
+        const ind = chats.findIndex(e => e.memo === chunk.targetId);
+        if (ind !== -1) {
+            const removedChats = chats.splice(0, ind);
+            for (const chat of removedChats) {
+                currentTokens -= await tokenizer.tokenizeChat(chat);
+            }
+            chats = chats.slice(ind);
+            mainPrompt = chunk.text;
+            const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
+            allocatedTokens -= mpToken;
         }
-
-        const removedChats = chats.splice(0, ind)
-        for(const chat of removedChats){
-            currentTokens -= await tokenizer.tokenizeChat(chat)
-        }
-        chats = chats.slice(ind)
-        mainPrompt = chunk.text
-        const mpToken = await tokenizer.tokenizeChat({role:'system', content:mainPrompt})
-        allocatedTokens -= mpToken
-        break
+        // Do not shift here; retain for continuity
     }
 
     // Token management loop
@@ -170,7 +159,7 @@ export async function hypaMemoryV2(
             halfData.push(chat);
             idx++;
             targetId = chat.memo;
-            console.log("current target chat: ", chat)   
+            console.log("current target chat Id:", targetId);
         }
 
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n');
@@ -185,7 +174,7 @@ export async function hypaMemoryV2(
         }
 
         const summaryDataToken = await tokenizer.tokenizeChat({ role: 'system', content: summaryData.data });
-        mainPrompt = summaryData.data;  // Ensure mainPrompt only contains the latest summary
+        mainPrompt += `\n\n${summaryData.data}`;
         currentTokens -= halfDataTokens;
         allocatedTokens -= summaryDataToken;
 
@@ -196,9 +185,9 @@ export async function hypaMemoryV2(
 
         if (allocatedTokens < 1000) {
             console.log("Currently allocatedTokens for HypaMemoryV2 is short, thus summarizing mainPrompt twice.", allocatedTokens);
-            console.log("This is mainPrompt(summarized data): ", mainPrompt)
+            console.log("This is mainPrompt(summarized data): ", mainPrompt);
             const summarizedMp = await summary(mainPrompt);
-            console.log("Re-summarized, expected behavior: ", summarizedMp.data)
+            console.log("Re-summarized, expected behavior: ", summarizedMp.data);
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             const summaryToken = await tokenizer.tokenizeChat({ role: 'system', content: summarizedMp.data });
 
@@ -218,11 +207,7 @@ export async function hypaMemoryV2(
 
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
-    await processor.addText(data.chunks.filter(v => {
-        return v.text.trim().length > 0
-    }).map((v) => {
-        return "search_document: " + v.text.trim()
-    }))
+    await processor.addText(data.chunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
     for (let i = 0; i < 3; i++) {
@@ -230,44 +215,42 @@ export async function hypaMemoryV2(
         if (!pop) break;
         const searched = await processor.similaritySearchScored(`search_query: ${pop.content}`);
         for (const result of searched) {
-            const score = result[1]/(i+1)
-            if(scoredResults[result[0]]){
-                scoredResults[result[0]] += score
-            }else{
-                scoredResults[result[0]] = score
-            }
+            const score = result[1] / (i + 1);
+            scoredResults[result[0]] = (scoredResults[result[0]] || 0) + score;
+        }
     }
 
     const scoredArray = Object.entries(scoredResults).sort((a, b) => b[1] - a[1]);
-
     let chunkResultPrompts = "";
-    while(allocatedTokens > 0){
-        const target = scoredArray.shift()
-        if(!target){
-            break
-        }
-        const tokenized = await tokenizer.tokenizeChat({
-            role: 'system',
-            content: target[0].substring(14)
-        })
-        if(tokenized > allocatedTokens){
-            break
-        }
-        chunkResultPrompts += target[0].substring(14) + '\n\n'
-        allocatedTokens -= tokenized
+    while (allocatedTokens > 0 && scoredArray.length > 0) {
+        const target = scoredArray.shift();
+        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: target[0].substring(14) });
+        if (tokenized > allocatedTokens) break;
+        chunkResultPrompts += target[0].substring(14) + '\n\n';
+        allocatedTokens -= tokenized;
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
+
     chats.unshift({
         role: "system",
         content: fullResult,
         memo: "supaMemory"
     });
-    console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats,"\nMemory data, with all the chunks: ", data);
+
+    // Add the remaining chats after the last mainChunk's targetId
+    if (data.mainChunks.length > 0) {
+        const lastTargetId = data.mainChunks[0].targetId;
+        const lastIndex = chats.findIndex(chat => chat.memo === lastTargetId);
+        if (lastIndex !== -1) {
+            chats.push(...chats.slice(lastIndex + 1));
+        }
+    }
+
+    console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats, "\nMemory data, with all the chunks: ", data);
     return {
         currentTokens: currentTokens,
         chats: chats,
         memory: data
     };
-  }
 }
