@@ -169,7 +169,7 @@ export async function hypaMemoryV2(
             halfData.push(chat);
             idx++;
             targetId = chat.memo;
-            console.log("current target chat Id:", targetId);
+            console.log("current target chat: ", chat);
         }
 
         // Avoid summarizing the last two chats
@@ -225,7 +225,14 @@ export async function hypaMemoryV2(
     // Fetch additional memory from chunks
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
-    await processor.addText(data.chunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
+
+    // Filter chunks to only include those older than the last mainChunk's targetId
+    const lastMainChunkTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
+    const olderChunks = lastMainChunkTargetId 
+        ? data.chunks.filter(chunk => getValidChatIndex(chunk.targetId) < getValidChatIndex(lastMainChunkTargetId))
+        : data.chunks;
+
+    await processor.addText(olderChunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
     for (let i = 0; i < 3; i++) {
@@ -260,10 +267,18 @@ export async function hypaMemoryV2(
     const lastTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
     if (lastTargetId) {
         const lastIndex = getValidChatIndex(lastTargetId);
+        console.log(chats[lastIndex])
         if (lastIndex !== -1) {
-            const remainingChats = chats.slice(lastIndex + 1);
+            const remainingChats = chats.slice(lastIndex);
             chats = [chats[0], ...remainingChats];
         }
+    }
+
+    // Add last two chats if they exist
+    const lastTwoChats = chats.slice(-2);
+    if (lastTwoChats.length === 2) {
+        chats.push(lastTwoChats[0]);
+        chats.push(lastTwoChats[1]);
     }
 
     console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats, "\nMemory data, with all the chunks: ", data);
