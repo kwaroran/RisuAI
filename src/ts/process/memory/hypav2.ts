@@ -1,4 +1,4 @@
-import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database"; 
+import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database";
 import type { OpenAIChat } from "..";
 import type { ChatTokenizer } from "src/ts/tokenizer";
 import { get } from "svelte/store";
@@ -41,7 +41,8 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
 
     if (db.supaModelType !== 'subModel') {
         const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:";
-        const da = await globalFetch("https://api.openai.com/v1/completions",{
+
+        const da = await globalFetch("https://api.openai.com/v1/completions", {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + db.supaMemoryKey
@@ -129,10 +130,19 @@ export async function hypaMemoryV2(
     currentTokens += allocatedTokens + 50;
     let mainPrompt = "";
 
+    // Error handling for infinite summarization attempts
+    let summarizationFailures = 0;
+    const maxSummarizationFailures = 3;
+
+    // Ensure correct targetId matching
+    const getValidChatIndex = (targetId: string) => {
+        return chats.findIndex(chat => chat.memo === targetId);
+    };
+
     // Processing mainChunks
     if (data.mainChunks.length > 0) {
         const chunk = data.mainChunks[0];
-        const ind = chats.findIndex(e => e.memo === chunk.targetId);
+        const ind = getValidChatIndex(chunk.targetId);
         if (ind !== -1) {
             const removedChats = chats.splice(0, ind);
             for (const chat of removedChats) {
@@ -162,16 +172,25 @@ export async function hypaMemoryV2(
             console.log("current target chat Id:", targetId);
         }
 
+        // Avoid summarizing the last two chats
+        if (halfData.length < 3) break;
+
         const stringlizedChat = halfData.map(e => `${e.role}: ${e.content}`).join('\n');
         const summaryData = await summary(stringlizedChat);
 
         if (!summaryData.success) {
-            return {
-                currentTokens: currentTokens,
-                chats: chats,
-                error: summaryData.data
-            };
+            summarizationFailures++;
+            if (summarizationFailures >= maxSummarizationFailures) {
+                return {
+                    currentTokens: currentTokens,
+                    chats: chats,
+                    error: "Summarization failed multiple times. Aborting to prevent infinite loop."
+                };
+            }
+            continue;
         }
+
+        summarizationFailures = 0; // Reset failure counter on success
 
         const summaryDataToken = await tokenizer.tokenizeChat({ role: 'system', content: summaryData.data });
         mainPrompt += `\n\n${summaryData.data}`;
@@ -183,11 +202,14 @@ export async function hypaMemoryV2(
             targetId: targetId
         });
 
+        // Split the summary into chunks based on double line breaks
+        const splitted = summaryData.data.split('\n\n').map(e => e.trim()).filter(e => e.length > 0);
+
         // Update chunks with the new summary
-        data.chunks.push({
-            text: summaryData.data,
+        data.chunks.push(...splitted.map(e => ({
+            text: e,
             targetId: targetId
-        });
+        })));
     }
 
     // Construct the mainPrompt from mainChunks until half of the allocatedTokens are used
@@ -237,10 +259,10 @@ export async function hypaMemoryV2(
     // Add the remaining chats after the last mainChunk's targetId
     const lastTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
     if (lastTargetId) {
-        const lastIndex = chats.findIndex(chat => chat.memo === lastTargetId);
+        const lastIndex = getValidChatIndex(lastTargetId);
         if (lastIndex !== -1) {
             const remainingChats = chats.slice(lastIndex + 1);
-            chats = chats.slice(0, 1).concat(remainingChats);
+            chats = [chats[0], ...remainingChats];
         }
     }
 
