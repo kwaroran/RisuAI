@@ -93,6 +93,7 @@ export async function importPlugin(){
             displayName: displayName
         }
 
+        db.plugins ??= []
         db.plugins.push(pluginData)
 
         DataBase.set(db)

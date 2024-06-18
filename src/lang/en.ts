@@ -655,4 +655,5 @@ export const languageEnglish = {
     lineHeight: "Line Height",
     loadAutoServerBackup: "Load Auto Server Backup",
     notCharxWarn: "This character uses multiple assets. it is recommended to export this character as a CharX format for better compatibility.",
+    noPlugins: "No Plugins Installed",
 }
