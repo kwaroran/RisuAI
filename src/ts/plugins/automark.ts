@@ -196,11 +196,8 @@ export function risuFormater(dat:string){
             lineResult = lineResult.substring(0,lineResult.length-1)
         }
 
-        console.log(lineResult)
-
         result += lineResult
     }
 
-    console.log(result)
     return result.trim()
 }
