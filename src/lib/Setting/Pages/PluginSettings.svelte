@@ -17,29 +17,12 @@
 <span class="text-draculared text-xs mb-4">{language.pluginWarn}</span>
 
 
-<div class="border-solid border-borderc p-2 flex flex-col border-1">
-    <div class="flex">
-        <span class="font-bold flex-grow">Metric Systemizer <Help key="metrica" /> <span class="text-green-500 italic">(Official Plugin)</span></span>
-    </div>
-    <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.officialplugins.metrica} name={language.able}/>
-    </div>
-    <div class="flex">
-        <span class="font-bold flex-grow">OpenAI Fixer <Help key="openAIFixer" /> <span class="text-green-500 italic">(Official Plugin)</span></span>
-    </div>
-    <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.officialplugins.oaiFix} name={language.able}/>
-    </div>
-    {#if $DataBase.officialplugins.oaiFix}
-        <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.officialplugins.oaiFixEmdash} name={"Remove Emdash"}/>
-        </div>
-        <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.officialplugins.oaiFixLetters} name={"Fix Letters"}/>
-        </div>
+<div class="border-solid border-darkborderc p-2 flex flex-col border-1">
+    {#if !$DataBase.plugins || $DataBase.plugins?.length === 0}
+        <span class="text-textcolor2">{language.noPlugins}</span>
     {/if}
     {#each $DataBase.plugins as plugin, i}
-        <div class="border-borderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
+        <div class="border-darkborderc mt-2 mb-2 w-full border-solid border-b-1 seperator"></div>
         <div class="flex">
             <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
             <button class="textcolor2 hover:gray-200 cursor-pointer" on:click={async () => {
@@ -48,7 +31,7 @@
                     if($DataBase.currentPluginProvider === plugin.name){
                         $DataBase.currentPluginProvider  = ''
                     }
-                    let plugins = $DataBase.plugins
+                    let plugins = $DataBase.plugins ?? []
                     plugins.splice(i, 1)
                     $DataBase.plugins = plugins
                 }

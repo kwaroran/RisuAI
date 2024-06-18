@@ -284,8 +284,6 @@ export async function runCharacterJS(arg:{
 
             const runCode = codes[arg.mode]
 
-            console.log(compCode[code])
-
             if(!compCode[code].includes(runCode)){
                 continue
             }

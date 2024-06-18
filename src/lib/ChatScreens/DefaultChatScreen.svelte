@@ -338,11 +338,14 @@
 
             for(const chat of chats){
                 const cnv = await html2canvas.toCanvas(chat as HTMLElement)
+                alertWait("Taking screenShot... "+canvases.length+"/"+chats.length)
                 canvases.push(cnv)
             }
 
             canvases.reverse()
 
+            alertWait("Merging images...")
+            
             let mergedCanvas = document.createElement('canvas');
             mergedCanvas.width = 0;
             mergedCanvas.height = 0;

@@ -7,8 +7,6 @@ import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { runCharacterJS } from "../plugins/embedscript";
-import { metricaPlugin } from "../plugins/metrica";
-import { OaiFixKorean } from "../plugins/fixer";
 import { getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 
@@ -62,15 +60,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
-    if(db.officialplugins.metrica && mode === 'editdisplay'){
-        data = metricaPlugin(data, 'metrics')
-    }
-    if(db.officialplugins.metrica && (mode === 'editinput' || mode === 'editoutput' || mode === 'editprocess')){
-        data = metricaPlugin(data, 'imperial')
-    }
-    if(db.officialplugins.oaiFixLetters && db.officialplugins.oaiFix && (mode === 'editoutput' || mode === 'editdisplay')){
-        data = OaiFixKorean(data)
-    }
     data = await runCharacterJS({
         code: char.virtualscript ?? null,
         mode,

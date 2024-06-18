@@ -95,7 +95,7 @@
             {/if}
             <button class="text-textcolor2 hover:text-green-500" on:click|stopPropagation={async () => {
                 await navigator.clipboard.writeText(`https://realm.risuai.net/character/${openedData.id}`)
-                alertNormal("Copied to clipboard")
+                alertNormal(language.clipboardSuccess)
             }}>
                 <PaperclipIcon />
             </button>

@@ -15,7 +15,6 @@ import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { v4 } from "uuid";
 import { supportsInlayImage } from "./files/image";
-import { OaifixBias } from "../plugins/fixer";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -254,13 +253,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 }
             }
-            if(raiModel.startsWith('gpt')){
-                if(db.officialplugins.oaiFix){
-                    bias = OaifixBias(bias)
-                }
-            }
-
-
 
 
             let oaiFunctions:OaiFunctions[] = []

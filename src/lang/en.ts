@@ -131,6 +131,7 @@ export const languageEnglish = {
         defaultVariables: "Here you can define your own default variables. use `<variable name>=<variable value>` format, seperated by newline. for example, `name=RisuAI`, which then can be used with trigger scripts and variables CBS like `{{getvar::A}}`, `{{setvar::A::B}}` or `{{? $A + 1}}`. if prompt template's default variable and character's default variable has same name, character's default variable will be used.",
         lowLevelAccess: "If enabled, it will enable access to features that requires high computing powers and executing AI model via triggers in the character. do not enable this unless you really need these features.",
         triggerLLMPrompt: "A prompt that would be sent to the model. you can use multi turns and roles by using `@@role user`, `@@role system`, `@@role assistant`. for example, \n\`\`\`\n@@role system\nrespond as hello\n@@role assistant\nhello\n@@role user\nhi\n\`\`\`",
+        legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -655,4 +656,11 @@ export const languageEnglish = {
     lineHeight: "Line Height",
     loadAutoServerBackup: "Load Auto Server Backup",
     notCharxWarn: "This character uses multiple assets. it is recommended to export this character as a CharX format for better compatibility.",
+    noPlugins: "No Plugins Installed",
+    legacyTranslation: "Legacy Translation",
+    clipboardSuccess: "Copied to Clipboard",
+    translateContent: 'Translate Content',
+    doNotTranslate: "Do Not Translate",
+    includePersonaName: "Include Persona Name",
+    hidePersonaName: "Hide Persona Name",
 }
