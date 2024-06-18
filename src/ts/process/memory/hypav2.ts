@@ -6,7 +6,7 @@ import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runSummarizer } from "../transformers";
-import { remove } from "lodash";
+import { last, remove } from "lodash";
 
 export interface HypaV2Data {
     chunks: {
@@ -134,6 +134,7 @@ export async function hypaMemoryV2(
     // Error handling for infinite summarization attempts
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
+    let lastMainChunkTargetId = '';
 
     // Ensure correct targetId matching
     const getValidChatIndex = (targetId: string) => {
@@ -146,7 +147,7 @@ export async function hypaMemoryV2(
         const ind = getValidChatIndex(chunk.targetId);
         if (ind !== -1) {
             const removedChats = chats.splice(0, ind + 1);
-            console.log("removed chats", removedChats)
+            console.log("removed chats", removedChats);
             for (const chat of removedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
@@ -223,18 +224,29 @@ export async function hypaMemoryV2(
         if (mainPromptTokens + chunkTokens > allocatedTokens / 2) break;
         mainPrompt += `\n\n${chunk.text}`;
         mainPromptTokens += chunkTokens;
+        lastMainChunkTargetId = chunk.targetId;
     }
 
     // Fetch additional memory from chunks
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
 
+    // Find the smallest index of chunks with the same targetId as lastMainChunkTargetId
+    const lastMainChunkIndex = data.chunks.reduce((minIndex, chunk, index) => {
+        if (chunk.targetId === lastMainChunkTargetId) {
+            return Math.min(minIndex, index);
+        }
+        return minIndex;
+    }, data.chunks.length);
+
     // Filter chunks to only include those older than the last mainChunk's targetId
-    const lastMainChunkTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
-    const olderChunks = lastMainChunkTargetId 
-        ? data.chunks.filter(chunk => getValidChatIndex(chunk.targetId) < getValidChatIndex(lastMainChunkTargetId))
+    const olderChunks = lastMainChunkIndex !== data.chunks.length
+        ? data.chunks.slice(0, lastMainChunkIndex)
         : data.chunks;
-    console.log(olderChunks)
+
+    console.log("Older Chunks:", olderChunks);
+
+    // Add older chunks to processor for similarity search
     await processor.addText(olderChunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
@@ -250,12 +262,13 @@ export async function hypaMemoryV2(
 
     const scoredArray = Object.entries(scoredResults).sort((a, b) => b[1] - a[1]);
     let chunkResultPrompts = "";
-    while (allocatedTokens - mainPromptTokens > 0 && scoredArray.length > 0) {
-        const target = scoredArray.shift();
-        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: target[0].substring(14) });
-        if (tokenized > allocatedTokens - mainPromptTokens) break;
-        chunkResultPrompts += target[0].substring(14) + '\n\n';
-        mainPromptTokens += tokenized;
+    let chunkResultTokens = 0;
+    while (allocatedTokens - mainPromptTokens - chunkResultTokens > 0 && scoredArray.length > 0) {
+        const [text] = scoredArray.shift();
+        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: text.substring(14) });
+        if (tokenized > allocatedTokens - mainPromptTokens - chunkResultTokens) break;
+        chunkResultPrompts += text.substring(14) + '\n\n';
+        chunkResultTokens += tokenized;
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
