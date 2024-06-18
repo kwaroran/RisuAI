@@ -624,28 +624,32 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
 
 // Decoupled globalFetch built-in function
 function addFetchLogInGlobalFetch(response:any, success:boolean, url:string, arg:GlobalFetchArgs){
-  try{
-      fetchLog.unshift({
-          body: JSON.stringify(arg.body, null, 2),
-          header: JSON.stringify(arg.headers ?? {}, null, 2),
-          response: JSON.stringify(response, null, 2),
-          success: success,
-          date: (new Date()).toLocaleTimeString(),
-          url: url,
-          chatId: arg.chatId
-      })
-  }
-  catch{
-      fetchLog.unshift({
-          body: JSON.stringify(arg.body, null, 2),
-          header: JSON.stringify(arg.headers ?? {}, null, 2),
-          response: `${response}`,
-          success: success,
-          date: (new Date()).toLocaleTimeString(),
-          url: url,
-          chatId: arg.chatId
-      })
-  }
+    try{
+        fetchLog.unshift({
+            body: JSON.stringify(arg.body, null, 2),
+            header: JSON.stringify(arg.headers ?? {}, null, 2),
+            response: JSON.stringify(response, null, 2),
+            success: success,
+            date: (new Date()).toLocaleTimeString(),
+            url: url,
+            chatId: arg.chatId
+        })
+    }
+    catch{
+        fetchLog.unshift({
+            body: JSON.stringify(arg.body, null, 2),
+            header: JSON.stringify(arg.headers ?? {}, null, 2),
+            response: `${response}`,
+            success: success,
+            date: (new Date()).toLocaleTimeString(),
+            url: url,
+            chatId: arg.chatId
+        })
+    }
+
+    if(fetchLog.length > 20){
+        fetchLog.pop()
+    }
 }
 
 // Decoupled globalFetch built-in function
