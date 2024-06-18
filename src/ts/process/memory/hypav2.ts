@@ -150,12 +150,10 @@ export async function hypaMemoryV2(
             for (const chat of removedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
-            chats = chats.slice(ind + 1);
             mainPrompt = chunk.text;
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             allocatedTokens -= mpToken;
         }
-        // The mainChunks won't be overlapping eachother.
     }
 
     // Token management loop
@@ -272,21 +270,20 @@ export async function hypaMemoryV2(
     const lastTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
     if (lastTargetId) {
         const lastIndex = getValidChatIndex(lastTargetId);
-        console.log(chats[lastIndex], lastIndex)
         if (lastIndex !== -1) {
             const remainingChats = chats.slice(lastIndex + 1);
-            chats = [chats[0]]
-            chats.push(...remainingChats);
-        } else {
-            chats = chats
-        }
+            chats = [chats[0], ...remainingChats];
+        } 
     } 
 
     // Add last two chats if they exist
+    // Yeah, It's fine to remove this, but for the sake of stability, currently commented it out. Will add stabilizer for this
+    /*
     if (lastTwoChats.length === 2) {
         chats.push(lastTwoChats[0]);
         chats.push(lastTwoChats[1]);
     }
+    */
     console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats, "\nMemory data, with all the chunks: ", data);
     return {
         currentTokens: currentTokens,
