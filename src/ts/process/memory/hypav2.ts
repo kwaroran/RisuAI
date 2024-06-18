@@ -6,6 +6,7 @@ import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runSummarizer } from "../transformers";
+import { remove } from "lodash";
 
 export interface HypaV2Data {
     chunks: {
@@ -20,7 +21,7 @@ export interface HypaV2Data {
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
     const db = get(DataBase);
-    console.log("Summarization actively called");
+    console.log("Summarizing");
 
     if (db.supaModelType === 'distilbart') {
         try {
@@ -129,7 +130,7 @@ export async function hypaMemoryV2(
     let chunkSize = db.hypaChunkSize;
     currentTokens += allocatedTokens + 50;
     let mainPrompt = "";
-
+    const lastTwoChats = chats.slice(-2);
     // Error handling for infinite summarization attempts
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
@@ -144,16 +145,17 @@ export async function hypaMemoryV2(
         const chunk = data.mainChunks[0];
         const ind = getValidChatIndex(chunk.targetId);
         if (ind !== -1) {
-            const removedChats = chats.splice(0, ind);
+            const removedChats = chats.splice(0, ind + 1);
+            console.log("removed chats", removedChats)
             for (const chat of removedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
-            chats = chats.slice(ind);
+            chats = chats.slice(ind + 1);
             mainPrompt = chunk.text;
             const mpToken = await tokenizer.tokenizeChat({ role: 'system', content: mainPrompt });
             allocatedTokens -= mpToken;
         }
-        // Do not shift here; retain for continuity
+        // The mainChunks won't be overlapping eachother.
     }
 
     // Token management loop
@@ -163,7 +165,7 @@ export async function hypaMemoryV2(
         const halfData: OpenAIChat[] = [];
 
         let halfDataTokens = 0;
-        while (halfDataTokens < chunkSize && chats[idx]) {
+        while (halfDataTokens < chunkSize && (idx <= chats.length - 4)) { // Ensure latest two chats are not added to summarization.
             const chat = chats[idx];
             halfDataTokens += await tokenizer.tokenizeChat(chat);
             halfData.push(chat);
@@ -210,6 +212,9 @@ export async function hypaMemoryV2(
             text: e,
             targetId: targetId
         })));
+
+        // Remove summarized chats
+        chats.splice(0, idx);
     }
 
     // Construct the mainPrompt from mainChunks until half of the allocatedTokens are used
@@ -231,7 +236,7 @@ export async function hypaMemoryV2(
     const olderChunks = lastMainChunkTargetId 
         ? data.chunks.filter(chunk => getValidChatIndex(chunk.targetId) < getValidChatIndex(lastMainChunkTargetId))
         : data.chunks;
-
+    console.log(olderChunks)
     await processor.addText(olderChunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
@@ -267,20 +272,21 @@ export async function hypaMemoryV2(
     const lastTargetId = data.mainChunks.length > 0 ? data.mainChunks[0].targetId : null;
     if (lastTargetId) {
         const lastIndex = getValidChatIndex(lastTargetId);
-        console.log(chats[lastIndex])
+        console.log(chats[lastIndex], lastIndex)
         if (lastIndex !== -1) {
-            const remainingChats = chats.slice(lastIndex);
-            chats = [chats[0], ...remainingChats];
+            const remainingChats = chats.slice(lastIndex + 1);
+            chats = [chats[0]]
+            chats.push(...remainingChats);
+        } else {
+            chats = chats
         }
-    }
+    } 
 
     // Add last two chats if they exist
-    const lastTwoChats = chats.slice(-2);
     if (lastTwoChats.length === 2) {
         chats.push(lastTwoChats[0]);
         chats.push(lastTwoChats[1]);
     }
-
     console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats, "\nMemory data, with all the chunks: ", data);
     return {
         currentTokens: currentTokens,
