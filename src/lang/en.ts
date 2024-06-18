@@ -658,4 +658,9 @@ export const languageEnglish = {
     notCharxWarn: "This character uses multiple assets. it is recommended to export this character as a CharX format for better compatibility.",
     noPlugins: "No Plugins Installed",
     legacyTranslation: "Legacy Translation",
+    clipboardSuccess: "Copied to Clipboard",
+    translateContent: 'Translate Content',
+    doNotTranslate: "Do Not Translate",
+    includePersonaName: "Include Persona Name",
+    hidePersonaName: "Hide Persona Name",
 }

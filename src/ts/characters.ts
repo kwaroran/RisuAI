@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook } from "./storage/database";
-import { alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "./alert";
+import { alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
@@ -10,6 +10,8 @@ import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
 import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { PngChunk } from "./pngChunk";
+import { parseMarkdownSafe } from "./parser";
+import { translateHTML } from "./translator/translator";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -153,12 +155,31 @@ export async function rmCharEmotion(charId:number, emotionId:number) {
 export async function exportChat(page:number){
     try {
 
-        const mode = await alertSelect(['Export as JSON', "Export as TXT"])
+        const mode = await alertSelect(['Export as JSON', "Export as TXT", "Export as HTML File", "Export as HTML Embed"])
+        const doTranslate = (mode === '2' || mode === '3') ? (await alertSelect([language.translateContent, language.doNotTranslate])) === '0' : false
+        const anonymous = (mode === '2' || mode === '3') ? ((await alertSelect([language.includePersonaName, language.hidePersonaName])) === '1') : false
         const selectedID = get(selectedCharID)
         const db = get(DataBase)
         const chat = db.characters[selectedID].chats[page]
         const char = db.characters[selectedID]
         const date = new Date().toJSON();
+        const htmlChatParse = async (v:string) => {
+            v = parseMarkdownSafe(v)
+
+            if(doTranslate){
+                v = await translateHTML(v, false, '', -1)
+            }
+
+            if(anonymous){
+                //case insensitive match, replace all
+                const excapedName = char.name.replace(/[-\/\\^$*+\?\.()|[\]{}]/g, '\\$&')
+
+                v = v.replace(new RegExp(`${excapedName}`, 'gi'), '×××')
+            }
+
+            return v
+        }
+
         if(mode === '0'){
             const stringl = Buffer.from(JSON.stringify({
                 type: 'risuChat',
@@ -169,19 +190,131 @@ export async function exportChat(page:number){
             await downloadFile(`${char.name}_${date}_chat`.replace(/[<>:"/\\|?*\.\,]/g, "") + '.json', stringl)
     
         }
+        else if(mode === '2'){
+
+            let chatContentHTML = ''
+
+            let i = 0
+            for(const v of chat.message){
+                alertWait(`Translating... ${i++}/${chat.message.length}`)
+                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : db.username
+                chatContentHTML += `<div class="chat">
+                    <h2>${name}</h2>
+                    <div>${await htmlChatParse(v.data)}</div>
+                </div>`
+            }
+
+            const doc = `
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <title>${char.name} Chat</title>
+                        <style>
+                            body{
+                                font-family: Arial, sans-serif;
+                                display: flex;
+                                justify-content: center;
+                            }
+                            .container{
+                                max-width: 800px;
+                                padding: 1rem;
+                                border-radius: 10px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1rem;
+                            }
+                            .chat{
+                                background: #f0f0f0;
+                                padding: 1rem;
+                                border-radius: 10px;
+                                display: flex;
+                                flex-direction: column;
+                            }
+                            .idat{
+                                display: none;
+                            }
+                            h2{
+                                margin: 0;
+                            }
+                            .chat div{
+                                margin-top: 0.5rem;
+                                break-word: break-all;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="chat">
+                                <h2>${char.name}</h2>
+                                <div>${await htmlChatParse(
+                                    char.firstMsgIndex === -1 ? char.firstMessage : char.alternateGreetings?.[char.firstMsgIndex ?? 0]
+                                )}</div>
+                            </div>
+                            ${chatContentHTML}
+                        </div>
+                        <div class="idat">${
+                            JSON.stringify(chat).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        }</div>
+                    </body>
+            `
+
+
+            await downloadFile(`${char.name}_${date}_chat`.replace(/[<>:"/\\|?*\.\,]/g, "") + '.html', Buffer.from(doc, 'utf-8'))
+        }
+        else if(mode === '3'){
+            //create a html table
+            let chatContentHTML = ''
+
+            let i = 0
+            for(const v of chat.message){
+                alertWait(`Translating... ${i++}/${chat.message.length}`)
+                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : db.username
+                chatContentHTML += `<tr>
+                    <td>${name}</td>
+                    <td>${await htmlChatParse(v.data)}</td>
+                </tr>`
+            }
+
+            const template = `
+                <table>
+                    <tr>
+                        <th>Character</th>
+                        <th>Message</th>
+                    </tr>
+                    <tr>
+                        <td>${char.name}</td>
+                        <td>${await htmlChatParse(char.firstMessage)}</td>
+                    </tr>
+                    ${chatContentHTML}
+                </table>
+                <p>Chat from RisuAI</p>
+            `
+
+            //copy to clipboard
+
+            const item = new ClipboardItem({
+                'text/html': new Blob([template], { type: 'text/html' }),
+                'text/plain': new Blob([template], { type: 'text/plain' })
+            })
+            await navigator.clipboard.write([item])
+
+            alertNormal(language.clipboardSuccess)
+            return
+
+        }
         else{
             
             let stringl = chat.message.map((v) => {
                 if(v.saying){
-                    return `${findCharacterbyId(v.saying).name}\n${v.data}`
+                    return `--${findCharacterbyId(v.saying).name}\n${v.data}`
                 }
                 else{
-                    return `${v.role === 'char' ? char.name : db.username}\n${v.data}`
+                    return `--${v.role === 'char' ? char.name : db.username}\n${v.data}`
                 }
             }).join('\n\n')
 
             if(char.type !== 'group'){
-                stringl = `${char.name}\n${char.firstMessage}\n\n` + stringl
+                stringl = `--${char.name}\n${char.firstMessage}\n\n` + stringl
             }
 
             await downloadFile(`${char.name}_${date}_chat`.replace(/[<>:"/\\|?*\.\,]/g, "") + '.txt', Buffer.from(stringl, 'utf-8'))
@@ -194,7 +327,7 @@ export async function exportChat(page:number){
 }
 
 export async function importChat(){
-    const dat =await selectSingleFile(['json','jsonl'])
+    const dat =await selectSingleFile(['json','jsonl','txt','html'])
     if(!dat){
         return
     }
@@ -236,7 +369,7 @@ export async function importChat(){
             setDatabase(db)
             alertNormal(language.successImport)
         }
-        else{
+        else if(dat.name.endsWith('json')){
             const json = JSON.parse(Buffer.from(dat.data).toString('utf-8'))
             if(json.type === 'risuChat' && json.ver === 1){
                 const das:Chat = json.data
@@ -256,7 +389,19 @@ export async function importChat(){
                 return
             }
         }
-
+        else if(dat.name.endsWith('html')){
+            const doc = new DOMParser().parseFromString(Buffer.from(dat.data).toString('utf-8'), 'text/html')
+            const chat = doc.querySelector('.idat').textContent
+            const json = JSON.parse(chat)
+            if(json.message && json.note && json.name && json.localLore){
+                db.characters[selectedID].chats.unshift(json)
+                setDatabase(db)
+                alertNormal(language.successImport)
+            }
+            else{
+                alertError(language.errors.noData)
+            }
+        }
     } catch (error) {
         alertError(`${error}`)
     }
