@@ -94,8 +94,6 @@ export function risuFormater(dat:string){
         }
     }
 
-    console.log(lines)
-
     let result = ''
     for(let i=0;i<lines.length;i++){
         if(lines[i][0] !== ''){
