@@ -169,25 +169,24 @@ export interface simpleCharacterArgument{
 }
 
 
-export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back' = 'normal', chatID=-1) {
+export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back'|'pretranslate' = 'normal', chatID=-1) {
     let firstParsed = ''
-    const orgDat = data
-    const db = get(DataBase)
+    const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
     if(char && char.type !== 'group'){
-        data = await parseAdditionalAssets(data, char, mode, 'pre')
+        data = await parseAdditionalAssets(data, char, additionalAssetMode, 'pre')
         firstParsed = data
     }
     if(char){
         data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
-        data = await parseAdditionalAssets(data, char, mode, 'post')
+        data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
     data = await parseInlayImages(data)
 
     data = encodeStyle(data)
-    if(mode !== 'back'){
+    if(mode === 'normal'){
         data = risuFormater(data)
         data = mconverted.parse(data)
     }
@@ -195,6 +194,20 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
     }))
+}
+
+export function postTranslationParse(data:string){
+    let lines = risuFormater(data).split('\n')
+
+    for(let i=0;i<lines.length;i++){
+        const trimed = lines[i].trim()
+        if(trimed.startsWith('<')){
+            lines[i] = trimed
+        }
+    }
+
+    data = mconverted.parse(lines.join('\n'))
+    return data
 }
 
 export function parseMarkdownSafe(data:string) {

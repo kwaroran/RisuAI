@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
-    import { ParseMarkdown, type simpleCharacterArgument } from "../../ts/parser";
+    import { ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
@@ -102,13 +102,25 @@
             } catch (error) {}
         }
             if(translateText){
-                const marked = await ParseMarkdown(data, charArg, mode, chatID)
-                translating = true
-                const translated = await translateHTML(marked, false, charArg, chatID)
-                translating = false
-                lastParsed = translated
-                lastCharArg = charArg
-                return translated
+                if(!$DataBase.legacyTranslation){
+                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID)
+                    translating = true
+                    console.log(marked)
+                    const translated = postTranslationParse(await translateHTML(marked, false, charArg, chatID))
+                    translating = false
+                    lastParsed = translated
+                    lastCharArg = charArg
+                    return translated
+                }
+                else{
+                    const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                    translating = true
+                    const translated = await translateHTML(marked, false, charArg, chatID)
+                    translating = false
+                    lastParsed = translated
+                    lastCharArg = charArg
+                    return translated
+                }
             }
             else{
                 const marked = await ParseMarkdown(data, charArg, mode, chatID)

@@ -418,6 +418,7 @@ export function setDatabase(data:Database){
     data.lineHeight ??= 1.25
     data.stabilityModel ??= 'sd3-large'
     data.stabllityStyle ??= ''
+    data.legacyTranslation ??= false
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -691,6 +692,7 @@ export interface Database{
     stabilityModel: string
     stabilityKey: string
     stabllityStyle: string
+    legacyTranslation: boolean
 }
 
 export interface customscript{
