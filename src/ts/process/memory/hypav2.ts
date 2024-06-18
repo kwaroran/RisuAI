@@ -276,14 +276,17 @@ export async function hypaMemoryV2(
         } 
     } 
 
-    // Add last two chats if they exist
-    // Yeah, It's fine to remove this, but for the sake of stability, currently commented it out. Will add stabilizer for this
-    /*
+    // Add last two chats if they exist and are not duplicates
     if (lastTwoChats.length === 2) {
-        chats.push(lastTwoChats[0]);
-        chats.push(lastTwoChats[1]);
+        const [lastChat1, lastChat2] = lastTwoChats;
+        if (!chats.some(chat => chat.memo === lastChat1.memo)) {
+            chats.push(lastChat1);
+        }
+        if (!chats.some(chat => chat.memo === lastChat2.memo)) {
+            chats.push(lastChat2);
+        }
     }
-    */
+
     console.log("model being used: ", db.hypaModel, db.supaModelType, "\nCurrent session tokens: ", currentTokens, "\nAll chats, including memory system prompt: ", chats, "\nMemory data, with all the chunks: ", data);
     return {
         currentTokens: currentTokens,
