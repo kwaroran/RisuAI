@@ -118,9 +118,6 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.legacyTranslation} name="Legacy Translator" />
-</div>
-<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.dynamicAssets} name={language.dynamicAssets}>
         <Help key="dynamicAssets"/>
     </Check>

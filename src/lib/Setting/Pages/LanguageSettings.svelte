@@ -127,4 +127,10 @@
             <Help key="combineTranslation"/>
         </Check>
     </div>
+
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.legacyTranslation} name={language.legacyTranslation}>
+            <Help key="legacyTranslation"/>
+        </Check>
+    </div>
 {/if}
