@@ -27,8 +27,13 @@ export function risuFormater(dat:string){
     let htmlType = 0 // 0: not inside tag, 1: closing tag, 2: opening tag
     for(let i=0;i<dat.length;i++){
 
+        const getLastLine = () => {
+            return lines[lines.length-1] ?? [
+                'not-found', ''
+            ]
+        }
         //html tag handling
-        if(dat[i] === '<' && lines[lines.length-1][0] !== 'code-block'){
+        if(dat[i] === '<' && getLastLine()[0] !== 'code-block'){
             lines.push(['html-tag',''])
             if(dat[i+1] === '/'){
                 htmlType = 1
@@ -38,29 +43,29 @@ export function risuFormater(dat:string){
             }
         }
 
-        if(dat[i] === '>' && lines[lines.length-1][0] === 'html-tag'){
+        if(dat[i] === '>' && getLastLine()[0] === 'html-tag'){
             const pop = lines.pop()
             const tagAttr = pop[1].substring(1).trim()
             if(htmlType === 1){
                 const pop2 = lines.pop() //probably html-inner
                 const chunk = pop2[1] + pop[1] + '>'
-                if(lines[lines.length-1][0] === ''){
+                if(getLastLine()[0] === ''){
                     lines.push(['html-chunk',chunk])
                     lines.push(['',''])
                 }
                 else{
-                    lines[lines.length-1][1] += chunk
+                    getLastLine()[1] += chunk
                 }
                 continue
             }
             else if(checkSelfClosingTag(tagAttr)){
                 const chunk = pop[1] + '>'
-                if(lines[lines.length-1][0] === ''){
+                if(getLastLine()[0] === ''){
                     lines.push(['html-chunk',chunk])
                     lines.push(['',''])
                 }
                 else{
-                    lines[lines.length-1][1] += chunk
+                    getLastLine()[1] += chunk
                 }
                 continue
             }
@@ -72,9 +77,9 @@ export function risuFormater(dat:string){
 
         //code block handling
 
-        if(dat[i] === '`' && dat[i+1] === '`' && dat[i+2] === '`' && lines[lines.length-1][0] === ''){
-            if(lines[lines.length-1][0] === 'code-block'){
-                lines[lines.length-1][1] += '```'
+        if(dat[i] === '`' && dat[i+1] === '`' && dat[i+2] === '`' && getLastLine()[0] === ''){
+            if(getLastLine()[0] === 'code-block'){
+                getLastLine()[1] += '```'
                 lines.push(['',''])
             }
             else{
@@ -85,11 +90,11 @@ export function risuFormater(dat:string){
         }
         
 
-        if(dat[i] === '\n' && lines[lines.length-1][0] === ''){
+        if(dat[i] === '\n' && getLastLine()[0] === ''){
             lines.push(['newline','\n'])
             lines.push(['',''])
         }
-        else{
+        else if(lines[lines.length-1]){
             lines[lines.length-1][1] += dat[i]
         }
     }
@@ -101,7 +106,7 @@ export function risuFormater(dat:string){
             continue
         }
 
-        let line = lines[i][1]
+        let line = lines[i][1] ??''
         let isNumbered = false
         let endMarked = false
         if(excludesDat.includes(line[0]) || (line[1] === '.' && ['1','2','3','4','5','6','7','8','9'].includes(line[0]))){
