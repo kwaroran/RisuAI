@@ -6,9 +6,9 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { SizeStore, selectedCharID } from './stores';
+import { CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, parseKeyValue, sfc32, uuidtoNumber } from './util';
+import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
 import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
@@ -395,6 +395,7 @@ type matcherArg = {
     displaying?:boolean
     role?:string
     runVar?:boolean
+    funcName?:string
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     try {
@@ -1326,7 +1327,7 @@ function makeArray(p1:string[]):string{
     return JSON.stringify(p1)
 }
 
-function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string}{
+function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string,funcArg?:string[]}{
     if(p1.startsWith('#if') || p1.startsWith('#if_pure ')){
         const statement = p1.split(' ', 2)
         const state = statement[1]
@@ -1341,6 +1342,14 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1.startsWith('#each')){
         return {type:'each',type2:p1.substring(5).trim()}
     }
+    if(p1.startsWith('#func')){
+        const statement = p1.split(' ')
+        if(matcherArg.funcName === statement[1]){
+            return {type:'parse',funcArg:statement.slice(2)}
+        }
+    }
+
+
     return {type:'nothing'}
 }
 
@@ -1626,6 +1635,205 @@ export function risuChatParser(da:string, arg:{
             nested[0] += `<div>Thinking...</div>`
         }
         commentMode = false
+    }
+    if(nested.length === 1){
+        return nested[0]
+    }
+    let result = ''
+    while(nested.length > 1){
+        let dat = (stackType[nested.length] === 1) ? '{{' : "<"
+        dat += nested.shift()
+        result = dat + result
+    }
+    return nested[0] + result
+}
+
+export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:string]:string}):Promise<{
+    text:string,
+    var:{[key:string]:string}
+}> {
+    const arra = p1.split('::')
+
+    switch(arra[0]){
+        case 'localvar':
+        case 'getlocalvar':{
+            return {
+                text: vars[arra[1]] ?? '',
+                var: vars
+            }
+        }
+        case 'setlocalvar':{
+            vars[arra[1]] = arra[2]
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'impersonate':{
+            const chat = get(CurrentChat)
+            chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
+            CurrentChat.set(chat)
+        }
+
+    }
+
+    return {
+        text: null,
+        var: vars
+    }
+}
+
+
+export async function risuCommandParser(da:string, arg:{
+    db?:Database
+    chara?:string|character|groupChat
+    funcName?:string
+    passed?:string[],
+    recursiveCount?:number
+} = {}):Promise<string>{
+    const db = arg.db ?? get(DataBase)
+    const aChara = arg.chara
+    let chara:character|string = null
+    let passed = arg.passed ?? []
+    let recursiveCount = arg.recursiveCount ?? 0
+
+    if(recursiveCount > 30){
+        return 'Recursion limit reached'
+    }
+
+    if(aChara){
+        if(typeof(aChara) !== 'string' && aChara.type === 'group'){
+            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
+            if(gc.name !== 'Unknown Character'){
+                chara = gc
+            }
+        }
+        else{
+            chara = aChara
+        }
+    }
+    
+    let pointer = 0;
+    let nested:string[] = [""]
+    let stackType = new Uint8Array(512)
+    let pureModeNest:Map<number,boolean> = new Map()
+    let pureModeNestType:Map<number,string> = new Map()
+    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
+    const matcherObj = {
+        chatID: -1,
+        chara: chara,
+        rmVar: false,
+        db: db,
+        var: null,
+        tokenizeAccurate: false,
+        displaying: false,
+        role: null,
+        runVar: false,
+        consistantChar: false,
+        funcName: arg.funcName ?? null
+    }
+
+    let tempVar:{[key:string]:string} = {}
+
+    const isPureMode = () => {
+        return pureModeNest.size > 0
+    }
+    while(pointer < da.length){
+        switch(da[pointer]){
+            case '{':{
+                if(da[pointer + 1] !== '{' && da[pointer + 1] !== '#'){
+                    nested[0] += da[pointer]
+                    break
+                }
+                pointer++
+                nested.unshift('')
+                stackType[nested.length] = 1
+                break
+            }
+            case '}':{
+                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
+                    nested[0] += da[pointer]
+                    break
+                }
+                pointer++
+                const dat = nested.shift()
+                if(dat.startsWith('#')){
+                    if(isPureMode()){
+                        nested[0] += `{{${dat}}}`
+                        nested.unshift('')
+                        stackType[nested.length] = 6
+                        break
+                    }
+                    const matchResult = blockStartMatcher(dat, matcherObj)
+                    if(matchResult.type === 'nothing'){
+                        nested[0] += `{{${dat}}}`
+                        break
+                    }
+                    else{
+                        nested.unshift('')
+                        stackType[nested.length] = 5
+                        blockNestType.set(nested.length, matchResult)
+                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
+                            pureModeNest.set(nested.length, true)
+                            pureModeNestType.set(nested.length, "block")
+                        }
+                        if(matchResult.funcArg){
+                            for(let i = 0;i < matchResult.funcArg.length;i++){
+                                tempVar[matchResult.funcArg[i]] = passed[i]
+                            }
+                        }
+                        break
+                    }
+                }
+                if(dat.startsWith('/')){
+                    if(stackType[nested.length] === 5){
+                        const blockType = blockNestType.get(nested.length)
+                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
+                            pureModeNest.delete(nested.length)
+                            pureModeNestType.delete(nested.length)
+                        }
+                        blockNestType.delete(nested.length)
+                        const dat2 = nested.shift()
+                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
+                        if(blockType.type === 'each'){
+                            const subind = blockType.type2.lastIndexOf(' ')
+                            const sub = blockType.type2.substring(subind + 1)
+                            const array = parseArray(blockType.type2.substring(0, subind))
+                            let added = ''
+                            for(let i = 0;i < array.length;i++){
+                                const res = matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
+                                added += res
+                            }
+                            da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
+                            break
+                        }
+                        if(matchResult === ''){
+                            break
+                        }
+                        nested[0] += matchResult
+                        break
+                    }
+                    if(stackType[nested.length] === 6){
+                        console.log(dat)
+                        const sft = nested.shift()
+                        nested[0] += sft + `{{${dat}}}`
+                        break
+                    }
+                }
+                const mc = isPureMode() ? {
+                    text:null,
+                    var:tempVar
+                } : (await commandMatcher(dat, matcherObj, tempVar))
+                tempVar = mc.var
+                nested[0] += mc.text ?? `{{${dat}}}`
+                break
+            }
+            default:{
+                nested[0] += da[pointer]
+                break
+            }
+        }
+        pointer++
     }
     if(nested.length === 1){
         return nested[0]
