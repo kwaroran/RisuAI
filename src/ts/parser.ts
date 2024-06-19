@@ -396,6 +396,8 @@ type matcherArg = {
     role?:string
     runVar?:boolean
     funcName?:string
+    text?:string,
+    recursiveCount?:number
 }
 const matcher = (p1:string,matcherArg:matcherArg) => {
     try {
@@ -1669,16 +1671,80 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 var: vars
             }
         }
-        case 'impersonate':{
+        case 'pushchat':
+        case 'addchat':
+        case 'add_chat':
+        case 'push_chat':{
             const chat = get(CurrentChat)
             chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
             CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
         }
+        case 'setchat':
+        case 'set_chat':{
+            const chat = get(CurrentChat)
+            const message = chat.message?.at(Number(arra[1]))
+            if(message){
+                message.data = arra[2] ?? ''
+            }
+            CurrentChat.set(chat)
+        }
+        case 'regex':{
+            const reg = new RegExp(arra[1], arra[2])
+            const match = reg.exec(arra[3])
+            let res:string[] = []
+            for(let i = 0;i < match.length;i++){
+                res.push(match[i])
+            }
+            return {
+                text: makeArray(res),
+                var: vars
+            }
+        }
+        case 'replace_regex':
+        case 'replaceregex':{
+            const reg = new RegExp(arra[1], arra[2])
+            return {
+                text: arra[3].replace(reg, arra[4]),
+                var: vars
+            }
+        }
+        case 'call':{
+            const called = await risuCommandParser(arra[1], {
+                db: matcherArg.db,
+                chara: matcherArg.chara,
+                funcName: arra[2],
+                passed: arra.slice(3),
+                recursiveCount: (matcherArg.recursiveCount ?? 0) + 1
+            })
 
+            return {
+                text: called['__return__'] ?? '',
+                var: vars
+            }
+        }
+        case 'yield':{
+            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'return':{
+            vars['__return__'] = arra[1]
+            vars['__force_return__'] = '1'
+            return {
+                text: '',
+                var: vars
+            }
+        }
     }
 
     return {
-        text: null,
+        text: matcher(p1, matcherArg).toString(),
         var: vars
     }
 }
@@ -1690,7 +1756,7 @@ export async function risuCommandParser(da:string, arg:{
     funcName?:string
     passed?:string[],
     recursiveCount?:number
-} = {}):Promise<string>{
+} = {}):Promise<{[key:string]:string}>{
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
     let chara:character|string = null
@@ -1698,7 +1764,7 @@ export async function risuCommandParser(da:string, arg:{
     let recursiveCount = arg.recursiveCount ?? 0
 
     if(recursiveCount > 30){
-        return 'Recursion limit reached'
+        return {}
     }
 
     if(aChara){
@@ -1730,7 +1796,9 @@ export async function risuCommandParser(da:string, arg:{
         role: null,
         runVar: false,
         consistantChar: false,
-        funcName: arg.funcName ?? null
+        funcName: arg.funcName ?? null,
+        text: da,
+        recursiveCount: recursiveCount
     }
 
     let tempVar:{[key:string]:string} = {}
@@ -1825,6 +1893,9 @@ export async function risuCommandParser(da:string, arg:{
                     var:tempVar
                 } : (await commandMatcher(dat, matcherObj, tempVar))
                 tempVar = mc.var
+                if(tempVar['__force_return__']){
+                    return tempVar
+                }
                 nested[0] += mc.text ?? `{{${dat}}}`
                 break
             }
@@ -1835,16 +1906,8 @@ export async function risuCommandParser(da:string, arg:{
         }
         pointer++
     }
-    if(nested.length === 1){
-        return nested[0]
-    }
-    let result = ''
-    while(nested.length > 1){
-        let dat = (stackType[nested.length] === 1) ? '{{' : "<"
-        dat += nested.shift()
-        result = dat + result
-    }
-    return nested[0] + result
+    return tempVar
+
 }
 
 
