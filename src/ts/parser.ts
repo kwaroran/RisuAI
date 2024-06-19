@@ -956,7 +956,11 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                         const agmts = arra.slice(2)
                         let current = arra[1]
                         for(const arg of agmts){
-                            current = JSON.parse(current)[arg]
+                            const parsed = JSON.parse(current)
+                            if(parsed === null || (typeof(parsed) !== 'object' && !Array.isArray(parsed))){
+                                return 'null'
+                            }
+                            current = parsed[arg]
                             if(!current){
                                 return 'null'
                             }

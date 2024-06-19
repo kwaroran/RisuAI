@@ -3,10 +3,12 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { risuChatParser } from 'src/ts/parser';
     import { language } from 'src/lang';
+    import { sleep } from 'src/ts/util';
     let input = "";
     let output = "";
     const onInput = async () => {
         try {
+            await sleep(1)
             output = risuChatParser(input, {
                 consistantChar: true,
             })
