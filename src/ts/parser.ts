@@ -889,10 +889,10 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return makeArray(arra[1].split(arra[2]))
                 }
                 case 'join':{
-                    return makeArray(parseArray(arra[1]))
+                    return (parseArray(arra[1])).join(arra[2])
                 }
                 case 'spread':{
-                    return makeArray(parseArray(arra[1]))
+                    return (parseArray(arra[1])).join('::')
                 }
                 case 'trim':{
                     return arra[1].trim()
