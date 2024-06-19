@@ -609,9 +609,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             case 'message_unixtime_array':{
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.map((f) => {
-                    return f.time ?? 0
-                }).join('§')
+                return makeArray(chat.message.map((f) => {
+                    return `${f.time ?? 0}`
+                }))
             }
             case 'unixtime':{
                 const now = new Date()
@@ -760,9 +760,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 if(!selchar){
                     return ''
                 }
-                return selchar.emotionImages?.map((f) => {
+                return makeArray(selchar.emotionImages?.map((f) => {
                     return f[0]
-                })?.join('§') ?? ''
+                })) ?? ''
             }
             case 'assetlist':{
                 const selchar = db.characters[get(selectedCharID)]
@@ -883,13 +883,13 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return arra[1].replaceAll(arra[2], arra[3])
                 }
                 case 'split':{
-                    return arra[1].split(arra[2]).join('§')
+                    return makeArray(arra[1].split(arra[2]))
                 }
                 case 'join':{
-                    return arra[1].split('§').join(arra[2])
+                    return makeArray(parseArray(arra[1]))
                 }
                 case 'spread':{
-                    return arra[1].split('§').join('::')
+                    return makeArray(parseArray(arra[1]))
                 }
                 case 'trim':{
                     return arra[1].trim()
@@ -899,7 +899,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'arraylength':
                 case 'array_length':{
-                    return arra[1].split('§').length.toString()
+                    return parseArray(arra[1]).length.toString()
                 }
                 case 'lower':{
                     return arra[1].toLocaleLowerCase()
@@ -932,28 +932,52 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
     
                 }
                 case 'tonumber':{
-                    return arra[1].split('').filter((v) => {
+                    return makeArray(arra[1].split('').filter((v) => {
                         return !isNaN(Number(v)) || v === '.'
-                    }).join('')
+                    }))
                 }
                 case 'pow':{
                     return Math.pow(Number(arra[1]), Number(arra[2])).toString()
                 }
                 case 'arrayelement':
                 case 'array_element':{
-                    return arra[1].split('§').at(Number(arra[2])) ?? 'null'
+                    return parseArray(arra[1]).at(Number(arra[2])) ?? 'null'
                 }
+                case 'dictelement':
+                case 'dict_element':
+                case 'objectelement':
+                case 'object_element':{
+                    return parseDict(arra[1])[arra[2]] ?? 'null'
+                }
+
+                case 'element':
+                case 'ele':{
+                    try {
+                        const agmts = arra.slice(2)
+                        let current = arra[1]
+                        for(const arg of agmts){
+                            current = JSON.parse(current)[arg]
+                            if(!current){
+                                return 'null'
+                            }
+                        }
+                        return current
+                    } catch (error) {
+                        return 'null'
+                    }
+                }
+
                 case 'arrayshift':
                 case 'array_shift':{
-                    const arr = arra[1].split('§')
+                    const arr = parseArray(arra[1])
                     arr.shift()
-                    return arr.join('§')
+                    return makeArray(arr)
                 }
                 case 'arraypop':
                 case 'array_pop':{
-                    const arr = arra[1].split('§')
+                    const arr = parseArray(arra[1])
                     arr.pop()
-                    return arr.join('§')
+                    return makeArray(arr)
                 }
                 case 'arraypush':
                 case 'array_push':{
@@ -961,31 +985,60 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 }
                 case 'arraysplice':
                 case 'array_splice':{
-                    const arr = arra[1].split('§')
+                    const arr = parseArray(arra[1])
                     arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
-                    return arr.join('§')
+                    return makeArray(arr)
                 }
                 case 'makearray':
                 case 'array':
                 case 'a':
                 case 'make_array':{
-                    return arra.slice(1).join('§')
+                    return makeArray(arra.slice(1))
+                }
+                case 'makedict':
+                case 'dict':
+                case 'd':
+                case 'make_dict':
+                case 'makeobject':
+                case 'object':
+                case 'o':
+                case 'make_object':{
+                    //ideas:
+                    //  - {{o::key1:value1::key2:value2}} - its confusing for users
+                    //  - {{o::key1:value1,key2:value2}} - since comma can break the parser, this is not good
+                    //  - {{o::key=value::key2=value2}} - this is good enough I think, just need to escape the equal sign
+
+                    const sliced = arra.slice(1)
+                    let out = {}
+
+                    for(let i=0;i<sliced.length;i++){
+                        const current = sliced[i]
+                        const firstEqual = current.indexOf('=')
+                        if(firstEqual === -1){
+                            continue
+                        }
+                        const key = current.substring(0, firstEqual)
+                        const value = current.substring(firstEqual + 1)
+                        out[key] = value ?? 'null'
+                    }
+
+                    return JSON.stringify(out)
                 }
                 case 'history':
                 case 'messages':{
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar.chats[selchar.chatPage]
-                    return chat.message.map((f) => {
+                    return makeArray(chat.message.map((f) => {
                         let data = ''
                         if(arra.includes('role')){
                             data += f.role + ': '
                         }
                         data += f.data
                         return data
-                    }).join("§\n")
+                    }))
                 }
                 case 'range':{
-                    const arr = arra[1].split('§')
+                    const arr = parseArray(arra[1])
                     const start = arr.length > 1 ? Number(arr[0]) : 0
                     const end = arr.length > 1 ? Number(arr[1]) : Number(arr[0])
                     const step = arr.length > 2 ? Number(arr[2]) : 1
@@ -1025,7 +1078,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return (db.enabledModules.includes(moduleId) || enabledChatModules.includes(moduleId)) ? '1' : '0'
                 }
                 case 'filter':{
-                    const array = arra[1].split('§')
+                    const array = parseArray(arra[1])
                     const filterTypes = [
                         'all',
                         'nonempty',
@@ -1035,7 +1088,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     if(filterType === -1){
                         filterType = 0
                     }
-                    return array.filter((f, i) => {
+                    return makeArray(array.filter((f, i) => {
                         switch(filterType){
                             case 0:
                                 return f !== '' && i === array.indexOf(f)
@@ -1044,7 +1097,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                             case 2:
                                 return i === array.indexOf(f)               
                         }
-                    }).join('§')
+                    }))
                 }
             }
         }
@@ -1245,6 +1298,29 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
 
 type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'
 
+function parseArray(p1:string):string[]{
+    try {
+        const arr = JSON.parse(p1)
+        if(Array.isArray(arr)){
+            return arr
+        }
+        return p1.split('§')
+    } catch (error) {
+        return p1.split('§')
+    }
+}
+
+function parseDict(p1:string):{[key:string]:string}{
+    try {
+        return JSON.parse(p1)
+    } catch (error) {
+        return {}
+    }
+}
+
+function makeArray(p1:string[]):string{
+    return JSON.stringify(p1)
+}
 
 function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string}{
     if(p1.startsWith('#if') || p1.startsWith('#if_pure ')){
@@ -1433,7 +1509,7 @@ export function risuChatParser(da:string, arg:{
                         if(blockType.type === 'each'){
                             const subind = blockType.type2.lastIndexOf(' ')
                             const sub = blockType.type2.substring(subind + 1)
-                            const array = blockType.type2.substring(0, subind).split('§')
+                            const array = parseArray(blockType.type2.substring(0, subind))
                             let added = ''
                             for(let i = 0;i < array.length;i++){
                                 const res = matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
