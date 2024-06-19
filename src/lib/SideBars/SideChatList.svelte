@@ -165,7 +165,7 @@
                 </div>
             {/each}
 
-            {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
+            {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
                 {#if $DataBase.hanuraiEnable}
                     <div class="flex mt-2 items-center">
                         <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>

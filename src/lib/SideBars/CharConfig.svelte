@@ -257,7 +257,7 @@
     {/each}
 
     
-    {#if $DataBase.supaMemoryType !== 'none' || $DataBase.hanuraiEnable}
+    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
         {#if $DataBase.hanuraiEnable}
             <div class="flex mt-2 items-center">
                 <Check bind:check={currentChar.data.supaMemory} name={ language.hanuraiMemory}/>
@@ -904,7 +904,7 @@
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>
 
-        {#if $DataBase.supaMemoryType === 'hypaV2'}
+        {#if $DataBase.supaModelType !== 'none' && $DataBase.hypav2}
             <Button
                 on:click={() => {
                     currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {

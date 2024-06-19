@@ -183,7 +183,7 @@ export async function supaMemory(
 
         async function summarize(stringlizedChat:string){
 
-            if(db.supaMemoryType === 'distilbart'){
+            if(db.supaModelType === 'distilbart'){
                 try {
                     const sum =  await runSummarizer(stringlizedChat)
                     return sum
@@ -204,7 +204,7 @@ export async function supaMemory(
     
             let result = ''
 
-            if(db.supaMemoryType !== 'subModel'){
+            if(db.supaModelType !== 'subModel'){
                 const promptbody = stringlizedChat + '\n\n' + supaPrompt + "\n\nOutput:"
 
                 const da = await globalFetch("https://api.openai.com/v1/completions",{
@@ -214,8 +214,8 @@ export async function supaMemory(
                     },
                     method: "POST",
                     body: {
-                        "model": db.supaMemoryType === 'curie' ? "text-curie-001"
-                            : db.supaMemoryType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
+                        "model": db.supaModelType === 'curie' ? "text-curie-001"
+                            : db.supaModelType === 'instruct35' ? 'gpt-3.5-turbo-instruct'
                             : "text-davinci-003",
                         "prompt": promptbody,
                         "max_tokens": 600,
