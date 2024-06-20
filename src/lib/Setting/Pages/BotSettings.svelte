@@ -126,11 +126,11 @@
             Google Bearer Token
         {/if}
     </span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.accessToken}/>
+    <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText bind:value={$DataBase.google.accessToken}/>
 
     {#if $DataBase.google.projectId !== 'aigoogle'}
         <span class="text-textcolor">Google Project ID</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.google.projectId}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText bind:value={$DataBase.google.projectId}/>
     {/if}
 
     <Check check={$DataBase.google.projectId !== 'aigoogle'} className="mb-2" name={'Use Vertex AI'} onChange={(v) => {
@@ -144,26 +144,26 @@
 {/if}
 {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
     <span class="text-textcolor">NovelList {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
+    <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('mancer') || $DataBase.subModel.startsWith('mancer')}
     <span class="text-textcolor">Mancer {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
+    <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
+    <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
     {#if $DataBase.useExperimental}
         <Check name="AWS Claude" bind:check={$DataBase.claudeAws}> <Help key="experimental" /></Check>
     {/if}
 {/if}
 {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
     <span class="text-textcolor">Mistral {language.apiKey}</span>
-    <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
+    <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
     <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
-    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
+    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
     <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
     <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
     <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
@@ -204,11 +204,11 @@
 {/if}
 {#if $DataBase.aiModel.startsWith('risullm')}
     <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
-    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
+    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
 {/if}
 {#if $DataBase.aiModel.startsWith('cohere')}
     <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
-    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
+    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
 {/if}
 {#if $DataBase.aiModel === 'ollama-hosted'}
     <span class="text-textcolor mt-4">Ollama URL</span>
@@ -219,7 +219,7 @@
 {/if}
 {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
     <span class="text-textcolor mt-4">Openrouter Key</span>
-    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
+    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
 
     <span class="text-textcolor mt-4">Openrouter Model</span>
     {#await openRouterModels()}
@@ -260,7 +260,7 @@
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')
     || $DataBase.aiModel.startsWith('instructgpt') || $DataBase.subModel.startsWith('instructgpt')}
     <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
-    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
+    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
 {/if}
 {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
@@ -301,7 +301,7 @@
 
 {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
     <span class="text-textcolor">Horde {language.apiKey}</span>
-    <TextInput marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
+    <TextInput hideText marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
 
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'
