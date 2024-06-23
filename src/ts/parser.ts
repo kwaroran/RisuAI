@@ -6,7 +6,8 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { CurrentChat, SizeStore, selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores';
+import { CurrentChat } from "./storage/database";
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';

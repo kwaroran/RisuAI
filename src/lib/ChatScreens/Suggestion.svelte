@@ -2,7 +2,9 @@
 	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
     import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
-    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
+    import { selectedCharID } from "../../ts/stores"
+    import { CurrentCharacter } from "src/ts/storage/database";
+;
     import { translate } from "src/ts/translator/translator";
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";

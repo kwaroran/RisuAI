@@ -7,14 +7,12 @@
     settingsOpen,
     sideBarClosing,
     sideBarStore,
-    CurrentCharacter,
+    PlaygroundStore,
 
-    OpenRealmStore,
-
-    PlaygroundStore
-
+    OpenRealmStore
 
   } from "../../ts/stores";
+    import { CurrentCharacter } from "src/ts/storage/database";
     import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
     import BarIcon from "./BarIcon.svelte";
     import SidebarIndicator from "./SidebarIndicator.svelte";

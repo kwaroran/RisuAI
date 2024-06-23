@@ -3,14 +3,12 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import type { triggerscript } from "src/ts/storage/database";
-    import Check from "../../UI/GUI/CheckInput.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-    import import { CurrentCharacter } from "src/ts/storage/database";
-t { CurrentCharacter } from "src/ts/stores";
+  import Help from "src/lib/Others/Help.svelte";
 
     export let value:triggerscript
     export let lowLevelAble:boolean = false

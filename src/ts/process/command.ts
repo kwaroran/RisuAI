@@ -1,6 +1,8 @@
 import { get } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { selectedCharID } from "../stores";
+import { CurrentChat } from "../storage/database";
+import { CurrentCharacter } from "../storage/database";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";

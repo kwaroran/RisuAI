@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getFileSrc } from "src/ts/storage/globalApi";
-    import { CurrentCharacter } from "src/ts/stores";
+    import { CurrentCharacter } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 

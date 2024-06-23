@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { runTrigger } from "./process/triggers";
-import { CurrentCharacter, CurrentChat } from "./stores";
+import { CurrentChat } from "./storage/database";
+import { CurrentCharacter } from "./storage/database";
 import { runCharacterJS } from "./plugins/embedscript";
 import { sleep } from "./util";
 

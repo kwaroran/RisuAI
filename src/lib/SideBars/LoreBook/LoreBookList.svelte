@@ -1,7 +1,9 @@
 <script lang="ts">
     import { DataBase, type loreBook } from "src/ts/storage/database";
     import LoreBookData from "./LoreBookData.svelte";
-    import { CurrentChat, CurrentCharacter } from "src/ts/stores";
+    import { CurrentChat } from "src/ts/storage/database";
+    import { CurrentCharacter } from "src/ts/storage/database";
+
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { sleep, sortableOptions } from "src/ts/util";
