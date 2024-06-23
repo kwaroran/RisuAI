@@ -2,6 +2,7 @@ import { get, writable, type Writable } from "svelte/store";
 import { DataBase, type Chat, type character, type groupChat } from "./storage/database";
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
+import { sleep } from "./util";
 
 function updateSize(){
     SizeStore.set({
@@ -70,100 +71,104 @@ function createSimpleCharacter(char:character|groupChat){
 }
 
 
-function updateCurrentCharacter(){
-    
-    const db = get(DataBase)
-    if(!db.characters){
-        CurrentCharacter.set(null)
-        updateCurrentChat()
-        return
-    }
-
-    const currentCharId = get(selectedCharID)
-    const currentChar = db.characters[currentCharId]
-    const gotCharacter = get(CurrentCharacter)
-    if(isEqual(gotCharacter, currentChar)){
-        return
-    }
-    if((currentChar?.viewScreen === 'vn') !== get(ShowVN)){
-        ShowVN.set(currentChar?.viewScreen === 'vn')   
-    }
-
-    CurrentCharacter.set(structuredClone(currentChar))
-    const simp = createSimpleCharacter(currentChar)
-    
-    if(!isEqual(get(CurrentSimpleCharacter), simp)){
-        CurrentSimpleCharacter.set(simp)
-    }
-
-    updateCurrentChat()
-}
-
-function updateCurrentChat(){
-    const currentChar = get(CurrentCharacter)
-    if(!currentChar){
-        CurrentChat.set(null)
-        return
-    }
-    const chat = (currentChar.chats[currentChar.chatPage])
-    const gotChat = get(CurrentChat)
-    if(isEqual(gotChat, chat)){
-        return
-    }
-    CurrentChat.set(structuredClone(chat))
-}
-
-DataBase.subscribe((data) => {
-    updateCurrentCharacter()
-    if(data.username !== get(CurrentUsername)){
-        CurrentUsername.set(data.username)
-    }
-    if(data.userIcon !== get(CurrentUserIcon)){
-        CurrentUserIcon.set(data.userIcon)
-    }
-    if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
-        CurrentShowMemoryLimit.set(data.showMemoryLimit)
-    }
-})
-
-selectedCharID.subscribe((id) => {
-
-    updateCurrentCharacter()
-})
-
-CurrentCharacter.subscribe((char) => {
-    updateCurrentChat()
-    let db = get(DataBase)
-    let charId = get(selectedCharID)
-    if(charId === -1 || charId > db.characters.length){
-        return
-    }
-    let cha = db.characters[charId]
-    if(isEqual(cha, char)){
-        return
-    }
-    db.characters[charId] = structuredClone(char)
-    DataBase.set(db)
-})
-
-CurrentChat.subscribe((chat) => {
-    let currentChar = get(CurrentCharacter)
-
-    if(currentChar){
-        if(!isEqual(currentChar.chats[currentChar.chatPage], chat)){
-            currentChar.chats[currentChar.chatPage] = structuredClone(chat)
-            CurrentCharacter.set(currentChar)
+async function preInit(){
+    await sleep(1)  
+    function updateCurrentCharacter(){
+        
+        const db = get(DataBase)
+        if(!db.characters){
+            CurrentCharacter.set(null)
+            updateCurrentChat()
+            return
         }
+
+        const currentCharId = get(selectedCharID)
+        const currentChar = db.characters[currentCharId]
+        const gotCharacter = get(CurrentCharacter)
+        if(isEqual(gotCharacter, currentChar)){
+            return
+        }
+        if((currentChar?.viewScreen === 'vn') !== get(ShowVN)){
+            ShowVN.set(currentChar?.viewScreen === 'vn')   
+        }
+
+        CurrentCharacter.set(structuredClone(currentChar))
+        const simp = createSimpleCharacter(currentChar)
+        
+        if(!isEqual(get(CurrentSimpleCharacter), simp)){
+            CurrentSimpleCharacter.set(simp)
+        }
+
+        updateCurrentChat()
     }
 
-    const variablePointer = get(CurrentVariablePointer)
-    const currentState = structuredClone(chat?.scriptstate)
-
-    if(!isEqual(variablePointer, currentState)){
-        CurrentVariablePointer.set(currentState)
+    function updateCurrentChat(){
+        const currentChar = get(CurrentCharacter)
+        if(!currentChar){
+            CurrentChat.set(null)
+            return
+        }
+        const chat = (currentChar.chats[currentChar.chatPage])
+        const gotChat = get(CurrentChat)
+        if(isEqual(gotChat, chat)){
+            return
+        }
+        CurrentChat.set(structuredClone(chat))
     }
-})
+
+    DataBase.subscribe((data) => {
+        updateCurrentCharacter()
+        if(data.username !== get(CurrentUsername)){
+            CurrentUsername.set(data.username)
+        }
+        if(data.userIcon !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(data.userIcon)
+        }
+        if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
+            CurrentShowMemoryLimit.set(data.showMemoryLimit)
+        }
+    })
+
+    selectedCharID.subscribe((id) => {
+
+        updateCurrentCharacter()
+    })
+
+    CurrentCharacter.subscribe((char) => {
+        updateCurrentChat()
+        let db = get(DataBase)
+        let charId = get(selectedCharID)
+        if(charId === -1 || charId > db.characters.length){
+            return
+        }
+        let cha = db.characters[charId]
+        if(isEqual(cha, char)){
+            return
+        }
+        db.characters[charId] = structuredClone(char)
+        DataBase.set(db)
+    })
+
+    CurrentChat.subscribe((chat) => {
+        let currentChar = get(CurrentCharacter)
+
+        if(currentChar){
+            if(!isEqual(currentChar.chats[currentChar.chatPage], chat)){
+                currentChar.chats[currentChar.chatPage] = structuredClone(chat)
+                CurrentCharacter.set(currentChar)
+            }
+        }
+
+        const variablePointer = get(CurrentVariablePointer)
+        const currentState = structuredClone(chat?.scriptstate)
+
+        if(!isEqual(variablePointer, currentState)){
+            CurrentVariablePointer.set(currentState)
+        }
+    })
+}
 
 
 updateSize()
 window.addEventListener("resize", updateSize);
+preInit()
