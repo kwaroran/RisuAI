@@ -163,9 +163,9 @@
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
     <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
-    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
     <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
-    <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
+    <TextInput hideText marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
     <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
     <SelectInput className="mt-2" bind:value={$DataBase.proxyRequestModel}>
         <OptionInput value="">None</OptionInput>
@@ -174,6 +174,7 @@
         <OptionInput value="gpt4">GPT-4</OptionInput>
         <OptionInput value="gpt4o">GPT-4o</OptionInput>
         <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
+        <OptionInput value="gpt4_turbo">GPT-4 Turbo</OptionInput>
         <OptionInput value="gpt4_1106">GPT-4 Turbo 1106</OptionInput>
         <OptionInput value="gptvi4_1106">GPT-4 Turbo 1106 Vision</OptionInput>
         <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
@@ -190,6 +191,7 @@
         <OptionInput value="claude-instant-v1.1-100k">claude-instant-v1.1-100k</OptionInput>
         <OptionInput value="claude-3-opus-20240229">claude-3-opus-20240229</OptionInput>
         <OptionInput value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</OptionInput>
+        <OptionInput value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</OptionInput>
         <OptionInput value="custom">Custom</OptionInput>
     </SelectInput>
     {#if $DataBase.proxyRequestModel === 'custom'}

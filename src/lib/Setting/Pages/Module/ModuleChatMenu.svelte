@@ -5,7 +5,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import type { RisuModule } from "src/ts/process/modules";
     import { DataBase } from "src/ts/storage/database";
-    import { CurrentChat } from "src/ts/stores";
+    import { CurrentChat } from "src/ts/storage/database";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     export let close = (i:string) => {}
     export let alertMode = false

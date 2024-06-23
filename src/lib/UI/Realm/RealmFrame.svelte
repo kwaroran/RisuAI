@@ -2,7 +2,8 @@
     import { alertMd } from "src/ts/alert";
     import { shareRealmCardData } from "src/ts/realm";
     import { DataBase, downloadPreset } from "src/ts/storage/database";
-    import { CurrentCharacter, ShowRealmFrameStore } from "src/ts/stores";
+    import { ShowRealmFrameStore } from "src/ts/stores"
+    import { CurrentCharacter } from "src/ts/storage/database";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 

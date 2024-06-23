@@ -1,7 +1,7 @@
 <script lang="ts">
     import { DataBase } from "../../../ts/storage/database";
     import { language } from "../../../lang";
-    import {CurrentCharacter, selectedCharID} from '../../../ts/stores'
+    import { CurrentCharacter } from "src/ts/storage/database";
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook";
     import Check from "../../UI/GUI/CheckInput.svelte";

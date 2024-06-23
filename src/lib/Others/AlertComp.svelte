@@ -1,20 +1,19 @@
 <script lang="ts">
     import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
-    import { DataBase } from '../../ts/storage/database';
+    import { CurrentCharacter, DataBase } from '../../ts/storage/database';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
     import { ChevronRightIcon, User } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { openURL } from 'src/ts/storage/globalApi';
+    import { getFetchData, openURL } from 'src/ts/storage/globalApi';
     import Button from '../UI/GUI/Button.svelte';
     import { XIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
-    import { getFetchData } from 'src/ts/storage/globalApi';
-    import { CurrentChat, CurrentCharacter } from "src/ts/stores";
+    import { CurrentChat } from "src/ts/storage/database";;
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";

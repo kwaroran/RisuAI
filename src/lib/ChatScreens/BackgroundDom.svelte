@@ -1,7 +1,9 @@
 <script lang="ts">
     import { ParseMarkdown, risuChatParser } from "src/ts/parser";
     import { DataBase, type Database, type character, type groupChat } from "src/ts/storage/database";
-    import { CurrentVariablePointer, selectedCharID } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
+    import { CurrentVariablePointer } from "src/ts/storage/database";
+
     import { onDestroy } from "svelte";
 
     let backgroundHTML = ''

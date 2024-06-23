@@ -22,7 +22,7 @@
         class:h-full={fullh}
         class:text-textcolor2={disabled}
 
-        {autocomplete}
+        autocomplete="new-password"
         {placeholder}
         id={id}
         type="password"

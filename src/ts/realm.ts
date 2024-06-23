@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 import { exportCharacterCard } from "./characterCards";
 import { VirtualWriter, isTauri, openURL } from "./storage/globalApi";
 import { sleep } from "./util";
-import { CurrentCharacter } from "./stores";
+import { CurrentCharacter } from "./storage/database";
 import { DataBase, type character } from "./storage/database";
 import { alertStore } from "./alert";
 

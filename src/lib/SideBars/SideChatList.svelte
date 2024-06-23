@@ -9,10 +9,10 @@
     import Button from "../UI/GUI/Button.svelte";
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
-    import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { CurrentCharacter } from "src/ts/stores";
+    import { CurrentCharacter } from "src/ts/storage/database";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
-  import { onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
+    import { createMultiuserRoom } from "src/ts/sync/multiuser";
 
     export let chara:character|groupChat
     let editMode = false

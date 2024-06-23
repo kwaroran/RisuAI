@@ -4,8 +4,7 @@
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, CurrentVariablePointer } from "../../ts/stores";
+    import { DataBase, type MessageGenerationInfo, CurrentCharacter, CurrentChat, CurrentVariablePointer } from "src/ts/storage/database"
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
@@ -13,7 +12,7 @@
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
-  import { longpress } from "src/ts/gui/longtouch";
+    import { longpress } from "src/ts/gui/longtouch";
     export let message = ''
     export let name = ''
     export let largePortrait = false

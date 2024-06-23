@@ -2,7 +2,13 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter, PlaygroundStore } from "../../ts/stores";
+    import { PlaygroundStore, selectedCharID } from "../../ts/stores";
+    import { CurrentShowMemoryLimit } from "src/ts/storage/database";
+    import { CurrentUserIcon } from "src/ts/storage/database";
+    import { CurrentUsername } from "src/ts/storage/database";
+    import { CurrentChat } from "src/ts/storage/database";
+    import { CurrentSimpleCharacter } from "src/ts/storage/database";
+    import { CurrentCharacter } from "src/ts/storage/database";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";

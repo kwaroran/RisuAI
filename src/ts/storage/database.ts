@@ -11,10 +11,18 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
+import * as fflate from "fflate";
+import type { OnnxModelFiles } from '../process/transformers';
+import type { RisuModule } from '../process/modules';
+import type { HypaV2Data } from '../process/memory/hypav2';
+import { selectedCharID } from "../stores";
+import { createSimpleCharacter } from "../stores";
+import { isEqual } from 'lodash';
 
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "115.1.2"
+export let appVer = "115.1.3"
 export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
@@ -1277,12 +1285,6 @@ export function setPreset(db:Database, newPres: botPreset){
     return db
 }
 
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
-import * as fflate from "fflate";
-import type { OnnxModelFiles } from '../process/transformers';
-import type { RisuModule } from '../process/modules';
-import type { HypaV2Data } from '../process/memory/hypav2';
-
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
     let db = get(DataBase)
@@ -1484,4 +1486,118 @@ export async function importPreset(f:{
     pre.name ??= "Imported"
     db.botPresets.push(pre)
     setDatabase(db)
+}
+
+//optimization
+let db = DataBase ? get(DataBase) : null
+let currentChar = -1
+try {currentChar = get(selectedCharID)
+} catch (error) {}
+let currentCharacter = db?.characters ? (db.characters[currentChar]) : null
+let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
+export const CurrentCharacter = writable(currentCharacter ? structuredClone(currentCharacter) : null);
+export const CurrentSimpleCharacter = writable(createSimpleCharacter(currentCharacter));
+export const CurrentChat = writable(currentChat ? structuredClone(currentChat) : null);
+export const CurrentUsername = writable(db.username);
+export const CurrentUserIcon = writable(db.userIcon);
+export const CurrentShowMemoryLimit = writable(db.showMemoryLimit);
+export const CurrentVariablePointer = writable({} as { [key: string]: string | number | boolean; });
+export const ShowVN = writable(false);
+
+
+{
+
+    function updateCurrentCharacter(){
+        
+        const db = get(DataBase)
+        if(!db.characters){
+            CurrentCharacter.set(null)
+            updateCurrentChat()
+            return
+        }
+
+        const currentCharId = get(selectedCharID)
+        const currentChar = db.characters[currentCharId]
+        const gotCharacter = get(CurrentCharacter)
+        if(isEqual(gotCharacter, currentChar)){
+            return
+        }
+        if((currentChar?.viewScreen === 'vn') !== get(ShowVN)){
+            ShowVN.set(currentChar?.viewScreen === 'vn')   
+        }
+
+        CurrentCharacter.set(structuredClone(currentChar))
+        const simp = createSimpleCharacter(currentChar)
+        
+        if(!isEqual(get(CurrentSimpleCharacter), simp)){
+            CurrentSimpleCharacter.set(simp)
+        }
+
+        updateCurrentChat()
+    }
+
+    function updateCurrentChat(){
+        const currentChar = get(CurrentCharacter)
+        if(!currentChar){
+            CurrentChat.set(null)
+            return
+        }
+        const chat = (currentChar.chats[currentChar.chatPage])
+        const gotChat = get(CurrentChat)
+        if(isEqual(gotChat, chat)){
+            return
+        }
+        CurrentChat.set(structuredClone(chat))
+    }
+
+    DataBase.subscribe((data) => {
+        updateCurrentCharacter()
+        if(data.username !== get(CurrentUsername)){
+            CurrentUsername.set(data.username)
+        }
+        if(data.userIcon !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(data.userIcon)
+        }
+        if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
+            CurrentShowMemoryLimit.set(data.showMemoryLimit)
+        }
+    })
+
+    selectedCharID.subscribe((id) => {
+
+        updateCurrentCharacter()
+    })
+
+    CurrentCharacter.subscribe((char) => {
+        updateCurrentChat()
+        let db = get(DataBase)
+        let charId = get(selectedCharID)
+        if(charId === -1 || charId > db.characters.length){
+            return
+        }
+        let cha = db.characters[charId]
+        if(isEqual(cha, char)){
+            return
+        }
+        db.characters[charId] = structuredClone(char)
+        DataBase.set(db)
+    })
+
+    CurrentChat.subscribe((chat) => {
+        let currentChar = get(CurrentCharacter)
+
+        if(currentChar){
+            if(!isEqual(currentChar.chats[currentChar.chatPage], chat)){
+                currentChar.chats[currentChar.chatPage] = structuredClone(chat)
+                CurrentCharacter.set(currentChar)
+            }
+        }
+
+        const variablePointer = get(CurrentVariablePointer)
+        const currentState = structuredClone(chat?.scriptstate)
+
+        if(!isEqual(variablePointer, currentState)){
+            CurrentVariablePointer.set(currentState)
+        }
+    })
 }
