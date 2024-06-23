@@ -1,3 +1,8 @@
+export const DataBase = writable({} as any as Database)
+export const loadedStore = writable(false)
+export let appVer = "115.1.2"
+export let webAppSubVer = ''
+
 import { get, writable } from 'svelte/store';
 import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
@@ -11,11 +16,6 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
-
-export const DataBase = writable({} as any as Database)
-export const loadedStore = writable(false)
-export let appVer = "115.1.2"
-export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
