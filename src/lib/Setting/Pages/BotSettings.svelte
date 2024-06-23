@@ -163,9 +163,9 @@
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
     <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
-    <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
+    <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
     <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
-    <TextInput marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
+    <TextInput hideText marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
     <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
     <SelectInput className="mt-2" bind:value={$DataBase.proxyRequestModel}>
         <OptionInput value="">None</OptionInput>
