@@ -9,8 +9,8 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-    import Help from "src/lib/Others/Help.svelte";
-    import { CurrentCharacter } from "src/ts/stores";
+    import import { CurrentCharacter } from "src/ts/storage/database";
+t { CurrentCharacter } from "src/ts/stores";
 
     export let value:triggerscript
     export let lowLevelAble:boolean = false
