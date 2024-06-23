@@ -76,7 +76,7 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.4",
     "@capacitor/cli": "^5.6.0",
-    "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "@sveltejs/vite-plugin-svelte": "3.0.1",
     "@swc/core": "1.5.7",
     "@tailwindcss/typography": "^0.5.10",
     "@tauri-apps/cli": "1.5.11",
@@ -105,7 +105,7 @@
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
     "vite": "5.2.12",
-    "vite-plugin-top-level-await": "^1.4.1",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-top-level-await": "1.4.1",
+    "vite-plugin-wasm": "3.3.0"
   }
 }
