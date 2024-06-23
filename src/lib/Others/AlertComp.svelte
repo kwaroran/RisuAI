@@ -448,14 +448,27 @@
     </div>
 
 {:else if $alertStore.type === 'toast'}
-    <div class="toast-anime absolute right-0 bottom-0 bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-11/12 overflow-y-auto z-50 text-textcolor"
+    <div class="toast-anime absolute right-2 top-2 bg-darkbg p-4 break-any rounded-md flex flex-col lg:max-w-3xl max-w-full max-h-11/12 overflow-y-auto z-50 text-textcolor"
         on:animationend={() => {
             alertStore.set({
                 type: 'none',
                 msg: ''
             })
         }}
-    >{$alertStore.msg}</div>
+        on:click={() => {
+            if($alertStore.submsg){
+                alertStore.set({
+                    type: 'markdown',
+                    msg: $alertStore.submsg
+                })
+            }
+        }}
+    >
+    <span>{$alertStore.msg}</span>
+    {#if $alertStore.submsg}
+        <span class="text-gray-500 text-sm">Click to view</span>
+    {/if}
+</div>
 {:else if $alertStore.type === 'selectModule'}
     <ModuleChatMenu alertMode close={(d) => {
         alertStore.set({

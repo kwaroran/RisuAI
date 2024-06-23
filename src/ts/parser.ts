@@ -1968,48 +1968,77 @@ async function editDisplay(text){
     return rt
 }
 
-export type PromptParsed ={[key:string]:string|PromptParsed}
-
-export async function promptTypeParser(prompt:string):Promise<string | PromptParsed>{
-    //XML type
-    try {
-        const parser = new DOMParser()
-        const dom = `<root>${prompt}</root>`
-        const xmlDoc = parser.parseFromString(dom, "text/xml")
-        const root = xmlDoc.documentElement
-
-        const errorNode = root.getElementsByTagName('parsererror')
-
-        if(errorNode.length > 0){
-            throw new Error('XML Parse Error') //fallback to other parser
-        }
-
-        const parseNode = (node:Element):string|PromptParsed => {
-            if(node.children.length === 0){
-                return node.textContent
-            }
-
-            const data:{[key:string]:string|PromptParsed} = {}
-
-            for(let i=0;i<node.children.length;i++){
-                const child = node.children[i]
-                data[child.tagName] = parseNode(child)
-            }
-
-            return data
-        }
-
-        const pnresult = parseNode(root)
-
-        if(typeof(pnresult) === 'string'){
-            throw new Error('XML Parse Error') //fallback to other parser
-        }
-
-        return pnresult
-
-    } catch (error) {
-        
+export function markdownPromptToXML(prompt:string):string{
+    let tp = prompt.trim()
+    if(!tp.startsWith('#')){
+        return prompt
     }
 
-    return prompt
+    const lines = tp.split('\n')
+    let tree:{
+        depth:number
+        content:string
+        name:string
+        type:'header'|'list'|'normal'
+    }[] = []
+
+    for(let i=0;i<lines.length;i++){
+        const line = lines[i]
+        const trimedLine = line.trim()
+        if(trimedLine === ''){
+            continue
+        }
+
+        if(line.startsWith('#')){
+            let depth = 0
+            while(line[depth] === '#'){
+                depth++
+            }
+
+            tree.push({
+                depth: depth,
+                name: line.substring(depth).trim(),
+                content: '',
+                type: 'header'
+            })
+        }
+        else if(trimedLine.startsWith('- ')){
+            let depth = 0
+            while(line[depth] === ' '){
+                depth++
+            }
+            depth = Math.floor(depth / 2)
+            
+            const lastTree = tree.at(-1)
+
+            if(lastTree.type === 'list' && lastTree.depth < depth){
+                tree.at(-1).name = tree.at(-1).content
+                tree.at(-1).content = ''
+            }
+            tree.push({
+                depth: depth,
+                name: '',
+                content: line.substring(depth).trim(),
+                type: 'list'
+            })
+        }
+        else{
+            tree.push({
+                depth: 0,
+                name: '',
+                content: line,
+                type: 'normal'
+            })
+        }
+    }
+
+    for(let i=0;i<tree.length;i++){
+        const current = tree[i]
+        if(current.content === '' && current.name !== ''){
+            
+        }
+    }
+
+    return JSON.stringify(tree, null, 2)
+    // return prompt
 }

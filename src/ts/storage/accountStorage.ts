@@ -2,7 +2,7 @@ import { get } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertLogin, alertStore } from "../alert"
+import { alertLogin, alertStore, alertToast } from "../alert"
 import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
@@ -29,12 +29,19 @@ export class AccountStorage{
                 return key
             }
             if(da.status === 403){
+                if(da.headers.get('x-risu-status') === 'warn'){
+                    alertToast('Save Warning',(await da.json()).warning)
+                    return
+                }
                 localStorage.setItem("fallbackRisuToken",await alertLogin())
                 this.checkAuth()
             }
         }
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
+        }
+        if(da.headers.get('x-risu-status') === 'warn'){
+            alertToast('Save Warning',(await da.json()).warning)
         }
         return await da.text()
     }

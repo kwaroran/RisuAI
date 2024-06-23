@@ -12,6 +12,7 @@
     import { DataBase, setDatabase, type character } from "src/ts/storage/database";
   import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
   import PlaygroundParser from "./PlaygroundParser.svelte";
+  import PlaygroundPromptConvert from "./PlaygroundPromptConvert.svelte";
 
     const playgroundChat = () => {
         let db = get(DataBase)
@@ -81,6 +82,11 @@
             }}>
                 <h1 class="text-2xl font-bold text-start">Parser</h1>
             </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                PlaygroundStore.set(9)
+            }}>
+                <h1 class="text-2xl font-bold text-start">Prompt Convert</h1>
+            </button>
         </div>
     {:else}
         {#if $SizeStore.w < 1024}
@@ -113,6 +119,9 @@
             {/if}  
             {#if $PlaygroundStore === 8}
                 <PlaygroundParser/>
+            {/if}
+            {#if $PlaygroundStore === 9}
+                <PlaygroundPromptConvert/>
             {/if}  
         </div>
     {/if}

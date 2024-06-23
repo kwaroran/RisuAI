@@ -149,11 +149,14 @@ export function doingAlert(){
     return get(alertStore).type !== 'none' && get(alertStore).type !== 'toast'
 }
 
-export function alertToast(msg:string){
-    alertStore.set({
-        'type': 'toast',
-        'msg': msg
-    })
+export function alertToast(msg:string, submsg:string = ''){
+    if(!doingAlert()){
+        alertStore.set({
+            'type': 'toast',
+            'msg': msg,
+            'submsg': submsg
+        })
+    }
 }
 
 export function alertWait(msg:string){
