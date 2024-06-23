@@ -26,10 +26,6 @@ export const botMakerMode = writable(false)
 
 //optimization
 
-let db = get(DataBase)
-let currentChar = get(selectedCharID)
-let currentCharacter = db.characters ? (db.characters[currentChar]) : null
-let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>
 export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
 export const CurrentChat = writable(null) as Writable<Chat>
@@ -37,6 +33,10 @@ export const CurrentUsername = writable('') as Writable<string>
 export const CurrentUserIcon = writable('') as Writable<string>
 export const CurrentShowMemoryLimit = writable(false) as Writable<boolean>
 try {
+    let db = get(DataBase)
+    let currentChar = get(selectedCharID)
+    let currentCharacter = db.characters ? (db.characters[currentChar]) : null
+    let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
     CurrentCharacter.set(structuredClone(currentCharacter))
     CurrentSimpleCharacter.set(createSimpleCharacter(currentCharacter))
     CurrentChat.set(structuredClone(currentChat))
