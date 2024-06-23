@@ -1,5 +1,5 @@
-import { get, writable } from "svelte/store";
-import { DataBase, type character, type groupChat } from "./storage/database";
+import { get, writable, type Writable } from "svelte/store";
+import { DataBase, type Chat, type character, type groupChat } from "./storage/database";
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
 
@@ -26,16 +26,24 @@ export const botMakerMode = writable(false)
 
 //optimization
 
-let db = get(DataBase)
-let currentChar = get(selectedCharID)
-let currentCharacter = db.characters ? (db.characters[currentChar]) : null
-let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
-export const CurrentCharacter = writable(structuredClone(currentCharacter))
-export const CurrentSimpleCharacter = writable(createSimpleCharacter(currentCharacter))
-export const CurrentChat = writable(structuredClone(currentChat))
-export const CurrentUsername = writable(db.username)
-export const CurrentUserIcon = writable(db.userIcon)
-export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
+export const CurrentCharacter = writable(null) as Writable<character | groupChat>
+export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
+export const CurrentChat = writable(null) as Writable<Chat>
+export const CurrentUsername = writable('') as Writable<string>
+export const CurrentUserIcon = writable('') as Writable<string>
+export const CurrentShowMemoryLimit = writable(false) as Writable<boolean>
+try {
+    let db = get(DataBase)
+    let currentChar = get(selectedCharID)
+    let currentCharacter = db.characters ? (db.characters[currentChar]) : null
+    let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
+    CurrentCharacter.set(structuredClone(currentCharacter))
+    CurrentSimpleCharacter.set(createSimpleCharacter(currentCharacter))
+    CurrentChat.set(structuredClone(currentChat))
+    CurrentUsername.set(db.username)
+    CurrentUserIcon.set(db.userIcon)
+    CurrentShowMemoryLimit.set(db.showMemoryLimit)
+} catch (error) {}
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
 export const CurrentVariablePointer = writable({} as {[key:string]: string|number|boolean})
