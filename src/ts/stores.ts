@@ -26,13 +26,13 @@ export const botMakerMode = writable(false)
 
 //optimization
 
-let db = get(DataBase)
+let db = DataBase ? get(DataBase) : null
 let currentChar = get(selectedCharID)
-let currentCharacter = db.characters ? (db.characters[currentChar]) : null
+let currentCharacter = db?.characters ? (db.characters[currentChar]) : null
 let currentChat = currentCharacter ? (currentCharacter.chats[currentCharacter.chatPage]) : null
-export const CurrentCharacter = writable(structuredClone(currentCharacter))
+export const CurrentCharacter = writable(currentCharacter ? structuredClone(currentCharacter) : null)
 export const CurrentSimpleCharacter = writable(createSimpleCharacter(currentCharacter))
-export const CurrentChat = writable(structuredClone(currentChat))
+export const CurrentChat = writable(currentChat ? structuredClone(currentChat) : null)
 export const CurrentUsername = writable(db.username)
 export const CurrentUserIcon = writable(db.userIcon)
 export const CurrentShowMemoryLimit = writable(db.showMemoryLimit)
