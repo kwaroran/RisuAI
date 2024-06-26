@@ -399,7 +399,10 @@ type matcherArg = {
     text?:string,
     recursiveCount?:number
 }
-const matcher = (p1:string,matcherArg:matcherArg) => {
+function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
+    text:string,
+    var:{[key:string]:string}
+}|string|null {
     try {
         if(p1.length > 100000){
             return ''
@@ -568,7 +571,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'first_msg_index':{
                 const selchar = db.characters[get(selectedCharID)]
-                return selchar.firstMsgIndex
+                return selchar.firstMsgIndex.toString()
             }
             case 'blank':
             case 'none':{
@@ -756,7 +759,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return ''
                 }
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.length - 1
+                return (chat.message.length - 1).toString()
             }
             case 'emotionlist':{
                 const selchar = db.characters[get(selectedCharID)]
@@ -790,6 +793,29 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         if(arra.length > 1){
             const v = arra[1]
             switch(arra[0]){
+                case 'tempvar':
+                case 'gettempvar':{
+                    console.log(vars)
+                    return {
+                        text: vars[arra[1]] ?? '',
+                        var: vars
+                    }
+                }
+                case 'settempvar':{
+                    vars[arra[1]] = arra[2]
+                    return {
+                        text: '',
+                        var: vars
+                    }
+                }
+                case 'return':{
+                    vars['__return__'] = arra[1]
+                    vars['__force_return__'] = '1'
+                    return {
+                        text: '',
+                        var: vars
+                    }
+                }
                 case 'getvar':{
                     return getChatVar(v)
                 }
@@ -1425,6 +1451,8 @@ export function risuChatParser(da:string, arg:{
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
     let thinkingMode = false
+    let tempVar:{[key:string]:string} = {}
+
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -1435,7 +1463,7 @@ export function risuChatParser(da:string, arg:{
         displaying: arg.visualize ?? false,
         role: arg.role,
         runVar: arg.runVar ?? false,
-        consistantChar: arg.consistantChar ?? false
+        consistantChar: arg.consistantChar ?? false,
     }
 
 
@@ -1546,8 +1574,20 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                 }
-                const mc = isPureMode() ? null :matcher(dat, matcherObj)
-                nested[0] += mc ?? `{{${dat}}}`
+                const mc = isPureMode() ? null :basicMatcher(dat, matcherObj, tempVar)
+                if(!mc && mc !== ''){
+                    nested[0] += `{{${dat}}}`
+                }
+                else if(typeof(mc) === 'string'){
+                    nested[0] += mc
+                }
+                else{
+                    nested[0] += mc.text
+                    tempVar = mc.var
+                    if(tempVar['__force_return__']){
+                        return tempVar['__return__'] ?? 'null'
+                    }
+                }
                 break
             }
             case '>':{
@@ -1653,24 +1693,10 @@ export function risuChatParser(da:string, arg:{
 export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:string]:string}):Promise<{
     text:string,
     var:{[key:string]:string}
-}> {
+}|void|null> {
     const arra = p1.split('::')
 
     switch(arra[0]){
-        case 'localvar':
-        case 'getlocalvar':{
-            return {
-                text: vars[arra[1]] ?? '',
-                var: vars
-            }
-        }
-        case 'setlocalvar':{
-            vars[arra[1]] = arra[2]
-            return {
-                text: '',
-                var: vars
-            }
-        }
         case 'pushchat':
         case 'addchat':
         case 'add_chat':
@@ -1678,6 +1704,13 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
             const chat = get(CurrentChat)
             chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
             CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'yield':{
+            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
             return {
                 text: '',
                 var: vars
@@ -1726,27 +1759,17 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 var: vars
             }
         }
-        case 'yield':{
-            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'return':{
-            vars['__return__'] = arra[1]
-            vars['__force_return__'] = '1'
-            return {
-                text: '',
-                var: vars
-            }
+    }
+
+    const matched = basicMatcher(p1, matcherArg)
+    if(typeof(matched) === 'string'){
+        return {
+            text: matched,
+            var: vars
         }
     }
 
-    return {
-        text: matcher(p1, matcherArg).toString(),
-        var: vars
-    }
+    return matched
 }
 
 
@@ -1892,11 +1915,16 @@ export async function risuCommandParser(da:string, arg:{
                     text:null,
                     var:tempVar
                 } : (await commandMatcher(dat, matcherObj, tempVar))
-                tempVar = mc.var
-                if(tempVar['__force_return__']){
-                    return tempVar
+                if(mc && (mc.text || mc.text === '')){
+                    tempVar = mc.var
+                    if(tempVar['__force_return__']){
+                        return tempVar
+                    }
+                    nested[0] += mc.text ?? `{{${dat}}}`
                 }
-                nested[0] += mc.text ?? `{{${dat}}}`
+                else{
+                    nested[0] += `{{${dat}}}`
+                }
                 break
             }
             default:{

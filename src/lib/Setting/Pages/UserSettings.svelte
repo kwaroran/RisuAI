@@ -4,7 +4,7 @@
     import { loadRisuAccountBackup, loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-    import { alertConfirm, alertNormal } from "src/ts/alert";
+    import { alertConfirm, alertError, alertNormal } from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
@@ -46,6 +46,10 @@
 <Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
+            if(!isTauri && !isNodeServer && !Capacitor.isNativePlatform()){
+                alertError("This feature is temporarily disabled in the web version. due to high server load.")
+                return
+            }
             SaveLocalBackup()
         }
     }} className="mt-2">
@@ -76,11 +80,14 @@
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
+            
             if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
                 checkDriver('savetauri')
             }
             else{
-                checkDriver('save')
+                alertError("This feature is temporarily disabled in the web version. due to high server load.")
+                return
+                // checkDriver('save')
             }
         }
     }} className="mt-2">
