@@ -1051,7 +1051,7 @@ export function createBaseV3(char:character){
                 type: 'x-risu-asset',
                 uri: asset[1],
                 name: asset[0],
-                ext: asset[2] || 'unknown'
+                ext: asset[2] || 'png'
             })
         }
     }
@@ -1062,7 +1062,7 @@ export function createBaseV3(char:character){
                 type: 'emotion',
                 uri: asset[1],
                 name: asset[0],
-                ext: 'unknown'
+                ext: 'png'
             })
         }
     
