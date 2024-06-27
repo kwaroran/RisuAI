@@ -46,10 +46,6 @@
 <Button
     on:click={async () => {
         if(await alertConfirm(language.backupConfirm)){
-            if(!isTauri && !isNodeServer && !Capacitor.isNativePlatform()){
-                alertError("This feature is temporarily disabled in the web version. due to high server load.")
-                return
-            }
             SaveLocalBackup()
         }
     }} className="mt-2">
@@ -85,9 +81,7 @@
                 checkDriver('savetauri')
             }
             else{
-                alertError("This feature is temporarily disabled in the web version. due to high server load.")
-                return
-                // checkDriver('save')
+                checkDriver('save')
             }
         }
     }} className="mt-2">
