@@ -1,4 +1,4 @@
-import { risuChatParser } from "../parser";
+import { risuChatParser, risuCommandParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
@@ -23,13 +23,18 @@ export interface triggerscript{
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
+export type triggerEffect = triggerCode|triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
 
 export type triggerConditionsVar = {
     type:'var'|'value'
     var:string
     value:string
     operator:'='|'!='|'>'|'<'|'>='|'<='|'null'|'true'
+}
+
+export type triggerCode = {
+    type: 'triggercode',
+    code: string
 }
 
 export type triggerConditionsChatIndex = {
@@ -202,7 +207,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 continue
             }
         }
-        else if(mode !== trigger.type){
+        else if(mode !== trigger.type && trigger.effect[0]?.type !== 'triggercode'){
             continue
         }
 
@@ -517,6 +522,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const res = `{{inlay::${inlay}}}`
                     setVar(effect.inputVar, res)
                     break
+                }
+
+                case 'triggercode':{
+                    const triggerCodeResult = await risuCommandParser(effect.code,{
+                        chara:char,
+                        lowLevelAccess: trigger.lowLevelAccess,
+                        funcName: mode
+                    })
+
+                    if(triggerCodeResult['__stop_chat__'] === '1'){
+                        stopSending = true
+                    }
+                    break
+
                 }
             }
         }

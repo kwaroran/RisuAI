@@ -9,9 +9,14 @@ import css from '@adobe/css-tools'
 import { CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage } from './process/files/image';
+import { getInlayImage, writeInlayImage } from './process/files/image';
 import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
+import { HypaProcesser } from './process/memory/hypamemory';
+import { generateAIImage } from './process/stableDiff';
+import { requestChatData } from './process/request';
+import type { OpenAIChat } from './process';
+import { alertInput, alertNormal } from './alert';
 
 const mconverted = new Marked({
     gfm: true,
@@ -398,6 +403,7 @@ type matcherArg = {
     funcName?:string
     text?:string,
     recursiveCount?:number
+    lowLevelAccess?:boolean
 }
 function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
     text:string,
@@ -1132,6 +1138,78 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         }
                     }))
                 }
+                case 'all':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const all = array.every((f) => {
+                        return f === '1'
+                    })
+                    return all ? '1' : '0'
+                }
+                case 'any':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const any = array.some((f) => {
+                        return f === '1'
+                    })
+                    return any ? '1' : '0'
+                }
+                case 'min':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.min(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'max':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.max(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'sum':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0).toString()
+                }
+                case 'average':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const sum = val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0)
+                    return (sum / val.length).toString()
+                }
+                case 'fixnum':
+                case 'fix_num':
+                case 'fixnumber':
+                case 'fix_number':{
+                    return Number(arra[1]).toFixed(Number(arra[2]))
+                }
+                case 'unicode_encode':
+                case 'unicodeencode':{
+                    return arra[1].charCodeAt(arra[2] ? Number(arra[2]) : 0).toString()
+                }
+                case 'unicode_decode':
+                case 'unicodedecode':{
+                    return String.fromCharCode(Number(arra[1]))
+                }
+                case 'hash':{
+                    return ((pickHashRand(0, arra[1]) * 10000000) + 1).toFixed(0).padStart(7, '0')
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -1725,6 +1803,45 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
             }
             CurrentChat.set(chat)
         }
+        case 'set_chat_role':
+        case 'setchatrole':{
+            const chat = get(CurrentChat)
+            const message = chat.message?.at(Number(arra[1]))
+            if(message){
+                message.role = arra[2] === 'user' ? 'user' : 'char'
+            }
+            CurrentChat.set(chat)
+        }
+        case 'cutchat':
+        case 'cut_chat':{
+            const chat = get(CurrentChat)
+            chat.message = chat.message.slice(Number(arra[1]), Number(arra[2]))
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'insertchat':
+        case 'insert_chat':{
+            const chat = get(CurrentChat)
+            chat.message.splice(Number(arra[1]), 0, {role: arra[2] === 'user' ? 'user' : 'char', data: arra[3] ?? ''})
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'removechat':
+        case 'remove_chat':{
+            const chat = get(CurrentChat)
+            chat.message.splice(Number(arra[1]), 1)
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
         case 'regex':{
             const reg = new RegExp(arra[1], arra[2])
             const match = reg.exec(arra[3])
@@ -1759,6 +1876,136 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 var: vars
             }
         }
+        case 'stop_chat':{
+            vars['__stop_chat__'] = '1'
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'similaritysearch':
+        case 'similarity_search':
+        case 'similarity':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const processer = new HypaProcesser('MiniLM')
+            const source = arra[1]
+            const target = parseArray(arra[2])
+            await processer.addText(target)
+            const result = await processer.similaritySearch(source)
+            return {
+                text: makeArray(result),
+                var: vars
+            }
+        }
+        case 'image_generation':
+        case 'imagegeneration':
+        case 'imagegen':
+        case 'image_gen':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const prompt = arra[1]
+            const negative = arra[2] || ''
+            const char = matcherArg.chara
+
+            const gen = await generateAIImage(prompt, char as character, negative, 'inlay')
+            if(!gen){
+                return {
+                    text: 'ERROR: Image generation failed',
+                    var: vars
+                }
+            }
+            const imgHTML = new Image()
+            imgHTML.src = gen
+            const inlay = await writeInlayImage(imgHTML)
+            return {
+                text: inlay,
+                var: vars
+            }
+        }
+        case 'send_llm':
+        case 'llm':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const prompt = parseArray(arra[1])
+            let promptbody:OpenAIChat[] = prompt.map((f) => {
+                const dict = parseDict(f)
+                let role:'system'|'user'|'assistant' = 'assistant'
+                switch(dict['role']){
+                    case 'system':
+                    case 'sys':
+                        role = 'system'
+                        break
+                    case 'user':
+                        role = 'user'
+                        break
+                    case 'assistant':
+                    case 'bot':
+                    case 'char':{
+                        role = 'assistant'
+                        break
+                    }
+                }
+
+                return {
+                    content: dict['content'] ?? '',
+                    role: role,
+                }
+            })
+            const result = await requestChatData({
+                formated: promptbody,
+                bias: {},
+                useStreaming: false,
+                noMultiGen: true,
+            }, 'model')
+
+            if(result.type === 'fail'){
+                return {
+                    text: 'ERROR: ' + result.result,
+                    var: vars
+                }
+            }
+
+            if(result.type === 'streaming' || result.type === 'multiline'){
+                return {
+                    text: 'ERROR: Streaming and multiline is not supported in this context',
+                    var: vars
+                }
+            }
+
+            return {
+                text: result.result,
+                var: vars
+            }
+        }
+        case 'alert':{
+            alertNormal(arra[1])
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'input':
+        case 'alert_input':
+        case 'alertinput':{
+            const input = await alertInput(arra[1])
+            return {
+                text: input,
+                var: vars
+            }
+        }
     }
 
     const matched = basicMatcher(p1, matcherArg)
@@ -1779,6 +2026,7 @@ export async function risuCommandParser(da:string, arg:{
     funcName?:string
     passed?:string[],
     recursiveCount?:number
+    lowLevelAccess?:boolean
 } = {}):Promise<{[key:string]:string}>{
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
@@ -1821,7 +2069,8 @@ export async function risuCommandParser(da:string, arg:{
         consistantChar: false,
         funcName: arg.funcName ?? null,
         text: da,
-        recursiveCount: recursiveCount
+        recursiveCount: recursiveCount,
+        lowLevelAccess: arg.lowLevelAccess ?? false
     }
 
     let tempVar:{[key:string]:string} = {}

@@ -1,4 +1,4 @@
-import { getChatVar } from "../parser";
+import { getChatVar, getGlobalChatVar } from "../parser";
 
 function toRPN(expression:string) {
     let outputQueue = '';
@@ -109,6 +109,13 @@ function calculateRPN(expression:string) {
 function executeRPNCalculation(text:string) {
     text = text.replace(/\$([a-zA-Z0-9_]+)/g, (_, p1) => {
         const v = getChatVar(p1)
+        const parsed = parseFloat(v)
+        if(isNaN(parsed)){
+            return "0"
+        }
+        return parsed.toString()
+    }).replace(/\@([a-zA-Z0-9_]+)/g, (_, p1) => {
+        const v = getGlobalChatVar(p1)
         const parsed = parseFloat(v)
         if(isNaN(parsed)){
             return "0"
