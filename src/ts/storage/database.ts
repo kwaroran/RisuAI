@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "116.0.1"
+export let appVer = "117.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
