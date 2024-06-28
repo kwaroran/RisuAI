@@ -1138,6 +1138,78 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         }
                     }))
                 }
+                case 'all':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const all = array.every((f) => {
+                        return f === '1'
+                    })
+                    return all ? '1' : '0'
+                }
+                case 'any':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const any = array.some((f) => {
+                        return f === '1'
+                    })
+                    return any ? '1' : '0'
+                }
+                case 'min':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.min(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'max':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.max(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'sum':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0).toString()
+                }
+                case 'average':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const sum = val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0)
+                    return (sum / val.length).toString()
+                }
+                case 'fixnum':
+                case 'fix_num':
+                case 'fixnumber':
+                case 'fix_number':{
+                    return Number(arra[1]).toFixed(Number(arra[2]))
+                }
+                case 'unicode_encode':
+                case 'unicodeencode':{
+                    return arra[1].charCodeAt(arra[2] ? Number(arra[2]) : 0).toString()
+                }
+                case 'unicode_decode':
+                case 'unicodedecode':{
+                    return String.fromCharCode(Number(arra[1]))
+                }
+                case 'hash':{
+                    return ((pickHashRand(0, arra[1]) * 10000000) + 1).toFixed(0).padStart(7, '0')
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -1739,18 +1811,6 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 message.role = arra[2] === 'user' ? 'user' : 'char'
             }
             CurrentChat.set(chat)
-        }
-        case 'push_chat':
-        case 'add_chat':
-        case 'addchat':
-        case 'pushchat':{
-            const chat = get(CurrentChat)
-            chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
         }
         case 'cutchat':
         case 'cut_chat':{
