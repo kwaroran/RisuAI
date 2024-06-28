@@ -73,6 +73,7 @@
                 onInput()
             }}
             translate="no"
+            
         >{value ?? ''}</div>
     {/if}
 </div>

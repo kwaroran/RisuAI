@@ -580,7 +580,44 @@
         }}><PlusIcon /></button>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
-        <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
+        <div class="flex items-start mt-2 gap-2">
+            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'} on:click|stopPropagation={async () => {
+                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'){
+                    const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
+                    if(codeTrigger){
+                        const t = await alertConfirm(language.triggerSwitchWarn)
+                        if(!t){
+                            return
+                        }
+                    }
+                    currentChar.data.triggerscript = []
+                }
+            }}>{language.blockMode}</button>
+            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
+                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'){
+                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
+                        const t = await alertConfirm(language.triggerSwitchWarn)
+                        if(!t){
+                            return
+                        }
+                    }
+                    currentChar.data.triggerscript = [{
+                        comment: "",
+                        type: "start",
+                        conditions: [],
+                        effect: [{
+                            type: "triggercode",
+                            code: ""
+                        }]
+                    }]
+                }
+            }}>{language.codeMode}</button>
+        </div>
+        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
+            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
+        {:else}
+            <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
+        {/if}
         <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
             if(currentChar.type === 'character'){
                 let script = currentChar.data.triggerscript

@@ -663,4 +663,7 @@ export const languageEnglish = {
     doNotTranslate: "Do Not Translate",
     includePersonaName: "Include Persona Name",
     hidePersonaName: "Hide Persona Name",
+    triggerSwitchWarn: "If you change the trigger type, current triggers will be lost. do you want to continue?",
+    codeMode: "Code Mode",
+    blockMode: "Block Mode",
 }

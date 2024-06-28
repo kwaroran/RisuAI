@@ -2026,6 +2026,7 @@ export async function risuCommandParser(da:string, arg:{
     funcName?:string
     passed?:string[],
     recursiveCount?:number
+    lowLevelAccess?:boolean
 } = {}):Promise<{[key:string]:string}>{
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
@@ -2068,7 +2069,8 @@ export async function risuCommandParser(da:string, arg:{
         consistantChar: false,
         funcName: arg.funcName ?? null,
         text: da,
-        recursiveCount: recursiveCount
+        recursiveCount: recursiveCount,
+        lowLevelAccess: arg.lowLevelAccess ?? false
     }
 
     let tempVar:{[key:string]:string} = {}
