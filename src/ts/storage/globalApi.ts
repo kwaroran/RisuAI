@@ -55,6 +55,22 @@ interface fetchLog{
 
 let fetchLog:fetchLog[] = []
 
+async function writeBinaryFileFast(appPath: string, data: Uint8Array) {
+    const apiUrl = `http://127.0.0.1:5354/?path=${encodeURIComponent(appPath)}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/octet-stream'
+        },
+        body: new Blob([data])
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
 export async function downloadFile(name:string, dat:Uint8Array|ArrayBuffer|string) {
     if(typeof(dat) === 'string'){
         dat = Buffer.from(dat, 'utf-8')
@@ -233,7 +249,7 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
         fileExtension = fileName.split('.').pop()
     }
     if(isTauri){
-        await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
+        await writeBinaryFileFast(`assets/${id}.${fileExtension}`, data);
         return `assets/${id}.${fileExtension}`
     }
     else{
@@ -299,8 +315,8 @@ export async function saveDb(){
                 db.saveTime = Math.floor(Date.now() / 1000)
                 const dbData = encodeRisuSave(db)
                 if(isTauri){
-                    await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
-                    await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
+                    await writeBinaryFileFast('database/database.bin', dbData);
+                    await writeBinaryFileFast(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
                 }
                 else{
                     if(!forageStorage.isAccount){
@@ -393,9 +409,7 @@ export async function loadData() {
                     await createDir('assets', {dir: BaseDirectory.AppData})
                 }
                 if(!await exists('database/database.bin', {dir: BaseDirectory.AppData})){
-                    await writeBinaryFile('database/database.bin',
-                        encodeRisuSave({})
-                    ,{dir: BaseDirectory.AppData})
+                    await writeBinaryFileFast('database/database.bin', encodeRisuSave({}));
                 }
                 try {
                     setDatabase(

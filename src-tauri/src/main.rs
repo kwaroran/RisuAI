@@ -15,6 +15,10 @@ use std::io::Write;
 use std::{time::Duration, path::Path};
 use serde_json::json;
 use std::collections::HashMap;
+use actix_cors::Cors;
+use tauri::api::path::app_data_dir;
+use actix_web::{web, HttpRequest, HttpResponse, HttpServer, Responder, App, post, get};
+use std::fs::File;
 
 #[tauri::command]
 async fn native_request(url: String, body: String, header: String, method:String) -> String {
@@ -448,6 +452,33 @@ async fn streamed_fetch(id:String, url:String, headers: String, body: String, ha
     }
 }
 
+#[post("/")]
+async fn write_binary_file_to_appdata(req: HttpRequest, body: web::Bytes, app_handle: web::Data<tauri::AppHandle>) -> impl Responder {
+    let query = req.query_string();
+    let params: std::collections::HashMap<_, _> = url::form_urlencoded::parse(query.as_bytes()).into_owned().collect();
+    let app_data_dir = app_data_dir(&app_handle.config()).expect("App dir must be returned by tauri");
+    if let Some(file_path) = params.get("path") {
+        let full_path = app_data_dir.join(file_path);
+        if let Some(parent) = Path::new(&full_path).parent() {
+            if let Err(e) = std::fs::create_dir_all(parent) {
+                return HttpResponse::InternalServerError().body(format!("Failed to create directories: {}", e));
+            }
+        }
+    
+        match File::create(&full_path) {
+            Ok(mut file) => {
+                if let Err(e) = file.write_all(&body) {
+                    return HttpResponse::InternalServerError().body(format!("Failed to write to file: {}", e));
+                }
+                HttpResponse::Ok().body("File written successfully")
+            }
+            Err(e) => HttpResponse::InternalServerError().body(format!("Failed to create file: {}", e)),
+        }
+    } else {
+        HttpResponse::BadRequest().body("Missing file path in query string")
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -463,6 +494,29 @@ fn main() {
             install_py_dependencies,
             streamed_fetch
         ])
+        .setup(|app| {
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                HttpServer::new(move || {
+                    App::new()
+                        .wrap(
+                            Cors::default()
+                                .allow_any_origin()
+                                .allow_any_method()
+                                .allow_any_header()
+                                .max_age(3600)
+                        )
+                        .app_data(web::PayloadConfig::new(1024 * 1024 * 1024))  // 1 GB 
+                        .app_data(web::Data::new(handle.clone()))
+                        .service(write_binary_file_to_appdata)
+                })
+                    .bind(("127.0.0.1", 5354))
+                    .expect("Failed to bind to port 5354")
+                    .run()
+                    .await;
+            });
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

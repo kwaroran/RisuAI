@@ -23,6 +23,10 @@ zip = "0.6.6"
 tar = "0.4.40"
 eventsource-client = "0.12.2"
 futures = "0.3.30"
+actix-web = "4.0"
+actix-cors = "0.6"
+actix-rt = "2.5"
+url = "2.2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
