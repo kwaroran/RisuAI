@@ -12,6 +12,14 @@ import { HypaProcesser } from "./memory/hypamemory";
 import { requestChatData } from "./request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/image";
+import { LuaEngine, LuaFactory } from "wasmoon";
+import { v4 } from "uuid";
+
+let luaFactory:LuaFactory
+let luaEngine:LuaEngine
+let lastCode = ''
+let LuaSafeIds = new Set<string>()
+let LuaLowLevelIds = new Set<string>()
 
 export interface triggerscript{
     comment: string;
@@ -33,7 +41,7 @@ export type triggerConditionsVar = {
 }
 
 export type triggerCode = {
-    type: 'triggercode',
+    type: 'triggercode'|'triggerlua',
     code: string
 }
 
@@ -202,12 +210,15 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     
     
     for(const trigger of triggers){
-        if(arg.manualName){
+        if(trigger.effect[0]?.type === 'triggercode' || trigger.effect[0]?.type === 'triggerlua'){
+            //
+        }
+        else if(arg.manualName){
             if(trigger.comment !== arg.manualName){
                 continue
             }
         }
-        else if(mode !== trigger.type && trigger.effect[0]?.type !== 'triggercode'){
+        else if(mode !== trigger.type){
             continue
         }
 
@@ -535,7 +546,297 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         stopSending = true
                     }
                     break
+                }
+                case 'triggerlua':{
+                    if(!luaEngine || lastCode !== effect.code){
+                        if(luaEngine){
+                            luaEngine.global.close()
+                        }
+                        luaFactory = new LuaFactory()
+                        luaEngine = await luaFactory.createEngine()
+                        luaEngine.global.set('cbs', (code:string) => {
+                            const parsed = risuChatParser(code, {
+                                chara: char,
+                            })
+                            return parsed
+                        })
+                        luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            setVar(key, value)
+                        })
+                        luaEngine.global.set('getChatVar', (id:string,key:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            return getVar(key)
+                        })
+                        luaEngine.global.set('stopChat', (id:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            stopSending = true
+                        })
+                        luaEngine.global.set('alertError', (id:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            alertError(value)
+                        })
+                        luaEngine.global.set('alertNormal', (id:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            alertNormal(value)
+                        })
+                        luaEngine.global.set('alertInput', (id:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            return alertInput(value)
+                        })
+                        luaEngine.global.set('setChat', (id:string, index:number, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            const message = chat.message?.at(index)
+                            if(message){
+                                message.data = value
+                            }
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('setChatRole', (id:string, index:number, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            const message = chat.message?.at(index)
+                            if(message){
+                                message.role = value === 'user' ? 'user' : 'char'
+                            }
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('cutChat', (id:string, start:number, end:number) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            chat.message = chat.message.slice(start,end)
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('addChat', (id:string, role:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
+                            chat.message.push({role: roleData, data: value})
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('insertChat', (id:string, index:number, role:string, value:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
+                            chat.message.splice(index, 0, {role: roleData, data: value})
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('removeChat', (id:string, index:number) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            chat.message.splice(index, 1)
+                            CurrentChat.set(chat)
+                        })
+                        luaEngine.global.set('getChatLength', (id:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            return chat.message.length
+                        })
+                        luaEngine.global.set('getFullChat', (id:string) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            return chat.message.map((v) => {
+                                return {
+                                    role: v.role,
+                                    data: v.data
+                                }
+                            })
+                        })
 
+                        luaEngine.global.set('setFullChat', (id:string, value:any[]) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            chat.message = value.map((v) => {
+                                return {
+                                    role: v.role,
+                                    data: v.data
+                                }
+                            })
+                            CurrentChat.set(chat)
+                        })
+
+                        //Low Level Access
+                        luaEngine.global.set('similarity', (id:string, source:string, value:string[]) => {
+                            if(!LuaLowLevelIds.has(id)){
+                                return
+                            }
+                            const processer = new HypaProcesser('MiniLM')
+                            processer.addText(value)
+                            return processer.similaritySearch(source)
+                        })
+
+                        luaEngine.global.set('generateImage', async (id:string, value:string, negValue:string = '') => {
+                            if(!LuaLowLevelIds.has(id)){
+                                return
+                            }
+                            const gen = await generateAIImage(value, char, negValue, 'inlay')
+                            if(!gen){
+                                return 'Error: Image generation failed'
+                            }
+                            const imgHTML = new Image()
+                            imgHTML.src = gen
+                            const inlay = await writeInlayImage(imgHTML)
+                            return `{{inlay::${inlay}}}`
+                        })
+
+                        luaEngine.global.set('LLM', async (id:string, prompt:{
+                            role: string,
+                            content: string
+                        }[]) => {
+                            if(!LuaLowLevelIds.has(id)){
+                                return
+                            }
+                            let promptbody:OpenAIChat[] = prompt.map((dict) => {
+                                let role:'system'|'user'|'assistant' = 'assistant'
+                                switch(dict['role']){
+                                    case 'system':
+                                    case 'sys':
+                                        role = 'system'
+                                        break
+                                    case 'user':
+                                        role = 'user'
+                                        break
+                                    case 'assistant':
+                                    case 'bot':
+                                    case 'char':{
+                                        role = 'assistant'
+                                        break
+                                    }
+                                }
+                
+                                return {
+                                    content: dict['content'] ?? '',
+                                    role: role,
+                                }
+                            })
+                            const result = await requestChatData({
+                                formated: promptbody,
+                                bias: {},
+                                useStreaming: false,
+                                noMultiGen: true,
+                            }, 'model')
+                
+                            if(result.type === 'fail'){
+                                return {
+                                    success: false,
+                                    result: 'Error: ' + result.result
+                                }
+                            }
+                
+                            if(result.type === 'streaming' || result.type === 'multiline'){
+                                return {
+                                    success: false,
+                                    result: result.result
+                                }
+                            }
+                
+                            return {
+                                success: true,
+                                result: result.result
+                            }
+                        })
+
+                        luaEngine.global.set('simpleLLM', async (id:string, prompt:string) => {
+                            const result = await requestChatData({
+                                formated: [{
+                                    role: 'user',
+                                    content: prompt
+                                }],
+                                bias: {},
+                                useStreaming: false,
+                                noMultiGen: true,
+                            }, 'model')
+                
+                            if(result.type === 'fail'){
+                                return {
+                                    success: false,
+                                    result: 'Error: ' + result.result
+                                }
+                            }
+                
+                            if(result.type === 'streaming' || result.type === 'multiline'){
+                                return {
+                                    success: false,
+                                    result: result.result
+                                }
+                            }
+                
+                            return {
+                                success: true,
+                                result: result.result
+                            }
+                        })
+
+                        await luaEngine.doString(effect.code)
+                        lastCode = effect.code
+                    }
+                    let accessKey = v4()
+                    LuaSafeIds.add(accessKey)
+                    if(trigger.lowLevelAccess){
+                        LuaLowLevelIds.add(v4())
+                    }
+                    try {
+                        let res:any
+                        switch(mode){
+                            case 'input':{
+                                const func = luaEngine.global.get('onInput')
+                                if(func){
+                                    res = await func(accessKey)
+                                }
+                            }
+                            case 'output':{
+                                const func = luaEngine.global.get('onOutput')
+                                if(func){
+                                    res = await func(accessKey)
+                                }
+                            }
+                            case 'start':{
+                                const func = luaEngine.global.get('onStart')
+                                if(func){
+                                    res = await func(accessKey)
+                                }
+                            }
+                            case 'manual':{
+                                const func = luaEngine.global.get(arg.manualName)
+                                if(func){
+                                    res = await func(accessKey)
+                                }
+                            }
+                        }   
+                        if(res === false){
+                            stopSending = true
+                        }
+                    } catch (error) {
+                        
+                        alertError('Lua Error: ' + error)
+                        console.error(error)
+                    }
+
+                    LuaSafeIds.delete(accessKey)
+                    LuaLowLevelIds.delete(accessKey)
+                    break
                 }
             }
         }

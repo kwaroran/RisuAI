@@ -581,19 +581,25 @@
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <div class="flex items-start mt-2 gap-2">
-            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'){
-                    const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
-                    if(codeTrigger){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
+                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode' &&
+                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'
+            } on:click|stopPropagation={async () => {
+                    if(currentChar.type === 'character'){
+                        const codeType = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type
+                        if(codeType === 'triggercode' || codeType === 'triggerlua'){
+                            const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
+                            if(codeTrigger){
+                                const t = await alertConfirm(language.triggerSwitchWarn)
+                                if(!t){
+                                    return
+                                }
+                            }
+                            currentChar.data.triggerscript = []
                         }
                     }
-                    currentChar.data.triggerscript = []
-                }
             }}>{language.blockMode}</button>
-            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
                 if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'){
                     if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
                         const t = await alertConfirm(language.triggerSwitchWarn)
@@ -612,8 +618,27 @@
                     }]
                 }
             }}>{language.codeMode}</button>
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
+                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'){
+                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
+                        const t = await alertConfirm(language.triggerSwitchWarn)
+                        if(!t){
+                            return
+                        }
+                    }
+                    currentChar.data.triggerscript = [{
+                        comment: "",
+                        type: "start",
+                        conditions: [],
+                        effect: [{
+                            type: "triggerlua",
+                            code: ""
+                        }]
+                    }]
+                }
+            }}>Lua</button>
         </div>
-        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
+        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode' || currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} 
             <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
         {:else}
             <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
