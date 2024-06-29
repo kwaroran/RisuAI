@@ -7,15 +7,15 @@
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
+    import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import { exportChar } from "src/ts/characterCards";
+    import { exportChar, hubURL } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
-    import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
+    import { checkCharOrder, getFileSrc, openURL } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
@@ -581,19 +581,25 @@
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <div class="flex items-start mt-2 gap-2">
-            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'){
-                    const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
-                    if(codeTrigger){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
+                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode' &&
+                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'
+            } on:click|stopPropagation={async () => {
+                    if(currentChar.type === 'character'){
+                        const codeType = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type
+                        if(codeType === 'triggercode' || codeType === 'triggerlua'){
+                            const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
+                            if(codeTrigger){
+                                const t = await alertConfirm(language.triggerSwitchWarn)
+                                if(!t){
+                                    return
+                                }
+                            }
+                            currentChar.data.triggerscript = []
                         }
                     }
-                    currentChar.data.triggerscript = []
-                }
             }}>{language.blockMode}</button>
-            <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
                 if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'){
                     if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
                         const t = await alertConfirm(language.triggerSwitchWarn)
@@ -612,9 +618,33 @@
                     }]
                 }
             }}>{language.codeMode}</button>
+            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
+                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'){
+                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
+                        const t = await alertConfirm(language.triggerSwitchWarn)
+                        if(!t){
+                            return
+                        }
+                    }
+                    currentChar.data.triggerscript = [{
+                        comment: "",
+                        type: "start",
+                        conditions: [],
+                        effect: [{
+                            type: "triggerlua",
+                            code: ""
+                        }]
+                    }]
+                }
+            }}>Lua</button>
         </div>
         {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
-            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
+            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>        
+        {:else if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'}
+            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
+            <Button on:click={() => {
+                openURL(hubURL + '/redirect/docs/lua')
+            }}>{language.helpBlock}</Button>
         {:else}
             <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
         {/if}

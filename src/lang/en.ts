@@ -131,7 +131,8 @@ export const languageEnglish = {
         defaultVariables: "Here you can define your own default variables. use `<variable name>=<variable value>` format, seperated by newline. for example, `name=RisuAI`, which then can be used with trigger scripts and variables CBS like `{{getvar::A}}`, `{{setvar::A::B}}` or `{{? $A + 1}}`. if prompt template's default variable and character's default variable has same name, character's default variable will be used.",
         lowLevelAccess: "If enabled, it will enable access to features that requires high computing powers and executing AI model via triggers in the character. do not enable this unless you really need these features.",
         triggerLLMPrompt: "A prompt that would be sent to the model. you can use multi turns and roles by using `@@role user`, `@@role system`, `@@role assistant`. for example, \n\`\`\`\n@@role system\nrespond as hello\n@@role assistant\nhello\n@@role user\nhi\n\`\`\`",
-        legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations."
+        legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations.",
+        luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -664,6 +665,7 @@ export const languageEnglish = {
     includePersonaName: "Include Persona Name",
     hidePersonaName: "Hide Persona Name",
     triggerSwitchWarn: "If you change the trigger type, current triggers will be lost. do you want to continue?",
-    codeMode: "Code Mode",
-    blockMode: "Block Mode",
+    codeMode: "Code",
+    blockMode: "Block",
+    helpBlock: "Help",
 }
