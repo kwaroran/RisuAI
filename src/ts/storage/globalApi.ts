@@ -1,4 +1,5 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
+
 import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -56,12 +57,16 @@ interface fetchLog{
 let fetchLog:fetchLog[] = []
 
 async function writeBinaryFileFast(appPath: string, data: Uint8Array) {
-    const apiUrl = `http://127.0.0.1:5354/?path=${encodeURIComponent(appPath)}`;
+    const secret = await invoke('get_http_secret') as string;
+    const port = await invoke('get_http_port') as number;
+
+    const apiUrl = `http://127.0.0.1:${port}/?path=${encodeURIComponent(appPath)}`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/octet-stream'
+            'Content-Type': 'application/octet-stream',
+            'x-tauri-secret': secret
         },
         body: new Blob([data])
     });

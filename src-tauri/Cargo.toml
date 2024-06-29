@@ -27,6 +27,7 @@ actix-web = "4.0"
 actix-cors = "0.6"
 actix-rt = "2.5"
 url = "2.2"
+uuid = { version = "1.9.1", features = [ "v4" ] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

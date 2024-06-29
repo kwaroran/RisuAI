@@ -16,7 +16,7 @@ const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69,
 
 export function encodeRisuSave(data:any, compression:'noCompression'|'compression' = 'noCompression'){
     let encoded:Uint8Array = packr.encode(data)
-    if(isTauri || compression === 'compression'){
+    if(compression === 'compression'){
         encoded = fflate.compressSync(encoded)
         const result = new Uint8Array(encoded.length + magicCompressedHeader.length);
         result.set(magicCompressedHeader, 0)
