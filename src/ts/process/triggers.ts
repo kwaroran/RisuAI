@@ -623,6 +623,13 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             chat.message = chat.message.slice(start,end)
                             CurrentChat.set(chat)
                         })
+                        luaEngine.global.set('removeChat', (id:string, index:number) => {
+                            if(!LuaSafeIds.has(id)){
+                                return
+                            }
+                            chat.message.splice(index, 1)
+                            CurrentChat.set(chat)
+                        })
                         luaEngine.global.set('addChat', (id:string, role:string, value:string) => {
                             if(!LuaSafeIds.has(id)){
                                 return
