@@ -7,15 +7,15 @@
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
+    import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
-    import { exportChar } from "src/ts/characterCards";
+    import { exportChar, hubURL } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
-    import { checkCharOrder, getFileSrc } from "src/ts/storage/globalApi";
+    import { checkCharOrder, getFileSrc, openURL } from "src/ts/storage/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
@@ -638,8 +638,13 @@
                 }
             }}>Lua</button>
         </div>
-        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode' || currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} 
-            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
+        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
+            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>        
+        {:else if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'}
+            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
+            <Button on:click={() => {
+                openURL(hubURL + '/redirect/docs/lua')
+            }}>{language.helpBlock}</Button>
         {:else}
             <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
         {/if}
