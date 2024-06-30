@@ -434,8 +434,6 @@ export async function runLua(code:string, arg:{
             stopSending = true
         }
     } catch (error) {
-        
-        alertError('Lua Error: ' + error)
         console.error(error)
     }
 
@@ -592,7 +590,6 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
                     mode: mode,
                     data: data
                 })
-                console.log(runResult)
                 data = runResult.res ?? data
             }
         }
@@ -600,7 +597,6 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
     
         return data   
     } catch (error) {
-        console.error(error)
         return content
     }
 }
