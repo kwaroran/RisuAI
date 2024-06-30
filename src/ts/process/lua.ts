@@ -585,7 +585,7 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
         }).concat(getModuleTriggers()))
     
         for(let trigger of triggers){
-            if(trigger.effect[0].type === 'triggerlua'){
+            if(trigger?.effect?.[0]?.type === 'triggerlua'){
                 const runResult = await runLua(trigger.effect[0].code, {
                     char: char,
                     lowLevelAccess: false,
