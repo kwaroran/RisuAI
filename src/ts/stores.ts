@@ -52,6 +52,7 @@ function createSimpleCharacter(char:character|groupChat){
         additionalAssets: char.additionalAssets,
         virtualscript: char.virtualscript,
         emotionImages: char.emotionImages,
+        triggerscript: char.triggerscript,
     }
 
     return simpleChar

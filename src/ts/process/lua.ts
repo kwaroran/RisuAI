@@ -1,4 +1,4 @@
-import { getChatVar, risuChatParser, setChatVar } from "../parser";
+import { getChatVar, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
 import { LuaEngine, LuaFactory } from "wasmoon";
 import type { Chat, character, groupChat } from "../storage/database";
 import { get } from "svelte/store";
@@ -10,6 +10,7 @@ import { writeInlayImage } from "./files/image";
 import type { OpenAIChat } from ".";
 import { requestChatData } from "./request";
 import { v4 } from "uuid";
+import { getModuleTriggers } from "./modules";
 
 let luaFactory:LuaFactory
 let luaEngine:LuaEngine
@@ -18,17 +19,19 @@ let LuaSafeIds = new Set<string>()
 let LuaLowLevelIds = new Set<string>()
 
 export async function runLua(code:string, arg:{
-    char?:character|groupChat,
+    char?:character|groupChat|simpleCharacterArgument,
     chat?:Chat
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
     lowLevelAccess?: boolean,
-    mode?: string
+    mode?: string,
+    data?: any
 }){
     const char = arg.char ?? get(CurrentCharacter)
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
     const mode = arg.mode ?? 'manual'
+    const data = arg.data ?? {}
     let chat = arg.chat ?? get(CurrentChat)
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
@@ -41,12 +44,6 @@ export async function runLua(code:string, arg:{
             makeLuaFactory()
         }
         luaEngine = await luaFactory.createEngine()
-        luaEngine.global.set('cbs', (code:string) => {
-            const parsed = risuChatParser(code, {
-                chara: char,
-            })
-            return parsed
-        })
         luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
             if(!LuaSafeIds.has(id)){
                 return
@@ -317,6 +314,16 @@ export async function runLua(code:string, arg:{
                 const func = luaEngine.global.get('onStart')
                 if(func){
                     res = await func(accessKey)
+                }
+            }
+            case 'editRequest':
+            case 'editDisplay':
+            case 'editInput':
+            case 'editOutput':{
+                const func = luaEngine.global.get('callListenMain')
+                if(func){
+                    res = await func(mode, accessKey, JSON.stringify(data))
+                    res = JSON.parse(res)
                 }
             }
             default:{
@@ -694,6 +701,111 @@ function LLM(id, prompt)
     return json.decode(LLMMain(id, json.encode(prompt)))
 end
 
+local editRequestFuncs = {}
+local editDisplayFuncs = {}
+local editInputFuncs = {}
+local editOutputFuncs = {}
+
+function listenEdit(type, func)
+    if type == 'editRequest' then
+        editRequestFuncs[#editRequestFuncs + 1] = func
+        return
+    end
+
+    if type == 'editDisplay' then
+        editDisplayFuncs[#editDisplayFuncs + 1] = func
+        return
+    end
+
+    if type == 'editInput' then
+        editInputFuncs[#editInputFuncs + 1] = func
+        return
+    end
+
+    if type == 'editOutput' then
+        editOutputFuncs[#editOutputFuncs + 1] = func
+        return
+    end
+
+    throw('Invalid type')
+end
+
+function callListenMain(type, id, value)
+    local realValue = json.decode(value)
+
+    if type == 'editRequest' then
+        for _, func in ipairs(editRequestFuncs) do
+            realValue = func(id, realValue)
+        end
+    end
+
+    if type == 'editDisplay' then
+        for _, func in ipairs(editDisplayFuncs) do
+            realValue = func(id, realValue)
+            print(realValue)
+        end
+    end
+
+    if type == 'editInput' then
+        for _, func in ipairs(editInputFuncs) do
+            realValue = func(id, realValue)
+        end
+    end
+
+    if type == 'editOutput' then
+        for _, func in ipairs(editOutputFuncs) do
+            realValue = func(id, realValue)
+        end
+    end
+
+    return json.encode(realValue)
+end
+
+
 ${code}
 `
+}
+
+export async function runLuaEditTrigger<T extends any>(char:character|groupChat|simpleCharacterArgument, mode:string, content:T):Promise<T>{
+    let data = content
+
+    switch(mode){
+        case 'editinput':
+            mode = 'editInput'
+            break
+        case 'editoutput':
+            mode = 'editOutput'
+            break
+        case 'editdisplay':
+            mode = 'editDisplay'
+            break
+        case 'editprocess':
+            return content
+    }
+
+    try {
+        const triggers = char.type === 'group' ? (getModuleTriggers()) : (char.triggerscript.map((v) => {
+            v.lowLevelAccess = false
+            return v
+        }).concat(getModuleTriggers()))
+    
+        for(let trigger of triggers){
+            if(trigger.effect[0].type === 'triggerlua'){
+                const runResult = await runLua(trigger.effect[0].code, {
+                    char: char,
+                    lowLevelAccess: false,
+                    mode: mode,
+                    data: data
+                })
+                console.log(runResult)
+                data = runResult.res ?? data
+            }
+        }
+        
+    
+        return data   
+    } catch (error) {
+        console.error(error)
+        return content
+    }
 }

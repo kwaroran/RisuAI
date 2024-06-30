@@ -27,6 +27,7 @@ import { addRerolls } from "./prereroll";
 import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
+import { runLuaEditTrigger } from "./lua";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -1045,6 +1046,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         mode: 'modifyRequestChat',
         data: formated
     })
+
+    formated = await runLuaEditTrigger(currentChar, 'editRequest', formated)
 
     //token rechecking
     let inputTokens = 0
