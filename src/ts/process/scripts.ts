@@ -9,6 +9,7 @@ import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterAr
 import { runCharacterJS } from "../plugins/embedscript";
 import { getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
+import { runLuaEditTrigger } from "./lua";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -65,6 +66,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         mode,
         data,
     })
+    data = await runLuaEditTrigger(char, mode, data)
     if(scripts.length === 0){
         return {data, emoChanged}
     }
