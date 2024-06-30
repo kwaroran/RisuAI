@@ -766,6 +766,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         })
 
                         luaEngine.global.set('simpleLLM', async (id:string, prompt:string) => {
+                            if(!LuaLowLevelIds.has(id)){
+                                return
+                            }
                             const result = await requestChatData({
                                 formated: [{
                                     role: 'user',
