@@ -16,6 +16,7 @@ let luaFactory:LuaFactory
 let luaEngine:LuaEngine
 let lastCode = ''
 let LuaSafeIds = new Set<string>()
+let LuaEditDisplayIds = new Set<string>()
 let LuaLowLevelIds = new Set<string>()
 
 export async function runLua(code:string, arg:{
@@ -45,13 +46,13 @@ export async function runLua(code:string, arg:{
         }
         luaEngine = await luaFactory.createEngine()
         luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
-            if(!LuaSafeIds.has(id)){
+            if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                 return
             }
             setVar(key, value)
         })
         luaEngine.global.set('getChatVar', (id:string,key:string) => {
-            if(!LuaSafeIds.has(id)){
+            if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                 return
             }
             return getVar(key)
@@ -291,9 +292,14 @@ export async function runLua(code:string, arg:{
         lastCode = code
     }
     let accessKey = v4()
-    LuaSafeIds.add(accessKey)
-    if(lowLevelAccess){
-        LuaLowLevelIds.add(v4())
+    if(mode === 'editDisplay'){
+        LuaEditDisplayIds.add(accessKey)
+    }
+    else{
+        LuaSafeIds.add(accessKey)
+        if(lowLevelAccess){
+            LuaLowLevelIds.add(v4())
+        }
     }
     let res:any
     try {
