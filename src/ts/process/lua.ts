@@ -1,8 +1,8 @@
 import { getChatVar, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import type { Chat, character, groupChat } from "../storage/database";
+import { DataBase, setDatabase, type Chat, type character, type groupChat } from "../storage/database";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat } from "../stores";
+import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
 import { alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
@@ -287,6 +287,99 @@ export async function runLua(code:string, arg:{
                 result: result.result
             }
         })
+        
+        luaEngine.global.set('getName', async (id:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            return char.name
+        })
+
+        luaEngine.global.set('setName', async (id:string, name:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            if(typeof name !== 'string'){
+                throw('Invalid data type')
+            }
+            db.characters[selectedChar].name = name
+            setDatabase(db)
+        })
+
+        luaEngine.global.set('setDescription', async (id:string, desc:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char =db.characters[selectedChar]
+            if(typeof data !== 'string'){
+                throw('Invalid data type')
+            }
+            if(char.type === 'group'){
+                throw('Character is a group')
+            }
+            char.desc = desc
+            db.characters[selectedChar] = char
+            setDatabase(db)
+        })
+
+        luaEngine.global.set('setCharacterFirstMessage', async (id:string, data:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            if(typeof data !== 'string'){
+                return false
+            }
+            char.firstMessage = data
+            db.characters[selectedChar] = char
+            setDatabase(db)
+            return true
+        })
+
+        luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            return char.firstMessage
+        })
+
+        luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            const char = db.characters[selectedChar]
+            return char.backgroundHTML
+        })
+
+        luaEngine.global.set('setBackgroundEmbedding', async (id:string, data:string) => {
+            if(!LuaSafeIds.has(id)){
+                return
+            }
+            const db = get(DataBase)
+            const selectedChar = get(selectedCharID)
+            if(typeof data !== 'string'){
+                return false
+            }
+            db.characters[selectedChar].backgroundHTML = data
+            setDatabase(db)
+            return true
+        })
+
+
 
         await luaEngine.doString(luaCodeWarper(code))
         lastCode = code
@@ -765,6 +858,16 @@ function callListenMain(type, id, value)
     end
 
     return json.encode(realValue)
+end
+
+function getState(id, name)
+    local escapedName = "__"..name
+    return json.decode(getChatVar(id, escapedName))
+end
+
+function setState(id, name, value)
+    local escapedName = "__"..name
+    setChatVar(id, escapedName, json.encode(value))
 end
 
 
