@@ -106,7 +106,7 @@
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID)
                     translating = true
                     console.log(marked)
-                    const translated = postTranslationParse(await translateHTML(marked, false, charArg, chatID))
+                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
                     translating = false
                     lastParsed = translated
                     lastCharArg = charArg
