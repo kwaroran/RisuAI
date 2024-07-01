@@ -1,6 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { Marked } from 'marked';
-
+import markdownit from 'markdown-it'
 import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
@@ -10,34 +9,36 @@ import { CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
-import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
 import { HypaProcesser } from './process/memory/hypamemory';
 import { generateAIImage } from './process/stableDiff';
 import { requestChatData } from './process/request';
 import type { OpenAIChat } from './process';
 import { alertInput, alertNormal } from './alert';
+import hljs from 'highlight.js/lib/core'
+import 'highlight.js/styles/atom-one-dark.min.css'
 
-const mconverted = new Marked({
-    gfm: true,
+const markdownItOptions = {
+    html: true,
     breaks: true,
-    silent: true,
-    tokenizer: {
-        del(src) {
-          const cap = /^~~~(?=\S)([\s\S]*?\S)~~~/.exec(src);
-          if (cap) {
-            return {
-              type: 'del',
-              raw: cap[0],
-              text: cap[1],
-              tokens: this.lexer.inlineTokens(cap[1])
-            };
-          }
+    linkify: false,
+    typographer: true,
+    quotes: '\u{E9b0}\u{E9b1}\u{E9b2}\u{E9b3}', //placeholder characters to convert to real quotes
+}
+
+const md = markdownit(markdownItOptions)
+const mdHighlight = markdownit({
+    highlight: function (str, lang) {
+        if(lang){
+            return `<pre-hljs-placeholder lang="${lang}">`+ str +'</pre-hljs-placeholder>';
         }
-    }
+        return ''
+    },
+    ...markdownItOptions
 })
 
-
+md.disable(['code'])
+mdHighlight.disable(['code'])
 
 DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     if (data.tagName === "iframe") {
@@ -57,6 +58,9 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
         case 'class':{
             if(data.attrValue){
                 data.attrValue = data.attrValue.split(' ').map((v) => {
+                    if(v.startsWith('hljs')){
+                        return v
+                    }
                     return "x-risu-" + v
                 }).join(' ')
             }
@@ -72,6 +76,175 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
         }
     }
 })
+
+function renderMarkdown(data:string){
+    return md.render(data)
+        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
+        .replace(/\uE9b1/gu, '”</mark>')
+        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
+        .replace(/\uE9b3/gu, '’</mark>')
+}
+
+async function renderHighlightableMarkdown(data:string) {
+    let rendered = mdHighlight.render(data)
+        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
+        .replace(/\uE9b1/gu, '”</mark>')
+        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
+        .replace(/\uE9b3/gu, '’</mark>')
+    console.log(rendered)
+    const highlightPlaceholders = rendered.match(/<pre-hljs-placeholder lang="(.+?)">(.+?)<\/pre-hljs-placeholder>/gms)
+    console.log(highlightPlaceholders)
+    if (!highlightPlaceholders){
+        return rendered
+    }
+
+    for (const placeholder of highlightPlaceholders){
+        try {
+            let lang = placeholder.match(/lang="(.+?)"/)?.[1]
+            const code = placeholder.match(/<pre-hljs-placeholder lang=".+?">(.+?)<\/pre-hljs-placeholder>/ms)?.[1]
+            if (!lang || !code){
+                continue
+            }
+            //import language if not already loaded
+            //we do not refactor this to a function because we want to keep vite to only import the languages that are needed
+            let languageModule:any = null
+            switch(lang){
+                case 'js':
+                case 'javascript':{
+                    lang = 'javascript'
+                    if(!hljs.getLanguage('javascript')){
+                        languageModule = await import('highlight.js/lib/languages/javascript')
+                    }
+                    break
+                }
+                case 'py':
+                case 'python':{
+                    lang = 'python'
+                    if(!hljs.getLanguage('python')){
+                        languageModule = await import('highlight.js/lib/languages/python')
+                    }
+                    break
+                }
+                case 'css':{
+                    lang = 'css'
+                    if(!hljs.getLanguage('css')){
+                        languageModule = await import('highlight.js/lib/languages/css')
+                    }
+                    break
+                }
+                case 'xml':
+                case 'html':{
+                    lang = 'xml'
+                    if(!hljs.getLanguage('xml')){
+                        languageModule = await import('highlight.js/lib/languages/xml')
+                    }
+                    break
+                }
+                case 'lua':{
+                    lang = 'lua'
+                    if(!hljs.getLanguage('lua')){
+                        languageModule = await import('highlight.js/lib/languages/lua')
+                    }
+                    break
+                }
+                case 'dart':{
+                    lang = 'dart'
+                    if(!hljs.getLanguage('dart')){
+                        languageModule = await import('highlight.js/lib/languages/dart')
+                    }
+                    break
+                }
+                case 'java':{
+                    lang = 'java'
+                    if(!hljs.getLanguage('java')){
+                        languageModule = await import('highlight.js/lib/languages/java')
+                    }
+                    break
+                }
+                case 'rust':{
+                    lang = 'rust'
+                    if(!hljs.getLanguage('rust')){
+                        languageModule = await import('highlight.js/lib/languages/rust')
+                    }
+                    break
+                }
+                case 'c':
+                case 'cpp':{
+                    lang = 'cpp'
+                    if(!hljs.getLanguage('cpp')){
+                        languageModule = await import('highlight.js/lib/languages/cpp')
+                    }
+                    break
+                }
+                case 'csharp':
+                case 'cs':{
+                    lang = 'csharp'
+                    if(!hljs.getLanguage('csharp')){
+                        languageModule = await import('highlight.js/lib/languages/csharp')
+                    }
+                    break
+                }
+                case 'ts':
+                case 'typescript':{
+                    lang = 'typescript'
+                    if(!hljs.getLanguage('typescript')){
+                        languageModule = await import('highlight.js/lib/languages/typescript')
+                    }
+                    break
+                }
+                case 'json':{
+                    lang = 'json'
+                    if(!hljs.getLanguage('json')){
+                        languageModule = await import('highlight.js/lib/languages/json')
+                    }
+                    break
+                }
+                case 'yaml':{
+                    lang = 'yaml'
+                    if(!hljs.getLanguage('yaml')){
+                        languageModule = await import('highlight.js/lib/languages/yaml')
+                    }
+                    break
+                }
+                case 'shell':{
+                    lang = 'shell'
+                    if(!hljs.getLanguage('shell')){
+                        languageModule = await import('highlight.js/lib/languages/shell')
+                    }
+                    break
+                }
+                case 'bash':{
+                    lang = 'bash'
+                    if(!hljs.getLanguage('bash')){
+                        languageModule = await import('highlight.js/lib/languages/bash')
+                    }
+                    break
+                }
+                default:{
+                    lang = 'none'
+                }
+            }
+            if(languageModule){
+                hljs.registerLanguage(lang, languageModule.default)
+            }
+            if(lang === 'none'){
+                rendered = rendered.replace(placeholder, `<pre><code>${md.utils.escapeHtml(code)}</code></pre>`)
+            }
+            else{
+                const highlighted = hljs.highlight(code, {
+                    language: lang,
+                    ignoreIllegals: true
+                }).value
+                rendered = rendered.replace(placeholder, `<pre class="hljs"><code>${highlighted}</code></pre>`)   
+            }
+        } catch (error) {
+            
+        }
+    }
+
+    return rendered
+
+}
 
 
 export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
@@ -193,8 +366,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
 
     data = encodeStyle(data)
     if(mode === 'normal'){
-        data = risuFormater(data)
-        data = mconverted.parse(data)
+        data = await renderHighlightableMarkdown(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
@@ -202,8 +374,8 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     }))
 }
 
-export function postTranslationParse(data:string){
-    let lines = risuFormater(data).split('\n')
+export async function postTranslationParse(data:string){
+    let lines = data.split('\n')
 
     for(let i=0;i<lines.length;i++){
         const trimed = lines[i].trim()
@@ -212,12 +384,12 @@ export function postTranslationParse(data:string){
         }
     }
 
-    data = mconverted.parse(lines.join('\n'))
+    data = await renderHighlightableMarkdown(lines.join('\n'))
     return data
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(mconverted.parse(data), {
+    return DOMPurify.sanitize(renderMarkdown(data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -2291,4 +2463,32 @@ export async function promptTypeParser(prompt:string):Promise<string | PromptPar
     }
 
     return prompt
+}
+
+
+export function applyMarkdownToNode(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (text) {
+            let markdown = renderMarkdown(text);
+            if (markdown !== text) {
+                const span = document.createElement('span');
+                span.innerHTML = markdown;
+                
+                // inherit inline style from the parent node
+                const parentStyle = (node.parentNode as HTMLElement)?.style;
+                if(parentStyle){
+                    for(let i=0;i<parentStyle.length;i++){
+                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
+                    }   
+                }
+                (node as Element)?.replaceWith(span);
+                return
+            }
+        }
+    } else {
+        for (const child of node.childNodes) {
+            applyMarkdownToNode(child);
+        }
+    }
 }
