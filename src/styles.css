@@ -228,3 +228,18 @@ html, body{
   color: var(--risu-theme-textcolor2);
   text-decoration: line-through;
 }
+
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::before {
+  content: "";
+}
+
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::after {
+  content: "";
+}
+
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *)):not(pre code) {
+  color: var(--tw-prose-pre-code);
+  background-color: var(--tw-prose-pre-bg);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
