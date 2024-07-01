@@ -41,3 +41,4 @@ recc.md
 __pycache__/
 .tauri/
 dist.zip
+scripts/
