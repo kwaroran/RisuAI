@@ -19,14 +19,14 @@ import hljs from 'highlight.js/lib/core'
 import hljavascript from 'highlight.js/lib/languages/javascript';
 import hlpython from 'highlight.js/lib/languages/python';
 import hlcss from 'highlight.js/lib/languages/css';
-import hlhtml from 'highlight.js/lib/languages/xml';
+import hlxml from 'highlight.js/lib/languages/xml';
 import hllua from 'highlight.js/lib/languages/lua';
 import 'highlight.js/styles/atom-one-dark.min.css'
 
 hljs.registerLanguage('javascript', hljavascript);
 hljs.registerLanguage('python', hlpython);
 hljs.registerLanguage('css', hlcss);
-hljs.registerLanguage('html', hlhtml);
+hljs.registerLanguage('xml', hlxml);
 hljs.registerLanguage('lua', hllua);
 
 const mconverted = markdownit({
