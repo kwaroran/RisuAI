@@ -7,8 +7,6 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-use actix_web::dev::Server;
-use actix_web::http::header;
 use serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
@@ -21,7 +19,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use actix_cors::Cors;
 use tauri::api::path::app_data_dir;
-use actix_web::{web, HttpRequest, HttpResponse, HttpServer, Responder, App, post, get};
+use actix_web::{web, HttpRequest, HttpResponse, HttpServer, Responder, App, post};
 use std::fs::File;
 struct HttpSecret(Mutex<String>);
 struct HttpPort(Mutex<u16>);
@@ -520,7 +518,7 @@ async fn run_http_server(handle: tauri::AppHandle, secret: String) {
         match res {
             Ok(server) => {
                 handle.manage(HttpPort(Mutex::new(port)));
-                server.run().await;
+                let _ = server.run().await;
                 break;
             }
             Err(e) => {

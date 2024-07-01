@@ -318,13 +318,14 @@ export async function saveDb(){
                 changed = false
                 let db = get(DataBase)
                 db.saveTime = Math.floor(Date.now() / 1000)
-                const dbData = encodeRisuSave(db)
                 if(isTauri){
+                    const dbData = encodeRisuSave(db)
                     await writeBinaryFileFast('database/database.bin', dbData);
                     await writeBinaryFileFast(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
                 }
                 else{
                     if(!forageStorage.isAccount){
+                        const dbData = encodeRisuSave(db)
                         await forageStorage.setItem('database/database.bin', dbData)
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
