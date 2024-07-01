@@ -8,18 +8,8 @@ import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { appWindow } from '@tauri-apps/api/window';
 import { isTauri } from "./storage/globalApi"
-import { Marked } from "marked"
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
-
-const mconverted = new Marked({
-    gfm: true,
-    breaks: true,
-    silent: true,
-    tokenizer: {
-
-    }
-})
 
 export interface Messagec extends Message{
     index: number
@@ -583,33 +573,6 @@ export function getNodetextToSentence(node: Node): string {
         }
     }
     return result;
-}
-
-export function applyMarkdownToNode(node: Node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent;
-        if (text) {
-            let markdown = mconverted.parseInline(text);
-            if (markdown !== text) {
-                const span = document.createElement('span');
-                span.innerHTML = markdown;
-                
-                // inherit inline style from the parent node
-                const parentStyle = (node.parentNode as HTMLElement)?.style;
-                if(parentStyle){
-                    for(let i=0;i<parentStyle.length;i++){
-                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
-                    }   
-                }
-                (node as Element)?.replaceWith(span);
-                return
-            }
-        }
-    } else {
-        for (const child of node.childNodes) {
-            applyMarkdownToNode(child);
-        }
-    }
 }
 
 

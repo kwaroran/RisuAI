@@ -1,6 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { Marked } from 'marked';
-
+import markdownit from 'markdown-it'
 import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
@@ -18,24 +17,12 @@ import { requestChatData } from './process/request';
 import type { OpenAIChat } from './process';
 import { alertInput, alertNormal } from './alert';
 
-const mconverted = new Marked({
-    gfm: true,
+const mconverted = markdownit({
+    html: true,
     breaks: true,
-    silent: true,
-    tokenizer: {
-        del(src) {
-          const cap = /^~~~(?=\S)([\s\S]*?\S)~~~/.exec(src);
-          if (cap) {
-            return {
-              type: 'del',
-              raw: cap[0],
-              text: cap[1],
-              tokens: this.lexer.inlineTokens(cap[1])
-            };
-          }
-        }
-    }
+    linkify: false
 })
+mconverted.disable(['code'])
 
 
 
@@ -194,7 +181,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     data = encodeStyle(data)
     if(mode === 'normal'){
         data = risuFormater(data)
-        data = mconverted.parse(data)
+        data = mconverted.render(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
@@ -212,12 +199,12 @@ export function postTranslationParse(data:string){
         }
     }
 
-    data = mconverted.parse(lines.join('\n'))
+    data = mconverted.render(lines.join('\n'))
     return data
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(mconverted.parse(data), {
+    return DOMPurify.sanitize(mconverted.render(data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -2291,4 +2278,32 @@ export async function promptTypeParser(prompt:string):Promise<string | PromptPar
     }
 
     return prompt
+}
+
+
+export function applyMarkdownToNode(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (text) {
+            let markdown = mconverted.render(text);
+            if (markdown !== text) {
+                const span = document.createElement('span');
+                span.innerHTML = markdown;
+                
+                // inherit inline style from the parent node
+                const parentStyle = (node.parentNode as HTMLElement)?.style;
+                if(parentStyle){
+                    for(let i=0;i<parentStyle.length;i++){
+                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
+                    }   
+                }
+                (node as Element)?.replaceWith(span);
+                return
+            }
+        }
+    } else {
+        for (const child of node.childNodes) {
+            applyMarkdownToNode(child);
+        }
+    }
 }
