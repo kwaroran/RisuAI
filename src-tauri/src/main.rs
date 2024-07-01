@@ -7,14 +7,24 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+use actix_web::dev::Server;
+use actix_web::http::header;
 use serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use tauri::Manager;
+use tauri::State;
 use std::io::Write;
+use std::sync::Mutex;
 use std::{time::Duration, path::Path};
 use serde_json::json;
 use std::collections::HashMap;
+use actix_cors::Cors;
+use tauri::api::path::app_data_dir;
+use actix_web::{web, HttpRequest, HttpResponse, HttpServer, Responder, App, post, get};
+use std::fs::File;
+struct HttpSecret(Mutex<String>);
+struct HttpPort(Mutex<u16>);
 
 #[tauri::command]
 async fn native_request(url: String, body: String, header: String, method:String) -> String {
@@ -375,10 +385,8 @@ fn run_server_local(){
 
 }
 
-
 #[tauri::command]
 async fn streamed_fetch(id:String, url:String, headers: String, body: String, handle: tauri::AppHandle) -> String {
-
     //parse headers
     let headers_json: Value = match serde_json::from_str(&headers) {
         Ok(h) => h,
@@ -448,8 +456,83 @@ async fn streamed_fetch(id:String, url:String, headers: String, body: String, ha
     }
 }
 
+#[tauri::command]
+fn get_http_secret(secret_state: State<HttpSecret>) -> String {
+    secret_state.0.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn get_http_port(port_state: State<HttpPort>) -> u16 {
+    port_state.0.lock().unwrap().clone()
+}
+
+#[post("/")]
+async fn write_binary_file_to_appdata(req: HttpRequest, body: web::Bytes, app_handle: web::Data<tauri::AppHandle>, secret: web::Data<String>) -> impl Responder {
+    let query = req.query_string();
+    let headers = req.headers();
+    let req_secret = headers.get("x-tauri-secret").unwrap().to_str().unwrap();
+    if req_secret != *secret.as_ref() {
+        return HttpResponse::Unauthorized().body("Unauthorized");
+    }
+    let params: std::collections::HashMap<_, _> = url::form_urlencoded::parse(query.as_bytes()).into_owned().collect();
+    let app_data_dir = app_data_dir(&app_handle.config()).expect("App dir must be returned by tauri");
+    if let Some(file_path) = params.get("path") {
+        let full_path = app_data_dir.join(file_path);
+        if let Some(parent) = Path::new(&full_path).parent() {
+            if let Err(e) = std::fs::create_dir_all(parent) {
+                return HttpResponse::InternalServerError().body(format!("Failed to create directories: {}", e));
+            }
+        }
+    
+        match File::create(&full_path) {
+            Ok(mut file) => {
+                if let Err(e) = file.write_all(&body) {
+                    return HttpResponse::InternalServerError().body(format!("Failed to write to file: {}", e));
+                }
+                HttpResponse::Ok().body("File written successfully")
+            }
+            Err(e) => HttpResponse::InternalServerError().body(format!("Failed to create file: {}", e)),
+        }
+    } else {
+        HttpResponse::BadRequest().body("Missing file path in query string")
+    }
+}
+
+async fn run_http_server(handle: tauri::AppHandle, secret: String) {
+    for port in 5354..65535 {
+        let handle_copy = handle.clone();
+        let secret_copy = secret.clone();
+        let res = HttpServer::new(move || {
+            App::new()
+                .wrap(
+                    Cors::default()
+                        .allow_any_origin()
+                        .allow_any_method()
+                        .allow_any_header()
+                        .max_age(3600)
+                )
+                .app_data(web::PayloadConfig::new(1024 * 1024 * 1024))  // 1 GB 
+                .app_data(web::Data::new(handle_copy.clone()))
+                .app_data(web::Data::new(secret_copy.clone()))
+                .service(write_binary_file_to_appdata)
+        })
+            .bind(("127.0.0.1", port));
+        match res {
+            Ok(server) => {
+                handle.manage(HttpPort(Mutex::new(port)));
+                server.run().await;
+                break;
+            }
+            Err(e) => {
+                eprintln!("Failed to bind to port {}: {}", port, e);
+            }
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
+        .manage(HttpSecret(uuid::Uuid::new_v4().to_string().into()))
         .invoke_handler(tauri::generate_handler![
             greet,
             native_request,
@@ -461,8 +544,20 @@ fn main() {
             post_py_install,
             run_py_server,
             install_py_dependencies,
-            streamed_fetch
+            streamed_fetch,
+            get_http_secret,
+            get_http_port
         ])
+        .setup(|app| {
+            let handle = app.handle().clone();
+            let secret_state: State<HttpSecret> = app.state();
+            let secret = secret_state.0.lock().unwrap().clone();
+            std::thread::spawn(move || {
+                let rt = actix_rt::Runtime::new().unwrap();
+                rt.block_on(run_http_server(handle.clone(), secret.clone()));
+            });
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
