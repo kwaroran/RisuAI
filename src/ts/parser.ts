@@ -23,7 +23,7 @@ const markdownItOptions = {
     breaks: true,
     linkify: false,
     typographer: true,
-    quotes: '\u{E9b0}\u{E9b1}\u{E9b2}\u{E9b3}', //placeholder characters to convert to real quotes
+    quotes: '“”‘’',
 }
 
 const md = markdownit(markdownItOptions)
@@ -79,18 +79,18 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 function renderMarkdown(data:string){
     return md.render(data)
-        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
-        .replace(/\uE9b1/gu, '”</mark>')
-        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
-        .replace(/\uE9b3/gu, '’</mark>')
+        .replace(/“/gu, '<mark risu-mark="quote2">“')
+        .replace(/”/gu, '”</mark>')
+        .replace(/‘/gu, '<mark risu-mark="quote1">‘')
+        .replace(/’/gu, '’</mark>')
 }
 
 async function renderHighlightableMarkdown(data:string) {
     let rendered = mdHighlight.render(data)
-        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
-        .replace(/\uE9b1/gu, '”</mark>')
-        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
-        .replace(/\uE9b3/gu, '’</mark>')
+        .replace(/“/gu, '<mark risu-mark="quote2">“')
+        .replace(/”/gu, '”</mark>')
+        .replace(/‘/gu, '<mark risu-mark="quote1">‘')
+        .replace(/’/gu, '’</mark>')
     console.log(rendered)
     const highlightPlaceholders = rendered.match(/<pre-hljs-placeholder lang="(.+?)">(.+?)<\/pre-hljs-placeholder>/gms)
     console.log(highlightPlaceholders)
