@@ -9,22 +9,42 @@ import { CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
-import { risuFormater } from './plugins/automark';
 import { getModuleLorebooks } from './process/modules';
 import { HypaProcesser } from './process/memory/hypamemory';
 import { generateAIImage } from './process/stableDiff';
 import { requestChatData } from './process/request';
 import type { OpenAIChat } from './process';
 import { alertInput, alertNormal } from './alert';
+import hljs from 'highlight.js/lib/core'
+import hljavascript from 'highlight.js/lib/languages/javascript';
+import hlpython from 'highlight.js/lib/languages/python';
+import hlcss from 'highlight.js/lib/languages/css';
+import hlhtml from 'highlight.js/lib/languages/xml';
+import hllua from 'highlight.js/lib/languages/lua';
+import 'highlight.js/styles/atom-one-dark.min.css'
+
+hljs.registerLanguage('javascript', hljavascript);
+hljs.registerLanguage('python', hlpython);
+hljs.registerLanguage('css', hlcss);
+hljs.registerLanguage('html', hlhtml);
+hljs.registerLanguage('lua', hllua);
 
 const mconverted = markdownit({
     html: true,
     breaks: true,
-    linkify: false
+    linkify: false,
+    typographer: true,
+    quotes: '\u{E9b0}\u{E9b1}\u{E9b2}\u{E9b3}', //placeholder characters to convert to real quotes
+    highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return '<pre class="hljs"><code>' + hljs.highlight(lang, str, true).value + '</code></pre>';
+            } catch (__) {}
+        }
+        return ''
+    }
 })
 mconverted.disable(['code'])
-
-
 
 DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     if (data.tagName === "iframe") {
@@ -44,6 +64,9 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
         case 'class':{
             if(data.attrValue){
                 data.attrValue = data.attrValue.split(' ').map((v) => {
+                    if(v.startsWith('hljs')){
+                        return v
+                    }
                     return "x-risu-" + v
                 }).join(' ')
             }
@@ -59,6 +82,14 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
         }
     }
 })
+
+function renderMarkdown(data:string){
+    return mconverted.render(data)
+        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
+        .replace(/\uE9b1/gu, '”</mark>')
+        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
+        .replace(/\uE9b3/gu, '’</mark>')
+}
 
 
 export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
@@ -180,8 +211,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
 
     data = encodeStyle(data)
     if(mode === 'normal'){
-        data = risuFormater(data)
-        data = mconverted.render(data)
+        data = renderMarkdown(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
@@ -190,7 +220,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
 }
 
 export function postTranslationParse(data:string){
-    let lines = risuFormater(data).split('\n')
+    let lines = data.split('\n')
 
     for(let i=0;i<lines.length;i++){
         const trimed = lines[i].trim()
@@ -199,12 +229,12 @@ export function postTranslationParse(data:string){
         }
     }
 
-    data = mconverted.render(lines.join('\n'))
+    data = renderMarkdown(lines.join('\n'))
     return data
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(mconverted.render(data), {
+    return DOMPurify.sanitize(renderMarkdown(data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -2285,7 +2315,7 @@ export function applyMarkdownToNode(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent;
         if (text) {
-            let markdown = mconverted.render(text);
+            let markdown = renderMarkdown(text);
             if (markdown !== text) {
                 const span = document.createElement('span');
                 span.innerHTML = markdown;

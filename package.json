@@ -44,6 +44,7 @@
     "fflate": "^0.8.1",
     "gpt-3-encoder": "^1.1.4",
     "gpt3-tokenizer": "^1.1.5",
+    "highlight.js": "^11.9.0",
     "html-to-image": "^1.11.11",
     "isomorphic-dompurify": "^1.13.0",
     "jszip": "^3.10.1",
