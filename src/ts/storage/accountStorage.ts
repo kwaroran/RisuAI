@@ -7,7 +7,9 @@ import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
 
-export const AccountWarning = writable('')
+export const AccountWarning = writable('TestError')
+
+let seenWarnings:string[] = []
 
 export class AccountStorage{
     auth:string
@@ -27,8 +29,14 @@ export class AccountStorage{
                     'X-Format': 'nocheck'
                 }
             })
-            if(da.headers.get('x-risu-status') === 'warn'){
-                AccountWarning.set((await da.json()).warning)
+            if(da.headers.get('Content-Type') === 'application/json'){
+                const json = (await da.json())
+                if(json?.warning){
+                    if(!seenWarnings.includes(json.warning)){
+                        seenWarnings.push(json.warning)
+                        AccountWarning.set(json.warning)
+                    }
+                }
             }
 
             if(da.status === 304){
