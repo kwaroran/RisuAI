@@ -590,19 +590,16 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
         switch(lowerCased){
             case 'previous_char_chat':
             case 'lastcharmessage':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    let pointer = chatID - 1
-                    while(pointer >= 0){
-                        if(chat.message[pointer].role === 'char'){
-                            return chat.message[pointer].data
-                        }
-                        pointer--
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                let pointer = chatID !== -1 ? chatID - 1 : chat.message.length - 1
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'char'){
+                        return chat.message[pointer].data
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    pointer--
                 }
-                return ''
+                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
