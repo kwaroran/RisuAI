@@ -7,7 +7,7 @@ import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
 
-export const AccountWarning = writable('TestError')
+export const AccountWarning = writable('')
 
 let seenWarnings:string[] = []
 
