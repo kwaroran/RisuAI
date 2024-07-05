@@ -1,4 +1,4 @@
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { DataBase, setDatabase } from "../storage/database";
 import { downloadFile } from "../storage/globalApi";
 import { BufferToText, selectSingleFile } from "../util";
@@ -96,6 +96,8 @@ const colorShemes = {
 
 } as const
 
+export const ColorSchemeTypeStore = writable('dark' as 'dark'|'light')
+
 export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorShemes)[]
 
 export function changeColorScheme(colorScheme: string){
@@ -114,7 +116,7 @@ export function updateColorScheme(){
     let colorScheme = db.colorScheme
 
     if(colorScheme == null){
-        colorScheme = defaultColorScheme
+        colorScheme = structuredClone(defaultColorScheme)
     }
 
     //set css variables
@@ -127,6 +129,7 @@ export function updateColorScheme(){
     document.documentElement.style.setProperty("--risu-theme-textcolor2", colorScheme.textcolor2);
     document.documentElement.style.setProperty("--risu-theme-darkborderc", colorScheme.darkBorderc);
     document.documentElement.style.setProperty("--risu-theme-darkbutton", colorScheme.darkbutton);
+    ColorSchemeTypeStore.set(colorScheme.type)
 }
 
 export function exportColorScheme(){

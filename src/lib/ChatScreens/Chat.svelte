@@ -14,6 +14,7 @@
     import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
   import { longpress } from "src/ts/gui/longtouch";
+  import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -267,7 +268,7 @@
                 </div>
             {:else}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <span class="text chat chattext prose prose-invert minw-0" on:click={() => {
+                <span class="text chat chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} on:click={() => {
                     if($DataBase.clickToEdit && idx > -1){
                         editMode = true
                     }

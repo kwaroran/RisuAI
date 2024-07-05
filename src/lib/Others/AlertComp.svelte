@@ -18,6 +18,7 @@
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
+  import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     let btn
     let input = ''
     let cardExportType = 'realm'
@@ -71,7 +72,7 @@
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
-                <span class="text-gray-300 chattext prose prose-invert chattext2">
+                <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
                     {#await ParseMarkdown($alertStore.msg) then msg}
                         {@html msg}                        
                     {/await}
