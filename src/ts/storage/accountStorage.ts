@@ -27,8 +27,11 @@ export class AccountStorage{
                     'X-Format': 'nocheck'
                 }
             })
-            if(da.headers.get('x-risu-status') === 'warn'){
-                AccountWarning.set((await da.json()).warning)
+            if(da.headers.get('Content-Type') === 'application/json'){
+                const json = (await da.json())
+                if(json?.warning){
+                    AccountWarning.set(json.warning)
+                }
             }
 
             if(da.status === 304){

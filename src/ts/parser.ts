@@ -88,9 +88,7 @@ function renderMarkdown(md:markdownit, data:string){
 
 async function renderHighlightableMarkdown(data:string) {
     let rendered = renderMarkdown(mdHighlight, data)
-    console.log(rendered)
     const highlightPlaceholders = rendered.match(/<pre-hljs-placeholder lang="(.+?)">(.+?)<\/pre-hljs-placeholder>/gms)
-    console.log(highlightPlaceholders)
     if (!highlightPlaceholders){
         return rendered
     }
@@ -968,7 +966,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             switch(arra[0]){
                 case 'tempvar':
                 case 'gettempvar':{
-                    console.log(vars)
                     return {
                         text: vars[arra[1]] ?? '',
                         var: vars
@@ -1813,7 +1810,6 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                     if(stackType[nested.length] === 6){
-                        console.log(dat)
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
                         break
@@ -2322,7 +2318,6 @@ export async function risuCommandParser(da:string, arg:{
                         break
                     }
                     if(stackType[nested.length] === 6){
-                        console.log(dat)
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
                         break
