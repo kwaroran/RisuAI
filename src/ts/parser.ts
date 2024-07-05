@@ -77,8 +77,9 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     }
 })
 
-function renderMarkdown(data:string){
-    return md.render(data)
+
+function renderMarkdown(md:markdownit, data:string){
+    return md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
         .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
         .replace(/\uE9b1/gu, '”</mark>')
         .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
@@ -86,11 +87,7 @@ function renderMarkdown(data:string){
 }
 
 async function renderHighlightableMarkdown(data:string) {
-    let rendered = mdHighlight.render(data)
-        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
-        .replace(/\uE9b1/gu, '”</mark>')
-        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
-        .replace(/\uE9b3/gu, '’</mark>')
+    let rendered = renderMarkdown(mdHighlight, data)
     console.log(rendered)
     const highlightPlaceholders = rendered.match(/<pre-hljs-placeholder lang="(.+?)">(.+?)<\/pre-hljs-placeholder>/gms)
     console.log(highlightPlaceholders)
@@ -389,7 +386,7 @@ export async function postTranslationParse(data:string){
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(renderMarkdown(data), {
+    return DOMPurify.sanitize(renderMarkdown(md, data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -593,19 +590,16 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
         switch(lowerCased){
             case 'previous_char_chat':
             case 'lastcharmessage':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    let pointer = chatID - 1
-                    while(pointer >= 0){
-                        if(chat.message[pointer].role === 'char'){
-                            return chat.message[pointer].data
-                        }
-                        pointer--
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                let pointer = chatID !== -1 ? chatID - 1 : chat.message.length - 1
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'char'){
+                        return chat.message[pointer].data
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    pointer--
                 }
-                return ''
+                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
@@ -2470,7 +2464,7 @@ export function applyMarkdownToNode(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent;
         if (text) {
-            let markdown = renderMarkdown(text);
+            let markdown = renderMarkdown(md, text);
             if (markdown !== text) {
                 const span = document.createElement('span');
                 span.innerHTML = markdown;
