@@ -6,6 +6,7 @@
 </script>
 <button class="absolute top-2 right-2 z-10 text-white bg-red-800 hover:bg-red-600 p-2 rounded" on:click={() =>{
     alertMd($AccountWarning)
+    $AccountWarning = ''
 }}>
     <AlertOctagon size={24} />
 </button>
