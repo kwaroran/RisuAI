@@ -153,30 +153,49 @@
         </div>
 
         {#if $CurrentCharacter?.chaId !== '§playground'}
-            <div class="flex mt-2 items-center">
-                <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
-            </div>
-            
-            {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
-                <div class="flex mt-2 items-center">
-                    <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
-                        $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
-                    }} />
-                </div>
-            {/each}
 
-            {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
-                {#if $DataBase.hanuraiEnable}
+            
+            {#if parseKeyValue($DataBase.customPromptTemplateToggle).length > 4}
+                <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>
+                        <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
                     </div>
-                {:else if $DataBase.hypaMemory}
+                    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
+                        <div class="flex mt-2 items-center">
+                            <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                            }} />
+                        </div>
+                    {/each}
+                    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                        <div class="flex mt-2 items-center">
+                            <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                        </div>
+                    {/if}
+                </div>
+            {:else if parseKeyValue($DataBase.customPromptTemplateToggle).length > 0}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+                </div>
+                {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
+                        <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                            $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                        }} />
                     </div>
-                {:else}
+                {/each}
+                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
+                        <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                    </div>
+                {/if}
+            {:else}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+                </div>
+                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                    <div class="flex mt-2 items-center">
+                        <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
                     </div>
                 {/if}
             {/if}
