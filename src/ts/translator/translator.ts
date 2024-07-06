@@ -4,8 +4,8 @@ import { DataBase, type character, type customscript, type groupChat } from "../
 import { globalFetch, isTauri } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
-import { doingChat } from "../process"
-import { applyMarkdownToNode, type simpleCharacterArgument } from "../parser"
+import { doingChat, OpenAIChat } from "../process"
+import { applyMarkdownToNode, parseChatML, type simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
@@ -449,10 +449,15 @@ async function translateLLM(text:string, arg:{to:string}){
         return llmCache.get(text)
     }
     const db = get(DataBase)
+    let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
-    prompt = prompt.replace('{{slot}}', arg.to)
-    const rq = await requestChatData({
-        formated: [
+    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text))
+    if(parsedPrompt){
+        formated = parsedPrompt
+    }
+    else{
+        prompt = prompt.replaceAll('{{slot}}', arg.to)
+        formated = [
             {
                 'role': 'system',
                 'content': prompt
@@ -461,7 +466,10 @@ async function translateLLM(text:string, arg:{to:string}){
                 'role': 'user',
                 'content': text
             }
-        ],
+        ]
+    }
+    const rq = await requestChatData({
+        formated,
         bias: {},
         useStreaming: false,
         noMultiGen: true,
