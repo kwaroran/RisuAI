@@ -148,7 +148,8 @@ export async function runLua(code:string, arg:{
             const data = JSON.stringify(chat.message.map((v) => {
                 return {
                     role: v.role,
-                    data: v.data
+                    data: v.data,
+                    time: v.time
                 }
             }))
             return data
