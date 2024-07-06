@@ -1,4 +1,4 @@
-import { risuChatParser, risuCommandParser } from "../parser";
+import { parseChatML, risuChatParser, risuCommandParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
@@ -426,41 +426,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     }
                     const effectValue = risuChatParser(effect.value,{chara:char})
                     const varName = effect.inputVar
-                    let promptbody:OpenAIChat[] = []
-                    let currentRole:'user'|'assistant'|'system'
-                    
-                    const splited = effectValue.split('\n')
-
-                    for(let i = 0; i < splited.length; i++){
-                        const line = splited[i]
-                        if(line.startsWith('@@role ')){
-                            const role = line.split(' ')[1]
-                            switch(role){
-                                case 'user':
-                                case 'assistant':
-                                case 'system':
-                                    currentRole = role
-                                    break
-                                default:
-                                    currentRole = 'system'
-                                    break
-                            }
-                            promptbody.push({role: currentRole, content: ''})
-                            continue
-                        }
-                        else if(promptbody.length === 0){
-                            promptbody.push({role: 'system', content: line})
-                        }
-                        else{
-                            promptbody[promptbody.length - 1].content += line
-                        }
+                    let promptbody:OpenAIChat[] = parseChatML(effectValue)
+                    if(!promptbody){
+                        promptbody = [{role:'user', content:effectValue}]
                     }
-
-                    promptbody = promptbody.map((e) => {
-                        e.content = e.content.trim()
-                        return e
-                    }).filter((e) => e.content.length > 0)
-
                     const result = await requestChatData({
                         formated: promptbody,
                         bias: {},
