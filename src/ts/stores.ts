@@ -3,6 +3,7 @@ import { DataBase, type Chat, type character, type groupChat } from "./storage/d
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
 import { sleep } from "./util";
+import { getModules } from "./process/modules";
 
 function updateSize(){
     SizeStore.set({
@@ -24,6 +25,7 @@ export const CharEmotion = writable({} as {[key:string]: [string, string, number
 export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Default width and height in pixels
 export const settingsOpen = writable(false)
 export const botMakerMode = writable(false)
+export const moduleBackgroundEmbedding = writable('')
 
 //optimization
 
@@ -39,6 +41,11 @@ export const CurrentVariablePointer = writable({} as {[key:string]: string|numbe
 export const OpenRealmStore = writable(false)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
+export const HideIconStore = writable(false)
+let lastGlobalEnabledModules: string[] = []
+let lastChatEnabledModules: string[] = []
+let moduleHideIcon = false
+let characterHideIcon = false
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
@@ -133,6 +140,11 @@ async function preInit(){
         if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
             CurrentShowMemoryLimit.set(data.showMemoryLimit)
         }
+        if(!isEqual(data.enabledModules, lastGlobalEnabledModules)){
+            lastGlobalEnabledModules = data.enabledModules || []
+            onModuleUpdate()
+            return
+        }
     })
 
     selectedCharID.subscribe((id) => {
@@ -144,6 +156,11 @@ async function preInit(){
         updateCurrentChat()
         let db = get(DataBase)
         let charId = get(selectedCharID)
+        if(char?.hideChatIcon !== characterHideIcon){
+            characterHideIcon = char?.hideChatIcon
+            HideIconStore.set(characterHideIcon || moduleHideIcon)
+        }
+
         if(charId === -1 || charId > db.characters.length){
             return
         }
@@ -165,6 +182,12 @@ async function preInit(){
             }
         }
 
+        if(!isEqual(lastChatEnabledModules, chat?.modules)){
+            lastChatEnabledModules = chat?.modules || []
+            onModuleUpdate()
+            return
+        }
+
         const variablePointer = get(CurrentVariablePointer)
         const currentState = structuredClone(chat?.scriptstate)
 
@@ -174,6 +197,27 @@ async function preInit(){
     })
 }
 
+function onModuleUpdate(){
+    const m = getModules([
+        ...lastGlobalEnabledModules, ...lastChatEnabledModules
+    ])
+    
+    let moduleHideIcon = false
+    let backgroundEmbedding = ''
+    m.forEach((module) => {
+        if(module.hideIcon){
+            moduleHideIcon = true
+        }
+        if(module.backgroundEmbedding){
+            backgroundEmbedding += '\n' + module.backgroundEmbedding + '\n'
+        }
+    })
+
+    if(backgroundEmbedding){
+        moduleBackgroundEmbedding.set(backgroundEmbedding)
+    }
+    HideIconStore.set(characterHideIcon || moduleHideIcon)
+}
 
 updateSize()
 window.addEventListener("resize", updateSize);

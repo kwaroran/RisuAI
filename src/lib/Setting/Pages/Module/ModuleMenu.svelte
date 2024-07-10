@@ -63,6 +63,15 @@
         }
     }
 
+    function toggleBackground(){
+        if(typeof(currentModule.backgroundEmbedding) !== 'string'){
+            currentModule.backgroundEmbedding = ''
+        }
+        else{
+            currentModule.backgroundEmbedding = undefined
+        }
+    }
+
     function addLorebook(){
         if(Array.isArray(currentModule.lorebook)){
             currentModule.lorebook.push({
@@ -121,7 +130,9 @@
     <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleTrigger}>
         {language.triggerScript}
     </button>
-    <button></button>
+    <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleBackground}>
+        {language.backgroundHTML}
+    </button>
 </div>
 
 {#if (Array.isArray(currentModule.lorebook))}
@@ -145,6 +156,11 @@
     <button on:click={() => {addRegex()}} class="hover:text-textcolor cursor-pointer">
         <PlusIcon />
     </button>
+{/if}
+
+{#if typeof(currentModule.backgroundEmbedding) === 'string'}
+    <span class="mt-8 text-xl">{language.backgroundHTML}</span>
+    <TextAreaInput bind:value={currentModule.backgroundEmbedding} className="mt-2" placeholder={language.backgroundHTML} size="sm"/>
 {/if}
 
 {#if (Array.isArray(currentModule.trigger))}
@@ -203,3 +219,7 @@
         <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
     </div>
 {/if}
+
+<div class="flex items-center mt-4">
+    <Check bind:check={currentModule.hideIcon} name={language.hideChatIcon}/>
+</div>

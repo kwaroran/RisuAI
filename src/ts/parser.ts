@@ -1131,9 +1131,9 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
     
                 }
                 case 'tonumber':{
-                    return makeArray(arra[1].split('').filter((v) => {
+                    return (arra[1].split('').filter((v) => {
                         return !isNaN(Number(v)) || v === '.'
-                    }))
+                    })).join('')
                 }
                 case 'pow':{
                     return Math.pow(Number(arra[1]), Number(arra[2])).toString()
@@ -1594,7 +1594,12 @@ function parseDict(p1:string):{[key:string]:string}{
 }
 
 function makeArray(p1:string[]):string{
-    return JSON.stringify(p1)
+    return JSON.stringify(p1.map((f) => {
+        if(typeof(f) === 'string'){
+            return f.replace(/::/g, '\\u003A\\u003A')
+        }
+        return f
+    }))
 }
 
 function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string,funcArg?:string[]}{
@@ -2504,7 +2509,7 @@ export function parseChatML(data:string):OpenAIChat[]|null{
             v = v.substring(6 + seperator.length)
         }
         else if(v.startsWith('assistant' + seperator)){
-            role = 'system'
+            role = 'assistant'
             v = v.substring(9 + seperator.length)
         }
         //space/newline separators

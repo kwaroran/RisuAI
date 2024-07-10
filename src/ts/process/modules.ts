@@ -17,6 +17,8 @@ export interface RisuModule{
     trigger?: triggerscript[]
     id: string
     lowLevelAccess?: boolean
+    hideIcon?: boolean
+    backgroundEmbedding?:string
 }
 
 export async function exportModule(module:RisuModule){

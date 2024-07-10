@@ -967,6 +967,10 @@
         </div>
 
         <div class="flex items-center mt-4">
+            <Check bind:check={currentChar.data.hideChatIcon} name={language.hideChatIcon}/>
+        </div>
+
+        <div class="flex items-center mt-4">
             <Check bind:check={currentChar.data.utilityBot} name={language.utilityBot}/>
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>

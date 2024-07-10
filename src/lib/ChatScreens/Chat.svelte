@@ -5,7 +5,7 @@
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, CurrentVariablePointer } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, CurrentVariablePointer, HideIconStore } from "../../ts/stores";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
@@ -86,8 +86,8 @@
     let lastParsed = ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
-    let blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
-    $: blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
+    let blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
+    $: blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
@@ -144,7 +144,7 @@
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
-        {#if !blankMessage}
+        {#if !blankMessage && !$HideIconStore}
             {#if $CurrentCharacter?.chaId === "§playground"}
                 <div class="shadow-lg border-textcolor2 border mt-2 flex justify-center items-center text-textcolor2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
                 class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}>
@@ -179,7 +179,7 @@
                             $CurrentChat = $CurrentChat
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
-                {:else if !blankMessage}
+                {:else if !blankMessage && !HideIconStore}
                     <span class="chat text-xl unmargin">{name}</span>
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
