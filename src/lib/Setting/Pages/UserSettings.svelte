@@ -5,7 +5,7 @@
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm, alertError, alertNormal } from "src/ts/alert";
-    import { forageStorage, isNodeServer, isTauri } from "src/ts/storage/globalApi";
+    import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
     import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
@@ -61,16 +61,16 @@
     {language.loadBackupLocal}
 </Button>
 
-<!-- {#if $DataBase.account}
+{#if !$DataBase.account}
     <Button
         on:click={async () => {
             if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
-                loadRisuAccountBackup()
+                loadInternalBackup()
             }
         }} className="mt-2">
-        {language.loadAutoServerBackup}
+        {language.loadInternalBackup}
     </Button>
-{/if} -->
+{/if}
 
 <Button
     on:click={async () => {

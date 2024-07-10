@@ -12,7 +12,7 @@ import { checkRisuUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait } from "../alert";
+import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
@@ -1606,4 +1606,47 @@ export class BlankWriter{
     async end(){
         //do nothing, just to make compatible with other writer
     }
+}
+
+export async function loadInternalBackup(){
+    
+    const keys = isTauri ? (await readDir('database', {dir: BaseDirectory.AppData})).map((v) => {
+        return v.name
+    }) : (await forageStorage.keys())
+    let internalBackups:string[] = []
+    for(const key of keys){
+        if(key.startsWith('dbbackup-')){
+            internalBackups.push(key)
+        }
+    }
+
+    const selectOptions = [
+        'Cancel',
+        ...(internalBackups.map((a) => {
+            return (new Date(parseInt(a.replace('database/dbbackup-', '').replace('dbbackup-','')) * 100)).toLocaleString()
+        }))
+    ]
+
+    const alertResult = parseInt(
+        await alertSelect(selectOptions)
+    ) - 1
+
+    if(alertResult === -1){
+        return
+    }
+
+    const selectedBackup = internalBackups[alertResult]
+
+    const data = isTauri ? (
+        await readBinaryFile('database/' + selectedBackup, {dir: BaseDirectory.AppData})
+    ) : (await forageStorage.getItem(selectedBackup))
+
+    setDatabase(
+        decodeRisuSave(data)
+    )
+
+    await alertNormal('Loaded backup')
+
+    
+
 }
