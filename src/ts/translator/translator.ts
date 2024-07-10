@@ -448,6 +448,13 @@ async function translateLLM(text:string, arg:{to:string}){
     if(llmCache.has(text)){
         return llmCache.get(text)
     }
+    const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
+    let styleDecodes:string[] = []
+    text = text.replace(styleDecodeRegex, (match, p1) => {
+        styleDecodes.push(p1)
+        return `<style-data style-index="${styleDecodes.length-1}"></style-data>`
+    })
+
     const db = get(DataBase)
     let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
@@ -480,6 +487,9 @@ async function translateLLM(text:string, arg:{to:string}){
         alertError(`${rq.result}`)
         return text
     }
-    llmCache.set(text, rq.result)
-    return rq.result
+    const result = rq.result.replace(/<style-data style-index="(\d+)" ?\/?>/g, (match, p1) => {
+        return styleDecodes[parseInt(p1)] ?? ''
+    }).replace(/<\/style-data>/g, '')
+    llmCache.set(text, result)
+    return result
 }
