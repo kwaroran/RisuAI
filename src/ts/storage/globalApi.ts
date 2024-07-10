@@ -360,7 +360,7 @@ export async function saveDb(){
 async function getDbBackups() {
     let db = get(DataBase)
     if(db?.account?.useSync){
-        return
+        return []
     }
     if(isTauri){
         const keys = await readDir('database', {dir: BaseDirectory.AppData})
@@ -418,9 +418,8 @@ export async function loadData() {
                     await writeBinaryFileFast('database/database.bin', encodeRisuSave({}));
                 }
                 try {
-                    setDatabase(
-                        decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
-                    )
+                    const decoded = decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
+                    setDatabase(decoded)
                 } catch (error) {
                     const backups = await getDbBackups()
                     let backupLoaded = false
@@ -450,10 +449,11 @@ export async function loadData() {
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
-                    setDatabase(
-                        decodeRisuSave(gotStorage)
-                    )
+                    const decoded = decodeRisuSave(gotStorage)
+                    console.log(decoded)
+                    setDatabase(decoded)
                 } catch (error) {
+                    console.error(error)
                     const backups = await getDbBackups()
                     let backupLoaded = false
                     for(const backup of backups){

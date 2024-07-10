@@ -198,6 +198,13 @@ async function preInit(){
 }
 
 function onModuleUpdate(){
+    if(!Array.isArray(lastGlobalEnabledModules)){
+        lastGlobalEnabledModules = []
+    }
+    if(!Array.isArray(lastChatEnabledModules)){
+        lastChatEnabledModules = []
+    }
+
     const m = getModules([
         ...lastGlobalEnabledModules, ...lastChatEnabledModules
     ])
@@ -205,6 +212,10 @@ function onModuleUpdate(){
     let moduleHideIcon = false
     let backgroundEmbedding = ''
     m.forEach((module) => {
+        if(!module){
+            return
+        }
+
         if(module.hideIcon){
             moduleHideIcon = true
         }
