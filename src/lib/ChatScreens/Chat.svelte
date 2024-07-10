@@ -86,8 +86,8 @@
     let lastParsed = ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
-    let blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
-    $: blankMessage = (message === '{{none}}' || message === 'blank') && idx === -1
+    let blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
+    $: blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
@@ -179,7 +179,7 @@
                             $CurrentChat = $CurrentChat
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
-                {:else if !blankMessage}
+                {:else if !blankMessage && !HideIconStore}
                     <span class="chat text-xl unmargin">{name}</span>
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
