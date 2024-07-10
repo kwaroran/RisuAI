@@ -55,7 +55,7 @@
     "markdown-it": "^14.1.0",
     "ml-distance": "^4.0.1",
     "mobile-drag-drop": "3.0.0-rc.0",
-    "msgpackr": "^1.10.1",
+    "msgpackr": "1.10.1",
     "node-html-parser": "^6.1.12",
     "ollama": "^0.5.0",
     "pdfjs-dist": "^4.0.379",
