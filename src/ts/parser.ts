@@ -2509,7 +2509,7 @@ export function parseChatML(data:string):OpenAIChat[]|null{
             v = v.substring(6 + seperator.length)
         }
         else if(v.startsWith('assistant' + seperator)){
-            role = 'system'
+            role = 'assistant'
             v = v.substring(9 + seperator.length)
         }
         //space/newline separators
