@@ -826,6 +826,7 @@ export interface character{
     }>
     defaultVariables?:string
     lowLevelAccess?:boolean
+    hideChatIcon?:boolean
 }
 
 
@@ -873,6 +874,7 @@ export interface groupChat{
     nickname?:string
     defaultVariables?:string
     lowLevelAccess?:boolean
+    hideChatIcon?:boolean
 }
 
 export interface botPreset{

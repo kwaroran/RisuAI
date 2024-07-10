@@ -203,3 +203,7 @@
         <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
     </div>
 {/if}
+
+<div class="flex items-center mt-4">
+    <Check bind:check={currentModule.hideIcon} name={language.hideChatIcon}/>
+</div>
