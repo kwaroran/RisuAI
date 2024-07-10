@@ -1615,7 +1615,7 @@ export async function loadInternalBackup(){
     }) : (await forageStorage.keys())
     let internalBackups:string[] = []
     for(const key of keys){
-        if(key.startsWith('dbbackup-')){
+        if(key.includes('dbbackup-')){
             internalBackups.push(key)
         }
     }
