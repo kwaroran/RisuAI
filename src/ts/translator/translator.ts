@@ -4,7 +4,7 @@ import { DataBase, type character, type customscript, type groupChat } from "../
 import { globalFetch, isTauri } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
-import { doingChat, OpenAIChat } from "../process"
+import { doingChat, type OpenAIChat } from "../process"
 import { applyMarkdownToNode, parseChatML, type simpleCharacterArgument } from "../parser"
 import { selectedCharID } from "../stores"
 import { getModuleRegexScripts } from "../process/modules"

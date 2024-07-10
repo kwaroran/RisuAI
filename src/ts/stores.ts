@@ -140,7 +140,7 @@ async function preInit(){
             CurrentShowMemoryLimit.set(data.showMemoryLimit)
         }
         if(!isEqual(data.enabledModules, lastGlobalEnabledModules)){
-            lastGlobalEnabledModules = data.enabledModules
+            lastGlobalEnabledModules = data.enabledModules || []
             onModuleUpdate()
             return
         }
@@ -155,8 +155,8 @@ async function preInit(){
         updateCurrentChat()
         let db = get(DataBase)
         let charId = get(selectedCharID)
-        if(char.hideChatIcon !== characterHideIcon){
-            characterHideIcon = char.hideChatIcon
+        if(char?.hideChatIcon !== characterHideIcon){
+            characterHideIcon = char?.hideChatIcon
             HideIconStore.set(characterHideIcon || moduleHideIcon)
         }
 
@@ -182,7 +182,7 @@ async function preInit(){
         }
 
         if(!isEqual(lastChatEnabledModules, chat?.modules)){
-            lastChatEnabledModules = chat?.modules
+            lastChatEnabledModules = chat?.modules || []
             onModuleUpdate()
             return
         }
