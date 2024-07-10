@@ -248,22 +248,22 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             }
                             break
                         case '>':
-                            if(Number(varValue) > Number(conditionValue)){
+                            if(Number(varValue) <= Number(conditionValue)){
                                 pass = false
                             }
                             break
                         case '<':
-                            if(Number(varValue) < Number(conditionValue)){
-                                pass = false
-                            }
-                            break
-                        case '>=':
                             if(Number(varValue) >= Number(conditionValue)){
                                 pass = false
                             }
                             break
+                        case '>=':
+                            if(Number(varValue) < Number(conditionValue)){
+                                pass = false
+                            }
+                            break
                         case '<=':
-                            if(Number(varValue) <= Number(conditionValue)){
+                            if(Number(varValue) > Number(conditionValue)){
                                 pass = false
                             }
                             break
