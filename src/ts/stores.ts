@@ -25,6 +25,7 @@ export const CharEmotion = writable({} as {[key:string]: [string, string, number
 export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Default width and height in pixels
 export const settingsOpen = writable(false)
 export const botMakerMode = writable(false)
+export const moduleBackgroundEmbedding = writable('')
 
 //optimization
 
@@ -202,12 +203,19 @@ function onModuleUpdate(){
     ])
     
     let moduleHideIcon = false
+    let backgroundEmbedding = ''
     m.forEach((module) => {
         if(module.hideIcon){
             moduleHideIcon = true
         }
+        if(module.backgroundEmbedding){
+            backgroundEmbedding += '\n' + module.backgroundEmbedding + '\n'
+        }
     })
 
+    if(backgroundEmbedding){
+        moduleBackgroundEmbedding.set(backgroundEmbedding)
+    }
     HideIconStore.set(characterHideIcon || moduleHideIcon)
 }
 
