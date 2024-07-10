@@ -179,7 +179,7 @@
                             $CurrentChat = $CurrentChat
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
-                {:else if !blankMessage && !HideIconStore}
+                {:else if !blankMessage && !$HideIconStore}
                     <span class="chat text-xl unmargin">{name}</span>
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
