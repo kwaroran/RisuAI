@@ -1497,6 +1497,7 @@ const dateTimeFormat = (main:string, time = 0) => {
         .replace(/YYYY/g, date.getFullYear().toString())
         .replace(/YY/g, date.getFullYear().toString().substring(2))
         .replace(/MMMM/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+        .replace(/MMM/g, Intl.DateTimeFormat('en', { month: 'short' }).format(date))
         .replace(/MM/g, (date.getMonth() + 1).toString().padStart(2, '0'))
         .replace(/DDDD/g, Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)).toString())
         .replace(/DD/g, date.getDate().toString().padStart(2, '0'))
