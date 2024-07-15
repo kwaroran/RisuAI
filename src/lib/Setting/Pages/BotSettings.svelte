@@ -31,15 +31,8 @@
         mainPrompt: 0,
         jailbreak: 0,
         globalNote: 0,
-        autoSuggest: 0
     }
 
-    let lasttokens = {
-        mainPrompt: '',
-        jailbreak: '',
-        globalNote: '',
-        autoSuggest: ''
-    }
     export let openPresetList =false
     export let goPromptTemplate = () => {}
 
@@ -47,7 +40,6 @@
         tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt, true)
         tokens.jailbreak = await tokenizeAccurate($DataBase.jailbreak, true)
         tokens.globalNote = await tokenizeAccurate($DataBase.globalNote, true)
-        tokens.autoSuggest = await tokenizeAccurate($DataBase.autoSuggestPrompt, true)
     }
 
     let advancedBotSettings = false
@@ -132,15 +124,6 @@
         <span class="text-textcolor">Google Project ID</span>
         <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText bind:value={$DataBase.google.projectId}/>
     {/if}
-
-    <Check check={$DataBase.google.projectId !== 'aigoogle'} className="mb-2" name={'Use Vertex AI'} onChange={(v) => {
-        if(!v){
-            $DataBase.google.projectId = 'aigoogle'
-        }
-        else{
-            $DataBase.google.projectId = ''
-        }
-    }}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
     <span class="text-textcolor">NovelList {language.apiKey}</span>
@@ -153,13 +136,14 @@
 {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
     <span class="text-textcolor">Claude {language.apiKey}</span>
     <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
-    {#if $DataBase.useExperimental}
-        <Check name="AWS Claude" bind:check={$DataBase.claudeAws}> <Help key="experimental" /></Check>
-    {/if}
 {/if}
 {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
     <span class="text-textcolor">Mistral {language.apiKey}</span>
     <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
+{/if}
+{#if $DataBase.aiModel.startsWith('novelai') || $DataBase.subModel.startsWith('novelai')}
+    <span class="text-textcolor">NovelAI Bearer Token</span>
+    <TextInput bind:value={$DataBase.novelai.token}/>
 {/if}
 {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
     <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
@@ -199,9 +183,6 @@
     {:else}
         <div class="mb-4"></div>
     {/if}
-    <div class="flex items-center mt-2 mb-4">
-        <Check bind:check={$DataBase.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
-    </div>
 {/if}
 {#if $DataBase.aiModel.startsWith('risullm')}
     <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
@@ -264,11 +245,34 @@
     <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
 {/if}
-{#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
-    <div class="flex items-center mt-2 mb-4">
+
+<div class="py-2 flex flex-col gap-2 mb-4">
+    {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
         <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
-    </div>
-{/if}
+    {/if}
+
+    {#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
+        <Check check={$DataBase.google.projectId !== 'aigoogle'} name={'Use Vertex AI'} onChange={(v) => {
+            if(!v){
+                $DataBase.google.projectId = 'aigoogle'
+            }
+            else{
+                $DataBase.google.projectId = ''
+            }
+        }}/>
+    {/if}
+    {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
+        <Check name="AWS Claude" bind:check={$DataBase.claudeAws}></Check>
+    {/if}
+    {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
+        <Check bind:check={$DataBase.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
+    {/if}
+    {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
+        <Check bind:check={$DataBase.NAIadventure} name={language.textAdventureNAI}/>
+
+        <Check bind:check={$DataBase.NAIappendName} name={language.appendNameNAI}/>
+    {/if}
+</div>
 
 {#if $DataBase.aiModel === 'custom' || $DataBase.subModel === 'custom'}
     <span class="text-textcolor mt-2">{language.plugin}</span>
@@ -278,19 +282,6 @@
             <OptionInput value={plugin}>{plugin}</OptionInput>
         {/each}
     </SelectInput>
-{/if}
-{#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
-
-    <span class="text-textcolor">NovelAI Bearer Token</span>
-    <TextInput bind:value={$DataBase.novelai.token}/>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.NAIadventure} name={language.textAdventureNAI}/>
-    </div>
-
-    <div class="flex items-center mt-2 mb-4">
-        <Check bind:check={$DataBase.NAIappendName} name={language.appendNameNAI}/>
-    </div>
 {/if}
 
 {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
@@ -349,52 +340,39 @@
 <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
 
 {#if $DataBase.aiModel.startsWith("novelai")}
-    <SliderInput min={0} max={250} bind:value={$DataBase.temperature}/>
+    <SliderInput min={0} max={250} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2}/>
 {:else}
-    <SliderInput min={0} max={200} bind:value={$DataBase.temperature}/>
+    <SliderInput min={0} max={200} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2}/>
 {/if}
-<span class="text-textcolor2 mb-6 text-sm">{($DataBase.temperature / 100).toFixed(2)}</span>
-
 {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')}
     <span class="text-textcolor">Top K</span>
-    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.top_k}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_k).toFixed(0)}</span>
+    <SliderInput min={0} max={100} marginBottom step={1} bind:value={$DataBase.top_k}/>
 {/if}
 {#if $DataBase.aiModel.startsWith('openrouter')}
     <span class="text-textcolor">Repetition penalty</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.repetition_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.repetition_penalty).toFixed(2)}</span>
+    <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty}/>
 
     <span class="text-textcolor">Min P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.min_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.min_p).toFixed(2)}</span>
+    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.min_p}/>
 
     <span class="text-textcolor">Top A</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_a).toFixed(2)}</span>
+    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.top_a}/>
 {/if}
 {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_') || $DataBase.aiModel.startsWith('hf:::')}
     <span class="text-textcolor">Repetition Penalty</span>
-    <SliderInput min={1} max={1.5} step={0.01} bind:value={$DataBase.ooba.repetition_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.repetition_penalty).toFixed(2)}</span>
+    <SliderInput min={1} max={1.5} step={0.01} fixed={2} marginBottom bind:value={$DataBase.ooba.repetition_penalty}/>
     <span class="text-textcolor">Length Penalty</span>
-    <SliderInput min={-5} max={5} step={0.05} bind:value={$DataBase.ooba.length_penalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.length_penalty).toFixed(2)}</span>
+    <SliderInput min={-5} max={5} step={0.05} marginBottom fixed={2} bind:value={$DataBase.ooba.length_penalty}/>
     <span class="text-textcolor">Top K</span>
-    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.ooba.top_k} />
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_k).toFixed(0)}</span>
+    <SliderInput min={0} max={100} step={1} marginBottom bind:value={$DataBase.ooba.top_k} />
     <span class="text-textcolor">Top P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_p).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.top_p}/>
     <span class="text-textcolor">Typical P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.typical_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.typical_p).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.typical_p}/>
     <span class="text-textcolor">Top A</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ooba.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.top_a).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.top_a}/>
     <span class="text-textcolor">No Repeat n-gram Size</span>
-    <SliderInput min={0} max={20} step={1} bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ooba.no_repeat_ngram_size).toFixed(0)}</span>
+    <SliderInput min={0} max={20} step={1} marginBottom bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
     </div>
@@ -445,16 +423,6 @@
     <div class="flex flex-col p-3 rounded-md border-selected border mt-4">
         <ChatFormatSettings />
     </div>
-
-    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput fullwidth autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
-    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
-
-    <span class="text-textcolor">{language.autoSuggest} Prefix</span>
-    <TextInput marginBottom={true} bind:value={$DataBase.autoSuggestPrefix} />
-
-    <Check bind:check={$DataBase.autoSuggestClean} name={`${language.autoSuggest} suffix removal`}/>
-
     <Check bind:check={$DataBase.ooba.formating.useName} name={language.useNamePrefix}/>
 
 {:else if $DataBase.aiModel.startsWith('novelai')}
@@ -465,91 +433,60 @@
         <TextInput bind:value={$DataBase.NAIsettings.seperator} placeholder={"\\n"}/>
     </div>
     <span class="text-textcolor">Top P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topP}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topP).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.topP}/>
     <span class="text-textcolor">Top K</span>
-    <SliderInput min={0} max={100} step={1} bind:value={$DataBase.NAIsettings.topK}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topK).toFixed(0)}</span>
+    <SliderInput min={0} max={100} step={1} marginBottom bind:value={$DataBase.NAIsettings.topK}/>
     <span class="text-textcolor">Top A</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.topA}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.topA).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.topA}/>
     <span class="text-textcolor">Tailfree Sampling</span>
-    <SliderInput min={0} max={1} step={0.001} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.tailFreeSampling).toFixed(3)}</span>
+    <SliderInput min={0} max={1} step={0.001} marginBottom fixed={3} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
     <span class="text-textcolor">Typical P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.typicalp}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.typicalp).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.typicalp}/>
     <span class="text-textcolor">Repetition Penalty</span>
-    <SliderInput min={0} max={3} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenalty).toFixed(2)}</span>
+    <SliderInput min={0} max={3} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
     <span class="text-textcolor">Repetition Penalty Range</span>
-    <SliderInput min={0} max={8192} step={1} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltyRange).toFixed(0)}</span>
+    <SliderInput min={0} max={8192} step={1} marginBottom fixed={0} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
     <span class="text-textcolor">Repetition Penalty Slope</span>
-    <SliderInput min={0} max={10} step={0.01} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.repetitionPenaltySlope).toFixed(2)}</span>
+    <SliderInput min={0} max={10} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
     <span class="text-textcolor">Frequency Penalty</span>
-    <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.frequencyPenalty).toFixed(2)}</span>
+    <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
     <span class="text-textcolor">Presence Penalty</span>
-    <SliderInput min={-2} max={2} step={0.01} bind:value={$DataBase.NAIsettings.presencePenalty}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.presencePenalty).toFixed(2)}</span>
+    <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.presencePenalty}/>
     <span class="text-textcolor">Mirostat LR</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_lr}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_lr).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.mirostat_lr}/>
     <span class="text-textcolor">Mirostat Tau</span>
-    <SliderInput min={0} max={6} step={0.01} bind:value={$DataBase.NAIsettings.mirostat_tau}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.mirostat_tau).toFixed(2)}</span>
+    <SliderInput min={0} max={6} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.mirostat_tau}/>
     <span class="text-textcolor">Cfg Scale</span>
-    <SliderInput min={1} max={3} step={0.01} bind:value={$DataBase.NAIsettings.cfg_scale}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.NAIsettings.cfg_scale).toFixed(2)}</span>
+    <SliderInput min={1} max={3} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.cfg_scale}/>
 
 {:else if $DataBase.aiModel.startsWith('novellist')}
     <span class="text-textcolor">Top P</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_p).toFixed(2)}</span>
+    <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_p}/>
     <span class="text-textcolor">Reputation Penalty</span>
-    <SliderInput min={0} max={2} step={0.01} bind:value={$DataBase.ainconfig.rep_pen}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen).toFixed(2)}</span>
+    <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen}/>
     <span class="text-textcolor">Reputation Penalty Range</span>
-    <SliderInput min={0} max={2048} step={1} bind:value={$DataBase.ainconfig.rep_pen_range}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_range).toFixed(2)}</span>
+    <SliderInput min={0} max={2048} step={1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen_range}/>
     <span class="text-textcolor">Reputation Penalty Slope</span>
-    <SliderInput min={0} max={10} step={0.1} bind:value={$DataBase.ainconfig.rep_pen_slope}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.rep_pen_slope).toFixed(2)}</span>
+    <SliderInput min={0} max={10} step={0.1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen_slope}/>
     <span class="text-textcolor">Top K</span>
-    <SliderInput min={1} max={500} step={1} bind:value={$DataBase.ainconfig.top_k}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_k).toFixed(2)}</span>
+    <SliderInput min={1} max={500} step={1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_k}/>
     <span class="text-textcolor">Top A</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.top_a}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.top_a).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_a}/>
     <span class="text-textcolor">Typical P</span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.ainconfig.typical_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.ainconfig.typical_p).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.typical_p}/>
 {:else if $DataBase.aiModel.startsWith('claude')}
     <span class="text-textcolor">Top P <Help key="topP"/></span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
-    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
-    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p}/>
 {:else}
 
 
     <span class="text-textcolor">Top P <Help key="topP"/></span>
-    <SliderInput min={0} max={1} step={0.01} bind:value={$DataBase.top_p}/>
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.top_p).toFixed(2)}</span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p}/>
 
     <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
-    <SliderInput min={0} max={200} bind:value={$DataBase.frequencyPenalty} />
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.frequencyPenalty / 100).toFixed(2)}</span>
+    <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.frequencyPenalty} />
     <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
-    <SliderInput min={0} max={200} bind:value={$DataBase.PresensePenalty} />
-    <span class="text-textcolor2 mb-6 text-sm">{($DataBase.PresensePenalty / 100).toFixed(2)}</span>
-
-    <span class="text-textcolor mt-2">{language.autoSuggest} <Help key="autoSuggest"/></span>
-    <TextAreaInput autocomplete="off" bind:value={$DataBase.autoSuggestPrompt} />
-    <span class="text-textcolor2 mb-6 text-sm">{tokens.autoSuggest} {language.tokens}</span>
+    <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.PresensePenalty} />
 {/if}
 {/if}
 
