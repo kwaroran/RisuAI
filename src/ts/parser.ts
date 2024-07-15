@@ -5,7 +5,7 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { CurrentChat, SizeStore, selectedCharID } from './stores';
+import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
@@ -242,79 +242,101 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 
-export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
+export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
-    if(char.additionalAssets || char.emotionImages){
+    let assetPaths:{[key:string]:{
+        path:string
+        ext?:string
+    }} = {}
+    let emoPaths:{[key:string]:{
+        path:string
+    }} = {}
 
-        let assetPaths:{[key:string]:{
-            path:string
-            ext?:string
-        }} = {}
-        let emoPaths:{[key:string]:{
-            path:string
-        }} = {}
-
-        if(char.additionalAssets){
-            for(const asset of char.additionalAssets){
-                const assetPath = await getFileSrc(asset[1])
-                assetPaths[asset[0].toLocaleLowerCase()] = {
-                    path: assetPath,
-                    ext: asset[2]
-                }
+    if(char.additionalAssets){
+        for(const asset of char.additionalAssets){
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
             }
         }
-        if(char.emotionImages){
-            for(const emo of char.emotionImages){
-                const emoPath = await getFileSrc(emo[1])
-                emoPaths[emo[0].toLocaleLowerCase()] = {
-                    path: emoPath,
-                }
+    }
+    if(char.emotionImages){
+        for(const emo of char.emotionImages){
+            const emoPath = await getFileSrc(emo[1])
+            emoPaths[emo[0].toLocaleLowerCase()] = {
+                path: emoPath,
             }
         }
-        const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
-        data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
-            name = name.toLocaleLowerCase()
-            if(type === 'emotion'){
-                const path = emoPaths[name]?.path
-                if(!path){
-                    return ''
-                }
-                return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
-            }
-            const path = assetPaths[name]
+    }
+    const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
+    let needsSourceAccess = false
+    data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
+        name = name.toLocaleLowerCase()
+        if(type === 'emotion'){
+            const path = emoPaths[name]?.path
             if(!path){
                 return ''
             }
-            switch(type){
-                case 'raw':
-                    return path.path
-                case 'img':
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
-                case 'video':
-                    return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'video-img':
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'audio':
-                    return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
-                case 'bg':
-                    if(mode === 'back'){
-                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
-                    }
-                    break
-                case 'asset':{
-                    if(path.ext && videoExtention.includes(path.ext)){
-                        return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                    }
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+        }
+        if(type === 'source'){
+            needsSourceAccess = true
+            switch(name){
+                case 'char':{
+                    return '\uE9b4CHAR\uE9b4'
+                }
+                case 'user': {
+                    return '\uE9b4USER\uE9b4'
                 }
             }
+        }
+        const path = assetPaths[name]
+        if(!path){
             return ''
-        })
+        }
+        switch(type){
+            case 'raw':
+                return path.path
+            case 'img':
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            case 'video':
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'video-img':
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'audio':
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+            case 'bg':
+                if(mode === 'back'){
+                    return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
+                }
+                break
+            case 'asset':{
+                if(path.ext && videoExtention.includes(path.ext)){
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                }
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            }
+        }
+        return ''
+    })
+
+    if(needsSourceAccess){
+        const chara = get(CurrentCharacter)
+        if(chara.image){}
+        data = data.replace(/\uE9b4CHAR\uE9b4/g,
+            chara.image ? (await getFileSrc(chara.image)) : ''
+        )
+
+        data = data.replace(/\uE9b4USER\uE9b4/g,
+            db.userIcon ? (await getFileSrc(db.userIcon)) : ''
+        )
     }
+    
     return data
 }
 
