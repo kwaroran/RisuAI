@@ -1301,9 +1301,9 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
     }
     else if(type === 'risupreset' || type === 'return'){
         const buf = fflate.compressSync(encodeMsgpack({
-            presetVersion: 0,
+            presetVersion: 2,
             type: 'preset',
-            pres: await encryptBuffer(
+            preset: await encryptBuffer(
                 encodeMsgpack(pres),
                 'risupreset'
             )
@@ -1344,8 +1344,8 @@ export async function importPreset(f:{
     if(f.name.endsWith('.risupreset')){
         const decoded = await decodeMsgpack(fflate.decompressSync(f.data))
         console.log(decoded)
-        if(decoded.presetVersion === 0 && decoded.type === 'preset'){
-            pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.pres, 'risupreset')))}
+        if((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset'){
+            pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset')))}
         }
     }
     else{
