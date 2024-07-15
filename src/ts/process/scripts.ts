@@ -57,6 +57,8 @@ export async function importRegex(){
     }
 }
 
+let bestMatchCache = new Map<string, string>()
+
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
@@ -212,11 +214,17 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         for(const match of matches){
             const type = match[1]
             const assetName = match[2]
-            if(!assetNames.includes(assetName)){
-                const searched = await processer.similaritySearch(assetName)
-                const bestMatch = searched[0]
-                if(bestMatch){
-                    data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
+            if(type !== 'emotion' && type !== 'source'){
+                if(bestMatchCache.has(assetName)){
+                    data = data.replaceAll(match[0], `{{${type}::${bestMatchCache.get(assetName)}}}`)
+                }
+                else if(!assetNames.includes(assetName)){
+                    const searched = await processer.similaritySearch(assetName)
+                    const bestMatch = searched[0]
+                    if(bestMatch){
+                        data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
+                        bestMatchCache.set(assetName, bestMatch)
+                    }
                 }
             }
         }
