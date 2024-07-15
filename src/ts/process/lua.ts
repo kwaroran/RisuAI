@@ -44,7 +44,7 @@ export async function runLua(code:string, arg:{
         if(!luaFactory){
             makeLuaFactory()
         }
-        luaEngine = await luaFactory.createEngine()
+        luaEngine = await luaFactory.createEngine({injectObjects: true})
         luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
             if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                 return
@@ -173,13 +173,13 @@ export async function runLua(code:string, arg:{
         })
 
         //Low Level Access
-        luaEngine.global.set('similarity', (id:string, source:string, value:string[]) => {
+        luaEngine.global.set('similarity', async (id:string, source:string, value:string[]) => {
             if(!LuaLowLevelIds.has(id)){
                 return
             }
             const processer = new HypaProcesser('MiniLM')
-            processer.addText(value)
-            return processer.similaritySearch(source)
+            await processer.addText(value)
+            return await processer.similaritySearch(source)
         })
 
         luaEngine.global.set('generateImage', async (id:string, value:string, negValue:string = '') => {
@@ -481,7 +481,7 @@ function log(value)
 end
 
 function LLM(id, prompt)
-    return json.decode(LLMMain(id, json.encode(prompt)))
+    return json.decode(LLMMain(id, json.encode(prompt)):await())
 end
 
 local editRequestFuncs = {}
@@ -513,7 +513,47 @@ function listenEdit(type, func)
     throw('Invalid type')
 end
 
-function callListenMain(type, id, value)
+function getState(id, name)
+    local escapedName = "__"..name
+    return json.decode(getChatVar(id, escapedName))
+end
+
+function setState(id, name, value)
+    local escapedName = "__"..name
+    setChatVar(id, escapedName, json.encode(value))
+end
+
+function async(callback)
+    return function(...)
+        local co = coroutine.create(callback)
+        local safe, result = coroutine.resume(co, ...)
+
+        return Promise.create(function(resolve, reject)
+            local checkresult
+            local step = function()
+                if coroutine.status(co) == "dead" then
+                    local send = safe and resolve or reject
+                    return send(result)
+                end
+
+                safe, result = coroutine.resume(co)
+                checkresult()
+            end
+
+            checkresult = function()
+                if safe and result == Promise.resolve(result) then
+                    result:finally(step)
+                else
+                    step()
+                end
+            end
+
+            checkresult()
+        end)
+    end
+end
+
+callListenMain = async(function(type, id, value)
     local realValue = json.decode(value)
 
     if type == 'editRequest' then
@@ -542,18 +582,7 @@ function callListenMain(type, id, value)
     end
 
     return json.encode(realValue)
-end
-
-function getState(id, name)
-    local escapedName = "__"..name
-    return json.decode(getChatVar(id, escapedName))
-end
-
-function setState(id, name, value)
-    local escapedName = "__"..name
-    setChatVar(id, escapedName, json.encode(value))
-end
-
+end)
 
 ${code}
 `

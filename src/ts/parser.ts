@@ -5,7 +5,7 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { CurrentChat, SizeStore, selectedCharID } from './stores';
+import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
@@ -242,79 +242,101 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 
-export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
+export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
-    if(char.additionalAssets || char.emotionImages){
+    let assetPaths:{[key:string]:{
+        path:string
+        ext?:string
+    }} = {}
+    let emoPaths:{[key:string]:{
+        path:string
+    }} = {}
 
-        let assetPaths:{[key:string]:{
-            path:string
-            ext?:string
-        }} = {}
-        let emoPaths:{[key:string]:{
-            path:string
-        }} = {}
-
-        if(char.additionalAssets){
-            for(const asset of char.additionalAssets){
-                const assetPath = await getFileSrc(asset[1])
-                assetPaths[asset[0].toLocaleLowerCase()] = {
-                    path: assetPath,
-                    ext: asset[2]
-                }
+    if(char.additionalAssets){
+        for(const asset of char.additionalAssets){
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
             }
         }
-        if(char.emotionImages){
-            for(const emo of char.emotionImages){
-                const emoPath = await getFileSrc(emo[1])
-                emoPaths[emo[0].toLocaleLowerCase()] = {
-                    path: emoPath,
-                }
+    }
+    if(char.emotionImages){
+        for(const emo of char.emotionImages){
+            const emoPath = await getFileSrc(emo[1])
+            emoPaths[emo[0].toLocaleLowerCase()] = {
+                path: emoPath,
             }
         }
-        const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
-        data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
-            name = name.toLocaleLowerCase()
-            if(type === 'emotion'){
-                const path = emoPaths[name]?.path
-                if(!path){
-                    return ''
-                }
-                return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
-            }
-            const path = assetPaths[name]
+    }
+    const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
+    let needsSourceAccess = false
+    data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
+        name = name.toLocaleLowerCase()
+        if(type === 'emotion'){
+            const path = emoPaths[name]?.path
             if(!path){
                 return ''
             }
-            switch(type){
-                case 'raw':
-                    return path.path
-                case 'img':
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
-                case 'video':
-                    return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'video-img':
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'audio':
-                    return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
-                case 'bg':
-                    if(mode === 'back'){
-                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
-                    }
-                    break
-                case 'asset':{
-                    if(path.ext && videoExtention.includes(path.ext)){
-                        return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                    }
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+        }
+        if(type === 'source'){
+            needsSourceAccess = true
+            switch(name){
+                case 'char':{
+                    return '\uE9b4CHAR\uE9b4'
+                }
+                case 'user': {
+                    return '\uE9b4USER\uE9b4'
                 }
             }
+        }
+        const path = assetPaths[name]
+        if(!path){
             return ''
-        })
+        }
+        switch(type){
+            case 'raw':
+                return path.path
+            case 'img':
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            case 'video':
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'video-img':
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'audio':
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+            case 'bg':
+                if(mode === 'back'){
+                    return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
+                }
+                break
+            case 'asset':{
+                if(path.ext && videoExtention.includes(path.ext)){
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                }
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            }
+        }
+        return ''
+    })
+
+    if(needsSourceAccess){
+        const chara = get(CurrentCharacter)
+        if(chara.image){}
+        data = data.replace(/\uE9b4CHAR\uE9b4/g,
+            chara.image ? (await getFileSrc(chara.image)) : ''
+        )
+
+        data = data.replace(/\uE9b4USER\uE9b4/g,
+            db.userIcon ? (await getFileSrc(db.userIcon)) : ''
+        )
     }
+    
     return data
 }
 
@@ -1496,17 +1518,20 @@ const dateTimeFormat = (main:string, time = 0) => {
     return main
         .replace(/YYYY/g, date.getFullYear().toString())
         .replace(/YY/g, date.getFullYear().toString().substring(2))
-        .replace(/MM?/g, (date.getMonth() + 1).toString().padStart(2, '0'))
-        .replace(/DD?/g, date.getDate().toString().padStart(2, '0'))
-        .replace(/DDDD?/g, (date.getDay() + (date.getMonth() * 30)).toString())
-        .replace(/HH?/g, date.getHours().toString().padStart(2, '0'))
-        .replace(/hh?/g, (date.getHours() % 12).toString().padStart(2, '0'))
-        .replace(/mm?/g, date.getMinutes().toString().padStart(2, '0'))
-        .replace(/ss?/g, date.getSeconds().toString().padStart(2, '0'))
-        .replace(/X?/g, (Date.now() / 1000).toFixed(2))
-        .replace(/x?/g, Date.now().toFixed())
+        .replace(/MMMM/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+        .replace(/MMM/g, Intl.DateTimeFormat('en', { month: 'short' }).format(date))
+        .replace(/MM/g, (date.getMonth() + 1).toString().padStart(2, '0'))
+        .replace(/DDDD/g, Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)).toString())
+        .replace(/DD/g, date.getDate().toString().padStart(2, '0'))
+        .replace(/dddd/g, Intl.DateTimeFormat('en', { weekday: 'long' }).format(date))
+        .replace(/ddd/g, Intl.DateTimeFormat('en', { weekday: 'short' }).format(date))
+        .replace(/HH/g, date.getHours().toString().padStart(2, '0'))
+        .replace(/hh/g, (date.getHours() % 12 || 12).toString().padStart(2, '0'))
+        .replace(/mm/g, date.getMinutes().toString().padStart(2, '0'))
+        .replace(/ss/g, date.getSeconds().toString().padStart(2, '0'))
+        .replace(/X/g, Math.floor(date.getTime() / 1000).toString())
+        .replace(/x/g, date.getTime().toString())
         .replace(/A/g, date.getHours() >= 12 ? 'PM' : 'AM')
-        .replace(/MMMM?/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
 
 }
 
