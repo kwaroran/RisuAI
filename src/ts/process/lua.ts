@@ -389,7 +389,7 @@ export async function runLua(code:string, arg:{
     else{
         LuaSafeIds.add(accessKey)
         if(lowLevelAccess){
-            LuaLowLevelIds.add(v4())
+            LuaLowLevelIds.add(accessKey)
         }
     }
     let res:any
