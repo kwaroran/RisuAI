@@ -420,18 +420,21 @@ export async function runLua(code:string, arg:{
                     if(func){
                         res = await func(accessKey)
                     }
+                    break
                 }
                 case 'output':{
                     const func = luaEngine.global.get('onOutput')
                     if(func){
                         res = await func(accessKey)
                     }
+                    break
                 }
                 case 'start':{
                     const func = luaEngine.global.get('onStart')
                     if(func){
                         res = await func(accessKey)
                     }
+                    break
                 }
                 case 'editRequest':
                 case 'editDisplay':
@@ -442,12 +445,14 @@ export async function runLua(code:string, arg:{
                         res = await func(mode, accessKey, JSON.stringify(data))
                         res = JSON.parse(res)
                     }
+                    break
                 }
                 default:{
                     const func = luaEngine.global.get(mode)
                     if(func){
                         res = await func(accessKey)
                     }
+                    break
                 }
             }   
             if(res === false){
