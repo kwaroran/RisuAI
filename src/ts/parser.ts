@@ -926,6 +926,10 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return db.subModel
             }
             case 'role': {
+                if (chatID !== -1) {
+                    const selchar = db.characters[get(selectedCharID)]
+                    return selchar.chats[selchar.chatPage].message[chatID].role;
+                }
                 return matcherArg.role ?? 'role'
             }
             case 'jbtoggled':{
