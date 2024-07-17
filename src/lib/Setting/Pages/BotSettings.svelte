@@ -63,12 +63,12 @@
 <div class="flex w-full mb-4">
     <button on:click={() => {
         $DataBase.advancedBotSettings = false
-    }} class="flex-1 border-solid  p-2 flex justify-center cursor-pointer rounded-l-lg bg-darkbg" class:bg-selected={!$DataBase.advancedBotSettings}>
+    }} class="flex-1 border-solid  p-2 flex justify-center cursor-pointer rounded-l-lg bg-darkbg" class:bg-darkbutton={!$DataBase.advancedBotSettings}>
         <span>{language.simple}</span>
     </button>
     <button on:click={() => {
         $DataBase.advancedBotSettings = true
-    }} class="flex-1 border-solid border-l-transparent p-2 flex justify-center cursor-pointer rounded-r-lg bg-darkbg" class:bg-selected={$DataBase.advancedBotSettings}>
+    }} class="flex-1 border-solid border-l-transparent p-2 flex justify-center cursor-pointer rounded-r-lg bg-darkbg" class:bg-darkbutton={$DataBase.advancedBotSettings}>
         <span>{language.advanced}</span>
     </button>
 </div>

@@ -12,6 +12,9 @@
 <div class="w-full" class:mb-4={marginBottom}>
   <div 
     class="relative w-full h-8 border-darkborderc border rounded-full cursor-pointer"
+    style:background={
+      `linear-gradient(to right, var(--risu-theme-darkbutton) 0%, var(--risu-theme-darkbutton) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) 100%)`
+    }
     on:mousedown={(event) => {
       mouseDown = true;
       changeValue(event);
@@ -32,11 +35,11 @@
     }}
     bind:this={slider}
   >
-    <div 
+    <!-- <div 
       class="absolute top-0 left-0 h-8 rounded-full bg-borderc transition-width duration-200"
       style="width: {(value - min) / (max - min) * 100}%;"
     >
-    </div>
+    </div> -->
     <span 
       class="absolute top-0 left-4 h-8 w-8 rounded-full items-center justify-center flex text-textcolor text-sm"
     >

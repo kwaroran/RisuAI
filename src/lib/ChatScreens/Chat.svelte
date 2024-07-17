@@ -243,7 +243,7 @@
             {#if MessageGenerationInfo && $DataBase.requestInfoInsideChat}
                 <div>
                     <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
-                                    hover:ring-borderc hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                                    hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                             on:click={() => {
                                 alertRequestData({
                                     genInfo: MessageGenerationInfo,

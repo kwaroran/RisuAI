@@ -27,7 +27,7 @@
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full p-1">
-        <button class="endflex valuer border-borderc" on:click={() => {
+        <button class="endflex valuer border-darkborderc" on:click={() => {
             value.secondkey = value.secondkey ?? ''
             open = !open
             if(open){
