@@ -197,7 +197,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = risuChatParser(data.replace(reg, outScript))
+                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
             }
         }
     }
