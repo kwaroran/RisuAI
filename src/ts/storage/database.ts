@@ -419,6 +419,16 @@ export function setDatabase(data:Database){
     data.stabilityModel ??= 'sd3-large'
     data.stabllityStyle ??= ''
     data.legacyTranslation ??= false
+    data.comfyUiUrl ??= 'http://localhost:8188'
+    data.comfyConfig ??= {
+        workflow: '',
+        posNodeID: '',
+        posInputName: 'text',
+        negNodeID: '',
+        negInputName: 'text',
+        timeout: 30
+    }
+
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -695,6 +705,8 @@ export interface Database{
     stabilityKey: string
     stabllityStyle: string
     legacyTranslation: boolean
+    comfyConfig: ComfyConfig
+    comfyUiUrl: string
 }
 
 export interface customscript{
@@ -967,6 +979,16 @@ interface NAIImgConfig{
     InfoExtracted:number,
     RefStrength:number
 }
+
+interface ComfyConfig{
+    workflow:string,
+    posNodeID: string,
+    posInputName:string,
+    negNodeID: string,
+    negInputName:string,
+    timeout: number
+}
+
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{
