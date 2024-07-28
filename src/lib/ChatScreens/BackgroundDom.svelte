@@ -42,13 +42,15 @@
 
 
 {#if backgroundHTML || $moduleBackgroundEmbedding}
-    {#key $CurrentVariablePointer}
-        {#key $ReloadGUIPointer}
-            <div class="absolute top-0 left-0 w-full h-full">
-                {#await ParseMarkdown(risuChatParser((backgroundHTML || '') + ($moduleBackgroundEmbedding || ''), {chara:currentChar}), currentChar, 'back') then md} 
-                    {@html md}
-                {/await}
-            </div>
+    {#if $selectedCharID > -1}
+        {#key $CurrentVariablePointer}
+            {#key $ReloadGUIPointer}
+                <div class="absolute top-0 left-0 w-full h-full">
+                    {#await ParseMarkdown(risuChatParser((backgroundHTML || '') + ($moduleBackgroundEmbedding || ''), {chara:currentChar}), currentChar, 'back') then md} 
+                        {@html md}
+                    {/await}
+                </div>
+            {/key}
         {/key}
-    {/key}
+    {/if}
 {/if}
