@@ -191,7 +191,10 @@ export async function runLua(code:string, arg:{
                 console.log(JSON.parse(value))
             })
 
-            luaEngine.global.set('updateGUI', () => {
+            luaEngine.global.set('reloadDisplay', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
                 ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
             })
 
