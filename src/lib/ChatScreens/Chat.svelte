@@ -5,7 +5,7 @@
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, CurrentVariablePointer, HideIconStore } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, CurrentVariablePointer, HideIconStore, ReloadGUIPointer } from "../../ts/stores";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get } from "svelte/store";
@@ -276,14 +276,15 @@
                     style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
                     style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
                 >
-                    {#key $CurrentVariablePointer}
-                        {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                            {@html lastParsed}
-                        {:then md}
-                            {@html md}
-                        {/await}
+                    {#key $ReloadGUIPointer}
+                        {#key $CurrentVariablePointer}
+                            {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                                {@html lastParsed}
+                            {:then md}
+                                {@html md}
+                            {/await}
+                        {/key}
                     {/key}
-                    
                 </span>
             {/if}
         </span>

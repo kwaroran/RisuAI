@@ -2,7 +2,7 @@ import { getChatVar, risuChatParser, setChatVar, type simpleCharacterArgument } 
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { DataBase, setDatabase, type Chat, type character, type groupChat } from "../storage/database";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { CurrentCharacter, CurrentChat, CurrentVariablePointer, ReloadGUIPointer, selectedCharID } from "../stores";
 import { alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
@@ -189,6 +189,10 @@ export async function runLua(code:string, arg:{
 
             luaEngine.global.set('logMain', (value:string) => {
                 console.log(JSON.parse(value))
+            })
+
+            luaEngine.global.set('updateGUI', () => {
+                ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
             })
 
             //Low Level Access
