@@ -117,7 +117,7 @@ export function getUserIcon(){
     return db.userIcon ?? ''
 }
 
-export function getUserPersonaDesc(){
+export function getPersonaPrompt(){
     const db = get(DataBase)
     return db.personaPrompt ?? ''
 }

@@ -7,7 +7,7 @@ import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
 import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
 import { getModuleLorebooks } from './process/modules';
 import { HypaProcesser } from './process/memory/hypamemory';
@@ -700,7 +700,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             }
             case 'persona':
             case 'user_persona':{
-                return db.personaPrompt
+                return getPersonaPrompt()
             }
             case 'main_prompt':
             case 'system_prompt':{
