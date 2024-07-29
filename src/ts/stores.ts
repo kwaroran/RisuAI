@@ -2,7 +2,7 @@ import { get, writable, type Writable } from "svelte/store";
 import { DataBase, type Chat, type character, type groupChat } from "./storage/database";
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
-import { getUserIcon, getUserName, sleep } from "./util";
+import { getUserIcon, getUserIconProtrait, getUserName, sleep } from "./util";
 import { getModules } from "./process/modules";
 
 function updateSize(){
@@ -43,6 +43,7 @@ export const OpenRealmStore = writable(false)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
+export const UserIconProtrait = writable(false)
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let moduleHideIcon = false
@@ -136,7 +137,10 @@ async function preInit(){
             CurrentUsername.set(getUserName())
         }
         if(getUserIcon() !== get(CurrentUserIcon)){
-            CurrentUserIcon.set(data.userIcon)
+            CurrentUserIcon.set(getUserIcon())
+        }
+        if(getUserIconProtrait() !== get(UserIconProtrait)){
+            UserIconProtrait.set(getUserIconProtrait())
         }
         if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
             CurrentShowMemoryLimit.set(data.showMemoryLimit)
@@ -161,7 +165,15 @@ async function preInit(){
             characterHideIcon = char?.hideChatIcon
             HideIconStore.set(characterHideIcon || moduleHideIcon)
         }
-
+        if(getUserName() !== get(CurrentUsername)){
+            CurrentUsername.set(getUserName())
+        }
+        if(getUserIcon() !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(getUserIcon())
+        }
+        if(getUserIconProtrait() !== get(UserIconProtrait)){
+            UserIconProtrait.set(getUserIconProtrait())
+        }
         if(charId === -1 || charId > db.characters.length){
             return
         }

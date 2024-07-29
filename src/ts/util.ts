@@ -107,19 +107,63 @@ export const replacePlaceholders = (msg:string, name:string) => {
                 .replace(/(\{\{((set)|(get))var::.+?\}\})/gu,'')
 }
 
+function checkPersonaBinded(){
+    try {
+        let db = get(DataBase)
+        const selectedChar = get(selectedCharID)
+        const character = db.characters[selectedChar]
+        const chat = character.chats[character.chatPage]
+        console.log(chat.bindedPersona)
+        if(!chat.bindedPersona){
+            return null
+        }
+        const persona = db.personas.find(v => v.id === chat.bindedPersona)
+        console.log(db.personas, persona)
+        return persona 
+    } catch (error) {
+        return null
+    }
+}
+
 export function getUserName(){
+    const bindedPersona = checkPersonaBinded()
+    if(bindedPersona){
+        return bindedPersona.name
+    }
     const db = get(DataBase)
     return db.username ?? 'User'
 }
 
 export function getUserIcon(){
+    const bindedPersona = checkPersonaBinded()
+    console.log(`Icon: ${bindedPersona?.icon}`)
+    if(bindedPersona){
+        return bindedPersona.icon
+    }
     const db = get(DataBase)
     return db.userIcon ?? ''
 }
 
 export function getPersonaPrompt(){
+    const bindedPersona = checkPersonaBinded()
+    if(bindedPersona){
+        return bindedPersona.personaPrompt
+    }
     const db = get(DataBase)
     return db.personaPrompt ?? ''
+}
+
+export function getUserIconProtrait(){
+    try {
+        const bindedPersona = checkPersonaBinded()
+        if(bindedPersona){
+            return bindedPersona.largePortrait
+        }
+        const db = get(DataBase)
+        return db.personas[db.selectedPersona].largePortrait       
+    } catch (error) {
+        return false
+    }
 }
 
 export function checkIsIos(){

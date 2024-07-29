@@ -2,7 +2,7 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter, PlaygroundStore } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, CurrentUsername, selectedCharID, CurrentUserIcon, CurrentShowMemoryLimit,CurrentSimpleCharacter, PlaygroundStore, UserIconProtrait } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DataBase, type Message, type character, type groupChat } from "../../ts/storage/database";
     import { getCharImage } from "../../ts/characters";
@@ -587,7 +587,7 @@
                         message={chat.data}
                         img={getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
-                        largePortrait={$DataBase.personas[$DataBase.selectedPersona].largePortrait}
+                        largePortrait={$UserIconProtrait}
                         MessageGenerationInfo={chat.generationInfo}
                     />
                 {/if}

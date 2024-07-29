@@ -9,7 +9,6 @@
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
     import { DataBase, setDatabase } from "src/ts/storage/database";
-    import { CurrentUserIcon } from "src/ts/stores";
     import { get } from "svelte/store";
 
 </script>
@@ -68,10 +67,10 @@
 <div class="flex w-full items-starts rounded-md bg-darkbg p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
         <button on:click={() => {selectUserImg()}}>
-            {#if $CurrentUserIcon === ''}
+            {#if $DataBase.userIcon === ''}
                 <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
             {:else}
-                {#await getCharImage($CurrentUserIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
+                {#await getCharImage($DataBase.userIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
                 {:then im} 
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
@@ -81,7 +80,7 @@
     </div>
     <div class="flex flex-grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
-        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username} />
+        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username}/>
         <span class="text-sm text-textcolor2">{language.description}</span>
         <TextAreaInput autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div class="flex gap-2 mt-4 max-w-full flex-wrap">

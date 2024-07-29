@@ -595,6 +595,7 @@ export interface Database{
         name:string
         icon:string
         largePortrait?:boolean
+        id?:string
     }[]
     assetWidth:number
     animationSpeed:number
@@ -1005,6 +1006,7 @@ export interface Chat{
     scriptstate?:{[key:string]:string|number|boolean}
     modules?:string[]
     id?:string
+    bindedPersona?:string
 }
 
 export interface Message{
