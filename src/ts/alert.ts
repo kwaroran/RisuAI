@@ -6,7 +6,10 @@ import { Capacitor } from "@capacitor/core"
 import { DataBase, type MessageGenerationInfo } from "./storage/database"
 
 interface alertData{
-    type: 'error'| 'normal'|'none'|'ask'|'wait'|'selectChar'|'input'|'toast'|'wait2'|'markdown'|'select'|'login'|'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule',
+    type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
+            |'input'|'toast'|'wait2'|'markdown'|'select'|'login'
+            |'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule'
+            |'chatOptions',
     msg: string,
     submsg?: string
 }
@@ -92,6 +95,21 @@ export async function alertAddCharacter() {
     }
 
     return get(alertStore).msg
+}
+
+export async function alertChatOptions() {
+    alertStore.set({
+        'type': 'chatOptions',
+        'msg': language.chatOptions
+    })
+    while(true){
+        if (get(alertStore).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+
+    return parseInt(get(alertStore).msg)
 }
 
 export async function alertLogin(){

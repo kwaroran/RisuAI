@@ -1,5 +1,6 @@
 import "./styles.css";
 import "core-js/actual"
+import "./ts/storage/database"
 import App from "./App.svelte";
 import { loadData } from "./ts/storage/globalApi";
 import { initHotkey } from "./ts/hotkey";

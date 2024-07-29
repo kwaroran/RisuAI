@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ParseMarkdown, risuChatParser } from "src/ts/parser";
     import { DataBase, type Database, type character, type groupChat } from "src/ts/storage/database";
-    import { CurrentVariablePointer, selectedCharID } from "src/ts/stores";
+    import { CurrentVariablePointer, moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
     import { onDestroy } from "svelte";
 
     let backgroundHTML = ''
@@ -41,12 +41,16 @@
 </script>
 
 
-{#if backgroundHTML}
-    {#key $CurrentVariablePointer}
-        <div class="absolute top-0 left-0 w-full h-full">
-            {#await ParseMarkdown(risuChatParser(backgroundHTML, {chara:currentChar}), currentChar, 'back') then md} 
-                {@html md}
-            {/await}
-        </div>
-    {/key}
+{#if backgroundHTML || $moduleBackgroundEmbedding}
+    {#if $selectedCharID > -1}
+        {#key $CurrentVariablePointer}
+            {#key $ReloadGUIPointer}
+                <div class="absolute top-0 left-0 w-full h-full">
+                    {#await ParseMarkdown(risuChatParser((backgroundHTML || '') + ($moduleBackgroundEmbedding || ''), {chara:currentChar}), currentChar, 'back') then md} 
+                        {@html md}
+                    {/await}
+                </div>
+            {/key}
+        {/key}
+    {/if}
 {/if}

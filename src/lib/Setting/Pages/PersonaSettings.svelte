@@ -5,7 +5,7 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
+    import { alertConfirm, alertSelect } from "src/ts/alert";
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
     import { DataBase, setDatabase } from "src/ts/storage/database";
@@ -80,7 +80,7 @@
     </div>
     <div class="flex flex-grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
-        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username} />
+        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username}/>
         <span class="text-sm text-textcolor2">{language.description}</span>
         <TextAreaInput autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div class="flex gap-2 mt-4 max-w-full flex-wrap">

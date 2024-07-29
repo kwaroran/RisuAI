@@ -1,4 +1,5 @@
 import { writeBinaryFile,BaseDirectory, readBinaryFile, exists, createDir, readDir, removeFile } from "@tauri-apps/api/fs"
+
 import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/tauri"
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -11,7 +12,7 @@ import { checkRisuUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait } from "../alert";
+import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
@@ -55,12 +56,26 @@ interface fetchLog{
 
 let fetchLog:fetchLog[] = []
 
-/**
- * Downloads a file with the given name and data.
- * 
- * @param {string} name - The name of the file to be downloaded.
- * @param {Uint8Array|ArrayBuffer|string} dat - The data of the file to be downloaded.
- */
+async function writeBinaryFileFast(appPath: string, data: Uint8Array) {
+    const secret = await invoke('get_http_secret') as string;
+    const port = await invoke('get_http_port') as number;
+
+    const apiUrl = `http://127.0.0.1:${port}/?path=${encodeURIComponent(appPath)}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/octet-stream',
+            'x-tauri-secret': secret
+        },
+        body: new Blob([data])
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
 export async function downloadFile(name:string, dat:Uint8Array|ArrayBuffer|string) {
     if(typeof(dat) === 'string'){
         dat = Buffer.from(dat, 'utf-8')
@@ -266,7 +281,7 @@ export async function saveAsset(data:Uint8Array, customId:string = '', fileName:
         fileExtension = fileName.split('.').pop()
     }
     if(isTauri){
-        await writeBinaryFile(`assets/${id}.${fileExtension}`, data ,{dir: BaseDirectory.AppData})
+        await writeBinaryFileFast(`assets/${id}.${fileExtension}`, data);
         return `assets/${id}.${fileExtension}`
     }
     else{
@@ -341,13 +356,14 @@ export async function saveDb(){
                 changed = false
                 let db = get(DataBase)
                 db.saveTime = Math.floor(Date.now() / 1000)
-                const dbData = encodeRisuSave(db)
                 if(isTauri){
-                    await writeBinaryFile('database/database.bin', dbData, {dir: BaseDirectory.AppData})
-                    await writeBinaryFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {dir: BaseDirectory.AppData})
+                    const dbData = encodeRisuSave(db)
+                    await writeBinaryFileFast('database/database.bin', dbData);
+                    await writeBinaryFileFast(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
                 }
                 else{
                     if(!forageStorage.isAccount){
+                        const dbData = encodeRisuSave(db)
                         await forageStorage.setItem('database/database.bin', dbData)
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
@@ -386,7 +402,7 @@ export async function saveDb(){
 async function getDbBackups() {
     let db = get(DataBase)
     if(db?.account?.useSync){
-        return
+        return []
     }
     if(isTauri){
         const keys = await readDir('database', {dir: BaseDirectory.AppData})
@@ -446,14 +462,11 @@ export async function loadData() {
                     await createDir('assets', {dir: BaseDirectory.AppData})
                 }
                 if(!await exists('database/database.bin', {dir: BaseDirectory.AppData})){
-                    await writeBinaryFile('database/database.bin',
-                        encodeRisuSave({})
-                    ,{dir: BaseDirectory.AppData})
+                    await writeBinaryFileFast('database/database.bin', encodeRisuSave({}));
                 }
                 try {
-                    setDatabase(
-                        decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
-                    )
+                    const decoded = decodeRisuSave(await readBinaryFile('database/database.bin',{dir: BaseDirectory.AppData}))
+                    setDatabase(decoded)
                 } catch (error) {
                     const backups = await getDbBackups()
                     let backupLoaded = false
@@ -483,10 +496,11 @@ export async function loadData() {
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
-                    setDatabase(
-                        decodeRisuSave(gotStorage)
-                    )
+                    const decoded = decodeRisuSave(gotStorage)
+                    console.log(decoded)
+                    setDatabase(decoded)
                 } catch (error) {
+                    console.error(error)
                     const backups = await getDbBackups()
                     let backupLoaded = false
                     for(const backup of backups){
@@ -1076,23 +1090,24 @@ async function checkNewFormat(): Promise<void> {
         if (v.lorebook) {
             v.lorebook = updateLorebooks(v.lorebook);
         }
-        return v;
-    });
+        return v
+    })
 
-    if (!db.formatversion) {
-        /**
-         * Checks and updates the path of a given data string.
-         * 
-         * @param {string} data - The data string to be checked and updated.
-         * @returns {string} - The updated data string with the correct path.
-         */
-        function checkParge(data: string): string {
-            if (data.startsWith('assets') || (data.length < 3)) {
-                return data;
-            } else {
-                const d = 'assets/' + (data.replace(/\\/g, '/').split('assets/')[1]);
-                if (!d) {
-                    return data;
+    db.personas = (db.personas ?? []).map((v) => {
+        v.id ??= uuidv4()
+        return v
+    })
+
+    if(!db.formatversion){
+        function checkParge(data:string){
+
+            if(data.startsWith('assets') || (data.length < 3)){
+                return data
+            }
+            else{
+                const d = 'assets/' + (data.replace(/\\/g, '/').split('assets/')[1])
+                if(!d){
+                    return data
                 }
                 return d;
             }
@@ -2021,4 +2036,47 @@ export class BlankWriter{
     async end(){
         //do nothing, just to make compatible with other writer
     }
+}
+
+export async function loadInternalBackup(){
+    
+    const keys = isTauri ? (await readDir('database', {dir: BaseDirectory.AppData})).map((v) => {
+        return v.name
+    }) : (await forageStorage.keys())
+    let internalBackups:string[] = []
+    for(const key of keys){
+        if(key.includes('dbbackup-')){
+            internalBackups.push(key)
+        }
+    }
+
+    const selectOptions = [
+        'Cancel',
+        ...(internalBackups.map((a) => {
+            return (new Date(parseInt(a.replace('database/dbbackup-', '').replace('dbbackup-','')) * 100)).toLocaleString()
+        }))
+    ]
+
+    const alertResult = parseInt(
+        await alertSelect(selectOptions)
+    ) - 1
+
+    if(alertResult === -1){
+        return
+    }
+
+    const selectedBackup = internalBackups[alertResult]
+
+    const data = isTauri ? (
+        await readBinaryFile('database/' + selectedBackup, {dir: BaseDirectory.AppData})
+    ) : (await forageStorage.getItem(selectedBackup))
+
+    setDatabase(
+        decodeRisuSave(data)
+    )
+
+    await alertNormal('Loaded backup')
+
+    
+
 }

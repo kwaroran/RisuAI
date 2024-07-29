@@ -95,9 +95,12 @@ export async function checkDriverInit() {
             return false
         }   
     } catch (error) {
-        location.search = ''
         console.error(error)
         alertError(`Backup Error: ${error}`)
+        const currentURL = new URL(location.href)
+        currentURL.search = ''
+        window.history.replaceState( {} , "", currentURL.href );
+        await sleep(100000)
         return false
     }
 }

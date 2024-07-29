@@ -1525,10 +1525,22 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             let lastChatPrompt = ''
             let preamble = ''
 
-            const lastChat = formated[formated.length-1]
+            let lastChat = formated[formated.length-1]
             if(lastChat.role === 'user'){
                 lastChatPrompt = lastChat.content
                 formated.pop()
+            }
+            else{
+                while(lastChat.role !== 'user'){
+                    lastChat = formated.pop()
+                    if(!lastChat){
+                        return {
+                            type: 'fail',
+                            result: 'Cohere requires a user message to generate a response'
+                        }
+                    }
+                    lastChatPrompt = (lastChat.role === 'user' ? '' : `${lastChat.role}: `) + '\n' + lastChat.content + lastChatPrompt
+                }
             }
 
             const firstChat = formated[0]
@@ -1537,29 +1549,36 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 formated.shift()
             }
 
+            //reformat chat
+
+
+
+
             let body = {
                 message: lastChatPrompt,
                 chat_history: formated.map((v) => {
                     if(v.role === 'assistant'){
                         return {
                             role: 'CHATBOT',
-                            content: v.content
+                            message: v.content
                         }
                     }
                     if(v.role === 'system'){
                         return {
                             role: 'SYSTEM',
-                            content: v.content
+                            message: v.content
                         }
                     }
                     if(v.role === 'user'){
                         return {
                             role: 'USER',
-                            content: v.content
+                            message: v.content
                         }
                     }
                     return null
-                }).filter((v) => v !== null),
+                }).filter((v) => v !== null).filter((v) => {
+                    return v.message
+                }),
                 temperature: temperature,
                 k: db.top_k,
                 p: (db.top_p > 0.99) ? 0.99 : (db.top_p < 0.01) ? 0.01 : db.top_p,
@@ -1568,9 +1587,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             if(preamble){
-                // @ts-ignore
-                body.preamble = preamble
+                if(body.chat_history.length > 0){
+                    // @ts-ignore
+                    body.preamble = preamble
+                }
+                else{
+                    body.message = `system: ${preamble}`
+                }
             }
+
+            console.log(body)
 
             const res = await globalFetch('https://api.cohere.com/v1/chat', {
                 method: "POST",
@@ -1818,10 +1844,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                       "anthropic.claude-v2:1",
                       "anthropic.claude-3-haiku-20240307-v1:0",
                       "anthropic.claude-3-sonnet-20240229-v1:0",
+                      "anthropic.claude-3-5-sonnet-20240620-v1:0",
                       "anthropic.claude-3-opus-20240229-v1:0"
                     ];
                     
-                    const awsModel = raiModel.includes("opus") ? modelIDs[4] : raiModel.includes("sonnet") ? modelIDs[3] : modelIDs[2];
+                    const awsModel = 
+                        raiModel.includes("3-opus") ? modelIDs[5] :
+                        raiModel.includes("3-5-sonnet") ? modelIDs[4] :
+                        raiModel.includes("3-sonnet") ? modelIDs[3] : 
+                        modelIDs[2];
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
                     const params = {

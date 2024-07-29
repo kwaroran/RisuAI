@@ -1,38 +1,44 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { Marked } from 'marked';
-
-import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat } from './storage/database';
+import markdownit from 'markdown-it'
+import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css from '@adobe/css-tools'
-import { CurrentChat, SizeStore, selectedCharID } from './stores';
+import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage } from './process/files/image';
-import { risuFormater } from './plugins/automark';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
+import { getInlayImage, writeInlayImage } from './process/files/image';
 import { getModuleLorebooks } from './process/modules';
+import { HypaProcesser } from './process/memory/hypamemory';
+import { generateAIImage } from './process/stableDiff';
+import { requestChatData } from './process/request';
+import type { OpenAIChat } from './process';
+import { alertInput, alertNormal } from './alert';
+import hljs from 'highlight.js/lib/core'
+import 'highlight.js/styles/atom-one-dark.min.css'
 
-const mconverted = new Marked({
-    gfm: true,
+const markdownItOptions = {
+    html: true,
     breaks: true,
-    silent: true,
-    tokenizer: {
-        del(src) {
-          const cap = /^~~~(?=\S)([\s\S]*?\S)~~~/.exec(src);
-          if (cap) {
-            return {
-              type: 'del',
-              raw: cap[0],
-              text: cap[1],
-              tokens: this.lexer.inlineTokens(cap[1])
-            };
-          }
+    linkify: false,
+    typographer: true,
+    quotes: '\u{E9b0}\u{E9b1}\u{E9b2}\u{E9b3}', //placeholder characters to convert to real quotes
+}
+
+const md = markdownit(markdownItOptions)
+const mdHighlight = markdownit({
+    highlight: function (str, lang) {
+        if(lang){
+            return `<pre-hljs-placeholder lang="${lang}">`+ str +'</pre-hljs-placeholder>';
         }
-    }
+        return ''
+    },
+    ...markdownItOptions
 })
 
-
+md.disable(['code'])
+mdHighlight.disable(['code'])
 
 DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     if (data.tagName === "iframe") {
@@ -52,6 +58,9 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
         case 'class':{
             if(data.attrValue){
                 data.attrValue = data.attrValue.split(' ').map((v) => {
+                    if(v.startsWith('hljs')){
+                        return v
+                    }
                     return "x-risu-" + v
                 }).join(' ')
             }
@@ -69,79 +78,265 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 })
 
 
-export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img)::(.+?)}}/g
+function renderMarkdown(md:markdownit, data:string){
+    return md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
+        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
+        .replace(/\uE9b1/gu, '”</mark>')
+        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
+        .replace(/\uE9b3/gu, '’</mark>')
+}
+
+async function renderHighlightableMarkdown(data:string) {
+    let rendered = renderMarkdown(mdHighlight, data)
+    const highlightPlaceholders = rendered.match(/<pre-hljs-placeholder lang="(.+?)">(.+?)<\/pre-hljs-placeholder>/gms)
+    if (!highlightPlaceholders){
+        return rendered
+    }
+
+    for (const placeholder of highlightPlaceholders){
+        try {
+            let lang = placeholder.match(/lang="(.+?)"/)?.[1]
+            const code = placeholder.match(/<pre-hljs-placeholder lang=".+?">(.+?)<\/pre-hljs-placeholder>/ms)?.[1]
+            if (!lang || !code){
+                continue
+            }
+            //import language if not already loaded
+            //we do not refactor this to a function because we want to keep vite to only import the languages that are needed
+            let languageModule:any = null
+            switch(lang){
+                case 'js':
+                case 'javascript':{
+                    lang = 'javascript'
+                    if(!hljs.getLanguage('javascript')){
+                        languageModule = await import('highlight.js/lib/languages/javascript')
+                    }
+                    break
+                }
+                case 'py':
+                case 'python':{
+                    lang = 'python'
+                    if(!hljs.getLanguage('python')){
+                        languageModule = await import('highlight.js/lib/languages/python')
+                    }
+                    break
+                }
+                case 'css':{
+                    lang = 'css'
+                    if(!hljs.getLanguage('css')){
+                        languageModule = await import('highlight.js/lib/languages/css')
+                    }
+                    break
+                }
+                case 'xml':
+                case 'html':{
+                    lang = 'xml'
+                    if(!hljs.getLanguage('xml')){
+                        languageModule = await import('highlight.js/lib/languages/xml')
+                    }
+                    break
+                }
+                case 'lua':{
+                    lang = 'lua'
+                    if(!hljs.getLanguage('lua')){
+                        languageModule = await import('highlight.js/lib/languages/lua')
+                    }
+                    break
+                }
+                case 'dart':{
+                    lang = 'dart'
+                    if(!hljs.getLanguage('dart')){
+                        languageModule = await import('highlight.js/lib/languages/dart')
+                    }
+                    break
+                }
+                case 'java':{
+                    lang = 'java'
+                    if(!hljs.getLanguage('java')){
+                        languageModule = await import('highlight.js/lib/languages/java')
+                    }
+                    break
+                }
+                case 'rust':{
+                    lang = 'rust'
+                    if(!hljs.getLanguage('rust')){
+                        languageModule = await import('highlight.js/lib/languages/rust')
+                    }
+                    break
+                }
+                case 'c':
+                case 'cpp':{
+                    lang = 'cpp'
+                    if(!hljs.getLanguage('cpp')){
+                        languageModule = await import('highlight.js/lib/languages/cpp')
+                    }
+                    break
+                }
+                case 'csharp':
+                case 'cs':{
+                    lang = 'csharp'
+                    if(!hljs.getLanguage('csharp')){
+                        languageModule = await import('highlight.js/lib/languages/csharp')
+                    }
+                    break
+                }
+                case 'ts':
+                case 'typescript':{
+                    lang = 'typescript'
+                    if(!hljs.getLanguage('typescript')){
+                        languageModule = await import('highlight.js/lib/languages/typescript')
+                    }
+                    break
+                }
+                case 'json':{
+                    lang = 'json'
+                    if(!hljs.getLanguage('json')){
+                        languageModule = await import('highlight.js/lib/languages/json')
+                    }
+                    break
+                }
+                case 'yaml':{
+                    lang = 'yaml'
+                    if(!hljs.getLanguage('yaml')){
+                        languageModule = await import('highlight.js/lib/languages/yaml')
+                    }
+                    break
+                }
+                case 'shell':{
+                    lang = 'shell'
+                    if(!hljs.getLanguage('shell')){
+                        languageModule = await import('highlight.js/lib/languages/shell')
+                    }
+                    break
+                }
+                case 'bash':{
+                    lang = 'bash'
+                    if(!hljs.getLanguage('bash')){
+                        languageModule = await import('highlight.js/lib/languages/bash')
+                    }
+                    break
+                }
+                default:{
+                    lang = 'none'
+                }
+            }
+            if(languageModule){
+                hljs.registerLanguage(lang, languageModule.default)
+            }
+            if(lang === 'none'){
+                rendered = rendered.replace(placeholder, `<pre><code>${md.utils.escapeHtml(code)}</code></pre>`)
+            }
+            else{
+                const highlighted = hljs.highlight(code, {
+                    language: lang,
+                    ignoreIllegals: true
+                }).value
+                rendered = rendered.replace(placeholder, `<pre class="hljs"><code>${highlighted}</code></pre>`)   
+            }
+        } catch (error) {
+            
+        }
+    }
+
+    return rendered
+
+}
+
+
+export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
-    if(char.additionalAssets || char.emotionImages){
+    let assetPaths:{[key:string]:{
+        path:string
+        ext?:string
+    }} = {}
+    let emoPaths:{[key:string]:{
+        path:string
+    }} = {}
 
-        let assetPaths:{[key:string]:{
-            path:string
-            ext?:string
-        }} = {}
-        let emoPaths:{[key:string]:{
-            path:string
-        }} = {}
-
-        if(char.additionalAssets){
-            for(const asset of char.additionalAssets){
-                const assetPath = await getFileSrc(asset[1])
-                assetPaths[asset[0].toLocaleLowerCase()] = {
-                    path: assetPath,
-                    ext: asset[2]
-                }
+    if(char.additionalAssets){
+        for(const asset of char.additionalAssets){
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
             }
         }
-        if(char.emotionImages){
-            for(const emo of char.emotionImages){
-                const emoPath = await getFileSrc(emo[1])
-                emoPaths[emo[0].toLocaleLowerCase()] = {
-                    path: emoPath,
-                }
+    }
+    if(char.emotionImages){
+        for(const emo of char.emotionImages){
+            const emoPath = await getFileSrc(emo[1])
+            emoPaths[emo[0].toLocaleLowerCase()] = {
+                path: emoPath,
             }
         }
-        const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
-        data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
-            name = name.toLocaleLowerCase()
-            if(type === 'emotion'){
-                const path = emoPaths[name]?.path
-                if(!path){
-                    return ''
-                }
-                return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
-            }
-            const path = assetPaths[name]
+    }
+    const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
+    let needsSourceAccess = false
+    data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
+        name = name.toLocaleLowerCase()
+        if(type === 'emotion'){
+            const path = emoPaths[name]?.path
             if(!path){
                 return ''
             }
-            switch(type){
-                case 'raw':
-                    return path.path
-                case 'img':
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
-                case 'video':
-                    return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'video-img':
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                case 'audio':
-                    return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
-                case 'bg':
-                    if(mode === 'back'){
-                        return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
-                    }
-                    break
-                case 'asset':{
-                    if(path.ext && videoExtention.includes(path.ext)){
-                        return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
-                    }
-                    return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
+        }
+        if(type === 'source'){
+            needsSourceAccess = true
+            switch(name){
+                case 'char':{
+                    return '\uE9b4CHAR\uE9b4'
+                }
+                case 'user': {
+                    return '\uE9b4USER\uE9b4'
                 }
             }
+        }
+        const path = assetPaths[name]
+        if(!path){
             return ''
-        })
+        }
+        switch(type){
+            case 'raw':
+                return path.path
+            case 'img':
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            case 'video':
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'video-img':
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+            case 'audio':
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+            case 'bg':
+                if(mode === 'back'){
+                    return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
+                }
+                break
+            case 'asset':{
+                if(path.ext && videoExtention.includes(path.ext)){
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                }
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            }
+        }
+        return ''
+    })
+
+    if(needsSourceAccess){
+        const chara = get(CurrentCharacter)
+        if(chara.image){}
+        data = data.replace(/\uE9b4CHAR\uE9b4/g,
+            chara.image ? (await getFileSrc(chara.image)) : ''
+        )
+
+        data = data.replace(/\uE9b4USER\uE9b4/g,
+            getUserIcon() ? (await getFileSrc(getUserIcon())) : ''
+        )
     }
+    
     return data
 }
 
@@ -166,6 +361,7 @@ export interface simpleCharacterArgument{
     chaId: string,
     virtualscript?: string
     emotionImages?: [string, string][]
+    triggerscript?: triggerscript[]
 }
 
 
@@ -187,8 +383,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
 
     data = encodeStyle(data)
     if(mode === 'normal'){
-        data = risuFormater(data)
-        data = mconverted.parse(data)
+        data = await renderHighlightableMarkdown(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
@@ -196,8 +391,8 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
     }))
 }
 
-export function postTranslationParse(data:string){
-    let lines = risuFormater(data).split('\n')
+export async function postTranslationParse(data:string){
+    let lines = data.split('\n')
 
     for(let i=0;i<lines.length;i++){
         const trimed = lines[i].trim()
@@ -206,12 +401,12 @@ export function postTranslationParse(data:string){
         }
     }
 
-    data = mconverted.parse(lines.join('\n'))
+    data = await renderHighlightableMarkdown(lines.join('\n'))
     return data
 }
 
 export function parseMarkdownSafe(data:string) {
-    return DOMPurify.sanitize(mconverted.parse(data), {
+    return DOMPurify.sanitize(renderMarkdown(md, data), {
         FORBID_TAGS: ["a", "style"],
         FORBID_ATTR: ["style", "href", "class"]
     })
@@ -398,8 +593,12 @@ type matcherArg = {
     funcName?:string
     text?:string,
     recursiveCount?:number
+    lowLevelAccess?:boolean
 }
-const matcher = (p1:string,matcherArg:matcherArg) => {
+function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
+    text:string,
+    var:{[key:string]:string}
+}|string|null {
     try {
         if(p1.length > 100000){
             return ''
@@ -411,19 +610,16 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         switch(lowerCased){
             case 'previous_char_chat':
             case 'lastcharmessage':{
-                if(chatID !== -1){
-                    const selchar = db.characters[get(selectedCharID)]
-                    const chat = selchar.chats[selchar.chatPage]
-                    let pointer = chatID - 1
-                    while(pointer >= 0){
-                        if(chat.message[pointer].role === 'char'){
-                            return chat.message[pointer].data
-                        }
-                        pointer--
+                const selchar = db.characters[get(selectedCharID)]
+                const chat = selchar.chats[selchar.chatPage]
+                let pointer = chatID !== -1 ? chatID - 1 : chat.message.length - 1
+                while(pointer >= 0){
+                    if(chat.message[pointer].role === 'char'){
+                        return chat.message[pointer].data
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    pointer--
                 }
-                return ''
+                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
@@ -465,7 +661,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 if(matcherArg.consistantChar){
                     return 'username'
                 }
-                return db.username
+                return getUserName()
             }
             case 'personality':
             case 'char_persona':{
@@ -504,7 +700,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'persona':
             case 'user_persona':{
-                return db.personaPrompt
+                return getPersonaPrompt()
             }
             case 'main_prompt':
             case 'system_prompt':{
@@ -568,7 +764,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
             }
             case 'first_msg_index':{
                 const selchar = db.characters[get(selectedCharID)]
-                return selchar.firstMsgIndex
+                return selchar.firstMsgIndex.toString()
             }
             case 'blank':
             case 'none':{
@@ -730,6 +926,10 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                 return db.subModel
             }
             case 'role': {
+                if (chatID !== -1) {
+                    const selchar = db.characters[get(selectedCharID)]
+                    return selchar.chats[selchar.chatPage].message[chatID].role;
+                }
                 return matcherArg.role ?? 'role'
             }
             case 'jbtoggled':{
@@ -756,7 +956,7 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                     return ''
                 }
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.length - 1
+                return (chat.message.length - 1).toString()
             }
             case 'emotionlist':{
                 const selchar = db.characters[get(selectedCharID)]
@@ -790,6 +990,28 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
         if(arra.length > 1){
             const v = arra[1]
             switch(arra[0]){
+                case 'tempvar':
+                case 'gettempvar':{
+                    return {
+                        text: vars[arra[1]] ?? '',
+                        var: vars
+                    }
+                }
+                case 'settempvar':{
+                    vars[arra[1]] = arra[2]
+                    return {
+                        text: '',
+                        var: vars
+                    }
+                }
+                case 'return':{
+                    vars['__return__'] = arra[1]
+                    vars['__force_return__'] = '1'
+                    return {
+                        text: '',
+                        var: vars
+                    }
+                }
                 case 'getvar':{
                     return getChatVar(v)
                 }
@@ -935,9 +1157,9 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
     
                 }
                 case 'tonumber':{
-                    return makeArray(arra[1].split('').filter((v) => {
+                    return (arra[1].split('').filter((v) => {
                         return !isNaN(Number(v)) || v === '.'
-                    }))
+                    })).join('')
                 }
                 case 'pow':{
                     return Math.pow(Number(arra[1]), Number(arra[2])).toString()
@@ -1106,6 +1328,78 @@ const matcher = (p1:string,matcherArg:matcherArg) => {
                         }
                     }))
                 }
+                case 'all':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const all = array.every((f) => {
+                        return f === '1'
+                    })
+                    return all ? '1' : '0'
+                }
+                case 'any':{
+                    const array = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const any = array.some((f) => {
+                        return f === '1'
+                    })
+                    return any ? '1' : '0'
+                }
+                case 'min':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.min(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'max':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return Math.max(...val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    })).toString()
+                }
+                case 'sum':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    return val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0).toString()
+                }
+                case 'average':{
+                    const val = arra.length > 2 ? arra.slice(1) : parseArray(arra[1])
+                    const sum = val.map((f) => {
+                        const num = Number(f)
+                        if(isNaN(num)){
+                            return 0
+                        }
+                        return num
+                    }).reduce((a, b) => a + b, 0)
+                    return (sum / val.length).toString()
+                }
+                case 'fixnum':
+                case 'fix_num':
+                case 'fixnumber':
+                case 'fix_number':{
+                    return Number(arra[1]).toFixed(Number(arra[2]))
+                }
+                case 'unicode_encode':
+                case 'unicodeencode':{
+                    return arra[1].charCodeAt(arra[2] ? Number(arra[2]) : 0).toString()
+                }
+                case 'unicode_decode':
+                case 'unicodedecode':{
+                    return String.fromCharCode(Number(arra[1]))
+                }
+                case 'hash':{
+                    return ((pickHashRand(0, arra[1]) * 10000000) + 1).toFixed(0).padStart(7, '0')
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -1228,17 +1522,20 @@ const dateTimeFormat = (main:string, time = 0) => {
     return main
         .replace(/YYYY/g, date.getFullYear().toString())
         .replace(/YY/g, date.getFullYear().toString().substring(2))
-        .replace(/MM?/g, (date.getMonth() + 1).toString().padStart(2, '0'))
-        .replace(/DD?/g, date.getDate().toString().padStart(2, '0'))
-        .replace(/DDDD?/g, (date.getDay() + (date.getMonth() * 30)).toString())
-        .replace(/HH?/g, date.getHours().toString().padStart(2, '0'))
-        .replace(/hh?/g, (date.getHours() % 12).toString().padStart(2, '0'))
-        .replace(/mm?/g, date.getMinutes().toString().padStart(2, '0'))
-        .replace(/ss?/g, date.getSeconds().toString().padStart(2, '0'))
-        .replace(/X?/g, (Date.now() / 1000).toFixed(2))
-        .replace(/x?/g, Date.now().toFixed())
+        .replace(/MMMM/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
+        .replace(/MMM/g, Intl.DateTimeFormat('en', { month: 'short' }).format(date))
+        .replace(/MM/g, (date.getMonth() + 1).toString().padStart(2, '0'))
+        .replace(/DDDD/g, Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)).toString())
+        .replace(/DD/g, date.getDate().toString().padStart(2, '0'))
+        .replace(/dddd/g, Intl.DateTimeFormat('en', { weekday: 'long' }).format(date))
+        .replace(/ddd/g, Intl.DateTimeFormat('en', { weekday: 'short' }).format(date))
+        .replace(/HH/g, date.getHours().toString().padStart(2, '0'))
+        .replace(/hh/g, (date.getHours() % 12 || 12).toString().padStart(2, '0'))
+        .replace(/mm/g, date.getMinutes().toString().padStart(2, '0'))
+        .replace(/ss/g, date.getSeconds().toString().padStart(2, '0'))
+        .replace(/X/g, Math.floor(date.getTime() / 1000).toString())
+        .replace(/x/g, date.getTime().toString())
         .replace(/A/g, date.getHours() >= 12 ? 'PM' : 'AM')
-        .replace(/MMMM?/g, Intl.DateTimeFormat('en', { month: 'long' }).format(date))
 
 }
 
@@ -1274,7 +1571,7 @@ const smMatcher = (p1:string,matcherArg:matcherArg) => {
             if(matcherArg.consistantChar){
                 return 'username'
             }
-            return db.username
+            return getUserName()
         }
     }
 }
@@ -1326,7 +1623,12 @@ function parseDict(p1:string):{[key:string]:string}{
 }
 
 function makeArray(p1:string[]):string{
-    return JSON.stringify(p1)
+    return JSON.stringify(p1.map((f) => {
+        if(typeof(f) === 'string'){
+            return f.replace(/::/g, '\\u003A\\u003A')
+        }
+        return f
+    }))
 }
 
 function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,type2?:string,funcArg?:string[]}{
@@ -1425,6 +1727,8 @@ export function risuChatParser(da:string, arg:{
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
     let thinkingMode = false
+    let tempVar:{[key:string]:string} = {}
+
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -1435,7 +1739,7 @@ export function risuChatParser(da:string, arg:{
         displaying: arg.visualize ?? false,
         role: arg.role,
         runVar: arg.runVar ?? false,
-        consistantChar: arg.consistantChar ?? false
+        consistantChar: arg.consistantChar ?? false,
     }
 
 
@@ -1540,14 +1844,25 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                     if(stackType[nested.length] === 6){
-                        console.log(dat)
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
                         break
                     }
                 }
-                const mc = isPureMode() ? null :matcher(dat, matcherObj)
-                nested[0] += mc ?? `{{${dat}}}`
+                const mc = isPureMode() ? null :basicMatcher(dat, matcherObj, tempVar)
+                if(!mc && mc !== ''){
+                    nested[0] += `{{${dat}}}`
+                }
+                else if(typeof(mc) === 'string'){
+                    nested[0] += mc
+                }
+                else{
+                    nested[0] += mc.text
+                    tempVar = mc.var
+                    if(tempVar['__force_return__']){
+                        return tempVar['__return__'] ?? 'null'
+                    }
+                }
                 break
             }
             case '>':{
@@ -1653,24 +1968,10 @@ export function risuChatParser(da:string, arg:{
 export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:string]:string}):Promise<{
     text:string,
     var:{[key:string]:string}
-}> {
+}|void|null> {
     const arra = p1.split('::')
 
     switch(arra[0]){
-        case 'localvar':
-        case 'getlocalvar':{
-            return {
-                text: vars[arra[1]] ?? '',
-                var: vars
-            }
-        }
-        case 'setlocalvar':{
-            vars[arra[1]] = arra[2]
-            return {
-                text: '',
-                var: vars
-            }
-        }
         case 'pushchat':
         case 'addchat':
         case 'add_chat':
@@ -1678,6 +1979,13 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
             const chat = get(CurrentChat)
             chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
             CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'yield':{
+            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
             return {
                 text: '',
                 var: vars
@@ -1691,6 +1999,45 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 message.data = arra[2] ?? ''
             }
             CurrentChat.set(chat)
+        }
+        case 'set_chat_role':
+        case 'setchatrole':{
+            const chat = get(CurrentChat)
+            const message = chat.message?.at(Number(arra[1]))
+            if(message){
+                message.role = arra[2] === 'user' ? 'user' : 'char'
+            }
+            CurrentChat.set(chat)
+        }
+        case 'cutchat':
+        case 'cut_chat':{
+            const chat = get(CurrentChat)
+            chat.message = chat.message.slice(Number(arra[1]), Number(arra[2]))
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'insertchat':
+        case 'insert_chat':{
+            const chat = get(CurrentChat)
+            chat.message.splice(Number(arra[1]), 0, {role: arra[2] === 'user' ? 'user' : 'char', data: arra[3] ?? ''})
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
+        }
+        case 'removechat':
+        case 'remove_chat':{
+            const chat = get(CurrentChat)
+            chat.message.splice(Number(arra[1]), 1)
+            CurrentChat.set(chat)
+            return {
+                text: '',
+                var: vars
+            }
         }
         case 'regex':{
             const reg = new RegExp(arra[1], arra[2])
@@ -1713,6 +2060,7 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
             }
         }
         case 'call':{
+            //WIP
             const called = await risuCommandParser(arra[1], {
                 db: matcherArg.db,
                 chara: matcherArg.chara,
@@ -1726,27 +2074,147 @@ export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:
                 var: vars
             }
         }
-        case 'yield':{
-            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
+        case 'stop_chat':{
+            vars['__stop_chat__'] = '1'
             return {
                 text: '',
                 var: vars
             }
         }
-        case 'return':{
-            vars['__return__'] = arra[1]
-            vars['__force_return__'] = '1'
+        case 'similaritysearch':
+        case 'similarity_search':
+        case 'similarity':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const processer = new HypaProcesser('MiniLM')
+            const source = arra[1]
+            const target = parseArray(arra[2])
+            await processer.addText(target)
+            const result = await processer.similaritySearch(source)
+            return {
+                text: makeArray(result),
+                var: vars
+            }
+        }
+        case 'image_generation':
+        case 'imagegeneration':
+        case 'imagegen':
+        case 'image_gen':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const prompt = arra[1]
+            const negative = arra[2] || ''
+            const char = matcherArg.chara
+
+            const gen = await generateAIImage(prompt, char as character, negative, 'inlay')
+            if(!gen){
+                return {
+                    text: 'ERROR: Image generation failed',
+                    var: vars
+                }
+            }
+            const imgHTML = new Image()
+            imgHTML.src = gen
+            const inlay = await writeInlayImage(imgHTML)
+            return {
+                text: inlay,
+                var: vars
+            }
+        }
+        case 'send_llm':
+        case 'llm':{
+            if(!matcherArg.lowLevelAccess){
+                return {
+                    text: '',
+                    var: vars
+                }
+            }
+            const prompt = parseArray(arra[1])
+            let promptbody:OpenAIChat[] = prompt.map((f) => {
+                const dict = parseDict(f)
+                let role:'system'|'user'|'assistant' = 'assistant'
+                switch(dict['role']){
+                    case 'system':
+                    case 'sys':
+                        role = 'system'
+                        break
+                    case 'user':
+                        role = 'user'
+                        break
+                    case 'assistant':
+                    case 'bot':
+                    case 'char':{
+                        role = 'assistant'
+                        break
+                    }
+                }
+
+                return {
+                    content: dict['content'] ?? '',
+                    role: role,
+                }
+            })
+            const result = await requestChatData({
+                formated: promptbody,
+                bias: {},
+                useStreaming: false,
+                noMultiGen: true,
+            }, 'model')
+
+            if(result.type === 'fail'){
+                return {
+                    text: 'ERROR: ' + result.result,
+                    var: vars
+                }
+            }
+
+            if(result.type === 'streaming' || result.type === 'multiline'){
+                return {
+                    text: 'ERROR: Streaming and multiline is not supported in this context',
+                    var: vars
+                }
+            }
+
+            return {
+                text: result.result,
+                var: vars
+            }
+        }
+        case 'alert':{
+            alertNormal(arra[1])
             return {
                 text: '',
+                var: vars
+            }
+        }
+        case 'input':
+        case 'alert_input':
+        case 'alertinput':{
+            const input = await alertInput(arra[1])
+            return {
+                text: input,
                 var: vars
             }
         }
     }
 
-    return {
-        text: matcher(p1, matcherArg).toString(),
-        var: vars
+    const matched = basicMatcher(p1, matcherArg)
+    if(typeof(matched) === 'string'){
+        return {
+            text: matched,
+            var: vars
+        }
     }
+
+    return matched
 }
 
 
@@ -1756,6 +2224,7 @@ export async function risuCommandParser(da:string, arg:{
     funcName?:string
     passed?:string[],
     recursiveCount?:number
+    lowLevelAccess?:boolean
 } = {}):Promise<{[key:string]:string}>{
     const db = arg.db ?? get(DataBase)
     const aChara = arg.chara
@@ -1798,7 +2267,8 @@ export async function risuCommandParser(da:string, arg:{
         consistantChar: false,
         funcName: arg.funcName ?? null,
         text: da,
-        recursiveCount: recursiveCount
+        recursiveCount: recursiveCount,
+        lowLevelAccess: arg.lowLevelAccess ?? false
     }
 
     let tempVar:{[key:string]:string} = {}
@@ -1882,7 +2352,6 @@ export async function risuCommandParser(da:string, arg:{
                         break
                     }
                     if(stackType[nested.length] === 6){
-                        console.log(dat)
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
                         break
@@ -1892,11 +2361,16 @@ export async function risuCommandParser(da:string, arg:{
                     text:null,
                     var:tempVar
                 } : (await commandMatcher(dat, matcherObj, tempVar))
-                tempVar = mc.var
-                if(tempVar['__force_return__']){
-                    return tempVar
+                if(mc && (mc.text || mc.text === '')){
+                    tempVar = mc.var
+                    if(tempVar['__force_return__']){
+                        return tempVar
+                    }
+                    nested[0] += mc.text ?? `{{${dat}}}`
                 }
-                nested[0] += mc.text ?? `{{${dat}}}`
+                else{
+                    nested[0] += `{{${dat}}}`
+                }
                 break
             }
             default:{
@@ -2012,4 +2486,84 @@ export async function promptTypeParser(prompt:string):Promise<string | PromptPar
     }
 
     return prompt
+}
+
+
+export function applyMarkdownToNode(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (text) {
+            let markdown = renderMarkdown(md, text);
+            if (markdown !== text) {
+                const span = document.createElement('span');
+                span.innerHTML = markdown;
+                
+                // inherit inline style from the parent node
+                const parentStyle = (node.parentNode as HTMLElement)?.style;
+                if(parentStyle){
+                    for(let i=0;i<parentStyle.length;i++){
+                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
+                    }   
+                }
+                (node as Element)?.replaceWith(span);
+                return
+            }
+        }
+    } else {
+        for (const child of node.childNodes) {
+            applyMarkdownToNode(child);
+        }
+    }
+}
+
+export function parseChatML(data:string):OpenAIChat[]|null{
+
+    const starter = '<|im_start|>'
+    const seperator = '<|im_sep|>'
+    const ender = '<|im_end|>'
+    const trimedData = data.trim()
+    if(!trimedData.startsWith(starter)){
+        return null
+    }
+
+    return trimedData.split(starter).filter((f) => f !== '').map((v) => {
+        let role:'system'|'user'|'assistant' = 'user'
+        //default separators
+        if(v.startsWith('user' + seperator)){
+            role = 'user'
+            v = v.substring(4 + seperator.length)
+        }
+        else if(v.startsWith('system' + seperator)){
+            role = 'system'
+            v = v.substring(6 + seperator.length)
+        }
+        else if(v.startsWith('assistant' + seperator)){
+            role = 'assistant'
+            v = v.substring(9 + seperator.length)
+        }
+        //space/newline separators
+        else if(v.startsWith('user ') || v.startsWith('user\n')){
+            role = 'user'
+            v = v.substring(5)
+        }
+        else if(v.startsWith('system ') || v.startsWith('system\n')){
+            role = 'system'
+            v = v.substring(7)
+        }
+        else if(v.startsWith('assistant ') || v.startsWith('assistant\n')){
+            role = 'assistant'
+            v = v.substring(10)
+        }
+
+        v = v.trim()
+
+        if(v.endsWith(ender)){
+            v = v.substring(0, v.length - ender.length)
+        }
+
+        return {
+            role: role,
+            content: v
+        }
+    })
 }

@@ -3,6 +3,7 @@ import { HypaProcesser } from '../memory/hypamemory'
 import type { OpenAIChat } from "..";
 import { stringlizeChat } from "../stringlize";
 import { get } from "svelte/store";
+import { getUserName } from "src/ts/util";
 
 export async function additionalInformations(char: character,chats:Chat,){
     const processer = new HypaProcesser('MiniLM')
@@ -18,7 +19,7 @@ export async function additionalInformations(char: character,chats:Chat,){
 
             if(!name){
                 if(chat.role === 'user'){
-                    name = db.username
+                    name = getUserName()
                 }
                 else{
                     name = char.name

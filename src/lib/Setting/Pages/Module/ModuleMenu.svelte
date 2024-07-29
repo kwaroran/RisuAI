@@ -9,6 +9,10 @@
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
   import Help from "src/lib/Others/Help.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+  import Button from "src/lib/UI/GUI/Button.svelte";
+  import { openURL } from "src/ts/storage/globalApi";
+  import { hubURL } from "src/ts/characterCards";
 
 
     export let currentModule:RisuModule
@@ -56,6 +60,15 @@
         }
         else{
             currentModule.trigger = undefined
+        }
+    }
+
+    function toggleBackground(){
+        if(typeof(currentModule.backgroundEmbedding) !== 'string'){
+            currentModule.backgroundEmbedding = ''
+        }
+        else{
+            currentModule.backgroundEmbedding = undefined
         }
     }
 
@@ -117,7 +130,9 @@
     <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleTrigger}>
         {language.triggerScript}
     </button>
-    <button></button>
+    <button class={(!Array.isArray(currentModule.trigger)) ? 'p-4' : "p-4 bg-selected rounded-bl-md"} on:click={toggleBackground}>
+        {language.backgroundHTML}
+    </button>
 </div>
 
 {#if (Array.isArray(currentModule.lorebook))}
@@ -143,15 +158,68 @@
     </button>
 {/if}
 
+{#if typeof(currentModule.backgroundEmbedding) === 'string'}
+    <span class="mt-8 text-xl">{language.backgroundHTML}</span>
+    <TextAreaInput bind:value={currentModule.backgroundEmbedding} className="mt-2" placeholder={language.backgroundHTML} size="sm"/>
+{/if}
+
 {#if (Array.isArray(currentModule.trigger))}
     <span class="mt-8 text-xl">{language.triggerScript}</span>
-    <TriggerList bind:value={currentModule.trigger} lowLevelAble={currentModule.lowLevelAccess} />
-    <button on:click={() => {addTrigger()}} class="hover:text-textcolor cursor-pointer">
-        <PlusIcon />
-    </button>
+    <div class="flex items-start mt-2 gap-2">
+        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
+            currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggercode' &&
+            currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggerlua'
+        } on:click|stopPropagation={async () => {
+            const codeType = currentModule?.trigger?.[0]?.effect?.[0]?.type
+            if(codeType === 'triggercode' || codeType === 'triggerlua'){
+                const codeTrigger = currentModule?.trigger?.[0]?.effect?.[0]?.code
+                if(codeTrigger){
+                    const t = await alertConfirm(language.triggerSwitchWarn)
+                    if(!t){
+                        return
+                    }
+                }
+                currentModule.trigger = []
+            }
+        }}>{language.blockMode}</button>
+        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentModule?.trigger?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
+            if(currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggerlua'){
+                if(currentModule?.trigger && currentModule?.trigger.length > 0){
+                    const t = await alertConfirm(language.triggerSwitchWarn)
+                    if(!t){
+                        return
+                    }
+                }
+                currentModule.trigger = [{
+                    comment: "",
+                    type: "start",
+                    conditions: [],
+                    effect: [{
+                        type: "triggerlua",
+                        code: ""
+                    }]
+                }]
+            }
+        }}>Lua</button>
+    </div>
+    {#if currentModule?.trigger?.[0]?.effect?.[0]?.type === 'triggerlua'}
+        <TextAreaInput margin="both" autocomplete="off" bind:value={currentModule.trigger[0].effect[0].code}></TextAreaInput>
+        <Button on:click={() => {
+            openURL(hubURL + '/redirect/docs/lua')
+        }}>{language.helpBlock}</Button>
+    {:else}
+        <TriggerList bind:value={currentModule.trigger} lowLevelAble={currentModule.lowLevelAccess} />
+        <button on:click={() => {addTrigger()}} class="hover:text-textcolor cursor-pointer">
+            <PlusIcon />
+        </button>
+    {/if}
 
     <div class="flex items-center mt-4">
         <Check bind:check={currentModule.lowLevelAccess} name={language.lowLevelAccess}/>
         <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
     </div>
 {/if}
+
+<div class="flex items-center mt-4">
+    <Check bind:check={currentModule.hideIcon} name={language.hideChatIcon}/>
+</div>

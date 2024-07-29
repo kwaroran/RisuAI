@@ -9,6 +9,7 @@ import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterAr
 import { runCharacterJS } from "../plugins/embedscript";
 import { getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
+import { runLuaEditTrigger } from "./lua";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -56,6 +57,8 @@ export async function importRegex(){
     }
 }
 
+let bestMatchCache = new Map<string, string>()
+
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
     let db = get(DataBase)
     let emoChanged = false
@@ -65,6 +68,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         mode,
         data,
     })
+    data = await runLuaEditTrigger(char, mode, data)
     if(scripts.length === 0){
         return {data, emoChanged}
     }
@@ -193,7 +197,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = risuChatParser(data.replace(reg, outScript))
+                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
             }
         }
     }
@@ -210,11 +214,18 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         for(const match of matches){
             const type = match[1]
             const assetName = match[2]
-            if(!assetNames.includes(assetName)){
-                const searched = await processer.similaritySearch(assetName)
-                const bestMatch = searched[0]
-                if(bestMatch){
-                    data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
+            const cacheKey = char.chaId + '::' + assetName
+            if(type !== 'emotion' && type !== 'source'){
+                if(bestMatchCache.has(cacheKey)){
+                    data = data.replaceAll(match[0], `{{${type}::${bestMatchCache.get(cacheKey)}}}`)
+                }
+                else if(!assetNames.includes(assetName)){
+                    const searched = await processer.similaritySearch(assetName)
+                    const bestMatch = searched[0]
+                    if(bestMatch){
+                        data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
+                        bestMatchCache.set(cacheKey, bestMatch)
+                    }
                 }
             }
         }

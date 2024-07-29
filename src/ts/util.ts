@@ -8,18 +8,8 @@ import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { appWindow } from '@tauri-apps/api/window';
 import { isTauri } from "./storage/globalApi"
-import { Marked } from "marked"
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
-
-const mconverted = new Marked({
-    gfm: true,
-    breaks: true,
-    silent: true,
-    tokenizer: {
-
-    }
-})
 
 export interface Messagec extends Message{
     index: number
@@ -113,8 +103,67 @@ export const replacePlaceholders = (msg:string, name:string) => {
     let selectedChar = get(selectedCharID)
     let currentChar = db.characters[selectedChar]
     return msg  .replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
-                .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, db.username)
+                .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, getUserName())
                 .replace(/(\{\{((set)|(get))var::.+?\}\})/gu,'')
+}
+
+function checkPersonaBinded(){
+    try {
+        let db = get(DataBase)
+        const selectedChar = get(selectedCharID)
+        const character = db.characters[selectedChar]
+        const chat = character.chats[character.chatPage]
+        console.log(chat.bindedPersona)
+        if(!chat.bindedPersona){
+            return null
+        }
+        const persona = db.personas.find(v => v.id === chat.bindedPersona)
+        console.log(db.personas, persona)
+        return persona 
+    } catch (error) {
+        return null
+    }
+}
+
+export function getUserName(){
+    const bindedPersona = checkPersonaBinded()
+    if(bindedPersona){
+        return bindedPersona.name
+    }
+    const db = get(DataBase)
+    return db.username ?? 'User'
+}
+
+export function getUserIcon(){
+    const bindedPersona = checkPersonaBinded()
+    console.log(`Icon: ${bindedPersona?.icon}`)
+    if(bindedPersona){
+        return bindedPersona.icon
+    }
+    const db = get(DataBase)
+    return db.userIcon ?? ''
+}
+
+export function getPersonaPrompt(){
+    const bindedPersona = checkPersonaBinded()
+    if(bindedPersona){
+        return bindedPersona.personaPrompt
+    }
+    const db = get(DataBase)
+    return db.personaPrompt ?? ''
+}
+
+export function getUserIconProtrait(){
+    try {
+        const bindedPersona = checkPersonaBinded()
+        if(bindedPersona){
+            return bindedPersona.largePortrait
+        }
+        const db = get(DataBase)
+        return db.personas[db.selectedPersona].largePortrait       
+    } catch (error) {
+        return false
+    }
 }
 
 export function checkIsIos(){
@@ -585,33 +634,6 @@ export function getNodetextToSentence(node: Node): string {
     return result;
 }
 
-export function applyMarkdownToNode(node: Node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent;
-        if (text) {
-            let markdown = mconverted.parseInline(text);
-            if (markdown !== text) {
-                const span = document.createElement('span');
-                span.innerHTML = markdown;
-                
-                // inherit inline style from the parent node
-                const parentStyle = (node.parentNode as HTMLElement)?.style;
-                if(parentStyle){
-                    for(let i=0;i<parentStyle.length;i++){
-                        span.style.setProperty(parentStyle[i], parentStyle.getPropertyValue(parentStyle[i]))
-                    }   
-                }
-                (node as Element)?.replaceWith(span);
-                return
-            }
-        }
-    } else {
-        for (const child of node.childNodes) {
-            applyMarkdownToNode(child);
-        }
-    }
-}
-
 
 export const TagList = [
     {
@@ -973,20 +995,24 @@ export const isKnownUri = (uri:string) => {
 }
 
 export function parseKeyValue(template:string){
-    if(!template){
+    try {
+        if(!template){
+            return []
+        }
+    
+        const keyValue:[string, string][] = []
+    
+        for(const line of template.split('\n')){
+            const [key, value] = line.split('=')
+            if(key && value){
+                keyValue.push([key, value])
+            }
+        }
+    
+        return keyValue   
+    } catch (error) {
         return []
     }
-
-    const keyValue:[string, string][] = []
-
-    for(const line of template.split('\n')){
-        const [key, value] = line.split('=')
-        if(key && value){
-            keyValue.push([key, value])
-        }
-    }
-
-    return keyValue
 }
 
 export const sortableOptions = {

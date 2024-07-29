@@ -1,10 +1,10 @@
 <script lang="ts">
     import type { Chat, character, groupChat } from "src/ts/storage/database";
-    import { DataBase } from "src/ts/storage/database";
+    import { DataBase, setDatabase } from "src/ts/storage/database";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
     import { exportChat, importChat } from "src/ts/characters";
-    import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
+    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
@@ -13,6 +13,7 @@
     import { CurrentCharacter } from "src/ts/stores";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
   import { onDestroy, onMount } from "svelte";
+  import { v4 } from "uuid";
 
     export let chara:character|groupChat
     let editMode = false
@@ -95,16 +96,41 @@
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
-                {#if $DataBase.tpo}
-                    <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async () => {
-                        const multiuser = parseInt(await alertSelect(["Open Multiuser Room"]))
-                        if(multiuser === 0){
-                            createMultiuserRoom()
+                <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async () => {
+                    const option = await alertChatOptions()
+                    switch(option){
+                        case 0:{
+                            const newChat = structuredClone(chara.chats[i])
+                            newChat.name = `Copy of ${newChat.name}`
+                            chara.chats.unshift(newChat)
+                            chara.chatPage = 0
+                            chara.chats = chara.chats
                         }
-                    }}>
-                        <MenuIcon size={18}/>
-                    </button>
-                {/if}
+                        case 1:{
+                            const chat = chara.chats[i]
+                            if(chat.bindedPersona){
+                                const confirm = await alertConfirm(language.doYouWantToUnbindCurrentPersona)
+                                if(confirm){
+                                    chat.bindedPersona = ''
+                                    alertNormal(language.personaUnbindedSuccess)
+                                }
+                            }
+                            else{
+                                const confirm = await alertConfirm(language.doYouWantToBindCurrentPersona)
+                                if(confirm){
+                                    if(!$DataBase.personas[$DataBase.selectedPersona].id){
+                                        $DataBase.personas[$DataBase.selectedPersona].id = v4()
+                                    }
+                                    chat.bindedPersona = $DataBase.personas[$DataBase.selectedPersona].id
+                                    console.log($DataBase.personas[$DataBase.selectedPersona])
+                                    alertNormal(language.personaBindedSuccess)
+                                }
+                            }
+                        }
+                    }
+                }}>
+                    <MenuIcon size={18}/>
+                </button>
                 <button class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
                     editMode = !editMode
                 }}>
@@ -153,30 +179,49 @@
         </div>
 
         {#if $CurrentCharacter?.chaId !== '§playground'}
-            <div class="flex mt-2 items-center">
-                <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
-            </div>
-            
-            {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
-                <div class="flex mt-2 items-center">
-                    <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
-                        $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
-                    }} />
-                </div>
-            {/each}
 
-            {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
-                {#if $DataBase.hanuraiEnable}
+            
+            {#if parseKeyValue($DataBase.customPromptTemplateToggle).length > 4}
+                <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={ language.hanuraiMemory}/>
+                        <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
                     </div>
-                {:else if $DataBase.hypaMemory}
+                    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
+                        <div class="flex mt-2 items-center">
+                            <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                            }} />
+                        </div>
+                    {/each}
+                    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                        <div class="flex mt-2 items-center">
+                            <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                        </div>
+                    {/if}
+                </div>
+            {:else if parseKeyValue($DataBase.customPromptTemplateToggle).length > 0}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+                </div>
+                {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleHypaMemory}/>
+                        <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                            $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                        }} />
                     </div>
-                {:else}
+                {/each}
+                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={language.ToggleSuperMemory}/>
+                        <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                    </div>
+                {/if}
+            {:else}
+                <div class="flex mt-2 items-center">
+                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+                </div>
+                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                    <div class="flex mt-2 items-center">
+                        <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
                     </div>
                 {/if}
             {/if}

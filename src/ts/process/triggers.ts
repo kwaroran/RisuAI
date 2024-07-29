@@ -1,4 +1,4 @@
-import { risuChatParser } from "../parser";
+import { parseChatML, risuChatParser, risuCommandParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
@@ -12,6 +12,8 @@ import { HypaProcesser } from "./memory/hypamemory";
 import { requestChatData } from "./request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/image";
+import { runLua } from "./lua";
+
 
 export interface triggerscript{
     comment: string;
@@ -23,13 +25,18 @@ export interface triggerscript{
 
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
-export type triggerEffect = triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
+export type triggerEffect = triggerCode|triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
 
 export type triggerConditionsVar = {
     type:'var'|'value'
     var:string
     value:string
     operator:'='|'!='|'>'|'<'|'>='|'<='|'null'|'true'
+}
+
+export type triggerCode = {
+    type: 'triggercode'|'triggerlua',
+    code: string
 }
 
 export type triggerConditionsChatIndex = {
@@ -197,7 +204,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     
     
     for(const trigger of triggers){
-        if(arg.manualName){
+        if(trigger.effect[0]?.type === 'triggercode' || trigger.effect[0]?.type === 'triggerlua'){
+            //
+        }
+        else if(arg.manualName){
             if(trigger.comment !== arg.manualName){
                 continue
             }
@@ -238,22 +248,22 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             }
                             break
                         case '>':
-                            if(Number(varValue) > Number(conditionValue)){
+                            if(Number(varValue) <= Number(conditionValue)){
                                 pass = false
                             }
                             break
                         case '<':
-                            if(Number(varValue) < Number(conditionValue)){
-                                pass = false
-                            }
-                            break
-                        case '>=':
                             if(Number(varValue) >= Number(conditionValue)){
                                 pass = false
                             }
                             break
+                        case '>=':
+                            if(Number(varValue) < Number(conditionValue)){
+                                pass = false
+                            }
+                            break
                         case '<=':
-                            if(Number(varValue) <= Number(conditionValue)){
+                            if(Number(varValue) > Number(conditionValue)){
                                 pass = false
                             }
                             break
@@ -393,6 +403,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         case 'input':{
                             const val = await alertInput(effectValue)
                             setVar(inputVar, val)
+                            break;
                         }
                         case 'select':{
                             const val = await alertSelect(effectValue.split('§'))
@@ -416,41 +427,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     }
                     const effectValue = risuChatParser(effect.value,{chara:char})
                     const varName = effect.inputVar
-                    let promptbody:OpenAIChat[] = []
-                    let currentRole:'user'|'assistant'|'system'
-                    
-                    const splited = effectValue.split('\n')
-
-                    for(let i = 0; i < splited.length; i++){
-                        const line = splited[i]
-                        if(line.startsWith('@@role ')){
-                            const role = line.split(' ')[1]
-                            switch(role){
-                                case 'user':
-                                case 'assistant':
-                                case 'system':
-                                    currentRole = role
-                                    break
-                                default:
-                                    currentRole = 'system'
-                                    break
-                            }
-                            promptbody.push({role: currentRole, content: ''})
-                            continue
-                        }
-                        else if(promptbody.length === 0){
-                            promptbody.push({role: 'system', content: line})
-                        }
-                        else{
-                            promptbody[promptbody.length - 1].content += line
-                        }
+                    let promptbody:OpenAIChat[] = parseChatML(effectValue)
+                    if(!promptbody){
+                        promptbody = [{role:'user', content:effectValue}]
                     }
-
-                    promptbody = promptbody.map((e) => {
-                        e.content = e.content.trim()
-                        return e
-                    }).filter((e) => e.content.length > 0)
-
                     const result = await requestChatData({
                         formated: promptbody,
                         bias: {},
@@ -516,6 +496,35 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const inlay = await writeInlayImage(imgHTML)
                     const res = `{{inlay::${inlay}}}`
                     setVar(effect.inputVar, res)
+                    break
+                }
+
+                case 'triggercode':{
+                    const triggerCodeResult = await risuCommandParser(effect.code,{
+                        chara:char,
+                        lowLevelAccess: trigger.lowLevelAccess,
+                        funcName: mode
+                    })
+
+                    if(triggerCodeResult['__stop_chat__'] === '1'){
+                        stopSending = true
+                    }
+                    break
+                }
+                case 'triggerlua':{
+                    const triggerCodeResult = await runLua(effect.code,{
+                        lowLevelAccess: trigger.lowLevelAccess,
+                        mode: mode === 'manual' ? arg.manualName : mode,
+                        setVar: setVar,
+                        getVar: getVar,
+                        char: char,
+                        chat: chat,
+                    })
+
+                    if(triggerCodeResult.stopSending){
+                        stopSending = true
+                    }
+                    chat = triggerCodeResult.chat
                     break
                 }
             }

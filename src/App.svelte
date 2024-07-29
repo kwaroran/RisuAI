@@ -11,6 +11,8 @@
     import Settings from './lib/Setting/Settings.svelte';
     import { showRealmInfoStore } from './ts/characterCards';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
+    import { AccountWarning } from './ts/storage/accountStorage';
+    import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
 
     let didFirstSetup: boolean  = false
     let gridOpen = false
@@ -62,5 +64,8 @@
     {/if}
     {#if $ShowRealmFrameStore}
         <RealmFrame />
+    {/if}
+    {#if $AccountWarning}
+        <AccountWarningComp />
     {/if}
 </main>

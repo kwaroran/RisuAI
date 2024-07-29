@@ -1,3 +1,8 @@
+export const DataBase = writable({} as any as Database)
+export const loadedStore = writable(false)
+export let appVer = "122.1.2"
+export let webAppSubVer = ''
+
 import { get, writable } from 'svelte/store';
 import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
@@ -11,11 +16,6 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
-
-export const DataBase = writable({} as any as Database)
-export const loadedStore = writable(false)
-export let appVer = "115.0.1"
-export let webAppSubVer = ''
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -419,6 +419,16 @@ export function setDatabase(data:Database){
     data.stabilityModel ??= 'sd3-large'
     data.stabllityStyle ??= ''
     data.legacyTranslation ??= false
+    data.comfyUiUrl ??= 'http://localhost:8188'
+    data.comfyConfig ??= {
+        workflow: '',
+        posNodeID: '',
+        posInputName: 'text',
+        negNodeID: '',
+        negInputName: 'text',
+        timeout: 30
+    }
+
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -585,6 +595,7 @@ export interface Database{
         name:string
         icon:string
         largePortrait?:boolean
+        id?:string
     }[]
     assetWidth:number
     animationSpeed:number
@@ -695,6 +706,8 @@ export interface Database{
     stabilityKey: string
     stabllityStyle: string
     legacyTranslation: boolean
+    comfyConfig: ComfyConfig
+    comfyUiUrl: string
 }
 
 export interface customscript{
@@ -826,6 +839,7 @@ export interface character{
     }>
     defaultVariables?:string
     lowLevelAccess?:boolean
+    hideChatIcon?:boolean
 }
 
 
@@ -873,6 +887,7 @@ export interface groupChat{
     nickname?:string
     defaultVariables?:string
     lowLevelAccess?:boolean
+    hideChatIcon?:boolean
 }
 
 export interface botPreset{
@@ -965,6 +980,16 @@ interface NAIImgConfig{
     InfoExtracted:number,
     RefStrength:number
 }
+
+interface ComfyConfig{
+    workflow:string,
+    posNodeID: string,
+    posInputName:string,
+    negNodeID: string,
+    negInputName:string,
+    timeout: number
+}
+
 export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
 
 export interface Chat{
@@ -981,6 +1006,7 @@ export interface Chat{
     scriptstate?:{[key:string]:string|number|boolean}
     modules?:string[]
     id?:string
+    bindedPersona?:string
 }
 
 export interface Message{
@@ -1299,9 +1325,9 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
     }
     else if(type === 'risupreset' || type === 'return'){
         const buf = fflate.compressSync(encodeMsgpack({
-            presetVersion: 0,
+            presetVersion: 2,
             type: 'preset',
-            pres: await encryptBuffer(
+            preset: await encryptBuffer(
                 encodeMsgpack(pres),
                 'risupreset'
             )
@@ -1342,8 +1368,8 @@ export async function importPreset(f:{
     if(f.name.endsWith('.risupreset')){
         const decoded = await decodeMsgpack(fflate.decompressSync(f.data))
         console.log(decoded)
-        if(decoded.presetVersion === 0 && decoded.type === 'preset'){
-            pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.pres, 'risupreset')))}
+        if((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset'){
+            pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset')))}
         }
     }
     else{

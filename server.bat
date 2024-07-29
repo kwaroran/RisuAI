@@ -1,3 +1,3 @@
-call npm install
-call npm run build
-call npm run runserver
+call pnpm install
+call pnpm run build
+call pnpm run runserver

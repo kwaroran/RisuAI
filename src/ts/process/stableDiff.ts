@@ -414,5 +414,79 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
 
     }
+    if(db.sdProvider === 'comfy'){
+        const {workflow, posNodeID, posInputName, negNodeID, negInputName} = db.comfyConfig
+        const baseUrl = new URL(db.comfyUiUrl)
+
+        const createUrl = (pathname: string, params: Record<string, string> = {}) => {
+            const url = new URL(pathname, baseUrl)
+            url.search = new URLSearchParams(params).toString()
+            return url.toString()
+        }
+
+        const fetchWrapper = async (url: string, options = {}) => {
+            console.log(url)
+            const response = await globalFetch(url, options)
+            if (!response.ok) {
+                console.log(JSON.stringify(response.data))
+                throw new Error(JSON.stringify(response.data))
+            }
+            return response.data
+        }
+
+        try {
+            const prompt = JSON.parse(workflow)
+            prompt[posNodeID].inputs[posInputName] = genPrompt
+            prompt[negNodeID].inputs[negInputName] = neg
+
+            const { prompt_id: id } = await fetchWrapper(createUrl('/prompt'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: { 'prompt': prompt }
+            })
+            console.log(`prompt id: ${id}`)
+
+            let item
+
+            const startTime = Date.now()
+            const timeout = db.comfyConfig.timeout * 1000
+            while (!(item = (await (await fetch(createUrl('/history'), {
+                headers: { 'Content-Type': 'application/json' },
+                method: 'GET'})).json())[id])) {
+                console.log("Checking /history...")
+                if (Date.now() - startTime >= timeout) {
+                    alertError("Error: Image generation took longer than expected.");
+                    return false
+                }
+                await new Promise(r => setTimeout(r, 1000))
+            } // Check history until the generation is complete.
+            const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images)[0];
+
+            const imgResponse = await fetch(createUrl('/view', {
+                filename: genImgInfo.filename,
+                subfolder: genImgInfo.subfolder,
+                type: genImgInfo.type
+            }), {
+                headers: { 'Content-Type': 'application/json' }, 
+                method: 'GET'})
+            const img64 = Buffer.from(await imgResponse.arrayBuffer()).toString('base64')
+
+            if(returnSdData === 'inlay'){
+                return `data:image/png;base64,${img64}`
+            }
+            else {
+                let charemotions = get(CharEmotion)
+                const img = `data:image/png;base64,${img64}`
+                const emos:[string, string,number][] = [[img, img, Date.now()]]
+                charemotions[currentChar.chaId] = emos
+                CharEmotion.set(charemotions)
+            }
+
+            return returnSdData
+        } catch (error) {
+            alertError(error)
+            return false
+        }
+    }
     return ''
 }

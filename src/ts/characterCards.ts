@@ -693,7 +693,8 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         imported: true,
         source: card?.data?.extensions?.risuai?.source ?? [],
         ccAssets: ccAssets,
-        lowLevelAccess: risuext?.lowLevelAccess ?? false
+        lowLevelAccess: risuext?.lowLevelAccess ?? false,
+        defaultVariables: data?.extensions?.risuai?.defaultVariables ?? '',
     }
 
     if(card.spec === 'chara_card_v3'){
@@ -1051,7 +1052,7 @@ export function createBaseV3(char:character){
                 type: 'x-risu-asset',
                 uri: asset[1],
                 name: asset[0],
-                ext: asset[2] || 'unknown'
+                ext: asset[2] || 'png'
             })
         }
     }
@@ -1062,7 +1063,7 @@ export function createBaseV3(char:character){
                 type: 'emotion',
                 uri: asset[1],
                 name: asset[0],
-                ext: 'unknown'
+                ext: 'png'
             })
         }
     
@@ -1148,7 +1149,8 @@ export function createBaseV3(char:character){
                     inlayViewScreen: char.inlayViewScreen,
                     newGenData: char.newGenData,
                     vits: {},
-                    lowLevelAccess: char.lowLevelAccess ?? false
+                    lowLevelAccess: char.lowLevelAccess ?? false,
+                    defaultVariables: char.defaultVariables ?? '',
                 },
                 depth_prompt: char.depth_prompt
             },

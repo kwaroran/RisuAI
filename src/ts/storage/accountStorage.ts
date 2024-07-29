@@ -1,4 +1,4 @@
-import { get } from "svelte/store"
+import { get, writable } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
@@ -6,6 +6,10 @@ import { alertLogin, alertStore } from "../alert"
 import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
+
+export const AccountWarning = writable('')
+
+let seenWarnings:string[] = []
 
 export class AccountStorage{
     auth:string
@@ -25,10 +29,23 @@ export class AccountStorage{
                     'X-Format': 'nocheck'
                 }
             })
+            if(da.headers.get('Content-Type') === 'application/json'){
+                const json = (await da.json())
+                if(json?.warning){
+                    if(!seenWarnings.includes(json.warning)){
+                        seenWarnings.push(json.warning)
+                        AccountWarning.set(json.warning)
+                    }
+                }
+            }
+
             if(da.status === 304){
                 return key
             }
             if(da.status === 403){
+                if(da.headers.get('x-risu-status') === 'warn'){
+                    return
+                }
                 localStorage.setItem("fallbackRisuToken",await alertLogin())
                 this.checkAuth()
             }
