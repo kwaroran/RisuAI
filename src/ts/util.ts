@@ -103,8 +103,23 @@ export const replacePlaceholders = (msg:string, name:string) => {
     let selectedChar = get(selectedCharID)
     let currentChar = db.characters[selectedChar]
     return msg  .replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
-                .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, db.username)
+                .replace(/({{user}})|({{User}})|(<User>)|(<user>)/gi, getUserName())
                 .replace(/(\{\{((set)|(get))var::.+?\}\})/gu,'')
+}
+
+export function getUserName(){
+    const db = get(DataBase)
+    return db.username ?? 'User'
+}
+
+export function getUserIcon(){
+    const db = get(DataBase)
+    return db.userIcon ?? ''
+}
+
+export function getUserPersonaDesc(){
+    const db = get(DataBase)
+    return db.personaPrompt ?? ''
 }
 
 export function checkIsIos(){

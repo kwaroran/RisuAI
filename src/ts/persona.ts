@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { DataBase, saveImage, setDatabase } from "./storage/database"
-import { selectSingleFile, sleep } from "./util"
+import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
@@ -17,7 +17,7 @@ export async function selectUserImg() {
     const imgp = await saveImage(img)
     db.userIcon = imgp
     db.personas[db.selectedPersona] = {
-        name: db.username,
+        name: getUserName(),
         icon: db.userIcon,
         personaPrompt: db.personaPrompt
     }
@@ -27,7 +27,7 @@ export async function selectUserImg() {
 export function saveUserPersona() {
     let db = get(DataBase)
     db.personas[db.selectedPersona] = {
-        name: db.username,
+        name: getUserName(),
         icon: db.userIcon,
         personaPrompt: db.personaPrompt,
         largePortrait: db.personas[db.selectedPersona]?.largePortrait,

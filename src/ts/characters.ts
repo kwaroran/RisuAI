@@ -3,7 +3,7 @@ import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdD
 import { alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
-import { checkNullish, findCharacterbyId, selectMultipleFile, selectSingleFile, sleep } from "./util";
+import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
@@ -197,7 +197,7 @@ export async function exportChat(page:number){
             let i = 0
             for(const v of chat.message){
                 alertWait(`Translating... ${i++}/${chat.message.length}`)
-                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : db.username
+                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : getUserName()
                 chatContentHTML += `<div class="chat">
                     <h2>${name}</h2>
                     <div>${await htmlChatParse(v.data)}</div>
@@ -268,7 +268,7 @@ export async function exportChat(page:number){
             let i = 0
             for(const v of chat.message){
                 alertWait(`Translating... ${i++}/${chat.message.length}`)
-                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : db.username
+                const name = v.saying ? findCharacterbyId(v.saying).name : v.role === 'char' ? char.name : anonymous ? '×××' : getUserName()
                 chatContentHTML += `<tr>
                     <td>${name}</td>
                     <td>${await htmlChatParse(v.data)}</td>
@@ -309,7 +309,7 @@ export async function exportChat(page:number){
                     return `--${findCharacterbyId(v.saying).name}\n${v.data}`
                 }
                 else{
-                    return `--${v.role === 'char' ? char.name : db.username}\n${v.data}`
+                    return `--${v.role === 'char' ? char.name : getUserName()}\n${v.data}`
                 }
             }).join('\n\n')
 
@@ -409,7 +409,7 @@ export async function importChat(){
 
 function formatTavernChat(chat:string, charName:string){
     const db = get(DataBase)
-    return chat.replace(/<([Uu]ser)>|\{\{([Uu]ser)\}\}/g, db.username).replace(/((\{\{)|<)([Cc]har)(=.+)?((\}\})|>)/g, charName)
+    return chat.replace(/<([Uu]ser)>|\{\{([Uu]ser)\}\}/g, getUserName()).replace(/((\{\{)|<)([Cc]har)(=.+)?((\}\})|>)/g, charName)
 }
 
 export function characterFormatUpdate(index:number|character){

@@ -5,10 +5,11 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
+    import { alertConfirm, alertSelect } from "src/ts/alert";
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
     import { DataBase, setDatabase } from "src/ts/storage/database";
+    import { CurrentUserIcon } from "src/ts/stores";
     import { get } from "svelte/store";
 
 </script>
@@ -67,10 +68,10 @@
 <div class="flex w-full items-starts rounded-md bg-darkbg p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
         <button on:click={() => {selectUserImg()}}>
-            {#if $DataBase.userIcon === ''}
+            {#if $CurrentUserIcon === ''}
                 <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
             {:else}
-                {#await getCharImage($DataBase.userIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
+                {#await getCharImage($CurrentUserIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
                 {:then im} 
                     <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
