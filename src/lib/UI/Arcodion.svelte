@@ -6,10 +6,11 @@
     let open = false
     export let styled = false
     export let help: (keyof (typeof language.help))|'' = ''
-
+    export let disabled = false
 </script>
-
-{#if styled}
+{#if disabled}
+    <slot />
+{:else if styled}
     <div class="flex flex-col mt-2">
         <button class="hover:bg-selected px-6 py-2 text-lg rounded-t-md border-selected border"
             class:bg-selected={open}
