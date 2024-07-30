@@ -197,7 +197,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = risuChatParser(data.replace(reg, outScript))
+                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
             }
         }
     }
@@ -214,16 +214,17 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         for(const match of matches){
             const type = match[1]
             const assetName = match[2]
+            const cacheKey = char.chaId + '::' + assetName
             if(type !== 'emotion' && type !== 'source'){
-                if(bestMatchCache.has(assetName)){
-                    data = data.replaceAll(match[0], `{{${type}::${bestMatchCache.get(assetName)}}}`)
+                if(bestMatchCache.has(cacheKey)){
+                    data = data.replaceAll(match[0], `{{${type}::${bestMatchCache.get(cacheKey)}}}`)
                 }
                 else if(!assetNames.includes(assetName)){
                     const searched = await processer.similaritySearch(assetName)
                     const bestMatch = searched[0]
                     if(bestMatch){
                         data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
-                        bestMatchCache.set(assetName, bestMatch)
+                        bestMatchCache.set(cacheKey, bestMatch)
                     }
                 }
             }

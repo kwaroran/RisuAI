@@ -83,7 +83,7 @@
                 <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -352,6 +352,48 @@
                     }}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createGroup}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: 'cancel'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.cancel}</span>
+                        </div>
+                    </button>
+                </div>
+            {:else if $alertStore.type === 'chatOptions'}
+                <div class="w-2xl flex flex-col max-w-full">
+                    <h1 class="text-xl mb-4 font-bold">
+                        {language.chatOptions}
+                    </h1>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: '0'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.createCopy}</span>
+                        </div>
+                        <div class="ml-9 float-right flex-1 flex justify-end">
+                            <ChevronRightIcon />
+                        </div>
+                    </button>
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: '1'
+                        })
+                    }}>
+                        <div class="flex flex-col justify-start items-start">
+                            <span>{language.bindPersona}</span>
                         </div>
                         <div class="ml-9 float-right flex-1 flex justify-end">
                             <ChevronRightIcon />

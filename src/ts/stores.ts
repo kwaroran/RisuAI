@@ -2,7 +2,7 @@ import { get, writable, type Writable } from "svelte/store";
 import { DataBase, type Chat, type character, type groupChat } from "./storage/database";
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
-import { sleep } from "./util";
+import { getUserIcon, getUserIconProtrait, getUserName, sleep } from "./util";
 import { getModules } from "./process/modules";
 
 function updateSize(){
@@ -38,10 +38,12 @@ export const CurrentShowMemoryLimit = writable(false) as Writable<boolean>
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
 export const CurrentVariablePointer = writable({} as {[key:string]: string|number|boolean})
+export const ReloadGUIPointer = writable(0)
 export const OpenRealmStore = writable(false)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
+export const UserIconProtrait = writable(false)
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let moduleHideIcon = false
@@ -75,8 +77,8 @@ function trySync(){
         CurrentCharacter.set(structuredClone(currentCharacter))
         CurrentSimpleCharacter.set(createSimpleCharacter(currentCharacter))
         CurrentChat.set(structuredClone(currentChat))
-        CurrentUsername.set(db.username)
-        CurrentUserIcon.set(db.userIcon)
+        CurrentUsername.set(getUserName())
+        CurrentUserIcon.set(getUserIcon())
         CurrentShowMemoryLimit.set(db.showMemoryLimit)
     } catch (error) {}
 }
@@ -131,11 +133,14 @@ async function preInit(){
 
     DataBase.subscribe((data) => {
         updateCurrentCharacter()
-        if(data.username !== get(CurrentUsername)){
-            CurrentUsername.set(data.username)
+        if(getUserName() !== get(CurrentUsername)){
+            CurrentUsername.set(getUserName())
         }
-        if(data.userIcon !== get(CurrentUserIcon)){
-            CurrentUserIcon.set(data.userIcon)
+        if(getUserIcon() !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(getUserIcon())
+        }
+        if(getUserIconProtrait() !== get(UserIconProtrait)){
+            UserIconProtrait.set(getUserIconProtrait())
         }
         if(data.showMemoryLimit !== get(CurrentShowMemoryLimit)){
             CurrentShowMemoryLimit.set(data.showMemoryLimit)
@@ -160,7 +165,15 @@ async function preInit(){
             characterHideIcon = char?.hideChatIcon
             HideIconStore.set(characterHideIcon || moduleHideIcon)
         }
-
+        if(getUserName() !== get(CurrentUsername)){
+            CurrentUsername.set(getUserName())
+        }
+        if(getUserIcon() !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(getUserIcon())
+        }
+        if(getUserIconProtrait() !== get(UserIconProtrait)){
+            UserIconProtrait.set(getUserIconProtrait())
+        }
         if(charId === -1 || charId > db.characters.length){
             return
         }
@@ -186,6 +199,14 @@ async function preInit(){
             lastChatEnabledModules = chat?.modules || []
             onModuleUpdate()
             return
+        }
+
+        if(getUserName() !== get(CurrentUsername)){
+            CurrentUsername.set(getUserName())
+        }
+
+        if(getUserIcon() !== get(CurrentUserIcon)){
+            CurrentUserIcon.set(getUserIcon())
         }
 
         const variablePointer = get(CurrentVariablePointer)

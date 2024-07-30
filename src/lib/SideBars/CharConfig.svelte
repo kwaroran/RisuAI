@@ -396,11 +396,9 @@
     {/if}
 
     {#if currentChar.type === 'group'}
-        <button
-            on:click={makeGroupImage}
-            class="drop-shadow-lg p-2 border-borderc border-solid mt-2 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected">
+        <Button on:click={makeGroupImage}>
             {language.createGroupImg}
-        </button>
+        </Button>
     {/if}
 
 

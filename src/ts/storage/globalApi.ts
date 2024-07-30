@@ -923,6 +923,11 @@ async function checkNewFormat() {
         return v
     })
 
+    db.personas = (db.personas ?? []).map((v) => {
+        v.id ??= uuidv4()
+        return v
+    })
+
     if(!db.formatversion){
         function checkParge(data:string){
 

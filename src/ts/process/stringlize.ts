@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import type { OpenAIChat } from ".";
 import { DataBase } from "../storage/database";
+import { getUserName } from "../util";
 
 export function multiChatReplacer(){
 
@@ -57,7 +58,7 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
         let name = form.name
         if(form.role === 'user'){
             prefix = appendWhitespace(suggesting ? assistantPrefix : userPrefix, seperator)
-            name ??= `${db.username}`
+            name ??= `${getUserName()}`
             name += ': '
         }
         else if(form.role === 'assistant'){
@@ -80,7 +81,7 @@ export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, s
     if(!continued){
         if(db.ooba.formating.useName){
             if (suggesting){
-                resultString.push(appendWhitespace(assistantPrefix, seperator) + `${db.username}:\n` + db.autoSuggestPrefix)
+                resultString.push(appendWhitespace(assistantPrefix, seperator) + `${getUserName()}:\n` + db.autoSuggestPrefix)
             } else {
                 resultString.push(assistantPrefix + `${characterName}:`)
             }
@@ -173,17 +174,17 @@ export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:
             chunks.push(`${char}： `) 
         }
     }
-    if(db.username){
-        charNames.push(db.username)
+    if(getUserName()){
+        charNames.push(getUserName())
         if(mode === 'ain'){
-            chunks.push(`${db.username} `)
-            chunks.push(`${db.username}　`)
+            chunks.push(`${getUserName()} `)
+            chunks.push(`${getUserName()}　`)
         }
         else{
-            chunks.push(`${db.username}:`)
-            chunks.push(`${db.username}：`)
-            chunks.push(`${db.username}: `)
-            chunks.push(`${db.username}： `) 
+            chunks.push(`${getUserName()}:`)
+            chunks.push(`${getUserName()}：`)
+            chunks.push(`${getUserName()}: `)
+            chunks.push(`${getUserName()}： `) 
         }
     }
 
@@ -223,7 +224,7 @@ export function stringlizeAINChat(formated:OpenAIChat[], char:string, continued:
             resultString.push(form.content)
         }
         else if(form.role === 'user'){
-            resultString.push(...formatToAIN(db.username, form.content))
+            resultString.push(...formatToAIN(getUserName(), form.content))
         }
         else if(form.name || form.role === 'assistant'){
             resultString.push(...formatToAIN(form.name ?? char, form.content))
@@ -315,7 +316,7 @@ export function unstringlizeAIN(data:string,formated:OpenAIChat[], char:string =
             }
         }
         else{
-            const role = (cont.character.trim() ===  db.username ? 'user' : 'char')
+            const role = (cont.character.trim() ===  getUserName() ? 'user' : 'char')
             result.push([
                 role,
                 `「${cont.content}」`

@@ -3,7 +3,7 @@ import type { OpenAIChat } from ".."
 import { get } from "svelte/store"
 import { globalFetch } from "src/ts/storage/globalApi"
 import { alertError, alertInput, alertNormal, alertWait } from "src/ts/alert"
-import { sleep } from "src/ts/util"
+import { getUserName, sleep } from "src/ts/util"
 
 export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued: boolean){
     const db = get(DataBase)
@@ -34,7 +34,7 @@ export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued:
                 res += '> '
             }
             if(db.NAIappendName){
-                res += db.username + ": "
+                res += getUserName() + ": "
             }
             res += form.content
             resultString.push(res)

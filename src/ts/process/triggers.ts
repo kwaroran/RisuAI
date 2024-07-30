@@ -403,6 +403,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         case 'input':{
                             const val = await alertInput(effectValue)
                             setVar(inputVar, val)
+                            break;
                         }
                         case 'select':{
                             const val = await alertSelect(effectValue.split('§'))

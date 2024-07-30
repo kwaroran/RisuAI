@@ -7,7 +7,7 @@
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
-    import { replacePlaceholders } from "../../ts/util";
+    import { getUserName, replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
     import { processScript } from "src/ts/process/scripts";
     import { get } from "svelte/store";
@@ -71,7 +71,7 @@
             }
             ,{
                 role: 'user', 
-                content: lastMessages.map(b=>(b.role==='char'? currentChar.name : $DataBase.username)+":"+b.data).reduce((a,b)=>a+','+b)
+                content: lastMessages.map(b=>(b.role==='char'? currentChar.name : getUserName())+":"+b.data).reduce((a,b)=>a+','+b)
             }
             ]
 

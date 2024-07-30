@@ -1,11 +1,12 @@
 import { get } from "svelte/store"
 import { DataBase, saveImage, setDatabase } from "./storage/database"
-import { selectSingleFile, sleep } from "./util"
+import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"
 import { language } from "src/lang"
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
+import { v4 } from "uuid"
 
 export async function selectUserImg() {
     const selected = await selectSingleFile(['png'])
@@ -19,19 +20,18 @@ export async function selectUserImg() {
     db.personas[db.selectedPersona] = {
         name: db.username,
         icon: db.userIcon,
-        personaPrompt: db.personaPrompt
+        personaPrompt: db.personaPrompt,
+        id: v4()
     }
     setDatabase(db)
 }
 
 export function saveUserPersona() {
     let db = get(DataBase)
-    db.personas[db.selectedPersona] = {
-        name: db.username,
-        icon: db.userIcon,
-        personaPrompt: db.personaPrompt,
-        largePortrait: db.personas[db.selectedPersona]?.largePortrait,
-    }
+    db.personas[db.selectedPersona].name=db.username
+    db.personas[db.selectedPersona].icon=db.userIcon,
+    db.personas[db.selectedPersona].personaPrompt=db.personaPrompt,
+    db.personas[db.selectedPersona].largePortrait=db.personas[db.selectedPersona]?.largePortrait,
     setDatabase(db)
 }
 
@@ -111,7 +111,8 @@ export async function importUserPersona(){
             db.personas.push({
                 name: data.name,
                 icon: await saveImage(await reencodeImage(v.data)),
-                personaPrompt: data.personaPrompt
+                personaPrompt: data.personaPrompt,
+                id: v4()
             })
             setDatabase(db)
             alertNormal(language.successImport)

@@ -5,7 +5,7 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { alertConfirm, alertError, alertSelect } from "src/ts/alert";
+    import { alertConfirm, alertSelect } from "src/ts/alert";
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
     import { DataBase, setDatabase } from "src/ts/storage/database";
@@ -14,7 +14,7 @@
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
-<div class="p-4 rounded-md bg-darkbg flex-wrap flex gap-2">
+<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2">
     {#each $DataBase.personas as persona, i}
         <button on:click={() => {
             changeUserPersona(i)
@@ -60,11 +60,7 @@
     </div>
 </div>
 
-
-<div class="mt-4 mb-4 border-y-1 border-y-selected">
-</div>
-
-<div class="flex w-full items-starts rounded-md bg-darkbg p-4 max-w-full flex-wrap">
+<div class="flex w-full items-starts rounded-md border-darkborderc border p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
         <button on:click={() => {selectUserImg()}}>
             {#if $DataBase.userIcon === ''}
@@ -80,7 +76,7 @@
     </div>
     <div class="flex flex-grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
-        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username} />
+        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username}/>
         <span class="text-sm text-textcolor2">{language.description}</span>
         <TextAreaInput autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div class="flex gap-2 mt-4 max-w-full flex-wrap">
