@@ -679,4 +679,5 @@ export const languageEnglish = {
     personaUnbindedSuccess: "Persona is successfully unbinded",
     parameters: "Parameters",
     sizeAndSpeed: "Size and Speed",
+    useLegacyGUI: "Use Legacy GUI",
 }

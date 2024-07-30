@@ -708,6 +708,7 @@ export interface Database{
     legacyTranslation: boolean
     comfyConfig: ComfyConfig
     comfyUiUrl: string
+    useLegacyGUI: boolean
 }
 
 export interface customscript{

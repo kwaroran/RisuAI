@@ -18,27 +18,30 @@
         changeColorScheme((e.target as HTMLInputElement).value)
     }
 
-    let submenu = 0
+    let submenu = $DataBase.useLegacyGUI ? -1 : 0
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
-<div class="flex w-full rounded-md border border-darkborderc mb-4">
-    <button on:click={() => {
-        submenu = 0
-    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
-        <span>{language.theme}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 1
-    }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
-        <span>{language.sizeAndSpeed}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 2
-    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
-        <span>{language.others}</span>
-    </button>
-</div>
+
+{#if submenu !== -1}
+    <div class="flex w-full rounded-md border border-darkborderc mb-4">
+        <button on:click={() => {
+            submenu = 0
+        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
+            <span>{language.theme}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 1
+        }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
+            <span>{language.sizeAndSpeed}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 2
+        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
+            <span>{language.others}</span>
+        </button>
+    </div>
+{/if}
 
 {#if submenu === 0 || submenu === -1}
     <span class="text-textcolor mt-4">{language.theme}</span>
@@ -301,6 +304,10 @@
 
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
+    </div>
+
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.useLegacyGUI} name={language.useLegacyGUI}/>
     </div>
 
     {#if $DataBase.useExperimental}

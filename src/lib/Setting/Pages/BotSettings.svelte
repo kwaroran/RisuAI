@@ -45,32 +45,34 @@
         $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
     }
 
-    let submenu = 0
+    let submenu = $DataBase.useLegacyGUI ? -1 : 0
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
-<div class="flex w-full rounded-md border border-darkborderc mb-4">
-    <button on:click={() => {
-        submenu = 0
-    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
-        <span>{language.model}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 1
-    }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
-        <span>{language.parameters}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 2
-    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
-        <span>{language.prompt}</span>
-    </button>
-    <button on:click={() => {
-        submenu = 3
-    }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
-        <span>{language.others}</span>
-    </button>
-</div>
+{#if submenu !== -1}
+    <div class="flex w-full rounded-md border border-darkborderc mb-4">
+        <button on:click={() => {
+            submenu = 0
+        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
+            <span>{language.model}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 1
+        }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
+            <span>{language.parameters}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 2
+        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
+            <span>{language.prompt}</span>
+        </button>
+        <button on:click={() => {
+            submenu = 3
+        }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
+            <span>{language.others}</span>
+        </button>
+    </div>
+{/if}
 
 {#if submenu === 0 || submenu === -1}
     <span class="text-textcolor mt-4">{language.model} <Help key="model"/></span>
@@ -541,7 +543,9 @@
 
     <Arcodion styled name={language.promptTemplate}>
         {#if $DataBase.promptTemplate}
-            <PromptSettings mode='inline' subMenu={1} />
+            {#if submenu !== -1}
+                <PromptSettings mode='inline' subMenu={1} />
+            {/if}
             <Check check={!!$DataBase.promptTemplate} name={language.usePromptTemplate} className="mt-4" onChange={async ()=>{
                 const conf = await alertConfirm(language.resetPromptTemplateConfirm)
                 
@@ -558,8 +562,9 @@
             }}/>
         {/if}
     </Arcodion>
-    <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
-
+    {#if submenu !== -1}
+        <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+    {/if}
 {/if}
 
 {#if submenu === 2 || submenu === -1}
@@ -578,7 +583,7 @@
         <div class="flex items-center mt-4">
             <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
         </div>
-    {:else}
+    {:else if submenu === 2}
         <PromptSettings mode='inline' />
     {/if}
 {/if}
@@ -588,4 +593,7 @@
     <div class="mt-2">
         <Button on:click={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
     </div>
+{/if}
+{#if submenu === -1}
+    <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}
