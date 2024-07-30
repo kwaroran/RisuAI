@@ -3,14 +3,14 @@
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
-    import { customProviderStore, getCurrentPluginMax } from "src/ts/plugins/plugins";
+    import { customProviderStore } from "src/ts/plugins/plugins";
     import { getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
-    import { tokenize, tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
+    import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     import { onDestroy } from "svelte";
-    import { recommendedPresetExist, setRecommended } from "src/ts/process/templates/getRecomended";
+    import { setRecommended } from "src/ts/process/templates/getRecomended";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -19,11 +19,9 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { openRouterModels } from "src/ts/model/openrouter";
-    import { novelLogin } from "src/ts/process/models/nai";
     import { alertConfirm } from "src/ts/alert";
     import OobaSettings from "./OobaSettings.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-    import { startsWith } from "lodash";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
 
@@ -105,11 +103,6 @@
 
 {/if}
 
-{#if advancedBotSettings && recommendedPresetExist($DataBase.aiModel)}
-    <div>
-        <Button size="sm" className="mb-2" on:click={() => {setRecommended($DataBase.aiModel, 'ask')}}>{language.recommendedPreset}</Button>
-    </div>
-{/if}
 {#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
     <span class="text-textcolor">
         {#if $DataBase.google.projectId === 'aigoogle'}
