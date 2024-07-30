@@ -41,9 +41,9 @@
     >
     </div> -->
     <span 
-      class="absolute top-0 left-4 h-8 w-8 rounded-full items-center justify-center flex text-textcolor text-sm"
+      class="absolute top-0 left-4 h-8 rounded-full items-center justify-center flex text-textcolor text-sm"
     >
-      {(value * multiple).toFixed(fixed)}
+      {customText === undefined ? (value * multiple).toFixed(fixed) : customText}
     </span>
   </div>
 </div>
@@ -59,6 +59,7 @@
     export let multiple = 1
     let slider: HTMLDivElement
     let mouseDown = false
+    export let customText: string|undefined = undefined
 
     function changeValue(event) {
         const rect = slider.getBoundingClientRect();
