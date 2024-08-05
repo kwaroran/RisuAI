@@ -36,6 +36,7 @@
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('instructgpt35')}}>GPT-3.5 Instruct</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo')}}>GPT-4 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o')}}>GPT-4o</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4om')}}>GPT-4o Mini</button>
                 {#if showUnrec}
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4 (Old)</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K (Old)</button>
