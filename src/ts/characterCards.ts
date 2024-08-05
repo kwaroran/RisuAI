@@ -54,7 +54,7 @@ async function importCharacterProcess(f:{
         }
         if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
             let db = get(DataBase)
-            db.characters.push(convertOldTavernAndJSON(da))
+            db.characters.push(convertOffSpecCards(da))
             DataBase.set(db)
             alertNormal(language.importedCharacter)
             return
@@ -227,7 +227,7 @@ async function importCharacterProcess(f:{
     console.log(charaData)
     const imgp = await saveAsset(await reencodeImage(img))
     let db = get(DataBase)
-    db.characters.push(convertOldTavernAndJSON(charaData, imgp))
+    db.characters.push(convertOffSpecCards(charaData, imgp))
     DataBase.set(db)
     alertNormal(language.importedCharacter)
     return db.characters.length - 1
@@ -323,13 +323,13 @@ export async function characterURLImport() {
 }
 
 
-function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined = undefined):character{
-
-
+function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:string|undefined = undefined):character{
+    const data = charaData.spec_version === '2.0' ? charaData.data : charaData
+    console.log("Off spec detected, converting")
     return {
-        name: charaData.name ?? 'unknown name',
-        firstMessage: charaData.first_mes ?? 'unknown first message',
-        desc:  charaData.description ?? '',
+        name: data.name ?? 'unknown name',
+        firstMessage: data.first_mes ?? 'unknown first message',
+        desc:  data.description ?? '',
         notes: '',
         chats: [{
             message: [],
@@ -347,16 +347,16 @@ function convertOldTavernAndJSON(charaData:OldTavernChar, imgp:string|undefined 
         sdData: defaultSdDataFunc(),
         utilityBot: false,
         customscript: [],
-        exampleMessage: charaData.mes_example,
+        exampleMessage: data.mes_example,
         creatorNotes:'',
-        systemPrompt:'',
-        postHistoryInstructions:'',
+        systemPrompt: (charaData.spec_version === '2.0' ? charaData.data.system_prompt : '') ?? '',
+        postHistoryInstructions: (charaData.spec_version === '2.0' ? charaData.data.post_history_instructions : '') ?? '',
         alternateGreetings:[],
         tags:[],
         creator:"",
         characterVersion: '',
-        personality: charaData.personality ?? '',
-        scenario:charaData.scenario ?? '',
+        personality: data.personality ?? '',
+        scenario:data.scenario ?? '',
         firstMsgIndex: -1,
         replaceGlobalNote: "",
         triggerscript: [],
@@ -1435,6 +1435,7 @@ interface OldTavernChar{
     personality: string
     scenario: string
     talkativeness: "0.5"
+    spec_version?: '1.0'
 }
 type CharacterBook = {
     name?: string
