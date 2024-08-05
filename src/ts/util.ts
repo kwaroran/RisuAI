@@ -113,12 +113,10 @@ function checkPersonaBinded(){
         const selectedChar = get(selectedCharID)
         const character = db.characters[selectedChar]
         const chat = character.chats[character.chatPage]
-        console.log(chat.bindedPersona)
         if(!chat.bindedPersona){
             return null
         }
         const persona = db.personas.find(v => v.id === chat.bindedPersona)
-        console.log(db.personas, persona)
         return persona 
     } catch (error) {
         return null
@@ -136,7 +134,6 @@ export function getUserName(){
 
 export function getUserIcon(){
     const bindedPersona = checkPersonaBinded()
-    console.log(`Icon: ${bindedPersona?.icon}`)
     if(bindedPersona){
         return bindedPersona.icon
     }
