@@ -171,6 +171,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-small-latest':
         case 'mistral-medium-latest':
         case 'mistral-large-latest':
+        case 'open-mistral-nemo':
         case 'gpt4_turbo_20240409':
         case 'gpt4_turbo':
         case 'gpt4o':
@@ -295,7 +296,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             console.log(formatedChat)
-            if(aiModel.startsWith('mistral')){
+            if(aiModel.startsWith('mistral') || aiModel === 'open-mistral-nemo'){
                 requestModel = aiModel
 
                 let reformatedChat:OpenAIChatExtra[] = []
@@ -355,6 +356,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         temperature: temperature,
                         max_tokens: maxTokens,
                         top_p: db.top_p,
+                        safe_prompt: false
                     },
                     headers: {
                         "Authorization": "Bearer " + db.mistralKey,

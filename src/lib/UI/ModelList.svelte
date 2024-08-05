@@ -93,9 +93,12 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             <Arcodion name="Mistral API">
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Medium</button>
+                {#if showUnrec}
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
+                {/if}
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('open-mistral-nemo')}}>Mistral Nemo</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Large</button>
             </Arcodion>
             <Arcodion name="Google Gemini">
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-latest')}}>Gemini Pro 1.5</button>
