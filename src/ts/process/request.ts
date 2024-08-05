@@ -171,10 +171,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-small-latest':
         case 'mistral-medium-latest':
         case 'mistral-large-latest':
+        case 'open-mistral-nemo':
         case 'gpt4_turbo_20240409':
         case 'gpt4_turbo':
         case 'gpt4o':
         case 'gpt4o-2024-05-13':
+        case 'gpt4om':
+        case 'gpt4om-2024-07-18':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -293,7 +296,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             console.log(formatedChat)
-            if(aiModel.startsWith('mistral')){
+            if(aiModel.startsWith('mistral') || aiModel === 'open-mistral-nemo'){
                 requestModel = aiModel
 
                 let reformatedChat:OpenAIChatExtra[] = []
@@ -353,6 +356,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         temperature: temperature,
                         max_tokens: maxTokens,
                         top_p: db.top_p,
+                        safe_prompt: false
                     },
                     headers: {
                         "Authorization": "Bearer " + db.mistralKey,
@@ -415,6 +419,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4_turbo' ? 'gpt-4-turbo'
                     : requestModel === 'gpt4o' ? 'gpt-4o'
                     : requestModel === 'gpt4o-2024-05-13' ? 'gpt-4o-2024-05-13'
+                    : requestModel === 'gpt4om' ? 'gpt-4o-mini'
+                    : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
@@ -1350,19 +1356,24 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
         }
         case "kobold":{
-            const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+            const prompt = applyChatTemplate(formated)
             const url = new URL(db.koboldURL)
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
             }
+
+            const body:KoboldGenerationInputSchema = {
+                "prompt": prompt,
+                "temperature": (db.temperature / 100),
+                "top_p": db.top_p,
+                max_length: maxTokens,
+                max_context_length: db.maxContext,
+                n: 1
+            }
             
             const da = await globalFetch(url.toString(), {
                 method: "POST",
-                body: {
-                    "prompt": prompt,
-                    "temperature": (db.temperature / 100),
-                    "top_p": 0.9
-                },
+                body: body,
                 headers: {
                     "content-type": "application/json",
                 },
@@ -2274,7 +2285,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             }
             if(aiModel.startsWith("horde:::")){
-                const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+                const prompt = applyChatTemplate(formated)
 
                 const realModel = aiModel.split(":::")[1]
 
@@ -2439,4 +2450,42 @@ function getOpenUserString(){
     requestedTimes += 1
     console.log(userString)
     return userString
+}
+
+
+
+export interface KoboldSamplerSettingsSchema {
+    rep_pen?: number;
+    rep_pen_range?: number;
+    rep_pen_slope?: number;
+    top_k?: number;
+    top_a?: number;
+    top_p?: number;
+    tfs?: number;
+    typical?: number;
+    temperature?: number;
+}
+
+export interface KoboldGenerationInputSchema extends KoboldSamplerSettingsSchema {
+    prompt: string;
+    use_memory?: boolean;
+    use_story?: boolean;
+    use_authors_note?: boolean;
+    use_world_info?: boolean;
+    use_userscripts?: boolean;
+    soft_prompt?: string;
+    max_length?: number;
+    max_context_length?: number;
+    n: number;
+    disable_output_formatting?: boolean;
+    frmttriminc?: boolean;
+    frmtrmblln?: boolean;
+    frmtrmspch?: boolean;
+    singleline?: boolean;
+    disable_input_formatting?: boolean;
+    frmtadsnsp?: boolean;
+    quiet?: boolean;
+    sampler_order?: number[];
+    sampler_seed?: number;
+    sampler_full_determinism?: boolean;
 }

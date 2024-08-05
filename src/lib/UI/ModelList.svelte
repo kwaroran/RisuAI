@@ -36,6 +36,7 @@
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('instructgpt35')}}>GPT-3.5 Instruct</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo')}}>GPT-4 Turbo</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o')}}>GPT-4o</button>
+                <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4om')}}>GPT-4o Mini</button>
                 {#if showUnrec}
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4')}}>GPT-4 (Old)</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_32k')}}>GPT-4 32K (Old)</button>
@@ -93,9 +94,12 @@
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mancer')}}>Mancer</button>
             <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('openrouter')}}>OpenRouter</button>
             <Arcodion name="Mistral API">
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Medium</button>
+                {#if showUnrec}
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-small-latest')}}>Mistral Small</button>
+                    <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-medium-latest')}}>Mistral Medium</button>
+                {/if}
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('open-mistral-nemo')}}>Mistral Nemo</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Large</button>
             </Arcodion>
             <Arcodion name="Google Gemini">
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-latest')}}>Gemini Pro 1.5</button>
@@ -110,8 +114,8 @@
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2')}}>Bison</button>
                     <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('palm2_unicorn')}}>Unicorn</button>
                 </Arcodion>
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             {/if}
+            <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('kobold')}}>Kobold</button>
             <Arcodion name="Novellist">
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist')}}>SuperTrin</button>
                 <button class="p-2 hover:text-green-500" on:click={() => {changeModel('novellist_damsel')}}>Damsel</button>

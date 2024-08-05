@@ -265,7 +265,6 @@
     {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
         <span class="text-textcolor">Horde {language.apiKey}</span>
         <TextInput hideText marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
-
     {/if}
     {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'
         || $DataBase.aiModel === 'mancer' || $DataBase.subModel === 'mancer'}
@@ -283,7 +282,9 @@
         <span class="text-textcolor mt-2">Ooba {language.providerURL}</span>
         <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
     {/if}
-
+    {#if $DataBase.aiModel.startsWith("horde") || $DataBase.aiModel === 'kobold' }
+        <ChatFormatSettings />
+    {/if}
 {/if}
 
 {#if submenu === 1 || submenu === -1}
@@ -386,7 +387,7 @@
             <ChatFormatSettings />
         </div>
         <Check bind:check={$DataBase.ooba.formating.useName} name={language.useNamePrefix}/>
-
+    
     {:else if $DataBase.aiModel.startsWith('novelai')}
         <div class="flex flex-col p-3 bg-darkbg mt-4">
             <span class="text-textcolor">Starter</span>
