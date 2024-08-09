@@ -178,6 +178,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4o-2024-05-13':
         case 'gpt4om':
         case 'gpt4om-2024-07-18':
+        case 'gpt4o-2024-08-06':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -421,6 +422,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4o-2024-05-13' ? 'gpt-4o-2024-05-13'
                     : requestModel === 'gpt4om' ? 'gpt-4o-mini'
                     : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
+                    : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,

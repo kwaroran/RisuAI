@@ -54,6 +54,8 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gptvi4_1106')}}>GPT-4 Turbo 1106 Vision</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4_turbo_20240409')}}>GPT-4 Turbo 20240409</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-2024-05-13')}}>GPT-4o 20240513</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-2024-08-06')}}>GPT-4o 20240806</button>
+
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
