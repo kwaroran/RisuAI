@@ -371,7 +371,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 node instanceof HTMLElement
             ) {
                 const children = Array.from(node.childNodes);
-                const blacklist = ["img", "iframe", "script", "style", "div", "button"];
+                const blacklist = ["img", "iframe", "script", "style", "div", "button", "audio", "video"];
                 const hasBlacklistChild = children.some((child) =>
                     blacklist.includes(child.nodeName.toLowerCase())
                 );
