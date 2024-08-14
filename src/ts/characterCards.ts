@@ -1264,6 +1264,7 @@ export type hubType = {
     authorname?:string
     original?:string
     type:string
+    hidden?:boolean
 }
 
 export let hubAdditionalHTML = ''
@@ -1293,15 +1294,19 @@ export async function getRisuHub(arg:{
     }
 }
 
-export async function downloadRisuHub(id:string) {
+export async function downloadRisuHub(id:string, arg:{
+    forceRedirect?: boolean
+} = {}) {
     try {
-        if(!(await alertTOS())){
-            return
+        if(!arg.forceRedirect){
+            if(!(await alertTOS())){
+                return
+            }
+            alertStore.set({
+                type: "wait",
+                msg: "Downloading..."
+            })
         }
-        alertStore.set({
-            type: "wait",
-            msg: "Downloading..."
-        })
         const res = await fetch("https://realm.risuai.net/api/v1/download/png-v3/" + id + '?cors=true', {
             headers: {
                 "x-risu-api-version": "4"
@@ -1319,7 +1324,7 @@ export async function downloadRisuHub(id:string) {
             })
             checkCharOrder()
             let db = get(DataBase)
-            if(db.characters[db.characters.length-1] && db.goCharacterOnImport){
+            if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
                 const index = db.characters.length-1
                 characterFormatUpdate(index);
                 selectedCharID.set(index);
@@ -1328,17 +1333,23 @@ export async function downloadRisuHub(id:string) {
         }
     
         const result = await res.json()
-        const data:CharacterCardV2Risu = result.card
+        const data:CharacterCardV3 = result.card
         const img:string = result.img
+
+        data.data.extensions.risuRealmImportId = id
     
         await importCharacterCardSpec(data, await getHubResources(img), 'hub')
         checkCharOrder()
         let db = get(DataBase)
-        if(db.characters[db.characters.length-1] && db.goCharacterOnImport){
+        if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
             const index = db.characters.length-1
             characterFormatUpdate(index);
             selectedCharID.set(index);
-        }   
+            alertStore.set({
+                type: 'none',
+                msg: ''
+            })
+        }
     } catch (error) {
         console.error(error)
         alertError("Error while importing")

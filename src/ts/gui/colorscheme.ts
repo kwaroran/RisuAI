@@ -3,6 +3,7 @@ import { DataBase, setDatabase } from "../storage/database";
 import { downloadFile } from "../storage/globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
+import { isLite } from "../lite";
 
 export interface ColorScheme{
     bgcolor: string;
@@ -119,6 +120,10 @@ export function updateColorScheme(){
         colorScheme = structuredClone(defaultColorScheme)
     }
 
+    if(get(isLite)){
+        colorScheme = structuredClone(colorShemes.light)
+    }
+
     //set css variables
     document.documentElement.style.setProperty("--risu-theme-bgcolor", colorScheme.bgcolor);
     document.documentElement.style.setProperty("--risu-theme-darkbg", colorScheme.darkbg);
@@ -180,9 +185,11 @@ export function updateTextTheme(){
     if(!root){
         return
     }
-    switch(db.textTheme){
+    let textTheme = get(isLite) ? 'standard' : db.textTheme
+    let colorScheme = get(isLite) ? 'light' : db.colorScheme.type
+    switch(textTheme){
         case "standard":{
-            if(db.colorScheme.type === 'dark'){
+            if(colorScheme === 'dark'){
                 root.style.setProperty('--FontColorStandard', '#fafafa');
                 root.style.setProperty('--FontColorItalic', '#8C8D93');
                 root.style.setProperty('--FontColorBold', '#fafafa');
@@ -200,7 +207,7 @@ export function updateTextTheme(){
             break
         }
         case "highcontrast":{
-            if(db.colorScheme.type === 'dark'){
+            if(colorScheme === 'dark'){
                 root.style.setProperty('--FontColorStandard', '#f8f8f2');
                 root.style.setProperty('--FontColorItalic', '#F1FA8C');
                 root.style.setProperty('--FontColorBold', '#8BE9FD');

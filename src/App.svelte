@@ -13,6 +13,8 @@
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import { AccountWarning } from './ts/storage/accountStorage';
     import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
+  import { isLite } from './ts/lite';
+  import LiteMain from './LiteMain.svelte';
 
     let didFirstSetup: boolean  = false
     let gridOpen = false
@@ -36,8 +38,11 @@
         </div>
     {:else if !didFirstSetup}
         <WelcomeRisu />
+    {:else if $isLite}
+        <LiteMain />
     {:else if $settingsOpen}
         <Settings />
+        
     {:else}
         {#if gridOpen}
             <GridChars endGrid={() => {gridOpen = false}} />

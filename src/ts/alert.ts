@@ -246,9 +246,9 @@ export async function alertCardExport(type:string = ''){
 
 export async function alertTOS(){
 
-    // if(localStorage.getItem('tos') === 'true'){
-    //     return true
-    // }
+    if(localStorage.getItem('tos') === 'true'){
+        return true
+    }
 
     alertStore.set({
         'type': 'tos',

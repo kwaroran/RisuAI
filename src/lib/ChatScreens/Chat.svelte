@@ -180,7 +180,7 @@
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
                 {:else if !blankMessage && !$HideIconStore}
-                    <span class="chat text-xl unmargin">{name}</span>
+                    <span class="chat text-xl unmargin text-textcolor">{name}</span>
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
