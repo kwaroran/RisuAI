@@ -133,6 +133,8 @@ export const languageEnglish = {
         triggerLLMPrompt: "A prompt that would be sent to the model. you can use multi turns and roles by using `@@role user`, `@@role system`, `@@role assistant`. for example, \n\`\`\`\n@@role system\nrespond as hello\n@@role assistant\nhello\n@@role user\nhi\n\`\`\`",
         legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations.",
         luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
+        claudeCachingExperimental: "Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.",
+
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -680,4 +682,5 @@ export const languageEnglish = {
     parameters: "Parameters",
     sizeAndSpeed: "Size and Speed",
     useLegacyGUI: "Use Legacy GUI",
+    claudeCachingExperimental: "Claude Caching",
 }

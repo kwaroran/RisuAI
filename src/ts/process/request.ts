@@ -179,6 +179,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4om':
         case 'gpt4om-2024-07-18':
         case 'gpt4o-2024-08-06':
+        case 'gpt4o-chatgpt':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -423,7 +424,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4om' ? 'gpt-4o-mini'
                     : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
                     : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
-                    : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest	'
+                    : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
@@ -1665,7 +1666,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 interface Claude3TextBlock {
                     type: 'text',
-                    text: string
+                    text: string,
+                    cache_control?: {"type": "ephemeral"}
                 }
 
                 interface Claude3ImageBlock {
@@ -1675,13 +1677,14 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         media_type: string,
                         data: string
                     }
+                    cache_control?: {"type": "ephemeral"}
                 }
 
                 type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
 
                 interface Claude3Chat {
                     role: 'user'|'assistant'
-                    content: string|Claude3ContentBlock[]
+                    content: Claude3ContentBlock[]
                 }
 
                 let claudeChat: Claude3Chat[] = []
@@ -1732,13 +1735,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                 }
                             }
                         }
-                        else{
-                            content += "\n\n" + chat.content
-                        }
                         claudeChat[claudeChat.length-1].content = content
                     }
                     else{
-                        let formatedChat:Claude3Chat = chat
+                        let formatedChat:Claude3Chat = {
+                            role: chat.role,
+                            content: [{
+                                type: 'text',
+                                text: chat.content
+                            }]
+                        }
                         if(multimodals && multimodals.length > 0){
                             formatedChat.content = [{
                                 type: 'text',
@@ -1799,7 +1805,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     }
                 }
-                console.log(claudeChat)
                 if(claudeChat.length === 0 && systemPrompt === ''){
                     return {
                         type: 'fail',
@@ -1809,16 +1814,47 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 if(claudeChat.length === 0 && systemPrompt !== ''){
                     claudeChat.push({
                         role: 'user',
-                        content: systemPrompt
+                        content: [{
+                            type: 'text',
+                            text: 'Start'
+                        }]
                     })
                     systemPrompt = ''
                 }
                 if(claudeChat[0].role !== 'user'){
                     claudeChat.unshift({
                         role: 'user',
-                        content: 'Start'
+                        content: [{
+                            type: 'text',
+                            text: 'Start'
+                        }]
                     })
                 }
+                if(db.claudeCachingExperimental){
+                    for(let i = 0;i<4;i++){
+                        const ind = claudeChat.findLastIndex((v) => {
+                            if(v.role !== 'user'){
+                                return false
+                            }
+                            if(v.content.length === 0){
+                                return false
+                            }
+                            if(v.content[0].cache_control){ // if it already has cache control, skip
+                                return false
+                            }
+                            return true
+                        })
+                        console.log(ind)
+                        if(ind === -1){
+                            break
+                        }
+                        claudeChat[ind].content[0].cache_control = {
+                            type: 'ephemeral'
+                        }
+                    }
+                }
+
+
                 let body = {
                     model: raiModel,
                     messages: claudeChat,
@@ -1929,16 +1965,25 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
+
+                let headers:{
+                    [key:string]:string
+                } = {
+                    "Content-Type": "application/json",
+                    "x-api-key": apiKey,
+                    "anthropic-version": "2023-06-01",
+                    "accept": "application/json",
+                }
+
+                if(db.claudeCachingExperimental){
+                    headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
+                }
+
                 if(useStreaming){
                     
                     const res = await fetchNative(replacerURL, {
                         body: JSON.stringify(body),
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": apiKey,
-                            "anthropic-version": "2023-06-01",
-                            "accept": "application/json",
-                        },
+                        headers: headers,
                         method: "POST",
                         chatId: arg.chatId
                     })
@@ -1986,10 +2031,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                                         if(body.messages.at(-1)?.role !== 'assistant'){
                                                             body.messages.push({
                                                                 role: 'assistant',
-                                                                content: ''
+                                                                content: [{
+                                                                    type: 'text',
+                                                                    text: ''
+                                                                }]
                                                             })
                                                         }
-                                                        body.messages[body.messages.length-1].content += text
+                                                        const block = body.messages[body.messages.length-1].content[0]
+                                                        if(block.type === 'text'){
+                                                            block.text += text
+                                                        }
                                                         const res = await fetchNative(replacerURL, {
                                                             body: JSON.stringify(body),
                                                             headers: {
@@ -2058,12 +2109,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
                 const res = await globalFetch(replacerURL, {
                     body: body,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": apiKey,
-                        "anthropic-version": "2023-06-01",
-                        "accept": "application/json"
-                    },
+                    headers: headers,
                     method: "POST",
                     chatId: arg.chatId
                 })
