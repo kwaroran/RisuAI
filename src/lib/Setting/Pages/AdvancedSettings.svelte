@@ -101,6 +101,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.claudeCachingExperimental} name={language.claudeCachingExperimental}>
+        <Help key="experimental"/><Help key="claudeCachingExperimental"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
         <Help key="experimental"/><Help key="oaiRandomUser"/>
     </Check>

@@ -709,6 +709,7 @@ export interface Database{
     comfyConfig: ComfyConfig
     comfyUiUrl: string
     useLegacyGUI: boolean
+    claudeCachingExperimental: boolean
 }
 
 export interface customscript{
