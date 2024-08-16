@@ -1687,6 +1687,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     content: Claude3ContentBlock[]
                 }
 
+                interface Claude3ExtendedChat {
+                    role: 'user'|'assistant'
+                    content: Claude3ContentBlock[]|string
+                }
+
                 let claudeChat: Claude3Chat[] = []
                 let systemPrompt:string = ''
 
@@ -1854,10 +1859,23 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
+                let finalChat:Claude3ExtendedChat[] = claudeChat
+
+                if(aiModel === 'reverse_proxy'){
+                    finalChat = claudeChat.map((v) => {
+                        if(v.content.length === 0 && v.content[0].type === 'text'){
+                            return {
+                                role: v.role,
+                                content: v.content[0].text
+                            }
+                        }
+                    })
+                }
+
 
                 let body = {
                     model: raiModel,
-                    messages: claudeChat,
+                    messages: finalChat,
                     system: systemPrompt.trim(),
                     max_tokens: maxTokens,
                     temperature: temperature,
@@ -2037,9 +2055,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                                                 }]
                                                             })
                                                         }
-                                                        const block = body.messages[body.messages.length-1].content[0]
-                                                        if(block.type === 'text'){
-                                                            block.text += text
+                                                        let block = body.messages[body.messages.length-1].content
+                                                        if(typeof block === 'string'){
+                                                            body.messages[body.messages.length-1].content += text
+                                                        }
+                                                        else if(block[0].type === 'text'){
+                                                            block[0].text += text
                                                         }
                                                         const res = await fetchNative(replacerURL, {
                                                             body: JSON.stringify(body),
