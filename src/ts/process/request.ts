@@ -1863,7 +1863,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 if(aiModel === 'reverse_proxy'){
                     finalChat = claudeChat.map((v) => {
-                        if(v.content.length === 0 && v.content[0].type === 'text'){
+                        if(v.content.length > 0 && v.content[0].type === 'text'){
                             return {
                                 role: v.role,
                                 content: v.content[0].text
