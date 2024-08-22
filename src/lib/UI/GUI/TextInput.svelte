@@ -65,6 +65,8 @@
 {/if}
 
 <script lang="ts">
+    import { DataBase } from "src/ts/storage/database";
+
     export let size: 'sm'|'md'|'lg'|'xl' = 'md'
     export let autocomplete: 'on'|'off' = 'off'
     export let placeholder: string = ''
@@ -79,6 +81,11 @@
     export let className = ''
     export let disabled = false
     export let hideText = false
+
+    // Override hideText prop based on $DataBase.showText
+    $: if($DataBase.showText){
+        hideText = false
+    }
 </script>
 
 <style>

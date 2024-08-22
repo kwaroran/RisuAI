@@ -66,6 +66,11 @@
     <Check bind:check={$DataBase.useSayNothing} name={language.sayNothing}> <Help key="sayNothing"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={$DataBase.showText} name={language.showText}>
+        <Help key="showText"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={$DataBase.showUnrecommended} name={language.showUnrecommended}> <Help key="showUnrecommended"/></Check>
 </div>
 <div class="flex items-center mt-4">

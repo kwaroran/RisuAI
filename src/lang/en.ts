@@ -134,6 +134,7 @@ export const languageEnglish = {
         legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations.",
         luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
         claudeCachingExperimental: "Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.",
+        showText: "If enabled, you can see characters like passwords or URLs that are masked, such as *****",
 
     },
     setup: {
@@ -683,4 +684,5 @@ export const languageEnglish = {
     sizeAndSpeed: "Size and Speed",
     useLegacyGUI: "Use Legacy GUI",
     claudeCachingExperimental: "Claude Caching",
+    showText: "Show Masked Characters",
 }
