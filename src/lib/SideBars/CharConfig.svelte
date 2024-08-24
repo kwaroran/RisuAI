@@ -3,7 +3,7 @@
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -30,6 +30,8 @@
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
   import { applyModule } from "src/ts/process/modules";
+  import { exportRegex, importRegex } from "src/ts/process/scripts";
+  import Arcodion from "../UI/Arcodion.svelte";
     
 
     let subMenu = 0
@@ -564,18 +566,26 @@
 
         <span class="text-textcolor mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <RegexList bind:value={currentChar.data.customscript} />
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.customscript
-                script.push({
-                  comment: "",
-                  in: "",
-                  out: "",
-                  type: "editinput"
-                })
-                currentChar.data.customscript = script
-            }
-        }}><PlusIcon /></button>
+        <div class="text-textcolor2 mt-2 flex gap-2">
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                if(currentChar.type === 'character'){
+                    let script = currentChar.data.customscript
+                    script.push({
+                    comment: "",
+                    in: "",
+                    out: "",
+                    type: "editinput"
+                    })
+                    currentChar.data.customscript = script
+                }
+            }}><PlusIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                exportRegex(currentChar.data.customscript)
+            }}><DownloadIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={async () => {
+                currentChar.data.customscript = await importRegex(currentChar.data.customscript)
+            }}><FolderUpIcon /></button>
+        </div>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <div class="flex items-start mt-2 gap-2">
@@ -893,71 +903,72 @@
             </table>
         </div>
       
-        <span class="text-textcolor mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
-        <div class="w-full max-w-full border border-selected rounded-md p-2">
-            <table class="contain w-full max-w-full tabler mt-2">
-                <tr>
-                    <th class="font-medium">{language.value}</th>
-                    <th class="font-medium cursor-pointer w-10">
-                        <button class="hover:text-green-500" on:click={async () => {
-                            if(currentChar.type === 'character'){
-                                const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
-                                currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
-                                if(!da){
-                                    return
-                                }
-                                for(const f of da){
-                                    const img = f.data
-                                    const name = f.name
-                                    const extension = name.split('.').pop().toLowerCase()
-                                    const imgp = await saveAsset(img,'', extension)
-                                    currentChar.data.additionalAssets.push([name, imgp, extension])
-                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets
-                                }
-                            }
-                        }}>
-                            <PlusIcon />
-                        </button>
-                    </th>
-                </tr>
-                {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+        <Arcodion styled name={language.additionalAssets} help="additionalAssets">
+            <div class="w-full max-w-full border border-selected rounded-md p-2">
+                <table class="contain w-full max-w-full tabler mt-2">
                     <tr>
-                        <div class="text-textcolor2"> No Assets</div>
-                    </tr>
-                {:else}
-                    {#each currentChar.data.additionalAssets as assets, i}
-                        <tr>
-                            <td class="font-medium truncate">
-                                {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
-                                    {#if assetFileExtensions[i] === 'mp4'}
-                                    <!-- svelte-ignore a11y-media-has-caption -->
-                                        <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
-                                    {:else if assetFileExtensions[i] === 'mp3'}
-                                        <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
-                                    {:else}
-                                        <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
-                                    {/if}
-                                {/if}
-                                <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
-                            </td>
-                            
-                            <th class="font-medium cursor-pointer w-10">
-                                <button class="hover:text-green-500" on:click={() => {
-                                    if(currentChar.type === 'character'){
-                                        currentChar.data.firstMsgIndex = -1
-                                        let additionalAssets = currentChar.data.additionalAssets
-                                        additionalAssets.splice(i, 1)
-                                        currentChar.data.additionalAssets = additionalAssets
+                        <th class="font-medium">{language.value}</th>
+                        <th class="font-medium cursor-pointer w-10">
+                            <button class="hover:text-green-500" on:click={async () => {
+                                if(currentChar.type === 'character'){
+                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
+                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
+                                    if(!da){
+                                        return
                                     }
-                                }}>
-                                    <TrashIcon />
-                                </button>
-                            </th>
+                                    for(const f of da){
+                                        const img = f.data
+                                        const name = f.name
+                                        const extension = name.split('.').pop().toLowerCase()
+                                        const imgp = await saveAsset(img,'', extension)
+                                        currentChar.data.additionalAssets.push([name, imgp, extension])
+                                        currentChar.data.additionalAssets = currentChar.data.additionalAssets
+                                    }
+                                }
+                            }}>
+                                <PlusIcon />
+                            </button>
+                        </th>
+                    </tr>
+                    {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+                        <tr>
+                            <div class="text-textcolor2"> No Assets</div>
                         </tr>
-                    {/each}
-                {/if}
-            </table>
-        </div>
+                    {:else}
+                        {#each currentChar.data.additionalAssets as assets, i}
+                            <tr>
+                                <td class="font-medium truncate">
+                                    {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
+                                        {#if assetFileExtensions[i] === 'mp4'}
+                                        <!-- svelte-ignore a11y-media-has-caption -->
+                                            <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
+                                        {:else if assetFileExtensions[i] === 'mp3'}
+                                            <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
+                                        {:else}
+                                            <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
+                                        {/if}
+                                    {/if}
+                                    <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
+                                </td>
+                                
+                                <th class="font-medium cursor-pointer w-10">
+                                    <button class="hover:text-green-500" on:click={() => {
+                                        if(currentChar.type === 'character'){
+                                            currentChar.data.firstMsgIndex = -1
+                                            let additionalAssets = currentChar.data.additionalAssets
+                                            additionalAssets.splice(i, 1)
+                                            currentChar.data.additionalAssets = additionalAssets
+                                        }
+                                    }}>
+                                        <TrashIcon />
+                                    </button>
+                                </th>
+                            </tr>
+                        {/each}
+                    {/if}
+                </table>
+            </div>
+        </Arcodion>
 
         <div class="flex items-center mt-4">
             <Check bind:check={currentChar.data.lowLevelAccess} name={language.lowLevelAccess}/>

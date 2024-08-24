@@ -18,7 +18,9 @@
             on:click={() => {
                 open = !open
             }}
-        >{name}{#if help}
+        >
+            <span class="mr-2">{name}</span>
+        {#if help}
             <Help key={help} />
         {/if}</button>
         {#if open}

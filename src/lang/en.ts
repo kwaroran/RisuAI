@@ -683,4 +683,5 @@ export const languageEnglish = {
     sizeAndSpeed: "Size and Speed",
     useLegacyGUI: "Use Legacy GUI",
     claudeCachingExperimental: "Claude Caching",
+    openClose: "Open/Close",
 }
