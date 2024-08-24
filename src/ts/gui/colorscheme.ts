@@ -230,8 +230,8 @@ export function updateTextTheme(){
             root.style.setProperty('--FontColorItalic', db.customTextTheme.FontColorItalic);
             root.style.setProperty('--FontColorBold', db.customTextTheme.FontColorBold);
             root.style.setProperty('--FontColorItalicBold', db.customTextTheme.FontColorItalicBold);
-            root.style.setProperty('--FontColorQuote1', db.customTextTheme.FontColorQuote1);
-            root.style.setProperty('--FontColorQuote2', db.customTextTheme.FontColorQuote2);
+            root.style.setProperty('--FontColorQuote1', db.customTextTheme.FontColorQuote1 ?? '#8BE9FD');
+            root.style.setProperty('--FontColorQuote2', db.customTextTheme.FontColorQuote2 ?? '#FFB86C');
             break
         }
     }

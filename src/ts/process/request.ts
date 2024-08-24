@@ -131,7 +131,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let useStreaming = db.useStreaming && arg.useStreaming
     arg.continue = arg.continue ?? false
     let biasString = arg.biasString ?? []
-    const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
+    const aiModel = model === 'model' ? db.aiModel : db.subModel
     const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt') && (!arg.continue)) && (!arg.noMultiGen)
 
     let raiModel = aiModel
@@ -1153,6 +1153,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gemini-pro':
         case 'gemini-pro-vision':
         case 'gemini-1.5-pro-latest':
+        case 'gemini-1.5-pro-exp-0801':
         case 'gemini-1.5-flash':
         case 'gemini-ultra':
         case 'gemini-ultra-vision':{
@@ -1995,6 +1996,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 if(db.claudeCachingExperimental){
                     headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
+                }
+
+                if(db.usePlainFetch){
+                    headers['anthropic-dangerous-direct-browser-access'] = 'true'
                 }
 
                 if(useStreaming){

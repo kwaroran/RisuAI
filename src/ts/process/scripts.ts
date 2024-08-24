@@ -20,9 +20,9 @@ export async function processScript(char:character|groupChat, data:string, mode:
     return (await processScriptFull(char, data, mode)).data
 }
 
-export function exportRegex(){
+export function exportRegex(s?:customscript[]){
     let db = get(DataBase)
-    const script = db.globalscript
+    const script = s ?? db.globalscript
     const data = Buffer.from(JSON.stringify({
         type: 'regex',
         data: script
@@ -31,22 +31,22 @@ export function exportRegex(){
     alertNormal(language.successExport)
 }
 
-export async function importRegex(){
+export async function importRegex(o?:customscript[]):Promise<customscript[]>{
+    o = o ?? []
     const filedata = (await selectSingleFile(['json'])).data
     if(!filedata){
-        return
+        return o
     }
     let db = get(DataBase)
     try {
         const imported= JSON.parse(Buffer.from(filedata).toString('utf-8'))
         if(imported.type === 'regex' && imported.data){
             const datas:customscript[] = imported.data
-            const script = db.globalscript
+            const script = o
             for(const data of datas){
                 script.push(data)
             }
-            db.globalscript = script
-            setDatabase(db)
+            return o
         }
         else{
             alertError("File invaid or corrupted")
@@ -55,6 +55,7 @@ export async function importRegex(){
     } catch (error) {
         alertError(`${error}`)
     }
+    return o
 }
 
 let bestMatchCache = new Map<string, string>()

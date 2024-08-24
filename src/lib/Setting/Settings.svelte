@@ -21,7 +21,6 @@
     import ThanksPage from "./Pages/ThanksPage.svelte";
     import ModuleSettings from "./Pages/Module/ModuleSettings.svelte";
 
-    let openPresetList = false
     let openLoreList = false
     if(window.innerWidth >= 900 && $SettingsMenuIndex === -1){
         $SettingsMenuIndex = 1
@@ -146,7 +145,7 @@
                     {#if $SettingsMenuIndex === 0}
                         <UserSettings />
                     {:else if $SettingsMenuIndex === 1}
-                        <BotSettings bind:openPresetList goPromptTemplate={() => {
+                        <BotSettings goPromptTemplate={() => {
                             $SettingsMenuIndex = 13
                         }} />
                     {:else if $SettingsMenuIndex === 2}
@@ -195,9 +194,6 @@
         {/if}
     </div>
 </div>
-{#if openPresetList}
-    <Botpreset close={() => {openPresetList = false}} />
-{/if}
 {#if openLoreList}
     <Lorepreset close={() => {openLoreList = false}} />
 {/if}

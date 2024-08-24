@@ -26,7 +26,8 @@ export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Def
 export const settingsOpen = writable(false)
 export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
-
+export const openPresetList = writable(false)
+export const openPersonaList = writable(false)
 //optimization
 
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>

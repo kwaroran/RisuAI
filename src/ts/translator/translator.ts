@@ -165,7 +165,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     }
 
 
-    const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=${arg.from}&tl=${arg.to}&q=` + encodeURIComponent(text)
+    const url = `https://${arg.host}/translate_a/single?client=gtx&dt=t&sl=auto&tl=${arg.to}&q=` + encodeURIComponent(text)
 
 
 

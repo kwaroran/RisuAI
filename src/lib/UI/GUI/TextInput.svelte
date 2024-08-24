@@ -60,7 +60,9 @@
         type="text"
         bind:value
         disabled={disabled}
-        on:input={onInput}
+        on:input={(e) => {
+            onInput(e)
+        }}
     />
 {/if}
 
@@ -73,7 +75,9 @@
     export let padding = true
     export let marginBottom = false
     export let marginTop = false
-    export let onInput = () => {}
+    export let onInput = (e:Event & {
+        currentTarget: EventTarget & HTMLInputElement;
+    }) => {}
     export let fullwidth = false
     export let fullh = false
     export let className = ''

@@ -3,13 +3,13 @@
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
     import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile } from "../../ts/util";
+    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
@@ -29,7 +29,11 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-  import { applyModule } from "src/ts/process/modules";
+    import { applyModule } from "src/ts/process/modules";
+    import { exportRegex, importRegex } from "src/ts/process/scripts";
+    import Arcodion from "../UI/Arcodion.svelte";
+    import SliderInput from "../UI/GUI/SliderInput.svelte";
+
     
 
     let subMenu = 0
@@ -103,6 +107,12 @@
         }
         emos = currentChar.data.emotionImages
         currentChar = currentChar
+
+        if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig) {
+            if (!(currentChar.data as character).gptSoVitsConfig.use_prompt) {
+                (currentChar.data as character).gptSoVitsConfig.prompt = undefined
+            }
+        }
     })
 
     let assetFileExtensions:string[] = []
@@ -147,6 +157,27 @@
             version: 'v2'
         };
     }
+    $: if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
+        (currentChar.data as character).gptSoVitsConfig = {
+            url: '',
+            ref_audio_path: 'C:/Users/user/Downloads/GPT-SoVITS-v2-240821',
+            ref_audio_data: {
+                fileName: '',
+                assetId: ''  
+            },
+            volume: 1.0,
+            text_lang: 'auto',
+            text: 'en',
+            use_prompt: false,
+            prompt_lang: 'en',
+            top_p: 1,
+            temperature: 0.7,
+            speed: 1,
+            top_k: 5,
+            text_split_method: 'cut0',
+        };
+    }
+
 </script>
 
 {#if licensed !== 'private'}
@@ -564,18 +595,26 @@
 
         <span class="text-textcolor mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <RegexList bind:value={currentChar.data.customscript} />
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.customscript
-                script.push({
-                  comment: "",
-                  in: "",
-                  out: "",
-                  type: "editinput"
-                })
-                currentChar.data.customscript = script
-            }
-        }}><PlusIcon /></button>
+        <div class="text-textcolor2 mt-2 flex gap-2">
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                if(currentChar.type === 'character'){
+                    let script = currentChar.data.customscript
+                    script.push({
+                    comment: "",
+                    in: "",
+                    out: "",
+                    type: "editinput"
+                    })
+                    currentChar.data.customscript = script
+                }
+            }}><PlusIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                exportRegex(currentChar.data.customscript)
+            }}><DownloadIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={async () => {
+                currentChar.data.customscript = await importRegex(currentChar.data.customscript)
+            }}><FolderUpIcon /></button>
+        </div>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <div class="flex items-start mt-2 gap-2">
@@ -668,7 +707,7 @@
     {#if currentChar.type === 'character'}
         <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
         <span class="text-textcolor">{language.provider}</span>
-        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={() => {
+        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={(e) => {
             if(currentChar.type === 'character'){
                 currentChar.data.ttsSpeech = ''
             }
@@ -681,6 +720,7 @@
             <OptionInput value="novelai">NovelAI</OptionInput>
             <OptionInput value="huggingface">Huggingface</OptionInput>
             <OptionInput value="vits">VITS</OptionInput>
+            <OptionInput value="gptsovits">GPT-SoVITS</OptionInput>
         </SelectInput>
         
 
@@ -764,23 +804,20 @@
                 <OptionInput value="v1">v1</OptionInput>
                 <OptionInput value="v2">v2</OptionInput>
             </SelectInput>
-        {/if}
-        {#if currentChar.data.ttsMode === 'openai'}
+        {:else if currentChar.data.ttsMode === 'openai'}
             <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.oaiVoice}>
                 <OptionInput value="">Unset</OptionInput>
                 {#each oaiVoices as voice}
                     <OptionInput value={voice}>{voice}</OptionInput>
                 {/each}
             </SelectInput>
-        {/if}
-        {#if currentChar.data.ttsMode === 'huggingface'}
+        {:else if currentChar.data.ttsMode === 'huggingface'}
             <span class="text-textcolor">Model</span>
             <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.model} />
 
             <span class="text-textcolor">Language</span>
             <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
-        {/if}
-        {#if currentChar.data.ttsMode === 'vits'}
+        {:else if currentChar.data.ttsMode === 'vits'}
             {#if currentChar.data.vits}
                 <span class="text-textcolor">{currentChar.data.vits.name ?? 'Unnamed VitsModel'}</span>
             {:else}
@@ -792,6 +829,99 @@
                     currentChar.data.vits = model
                 }
             }}>{language.selectModel}</Button>
+        {:else if currentChar.data.ttsMode === 'gptsovits'}
+            <span class="text-textcolor">Volume</span>
+            <SliderInput min={0.0} max={1.0} step={0.01} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.volume}/>
+            <span class="text-textcolor">URL</span>
+            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.url}/>
+
+            <span class="text-textcolor">Reference Audio Path (e.g. C:/Users/user/Downloads/GPT-SoVITS-v2-240821)</span>
+            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.ref_audio_path}/>
+
+            <span class="text-textcolor">Reference Audio Data (3~10s audio file)</span>
+            <Button on:click={async () => {
+                const audio = await selectSingleFile([
+                    'wav',
+                    'ogg',
+                    'aac'
+                ])
+                if(!audio){
+                    return null
+                }
+                const saveId = await saveAsset(audio.data)
+                // @ts-expect-error not groupChat
+                currentChar.data.gptSoVitsConfig.ref_audio_data = {
+                    fileName: audio.name,
+                    assetId: saveId
+                }
+
+            }}
+            className="h-10">
+                
+                {#if currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === '' || currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === undefined}
+                    Select File
+                {:else}
+                    {currentChar.data.gptSoVitsConfig.ref_audio_data.fileName}
+                {/if}
+            </Button>
+            <span class="text-textcolor">Text Language</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.text_lang}>
+                <OptionInput value="auto">Auto</OptionInput>
+                <OptionInput value="auto_yue">Auto (Cantonese)</OptionInput>
+                <OptionInput value="en">English</OptionInput>
+                <OptionInput value="zh">Chinese</OptionInput>
+                <OptionInput value="ja">Japanese</OptionInput>
+                <OptionInput value="yue">Cantonese</OptionInput>
+                <OptionInput value="ko">Korean</OptionInput>
+                <OptionInput value="all_zh">All Chinese</OptionInput>
+                <OptionInput value="all_ja">All Japanese</OptionInput>
+                <OptionInput value="all_yue">All Cantonese</OptionInput>
+                <OptionInput value="all_ko">All Korean</OptionInput>
+            </SelectInput>
+
+            <span class="text-textcolor">Use Reference Audio Script</span>
+            <Check bind:check={currentChar.data.gptSoVitsConfig.use_prompt}/>
+
+            {#if currentChar.data.gptSoVitsConfig.use_prompt}
+                <span class="text-textcolor">Reference Audio Script</span>
+                <TextAreaInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt}/>
+            {/if}
+
+            <span class="text-textcolor">Reference Audio Language</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt_lang}>
+                <OptionInput value="auto">Auto</OptionInput>
+                <OptionInput value="auto_yue">Auto (Cantonese)</OptionInput>
+                <OptionInput value="en">English</OptionInput>
+                <OptionInput value="zh">Chinese</OptionInput>
+                <OptionInput value="ja">Japanese</OptionInput>
+                <OptionInput value="yue">Cantonese</OptionInput>
+                <OptionInput value="ko">Korean</OptionInput>
+                <OptionInput value="all_zh">English And Chinese</OptionInput>
+                <OptionInput value="all_ja">English And Japanese</OptionInput>
+                <OptionInput value="all_yue">English And Cantonese</OptionInput>
+                <OptionInput value="all_ko">English And Korean</OptionInput>
+            </SelectInput>
+            <span class="text-textcolor">Top P</span>
+            <SliderInput min={0.0} max={1.0} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.top_p}/>
+
+            <span class="text-textcolor">Temperature</span>
+            <SliderInput min={0.0} max={1.0} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.temperature}/>
+
+            <span class="text-textcolor">Speed</span>
+            <SliderInput min={0.6} max={1.65} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.speed}/>
+
+            <span class="text-textcolor">Top K</span>
+            <SliderInput min={1} max={100} step={1} bind:value={currentChar.data.gptSoVitsConfig.top_k}/>
+
+            <span class="text-textcolor">Text Split Method</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.text_split_method}>
+                <OptionInput value="cut0">Cut 0 (No splitting)</OptionInput>
+                <OptionInput value="cut1">Cut 1 (Split every 4 sentences)</OptionInput>
+                <OptionInput value="cut2">Cut 2 (Split every 50 characters)</OptionInput>
+                <OptionInput value="cut3">Cut 3 (Split by Chinese periods)</OptionInput>
+                <OptionInput value="cut4">Cut 4 (Split by English periods)</OptionInput>
+                <OptionInput value="cut5">Cut 5 (Split by various punctuation marks)</OptionInput>
+            </SelectInput>        
         {/if}
         {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
@@ -893,71 +1023,72 @@
             </table>
         </div>
       
-        <span class="text-textcolor mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
-        <div class="w-full max-w-full border border-selected rounded-md p-2">
-            <table class="contain w-full max-w-full tabler mt-2">
-                <tr>
-                    <th class="font-medium">{language.value}</th>
-                    <th class="font-medium cursor-pointer w-10">
-                        <button class="hover:text-green-500" on:click={async () => {
-                            if(currentChar.type === 'character'){
-                                const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
-                                currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
-                                if(!da){
-                                    return
-                                }
-                                for(const f of da){
-                                    const img = f.data
-                                    const name = f.name
-                                    const extension = name.split('.').pop().toLowerCase()
-                                    const imgp = await saveAsset(img,'', extension)
-                                    currentChar.data.additionalAssets.push([name, imgp, extension])
-                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets
-                                }
-                            }
-                        }}>
-                            <PlusIcon />
-                        </button>
-                    </th>
-                </tr>
-                {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+        <Arcodion styled name={language.additionalAssets} help="additionalAssets">
+            <div class="w-full max-w-full border border-selected rounded-md p-2">
+                <table class="contain w-full max-w-full tabler mt-2">
                     <tr>
-                        <div class="text-textcolor2"> No Assets</div>
-                    </tr>
-                {:else}
-                    {#each currentChar.data.additionalAssets as assets, i}
-                        <tr>
-                            <td class="font-medium truncate">
-                                {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
-                                    {#if assetFileExtensions[i] === 'mp4'}
-                                    <!-- svelte-ignore a11y-media-has-caption -->
-                                        <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
-                                    {:else if assetFileExtensions[i] === 'mp3'}
-                                        <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
-                                    {:else}
-                                        <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
-                                    {/if}
-                                {/if}
-                                <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
-                            </td>
-                            
-                            <th class="font-medium cursor-pointer w-10">
-                                <button class="hover:text-green-500" on:click={() => {
-                                    if(currentChar.type === 'character'){
-                                        currentChar.data.firstMsgIndex = -1
-                                        let additionalAssets = currentChar.data.additionalAssets
-                                        additionalAssets.splice(i, 1)
-                                        currentChar.data.additionalAssets = additionalAssets
+                        <th class="font-medium">{language.value}</th>
+                        <th class="font-medium cursor-pointer w-10">
+                            <button class="hover:text-green-500" on:click={async () => {
+                                if(currentChar.type === 'character'){
+                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
+                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
+                                    if(!da){
+                                        return
                                     }
-                                }}>
-                                    <TrashIcon />
-                                </button>
-                            </th>
+                                    for(const f of da){
+                                        const img = f.data
+                                        const name = f.name
+                                        const extension = name.split('.').pop().toLowerCase()
+                                        const imgp = await saveAsset(img,'', extension)
+                                        currentChar.data.additionalAssets.push([name, imgp, extension])
+                                        currentChar.data.additionalAssets = currentChar.data.additionalAssets
+                                    }
+                                }
+                            }}>
+                                <PlusIcon />
+                            </button>
+                        </th>
+                    </tr>
+                    {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+                        <tr>
+                            <div class="text-textcolor2"> No Assets</div>
                         </tr>
-                    {/each}
-                {/if}
-            </table>
-        </div>
+                    {:else}
+                        {#each currentChar.data.additionalAssets as assets, i}
+                            <tr>
+                                <td class="font-medium truncate">
+                                    {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
+                                        {#if assetFileExtensions[i] === 'mp4'}
+                                        <!-- svelte-ignore a11y-media-has-caption -->
+                                            <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
+                                        {:else if assetFileExtensions[i] === 'mp3'}
+                                            <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
+                                        {:else}
+                                            <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
+                                        {/if}
+                                    {/if}
+                                    <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
+                                </td>
+                                
+                                <th class="font-medium cursor-pointer w-10">
+                                    <button class="hover:text-green-500" on:click={() => {
+                                        if(currentChar.type === 'character'){
+                                            currentChar.data.firstMsgIndex = -1
+                                            let additionalAssets = currentChar.data.additionalAssets
+                                            additionalAssets.splice(i, 1)
+                                            currentChar.data.additionalAssets = additionalAssets
+                                        }
+                                    }}>
+                                        <TrashIcon />
+                                    </button>
+                                </th>
+                            </tr>
+                        {/each}
+                    {/if}
+                </table>
+            </div>
+        </Arcodion>
 
         <div class="flex items-center mt-4">
             <Check bind:check={currentChar.data.lowLevelAccess} name={language.lowLevelAccess}/>

@@ -25,6 +25,7 @@
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
   import PromptSettings from "./PromptSettings.svelte";
+  import { openPresetList } from "src/ts/stores";
 
     let tokens = {
         mainPrompt: 0,
@@ -32,7 +33,6 @@
         globalNote: 0,
     }
 
-    export let openPresetList =false
     export let goPromptTemplate = () => {}
 
     async function loadTokenize(){
@@ -89,28 +89,28 @@
                 Google Bearer Token
             {/if}
         </span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText bind:value={$DataBase.google.accessToken}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={$DataBase.hideApiKey} bind:value={$DataBase.google.accessToken}/>
 
         {#if $DataBase.google.projectId !== 'aigoogle'}
             <span class="text-textcolor">Google Project ID</span>
-            <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText bind:value={$DataBase.google.projectId}/>
+            <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={$DataBase.hideApiKey} bind:value={$DataBase.google.projectId}/>
         {/if}
     {/if}
     {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
         <span class="text-textcolor">NovelList {language.apiKey}</span>
-        <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
     {/if}
     {#if $DataBase.aiModel.startsWith('mancer') || $DataBase.subModel.startsWith('mancer')}
         <span class="text-textcolor">Mancer {language.apiKey}</span>
-        <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
     {/if}
     {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
         <span class="text-textcolor">Claude {language.apiKey}</span>
-        <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
     {/if}
     {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
         <span class="text-textcolor">Mistral {language.apiKey}</span>
-        <TextInput hideText marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
     {/if}
     {#if $DataBase.aiModel.startsWith('novelai') || $DataBase.subModel.startsWith('novelai')}
         <span class="text-textcolor">NovelAI Bearer Token</span>
@@ -120,7 +120,7 @@
         <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
         <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
         <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
-        <TextInput hideText marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
         <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
         <SelectInput className="mt-2" bind:value={$DataBase.proxyRequestModel}>
             <OptionInput value="">None</OptionInput>
@@ -157,11 +157,11 @@
     {/if}
     {#if $DataBase.aiModel.startsWith('risullm')}
         <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
-        <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
     {/if}
     {#if $DataBase.aiModel.startsWith('cohere')}
         <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
-        <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
     {/if}
     {#if $DataBase.aiModel === 'ollama-hosted'}
         <span class="text-textcolor mt-4">Ollama URL</span>
@@ -172,7 +172,7 @@
     {/if}
     {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
         <span class="text-textcolor mt-4">Openrouter Key</span>
-        <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
 
         <span class="text-textcolor mt-4">Openrouter Model</span>
         {#await openRouterModels()}
@@ -213,7 +213,7 @@
     {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')
         || $DataBase.aiModel.startsWith('instructgpt') || $DataBase.subModel.startsWith('instructgpt')}
         <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
-        <TextInput hideText marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
     {/if}
 
@@ -264,7 +264,7 @@
 
     {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
         <span class="text-textcolor">Horde {language.apiKey}</span>
-        <TextInput hideText marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
     {/if}
     {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'
         || $DataBase.aiModel === 'mancer' || $DataBase.subModel === 'mancer'}
@@ -564,7 +564,7 @@
         {/if}
     </Arcodion>
     {#if submenu !== -1}
-        <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+        <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
     {/if}
 {/if}
 
@@ -596,5 +596,5 @@
     </div>
 {/if}
 {#if submenu === -1}
-    <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+    <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}
