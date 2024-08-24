@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 import { alertError } from "../alert";
 import { DataBase, type character } from "../storage/database";
 import { runTranslator, translateVox } from "../translator/translator";
-import { globalFetch } from "../storage/globalApi";
+import { globalFetch, loadAsset } from "../storage/globalApi";
 import { language } from "src/lang";
 import { getCurrentCharacter, sleep } from "../util";
 import { registerOnnxModel, runVITS } from "./transformers";
@@ -27,7 +27,7 @@ export async function sayTTS(character:character,text:string) {
         text = text.replace(/\*/g,'')
     
         if(character.ttsReadOnlyQuoted){
-            const matches = text.match(/"(.*?)"/g)
+            const matches = text.match(/["「](.*?)["」]/g)
             if(matches && matches.length > 0){
                 text = matches.map(match => match.slice(1, -1)).join("");
             }
@@ -231,11 +231,70 @@ export async function sayTTS(character:character,text:string) {
             case 'vits':{
                 await runVITS(text, character.vits)
             }
+            case 'gptsovits':{
+                const audioContext = new AudioContext();
+
+                const audio: Uint8Array = await loadAsset(character.gptSoVitsConfig.ref_audio_data.assetId);
+                const base64Audio =  btoa(new Uint8Array(audio).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+
+                const body = {
+                    text: text,
+                    text_lang: character.gptSoVitsConfig.text_lang,
+                    ref_audio_path: character.gptSoVitsConfig.ref_audio_path + '/public/audio/' + character.gptSoVitsConfig.ref_audio_data.fileName,
+                    ref_audio_name: character.gptSoVitsConfig.ref_audio_data.fileName,
+                    ref_audio_data: base64Audio,
+                    prompt_text: undefined,
+                    prompt_lang: character.gptSoVitsConfig.prompt_lang,
+                    top_p: character.gptSoVitsConfig.top_p,
+                    temperature: character.gptSoVitsConfig.temperature,
+                    speed_factor: character.gptSoVitsConfig.speed,
+                    top_k: character.gptSoVitsConfig.top_k,
+                    text_split_method: character.gptSoVitsConfig.text_split_method,
+                    parallel_infer: false,
+                }
+
+                if (character.gptSoVitsConfig.use_prompt){
+                    body.prompt_text = character.gptSoVitsConfig.prompt
+                }
+                console.log(body)
+
+                const response = await globalFetch(`${character.gptSoVitsConfig.url}/tts`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: body,
+                    rawResponse: true,
+                })
+                console.log(response)
+
+                if (response.ok) {
+                    const audioBuffer = response.data.buffer;
+                    audioContext.decodeAudioData(audioBuffer, (decodedData) => {
+                        const sourceNode = audioContext.createBufferSource();
+                        sourceNode.buffer = decodedData;
+                        
+                        const gainNode = audioContext.createGain();
+                        gainNode.gain.value = character.gptSoVitsConfig.volume || 1.0;
+                        
+                        sourceNode.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        sourceNode.start();
+                    });
+                } else {
+                    const textBuffer: Uint8Array = response.data.buffer
+                    const text = Buffer.from(textBuffer).toString('utf-8')
+                    throw new Error(text);
+                }
+            }
         }   
     } catch (error) {
         alertError(`TTS Error: ${error}`)
     }
 }
+
+
 
 export const oaiVoices = [
     'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'

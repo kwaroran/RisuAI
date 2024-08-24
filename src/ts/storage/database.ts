@@ -807,6 +807,25 @@ export interface character{
         voice?: string
         version?: string
     }
+    gptSoVitsConfig?:{
+        url?:string
+        ref_audio_path?:string
+        ref_audio_data?: {
+            fileName:string
+            assetId:string
+        }
+        volume?:number
+        text_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
+        text?:string
+        use_prompt?:boolean
+        prompt?:string | null
+        prompt_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
+        top_p?:number
+        temperature?:number
+        speed?:number
+        top_k?:number
+        text_split_method?: "cut0" | "cut1" | "cut2" | "cut3" | "cut4" | "cut5"
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean
