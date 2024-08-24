@@ -802,6 +802,18 @@ export interface character{
         voice?: string
         version?: string
     }
+    gptSoVitsConfig?:{
+        ref_audio_data?:string
+        text_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
+        text?:string
+        prompt?:string | null
+        prompt_lang?:string
+        top_p?:number
+        temperature?:number
+        speed?:number
+        top_k?:number
+        text_split_method?:string
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean
