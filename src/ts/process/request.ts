@@ -1997,6 +1997,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
                 }
 
+                if(db.usePlainFetch){
+                    headers['anthropic-dangerous-direct-browser-access'] = 'true'
+                }
+
                 if(useStreaming){
                     
                     const res = await fetchNative(replacerURL, {
