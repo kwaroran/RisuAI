@@ -101,17 +101,22 @@ export function initHotkey(){
 
 
     let touchs = 0
+    let touchStartTime = 0
     //check for triple touch
     document.addEventListener('touchstart', async (ev) => {
         touchs++
         if(touchs > 2){
+            if(Date.now() - touchStartTime > 300){
+                return
+            }
             touchs = 0
             if(doingAlert()){
                 return
             }
             const selStr = await alertSelect([
                 language.presets,
-                language.persona
+                language.persona,
+                language.cancel
             ])
             const sel = parseInt(selStr)
             if(sel === 0){
@@ -120,8 +125,9 @@ export function initHotkey(){
             if(sel === 1){
                 openPersonaList.set(!get(openPersonaList))
             }
-
-
+        }
+        if(touchs === 1){
+            touchStartTime = Date.now()
         }
     })
     document.addEventListener('touchend', (ev) => {
