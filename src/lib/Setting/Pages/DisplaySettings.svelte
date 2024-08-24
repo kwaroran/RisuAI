@@ -152,11 +152,11 @@
             <span class="ml-2">Italic Bold Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorQuote1} on:input={updateTextTheme} />
+            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote1} on:input={updateTextTheme} />
             <span class="ml-2">Single Quote Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorQuote2} on:input={updateTextTheme} />
+            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote2} on:input={updateTextTheme} />
             <span class="ml-2">Double Quote Text</span>
         </div>
     {/if}
@@ -312,6 +312,10 @@
 
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.hideApiKey} name={language.hideApiKeys}/>
+    </div>
+
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.unformatQuotes} name={language.unformatQuotes}/>
     </div>
 
     {#if $DataBase.useExperimental}

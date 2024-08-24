@@ -429,6 +429,7 @@ export function setDatabase(data:Database){
         timeout: 30
     }
     data.hideApiKey ??= true
+    data.unformatQuotes ??= false
 
     changeLanguage(data.language)
     DataBase.set(data)
@@ -712,6 +713,7 @@ export interface Database{
     useLegacyGUI: boolean
     claudeCachingExperimental: boolean
     hideApiKey: boolean
+    unformatQuotes: boolean
 }
 
 export interface customscript{

@@ -685,4 +685,5 @@ export const languageEnglish = {
     claudeCachingExperimental: "Claude Caching",
     openClose: "Open/Close",
     hideApiKeys: "Hide API Keys",
+    unformatQuotes: "Disable Quote Formatting",
 }
