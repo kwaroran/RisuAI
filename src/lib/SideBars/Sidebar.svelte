@@ -52,9 +52,11 @@
     import SideChatList from "./SideChatList.svelte";
     import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
+  import DevTool from "./DevTool.svelte";
   let sideBarMode = 0;
   let editMode = false;
   let menuMode = 0;
+  let devTool = false
   export let openGrid = () => {};
 
   function createScratch() {
@@ -658,10 +660,23 @@
       <SideChatList bind:chara={ $CurrentCharacter} />
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
-        <button on:click={() => {botMakerMode.set(false)}} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode}>{language.Chat}</button>
-        <button on:click={() => {botMakerMode.set(true)}} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode}>{language.character}</button>
+        <button on:click={() => {
+          devTool = false
+          botMakerMode.set(false)
+        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode}>{language.Chat}</button>
+        <button on:click={() => {
+          devTool = false
+          botMakerMode.set(true)
+        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode}>{language.character}</button>
+        {#if $DataBase.enableDevTools}
+          <button on:click={() => {
+            devTool = true
+          }} class="flex-grow border-l border-l-selected rounded-br-md" class:text-textcolor2={!$botMakerMode}>🛠️</button>
+        {/if}
       </div>
-      {#if $botMakerMode}
+      {#if devTool}
+        <DevTool />
+      {:else if $botMakerMode}
         <CharConfig />
       {:else}
         <SideChatList bind:chara={ $CurrentCharacter} />

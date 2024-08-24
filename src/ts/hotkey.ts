@@ -1,7 +1,8 @@
 import { get } from "svelte/store"
-import { alertToast, doingAlert } from "./alert"
+import { alertSelect, alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
 import { openPersonaList, openPresetList, selectedCharID, settingsOpen } from "./stores"
+import { language } from "src/lang"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -96,6 +97,35 @@ export function initHotkey(){
             }
             ev.preventDefault()
         }
+    })
+
+
+    let touchs = 0
+    //check for triple touch
+    document.addEventListener('touchstart', async (ev) => {
+        touchs++
+        if(touchs > 2){
+            touchs = 0
+            if(doingAlert()){
+                return
+            }
+            const selStr = await alertSelect([
+                language.presets,
+                language.persona
+            ])
+            const sel = parseInt(selStr)
+            if(sel === 0){
+                openPresetList.set(!get(openPresetList))
+            }
+            if(sel === 1){
+                openPersonaList.set(!get(openPersonaList))
+            }
+
+
+        }
+    })
+    document.addEventListener('touchend', (ev) => {
+        touchs = 0
     })
 }
 

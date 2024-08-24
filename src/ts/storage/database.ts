@@ -714,6 +714,7 @@ export interface Database{
     claudeCachingExperimental: boolean
     hideApiKey: boolean
     unformatQuotes: boolean
+    enableDevTools: boolean
 }
 
 export interface customscript{

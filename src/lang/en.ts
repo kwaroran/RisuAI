@@ -686,4 +686,5 @@ export const languageEnglish = {
     openClose: "Open/Close",
     hideApiKeys: "Hide API Keys",
     unformatQuotes: "Disable Quote Formatting",
+    enableDevTools: "Enable Dev Tools",
 }
