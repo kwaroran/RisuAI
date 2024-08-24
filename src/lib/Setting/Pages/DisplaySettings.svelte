@@ -310,6 +310,10 @@
         <Check bind:check={$DataBase.useLegacyGUI} name={language.useLegacyGUI}/>
     </div>
 
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.hideApiKey} name={language.hideApiKeys}/>
+    </div>
+
     {#if $DataBase.useExperimental}
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>

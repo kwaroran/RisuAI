@@ -684,4 +684,5 @@ export const languageEnglish = {
     useLegacyGUI: "Use Legacy GUI",
     claudeCachingExperimental: "Claude Caching",
     openClose: "Open/Close",
+    hideApiKeys: "Hide API Keys",
 }
