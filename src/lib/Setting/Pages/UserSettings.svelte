@@ -1,10 +1,10 @@
 <script lang="ts">
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
-    import { loadRisuAccountBackup, loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
+    import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     import { DataBase } from "src/ts/storage/database";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-    import { alertConfirm, alertError, alertNormal } from "src/ts/alert";
+    import { alertConfirm} from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/storage/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
@@ -12,8 +12,6 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     import { Capacitor } from "@capacitor/core";
-    import { isNative } from "lodash";
-    import { persistantStorageRecommended, requestPersistantStorage } from "src/ts/storage/persistant";
     let openIframe = false
     let openIframeURL = ''
     let popup:Window = null
