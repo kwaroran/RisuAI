@@ -830,9 +830,9 @@
             <span class="text-textcolor">Reference Audio Data (3~10s audio file)</span>
             <Button on:click={async () => {
                 const audio = await selectSingleFile([
-                    'mp3',
                     'wav',
                     'ogg',
+                    'aac'
                 ])
                 if(!audio){
                     return null
