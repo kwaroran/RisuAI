@@ -683,4 +683,7 @@ export const languageEnglish = {
     sizeAndSpeed: "Size and Speed",
     useLegacyGUI: "Use Legacy GUI",
     claudeCachingExperimental: "Claude Caching",
+    openClose: "Open/Close",
+    hideApiKeys: "Hide API Keys",
+    unformatQuotes: "Disable Quote Formatting",
 }

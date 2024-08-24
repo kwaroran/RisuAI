@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
-import { selectedCharID, settingsOpen } from "./stores"
+import { openPersonaList, openPresetList, selectedCharID, settingsOpen } from "./stores"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -69,6 +69,18 @@ export function initHotkey(){
                 }
                 case 'h':{
                     selectedCharID.set(-1)
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case 'p':{
+                    openPresetList.set(!get(openPresetList))
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case 'e':{
+                    openPersonaList.set(!get(openPersonaList))
                     ev.preventDefault()
                     ev.stopPropagation()
                     break

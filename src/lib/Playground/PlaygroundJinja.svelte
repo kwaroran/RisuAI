@@ -10,7 +10,9 @@
         }, {
             "role": "assistant",
             "content": "Hello, I'm a bot!"
-        }]
+        }],
+        "eos_token": "",
+        "bos_token": ""
     }, null, 4)
     let output = "";
     const onInput = () => {
@@ -19,6 +21,8 @@
             const values = JSON.parse(json);
             output = template.render(values);
         } catch (e) {
+            //log error stack of e
+            console.error(e.stack);
             output = `Error: ${e}`
         }
     }

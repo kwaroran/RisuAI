@@ -79,11 +79,19 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 
 function renderMarkdown(md:markdownit, data:string){
-    return md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
-        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
-        .replace(/\uE9b1/gu, '”</mark>')
-        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
-        .replace(/\uE9b3/gu, '’</mark>')
+    const db = get(DataBase)
+    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
+
+    if(db?.unformatQuotes){
+        text = text.replace(/\uE9b0/gu, '“').replace(/\uE9b1/gu, '”')
+        text = text.replace(/\uE9b2/gu, '‘').replace(/\uE9b3/gu, '’')
+    }
+    else{
+        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">“').replace(/\uE9b1/gu, '”</mark>')
+        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘').replace(/\uE9b3/gu, '’</mark>')
+    }
+
+    return text
 }
 
 async function renderHighlightableMarkdown(data:string) {

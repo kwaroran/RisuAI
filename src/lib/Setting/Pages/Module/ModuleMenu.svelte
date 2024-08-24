@@ -3,7 +3,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
     import type { RisuModule } from "src/ts/process/modules";
-    import { PlusIcon } from "lucide-svelte";
+    import { DownloadIcon, FolderUpIcon, PlusIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
@@ -13,6 +13,7 @@
   import Button from "src/lib/UI/GUI/Button.svelte";
   import { openURL } from "src/ts/storage/globalApi";
   import { hubURL } from "src/ts/characterCards";
+  import { exportRegex, importRegex } from "src/ts/process/scripts";
 
 
     export let currentModule:RisuModule
@@ -153,9 +154,17 @@
 {#if (Array.isArray(currentModule.regex))}
     <span class="mt-8 text-xl">{language.regexScript}</span>
     <RegexList bind:value={currentModule.regex}/>
-    <button on:click={() => {addRegex()}} class="hover:text-textcolor cursor-pointer">
-        <PlusIcon />
-    </button>
+    <div class="text-textcolor2 mt-2 flex gap-2">
+        <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+            addRegex()
+        }}><PlusIcon /></button>
+        <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+            exportRegex(currentModule.regex)
+        }}><DownloadIcon /></button>
+        <button class="font-medium cursor-pointer hover:text-green-500" on:click={async () => {
+            currentModule.regex = await importRegex(currentModule.regex)
+        }}><FolderUpIcon /></button>
+    </div>
 {/if}
 
 {#if typeof(currentModule.backgroundEmbedding) === 'string'}

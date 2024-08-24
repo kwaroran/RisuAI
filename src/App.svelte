@@ -1,6 +1,6 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore } from './ts/stores';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList } from './ts/stores';
     import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
@@ -15,6 +15,8 @@
     import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
   import { isLite } from './ts/lite';
   import LiteMain from './LiteMain.svelte';
+  import Botpreset from './lib/Setting/botpreset.svelte';
+  import ListedPersona from './lib/Setting/listedPersona.svelte';
 
     let didFirstSetup: boolean  = false
     let gridOpen = false
@@ -72,5 +74,11 @@
     {/if}
     {#if $AccountWarning}
         <AccountWarningComp />
+    {/if}
+    {#if $openPresetList}
+        <Botpreset close={() => {$openPresetList = false}} />
+    {/if}
+    {#if $openPersonaList}
+        <ListedPersona close={() => {$openPersonaList = false}} />
     {/if}
 </main>
