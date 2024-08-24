@@ -25,6 +25,7 @@
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
   import PromptSettings from "./PromptSettings.svelte";
+  import { openPresetList } from "src/ts/stores";
 
     let tokens = {
         mainPrompt: 0,
@@ -32,7 +33,6 @@
         globalNote: 0,
     }
 
-    export let openPresetList =false
     export let goPromptTemplate = () => {}
 
     async function loadTokenize(){
@@ -564,7 +564,7 @@
         {/if}
     </Arcodion>
     {#if submenu !== -1}
-        <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+        <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
     {/if}
 {/if}
 
@@ -596,5 +596,5 @@
     </div>
 {/if}
 {#if submenu === -1}
-    <Button on:click={() => {openPresetList = true}} className="mt-4">{language.presets}</Button>
+    <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}

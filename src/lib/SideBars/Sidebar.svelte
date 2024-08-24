@@ -52,7 +52,6 @@
     import SideChatList from "./SideChatList.svelte";
     import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
-  let openPresetList = false;
   let sideBarMode = 0;
   let editMode = false;
   let menuMode = 0;
@@ -702,14 +701,6 @@
     </Button>
   {/if}
 </div>
-
-{#if openPresetList}
-  <Botpreset
-    close={() => {
-      openPresetList = false;
-    }}
-  />
-{/if}
 
 {#if $DynamicGUI}
     <div class="flex-grow h-full min-w-12" class:hidden={hidden} on:click={() => {
