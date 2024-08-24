@@ -21,6 +21,14 @@
     if( today.getMonth() === 9 && today.getDate() === 31){
         specialDay = 'halloween'
     }
+    if( (today.getMonth() === 8 && today.getDate() === 16)){
+        if($DataBase.language === 'ko'){
+            specialDay = 'chuseok'
+        }
+        else if($DataBase.language === 'zh-Hant' || $DataBase.language === 'zh'){
+            specialDay = 'midAutumn'
+        }
+    }
     let iconAnimation = 0
     let clicks = 0
     let score = 0
@@ -67,7 +75,21 @@ You've had:
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} on:click={onClick}>RisuAI
+<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} on:click={onClick}>
+    {#if specialDay === 'midAutumn'}
+        <span class="text-amber-400">🐉RisuAI🐉</span>
+    {:else if specialDay === 'chuseok'}
+        <div class="flex">
+            <span class="text-blue-500">R</span>
+            <span class="text-red-500">i</span>
+            <span class="text-yellow-500">s</span>
+            <span class="text-white">u</span>
+            <span class="text-black">A</span>
+            <span class="text-blue-500">I</span>
+        </div>
+    {:else}
+        RisuAI
+    {/if}
     {#if specialDay === 'christmas'}
         <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         {#if clicks < 5}

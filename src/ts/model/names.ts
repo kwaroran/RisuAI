@@ -99,6 +99,14 @@ export function getModelName(name:string){
             return 'GPT-4o'
         case 'gpt4o-2024-05-13':
             return 'GPT-4o (2024-05-13)'
+        case 'gpt4o-2024-08-06':
+            return 'GPT-4o (2024-08-06)'
+        case 'gpt4o-chatgpt':
+            return 'GPT-4o ChatGPT'
+        case 'gpt4om':
+            return 'GPT-4o Mini'
+        case 'gpt4om-2024-07-18':
+            return 'GPT-4o Mini (2024-07-18)'
         case 'gemini-1.5-pro-latest':
             return 'Gemini 1.5 Pro'
         case 'gemini-1.5-flash':
@@ -132,6 +140,9 @@ export function getModelShortName(model:string){
     }
     if(model.startsWith("cohere-")){
         return model.replace("cohere-", "")
+    }
+    if(model.startsWith('gpt4om')){
+        return "GPT-4o Mini"
     }
     if(model.startsWith("gpt4o")){
         return "GPT-4o"

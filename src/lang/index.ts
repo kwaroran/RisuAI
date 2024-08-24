@@ -5,6 +5,7 @@ import { languageEnglish } from "./en";
 import { languageKorean } from "./ko";
 import { LanguageVietnamese } from "./vi";
 import { languageChineseTraditional } from "./zh-Hant";
+import { languageSpanish } from "./es";
 import { googleBuild } from "src/ts/storage/globalApi";
 
 export let language:typeof languageEnglish = languageEnglish
@@ -25,6 +26,9 @@ export function changeLanguage(lang:string){
     }
     else if(lang === 'zh-Hant'){
         language = merge(structuredClone(languageEnglish), languageChineseTraditional)
+    }
+    else if(lang === 'es'){
+        language = merge(structuredClone(languageEnglish), languageSpanish)
     }
     else{
         language = languageEnglish

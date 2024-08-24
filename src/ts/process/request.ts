@@ -171,10 +171,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-small-latest':
         case 'mistral-medium-latest':
         case 'mistral-large-latest':
+        case 'open-mistral-nemo':
         case 'gpt4_turbo_20240409':
         case 'gpt4_turbo':
         case 'gpt4o':
         case 'gpt4o-2024-05-13':
+        case 'gpt4om':
+        case 'gpt4om-2024-07-18':
+        case 'gpt4o-2024-08-06':
+        case 'gpt4o-chatgpt':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -293,7 +298,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             console.log(formatedChat)
-            if(aiModel.startsWith('mistral')){
+            if(aiModel.startsWith('mistral') || aiModel === 'open-mistral-nemo'){
                 requestModel = aiModel
 
                 let reformatedChat:OpenAIChatExtra[] = []
@@ -353,6 +358,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         temperature: temperature,
                         max_tokens: maxTokens,
                         top_p: db.top_p,
+                        safe_prompt: false
                     },
                     headers: {
                         "Authorization": "Bearer " + db.mistralKey,
@@ -415,6 +421,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4_turbo' ? 'gpt-4-turbo'
                     : requestModel === 'gpt4o' ? 'gpt-4o'
                     : requestModel === 'gpt4o-2024-05-13' ? 'gpt-4o-2024-05-13'
+                    : requestModel === 'gpt4om' ? 'gpt-4o-mini'
+                    : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
+                    : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
+                    : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
@@ -1350,19 +1360,24 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
         }
         case "kobold":{
-            const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+            const prompt = applyChatTemplate(formated)
             const url = new URL(db.koboldURL)
             if(url.pathname.length < 3){
                 url.pathname = 'api/v1/generate'
             }
+
+            const body:KoboldGenerationInputSchema = {
+                "prompt": prompt,
+                "temperature": (db.temperature / 100),
+                "top_p": db.top_p,
+                max_length: maxTokens,
+                max_context_length: db.maxContext,
+                n: 1
+            }
             
             const da = await globalFetch(url.toString(), {
                 method: "POST",
-                body: {
-                    "prompt": prompt,
-                    "temperature": (db.temperature / 100),
-                    "top_p": 0.9
-                },
+                body: body,
                 headers: {
                     "content-type": "application/json",
                 },
@@ -1651,7 +1666,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 interface Claude3TextBlock {
                     type: 'text',
-                    text: string
+                    text: string,
+                    cache_control?: {"type": "ephemeral"}
                 }
 
                 interface Claude3ImageBlock {
@@ -1661,13 +1677,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         media_type: string,
                         data: string
                     }
+                    cache_control?: {"type": "ephemeral"}
                 }
 
                 type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
 
                 interface Claude3Chat {
                     role: 'user'|'assistant'
-                    content: string|Claude3ContentBlock[]
+                    content: Claude3ContentBlock[]
+                }
+
+                interface Claude3ExtendedChat {
+                    role: 'user'|'assistant'
+                    content: Claude3ContentBlock[]|string
                 }
 
                 let claudeChat: Claude3Chat[] = []
@@ -1718,13 +1740,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                 }
                             }
                         }
-                        else{
-                            content += "\n\n" + chat.content
-                        }
                         claudeChat[claudeChat.length-1].content = content
                     }
                     else{
-                        let formatedChat:Claude3Chat = chat
+                        let formatedChat:Claude3Chat = {
+                            role: chat.role,
+                            content: [{
+                                type: 'text',
+                                text: chat.content
+                            }]
+                        }
                         if(multimodals && multimodals.length > 0){
                             formatedChat.content = [{
                                 type: 'text',
@@ -1785,7 +1810,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                         }
                     }
                 }
-                console.log(claudeChat)
                 if(claudeChat.length === 0 && systemPrompt === ''){
                     return {
                         type: 'fail',
@@ -1795,19 +1819,63 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 if(claudeChat.length === 0 && systemPrompt !== ''){
                     claudeChat.push({
                         role: 'user',
-                        content: systemPrompt
+                        content: [{
+                            type: 'text',
+                            text: 'Start'
+                        }]
                     })
                     systemPrompt = ''
                 }
                 if(claudeChat[0].role !== 'user'){
                     claudeChat.unshift({
                         role: 'user',
-                        content: 'Start'
+                        content: [{
+                            type: 'text',
+                            text: 'Start'
+                        }]
                     })
                 }
+                if(db.claudeCachingExperimental){
+                    for(let i = 0;i<4;i++){
+                        const ind = claudeChat.findLastIndex((v) => {
+                            if(v.role !== 'user'){
+                                return false
+                            }
+                            if(v.content.length === 0){
+                                return false
+                            }
+                            if(v.content[0].cache_control){ // if it already has cache control, skip
+                                return false
+                            }
+                            return true
+                        })
+                        console.log(ind)
+                        if(ind === -1){
+                            break
+                        }
+                        claudeChat[ind].content[0].cache_control = {
+                            type: 'ephemeral'
+                        }
+                    }
+                }
+
+                let finalChat:Claude3ExtendedChat[] = claudeChat
+
+                if(aiModel === 'reverse_proxy'){
+                    finalChat = claudeChat.map((v) => {
+                        if(v.content.length > 0 && v.content[0].type === 'text'){
+                            return {
+                                role: v.role,
+                                content: v.content[0].text
+                            }
+                        }
+                    })
+                }
+
+
                 let body = {
                     model: raiModel,
-                    messages: claudeChat,
+                    messages: finalChat,
                     system: systemPrompt.trim(),
                     max_tokens: maxTokens,
                     temperature: temperature,
@@ -1915,16 +1983,25 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
                 }
 
+
+                let headers:{
+                    [key:string]:string
+                } = {
+                    "Content-Type": "application/json",
+                    "x-api-key": apiKey,
+                    "anthropic-version": "2023-06-01",
+                    "accept": "application/json",
+                }
+
+                if(db.claudeCachingExperimental){
+                    headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
+                }
+
                 if(useStreaming){
                     
                     const res = await fetchNative(replacerURL, {
                         body: JSON.stringify(body),
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": apiKey,
-                            "anthropic-version": "2023-06-01",
-                            "accept": "application/json",
-                        },
+                        headers: headers,
                         method: "POST",
                         chatId: arg.chatId
                     })
@@ -1972,10 +2049,19 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                                         if(body.messages.at(-1)?.role !== 'assistant'){
                                                             body.messages.push({
                                                                 role: 'assistant',
-                                                                content: ''
+                                                                content: [{
+                                                                    type: 'text',
+                                                                    text: ''
+                                                                }]
                                                             })
                                                         }
-                                                        body.messages[body.messages.length-1].content += text
+                                                        let block = body.messages[body.messages.length-1].content
+                                                        if(typeof block === 'string'){
+                                                            body.messages[body.messages.length-1].content += text
+                                                        }
+                                                        else if(block[0].type === 'text'){
+                                                            block[0].text += text
+                                                        }
                                                         const res = await fetchNative(replacerURL, {
                                                             body: JSON.stringify(body),
                                                             headers: {
@@ -2044,12 +2130,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
                 const res = await globalFetch(replacerURL, {
                     body: body,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": apiKey,
-                        "anthropic-version": "2023-06-01",
-                        "accept": "application/json"
-                    },
+                    headers: headers,
                     method: "POST",
                     chatId: arg.chatId
                 })
@@ -2274,7 +2355,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             }
             if(aiModel.startsWith("horde:::")){
-                const prompt = stringlizeChat(formated, currentChar?.name ?? '', arg.continue)
+                const prompt = applyChatTemplate(formated)
 
                 const realModel = aiModel.split(":::")[1]
 
@@ -2439,4 +2520,42 @@ function getOpenUserString(){
     requestedTimes += 1
     console.log(userString)
     return userString
+}
+
+
+
+export interface KoboldSamplerSettingsSchema {
+    rep_pen?: number;
+    rep_pen_range?: number;
+    rep_pen_slope?: number;
+    top_k?: number;
+    top_a?: number;
+    top_p?: number;
+    tfs?: number;
+    typical?: number;
+    temperature?: number;
+}
+
+export interface KoboldGenerationInputSchema extends KoboldSamplerSettingsSchema {
+    prompt: string;
+    use_memory?: boolean;
+    use_story?: boolean;
+    use_authors_note?: boolean;
+    use_world_info?: boolean;
+    use_userscripts?: boolean;
+    soft_prompt?: string;
+    max_length?: number;
+    max_context_length?: number;
+    n: number;
+    disable_output_formatting?: boolean;
+    frmttriminc?: boolean;
+    frmtrmblln?: boolean;
+    frmtrmspch?: boolean;
+    singleline?: boolean;
+    disable_input_formatting?: boolean;
+    frmtadsnsp?: boolean;
+    quiet?: boolean;
+    sampler_order?: number[];
+    sampler_seed?: number;
+    sampler_full_determinism?: boolean;
 }

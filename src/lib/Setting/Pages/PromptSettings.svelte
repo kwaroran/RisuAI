@@ -15,10 +15,11 @@
     let opened = 0
     let warns: string[] = []
     export let onGoBack: () => void = () => {}
+    export let mode: 'independent'|'inline' = 'independent'
     let tokens = 0
     let extokens = 0
     executeTokenize($DataBase.promptTemplate)
-    let subMenu = 0
+    export let subMenu = 0
 
     async function executeTokenize(prest: PromptItem[]){
         tokens = await tokenizePreset(prest, true)
@@ -28,27 +29,29 @@
     $: warns = templateCheck($DataBase)
     $: executeTokenize($DataBase.promptTemplate)
 </script>
+{#if mode === 'independent'}
+    <h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
+        <button class="mr-2 text-textcolor2 hover:text-textcolor" on:click={onGoBack}>
+            <ArrowLeft />
+        </button>
+        {language.promptTemplate}
+    </h2>
 
-<h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
-    <button class="mr-2 text-textcolor2 hover:text-textcolor" on:click={onGoBack}>
-        <ArrowLeft />
-    </button>
-    {language.promptTemplate}
-</h2>
-<div class="flex w-full rounded-md border border-selected">
-    <button on:click={() => {
-        subMenu = 0
-    }} class="p-2 flex-1" class:bg-selected={subMenu === 0}>
-        <span>{language.template}</span>
-    </button>
-    <button on:click={() => {
-        subMenu = 1
-    }} class="p-2 flex-1" class:bg-selected={subMenu === 1}>
-        <span>{language.settings}</span>
-    </button>
-</div>
-{#if warns.length > 0}
-    <div class="text-red-500 flex flex-col items-start p-2 rounded-md border-red-500 border">
+    <div class="flex w-full rounded-md border border-selected">
+        <button on:click={() => {
+            subMenu = 0
+        }} class="p-2 flex-1" class:bg-selected={subMenu === 0}>
+            <span>{language.template}</span>
+        </button>
+        <button on:click={() => {
+            subMenu = 1
+        }} class="p-2 flex-1" class:bg-selected={subMenu === 1}>
+            <span>{language.settings}</span>
+        </button>
+    </div>
+{/if}
+{#if warns.length > 0 && subMenu === 0}
+    <div class="text-red-500 flex flex-col items-start p-2 rounded-md border-red-500 border mt-4">
         <h2 class="text-xl font-bold">Warning</h2>
         <div class="border-b border-b-red-500 mt-1 mb-2 w-full"></div>
         {#each warns as warn}

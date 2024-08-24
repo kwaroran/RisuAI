@@ -14,7 +14,7 @@
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
-<div class="p-4 rounded-md bg-darkbg flex-wrap flex gap-2">
+<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2">
     {#each $DataBase.personas as persona, i}
         <button on:click={() => {
             changeUserPersona(i)
@@ -60,11 +60,7 @@
     </div>
 </div>
 
-
-<div class="mt-4 mb-4 border-y-1 border-y-selected">
-</div>
-
-<div class="flex w-full items-starts rounded-md bg-darkbg p-4 max-w-full flex-wrap">
+<div class="flex w-full items-starts rounded-md border-darkborderc border p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
         <button on:click={() => {selectUserImg()}}>
             {#if $DataBase.userIcon === ''}
