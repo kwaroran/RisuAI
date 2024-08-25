@@ -235,12 +235,12 @@ export async function sayTTS(character:character,text:string) {
                 const audioContext = new AudioContext();
 
                 const audio: Uint8Array = await loadAsset(character.gptSoVitsConfig.ref_audio_data.assetId);
-                const base64Audio =  btoa(new Uint8Array(audio).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+                const base64Audio = btoa(new Uint8Array(audio).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 
                 const body = {
                     text: text,
                     text_lang: character.gptSoVitsConfig.text_lang,
-                    ref_audio_path: character.gptSoVitsConfig.ref_audio_path + '/public/audio/' + character.gptSoVitsConfig.ref_audio_data.fileName,
+                    ref_audio_path: undefined,
                     ref_audio_name: character.gptSoVitsConfig.ref_audio_data.fileName,
                     ref_audio_data: base64Audio,
                     prompt_text: undefined,
@@ -250,18 +250,41 @@ export async function sayTTS(character:character,text:string) {
                     speed_factor: character.gptSoVitsConfig.speed,
                     top_k: character.gptSoVitsConfig.top_k,
                     text_split_method: character.gptSoVitsConfig.text_split_method,
-                    parallel_infer: false,
+                    parallel_infer: true,
+                    // media_type: character.gptSoVitsConfig.ref_audio_data.fileName.split('.')[1],
+                    ref_free: character.gptSoVitsConfig.use_long_audio || !character.gptSoVitsConfig.use_prompt,
                 }
 
                 if (character.gptSoVitsConfig.use_prompt){
                     body.prompt_text = character.gptSoVitsConfig.prompt
+                }
+
+                if (character.gptSoVitsConfig.use_auto_path){
+                    console.log('auto')
+                    const path = await globalFetch(`${character.gptSoVitsConfig.url}/get_path`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        rawResponse: false,
+
+                    })
+                    console.log(path)
+                    if(path.ok){
+                        body.ref_audio_path = path.data.message + '/public/audio/' + character.gptSoVitsConfig.ref_audio_data.fileName
+                    }
+                    else{
+                        throw new Error('Failed to Auto get path')
+                    }
+                } else {
+                    body.ref_audio_path = character.gptSoVitsConfig.ref_audio_path + '/public/audio/' + character.gptSoVitsConfig.ref_audio_data.fileName
                 }
                 console.log(body)
 
                 const response = await globalFetch(`${character.gptSoVitsConfig.url}/tts`, {
                     method: 'POST',
                     headers: {
-                        "Content-Type": "application/json",
+                        'Content-Type': 'application/json'
                     },
                     body: body,
                     rawResponse: true,
