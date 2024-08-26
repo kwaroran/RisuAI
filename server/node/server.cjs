@@ -3,12 +3,11 @@ const app = express();
 const path = require('path');
 const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
-const bodyParser = require('body-parser');
 const fs = require('fs/promises')
 const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
-app.use(bodyParser.raw({ limit: 100000000 }));
-app.use(bodyParser.json())
+app.use(express.json({ limit: '50mb' }));
+app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
 const {pipeline} = require('stream/promises')
 
 let password = ''
@@ -89,6 +88,55 @@ const reverseProxyFunc = async (req, res, next) => {
         return;
     }
 }
+
+const reverseProxyFunc_get = async (req, res, next) => {
+    const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
+
+    if (!urlParam) {
+        res.status(400).send({
+            error:'URL has no param'
+        });
+        return;
+    }
+    const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
+    if(!header['x-forwarded-for']){
+        header['x-forwarded-for'] = req.ip
+    }
+    let originalResponse;
+    try {
+        // make request to original server
+        originalResponse = await fetch(urlParam, {
+            method: 'GET',
+            headers: header
+        });
+        // get response body as stream
+        const originalBody = originalResponse.body;
+        // get response headers
+        const head = new Headers(originalResponse.headers);
+        head.delete('content-security-policy');
+        head.delete('content-security-policy-report-only');
+        head.delete('clear-site-data');
+        head.delete('Cache-Control');
+        head.delete('Content-Encoding');
+        const headObj = {};
+        for (let [k, v] of head) {
+            headObj[k] = v;
+        }
+        // send response headers to client
+        res.header(headObj);
+        // send response status to client
+        res.status(originalResponse.status);
+        // send response body to client
+        await pipeline(originalResponse.body, res);
+    }
+    catch (err) {
+        next(err);
+        return;
+    }
+}
+
+app.get('/proxy', reverseProxyFunc_get);
+app.get('/proxy2', reverseProxyFunc_get);
 
 app.post('/proxy', reverseProxyFunc);
 app.post('/proxy2', reverseProxyFunc);

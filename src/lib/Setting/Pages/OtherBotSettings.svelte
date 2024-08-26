@@ -13,6 +13,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     $:{
         $DataBase.NAIImgConfig ??= {
             width: 512,
@@ -299,6 +300,9 @@
 
 {#if submenu === 1 || submenu === -1}
 <Arcodion name="TTS" styled disabled={submenu !== -1}>
+    <span class="text-textcolor mt-2">Auto Speech</span>
+    <CheckInput bind:check={$DataBase.ttsAutoSpeech}/>
+
     <span class="text-textcolor mt-2">ElevenLabs API key</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.elevenLabKey}/>
     

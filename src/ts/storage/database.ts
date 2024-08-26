@@ -430,7 +430,8 @@ export function setDatabase(data:Database){
     }
     data.hideApiKey ??= true
     data.unformatQuotes ??= false
-
+    data.ttsAutoSpeech ??= false
+    data.translatorInputLanguage ??= 'auto'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -510,6 +511,7 @@ export interface Database{
     NAII2I:boolean
     NAIREF:boolean
     NAIImgConfig:NAIImgConfig
+    ttsAutoSpeech?:boolean
     runpodKey:string
     promptPreprocess:boolean
     bias: [string, number][]
@@ -614,6 +616,7 @@ export interface Database{
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
     translatorType:'google'|'deepl'|'none'|'llm'|'deeplX',
+    translatorInputLanguage?:string
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
@@ -809,7 +812,9 @@ export interface character{
     }
     gptSoVitsConfig?:{
         url?:string
+        use_auto_path?:boolean
         ref_audio_path?:string
+        use_long_audio?:boolean
         ref_audio_data?: {
             fileName:string
             assetId:string

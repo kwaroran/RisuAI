@@ -112,6 +112,13 @@
             if (!(currentChar.data as character).gptSoVitsConfig.use_prompt) {
                 (currentChar.data as character).gptSoVitsConfig.prompt = undefined
             }
+            if((currentChar.data as character).gptSoVitsConfig.use_auto_path){
+                (currentChar.data as character).gptSoVitsConfig.ref_audio_path = undefined;
+
+                (currentChar.data as character).gptSoVitsConfig.use_prompt = false;
+                (currentChar.data as character).gptSoVitsConfig.prompt = undefined;
+
+            }
         }
     })
 
@@ -160,7 +167,9 @@
     $: if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
         (currentChar.data as character).gptSoVitsConfig = {
             url: '',
-            ref_audio_path: 'C:/Users/user/Downloads/GPT-SoVITS-v2-240821',
+            use_auto_path: false,
+            ref_audio_path: '',
+            use_long_audio: false,
             ref_audio_data: {
                 fileName: '',
                 assetId: ''  
@@ -835,15 +844,24 @@
             <span class="text-textcolor">URL</span>
             <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.url}/>
 
-            <span class="text-textcolor">Reference Audio Path (e.g. C:/Users/user/Downloads/GPT-SoVITS-v2-240821)</span>
-            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.ref_audio_path}/>
+            <span class="text-textcolor">Use Auto Path</span>
+            <Check bind:check={currentChar.data.gptSoVitsConfig.use_auto_path}/>
+
+            {#if !currentChar.data.gptSoVitsConfig.use_auto_path}
+                <span class="text-textcolor">Reference Audio Path (e.g. C:/Users/user/Downloads/GPT-SoVITS-v2-240821)</span>
+                <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.ref_audio_path}/>
+            {/if}
+
+            <span class="text-textcolor">Use Long Audio</span>
+            <Check bind:check={currentChar.data.gptSoVitsConfig.use_long_audio}/>
 
             <span class="text-textcolor">Reference Audio Data (3~10s audio file)</span>
             <Button on:click={async () => {
                 const audio = await selectSingleFile([
                     'wav',
                     'ogg',
-                    'aac'
+                    'aac',
+                    'mp3'
                 ])
                 if(!audio){
                     return null
@@ -866,40 +884,42 @@
             </Button>
             <span class="text-textcolor">Text Language</span>
             <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.text_lang}>
-                <OptionInput value="auto">Auto</OptionInput>
-                <OptionInput value="auto_yue">Auto (Cantonese)</OptionInput>
+                <OptionInput value="auto">Multi-language Mixed</OptionInput>
+                <OptionInput value="auto_yue">Multi-language Mixed (Cantonese)</OptionInput>
                 <OptionInput value="en">English</OptionInput>
-                <OptionInput value="zh">Chinese</OptionInput>
-                <OptionInput value="ja">Japanese</OptionInput>
-                <OptionInput value="yue">Cantonese</OptionInput>
-                <OptionInput value="ko">Korean</OptionInput>
-                <OptionInput value="all_zh">All Chinese</OptionInput>
-                <OptionInput value="all_ja">All Japanese</OptionInput>
-                <OptionInput value="all_yue">All Cantonese</OptionInput>
-                <OptionInput value="all_ko">All Korean</OptionInput>
+                <OptionInput value="zh">Chinese-English Mixed</OptionInput>
+                <OptionInput value="ja">Japanese-English Mixed</OptionInput>
+                <OptionInput value="yue">Cantonese-English Mixed</OptionInput>
+                <OptionInput value="ko">Korean-English Mixed</OptionInput>
+                <OptionInput value="all_zh">Chinese</OptionInput>
+                <OptionInput value="all_ja">Japanese</OptionInput>
+                <OptionInput value="all_yue">Cantonese</OptionInput>
+                <OptionInput value="all_ko">Korean</OptionInput>
             </SelectInput>
 
-            <span class="text-textcolor">Use Reference Audio Script</span>
-            <Check bind:check={currentChar.data.gptSoVitsConfig.use_prompt}/>
+            {#if !currentChar.data.gptSoVitsConfig.use_long_audio}
+                <span class="text-textcolor">Use Reference Audio Script</span>
+                <Check bind:check={currentChar.data.gptSoVitsConfig.use_prompt}/>
+            {/if}
 
-            {#if currentChar.data.gptSoVitsConfig.use_prompt}
+            {#if currentChar.data.gptSoVitsConfig.use_prompt && !currentChar.data.gptSoVitsConfig.use_long_audio}
                 <span class="text-textcolor">Reference Audio Script</span>
                 <TextAreaInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt}/>
             {/if}
 
             <span class="text-textcolor">Reference Audio Language</span>
             <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt_lang}>
-                <OptionInput value="auto">Auto</OptionInput>
-                <OptionInput value="auto_yue">Auto (Cantonese)</OptionInput>
+                <OptionInput value="auto">Multi-language Mixed</OptionInput>
+                <OptionInput value="auto_yue">Multi-language Mixed (Cantonese)</OptionInput>
                 <OptionInput value="en">English</OptionInput>
-                <OptionInput value="zh">Chinese</OptionInput>
-                <OptionInput value="ja">Japanese</OptionInput>
-                <OptionInput value="yue">Cantonese</OptionInput>
-                <OptionInput value="ko">Korean</OptionInput>
-                <OptionInput value="all_zh">English And Chinese</OptionInput>
-                <OptionInput value="all_ja">English And Japanese</OptionInput>
-                <OptionInput value="all_yue">English And Cantonese</OptionInput>
-                <OptionInput value="all_ko">English And Korean</OptionInput>
+                <OptionInput value="zh">Chinese-English Mixed</OptionInput>
+                <OptionInput value="ja">Japanese-English Mixed</OptionInput>
+                <OptionInput value="yue">Cantonese-English Mixed</OptionInput>
+                <OptionInput value="ko">Korean-English Mixed</OptionInput>
+                <OptionInput value="all_zh">Chinese</OptionInput>
+                <OptionInput value="all_ja">Japanese</OptionInput>
+                <OptionInput value="all_yue">Cantonese</OptionInput>
+                <OptionInput value="all_ko">Korean</OptionInput>
             </SelectInput>
             <span class="text-textcolor">Top P</span>
             <SliderInput min={0.0} max={1.0} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.top_p}/>
