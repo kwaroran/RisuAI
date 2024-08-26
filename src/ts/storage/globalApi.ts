@@ -12,7 +12,7 @@ import { checkRisuUpdate } from "../update";
 import { botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect } from "../alert";
+import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
@@ -536,7 +536,14 @@ export async function loadData() {
             loadedStore.set(true)
             selectedCharID.set(-1)
             startObserveDom()
-            saveDb()   
+            saveDb()
+            if(import.meta.env.VITE_RISU_TOS === 'TRUE'){
+                alertTOS().then((a) => {
+                    if(a === false){
+                        location.reload()
+                    }
+                })
+            }
         } catch (error) {
             alertError(`${error}`)
         }

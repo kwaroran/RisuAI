@@ -1181,7 +1181,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
             db.characters[selectedChar].chats[selectedChat] = currentChat
             setDatabase(db)
         }
-        await sayTTS(currentChar, result)
+        if(db.ttsAutoSpeech){
+            await sayTTS(currentChar, result)
+        }
     }
     else{
         const msgs = (req.type === 'success') ? [['char',req.result]] as const 
@@ -1240,7 +1242,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
                 mrerolls.push(result)
             }
             db.characters[selectedChar].reloadKeys += 1
-            await sayTTS(currentChar, result)
+            if(db.ttsAutoSpeech){
+                await sayTTS(currentChar, result)
+            }
             setDatabase(db)
         }
 

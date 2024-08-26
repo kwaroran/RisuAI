@@ -117,6 +117,21 @@
         <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
+    {#if $DataBase.translatorType === 'google'}
+        <span class="text-textcolor mt-4">Translator Input Language</span>
+        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorInputLanguage}>
+            <OptionInput value="auto">Auto</OptionInput>
+            <OptionInput value="en">English</OptionInput>
+            <OptionInput value="zh">Chinese</OptionInput>
+            <OptionInput value="ja">Japanese</OptionInput>
+            <OptionInput value="ko">Korean</OptionInput>
+            <OptionInput value="fr">French</OptionInput>
+            <OptionInput value="es">Spanish</OptionInput>
+            <OptionInput value="de">German</OptionInput>
+            <OptionInput value="ru">Russian</OptionInput>
+        </SelectInput>
+    {/if}
+
 
     <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.autoTranslate} name={language.autoTranslation}/>
