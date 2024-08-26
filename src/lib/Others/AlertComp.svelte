@@ -80,7 +80,7 @@
             {:else if $alertStore.type === 'tos'}
                 <!-- svelte-ignore a11y-missing-attribute -->
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
+                <div class="text-textcolor">You should accept <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
@@ -112,7 +112,7 @@
                             msg: 'yes'
                         })
                     }}>Accept</Button>
-                    <Button className="mt-4 flex-grow" on:click={() => {
+                    <Button styled={'outlined'} className="mt-4 flex-grow" on:click={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
