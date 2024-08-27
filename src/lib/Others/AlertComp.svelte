@@ -436,7 +436,7 @@
             <span class="text-textcolor mt-4">{language.type}</span>
             {#if cardExportType === ''}
                 {#if $alertStore.submsg === 'module'}
-                    <span class="text-textcolor2 text-sm">{language.jsonDesc}</span>
+                    <span class="text-textcolor2 text-sm">{language.risuMDesc}</span>
                 {:else if $alertStore.submsg === 'preset'}
                     <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {:else}
@@ -457,10 +457,9 @@
                 {#if $alertStore.submsg === 'preset'}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Risupreset</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'json'} on:click={() => {cardExportType = 'json'}}>JSON</button>
                 {:else if $alertStore.submsg === 'module'}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>JSON</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>RisuM</button>
                 {:else}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {

@@ -7,6 +7,8 @@ import { CurrentCharacter, CurrentChat } from "../stores"
 import { selectSingleFile } from "../util"
 import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook"
+import { encode } from "msgpackr"
+import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
 
 export interface RisuModule{
     name: string
@@ -22,22 +24,27 @@ export interface RisuModule{
 }
 
 export async function exportModule(module:RisuModule){
-    await downloadFile(module.name + '.json', JSON.stringify({
+    const dat = await encodeRPack(Buffer.from(JSON.stringify({
         ...module,
         type: 'risuModule'
-    }, null, 2))
+    }, null, 2), 'utf-8'))
+
+    await downloadFile(module.name + '.risum', dat)
     alertNormal(language.successExport)
 }
 
 export async function importModule(){
-    const f = await selectSingleFile(['json', 'lorebook'])
+    const f = await selectSingleFile(['json', 'lorebook', 'risum'])
     if(!f){
         return
     }
-    const file = f.data
+    let fileData = f.data
     const db = get(DataBase)
     try {
-        const importData = JSON.parse(Buffer.from(file).toString())
+        if(f.name.endsWith('.risum')){
+            fileData = Buffer.from(await decodeRPack(fileData))
+        }
+        const importData = JSON.parse(Buffer.from(fileData).toString())
         if(importData.type === 'risuModule'){
             if(
                 (!importData.name)

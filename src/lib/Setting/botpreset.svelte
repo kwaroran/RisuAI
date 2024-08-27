@@ -51,9 +51,6 @@
                         if(data.type === ''){
                             downloadPreset(i, 'risupreset')
                         }
-                        if(data.type === 'json'){
-                            downloadPreset(i, 'json')
-                        }
                         if(data.type === 'realm'){
                             $ShowRealmFrameStore = `preset:${i}`
                         }
