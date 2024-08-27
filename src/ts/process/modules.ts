@@ -1,14 +1,16 @@
 import { language } from "src/lang"
-import { alertConfirm, alertError, alertModuleSelect, alertNormal } from "../alert"
+import { alertConfirm, alertError, alertModuleSelect, alertNormal, alertStore } from "../alert"
 import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
-import { downloadFile } from "../storage/globalApi"
+import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../storage/globalApi"
 import { get } from "svelte/store"
 import { CurrentCharacter, CurrentChat } from "../stores"
-import { selectSingleFile } from "../util"
+import { selectSingleFile, sleep } from "../util"
 import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook"
 import { encode } from "msgpackr"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
+import { convertImage } from "../parser"
+import { Capacitor } from "@capacitor/core"
 
 export interface RisuModule{
     name: string
@@ -21,15 +23,58 @@ export interface RisuModule{
     lowLevelAccess?: boolean
     hideIcon?: boolean
     backgroundEmbedding?:string
+    assets?:[string,string,string][]
 }
 
 export async function exportModule(module:RisuModule){
-    const dat = await encodeRPack(Buffer.from(JSON.stringify({
-        ...module,
+    const apb = new AppendableBuffer()
+    const writeLength = (len:number) => {
+        const lenbuf = Buffer.alloc(4)
+        lenbuf.writeUInt32LE(len, 0)
+        apb.append(lenbuf)
+    }
+    const writeByte = (byte:number) => {
+        //byte is 0-255
+        const buf = Buffer.alloc(1)
+        buf.writeUInt8(byte, 0)
+        apb.append(buf)
+    }
+
+    const assets = module.assets ?? []
+    module = structuredClone(module)
+    module.assets = module.assets.map((asset) => {
+        return [asset[0], '', asset[2]] as [string,string,string]
+    })
+
+    const mainbuf = await encodeRPack(Buffer.from(JSON.stringify({
+        module: module,
         type: 'risuModule'
     }, null, 2), 'utf-8'))
 
-    await downloadFile(module.name + '.risum', dat)
+    writeByte(111) //magic number
+    writeByte(0) //version
+    writeLength(mainbuf.length)
+    apb.append(mainbuf)
+
+    for(let i=0;i<assets.length;i++){
+        const asset = assets[i]
+        writeByte(1) //mark as asset
+        alertStore.set({
+            type: 'wait',
+            msg: `Loading... (Adding Assets ${i} / ${assets.length})`
+        })
+        let rData = await readImage(asset[1])
+        if(!rData){
+            rData = new Uint8Array(0) //blank buffer
+        }
+        let encoded = await encodeRPack(Buffer.from(await convertImage(rData)))
+        writeLength(encoded.length)
+        apb.append(encoded)
+    }
+
+    writeByte(0) //end of file
+
+    await downloadFile(module.name + '.risum', apb.buffer)
     alertNormal(language.successExport)
 }
 
@@ -40,10 +85,89 @@ export async function importModule(){
     }
     let fileData = f.data
     const db = get(DataBase)
-    try {
-        if(f.name.endsWith('.risum')){
-            fileData = Buffer.from(await decodeRPack(fileData))
+    if(f.name.endsWith('.risum')){
+        try {
+            const buf = Buffer.from(fileData)
+            let pos = 0
+
+            const readLength = () => {
+                const len = buf.readUInt32LE(pos)
+                pos += 4
+                return len
+            }
+            const readByte = () => {
+                const byte = buf.readUInt8(pos)
+                pos += 1
+                return byte
+            }
+            const readData = (len:number) => {
+                const data = buf.subarray(pos, pos + len)
+                pos += len
+                return data
+            }
+
+            if(readByte() !== 111){
+                console.error("Invalid magic number")
+                alertError(language.errors.noData)
+                return
+            }
+            if(readByte() !== 0){ //Version check
+                console.error("Invalid version")
+                alertError(language.errors.noData)
+                return
+            }
+
+            const mainLen = readLength()
+            const mainData = readData(mainLen)
+            const main:{
+                type:'risuModule'
+                module:RisuModule
+            } = JSON.parse(Buffer.from(await decodeRPack(mainData)).toString())
+
+            if(main.type !== 'risuModule'){
+                console.error("Invalid module type")
+                alertError(language.errors.noData)
+                return
+            }
+
+            let module = main.module
+
+            let i = 0
+            while(true){
+                const mark = readByte()
+                if(mark === 0){
+                    break
+                }
+                if(mark !== 1){
+                    alertError(language.errors.noData)
+                    return
+                }
+                const len = readLength()
+                const data = readData(len)
+                module.assets[i][1] = await saveAsset(Buffer.from(await decodeRPack(data)))
+                alertStore.set({
+                    type: 'wait',
+                    msg: `Loading... (Adding Assets ${i} / ${module.assets.length})`
+                })
+                if(!isTauri && !Capacitor.isNativePlatform() &&!isNodeServer){
+                    await sleep(100)
+                }
+                i++
+            }
+            alertStore.set({
+                type: 'none',
+                msg: ''
+            })
+
+            db.modules.push(module)
+            setDatabase(db)
+            return   
+        } catch (error) {
+            console.error(error)
+            alertError(language.errors.noData)
         }
+    }
+    try {
         const importData = JSON.parse(Buffer.from(fileData).toString())
         if(importData.type === 'risuModule'){
             if(
@@ -153,6 +277,25 @@ export function getModuleLorebooks() {
         }
     }
     return lorebooks
+}
+
+export function getModuleAssets() {
+    const currentChat = get(CurrentChat)
+    const db = get(DataBase)
+    if (!currentChat) return []
+    let moduleIds = currentChat.modules ?? []
+    moduleIds = moduleIds.concat(db.enabledModules)
+    const modules = getModules(moduleIds)
+    let assets: [string,string,string][] = []
+    for (const module of modules) {
+        if(!module){
+            continue
+        }
+        if (module.assets) {
+            assets = assets.concat(module.assets)
+        }
+    }
+    return assets
 }
 
 

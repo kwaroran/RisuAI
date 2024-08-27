@@ -9,7 +9,7 @@ import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stor
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage, writeInlayImage } from './process/files/image';
-import { getModuleLorebooks } from './process/modules';
+import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import { HypaProcesser } from './process/memory/hypamemory';
 import { generateAIImage } from './process/stableDiff';
 import { requestChatData } from './process/request';
@@ -278,6 +278,16 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             const emoPath = await getFileSrc(emo[1])
             emoPaths[emo[0].toLocaleLowerCase()] = {
                 path: emoPath,
+            }
+        }
+    }
+    const moduleAssets = getModuleAssets()
+    if(moduleAssets.length > 0){
+        for(const asset of moduleAssets){
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
             }
         }
     }

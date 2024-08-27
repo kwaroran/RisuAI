@@ -847,6 +847,17 @@ export function getUnpargeables(db:Database, uptype:'basename'|'pure' = 'basenam
         }
     }
 
+    if(db.modules){
+        for(const module of db.modules){
+            const assets = module.assets
+            if(assets){
+                for(const asset of assets){
+                    addUnparge(asset[1])
+                }
+            }
+        }
+    }
+
     if(db.personas){
         db.personas.map((v) => {
             addUnparge(v.icon)
