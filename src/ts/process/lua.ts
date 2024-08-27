@@ -1,4 +1,4 @@
-import { getChatVar, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
+import { getChatVar, hasher, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { DataBase, setDatabase, type Chat, type character, type groupChat } from "../storage/database";
 import { get } from "svelte/store";
@@ -220,6 +220,10 @@ export async function runLua(code:string, arg:{
                 imgHTML.src = gen
                 const inlay = await writeInlayImage(imgHTML)
                 return `{{inlay::${inlay}}}`
+            })
+
+            luaEngine.global.set('hash', async (id:string, value:string) => {
+                return await hasher(new TextEncoder().encode(value))
             })
 
             luaEngine.global.set('LLMMain', async (id:string, promptStr:string) => {

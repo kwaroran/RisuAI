@@ -27,14 +27,6 @@
         
         }).sort((a, b) => {
             let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-
-            if(db.enabledModules.includes(a.id)){
-                score += 1000
-            }
-            if(db.enabledModules.includes(b.id)){
-                score -= 1000
-            }
-
             return score
         })
     }

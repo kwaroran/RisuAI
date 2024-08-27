@@ -615,6 +615,7 @@ export const languageEnglish = {
     trashDesc: "Deleted characters are moved to trash. you can restore or delete them permanently. deleted characters are automatically purged after 3 days.",
     shareExport: "Share/Export",
     risupresetDesc: "Risupreset format is a format specifically designed for RisuAI presets.",
+    risuMDesc: "RisuM format is a format that is specifically designed for RisuAI modules.",
     jsonDesc: "JSON format is a format that is easy to read and write for both humans and machines.",
     nickname: "Nickname",
     useRegexLorebook: "Use Regex",

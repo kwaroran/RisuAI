@@ -6,6 +6,7 @@ import { globalFetch, readImage } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
 import type { OpenAIChat } from "."
 import { processZip } from "./processzip"
+import { keiServerURL } from "../kei/kei"
 export async function stableDiff(currentChar:character,prompt:string){
     let db = get(DataBase)
 
@@ -487,6 +488,40 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             alertError(error)
             return false
         }
+    }
+    if(db.sdProvider === 'kei'){
+        const db = get(DataBase)
+        let auth = db?.account?.token
+        if(!auth){
+            db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
+            auth = db?.account?.token
+            db.account.useSync = true
+        }
+        const da = await globalFetch(keiServerURL() + '/imaggen', {
+            body: {
+                "prompt": genPrompt,
+            },
+            headers: {
+                "x-api-key": auth
+            }
+        })
+
+        if(!da.ok || !da.data.success){
+            alertError(Buffer.from(da.data.message || da.data).toString())
+            return false   
+        }
+        if(returnSdData === 'inlay'){
+            return da.data.data
+        }
+        else{
+            let charemotions = get(CharEmotion)
+            const img = da.data.data
+            const emos:[string, string,number][] = [[img, img, Date.now()]]
+            charemotions[currentChar.chaId] = emos
+            CharEmotion.set(charemotions)
+        }
+        return returnSdData
+        
     }
     return ''
 }

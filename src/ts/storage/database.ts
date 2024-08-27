@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "125.0.1"
+export let appVer = "126.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -1339,6 +1339,7 @@ import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
+import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
@@ -1363,8 +1364,10 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
                 'risupreset'
             )
         }))
+        
         if(type === 'risupreset'){
-            downloadFile(pres.name + "_preset.risupreset", buf)
+            const buf2 = await encodeRPack(buf)
+            downloadFile(pres.name + "_preset.risup", buf2)
         }
         else{
             return {
@@ -1390,14 +1393,18 @@ export async function importPreset(f:{
     data:Uint8Array
 }|null = null){
     if(!f){
-        f = await selectSingleFile(["json", "preset", "risupreset"])
+        f = await selectSingleFile(["json", "preset", "risupreset", "risup"])
     }
     if(!f){
         return
     }
     let pre:any
-    if(f.name.endsWith('.risupreset')){
-        const decoded = await decodeMsgpack(fflate.decompressSync(f.data))
+    if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
+        let data = f.data
+        if(f.name.endsWith('.risup')){
+            data = await decodeRPack(data)
+        }
+        const decoded = await decodeMsgpack(fflate.decompressSync(data))
         console.log(decoded)
         if((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset'){
             pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset')))}
