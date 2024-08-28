@@ -1154,6 +1154,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gemini-pro-vision':
         case 'gemini-1.5-pro-latest':
         case 'gemini-1.5-pro-exp-0801':
+        case 'gemini-1.5-pro-exp-0827':
         case 'gemini-1.5-flash':
         case 'gemini-ultra':
         case 'gemini-ultra-vision':{
