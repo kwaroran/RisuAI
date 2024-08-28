@@ -104,7 +104,7 @@
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('mistral-large-latest')}}>Mistral Large</button>
             </Arcodion>
             <Arcodion name="Google Gemini">
-                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-exp-0801')}}>Gemini Pro 1.5</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-exp-0827')}}>Gemini Pro 1.5 0827</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-pro-latest')}}>Gemini Pro 1.5</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-1.5-flash')}}>Gemini Flash 1.5</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('gemini-pro')}}>Gemini Pro</button>
