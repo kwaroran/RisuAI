@@ -42,6 +42,7 @@ export async function exportModule(module:RisuModule){
 
     const assets = module.assets ?? []
     module = structuredClone(module)
+    module.assets ??= []
     module.assets = module.assets.map((asset) => {
         return [asset[0], '', asset[2]] as [string,string,string]
     })
