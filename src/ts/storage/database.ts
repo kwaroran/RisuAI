@@ -432,6 +432,8 @@ export function setDatabase(data:Database){
     data.unformatQuotes ??= false
     data.ttsAutoSpeech ??= false
     data.translatorInputLanguage ??= 'auto'
+    data.falModel ??= 'fal-ai/flux/dev'
+    data.falLoraScale ??= 1
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -718,6 +720,11 @@ export interface Database{
     hideApiKey: boolean
     unformatQuotes: boolean
     enableDevTools: boolean
+    falToken: string
+    falModel: string
+    falLora: string
+    falLoraName: string
+    falLoraScale: number
 }
 
 export interface customscript{

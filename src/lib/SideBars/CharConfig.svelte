@@ -877,7 +877,7 @@
             className="h-10">
                 
                 {#if currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === '' || currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === undefined}
-                    Select File
+                    {language.selectFile}
                 {:else}
                     {currentChar.data.gptSoVitsConfig.ref_audio_data.fileName}
                 {/if}

@@ -523,5 +523,68 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         return returnSdData
         
     }
+    if(db.sdProvider === 'fal'){
+        const model = db.falModel
+        const token = db.falToken
+
+        let body:{[key:string]:any} = {
+            prompt: genPrompt,
+            enable_safety_checker: false,
+            sync_mode: true,
+            image_size: {
+                "width": db.sdConfig.width,
+                "height": db.sdConfig.height,
+            }
+        }
+
+        if(db.falModel === 'fal-ai/flux-lora'){
+            let loraPath = db.falLora
+            if(loraPath.startsWith('urn:') || loraPath.startsWith('civitai:')){
+                const id = loraPath.split('@').pop()
+                loraPath = `https://civitai.com/api/download/models/${id}?type=Model&format=SafeTensor`
+            }
+            body.loras = [{
+                "path": loraPath,
+                "scale": db.falLoraScale
+            }]
+        }
+
+        if(db.falModel === 'fal-ai/flux-pro'){
+            delete body.enable_safety_checker
+        }
+        console.log(body)
+
+        const res = await globalFetch('https://fal.run/' + model, {
+            headers: {
+                "Authorization": "Key " + token,
+                "Content-Type": "application/json"
+            },
+            method: 'POST',
+            body: body
+        })
+
+        console.log(res)
+
+        if(!res.ok){
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+
+        let image = res.data?.images?.[0]?.url
+        if(!image){
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+
+        if(returnSdData === 'inlay'){
+            return image
+        }
+        else{
+            let charemotions = get(CharEmotion)
+            const emos:[string, string,number][] = [[image, image, Date.now()]]
+            charemotions[currentChar.chaId] = emos
+            CharEmotion.set(charemotions)
+        }
+    }
     return ''
 }
