@@ -1537,7 +1537,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case 'cohere-command-r':
-        case 'cohere-command-r-plus':{
+        case 'cohere-command-r-plus':
+        case 'cohere-command-r-08-2024':
+        case 'cohere-command-r-03-2024':
+        case 'cohere-command-r-plus-04-2024':
+        case 'cohere-command-r-plus-08-2024':{
             const modelName = aiModel.replace('cohere-', '')
             let lastChatPrompt = ''
             let preamble = ''
