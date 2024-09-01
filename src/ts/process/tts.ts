@@ -267,7 +267,7 @@ export async function sayTTS(character:character,text:string) {
                             'Content-Type': 'application/json'
                         },
                         rawResponse: false,
-
+                        plainFetchDeforce: true,
                     })
                     console.log(path)
                     if(path.ok){

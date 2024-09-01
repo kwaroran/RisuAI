@@ -814,7 +814,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 "parameters":payload
             }
 
-            const da = await globalFetch("https://api.novelai.net/ai/generate", {
+            const da = await globalFetch(aiModel === 'novelai_kayra' ? "https://text.novelai.net/ai/generate" : "https://api.novelai.net/ai/generate", {
                 body: body,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
@@ -1537,7 +1537,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case 'cohere-command-r':
-        case 'cohere-command-r-plus':{
+        case 'cohere-command-r-plus':
+        case 'cohere-command-r-08-2024':
+        case 'cohere-command-r-03-2024':
+        case 'cohere-command-r-plus-04-2024':
+        case 'cohere-command-r-plus-08-2024':{
             const modelName = aiModel.replace('cohere-', '')
             let lastChatPrompt = ''
             let preamble = ''

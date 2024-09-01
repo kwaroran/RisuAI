@@ -1,12 +1,13 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-import { DataBase, type character } from "./storage/database";
+import { DataBase, type groupChat, type character, type Chat } from "./storage/database";
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat } from "./process";
 import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./storage/globalApi";
+import { CurrentCharacter } from "./stores";
 
 
 export const tokenizerList = [
@@ -342,4 +343,57 @@ export async function strongBan(data:string, bias:{[key:number]:number}) {
     }
     localStorage.setItem('strongBan_' + data, JSON.stringify(bias))
     return bias
+}
+
+export async function getCharToken(char?:character|groupChat|null){
+    let persistant = 0
+    let dynamic = 0
+
+    if(!char){
+        const c = get(CurrentCharacter)
+        char = c
+    }
+    if(char.type === 'group'){
+        return {persistant:0, dynamic:0}
+    }
+
+    const basicTokenize = async (data:string) => {
+        data = data.replace(/{{char}}/g, char.name).replace(/<char>/g, char.name)
+        return await tokenize(data)
+    }
+
+    persistant += await basicTokenize(char.desc)
+    persistant += await basicTokenize(char.personality ?? '')
+    persistant += await basicTokenize(char.scenario ?? '')
+    for(const lore of char.globalLore){
+        let cont = lore.content.split('\n').filter((line) => {
+            if(line.startsWith('@@')){
+                return false
+            }
+            if(line === ''){
+                return false
+            }
+            return true
+        }).join('\n')
+        dynamic += await basicTokenize(cont)
+    }
+
+    return {persistant, dynamic}
+}
+
+export async function getChatToken(chat:Chat) {
+    let persistant = 0
+
+    const chatTokenizer = new ChatTokenizer(0, 'name')
+    const chatf = chat.message.map((d) => {
+        return {
+            role: d.role === 'user' ? 'user' : 'assistant',
+            content: d.data,
+        } as OpenAIChat
+    })
+    for(const chat of chatf){
+        persistant += await chatTokenizer.tokenizeChat(chat)
+    }
+
+    return persistant
 }

@@ -577,6 +577,7 @@ const knownHostes = ["localhost","127.0.0.1","0.0.0.0"]
 
 interface GlobalFetchArgs {
   plainFetchForce?: boolean;
+  plainFetchDeforce?: boolean;
   body?: any;
   headers?: { [key: string]: string };
   rawResponse?: boolean;
@@ -625,7 +626,7 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
     if (arg.abortSignal?.aborted) { return { ok: false, data: 'aborted', headers: {} }}
 
     const urlHost = new URL(url).hostname
-    const forcePlainFetch = (knownHostes.includes(urlHost) && !isTauri) || db.usePlainFetch || arg.plainFetchForce
+    const forcePlainFetch = ((knownHostes.includes(urlHost) && !isTauri) || db.usePlainFetch || arg.plainFetchForce) && !arg.plainFetchDeforce
 
     if (knownHostes.includes(urlHost) && !isTauri && !isNodeServer){
         return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' }
