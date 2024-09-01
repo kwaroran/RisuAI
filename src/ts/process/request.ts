@@ -814,7 +814,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 "parameters":payload
             }
 
-            const da = await globalFetch("https://api.novelai.net/ai/generate", {
+            const da = await globalFetch(aiModel === 'novelai_kayra' ? "https://text.novelai.net/ai/generate" : "https://api.novelai.net/ai/generate", {
                 body: body,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
