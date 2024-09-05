@@ -246,12 +246,10 @@ function getModuleById(id:string){
 function getModuleByIds(ids:string[]){
     let modules:RisuModule[] = []
     const db = get(DataBase)
-    for(let i=0;i<db.modules.length;i++){
-        if(ids.includes(db.modules[i].id)){
-            modules.push(db.modules[i])
-        }
-        if(db.modules[i].namespace && ids.includes(db.modules[i].namespace)){
-            modules.push(db.modules[i])
+    for(let i=0;i<ids.length;i++){
+        const module = db.modules.find((m) => m.id === ids[i] || (m.namespace === ids[i] && m.namespace))
+        if(module){
+            modules.push(module)
         }
     }
     return modules
