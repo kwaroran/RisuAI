@@ -58,7 +58,7 @@ export const languageEnglish = {
         bias:"bias is a key-value data which modifies the likelihood of string appearing.\nit can be -100 to 100, higher values will be more likely to appear, and lower values will be more unlikely to appear. \nAdditionaly, if its set to -101, it would work as 'strong ban word' for some models. \nWarning: if the tokenizer is wrong, it not work properly.",
         emotion: "Emotion Images option shows image depending at character's emotion which is analized by character's response. you must input emotion name as words *(like joy, happy, fear and etc.)* .emotion named **neutral** will be default emotion if it exists. must be more then 3 images to work properly.",
         imggen: "After analyzing the chat, apply the prompt to {{slot}}.",
-        regexScript: "Regex Script is a custom script that replaces string that matches IN to OUT.\n\nThere four type options."
+        regexScript: "Regex Script is a custom regex that replaces string that matches IN to OUT.\n\nThere four type options."
                 + "\n\n- **Modify Input** modifys user's input"
                 + "\n\n- **Modify Output** modifys character's output"
                 + "\n\n- **Modify Request Data** modifys current chat data when sent."
@@ -69,8 +69,14 @@ export const languageEnglish = {
                 + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
                 + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
                 + "\n\n- $(name)\n\n    - inserts the named group"
-                + "\n\nIf OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
-                + "\n\n- @@emo (emotion name)\n\n    - if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
+                + "\n\nFor flags, you can not only use native supported flags, but also use these flags, which are designed for advanced users:"
+                + "\n\n- `<inject>` - injects the result to the current string."
+                + "\n- `<move_top>` - moves the result to the top of the string."
+                + "\n- `<move_bottom>` - moves the result to the bottom of the string."
+                + "\n- `<repeat_back>` - if the match is not found, it carries the result from the previous match."
+                + "\n- `<order n>` - sets the order of the result. higher order will be shown first. `n` is a number. (like `<order 1>`) if this flag is not set, it will be set to 0."
+                + "\n- `<cbs>` - parses curly braced synatxes in IN."
+                + "\n\nTo use with native flags, you can use like `gi<cbs><move_top>`.",
         experimental: "This is a experimental feature. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
                 + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
@@ -86,7 +92,7 @@ export const languageEnglish = {
         utilityBot: "When activated, it ignores main prompt, jailbreak and other prompts. used for bot made for utility, not for roleplay.",
         loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
         loreRandomActivation: "If Use Probability Condition is abled, if the lore's other conditions are all met, the lore will be activated with a set probability which is set by 'Probability' each time a chat is sent.",
-        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
+        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{image::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
         superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
         + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
         + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
@@ -135,6 +141,8 @@ export const languageEnglish = {
         luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
         claudeCachingExperimental: "Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.",
         urllora: "You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like `urn:air:flux1:lora:civitai:180891@776656` or just `civitai:180891@776656`) and paste it.",
+        namespace: "Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.",
+        moduleIntergration: "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -688,5 +696,7 @@ export const languageEnglish = {
     hideApiKeys: "Hide API Keys",
     unformatQuotes: "Disable Quote Formatting",
     enableDevTools: "Enable Dev Tools",
-    selectFile: "Select File"
+    selectFile: "Select File",
+    namespace: "Namespace",
+    moduleIntergration: "Module Integration",
 }

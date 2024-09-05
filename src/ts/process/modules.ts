@@ -24,6 +24,7 @@ export interface RisuModule{
     hideIcon?: boolean
     backgroundEmbedding?:string
     assets?:[string,string,string][]
+    namespace?:string
 }
 
 export async function exportModule(module:RisuModule){
@@ -160,6 +161,7 @@ export async function importModule(){
                 msg: ''
             })
 
+            module.id = v4()
             db.modules.push(module)
             setDatabase(db)
             return   
@@ -241,19 +243,39 @@ function getModuleById(id:string){
     return null
 }
 
+function getModuleByIds(ids:string[]){
+    let modules:RisuModule[] = []
+    const db = get(DataBase)
+    for(let i=0;i<db.modules.length;i++){
+        if(ids.includes(db.modules[i].id)){
+            modules.push(db.modules[i])
+        }
+        if(db.modules[i].namespace && ids.includes(db.modules[i].namespace)){
+            modules.push(db.modules[i])
+        }
+    }
+    return modules
+}
+
 let lastModules = ''
 let lastModuleData:RisuModule[] = []
-export function getModules(ids:string[]){
+export function getModules(){
+    const currentChat = get(CurrentChat)
+    const db = get(DataBase)
+    let ids = db.enabledModules ?? []
+    if (currentChat){
+        ids = ids.concat(currentChat.modules ?? [])
+    }
+    if(db.moduleIntergration){
+        const intList = db.moduleIntergration.split(',').map((s) => s.trim())
+        ids = ids.concat(intList)
+    }
     const idsJoined = ids.join('-')
     if(lastModules === idsJoined){
         return lastModuleData
     }
 
-    let modules:RisuModule[] = []
-    for(const id of ids){
-        const module = getModuleById(id)
-        modules.push(module)
-    }
+    let modules:RisuModule[] = getModuleByIds(ids)
     lastModules = idsJoined
     lastModuleData = modules
     return modules
@@ -262,12 +284,7 @@ export function getModules(ids:string[]){
 
 
 export function getModuleLorebooks() {
-    const currentChat = get(CurrentChat)
-    const db = get(DataBase)
-    if (!currentChat) return []
-    let moduleIds = currentChat.modules ?? []
-    moduleIds = moduleIds.concat(db.enabledModules)
-    const modules = getModules(moduleIds)
+    const modules = getModules()
     let lorebooks: loreBook[] = []
     for (const module of modules) {
         if(!module){
@@ -281,12 +298,7 @@ export function getModuleLorebooks() {
 }
 
 export function getModuleAssets() {
-    const currentChat = get(CurrentChat)
-    const db = get(DataBase)
-    if (!currentChat) return []
-    let moduleIds = currentChat.modules ?? []
-    moduleIds = moduleIds.concat(db.enabledModules)
-    const modules = getModules(moduleIds)
+    const modules = getModules()
     let assets: [string,string,string][] = []
     for (const module of modules) {
         if(!module){
@@ -301,12 +313,7 @@ export function getModuleAssets() {
 
 
 export function getModuleTriggers() {
-    const currentChat = get(CurrentChat)
-    const db = get(DataBase)
-    if (!currentChat) return []
-    let moduleIds = currentChat.modules ?? []
-    moduleIds = moduleIds.concat(db.enabledModules)
-    const modules = getModules(moduleIds)
+    const modules = getModules()
     let triggers: triggerscript[] = []
     for (const module of modules) {
         if(!module){
@@ -323,12 +330,7 @@ export function getModuleTriggers() {
 }
 
 export function getModuleRegexScripts() {
-    const currentChat = get(CurrentChat)
-    const db = get(DataBase)
-    if (!currentChat) return []
-    let moduleIds = currentChat.modules ?? []
-    moduleIds = moduleIds.concat(db.enabledModules)
-    const modules = getModules(moduleIds)
+    const modules = getModules()
     let customscripts: customscript[] = []
     for (const module of modules) {
         if(!module){

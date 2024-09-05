@@ -243,3 +243,11 @@ html, body{
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
 }
+
+.x-risu-risu-inlay-image{
+  @apply w-full flex justify-center
+}
+
+.x-risu-risu-inlay-image > img{
+  @apply rounded-lg focus:outline-none max-w-80 w-full
+}

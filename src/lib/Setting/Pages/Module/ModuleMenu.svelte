@@ -121,8 +121,12 @@
 </div>
 
 {#if submenu === 0}
-    <TextInput bind:value={currentModule.name} className="mt-1" placeholder={language.name}/>
-    <TextInput bind:value={currentModule.description} className="mt-1" placeholder={language.description} size="sm"/>
+    <span>{language.name}</span>
+    <TextInput bind:value={currentModule.name} className="mt-1"/>
+    <span class="mt-4">{language.description}</span>
+    <TextInput bind:value={currentModule.description} className="mt-1" size="sm"/>
+    <span class="mt-4">{language.namespace} <Help key="namespace" /></span>
+    <TextInput bind:value={currentModule.namespace} className="mt-1" size="sm"/>
     <div class="flex items-center mt-4">
         <Check bind:check={currentModule.hideIcon} name={language.hideChatIcon}/>
     </div>

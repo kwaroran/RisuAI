@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "127.0.0"
+export let appVer = "128.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -725,6 +725,7 @@ export interface Database{
     falLora: string
     falLoraName: string
     falLoraScale: number
+    moduleIntergration: string
 }
 
 export interface customscript{
@@ -975,6 +976,7 @@ export interface botPreset{
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
+    moduleIntergration?:string
 }
 
 
@@ -1254,6 +1256,7 @@ export function saveCurrentPreset(){
         useInstructPrompt: db.useInstructPrompt,
         customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
         templateDefaultVariables: db.templateDefaultVariables ?? "",
+        moduleIntergration: db.moduleIntergration ?? "",
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1338,6 +1341,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.useInstructPrompt = newPres.useInstructPrompt ?? false
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
+    db.moduleIntergration = newPres.moduleIntergration ?? ''
     return db
 }
 

@@ -68,7 +68,7 @@ export const languageChinese = {
 	  "utilityBot": "启用后，它将忽略主要提示词、越狱和其他提示词。用于实用程序机器人，而不是用于角色扮演。",
 	  "loreSelective": "如果切换选择性的，则激活键和次要键都应有匹配项才能激活lorebook。",
 	  "loreRandomActivation": "如果启用了概率条件，那么当lorebook的其他条件都已满足时，每次发送聊天时lorebook将以“概率”设置的概率被激活。",
-	  "additionalAssets": "在你的聊天中显示的额外资源。\n\n - 使用`{{raw::<asset name>}}`作为路径\n - 使用`{{img::<asset name>}}`作为图片\n - 使用`{{video::<asset name>}}`作为视频\n - 使用`{{audio::<asset name>}}` 作为音频\n    - 建议放在背景 HTML中",
+	  "additionalAssets": "在你的聊天中显示的额外资源。\n\n - 使用`{{raw::<asset name>}}`作为路径\n - 使用`{{image::<asset name>}}`作为图片\n - 使用`{{video::<asset name>}}`作为视频\n - 使用`{{audio::<asset name>}}` 作为音频\n    - 建议放在背景 HTML中",
 	  "superMemory": "超级记忆通过给 AI 提供总结数据使你的角色记忆更多信息\n\n超级记忆模型是一个总结文本的模型。推荐使用Davinci，除非是具有超过2000个token数的高度总结能力的未经过滤模型，否则不推荐使用辅助模型。\n\n超级记忆提示决定了应发送什么提示词进行总结。如果你留空，它将使用默认提示词。建议留空。\n\n在所有设置都完成后，你可以在角色的设置中启用它。",
 	  "replaceGlobalNote": "如果不为空，则将当前全局注释替换为此。",
 	  "backgroundHTML": "将被注入聊天荧幕背景的Markdown/HTML数据。\n\n你也可以使用其他资源。例如，你可以使用`{{audio::<asset name}}`添加背景音乐\n\n此外，你还可以将这些数据与其他资源一起使用：\n - `{{bg::<asset name>}}`: 将背景注入资源",

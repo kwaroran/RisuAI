@@ -563,6 +563,10 @@
             }}/>
         {/if}
     </Arcodion>
+    
+    <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
+        <TextAreaInput bind:value={$DataBase.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
+    </Arcodion>
     {#if submenu !== -1}
         <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
     {/if}
