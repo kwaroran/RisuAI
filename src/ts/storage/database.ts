@@ -168,7 +168,7 @@ export function setDatabase(data:Database){
         data.runpodKey = ''
     }
     if(checkNullish(data.webUiUrl)){
-        data.webUiUrl = 'http://128.0.0.1:7860/'
+        data.webUiUrl = 'http://127.0.0.1:7860/'
     }
     if(checkNullish(data.sdSteps)){
         data.sdSteps = 30
