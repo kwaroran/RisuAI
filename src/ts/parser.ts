@@ -250,7 +250,7 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 
-export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
+export const assetRegex = /{{(raw|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
@@ -322,6 +322,8 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 return path.path
             case 'img':
                 return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            case 'image':
+                return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>`
             case 'video':
                 return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
             case 'video-img':
