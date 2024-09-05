@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "127.0.0"
+export let appVer = "128.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -168,7 +168,7 @@ export function setDatabase(data:Database){
         data.runpodKey = ''
     }
     if(checkNullish(data.webUiUrl)){
-        data.webUiUrl = 'http://127.0.0.1:7860/'
+        data.webUiUrl = 'http://128.0.0.1:7860/'
     }
     if(checkNullish(data.sdSteps)){
         data.sdSteps = 30
