@@ -160,6 +160,7 @@ export async function importModule(){
                 msg: ''
             })
 
+            module.id = v4()
             db.modules.push(module)
             setDatabase(db)
             return   
