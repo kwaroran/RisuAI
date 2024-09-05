@@ -135,6 +135,7 @@ export const languageEnglish = {
         luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
         claudeCachingExperimental: "Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.",
         urllora: "You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like `urn:air:flux1:lora:civitai:180891@776656` or just `civitai:180891@776656`) and paste it.",
+        namespace: "Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -688,5 +689,7 @@ export const languageEnglish = {
     hideApiKeys: "Hide API Keys",
     unformatQuotes: "Disable Quote Formatting",
     enableDevTools: "Enable Dev Tools",
-    selectFile: "Select File"
+    selectFile: "Select File",
+    namespace: "Namespace",
+    moduleIntergration: "Module Integration",
 }
