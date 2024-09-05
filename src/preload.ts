@@ -19,6 +19,15 @@ export function preLoadCheck(){
     else if(searchParams.has('mainpage')) {
         localStorage.setItem('mainpage', searchParams.get('mainpage'));
     }
+
+    if(isWeb) {
+        //Add beforeunload event listener to prevent the user from leaving the page
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault()
+            //legacy browser
+            e.returnValue = true
+        })
+    }
     
     
     // Redirect to the main page if the user has not visited the main page

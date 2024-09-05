@@ -101,7 +101,7 @@ const normalCBSwithParams = [
 ]
 
 const displayRelatedCBS = [
-    'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment'
+    'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment', 'image'
 ];
 
 const specialCBS = [
