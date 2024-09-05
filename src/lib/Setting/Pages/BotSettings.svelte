@@ -563,7 +563,8 @@
             }}/>
         {/if}
     </Arcodion>
-    <Arcodion name={language.moduleIntergration}>
+    
+    <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
         <TextAreaInput bind:value={$DataBase.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
     </Arcodion>
     {#if submenu !== -1}

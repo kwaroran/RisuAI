@@ -16,6 +16,12 @@ const randomness = /\|\|\|/g
 
 export type ScriptMode = 'editinput'|'editoutput'|'editprocess'|'editdisplay'
 
+type pScript = {
+    script: customscript,
+    order: number
+    actions: string[]
+}
+
 export async function processScript(char:character|groupChat, data:string, mode:ScriptMode){
     return (await processScriptFull(char, data, mode)).data
 }
@@ -73,7 +79,9 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     if(scripts.length === 0){
         return {data, emoChanged}
     }
-    for (const script of scripts){
+    function executeScript(pscript:pScript){
+        const script = pscript.script
+        
         if(script.type === mode){
 
             let outScript2 = script.out.replaceAll("$n", "\n")
@@ -82,7 +90,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             if(script.ableFlag){
                 flag = script.flag || 'g'
             }
-            if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
+            if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom') || pscript.actions.includes('move_top') || pscript.actions.includes('move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
             }
             //remove unsupported flag
@@ -92,8 +100,13 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 flag = 'u'
             }
 
-            const reg = new RegExp(script.in, flag)
-            if(outScript.startsWith('@@')){
+            let input = script.in
+            if(pscript.actions.includes('cbs')){
+                input = risuChatParser(input, { chatID: chatID })
+            }
+
+            const reg = new RegExp(input, flag)
+            if(outScript.startsWith('@@') || pscript.actions.length > 0){
                 if(reg.test(data)){
                     if(outScript.startsWith('@@emo ')){
                         const emoName = script.out.substring(6).trim()
@@ -118,12 +131,15 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                             }
                         }
                     }
-                    if(outScript.startsWith('@@inject') && chatID !== -1){
+                    else if((outScript.startsWith('@@inject') || pscript.actions.includes('inject')) && chatID !== -1){
                         const selchar = db.characters[get(selectedCharID)]
                         selchar.chats[selchar.chatPage].message[chatID].data = data
                         data = data.replace(reg, "")
                     }
-                    if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom')){
+                    else if(
+                        outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom') ||
+                        pscript.actions.includes('move_top') || pscript.actions.includes('move_bottom')
+                    ){
                         const isGlobal = flag.includes('g')
                         const matchAll = isGlobal ? data.matchAll(reg) : [data.match(reg)]
                         data = data.replace(reg, "")
@@ -148,7 +164,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                                         return v
                                     })
                                 console.log(out)
-                                if(outScript.startsWith('@@move_top')){
+                                if(outScript.startsWith('@@move_top') || pscript.actions.includes('move_top')){
                                     data = out + '\n' +data
                                 }
                                 else{
@@ -157,9 +173,12 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                             }
                         }
                     }
+                    else{
+                        data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
+                    }
                 }
                 else{
-                    if(outScript.startsWith('@@repeat_back')  && chatID !== -1){
+                    if((outScript.startsWith('@@repeat_back') || pscript.actions.includes('repeat_back'))  && chatID !== -1){
                         const v = outScript.split(' ', 2)[1]
                         const selchar = db.characters[get(selectedCharID)]
                         const chat = selchar.chats[selchar.chatPage]
@@ -202,6 +221,52 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    let parsedScripts:pScript[] = []
+    let orderChanged = false
+    for (const script of scripts){
+        if(script.ableFlag && script.flag?.includes('<')){
+            const rregex = /<(.+?)>/g
+            const scriptData = structuredClone(script)
+            let order = 0
+            const actions:string[] = []
+            scriptData.flag = scriptData.flag?.replace(rregex, (v:string, p1:string) => {
+                const meta = p1.split(',').map((v) => v.trim())
+                for(const m of meta){
+                    if(m.startsWith('order ')){
+                        order = parseInt(m.substring(6))
+                    }
+                    else{
+                        actions.push(m)
+                    }
+                }
+
+                return ''
+            })
+            parsedScripts.push({
+                script: scriptData,
+                order,
+                actions
+            })
+            continue
+        }
+        parsedScripts.push({
+            script,
+            order: 0,
+            actions: []
+        })
+    }
+
+    console.log(parsedScripts)
+
+    if(orderChanged){
+        parsedScripts.sort((a, b) => b.order - a.order) //sort by order
+    }
+    for (const script of parsedScripts){
+        executeScript(script)
+    }
+
+    
 
     if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
         if(!db.dynamicAssetsEditDisplay && mode === 'editdisplay'){
