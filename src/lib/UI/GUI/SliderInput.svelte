@@ -9,28 +9,42 @@
     on:change
 > -->
 
-<div class="w-full" class:mb-4={marginBottom}>
+<div class="w-full flex" class:mb-4={marginBottom}>
+  {#if disableable}
+
+    <div class="relative h-8 border-darkborderc border rounded-full cursor-pointer rounded-r-none border-r-0 flex justify-center items-center">
+      <CheckInput check={value !== -1000} margin={false} onChange={(c) => {
+        if(c) {
+          value = min;
+        } else {
+          value = -1000;
+        }
+      }}></CheckInput>
+    </div>
+  {/if}
   <div 
     class="relative w-full h-8 border-darkborderc border rounded-full cursor-pointer"
+    class:rounded-l-none={disableable}
     style:background={
       `linear-gradient(to right, var(--risu-theme-darkbutton) 0%, var(--risu-theme-darkbutton) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) 100%)`
     }
-    on:mousedown={(event) => {
+    on:pointerdown={(event) => {
       mouseDown = true;
       changeValue(event);
     }}
 
-    on:mousemove={(event) => {
+    on:pointermove={(event) => {
       if (mouseDown) {
         changeValue(event);
       }
     }}
 
-    on:mouseup={() => {
-      mouseDown = false;
-    }}  
 
-    on:mouseleave={() => {
+    on:pointerup={() => {
+      mouseDown = false;
+    }}
+
+    on:pointerleave={() => {
       mouseDown = false;
     }}
     bind:this={slider}
@@ -43,13 +57,16 @@
     <span 
       class="absolute top-0 left-4 h-8 rounded-full items-center justify-center flex text-textcolor text-sm"
     >
-      {customText === undefined ? (value * multiple).toFixed(fixed) : customText}
+      {customText === undefined ? (value === -1000 ? language.disabled : (value * multiple).toFixed(fixed)) : customText}
     </span>
   </div>
 </div>
 
 
 <script lang="ts">
+  import { language } from "src/lang";
+  import CheckInput from "./CheckInput.svelte";
+
     export let min:number = undefined
     export let max:number = undefined
     export let value:number
@@ -59,6 +76,7 @@
     export let multiple = 1
     let slider: HTMLDivElement
     let mouseDown = false
+    export let disableable = false
     export let customText: string|undefined = undefined
 
     function changeValue(event) {
