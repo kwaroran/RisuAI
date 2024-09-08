@@ -227,9 +227,7 @@ function onModuleUpdate(){
         lastChatEnabledModules = []
     }
 
-    const m = getModules([
-        ...lastGlobalEnabledModules, ...lastChatEnabledModules
-    ])
+    const m = getModules()
     
     let moduleHideIcon = false
     let backgroundEmbedding = ''
