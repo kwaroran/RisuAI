@@ -93,18 +93,24 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom') || pscript.actions.includes('move_top') || pscript.actions.includes('move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
             }
-            //remove unsupported flag
-            flag = flag.replace(/[^gimuy]/g, '')
 
             if(flag.length === 0){
                 flag = 'u'
             }
 
             let input = script.in
+            if(input.startsWith('/')){
+                input = input.substring(1)
+                const rflags = input.slice(input.lastIndexOf('/') + 1)
+                flag = rflags 
+                input = input.substring(0, input.lastIndexOf('/'))
+            }
             if(pscript.actions.includes('cbs')){
                 input = risuChatParser(input, { chatID: chatID })
             }
 
+            //remove unsupported flag
+            flag = flag.replace(/[^gimuy]/g, '')
             const reg = new RegExp(input, flag)
             if(outScript.startsWith('@@') || pscript.actions.length > 0){
                 if(reg.test(data)){
