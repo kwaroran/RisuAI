@@ -9,12 +9,81 @@
     import { getCharToken, getChatToken } from "src/ts/tokenizer";
     import { tokenizePreset } from "src/ts/process/prompt";
     import { DataBase, setDatabase } from "src/ts/storage/database";
-  import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-  import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
-  import { selectSingleFile } from "src/ts/util";
-  import { file } from "jszip";
-  import { doingChat, previewFormated, sendChat } from "src/ts/process";
+    import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
+    import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
+    import { selectSingleFile } from "src/ts/util";
+    import { file } from "jszip";
+    import { doingChat, previewFormated, sendChat } from "src/ts/process";
+    import SelectInput from "../UI/GUI/SelectInput.svelte";
+    import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
+  import OptionInput from "../UI/GUI/OptionInput.svelte";
 
+    let previewMode = 'chat'
+    let previewJoin = 'yes'
+    let instructType = 'chatml'
+    let instructCustom = ''
+
+    const preview = async () => {
+        if($doingChat){
+            return false
+        }
+        alertWait("Loading...")
+        await sendChat(-1, {
+            preview: true
+        })
+
+        let md = ''
+        const styledRole = {
+            "function": "📐 Function",
+            "user": "😐 User",
+            "system": "⚙️ System",
+            "assistant": "✨ Assistant",
+        }
+        let formated = structuredClone(previewFormated)
+
+        if(previewJoin === 'yes'){
+            let newFormated = []
+            let latestRole = ''
+
+            for(let i=0;i<formated.length;i++){
+                if(formated[i].role === latestRole){
+                    newFormated[newFormated.length - 1].content += '\n' + formated[i].content
+                }else{
+                    newFormated.push(formated[i])
+                    latestRole = formated[i].role
+                }
+            }
+
+            formated = newFormated
+        }
+
+        if(previewMode === 'instruct'){
+            const instructed = applyChatTemplate(formated, {
+                type: instructType,
+                custom: instructCustom
+            })
+
+            md += '### Instruction\n'
+            md += '```\n' + instructed.replaceAll('```', '\\`\\`\\`') + '\n```\n'
+            $doingChat = false
+            alertMd(md)
+            return
+        }
+
+        for(let i=0;i<formated.length;i++){
+            
+            md += '### ' + (styledRole[formated[i].role] ?? '🤔 Unknown role') + '\n'
+            const modals = formated[i].multimodals
+
+            if(modals && modals.length > 0){
+                md += `> ${modals.length} non-text content(s) included\n` 
+            }
+
+            md += '```\n' + formated[i].content.replaceAll('```', '\\`\\`\\`') + '\n```\n'
+        }
+        $doingChat = false
+        alertMd(md)
+    }
     
     let autopilot = []
 </script>
@@ -149,37 +218,34 @@
     }}>Run</Button>
 </Arcodion>
 
+
+<Arcodion styled name={"Preview Prompt"}>
+    <span>Type</span>
+    <SelectInput bind:value={previewMode}>
+        <OptionInput value="chat">Chat</OptionInput>
+        <OptionInput value="instruct">Instruct</OptionInput>
+    </SelectInput>
+    {#if previewMode === 'instruct'}
+        <span>Instruction Type</span>
+        <SelectInput bind:value={instructType}>
+            {#each Object.keys(chatTemplates) as template}
+                <OptionInput value={template}>{template}</OptionInput>
+            {/each}
+            <OptionInput value="jinja">Custom Jinja</OptionInput>
+        </SelectInput>
+        {#if instructType === 'jinja'}
+            <span>Custom Jinja</span>
+            <TextAreaInput bind:value={instructCustom} />
+        {/if}
+    {/if}
+    <span>Join</span>
+    <SelectInput bind:value={previewJoin}>
+        <OptionInput value="yes">With Join</OptionInput>
+        <OptionInput value="no">Without Join</OptionInput>
+    </SelectInput>
+    <Button className="mt-2" on:click={() => {preview()}}>Run</Button>
+</Arcodion>
+
 <Button className="mt-2" on:click={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>
-
-<Button className="mt-2" on:click={async () => {
-    if($doingChat){
-        return false
-    }
-    alertWait("Loading...")
-    await sendChat(-1, {
-        preview: true
-    })
-
-    let md = ''
-    const styledRole = {
-        "function": "📐 Function",
-        "user": "😐 User",
-        "system": "⚙️ System",
-        "assistant": "✨ Assistant",
-    }
-    for(let i=0;i<previewFormated.length;i++){
-        
-        md += '### ' + (styledRole[previewFormated[i].role] ?? '🤔 Unknown role') + '\n'
-        const modals = previewFormated[i].multimodals
-
-        if(modals && modals.length > 0){
-            md += `> ${modals.length} non-text content(s) included\n` 
-        }
-
-        md += '```\n' + previewFormated[i].content.replaceAll('```', '\\`\\`\\`') + '\n```\n'
-    }
-    $doingChat = false
-    alertMd(md)
-}}>Preview Prompt</Button>
