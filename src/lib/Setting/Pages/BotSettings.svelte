@@ -307,19 +307,22 @@
     {:else}
         <SliderInput min={0} max={200} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2} disableable/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')}
+    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')|| $DataBase.aiModel === 'kobold'}
         <span class="text-textcolor">Top K</span>
         <SliderInput min={0} max={100} marginBottom step={1} bind:value={$DataBase.top_k} disableable/>
     {/if}
     {#if $DataBase.aiModel.startsWith('openrouter')}
-        <span class="text-textcolor">Repetition penalty</span>
-        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty} disableable/>
-
         <span class="text-textcolor">Min P</span>
         <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.min_p} disableable/>
 
+    {/if}
+    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel === 'kobold'}
         <span class="text-textcolor">Top A</span>
         <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.top_a} disableable/>
+
+        <span class="text-textcolor">Repetition penalty</span>
+        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty} disableable/>
+
     {/if}
     {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_') || $DataBase.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
@@ -440,6 +443,9 @@
     {:else if $DataBase.aiModel.startsWith('claude')}
         <span class="text-textcolor">Top P <Help key="topP"/></span>
         <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
+    {:else if $DataBase.aiModel.startsWith('kobold')}
+    <span class="text-textcolor">Top P <Help key="topP"/></span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
     {:else}
 
 
