@@ -1622,9 +1622,6 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             //reformat chat
 
-
-
-
             let body = applyParameters({
                 message: lastChatPrompt,
                 chat_history: formated.map((v) => {
@@ -1657,6 +1654,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 'top_p': 'p',
             })
 
+            if(aiModel !== 'cohere-command-r-03-2024' && aiModel !== 'cohere-command-r-plus-04-2024'){
+                body.safety_mode = "NONE"
+            }
+            
             if(preamble){
                 if(body.chat_history.length > 0){
                     // @ts-ignore
