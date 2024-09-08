@@ -26,6 +26,7 @@
     FolderIcon,
     FolderOpenIcon,
     HomeIcon,
+    WrenchIcon,
   } from "lucide-svelte";
     import {
     characterFormatUpdate,
@@ -663,15 +664,17 @@
         <button on:click={() => {
           devTool = false
           botMakerMode.set(false)
-        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode}>{language.Chat}</button>
+        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool}>{language.Chat}</button>
         <button on:click={() => {
           devTool = false
           botMakerMode.set(true)
-        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode}>{language.character}</button>
+        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
         {#if $DataBase.enableDevTools}
           <button on:click={() => {
             devTool = true
-          }} class="flex-grow border-l border-l-selected rounded-br-md" class:text-textcolor2={!$botMakerMode}>🛠️</button>
+          }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool}>
+            <WrenchIcon size={18} />
+          </button>
         {/if}
       </div>
       {#if devTool}
