@@ -4,7 +4,7 @@
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import { getRequestLog } from "src/ts/storage/globalApi";
-    import { alertMd } from "src/ts/alert";
+    import { alertMd, alertWait } from "src/ts/alert";
     import Arcodion from "../UI/Arcodion.svelte";
     import { getCharToken, getChatToken } from "src/ts/tokenizer";
     import { tokenizePreset } from "src/ts/process/prompt";
@@ -13,7 +13,7 @@
   import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
   import { selectSingleFile } from "src/ts/util";
   import { file } from "jszip";
-  import { doingChat, sendChat } from "src/ts/process";
+  import { doingChat, previewFormated, sendChat } from "src/ts/process";
 
     
     let autopilot = []
@@ -148,6 +148,38 @@
         doingChat.set(false)
     }}>Run</Button>
 </Arcodion>
+
 <Button className="mt-2" on:click={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>
+
+<Button className="mt-2" on:click={async () => {
+    if($doingChat){
+        return false
+    }
+    alertWait("Loading...")
+    await sendChat(-1, {
+        preview: true
+    })
+
+    let md = ''
+    const styledRole = {
+        "function": "📐 Function",
+        "user": "😐 User",
+        "system": "⚙️ System",
+        "assistant": "✨ Assistant",
+    }
+    for(let i=0;i<previewFormated.length;i++){
+        
+        md += '### ' + (styledRole[previewFormated[i].role] ?? '🤔 Unknown role') + '\n'
+        const modals = previewFormated[i].multimodals
+
+        if(modals && modals.length > 0){
+            md += `> ${modals.length} non-text content(s) included\n` 
+        }
+
+        md += '```\n' + previewFormated[i].content.replaceAll('```', '\\`\\`\\`') + '\n```\n'
+    }
+    $doingChat = false
+    alertMd(md)
+}}>Preview Prompt</Button>

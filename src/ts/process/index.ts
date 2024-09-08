@@ -56,8 +56,15 @@ export interface OpenAIChatFull extends OpenAIChat{
 export const doingChat = writable(false)
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
+export let previewFormated:OpenAIChat[] = []
 
-export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:number,signal?:AbortSignal,continue?:boolean,usedContinueTokens?:number} = {}):Promise<boolean> {
+export async function sendChat(chatProcessIndex = -1,arg:{
+    chatAdditonalTokens?:number,
+    signal?:AbortSignal,
+    continue?:boolean,
+    usedContinueTokens?:number,
+    preview?:boolean
+} = {}):Promise<boolean> {
 
     chatProcessStage.set(0)
     const abortSignal = arg.signal ?? (new AbortController()).signal
@@ -1090,6 +1097,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{chatAdditonalTokens?:n
         maxContext: maxContextTokens,
     }
     chatProcessStage.set(3)
+    if(arg.preview){
+        previewFormated = formated
+        return true
+    }
+
     const req = await requestChatData({
         formated: formated,
         biasString: biases,

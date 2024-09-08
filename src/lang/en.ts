@@ -699,4 +699,5 @@ export const languageEnglish = {
     selectFile: "Select File",
     namespace: "Namespace",
     moduleIntergration: "Module Integration",
+    previewInfo: "This preview shows prompt before model-specific processing.",
 }
