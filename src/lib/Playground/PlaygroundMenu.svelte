@@ -10,8 +10,11 @@
     import { characterFormatUpdate, createBlankChar } from "src/ts/characters";
     import { get } from "svelte/store";
     import { DataBase, setDatabase, type character } from "src/ts/storage/database";
-  import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
-  import PlaygroundParser from "./PlaygroundParser.svelte";
+    import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
+    import PlaygroundParser from "./PlaygroundParser.svelte";
+    import ToolConvertion from "./ToolConvertion.svelte";
+
+    let easterEggTouch = 0
 
     const playgroundChat = () => {
         let db = get(DataBase)
@@ -81,6 +84,24 @@
             }}>
                 <h1 class="text-2xl font-bold text-start">Parser</h1>
             </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                PlaygroundStore.set(101)
+            }}>
+                <h1 class="text-2xl font-bold text-start">{language.promptConvertion}</h1>
+            </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                easterEggTouch += 1
+            }}>
+                <h1 class="text-2xl font-bold text-start">
+                    {#if easterEggTouch <= 10}
+                        🤗 Coming soon
+                    {:else if easterEggTouch <= 30}
+                        🤗 Still coming soon
+                    {:else if easterEggTouch <= 50}
+                        😇 Really soon
+                    {/if}
+                </h1>
+            </button>
         </div>
     {:else}
         {#if $SizeStore.w < 1024}
@@ -113,6 +134,9 @@
             {/if}  
             {#if $PlaygroundStore === 8}
                 <PlaygroundParser/>
+            {/if}  
+            {#if $PlaygroundStore === 101}
+                <ToolConvertion/>
             {/if}  
         </div>
     {/if}

@@ -700,4 +700,7 @@ export const languageEnglish = {
     namespace: "Namespace",
     moduleIntergration: "Module Integration",
     previewInfo: "This preview shows prompt before model-specific processing.",
+    miscTools: "Misc Tools",
+    promptConvertion: "Prompt Convertion",
+    convertionStep1: "Select all file related to the prompt (Context, Instruct and Sampler JSON is supported)",
 }

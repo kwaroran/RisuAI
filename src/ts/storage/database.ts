@@ -977,6 +977,9 @@ export interface botPreset{
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
     moduleIntergration?:string
+    top_k?:number
+    instructChatTemplate?:string
+    JinjaTemplate?:string
 }
 
 
@@ -1257,6 +1260,9 @@ export function saveCurrentPreset(){
         customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
         templateDefaultVariables: db.templateDefaultVariables ?? "",
         moduleIntergration: db.moduleIntergration ?? "",
+        top_k: db.top_k,
+        instructChatTemplate: db.instructChatTemplate,
+        JinjaTemplate: db.JinjaTemplate ?? ''
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1342,6 +1348,9 @@ export function setPreset(db:Database, newPres: botPreset){
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
     db.moduleIntergration = newPres.moduleIntergration ?? ''
+    db.top_k = newPres.top_k ?? db.top_k
+    db.instructChatTemplate = newPres.instructChatTemplate ?? db.instructChatTemplate
+    db.JinjaTemplate = newPres.JinjaTemplate ?? db.JinjaTemplate
     return db
 }
 
