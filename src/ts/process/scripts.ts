@@ -7,7 +7,7 @@ import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { runCharacterJS } from "../plugins/embedscript";
-import { getModuleRegexScripts } from "./modules";
+import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 import { runLuaEditTrigger } from "./lua";
 
@@ -273,6 +273,14 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             return {data, emoChanged}
         }
         const assetNames = char.additionalAssets.map((v) => v[0])
+
+        const moduleAssets = getModuleAssets()
+        if(moduleAssets.length > 0){
+            for(const asset of moduleAssets){
+                assetNames.push(asset[0])
+            }
+        }
+
         const processer = new HypaProcesser('MiniLM')
         await processer.addText(assetNames)
         const matches = data.matchAll(assetRegex)
