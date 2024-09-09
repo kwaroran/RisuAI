@@ -252,10 +252,6 @@
         <Check bind:check={$DataBase.roundIcons} name={language.roundIcons}/>
     </div>
 
-    <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.useAdvancedEditor} name={language.useAdvancedEditor}/>
-    </div>
-
     {#if $DataBase.textScreenColor}
         <div class="flex items-center mt-2">
             <Check check={true} onChange={() => {
@@ -324,11 +320,16 @@
         <Help key="betaMobileGUI"/>
     </div>
 
-    {#if $DataBase.useExperimental}
+    {#if $DataBase.showUnrecommended}
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
-            <Help key="experimental" name={language.useChatSticker}/>
+            <Check bind:check={$DataBase.useChatSticker} name={language.showUnrecommended}/>
+            <Help key="unrecommended" name={language.useChatSticker} unrecommended/>
         </div>
+
+        <div class="flex items-center mt-2">
+            <Check bind:check={$DataBase.useAdvancedEditor} name={language.useAdvancedEditor}/>
+            <Help key="unrecommended" unrecommended/>
+        </div>    
     {/if}
 
     <span class="text-textcolor mt-4">{language.customCSS}<Help key="customCSS" /></span>

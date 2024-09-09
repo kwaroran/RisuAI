@@ -95,21 +95,23 @@
 <div class="flex items-center mt-4">
     <Check bind:check={$DataBase.allowAllExtentionFiles} name="Allow all in file select"/>
 </div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.antiClaudeOverload} name={language.antiClaudeOverload}>
-        <Help key="experimental"/><Help key="antiClaudeOverload"/>
-    </Check>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.claudeCachingExperimental} name={language.claudeCachingExperimental}>
-        <Help key="experimental"/><Help key="claudeCachingExperimental"/>
-    </Check>
-</div>
-<div class="flex items-center mt-4">
-    <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
-        <Help key="experimental"/><Help key="oaiRandomUser"/>
-    </Check>
-</div>
+{#if $DataBase.useExperimental}
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.antiClaudeOverload} name={language.antiClaudeOverload}>
+            <Help key="experimental"/><Help key="antiClaudeOverload"/>
+        </Check>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.claudeCachingExperimental} name={language.claudeCachingExperimental}>
+            <Help key="experimental"/><Help key="claudeCachingExperimental"/>
+        </Check>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={$DataBase.putUserOpen} name={language.oaiRandomUser}>
+            <Help key="experimental"/><Help key="oaiRandomUser"/>
+        </Check>
+    </div>
+{/if}
 {#if $DataBase.showUnrecommended}
     <div class="flex items-center mt-4">
         <Check bind:check={$DataBase.chainOfThought} name={language.cot}>
@@ -143,22 +145,6 @@
         <Check bind:check={$DataBase.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
     </div>
 {/if}
-<div class="flex items-center mt-4">
-    <Check check={$DataBase.tpo} name="Alpha DevMode" onChange={() => {
-        // access code is "tendo"
-        // I just put it on source code so it's not really a secret
-        // well, if you are reading this, you are a developer, so you can use this feature
-        // this is for testing 2.0 in real environment, but it's not ready yet
-
-        const accessCode = 'tendo'
-        $DataBase.tpo = $DataBase.tpo
-        if(prompt("Access Code") === accessCode){
-            $DataBase.tpo = !$DataBase.tpo
-        }
-    }}>
-        <Help key="experimental"/>
-    </Check>
-</div>
 <button
     on:click={async () => {
         alertMd(getRequestLog())

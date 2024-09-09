@@ -145,6 +145,7 @@ export const languageEnglish = {
         moduleIntergration: "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.",
         customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
         betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.",
+        unrecommended: "This is a unrecommended setting. it is not recommended to use this setting.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
