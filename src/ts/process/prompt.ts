@@ -2,6 +2,7 @@ import { get } from "svelte/store";
 import { tokenizeAccurate } from "../tokenizer";
 import { DataBase, presetTemplate, setDatabase, type Database } from "../storage/database";
 import { alertError, alertNormal } from "../alert";
+import type { OobaChatCompletionRequestParams } from "../model/ooba";
 
 export type PromptItem = PromptItemPlain|PromptItemTyped|PromptItemChat|PromptItemAuthorNote;
 export type PromptType = PromptItem['type'];
@@ -218,6 +219,42 @@ export function stChatConvert(pre:any){
     return promptTemplate
 }
 
+export const OobaParams = [
+    "tokenizer",
+    "min_p",
+    "top_k",
+    "repetition_penalty",
+    "repetition_penalty_range",
+    "typical_p",
+    "tfs",
+    "top_a",
+    "epsilon_cutoff",
+    "eta_cutoff",
+    "guidance_scale",
+    "negative_prompt",
+    "penalty_alpha",
+    "mirostat_mode",
+    "mirostat_tau",
+    "mirostat_eta",
+    "temperature_last",
+    "do_sample",
+    "seed",
+    "encoder_repetition_penalty",
+    "no_repeat_ngram_size",
+    "min_length",
+    "num_beams",
+    "length_penalty",
+    "early_stopping",
+    "truncation_length",
+    "max_tokens_second",
+    "custom_token_bans",
+    "auto_max_new_tokens",
+    "ban_eos_token",
+    "add_bos_token",
+    "skip_special_tokens",
+    "grammar_string"
+]
+
 export function promptConvertion(files:{ name: string, content: string, type:string }[]){
     let preset = structuredClone(presetTemplate)
     let instData = {
@@ -263,26 +300,37 @@ export function promptConvertion(files:{ name: string, content: string, type:str
     }
 
     let samplers:string[] = []
-    const getParam = (setname:keyof(typeof preset), getname:string = '', arg:{
-        multiplier?: number
-    }={}) => {
-        if(getname === ''){
-            getname = setname
-        }
-        let multiplier = arg.multiplier ?? 1
-        if(samplers.includes(getname)){
-            // @ts-ignore
-            preset[setname] = data[getname] * multiplier
-        }
-        else{
-            // @ts-ignore
-            preset[setname] = -1000
-        }
+
+    let oobaData:OobaChatCompletionRequestParams = {
+        mode: 'instruct',
     }
+
 
     for(let i=0;i<files.length;i++){
         const file = files[i]
         const data = JSON.parse(file.content)
+
+        const getParam = (setname:keyof(typeof preset), getname:string = '', arg:{
+            multiplier?: number
+        }={}) => {
+            if(getname === ''){
+                getname = setname
+            }
+            let multiplier = arg.multiplier ?? 1
+            if(samplers.includes(getname)){
+                //@ts-ignore
+                preset[setname] = data[getname] * multiplier
+            }
+            else{
+                // @ts-ignore
+                preset[setname] = -1000
+            }
+    
+            if(OobaParams.includes(getname)){
+                oobaData[getname] = data[getname]
+            }
+        }
+
         preset.name ||= instData.name ?? ''
         switch(file.type){
             case 'STINST':{
@@ -304,6 +352,11 @@ export function promptConvertion(files:{ name: string, content: string, type:str
                 getParam('repetition_penalty', 'rep_pen')
                 getParam('frequencyPenalty', 'freq_pen', {multiplier: 100})
                 getParam('PresensePenalty', 'presence_penalty', {multiplier: 100})
+                for(const key of OobaParams){
+                    if(samplers.includes(key) && (data[key] !== undefined) && (data[key] !== null)){
+                        oobaData[key] = data[key]
+                    }
+                }
                 break
             }
             case 'STCONTEXT':{
@@ -337,6 +390,8 @@ export function promptConvertion(files:{ name: string, content: string, type:str
         alertNormal('Preset converted successfully. You can find it in bot setting presets')
         return
     }
+
+    preset.reverseProxyOobaArgs = oobaData
 
     preset.promptTemplate = [{
         type: 'plain',

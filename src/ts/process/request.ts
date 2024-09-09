@@ -21,6 +21,7 @@ import { runTransformers } from "./transformers";
 import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
+import { OobaParams } from "./prompt";
 
 
 
@@ -1076,7 +1077,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const OobaBodyTemplate = db.reverseProxyOobaArgs
             const keys = Object.keys(OobaBodyTemplate)
             for(const key of keys){
-                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null && OobaParams.includes(key)){
                     bodyTemplate[key] = OobaBodyTemplate[key]
                 }
                 else if(bodyTemplate[key]){

@@ -1081,7 +1081,7 @@ interface AINsettings{
     top_k:number
 }
 
-interface OobaSettings{
+export interface OobaSettings{
     max_new_tokens: number,
     do_sample: boolean,
     temperature: number,
