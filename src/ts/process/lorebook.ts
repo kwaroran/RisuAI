@@ -230,11 +230,7 @@ export async function loadLoreBookV3Prompt(){
         regex:boolean
         fullWordMatching:boolean
     }) => {
-        let start = messages.length - arg.searchDepth
-        if(start < 0){
-            start = 0
-        }
-        const sliced = messages.slice(start)
+        const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
         let mText = sliced.map((msg) => {
             return msg.data
