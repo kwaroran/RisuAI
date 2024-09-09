@@ -127,6 +127,10 @@
                                 }
                             }
                         }
+                        case 2:{
+                            chara.chatPage = i
+                            createMultiuserRoom()
+                        }
                     }
                 }}>
                     <MenuIcon size={18}/>

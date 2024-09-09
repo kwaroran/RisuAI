@@ -20,7 +20,7 @@ import { additionalInformations } from "./embedding/addinfo";
 import { cipherChat, decipherChat } from "./cipherChat";
 import { getInlayImage, supportsInlayImage } from "./files/image";
 import { getGenerationModelString } from "./models/modelString";
-import { sendPeerChar } from "../sync/multiuser";
+import { connectionOpen, peerRevertChat, peerSafeCheck, peerSync } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
 import { runCharacterJS } from "../plugins/embedscript";
 import { addRerolls } from "./prereroll";
@@ -107,6 +107,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
     }
     doingChat.set(true)
+
+    if(connectionOpen){
+        chatProcessStage.set(4)
+        const peerSafe = await peerSafeCheck()
+        if(!peerSafe){
+            peerRevertChat()
+            doingChat.set(false)
+            alertError(language.otherUserRequesting)
+            return false
+        }
+        await peerSync()
+        chatProcessStage.set(0)
+    }
 
     let db = get(DataBase)
     let selectedChar = get(selectedCharID)
@@ -1307,7 +1320,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     chatProcessStage.set(4)
 
-    sendPeerChar()
+    peerSync()
 
     if(req.special){
         if(req.special.emotion){

@@ -13,6 +13,7 @@
     import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
     import PlaygroundParser from "./PlaygroundParser.svelte";
     import ToolConvertion from "./ToolConvertion.svelte";
+  import { joinMultiuserRoom } from "src/ts/sync/multiuser";
 
     let easterEggTouch = 0
 
@@ -88,6 +89,11 @@
                 PlaygroundStore.set(101)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.promptConvertion}</h1>
+            </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                joinMultiuserRoom()
+            }}>
+                <h1 class="text-2xl font-bold text-start">{language.joinMultiUserRoom}</h1>
             </button>
             <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
                 easterEggTouch += 1

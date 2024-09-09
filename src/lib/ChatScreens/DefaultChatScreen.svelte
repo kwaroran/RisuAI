@@ -25,6 +25,7 @@
     import { postChatFile } from 'src/ts/process/files/multisend';
     import { getInlayImage } from 'src/ts/process/files/image';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
+  import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -81,7 +82,8 @@
                     if($DataBase.useSayNothing){
                         cha.push({
                             role: 'user',
-                            data: '*says nothing*'
+                            data: '*says nothing*',
+                            name: $ConnectionOpenStore ? $CurrentUsername : null
                         })
                     }
                 }
@@ -98,14 +100,16 @@
                 cha.push({
                     role: 'user',
                     data: await processScript(char,messageInput,'editinput'),
-                    time: Date.now()
+                    time: Date.now(),
+                    name: $ConnectionOpenStore ? $CurrentUsername : null
                 })
             }
             else{
                 cha.push({
                     role: 'user',
                     data: messageInput,
-                    time: Date.now()
+                    time: Date.now(),
+                    name: $ConnectionOpenStore ? $CurrentUsername : null
                 })
             }
         }
@@ -583,9 +587,9 @@
                     <Chat
                         character={$CurrentSimpleCharacter}
                         idx={chat.index}
-                        name={$CurrentUsername} 
+                        name={chat.name ?? $CurrentUsername} 
                         message={chat.data}
-                        img={getCharImage($CurrentUserIcon, 'css')}
+                        img={$ConnectionOpenStore ? '' : getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                         largePortrait={$UserIconProtrait}
                         MessageGenerationInfo={chat.generationInfo}

@@ -708,4 +708,10 @@ export const languageEnglish = {
     customCSS: "Custom CSS",
     betaMobileGUI: "Beta Mobile GUI",
     menu: "Menu",
+    connectionOpen: "Connection Open",
+    connectionOpenInfo: "Multiuser room is opened. you can share the room code to other users. others can join the room by using the code inside playground > Join Multiuser Room.",
+    createMultiuserRoom: "Create Multiuser Room",
+    connectionHost: "You are the host of the room.",
+    connectionGuest: "You are the guest of the room.",
+    otherUserRequesting: "Other user is already requesting. try again later.",
 }

@@ -1062,6 +1062,8 @@ export interface Message{
     chatId?:string
     time?: number
     generationInfo?: MessageGenerationInfo
+    name?:string
+    otherUser?:boolean
 }
 
 export interface MessageGenerationInfo{
