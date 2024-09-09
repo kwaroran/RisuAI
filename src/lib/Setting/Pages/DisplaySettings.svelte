@@ -322,7 +322,7 @@
 
     {#if $DataBase.showUnrecommended}
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.useChatSticker} name={language.showUnrecommended}/>
+            <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
             <Help key="unrecommended" name={language.useChatSticker} unrecommended/>
         </div>
 
