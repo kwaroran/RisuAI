@@ -7,7 +7,7 @@ import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { runCharacterJS } from "../plugins/embedscript";
-import { getModuleRegexScripts } from "./modules";
+import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 import { runLuaEditTrigger } from "./lua";
 
@@ -93,18 +93,24 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom') || pscript.actions.includes('move_top') || pscript.actions.includes('move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
             }
-            //remove unsupported flag
-            flag = flag.replace(/[^gimuy]/g, '')
 
             if(flag.length === 0){
                 flag = 'u'
             }
 
             let input = script.in
+            if(input.startsWith('/')){
+                input = input.substring(1)
+                const rflags = input.slice(input.lastIndexOf('/') + 1)
+                flag = rflags 
+                input = input.substring(0, input.lastIndexOf('/'))
+            }
             if(pscript.actions.includes('cbs')){
                 input = risuChatParser(input, { chatID: chatID })
             }
 
+            //remove unsupported flag
+            flag = flag.replace(/[^gimuy]/g, '')
             const reg = new RegExp(input, flag)
             if(outScript.startsWith('@@') || pscript.actions.length > 0){
                 if(reg.test(data)){
@@ -273,6 +279,14 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             return {data, emoChanged}
         }
         const assetNames = char.additionalAssets.map((v) => v[0])
+
+        const moduleAssets = getModuleAssets()
+        if(moduleAssets.length > 0){
+            for(const asset of moduleAssets){
+                assetNames.push(asset[0])
+            }
+        }
+
         const processer = new HypaProcesser('MiniLM')
         await processer.addText(assetNames)
         const matches = data.matchAll(assetRegex)

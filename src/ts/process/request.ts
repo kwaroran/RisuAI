@@ -21,6 +21,7 @@ import { runTransformers } from "./transformers";
 import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
+import { OobaParams } from "./prompt";
 
 
 
@@ -77,6 +78,60 @@ interface OaiFunctions {
         };
         required: string[];
     };
+}
+
+
+type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'
+type ParameterMap = {
+    [key in Parameter]?: string;
+};
+
+function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap = {}) {
+    const db = get(DataBase)
+    for(const parameter of parameters){
+        let value = 0
+        switch(parameter){
+            case 'temperature':{
+                value = db.temperature === -1000 ? -1000 : (db.temperature / 100)
+                break
+            }
+            case 'top_k':{
+                value = db.top_k
+                break
+            }
+            case 'repetition_penalty':{
+                value = db.repetition_penalty
+                break
+            }
+            case 'min_p':{
+                value = db.min_p
+                break
+            }
+            case 'top_a':{
+                value = db.top_a
+                break
+            }
+            case 'top_p':{
+                value = db.top_p
+                break
+            }
+            case 'frequency_penalty':{
+                value = db.frequencyPenalty === -1000 ? -1000 : (db.frequencyPenalty / 100)
+                break
+            }
+            case 'presence_penalty':{
+                value = db.PresensePenalty === -1000 ? -1000 : (db.PresensePenalty / 100)
+                break
+            }
+        }
+
+        if(value === -1000){
+            continue
+        }
+
+        data[rename[parameter] ?? parameter] = value
+    }
+    return data
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
@@ -399,7 +454,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             db.cipherChat = false
-            let body = ({
+            let body:{
+                [key:string]:any
+            } = ({
                 model: aiModel === 'openrouter' ? openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
@@ -428,61 +485,46 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
-                temperature: temperature,
+                // temperature: temperature,
                 max_tokens: maxTokens,
-                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
+                // presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
+                // frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
-                top_p: db.top_p,
+                // top_p: db.top_p,
 
             })
 
             if(db.generationSeed > 0){
-                // @ts-ignore
                 body.seed = db.generationSeed
             }
 
             if(db.putUserOpen){
-                // @ts-ignore
                 body.user = getOpenUserString()
             }
 
             if(aiModel === 'openrouter'){
-                if(db.top_k !== 0){
-                    //@ts-ignore
-                    body.top_k = db.top_k
-                }
                 if(db.openrouterFallback){
-                    //@ts-ignore
                     body.route = "fallback"
                 }
-                //@ts-ignore
-                body.repetition_penalty = db.repetition_penalty
-                //@ts-ignore
-                body.min_p = db.min_p
-                //@ts-ignore
-                body.top_a = db.top_a
-                //@ts-ignore
                 body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
 
                 if(db.openrouterProvider){
-                    //@ts-ignore
                     body.provider = {
                         order: [db.openrouterProvider]
                     }
                 }
 
                 if(db.useInstructPrompt){
-                    //@ts-ignore
                     delete body.messages
-
                     const prompt = applyChatTemplate(formated)
-
-                    //@ts-ignore
                     body.prompt = prompt
                 }
             }
+
+            body = applyParameters(body,
+                aiModel === 'openrouter' ? ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'] : ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+            )
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
                 const OobaBodyTemplate = db.reverseProxyOobaArgs
@@ -889,7 +931,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mancer':{
             let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
-            let bodyTemplate:any
+            let bodyTemplate:{[key:string]:any} = {}
             const suggesting = model === "submodel"
             const prompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
@@ -1035,8 +1077,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const OobaBodyTemplate = db.reverseProxyOobaArgs
             const keys = Object.keys(OobaBodyTemplate)
             for(const key of keys){
-                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null && OobaParams.includes(key)){
                     bodyTemplate[key] = OobaBodyTemplate[key]
+                }
+                else if(bodyTemplate[key]){
+                    delete bodyTemplate[key]
                 }
             }
 
@@ -1294,11 +1339,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const body = {
                 contents: reformatedChat,
-                generation_config: {
+                generation_config: applyParameters({
                     "maxOutputTokens": maxTokens,
-                    "temperature": temperature,
-                    "topP": db.top_p,
-                },
+                }, ['temperature', 'top_p'], {
+                    'top_p': "topP"
+                }),
                 safetySettings: uncensoredCatagory
             }
 
@@ -1368,14 +1413,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 url.pathname = 'api/v1/generate'
             }
 
-            const body:KoboldGenerationInputSchema = {
+            const body = applyParameters({
                 "prompt": prompt,
-                "temperature": (db.temperature / 100),
-                "top_p": db.top_p,
                 max_length: maxTokens,
                 max_context_length: db.maxContext,
                 n: 1
-            }
+            }, [
+                'temperature',
+                'top_p',
+                'repetition_penalty',
+                'top_k',
+                'top_a'
+            ], {
+                'repetition_penalty': 'rep_pen'
+            }) as KoboldGenerationInputSchema
             
             const da = await globalFetch(url.toString(), {
                 method: "POST",
@@ -1572,10 +1623,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             //reformat chat
 
-
-
-
-            let body = {
+            let body = applyParameters({
                 message: lastChatPrompt,
                 chat_history: formated.map((v) => {
                     if(v.role === 'assistant'){
@@ -1600,13 +1648,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }).filter((v) => v !== null).filter((v) => {
                     return v.message
                 }),
-                temperature: temperature,
-                k: db.top_k,
-                p: (db.top_p > 0.99) ? 0.99 : (db.top_p < 0.01) ? 0.01 : db.top_p,
-                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
-            }
+            }, [
+                'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'
+            ], {
+                'top_k': 'k',
+                'top_p': 'p',
+            })
 
+            if(aiModel !== 'cohere-command-r-03-2024' && aiModel !== 'cohere-command-r-plus-04-2024'){
+                body.safety_mode = "NONE"
+            }
+            
             if(preamble){
                 if(body.chat_history.length > 0){
                     // @ts-ignore
@@ -1879,16 +1931,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
-                let body = {
+                let body = applyParameters({
                     model: raiModel,
                     messages: finalChat,
                     system: systemPrompt.trim(),
                     max_tokens: maxTokens,
-                    temperature: temperature,
-                    top_p: db.top_p,
-                    top_k: db.top_k,
                     stream: useStreaming ?? false
-                }
+                }, ['temperature', 'top_k', 'top_p'])
 
                 if(systemPrompt === ''){
                     delete body.system

@@ -62,8 +62,8 @@ export async function loadLoreBookPrompt(){
     const moduleLorebook = getModuleLorebooks()
     const fullLore = characterLore.concat(chatLore).concat(moduleLorebook)
     const currentChat = char.chats[page].message
-    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
-    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
+    const loreDepth = char.loreSettings?.scanDepth || db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget || db.loreBookToken
     const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
 
     let activatiedPrompt: string[] = []
@@ -230,7 +230,11 @@ export async function loadLoreBookV3Prompt(){
         regex:boolean
         fullWordMatching:boolean
     }) => {
-        const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
+        let start = messages.length - arg.searchDepth
+        if(start < 0){
+            start = 0
+        }
+        const sliced = messages.slice(start)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
         let mText = sliced.map((msg) => {
             return msg.data

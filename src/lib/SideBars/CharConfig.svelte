@@ -1051,7 +1051,7 @@
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={async () => {
                                 if(currentChar.type === 'character'){
-                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
+                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
                                     currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
                                     if(!da){
                                         return
@@ -1084,7 +1084,7 @@
                                             <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
                                         {:else if assetFileExtensions[i] === 'mp3'}
                                             <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
-                                        {:else}
+                                        {:else if ['png', 'webp', 'jpeg', 'jpg', 'gif'].includes(assetFileExtensions[i])}
                                             <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
                                         {/if}
                                     {/if}

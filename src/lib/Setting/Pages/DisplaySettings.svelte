@@ -8,11 +8,12 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
-    import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextTheme } from "src/ts/gui/colorscheme";
+    import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
     import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -24,7 +25,7 @@
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
 
 {#if submenu !== -1}
-    <div class="flex w-full rounded-md border border-darkborderc mb-4">
+    <div class="flex w-full rounded-md border border-darkborderc mb-4 overflow-x-auto h-16 min-h-16 overflow-y-clip">
         <button on:click={() => {
             submenu = 0
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
@@ -128,7 +129,7 @@
     {/if}
 
     <span class="text-textcolor mt-4">{language.textColor}</span>
-    <SelectInput className="mt-2" bind:value={$DataBase.textTheme} on:change={updateTextTheme}>
+    <SelectInput className="mt-2" bind:value={$DataBase.textTheme} on:change={updateTextThemeAndCSS}>
         <OptionInput value="standard" >{language.classicRisu}</OptionInput>
         <OptionInput value="highcontrast" >{language.highcontrast}</OptionInput>
         <OptionInput value="custom" >Custom</OptionInput>
@@ -136,40 +137,40 @@
 
     {#if $DataBase.textTheme === "custom"}
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorStandard} on:input={updateTextTheme} />
+            <ColorInput bind:value={$DataBase.customTextTheme.FontColorStandard} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Normal Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalic} on:input={updateTextTheme} />
+            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalic} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Italic Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorBold} on:input={updateTextTheme} />
+            <ColorInput bind:value={$DataBase.customTextTheme.FontColorBold} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Bold Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalicBold} on:input={updateTextTheme} />
+            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalicBold} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Italic Bold Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote1} on:input={updateTextTheme} />
+            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote1} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Single Quote Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote2} on:input={updateTextTheme} />
+            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote2} on:input={updateTextThemeAndCSS} />
             <span class="ml-2">Double Quote Text</span>
         </div>
     {/if}
 
     <span class="text-textcolor mt-4">{language.font}</span>
-    <SelectInput className="mt-2" bind:value={$DataBase.font} on:change={updateTextTheme}>
+    <SelectInput className="mt-2" bind:value={$DataBase.font} on:change={updateTextThemeAndCSS}>
         <OptionInput value="default" >Default</OptionInput>
         <OptionInput value="timesnewroman" >Times New Roman</OptionInput>
         <OptionInput value="custom" >Custom</OptionInput>
     </SelectInput>
 
     {#if $DataBase.font === "custom"}
-        <TextInput bind:value={$DataBase.customFont} on:change={updateTextTheme} />
+        <TextInput bind:value={$DataBase.customFont} on:change={updateTextThemeAndCSS} />
     {/if}
 
 {/if}
@@ -318,11 +319,21 @@
         <Check bind:check={$DataBase.unformatQuotes} name={language.unformatQuotes}/>
     </div>
 
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.betaMobileGUI} name={language.betaMobileGUI}/>
+        <Help key="betaMobileGUI"/>
+    </div>
+
     {#if $DataBase.useExperimental}
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
             <Help key="experimental" name={language.useChatSticker}/>
         </div>
     {/if}
+
+    <span class="text-textcolor mt-4">{language.customCSS}<Help key="customCSS" /></span>
+    <TextAreaInput bind:value={$DataBase.customCSS} onInput={() => {
+        updateTextThemeAndCSS()
+    }} />
 
 {/if}

@@ -9,7 +9,7 @@ import {open} from '@tauri-apps/api/shell'
 import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database";
 import { appWindow } from "@tauri-apps/api/window";
 import { checkRisuUpdate } from "../update";
-import { botMakerMode, selectedCharID } from "../stores";
+import { MobileGUI, botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
 import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS } from "../alert";
@@ -21,7 +21,7 @@ import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
-import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
+import { updateColorScheme, updateTextThemeAndCSS } from "../gui/colorscheme";
 import { saveDbKei } from "../kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
@@ -525,13 +525,16 @@ export async function loadData() {
             await checkNewFormat()
             const db = get(DataBase);
             updateColorScheme()
-            updateTextTheme()
+            updateTextThemeAndCSS()
             updateAnimationSpeed()
             updateHeightMode()
             updateErrorHandling()
             updateGuisize()
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
+            }
+            if(db.betaMobileGUI && window.innerWidth <= 800){
+                MobileGUI.set(true)
             }
             loadedStore.set(true)
             selectedCharID.set(-1)

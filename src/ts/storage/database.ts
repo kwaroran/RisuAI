@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "128.0.1"
+export let appVer = "129.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -434,6 +434,7 @@ export function setDatabase(data:Database){
     data.translatorInputLanguage ??= 'auto'
     data.falModel ??= 'fal-ai/flux/dev'
     data.falLoraScale ??= 1
+    data.customCSS ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -726,6 +727,8 @@ export interface Database{
     falLoraName: string
     falLoraScale: number
     moduleIntergration: string
+    customCSS: string
+    betaMobileGUI:boolean
 }
 
 export interface customscript{
@@ -977,6 +980,9 @@ export interface botPreset{
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
     moduleIntergration?:string
+    top_k?:number
+    instructChatTemplate?:string
+    JinjaTemplate?:string
 }
 
 
@@ -1078,7 +1084,7 @@ interface AINsettings{
     top_k:number
 }
 
-interface OobaSettings{
+export interface OobaSettings{
     max_new_tokens: number,
     do_sample: boolean,
     temperature: number,
@@ -1257,6 +1263,9 @@ export function saveCurrentPreset(){
         customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
         templateDefaultVariables: db.templateDefaultVariables ?? "",
         moduleIntergration: db.moduleIntergration ?? "",
+        top_k: db.top_k,
+        instructChatTemplate: db.instructChatTemplate,
+        JinjaTemplate: db.JinjaTemplate ?? ''
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1342,6 +1351,9 @@ export function setPreset(db:Database, newPres: botPreset){
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
     db.moduleIntergration = newPres.moduleIntergration ?? ''
+    db.top_k = newPres.top_k ?? db.top_k
+    db.instructChatTemplate = newPres.instructChatTemplate ?? db.instructChatTemplate
+    db.JinjaTemplate = newPres.JinjaTemplate ?? db.JinjaTemplate
     return db
 }
 

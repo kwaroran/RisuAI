@@ -303,23 +303,26 @@
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
 
     {#if $DataBase.aiModel.startsWith("novelai")}
-        <SliderInput min={0} max={250} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2}/>
+        <SliderInput min={0} max={250} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2} disableable/>
     {:else}
-        <SliderInput min={0} max={200} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2}/>
+        <SliderInput min={0} max={200} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2} disableable/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')}
+    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')|| $DataBase.aiModel === 'kobold'}
         <span class="text-textcolor">Top K</span>
-        <SliderInput min={0} max={100} marginBottom step={1} bind:value={$DataBase.top_k}/>
+        <SliderInput min={0} max={100} marginBottom step={1} bind:value={$DataBase.top_k} disableable/>
     {/if}
     {#if $DataBase.aiModel.startsWith('openrouter')}
-        <span class="text-textcolor">Repetition penalty</span>
-        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty}/>
-
         <span class="text-textcolor">Min P</span>
-        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.min_p}/>
+        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.min_p} disableable/>
 
+    {/if}
+    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel === 'kobold'}
         <span class="text-textcolor">Top A</span>
-        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.top_a}/>
+        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.top_a} disableable/>
+
+        <span class="text-textcolor">Repetition penalty</span>
+        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty} disableable/>
+
     {/if}
     {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_') || $DataBase.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
@@ -439,17 +442,20 @@
         <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.typical_p}/>
     {:else if $DataBase.aiModel.startsWith('claude')}
         <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
+    {:else if $DataBase.aiModel.startsWith('kobold')}
+    <span class="text-textcolor">Top P <Help key="topP"/></span>
+    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
     {:else}
 
 
         <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
 
         <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.frequencyPenalty} />
+        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.frequencyPenalty} disableable/>
         <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.PresensePenalty} />
+        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.PresensePenalty} disableable/>
     {/if}
 
     {#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy') || ($DataBase.aiModel === 'ooba')}

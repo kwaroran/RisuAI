@@ -5,7 +5,7 @@
     import { language } from "src/lang";
     import RisuHubIcon from "./RealmHubIcon.svelte";
     import TextInput from "../GUI/TextInput.svelte";
-    import { SizeStore } from "src/ts/stores";
+    import { MobileGUI, SizeStore } from "src/ts/stores";
     import { Capacitor } from "@capacitor/core";
   import RealmPopUp from "./RealmPopUp.svelte";
   import { googleBuild } from "src/ts/storage/globalApi";
@@ -35,29 +35,66 @@
 
 
 </script>
-<div class="w-full flex justify-center mt-4">
-    <div class="flex w-2xl max-w-full items-center">
-        {#if $SizeStore.w < 768}
-            <TextInput className="flex-grow min-w-0" placeholder="Search" bind:value={search} />
-        {:else}
-            <TextInput size="xl" className="flex-grow" placeholder="Search" bind:value={search} />
-
-        {/if}
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
-            page = 0
-            getHub()
-        }}>
+<div class="w-full flex justify-center mt-4 mb-2">
+    <div class="flex items-stretch w-2xl max-w-full">
+        <input bind:value={search} class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full">
+            <button
+            on:click={() => {
+                page = 0
+                getHub()
+            }}
+            class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors"
+        >
             <SearchIcon />
         </button>
-        <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
-            menuOpen = true
-        }}>
+        <button
+            on:click={(e) => {
+                menuOpen = true
+            }}
+            class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+        >
             <MenuIcon />
         </button>
     </div>
 </div>
-<div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-    {#if !googleBuild}
+{#if $MobileGUI}
+<div class="ml-4 flex items-start ">
+    <div class="p-2 flex mb-3 overflow-x-auto rounded-lg border-darkborderc border gap-2">
+        <button on:click={() => {
+            nsfw = !nsfw
+            getHub()
+        }}>
+            {nsfw ? 'NSFW' : 'SFW'}
+        </button>
+        <div class="h-full border-r border-r-selected"></div>
+        <button on:click={() => {
+            switch(sort){
+                case '':
+                    sort = 'trending'
+                    break
+                case 'trending':
+                    sort = 'downloads'
+                    break
+                case 'downloads':
+                    sort = 'random'
+                    break
+                default:
+                    sort = ''
+                    break
+            }
+            getHub()
+        }}>
+            {
+                sort === '' ? language.recent : 
+                sort === 'trending' ? language.trending :
+                sort === 'downloads' ? language.downloads :
+                language.random
+            }
+        </button>
+    </div>
+</div>
+{:else}
+    <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
             nsfw = !nsfw
             getHub()
@@ -65,32 +102,32 @@
             NSFW
         </button>
         <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
-    {/if}
-    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
-        sort = ''
-        getHub()
-    }}>
-        {language.recent}
-    </button>
-    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} on:click={() => {
-        sort = 'trending'
-        getHub()
-    }}>
-        {language.trending}
-    </button>
-    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} on:click={() => {
-        sort = 'downloads'
-        getHub()
-    }}>
-        {language.downloads}
-    </button>
-    <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'random'} on:click={() => {
-        sort = 'random'
-        getHub()
-    }}>
-        {language.random}
-    </button>
-</div>
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
+            sort = ''
+            getHub()
+        }}>
+            {language.recent}
+        </button>
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} on:click={() => {
+            sort = 'trending'
+            getHub()
+        }}>
+            {language.trending}
+        </button>
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} on:click={() => {
+            sort = 'downloads'
+            getHub()
+        }}>
+            {language.downloads}
+        </button>
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} on:click={() => {
+            sort = 'random'
+            getHub()
+        }}>
+            {language.random}
+        </button>
+    </div>
+{/if}
 {@html hubAdditionalHTML}
 <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
     {#key charas}

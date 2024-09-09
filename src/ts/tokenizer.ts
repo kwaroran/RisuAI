@@ -19,6 +19,7 @@ export const tokenizerList = [
     ['llama3', 'Llama3'],
     ['novellist', 'Novellist'],
     ['gemma', 'Gemma'],
+    ['cohere', 'Cohere'],
 ] as const
 
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
@@ -39,6 +40,8 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
                 return await tokenizeWebTokenizers(data, 'llama')
             case 'gemma':
                 return await tokenizeWebTokenizers(data, 'gemma')
+            case 'cohere':
+                return await tokenizeWebTokenizers(data, 'cohere')
             default:
                 // Add exception for gpt-4o tokenizers on reverse_proxy
                 if(db.proxyRequestModel?.startsWith('gpt4o') || 

@@ -28,8 +28,10 @@ export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
 export const openPresetList = writable(false)
 export const openPersonaList = writable(false)
+export const MobileGUI = writable(false)
+export const MobileGUIStack = writable(0)
+export const MobileSideBar = writable(false)
 //optimization
-
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>
 export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
 export const CurrentChat = writable(null) as Writable<Chat>
@@ -45,10 +47,29 @@ export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
 export const UserIconProtrait = writable(false)
+export const CustomCSSStore = writable('')
+export const SafeModeStore = writable(false)
+export const MobileSearch = writable('')
+
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let moduleHideIcon = false
 let characterHideIcon = false
+
+
+CustomCSSStore.subscribe((css) => {
+    console.log(css)
+    const q = document.querySelector('#customcss')
+    if(q){
+        q.innerHTML = css
+    }
+    else{
+        const s = document.createElement('style')
+        s.id = 'customcss'
+        s.innerHTML = css
+        document.body.appendChild(s)
+    }
+})
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
@@ -227,9 +248,7 @@ function onModuleUpdate(){
         lastChatEnabledModules = []
     }
 
-    const m = getModules([
-        ...lastGlobalEnabledModules, ...lastChatEnabledModules
-    ])
+    const m = getModules()
     
     let moduleHideIcon = false
     let backgroundEmbedding = ''

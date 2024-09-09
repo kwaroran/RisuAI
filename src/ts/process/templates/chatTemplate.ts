@@ -26,15 +26,18 @@ export const templateEffect = {
     ],
 } as {[key:string]:TemplateEffect[]}
 
-export const applyChatTemplate = (messages:OpenAIChat[]) => {
+export const applyChatTemplate = (messages:OpenAIChat[], arg:{
+    type?: string
+    custom?: string
+} = {}) => {
     const db = get(DataBase)
     const currentChar = get(CurrentCharacter)
-    const type = db.instructChatTemplate
+    const type = arg.type ?? db.instructChatTemplate
     if(!type){
         throw new Error('Template type is not set')
     }
     let clonedMessages = structuredClone(messages)
-    const template = type === 'jinja' ? (new Template(db.JinjaTemplate)) :(new Template(chatTemplates[type]))
+    const template = type === 'jinja' ? (new Template(arg.custom ?? db.JinjaTemplate)) :(new Template(chatTemplates[type]))
     let formatedMessages:{
         "role": 'user'|'assistant'|'system',
         "content": string

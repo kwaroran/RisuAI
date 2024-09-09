@@ -171,7 +171,7 @@
                 <th class="font-medium">{language.value}</th>
                 <th class="font-medium cursor-pointer w-10">
                     <button class="hover:text-green-500" on:click={async () => {
-                        const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
+                        const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
                         currentModule.assets = currentModule.assets ?? []
                         if(!da){
                             return
