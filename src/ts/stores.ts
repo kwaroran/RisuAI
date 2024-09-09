@@ -45,10 +45,28 @@ export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
 export const UserIconProtrait = writable(false)
+export const CustomCSSStore = writable('')
+export const SafeModeStore = writable(false)
+
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let moduleHideIcon = false
 let characterHideIcon = false
+
+
+CustomCSSStore.subscribe((css) => {
+    console.log(css)
+    const q = document.querySelector('#customcss')
+    if(q){
+        q.innerHTML = css
+    }
+    else{
+        const s = document.createElement('style')
+        s.id = 'customcss'
+        s.innerHTML = css
+        document.body.appendChild(s)
+    }
+})
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){

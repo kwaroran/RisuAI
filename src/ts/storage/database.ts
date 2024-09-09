@@ -434,6 +434,7 @@ export function setDatabase(data:Database){
     data.translatorInputLanguage ??= 'auto'
     data.falModel ??= 'fal-ai/flux/dev'
     data.falLoraScale ??= 1
+    data.customCSS ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -726,6 +727,7 @@ export interface Database{
     falLoraName: string
     falLoraScale: number
     moduleIntergration: string
+    customCSS: string
 }
 
 export interface customscript{

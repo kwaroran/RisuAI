@@ -21,7 +21,7 @@ import { loadRisuAccountData } from "../drive/accounter";
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { AutoStorage } from "./autoStorage";
 import { updateAnimationSpeed } from "../gui/animation";
-import { updateColorScheme, updateTextTheme } from "../gui/colorscheme";
+import { updateColorScheme, updateTextThemeAndCSS } from "../gui/colorscheme";
 import { saveDbKei } from "../kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
@@ -525,7 +525,7 @@ export async function loadData() {
             await checkNewFormat()
             const db = get(DataBase);
             updateColorScheme()
-            updateTextTheme()
+            updateTextThemeAndCSS()
             updateAnimationSpeed()
             updateHeightMode()
             updateErrorHandling()

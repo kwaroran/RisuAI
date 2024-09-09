@@ -27,10 +27,10 @@
     }
 
 </script>
-<div class="h-full w-full flex justify-center setting-bg">
-    <div class="h-full max-w-screen-lg w-full flex relative">
+<div class="h-full w-full flex justify-center setting-bg rs-setting-cont">
+    <div class="h-full max-w-screen-lg w-full flex relative rs-setting-cont-2">
         {#if window.innerWidth >= 700 || $SettingsMenuIndex === -1}
-            <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative"
+            <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative rs-setting-cont-3"
                 class:w-full={window.innerWidth < 700}>
                 <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={$SettingsMenuIndex === 1 || $SettingsMenuIndex === 13}
@@ -141,7 +141,7 @@
         {/if}
         {#if window.innerWidth >= 700 || $SettingsMenuIndex !== -1}
             {#key $SettingsMenuIndex}
-                <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative">
+                <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative rs-setting-cont-4">
                     {#if $SettingsMenuIndex === 0}
                         <UserSettings />
                     {:else if $SettingsMenuIndex === 1}

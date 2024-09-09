@@ -1,8 +1,9 @@
 import { get } from "svelte/store"
 import { alertSelect, alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
-import { openPersonaList, openPresetList, selectedCharID, settingsOpen } from "./stores"
+import { openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
 import { language } from "src/lang"
+import { updateTextThemeAndCSS } from "./gui/colorscheme"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -82,6 +83,13 @@ export function initHotkey(){
                 }
                 case 'e':{
                     openPersonaList.set(!get(openPersonaList))
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case '.':{
+                    SafeModeStore.set(!get(SafeModeStore))
+                    updateTextThemeAndCSS()
                     ev.preventDefault()
                     ev.stopPropagation()
                     break

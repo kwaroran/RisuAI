@@ -337,7 +337,7 @@
 </script>
 
 <div
-  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative"
+  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative rs-sidebar"
   class:editMode
   class:risu-sub-sidebar={$sideBarClosing}
   class:risu-sub-sidebar-close={$sideBarClosing}
