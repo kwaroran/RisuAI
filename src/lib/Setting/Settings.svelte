@@ -8,7 +8,7 @@
     import PluginSettings from "./Pages/PluginSettings.svelte";
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
-    import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
+    import { MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     import Botpreset from "./botpreset.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
@@ -29,7 +29,7 @@
 </script>
 <div class="h-full w-full flex justify-center setting-bg rs-setting-cont">
     <div class="h-full max-w-screen-lg w-full flex relative rs-setting-cont-2">
-        {#if window.innerWidth >= 700 || $SettingsMenuIndex === -1}
+        {#if (window.innerWidth >= 700 && !$MobileGUI) || $SettingsMenuIndex === -1}
             <div class="flex h-full flex-col p-4 pt-8 bg-darkbg gap-2 overflow-y-auto relative rs-setting-cont-3"
                 class:w-full={window.innerWidth < 700}>
                 <button class="flex gap-2 items-center hover:text-textcolor"
@@ -132,14 +132,14 @@
                     <BoxIcon />
                     <span>{language.supporterThanks}</span>
                 </button>
-                {#if window.innerWidth < 700}
+                {#if window.innerWidth < 700 && !$MobileGUI}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
                         settingsOpen.set(false)
                     }}> <XCircleIcon /> </button>
                 {/if}
             </div>
         {/if}
-        {#if window.innerWidth >= 700 || $SettingsMenuIndex !== -1}
+        {#if (window.innerWidth >= 700 && !$MobileGUI) || $SettingsMenuIndex !== -1}
             {#key $SettingsMenuIndex}
                 <div class="flex-grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative rs-setting-cont-4">
                     {#if $SettingsMenuIndex === 0}
@@ -181,16 +181,18 @@
                     {/if}
             </div>
             {/key}
-            <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
-                if(window.innerWidth >= 700){
-                    settingsOpen.set(false)
-                }
-                else{
-                    $SettingsMenuIndex = -1
-                }
-            }}>
-                <XCircleIcon />
-            </button>            
+            {#if !$MobileGUI}
+                <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
+                    if(window.innerWidth >= 700){
+                        settingsOpen.set(false)
+                    }
+                    else{
+                        $SettingsMenuIndex = -1
+                    }
+                }}>
+                    <XCircleIcon />
+                </button>
+            {/if}
         {/if}
     </div>
 </div>

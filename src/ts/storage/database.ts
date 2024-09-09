@@ -728,6 +728,7 @@ export interface Database{
     falLoraScale: number
     moduleIntergration: string
     customCSS: string
+    betaMobileGUI:boolean
 }
 
 export interface customscript{

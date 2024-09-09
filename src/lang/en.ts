@@ -144,6 +144,7 @@ export const languageEnglish = {
         namespace: "Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.",
         moduleIntergration: "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.",
         customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
+        betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -705,4 +706,6 @@ export const languageEnglish = {
     promptConvertion: "Prompt Convertion",
     convertionStep1: "Select all file related to the prompt (Context, Instruct and Sampler JSON is supported)",
     customCSS: "Custom CSS",
+    betaMobileGUI: "Beta Mobile GUI",
+    menu: "Menu",
 }

@@ -28,8 +28,10 @@ export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
 export const openPresetList = writable(false)
 export const openPersonaList = writable(false)
+export const MobileGUI = writable(false)
+export const MobileGUIStack = writable(0)
+export const MobileSideBar = writable(false)
 //optimization
-
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>
 export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
 export const CurrentChat = writable(null) as Writable<Chat>
@@ -47,6 +49,7 @@ export const HideIconStore = writable(false)
 export const UserIconProtrait = writable(false)
 export const CustomCSSStore = writable('')
 export const SafeModeStore = writable(false)
+export const MobileSearch = writable('')
 
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []

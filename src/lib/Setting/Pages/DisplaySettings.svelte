@@ -319,6 +319,11 @@
         <Check bind:check={$DataBase.unformatQuotes} name={language.unformatQuotes}/>
     </div>
 
+    <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.betaMobileGUI} name={language.betaMobileGUI}/>
+        <Help key="betaMobileGUI"/>
+    </div>
+
     {#if $DataBase.useExperimental}
         <div class="flex items-center mt-2">
             <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
