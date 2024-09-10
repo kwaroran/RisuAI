@@ -70,9 +70,12 @@
         </div>
     {/if}
     <div class="flex items-center mt-4">
-        <Check bind:check={$CurrentCharacter.lorePlus}
-            name={language.lorePlus}
-        ><Help key="lorePlus"></Help><Help key="experimental"></Help></Check>
+        {#if $DataBase.useExperimental}
+            <Check bind:check={$CurrentCharacter.lorePlus}
+                name={language.lorePlus}
+            ><Help key="lorePlus"></Help><Help key="experimental"></Help></Check>
+        {/if}
+
     </div>
 {/if}
 {#if submenu !== 2}

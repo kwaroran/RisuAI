@@ -15,6 +15,7 @@
     import { capitalize } from "src/ts/util";
   import { longpress } from "src/ts/gui/longtouch";
   import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+  import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -202,20 +203,22 @@
                             </button>
                         {/if}
 
-                        <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
-                            if(!editMode){
-                                editMode = true
-                            }
-                            else{
-                                editMode = false
-                                edit()
-                            }
-                        }}>
-                            <PencilIcon size={20}/>
-                        </button>
-                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
-                            <TrashIcon size={20}/>
-                        </button>
+                        {#if !$ConnectionOpenStore}
+                            <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
+                                if(!editMode){
+                                    editMode = true
+                                }
+                                else{
+                                    editMode = false
+                                    edit()
+                                }
+                            }}>
+                                <PencilIcon size={20}/>
+                            </button>
+                            <button class="ml-2 hover:text-green-500 transition-colors" on:click={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
+                                <TrashIcon size={20}/>
+                            </button>
+                        {/if}
                     {/if}
                     {#if $DataBase.translator !== '' && !blankMessage}
                         <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} on:click={async () => {

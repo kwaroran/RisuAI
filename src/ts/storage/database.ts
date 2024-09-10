@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "129.0.1"
+export let appVer = "129.1.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -1062,6 +1062,8 @@ export interface Message{
     chatId?:string
     time?: number
     generationInfo?: MessageGenerationInfo
+    name?:string
+    otherUser?:boolean
 }
 
 export interface MessageGenerationInfo{

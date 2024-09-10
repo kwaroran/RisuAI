@@ -62,8 +62,8 @@ export async function loadLoreBookPrompt(){
     const moduleLorebook = getModuleLorebooks()
     const fullLore = characterLore.concat(chatLore).concat(moduleLorebook)
     const currentChat = char.chats[page].message
-    const loreDepth = char.loreSettings?.scanDepth || db.loreBookDepth
-    const loreToken = char.loreSettings?.tokenBudget || db.loreBookToken
+    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
     const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
 
     let activatiedPrompt: string[] = []

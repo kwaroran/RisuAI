@@ -51,7 +51,7 @@
     import Button from "../UI/GUI/Button.svelte";
     import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
-    import { joinMultiuserRoom } from "src/ts/sync/multiuser";
+    import { ConnectionIsHost, ConnectionOpenStore, joinMultiuserRoom, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
   let sideBarMode = 0;
@@ -659,6 +659,22 @@
       </div>
     {:else if $CurrentCharacter?.chaId === '§playground'}
       <SideChatList bind:chara={ $CurrentCharacter} />
+    {:else if $ConnectionOpenStore}
+      <div class="flex flex-col">
+        <h1 class="text-xl">{language.connectionOpen}</h1>
+        <span class="text-textcolor2 mb-4">{language.connectionOpenInfo}</span>
+        <div class="flex">
+          <span>ID: </span>
+          <span class="text-blue-600">{$RoomIdStore}</span>
+        </div>
+        <div>
+          {#if $ConnectionIsHost}
+            <span class="text-emerald-600">{language.connectionHost}</span>
+          {:else}
+            <span class="text-gray-500">{language.connectionGuest}</span>
+          {/if}
+        </div>
+      </div>
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
         <button on:click={() => {
