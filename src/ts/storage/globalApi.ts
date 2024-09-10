@@ -522,6 +522,15 @@ export async function loadData() {
                     await loadRisuAccountData()                    
                 } catch (error) {}
             }
+            try {
+                //@ts-ignore
+                const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');              
+                if(isInStandaloneMode){
+                    await navigator.storage.persist()
+                }
+            } catch (error) {
+                
+            }
             await checkNewFormat()
             const db = get(DataBase);
             updateColorScheme()
