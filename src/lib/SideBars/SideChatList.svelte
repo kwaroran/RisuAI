@@ -105,6 +105,7 @@
                             chara.chats.unshift(newChat)
                             chara.chatPage = 0
                             chara.chats = chara.chats
+                            break
                         }
                         case 1:{
                             const chat = chara.chats[i]
@@ -126,6 +127,7 @@
                                     alertNormal(language.personaBindedSuccess)
                                 }
                             }
+                            break
                         }
                         case 2:{
                             chara.chatPage = i
