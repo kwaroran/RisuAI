@@ -81,6 +81,7 @@ export class CharXReader{
     assetPromises:Promise<void>[] = []
     excludedFiles:string[] = []
     cardData:string|undefined
+    moduleData:Uint8Array|undefined
     constructor(){
         this.unzip = new fflate.Unzip()
         this.unzip.register(fflate.UnzipInflate)
@@ -97,6 +98,9 @@ export class CharXReader{
                     }
                     else if(file.name === 'card.json'){
                         this.cardData = new TextDecoder().decode(assetData)
+                    }
+                    else if(file.name === 'module.risum'){
+                        this.moduleData = assetData
                     }
                     else{
                         this.assetPromises.push((async () => {

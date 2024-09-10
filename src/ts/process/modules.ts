@@ -27,7 +27,12 @@ export interface RisuModule{
     namespace?:string
 }
 
-export async function exportModule(module:RisuModule){
+export async function exportModule(module:RisuModule, arg:{
+    alertEnd?:boolean
+    saveData?:boolean
+} = {}){
+    const alertEnd = arg.alertEnd ?? true
+    const saveData = arg.saveData ?? true
     const apb = new AppendableBuffer()
     const writeLength = (len:number) => {
         const lenbuf = Buffer.alloc(4)
@@ -76,8 +81,90 @@ export async function exportModule(module:RisuModule){
 
     writeByte(0) //end of file
 
-    await downloadFile(module.name + '.risum', apb.buffer)
-    alertNormal(language.successExport)
+    if(saveData){
+        await downloadFile(module.name + '.risum', apb.buffer)
+    }
+    if(alertEnd){
+        alertNormal(language.successExport)
+    }
+
+    return apb.buffer
+}
+
+export async function readModule(buf:Buffer):Promise<RisuModule> {
+    let pos = 0
+
+    const readLength = () => {
+        const len = buf.readUInt32LE(pos)
+        pos += 4
+        return len
+    }
+    const readByte = () => {
+        const byte = buf.readUInt8(pos)
+        pos += 1
+        return byte
+    }
+    const readData = (len:number) => {
+        const data = buf.subarray(pos, pos + len)
+        pos += len
+        return data
+    }
+
+    if(readByte() !== 111){
+        console.error("Invalid magic number")
+        alertError(language.errors.noData)
+        return
+    }
+    if(readByte() !== 0){ //Version check
+        console.error("Invalid version")
+        alertError(language.errors.noData)
+        return
+    }
+
+    const mainLen = readLength()
+    const mainData = readData(mainLen)
+    const main:{
+        type:'risuModule'
+        module:RisuModule
+    } = JSON.parse(Buffer.from(await decodeRPack(mainData)).toString())
+
+    if(main.type !== 'risuModule'){
+        console.error("Invalid module type")
+        alertError(language.errors.noData)
+        return
+    }
+
+    let module = main.module
+
+    let i = 0
+    while(true){
+        const mark = readByte()
+        if(mark === 0){
+            break
+        }
+        if(mark !== 1){
+            alertError(language.errors.noData)
+            return
+        }
+        const len = readLength()
+        const data = readData(len)
+        module.assets[i][1] = await saveAsset(Buffer.from(await decodeRPack(data)))
+        alertStore.set({
+            type: 'wait',
+            msg: `Loading... (Adding Assets ${i} / ${module.assets.length})`
+        })
+        if(!isTauri && !Capacitor.isNativePlatform() &&!isNodeServer){
+            await sleep(100)
+        }
+        i++
+    }
+    alertStore.set({
+        type: 'none',
+        msg: ''
+    })
+
+    module.id = v4()
+    return module
 }
 
 export async function importModule(){
@@ -90,78 +177,7 @@ export async function importModule(){
     if(f.name.endsWith('.risum')){
         try {
             const buf = Buffer.from(fileData)
-            let pos = 0
-
-            const readLength = () => {
-                const len = buf.readUInt32LE(pos)
-                pos += 4
-                return len
-            }
-            const readByte = () => {
-                const byte = buf.readUInt8(pos)
-                pos += 1
-                return byte
-            }
-            const readData = (len:number) => {
-                const data = buf.subarray(pos, pos + len)
-                pos += len
-                return data
-            }
-
-            if(readByte() !== 111){
-                console.error("Invalid magic number")
-                alertError(language.errors.noData)
-                return
-            }
-            if(readByte() !== 0){ //Version check
-                console.error("Invalid version")
-                alertError(language.errors.noData)
-                return
-            }
-
-            const mainLen = readLength()
-            const mainData = readData(mainLen)
-            const main:{
-                type:'risuModule'
-                module:RisuModule
-            } = JSON.parse(Buffer.from(await decodeRPack(mainData)).toString())
-
-            if(main.type !== 'risuModule'){
-                console.error("Invalid module type")
-                alertError(language.errors.noData)
-                return
-            }
-
-            let module = main.module
-
-            let i = 0
-            while(true){
-                const mark = readByte()
-                if(mark === 0){
-                    break
-                }
-                if(mark !== 1){
-                    alertError(language.errors.noData)
-                    return
-                }
-                const len = readLength()
-                const data = readData(len)
-                module.assets[i][1] = await saveAsset(Buffer.from(await decodeRPack(data)))
-                alertStore.set({
-                    type: 'wait',
-                    msg: `Loading... (Adding Assets ${i} / ${module.assets.length})`
-                })
-                if(!isTauri && !Capacitor.isNativePlatform() &&!isNodeServer){
-                    await sleep(100)
-                }
-                i++
-            }
-            alertStore.set({
-                type: 'none',
-                msg: ''
-            })
-
-            module.id = v4()
+            const module = await readModule(buf)
             db.modules.push(module)
             setDatabase(db)
             return   
