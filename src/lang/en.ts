@@ -146,6 +146,21 @@ export const languageEnglish = {
         customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
         betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.",
         unrecommended: "This is a unrecommended setting. it is not recommended to use this setting.",
+        jsonSchema: "This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.\n\nHowever, since JSON Schema is hard to learn, In RisuAI, you can use subset of TypeScript interface instead of JSON Schema. RisuAI will convert it in runtime." +
+        "For example, if you want to send a JSON like this:\n\n```js\n{\n  \"name\": \"RisuAI\", //name must be RisuAI,\n  \"age\": 1, //age must be number,\n  \"icon\": \"slim\", //icon must be \'slim\' or 'rounded'\n  \"thoughts\": [\"Good View!\", \"Lorem\"] //thoughts must be array of strings\n}\n```\n\n" +
+        "You can put this TypeScript interface:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\n" +
+        "Name of the interface doesn't matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below." +
+        "<details><summary>Supported TypeScript Subset</summary>\n\n" +
+        `Supported types are \`boolean\`, \`number\`, \`string\`, \`Array\`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:\n
+        - Array of primitive types: (ex. \`string[]\`, \`Array<boolean>)\`
+        - Unit types between strings: (ex. \`'slim'|'rounded'\`).
+
+        Properties must be one in a line. if there is multiple properties in a line, it will throw an error. Properties and name of the interface must be only in latin characters, in ASCII range. name of the properties must not be surrounded by quotes or double quotes. Nesting inside the interface is not supported. it is not allowed to put \`{\` or \`}\` in the line that properties are defined. If you want to use more advanced types, use JSON Schema instead.
+        ` +
+        "</details>"
+        ,
+        strictJsonSchema: "If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.",
+        extractJson: "If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{\"response\": {\"text\": [\"hello\"]}}`, you can put `response.text.0`.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -715,4 +730,8 @@ export const languageEnglish = {
     connectionHost: "You are the host of the room.",
     connectionGuest: "You are the guest of the room.",
     otherUserRequesting: "Other user is already requesting. try again later.",
+    jsonSchema: "JSON Schema",
+    enableJsonSchema: "Enable Schema",
+    strictJsonSchema: "Strict Schema",
+    extractJson: "Extract JSON",
 }

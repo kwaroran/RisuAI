@@ -435,6 +435,7 @@ export function setDatabase(data:Database){
     data.falModel ??= 'fal-ai/flux/dev'
     data.falLoraScale ??= 1
     data.customCSS ??= ''
+    data.strictJsonSchema ??= true
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -729,6 +730,10 @@ export interface Database{
     moduleIntergration: string
     customCSS: string
     betaMobileGUI:boolean
+    jsonSchemaEnabled:boolean
+    jsonSchema:string
+    strictJsonSchema:boolean
+    extractJson:string
 }
 
 export interface customscript{
