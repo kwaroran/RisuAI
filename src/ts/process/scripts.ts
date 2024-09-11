@@ -144,7 +144,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         const matchAll = isGlobal ? data.matchAll(reg) : [data.match(reg)]
                         data = data.replace(reg, "")
                         for(const matched of matchAll){
-                            console.log(matched)
                             if(matched){
                                 const inData = matched[0]
                                 let out = outScript.replace('@@move_top ', '').replace('@@move_bottom ', '')
@@ -163,7 +162,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                                         }
                                         return v
                                     })
-                                console.log(out)
                                 if(outScript.startsWith('@@move_top') || pscript.actions.includes('move_top')){
                                     data = out + '\n' +data
                                 }
@@ -256,8 +254,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             actions: []
         })
     }
-
-    console.log(parsedScripts)
 
     if(orderChanged){
         parsedScripts.sort((a, b) => b.order - a.order) //sort by order

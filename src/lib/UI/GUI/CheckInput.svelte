@@ -6,6 +6,7 @@
     export let margin = true
     export let name = ''
     export let hiddenName = false
+    export let reverse = false
     export let className = ""
     export let grayText = false
 </script>
@@ -16,6 +17,9 @@
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
     aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
 >
+    {#if reverse}
+        <span>{name}<slot /></span>
+    {/if}
     <input 
         class="hidden" 
         type="checkbox" 
@@ -39,7 +43,7 @@
             </svg>
         {/if}
     </span>
-    {#if !hiddenName}
+    {#if !hiddenName && !reverse}
         <span>{name}<slot /></span>
     {/if}
 </label>

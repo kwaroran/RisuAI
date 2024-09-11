@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { alertSelect, alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
-import { openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
+import { MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"
 
@@ -140,6 +140,50 @@ export function initHotkey(){
     })
     document.addEventListener('touchend', (ev) => {
         touchs = 0
+    })
+}
+
+export function initMobileGesture(){
+
+    let pressingPointers = new Map<number, {x:number, y:number}>()
+
+    document.addEventListener('pointerdown', (ev) => {
+        pressingPointers.set(ev.pointerId, {x: ev.clientX, y: ev.clientY})
+    }, {
+        passive: true
+    })
+    document.addEventListener('pointerup', (ev) => {
+        const d = pressingPointers.get(ev.pointerId)
+        const moveX = ev.clientX - d.x
+        const moveY = ev.clientY - d.y
+        pressingPointers.delete(ev.pointerId)
+
+        if(moveX > 50 && Math.abs(moveY) < Math.abs(moveX)){
+            if(get(selectedCharID) === -1){
+                if(get(MobileGUIStack) > 0){
+                    MobileGUIStack.update(v => v - 1)
+                }
+            }
+            else{
+                if(get(MobileSideBar) > 0){
+                    MobileSideBar.update(v => v - 1)
+                }
+            }
+        }
+        else if(moveX < -50 && Math.abs(moveY) < Math.abs(moveX)){
+            if(get(selectedCharID) === -1){
+                if(get(MobileGUIStack) < 2){
+                    MobileGUIStack.update(v => v + 1)
+                }
+            }
+            else{
+                if(get(MobileSideBar) < 3){
+                    MobileSideBar.update(v => v + 1)
+                }
+            }
+        }
+    }, {
+        passive: true
     })
 }
 

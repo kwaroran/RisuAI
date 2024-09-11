@@ -5,9 +5,9 @@
 
 </script>
 <div class="w-full px-4 h-16 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">
-    {#if $selectedCharID !== -1 && $MobileSideBar}
+    {#if $selectedCharID !== -1 && $MobileSideBar > 0}
         <button on:click={() => {
-            MobileSideBar.set(false)
+            MobileSideBar.set(0)
         }}>
             <ArrowLeft />
         </button>
@@ -21,12 +21,12 @@
         <span class="font-bold text-lg w-2/3 truncate">{$CurrentCharacter.name}</span>
         <div class="flex-1 flex justify-end">
             <button on:click={() => {
-                MobileSideBar.set(true)
+                MobileSideBar.set(1)
             }}>
                 <MenuIcon />
             </button>
         </div>
-    {:else if $MobileGUIStack === 3 && $SettingsMenuIndex > -1}
+    {:else if $MobileGUIStack === 2 && $SettingsMenuIndex > -1}
         <button on:click={() => {
             SettingsMenuIndex.set(-1)
         }}>

@@ -35,6 +35,7 @@ import { removeDefaultHandler } from "src/main";
 import { updateGuisize } from "../gui/guisize";
 import { encodeCapKeySafe } from "./mobileStorage";
 import { updateLorebooks } from "../characters";
+import { initMobileGesture } from "../hotkey";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -522,6 +523,15 @@ export async function loadData() {
                     await loadRisuAccountData()                    
                 } catch (error) {}
             }
+            try {
+                //@ts-ignore
+                const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');              
+                if(isInStandaloneMode){
+                    await navigator.storage.persist()
+                }
+            } catch (error) {
+                
+            }
             await checkNewFormat()
             const db = get(DataBase);
             updateColorScheme()
@@ -533,7 +543,8 @@ export async function loadData() {
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
-            if(db.betaMobileGUI && window.innerWidth <= 800){
+            if((db.betaMobileGUI && window.innerWidth <= 800) || import.meta.env.VITE_RISU_LITE === 'TRUE'){
+                initMobileGesture()
                 MobileGUI.set(true)
             }
             loadedStore.set(true)

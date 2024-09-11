@@ -114,6 +114,9 @@
     <Check bind:check={$DataBase.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
     <Check bind:check={$DataBase.promptSettings.sendName} name={language.sendName} className="mt-4"/>
     <Check bind:check={$DataBase.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
+    <Check bind:check={$DataBase.jsonSchemaEnabled} name={language.enableJsonSchema} className="mt-4"/>
+    <Check bind:check={$DataBase.strictJsonSchema} name={language.strictJsonSchema} className="mt-4"/>
+
     {#if $DataBase.showUnrecommended}
         <Check bind:check={$DataBase.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4">
             <Help unrecommended key='customChainOfThought' />
@@ -125,4 +128,10 @@
     <TextAreaInput bind:value={$DataBase.customPromptTemplateToggle}/>
     <span class="text-textcolor mt-4">{language.defaultVariables} <Help key='defaultVariables' /></span>
     <TextAreaInput bind:value={$DataBase.templateDefaultVariables}/>
+    {#if $DataBase.jsonSchemaEnabled}
+        <span class="text-textcolor mt-4">{language.jsonSchema} <Help key='jsonSchema' /></span>
+        <TextAreaInput bind:value={$DataBase.jsonSchema}/>
+        <span class="text-textcolor mt-4">{language.extractJson} <Help key='extractJson' /></span>
+        <TextInput bind:value={$DataBase.extractJson}/>
+    {/if}
 {/if}

@@ -44,8 +44,6 @@
         </div>
     {:else if !didFirstSetup}
         <WelcomeRisu />
-    {:else if $isLite}
-        <LiteMain />
     {:else if $settingsOpen}
         <Settings />
     {:else if $MobileGUI}

@@ -14,6 +14,7 @@ import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
 import { CharXReader, CharXWriter } from "./process/processzip"
 import { Capacitor } from "@capacitor/core"
+import { exportModule, readModule, type RisuModule } from "./process/modules"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -65,6 +66,9 @@ async function importCharacterProcess(f:{
         }
     }
 
+    let db = get(DataBase)
+    db.statics.imports += 1
+
     if(f.name.endsWith('charx')){
         console.log('reading charx')
         alertStore.set({
@@ -80,10 +84,17 @@ async function importCharacterProcess(f:{
             alertError(language.errors.noData)
             return
         }
-        const card = JSON.parse(cardData)
+        const card:CharacterCardV3 = JSON.parse(cardData)
         if(CCardLib.character.check(card) !== 'v3'){
             alertError(language.errors.noData)
             return
+        }
+        if(reader.moduleData){
+            const md = await readModule(Buffer.from(reader.moduleData))
+            card.data.extensions ??= {}
+            card.data.extensions.risuai ??= {}
+            card.data.extensions.risuai.triggerscript = md.trigger ?? []
+            card.data.extensions.risuai.customScripts = md.regex ?? []
         }
         await importCharacterCardSpec(card, undefined, 'normal', reader.assets)
         let db = get(DataBase)
@@ -133,7 +144,7 @@ async function importCharacterProcess(f:{
             continue
         }
         if(chunk.key.startsWith('chara-ext-asset_')){
-            const assetIndex = (chunk.key.replace('chara-ext-asset_', ''))
+            const assetIndex = chunk.key.replace('chara-ext-asset_:', '').replace('chara-ext-asset_', '')
             alertWait('Loading... (Reading Asset ' + assetIndex + ')' )
             const assetData = Buffer.from(chunk.value, 'base64')
             const assetId = await saveAsset(assetData)
@@ -226,7 +237,6 @@ async function importCharacterProcess(f:{
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
     console.log(charaData)
     const imgp = await saveAsset(await reencodeImage(img))
-    let db = get(DataBase)
     db.characters.push(convertOffSpecCards(charaData, imgp))
     DataBase.set(db)
     alertNormal(language.importedCharacter)
@@ -304,7 +314,7 @@ export async function characterURLImport() {
         db.modules.push(importData)
         setDatabase(db)
         alertNormal(language.successImport)
-        SettingsMenuIndex.set(1)
+        SettingsMenuIndex.set(14)
         settingsOpen.set(true)
         return
     }
@@ -315,11 +325,90 @@ export async function characterURLImport() {
             name: 'imported.risupreset',
             data: importData
         })
-        SettingsMenuIndex.set(14)
+        SettingsMenuIndex.set(1)
         settingsOpen.set(true)
         return
-    
     }
+    if(hash.startsWith('#share_character')){
+        const data = await fetch("/sw/share/character")
+        if(data.status !== 200){
+            return
+        }
+        const charx = new Uint8Array(await data.arrayBuffer())
+        await importCharacterProcess({
+            name: 'shared.charx',
+            data: charx
+        })
+    }
+    if(hash.startsWith('#share_module')){
+        const data = await fetch("/sw/share/module")
+        if(data.status !== 200){
+            return
+        }
+        const module = new Uint8Array(await data.arrayBuffer())
+        const md = await readModule(Buffer.from(module))
+        md.id = v4()
+        const db = get(DataBase)
+        db.modules.push(md)
+        setDatabase(db)
+        alertNormal(language.successImport)
+        SettingsMenuIndex.set(14)
+        settingsOpen.set(true)
+    }
+    if(hash.startsWith('#share_preset')){
+        const data = await fetch("/sw/share/preset")
+        if(data.status !== 200){
+            return
+        }
+        const preset = new Uint8Array(await data.arrayBuffer())
+        await importPreset({
+            name: 'shared.risup',
+            data: preset
+        })
+        SettingsMenuIndex.set(1)
+        settingsOpen.set(true)
+    }
+    if ("launchQueue" in window) {
+        const handleFiles = async (files:FileSystemFileHandle[]) => {
+            for(const f of files){
+                const file = await f.getFile()
+                const data = new Uint8Array(await file.arrayBuffer())
+                if(f.name.endsWith('.charx')){
+                    await importCharacterProcess({
+                        name: f.name,
+                        data: data
+                    })
+                }
+                if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
+                    await importPreset({
+                        name: f.name,
+                        data: data
+                    })
+                    SettingsMenuIndex.set(1)
+                    settingsOpen.set(true)
+                    alertNormal(language.successImport)
+                }
+                if(f.name.endsWith('risum')){
+                    const md = await readModule(Buffer.from(data))
+                    md.id = v4()
+                    const db = get(DataBase)
+                    db.modules.push(md)
+                    setDatabase(db)
+                    alertNormal(language.successImport)
+                    SettingsMenuIndex.set(14)
+                    settingsOpen.set(true)
+                }
+            }
+        }
+        //@ts-ignore
+        window.launchQueue.setConsumer((launchParams) => {
+            if (launchParams.files && launchParams.files.length) {
+                const files = launchParams.files as FileSystemFileHandle[]
+                handleFiles(files)
+            }
+        });
+    }
+    
 }
 
 
@@ -850,7 +939,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                     const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
                     assetIndex++
                     card.data.extensions.risuai.emotions[i][1] = `__asset:${assetIndex}`
-                    await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                    await writer.write("chara-ext-asset_:" + assetIndex, b64encoded)
                 }
             }
     
@@ -866,7 +955,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                     const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
                     assetIndex++
                     card.data.extensions.risuai.additionalAssets[i][1] = `__asset:${assetIndex}`
-                    await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                    await writer.write("chara-ext-asset_:" + assetIndex, b64encoded)
                 }
             }
     
@@ -882,7 +971,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                     const b64encoded = Buffer.from(rData).toString('base64')
                     assetIndex++
                     card.data.extensions.risuai.vits[key] = `__asset:${assetIndex}`
-                    await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                    await writer.write("chara-ext-asset_:" + assetIndex, b64encoded)
                 }
             }
             if(type === 'json'){
@@ -923,7 +1012,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                     if(type === 'png'){
                         const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
                         card.data.assets[i].uri = `__asset:${assetIndex}`
-                        await writer.write("chara-ext-asset_" + assetIndex, b64encoded)
+                        await writer.write("chara-ext-asset_:" + assetIndex, b64encoded)
                     }
                     else if(type === 'json'){
                         const b64encoded = Buffer.from(await convertImage(rData)).toString('base64')
@@ -1015,6 +1104,20 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
             })
     
             if(type === 'charx'){
+                const md:RisuModule = {
+                    name: `${char.name} Module`,
+                    description: "Module for " + char.name,
+                    id: v4(),
+                    trigger: card.data.extensions.risuai.triggerscript ?? [],
+                    regex: card.data.extensions.risuai.customScripts ?? [],
+                    lorebook: char.globalLore ?? [],
+                }
+                delete card.data.extensions.risuai.triggerscript
+                delete card.data.extensions.risuai.customScripts
+                await writer.write("module.risum", await exportModule(md, {
+                    alertEnd: false,
+                    saveData: false
+                }))
                 await writer.write("card.json", Buffer.from(JSON.stringify(card, null, 4)))
             }
             else{

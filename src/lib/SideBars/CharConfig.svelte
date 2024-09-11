@@ -2,7 +2,7 @@
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
-    import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
+    import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
@@ -34,9 +34,6 @@
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
 
-    
-
-    let subMenu = 0
     let iconRemoveMode = false
     let emos:[string, string][] = []
     let tokens = {
@@ -187,35 +184,41 @@
         };
     }
 
+    $: {
+        if(currentChar.type === 'group' && ($CharConfigSubMenu === 4 || $CharConfigSubMenu === 5)){
+            $CharConfigSubMenu = 0
+        }
+    }
+
 </script>
 
-{#if licensed !== 'private'}
+{#if licensed !== 'private' && !$MobileGUI}
     <div class="flex gap-2 mb-2">
-        <button class={subMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {subMenu = 0}}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 0}}>
             <UserIcon />
         </button>
-        <button class={subMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 1}}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 1}}>
             <SmileIcon />
         </button>
-        <button class={subMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 3}}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 3}}>
             <BookIcon />
         </button>
         {#if currentChar.type === 'character'}
-            <button class={subMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 5}}>
+            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 5}}>
                 <Volume2Icon />
             </button>
-            <button class={subMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 4}}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 4}}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={subMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 2}}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 2}}>
             <ActivityIcon />
         </button>
     </div>
 {/if}
 
 
-{#if subMenu === 0}
+{#if $CharConfigSubMenu === 0}
     {#if currentChar.type !== 'group' && licensed !== 'private'}
         <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
         <span class="text-textcolor">{language.description} <Help key="charDesc"/></span>
@@ -283,40 +286,43 @@
         highlight
         placeholder={getAuthorNoteDefaultText()}
     />
-    <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
-    <div class="flex mt-6 items-center">
-        <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
-    </div>
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
 
-    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
-        <div class="flex mt-2 items-center">
-            <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
-                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
-            }} />
+    {#if !$MobileGUI}
+        <div class="flex mt-6 items-center">
+            <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
         </div>
-    {/each}
 
-    
-    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
-        {#if $DataBase.hanuraiEnable}
+        {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
             <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.hanuraiMemory}/>
+                <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                    $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                }} />
             </div>
-        {:else if $DataBase.hypaMemory}
+        {/each}
+
+        
+        {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+            {#if $DataBase.hanuraiEnable}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.hanuraiMemory}/>
+                </div>
+            {:else if $DataBase.hypaMemory}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleHypaMemory}/>
+                </div>
+            {:else}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleSuperMemory}/>
+                </div>
+            {/if}
+        {/if}
+
+        {#if currentChar.type === 'group'}
             <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleHypaMemory}/>
-            </div>
-        {:else}
-            <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleSuperMemory}/>
+                <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
             </div>
         {/if}
-    {/if}
-
-    {#if currentChar.type === 'group'}
-        <div class="flex mt-2 items-center">
-            <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
-        </div>
     {/if}
     {#if licensed === 'private'}
         <Button on:click={async () => {
@@ -339,10 +345,12 @@
 {:else if licensed === 'private'}
     <span>You are not allowed</span>
     {(() => {
-        subMenu = 0
+        $CharConfigSubMenu = 0
     })()}
-{:else if subMenu === 1}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
+{:else if $CharConfigSubMenu === 1}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
+    {/if}
     <span class="text-textcolor mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if currentChar.type === 'group'}
         <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
@@ -549,13 +557,16 @@
             }
         }}/>
     {/if}
-{:else if subMenu === 3}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>
+{:else if $CharConfigSubMenu === 3}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>
+    {/if}
     <LoreBook />
-{:else if subMenu === 4}
+{:else if $CharConfigSubMenu === 4}
     {#if currentChar.type === 'character'}
-        <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
-
+        {#if !$MobileGUI}
+            <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
+        {/if}
         <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
 
@@ -712,9 +723,11 @@
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.virtualscript}></TextAreaInput>
         {/if}
     {/if}
-{:else if subMenu === 5}
+{:else if $CharConfigSubMenu === 5}
     {#if currentChar.type === 'character'}
-        <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
+        {#if !$MobileGUI}
+            <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
+        {/if}
         <span class="text-textcolor">{language.provider}</span>
         <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={(e) => {
             if(currentChar.type === 'character'){
@@ -949,8 +962,10 @@
             </div>
         {/if}
     {/if}
-{:else if subMenu === 2}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
+{:else if $CharConfigSubMenu === 2}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
+    {/if}
     {#if currentChar.type !== 'group'}
         <span class="text-textcolor">{language.exampleMessage} <Help key="exampleMessage"/></span>
         <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>

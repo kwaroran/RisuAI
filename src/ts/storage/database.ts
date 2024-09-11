@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "129.1.0"
+export let appVer = "131.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -435,6 +435,11 @@ export function setDatabase(data:Database){
     data.falModel ??= 'fal-ai/flux/dev'
     data.falLoraScale ??= 1
     data.customCSS ??= ''
+    data.strictJsonSchema ??= true
+    data.statics ??= {
+        messages: 0,
+        imports: 0
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -729,6 +734,14 @@ export interface Database{
     moduleIntergration: string
     customCSS: string
     betaMobileGUI:boolean
+    jsonSchemaEnabled:boolean
+    jsonSchema:string
+    strictJsonSchema:boolean
+    extractJson:string
+    statics: {
+        messages: number
+        imports: number
+    }
 }
 
 export interface customscript{
@@ -882,6 +895,7 @@ export interface character{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
 }
 
 
@@ -930,6 +944,7 @@ export interface groupChat{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
 }
 
 export interface botPreset{

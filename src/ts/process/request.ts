@@ -22,6 +22,7 @@ import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
 import { OobaParams } from "./prompt";
+import { extractJSON, getOpenAIJSONSchema } from "./templates/jsonSchema";
 
 
 
@@ -485,13 +486,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
-                // temperature: temperature,
                 max_tokens: maxTokens,
-                // presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
-                // frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
-                // top_p: db.top_p,
 
             })
 
@@ -501,6 +498,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             if(db.putUserOpen){
                 body.user = getOpenUserString()
+            }
+
+            if(db.jsonSchemaEnabled){
+                body.response_format = {
+                    "type": "json_schema",
+                    "json_schema": getOpenAIJSONSchema()
+                }
             }
 
             if(aiModel === 'openrouter'){
@@ -641,6 +645,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
                     async transform(chunk, control) {
                         dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
+                        let JSONreaded:{[key:string]:string} = {}
                         try {
                             const datas = dataUint.toString().split('\n')
                             let readed:{[key:string]:string} = {}
@@ -649,7 +654,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     try {
                                         const rawChunk = data.replace("data: ", "")
                                         if(rawChunk === "[DONE]"){
-                                            control.enqueue(readed)
+                                            if(db.extractJson && db.jsonSchemaEnabled){
+                                                for(const key in readed){
+                                                    const extracted = extractJSON(readed[key], db.extractJson)
+                                                    JSONreaded[key] = extracted
+                                                }
+                                                console.log(JSONreaded)
+                                                control.enqueue(JSONreaded)
+                                            }
+                                            else{
+                                                control.enqueue(readed)
+                                            }
                                             return
                                         }
                                         const choices = JSON.parse(rawChunk).choices
@@ -674,7 +689,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     } catch (error) {}
                                 }
                             }
-                            control.enqueue(readed)
+                            if(db.extractJson && db.jsonSchemaEnabled){
+                                for(const key in readed){
+                                    const extracted = extractJSON(readed[key], db.extractJson)
+                                    JSONreaded[key] = extracted
+                                }
+                                console.log(JSONreaded)
+                                control.enqueue(JSONreaded)
+                            }
+                            else{
+                                control.enqueue(readed)
+                            }
                         } catch (error) {
                             
                         }
@@ -741,6 +766,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(res.ok){
                 try {
                     if(multiGen && dat.choices){
+                        if(db.extractJson && db.jsonSchemaEnabled){
+
+                            const c = dat.choices.map((v:{
+                                message:{content:string}
+                            }) => {
+                                const extracted = extractJSON(v.message.content, db.extractJson)
+                                return ["char",extracted]
+                            })
+
+                            return {
+                                type: 'multiline',
+                                result: c
+                            }
+
+                        }
                         return {
                             type: 'multiline',
                             result: dat.choices.map((v) => {
@@ -751,9 +791,31 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
 
                     if(dat?.choices[0]?.text){
+                        if(db.extractJson && db.jsonSchemaEnabled){
+                            try {
+                                const parsed = JSON.parse(dat.choices[0].text)
+                                const extracted = extractJSON(parsed, db.extractJson)
+                                return {
+                                    type: 'success',
+                                    result: extracted
+                                }
+                            } catch (error) {
+                                console.log(error)
+                                return {
+                                    type: 'success',
+                                    result: dat.choices[0].text
+                                }
+                            }
+                        }
                         return {
                             type: 'success',
                             result: dat.choices[0].text
+                        }
+                    }
+                    if(db.extractJson && db.jsonSchemaEnabled){
+                        return {
+                            type: 'success',
+                            result:  extractJSON(dat.choices[0].message.content, db.extractJson)
                         }
                     }
                     const msg:OpenAIChatFull = (dat.choices[0].message)

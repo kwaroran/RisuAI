@@ -1,17 +1,19 @@
 import { get, writable } from "svelte/store";
 import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook } from "./storage/database";
-import { alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
+import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
-import { selectedCharID } from "./stores";
+import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores";
 import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
 import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { PngChunk } from "./pngChunk";
 import { parseMarkdownSafe } from "./parser";
 import { translateHTML } from "./translator/translator";
+import { doingChat } from "./process";
+import { importCharacter } from "./characterCards";
 
 export function createNewCharacter() {
     let db = get(DataBase)
@@ -412,7 +414,9 @@ function formatTavernChat(chat:string, charName:string){
     return chat.replace(/<([Uu]ser)>|\{\{([Uu]ser)\}\}/g, getUserName()).replace(/((\{\{)|<)([Cc]har)(=.+)?((\}\})|>)/g, charName)
 }
 
-export function characterFormatUpdate(index:number|character){
+export function characterFormatUpdate(index:number|character, arg:{
+    updateInteraction?:boolean,
+} = {}){
     let db = get(DataBase)
     let cha = typeof(index) === 'number' ? db.characters[index] : index
     if(cha.chats.length === 0){
@@ -504,6 +508,7 @@ export function characterFormatUpdate(index:number|character){
     if(checkNullish(cha.customscript)){
         cha.customscript = []
     }
+    cha.lastInteraction = Date.now()
     if(typeof(index) === 'number'){
         db.characters[index] = cha
         setDatabase(db)
@@ -731,4 +736,52 @@ export async function removeChar(index:number,name:string, type:'normal'|'perman
     db.characters = chars
     setDatabase(db)
     selectedCharID.set(-1)
+}
+
+export async function addCharacter(arg:{
+    reseter?:()=>any,
+} = {}){
+    MobileGUIStack.set(100)
+    const reseter = arg.reseter ?? (() => {})
+    const r = await alertAddCharacter()
+    if(r === 'importFromRealm'){
+        selectedCharID.set(-1)
+        OpenRealmStore.set(true)
+        MobileGUIStack.set(0)
+        return
+    }
+    reseter();
+    switch(r){
+        case 'createfromScratch':
+            createNewCharacter()
+            break
+        case 'createGroup':
+            createNewGroup()
+            break
+        case 'importCharacter':
+            await importCharacter()
+            break
+        default:
+            MobileGUIStack.set(1)
+            return
+    }
+    let db = get(DataBase)
+    if(db.characters[db.characters.length-1]){
+        changeChar(db.characters.length-1)
+    }
+    MobileGUIStack.set(1)
+}
+
+export function changeChar(index: number, arg:{
+    reseter?:()=>any,
+} = {}) {
+    const reseter = arg.reseter ?? (() => {})
+    if(get(doingChat)){
+      return
+    }
+    reseter();
+    characterFormatUpdate(index, {
+      updateInteraction: true,
+    });
+    selectedCharID.set(index);
 }
