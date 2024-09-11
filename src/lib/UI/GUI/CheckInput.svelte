@@ -17,7 +17,7 @@
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
     aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
 >
-    {#if !hiddenName && reverse}
+    {#if reverse}
         <span>{name}<slot /></span>
     {/if}
     <input 
