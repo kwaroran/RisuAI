@@ -543,7 +543,7 @@ export async function loadData() {
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
-            if((db.betaMobileGUI && window.innerWidth <= 800) || import.meta.env.VITE_RISU_LITE){
+            if((db.betaMobileGUI && window.innerWidth <= 800) || import.meta.env.VITE_RISU_LITE === 'TRUE'){
                 initMobileGesture()
                 MobileGUI.set(true)
             }

@@ -305,7 +305,7 @@
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
-                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click={() => {
+                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click|stopPropagation|preventDefault={(e) => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importFromRealm'
@@ -319,7 +319,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importCharacter'
@@ -332,7 +332,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createfromScratch'
@@ -345,7 +345,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createGroup'
@@ -358,7 +358,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'cancel'

@@ -30,7 +30,7 @@
     </button>
 </div>
 {/if}
-<div class="w-full flex-1 overflow-y-auto bg-bgcolor">
+<div class="w-full flex-1 overflow-y-auto bg-bgcolor relative">
     {#if $MobileSideBar > 0}
         <div class="w-full flex flex-col p-2 mt-2 h-full">
             {#if $MobileSideBar === 1}

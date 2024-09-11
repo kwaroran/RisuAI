@@ -1,20 +1,9 @@
 <script lang="ts">
     import { type character, DataBase, type groupChat } from "src/ts/storage/database";
     import BarIcon from "../SideBars/BarIcon.svelte";
-    import { characterFormatUpdate, getCharImage } from "src/ts/characters";
-    import { MobileSearch, selectedCharID } from "src/ts/stores";
-    import { doingChat } from "src/ts/process";
-    import { language } from "src/lang";
-  import { MessageSquareIcon } from "lucide-svelte";
-    function changeChar(index: number) {
-        if($doingChat){
-            return
-        }
-        characterFormatUpdate(index, {
-            updateInteraction: true,
-        });
-        selectedCharID.set(index);
-    }
+    import { addCharacter, changeChar, getCharImage } from "src/ts/characters";
+    import { MobileSearch } from "src/ts/stores";
+    import { MessageSquareIcon, PlusIcon } from "lucide-svelte";
 
     const agoFormatter = new Intl.RelativeTimeFormat(navigator.languages, { style: 'short' });
 
@@ -65,7 +54,7 @@
         });
     }
 </script>
-<div class="flex flex-col items-center w-full">
+<div class="flex flex-col items-center w-full overflow-y-auto h-full">
     {#each sortChar($DataBase.characters) as char, i}
         {#if char.name.toLocaleLowerCase().includes($MobileSearch.toLocaleLowerCase())}
             <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} on:click={() => {
@@ -85,3 +74,9 @@
         {/if}
     {/each}
 </div>
+
+<button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" on:click={() => {
+    addCharacter()
+}}>
+    <PlusIcon size={24} />
+</button>
