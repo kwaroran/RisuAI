@@ -7,38 +7,37 @@
     import CharConfig from "../SideBars/CharConfig.svelte";
     import { WrenchIcon } from "lucide-svelte";
     import { language } from "src/lang";
-  import SideChatList from "../SideBars/SideChatList.svelte";
-  import DevTool from "../SideBars/DevTool.svelte";
-    let sbt = 0
+    import SideChatList from "../SideBars/SideChatList.svelte";
+    import DevTool from "../SideBars/DevTool.svelte";
 </script>
 
-{#if $MobileSideBar}
+{#if $MobileSideBar > 0}
 <div class="w-full px-2 py-1 text-textcolor2 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">
-    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={sbt === 0} on:click={() => {
-        sbt = 0
+    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 1} on:click={() => {
+        $MobileSideBar = 1
     }}>
         {language.Chat}
     </button>
-    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={sbt === 1} on:click={() => {
-        sbt = 1
+    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 2} on:click={() => {
+        $MobileSideBar = 2
     }}>
         {language.character}
     </button>
-    <button class:text-textcolor={sbt === 2} on:click={() => {
-        sbt = 2
+    <button class:text-textcolor={$MobileSideBar === 3} on:click={() => {
+        $MobileSideBar = 3
     }}>
         <WrenchIcon size={18} />
     </button>
 </div>
 {/if}
-<div class="w-full flex-1 overflow-y-auto">
-    {#if $MobileSideBar}
+<div class="w-full flex-1 overflow-y-auto bg-bgcolor">
+    {#if $MobileSideBar > 0}
         <div class="w-full flex flex-col p-2 mt-2 h-full">
-            {#if sbt === 0}
+            {#if $MobileSideBar === 1}
                 <SideChatList bind:chara={$CurrentCharacter} />
-            {:else if sbt === 1}
+            {:else if $MobileSideBar === 2}
                 <CharConfig />
-            {:else if sbt === 2}
+            {:else if $MobileSideBar === 3}
                 <DevTool />
             {/if}
         </div>
@@ -48,7 +47,7 @@
         <RealmMain />
     {:else if $MobileGUIStack === 1}
         <MobileCharacters />
-    {:else if $MobileGUIStack === 3}
+    {:else if $MobileGUIStack === 2}
         <Settings />
     {/if}
 </div>

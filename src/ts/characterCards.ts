@@ -66,6 +66,8 @@ async function importCharacterProcess(f:{
         }
     }
 
+    let db = get(DataBase)
+    db.statics.imports += 1
 
     if(f.name.endsWith('charx')){
         console.log('reading charx')
@@ -235,7 +237,6 @@ async function importCharacterProcess(f:{
     const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
     console.log(charaData)
     const imgp = await saveAsset(await reencodeImage(img))
-    let db = get(DataBase)
     db.characters.push(convertOffSpecCards(charaData, imgp))
     DataBase.set(db)
     alertNormal(language.importedCharacter)

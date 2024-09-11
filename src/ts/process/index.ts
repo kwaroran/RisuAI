@@ -122,8 +122,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     let db = get(DataBase)
+    db.statics.messages += 1
     let selectedChar = get(selectedCharID)
     const nowChatroom = db.characters[selectedChar]
+    nowChatroom.lastInteraction = Date.now()
     let selectedChat = nowChatroom.chatPage
     nowChatroom.chats[nowChatroom.chatPage].message = nowChatroom.chats[nowChatroom.chatPage].message.map((v) => {
         v.chatId = v.chatId ?? v4()

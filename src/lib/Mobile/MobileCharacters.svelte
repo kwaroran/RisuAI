@@ -1,27 +1,85 @@
 <script lang="ts">
-    import { DataBase } from "src/ts/storage/database";
+    import { type character, DataBase, type groupChat } from "src/ts/storage/database";
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { characterFormatUpdate, getCharImage } from "src/ts/characters";
     import { MobileSearch, selectedCharID } from "src/ts/stores";
     import { doingChat } from "src/ts/process";
+    import { language } from "src/lang";
+  import { MessageSquareIcon } from "lucide-svelte";
     function changeChar(index: number) {
         if($doingChat){
             return
         }
-        characterFormatUpdate(index);
+        characterFormatUpdate(index, {
+            updateInteraction: true,
+        });
         selectedCharID.set(index);
+    }
+
+    const agoFormatter = new Intl.RelativeTimeFormat(navigator.languages, { style: 'short' });
+
+    function makeAgoText(time:number){
+        if(time === 0){
+            return "Unknown";
+        }
+        const diff = Date.now() - time;
+        if(diff < 3600000){
+            const min = Math.floor(diff / 60000);
+            return agoFormatter.format(-min, 'minute');
+        }
+        if(diff < 86400000){
+            const hour = Math.floor(diff / 3600000);
+            return agoFormatter.format(-hour, 'hour');
+        }
+        if(diff < 604800000){
+            const day = Math.floor(diff / 86400000);
+            return agoFormatter.format(-day, 'day');
+        }
+        if(diff < 2592000000){
+            const week = Math.floor(diff / 604800000);
+            return agoFormatter.format(-week, 'week');
+        }
+        if(diff < 31536000000){
+            const month = Math.floor(diff / 2592000000);
+            return agoFormatter.format(-month, 'month');
+        }
+        const year = Math.floor(diff / 31536000000);
+        return agoFormatter.format(-year, 'year');
+    }
+
+    function sortChar(char: (character|groupChat)[]) {
+        return char.map((c, i) => {
+            return {
+                name: c.name || "Unnamed",
+                image: c.image,
+                chats: c.chats.length,
+                i: i,
+                interaction: c.lastInteraction || 0,
+                agoText: makeAgoText(c.lastInteraction || 0),
+            }
+        }).sort((a, b) => {
+            if (a.interaction === b.interaction) {
+                return a.name.localeCompare(b.name);
+            }
+            return b.interaction - a.interaction;
+        });
     }
 </script>
 <div class="flex flex-col items-center w-full">
-    {#each $DataBase.characters as char, i}
+    {#each sortChar($DataBase.characters) as char, i}
         {#if char.name.toLocaleLowerCase().includes($MobileSearch.toLocaleLowerCase())}
             <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} on:click={() => {
-                changeChar(i)
+                changeChar(char.i)
             }}>
                 <BarIcon additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
                 <div class="flex flex-1 w-full flex-col justify-start items-start text-start">
                     <span>{char.name}</span>
-                    <span class="text-sm text-textcolor2">{char.chats.length} Chats</span>
+                    <div class="text-sm text-textcolor2 flex items-center w-full flex-wrap">
+                        <span class="mr-1">{char.chats}</span>
+                        <MessageSquareIcon size={14} />
+                        <span class="mr-1 ml-1">|</span>
+                        <span>{char.agoText}</span>
+                    </div>
                 </div>
             </button>
         {/if}

@@ -35,6 +35,7 @@ import { removeDefaultHandler } from "src/main";
 import { updateGuisize } from "../gui/guisize";
 import { encodeCapKeySafe } from "./mobileStorage";
 import { updateLorebooks } from "../characters";
+import { initMobileGesture } from "../hotkey";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI__
@@ -542,7 +543,8 @@ export async function loadData() {
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
-            if(db.betaMobileGUI && window.innerWidth <= 800){
+            if((db.betaMobileGUI && window.innerWidth <= 800) || import.meta.env.VITE_RISU_LITE){
+                initMobileGesture()
                 MobileGUI.set(true)
             }
             loadedStore.set(true)

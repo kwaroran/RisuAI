@@ -436,6 +436,10 @@ export function setDatabase(data:Database){
     data.falLoraScale ??= 1
     data.customCSS ??= ''
     data.strictJsonSchema ??= true
+    data.statics ??= {
+        messages: 0,
+        imports: 0
+    }
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -734,6 +738,10 @@ export interface Database{
     jsonSchema:string
     strictJsonSchema:boolean
     extractJson:string
+    statics: {
+        messages: number
+        imports: number
+    }
 }
 
 export interface customscript{
@@ -887,6 +895,7 @@ export interface character{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
 }
 
 
@@ -935,6 +944,7 @@ export interface groupChat{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
 }
 
 export interface botPreset{

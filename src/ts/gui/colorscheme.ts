@@ -36,8 +36,8 @@ export const defaultColorScheme: ColorScheme = {
 const colorShemes = {
     "default": defaultColorScheme,
     "light": {
-        bgcolor: "#f0f0f0",
-        darkbg: "#ffffff",
+        bgcolor: "#ffffff",
+        darkbg: "#f0f0f0",
         borderc: "#0f172a",
         selected: "#e0e0e0",
         draculared: "#ff5555",

@@ -90,7 +90,9 @@
       return
     }
     reseter();
-    characterFormatUpdate(index);
+    characterFormatUpdate(index, {
+      updateInteraction: true,
+    });
     selectedCharID.set(index);
   }
 

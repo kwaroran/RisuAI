@@ -30,7 +30,7 @@ export const openPresetList = writable(false)
 export const openPersonaList = writable(false)
 export const MobileGUI = writable(false)
 export const MobileGUIStack = writable(0)
-export const MobileSideBar = writable(false)
+export const MobileSideBar = writable(0)
 //optimization
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>
 export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
@@ -50,6 +50,7 @@ export const UserIconProtrait = writable(false)
 export const CustomCSSStore = writable('')
 export const SafeModeStore = writable(false)
 export const MobileSearch = writable('')
+export const CharConfigSubMenu = writable(0)
 
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []

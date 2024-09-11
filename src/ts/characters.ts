@@ -412,7 +412,9 @@ function formatTavernChat(chat:string, charName:string){
     return chat.replace(/<([Uu]ser)>|\{\{([Uu]ser)\}\}/g, getUserName()).replace(/((\{\{)|<)([Cc]har)(=.+)?((\}\})|>)/g, charName)
 }
 
-export function characterFormatUpdate(index:number|character){
+export function characterFormatUpdate(index:number|character, arg:{
+    updateInteraction?:boolean,
+} = {}){
     let db = get(DataBase)
     let cha = typeof(index) === 'number' ? db.characters[index] : index
     if(cha.chats.length === 0){
@@ -504,6 +506,7 @@ export function characterFormatUpdate(index:number|character){
     if(checkNullish(cha.customscript)){
         cha.customscript = []
     }
+    cha.lastInteraction = Date.now()
     if(typeof(index) === 'number'){
         db.characters[index] = cha
         setDatabase(db)
