@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "131.0.0"
+export let appVer = "131.0.1"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -998,6 +998,10 @@ export interface botPreset{
     top_k?:number
     instructChatTemplate?:string
     JinjaTemplate?:string
+    jsonSchemaEnabled?:boolean
+    jsonSchema?:string
+    strictJsonSchema?:boolean
+    extractJson?:string
 }
 
 
@@ -1282,7 +1286,11 @@ export function saveCurrentPreset(){
         moduleIntergration: db.moduleIntergration ?? "",
         top_k: db.top_k,
         instructChatTemplate: db.instructChatTemplate,
-        JinjaTemplate: db.JinjaTemplate ?? ''
+        JinjaTemplate: db.JinjaTemplate ?? '',
+        jsonSchemaEnabled:db.jsonSchemaEnabled??false,
+        jsonSchema:db.jsonSchema ?? '',
+        strictJsonSchema:db.strictJsonSchema ?? true,
+        extractJson:db.extractJson ?? '',
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1371,6 +1379,10 @@ export function setPreset(db:Database, newPres: botPreset){
     db.top_k = newPres.top_k ?? db.top_k
     db.instructChatTemplate = newPres.instructChatTemplate ?? db.instructChatTemplate
     db.JinjaTemplate = newPres.JinjaTemplate ?? db.JinjaTemplate
+    db.jsonSchemaEnabled = newPres.jsonSchemaEnabled ?? false
+    db.jsonSchema = newPres.jsonSchema ?? ''
+    db.strictJsonSchema = newPres.strictJsonSchema ?? true
+    db.extractJson = newPres.extractJson ?? ''
     return db
 }
 

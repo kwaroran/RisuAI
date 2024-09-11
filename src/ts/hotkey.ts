@@ -147,38 +147,42 @@ export function initMobileGesture(){
 
     let pressingPointers = new Map<number, {x:number, y:number}>()
 
-    document.addEventListener('pointerdown', (ev) => {
-        pressingPointers.set(ev.pointerId, {x: ev.clientX, y: ev.clientY})
+    document.addEventListener('touchstart', (ev) => {
+        for(const touch of ev.changedTouches){
+            pressingPointers.set(touch.identifier, {x: touch.clientX, y: touch.clientY})
+        }
     }, {
         passive: true
     })
-    document.addEventListener('pointerup', (ev) => {
-        const d = pressingPointers.get(ev.pointerId)
-        const moveX = ev.clientX - d.x
-        const moveY = ev.clientY - d.y
-        pressingPointers.delete(ev.pointerId)
+    document.addEventListener('touchend', (ev) => {
+        for(const touch of ev.changedTouches){
+            const d = pressingPointers.get(touch.identifier)
+            const moveX = touch.clientX - d.x
+            const moveY = touch.clientY - d.y
+            pressingPointers.delete(touch.identifier)
 
-        if(moveX > 50 && Math.abs(moveY) < Math.abs(moveX)){
-            if(get(selectedCharID) === -1){
-                if(get(MobileGUIStack) > 0){
-                    MobileGUIStack.update(v => v - 1)
+            if(moveX > 50 && Math.abs(moveY) < Math.abs(moveX)){
+                if(get(selectedCharID) === -1){
+                    if(get(MobileGUIStack) > 0){
+                        MobileGUIStack.update(v => v - 1)
+                    }
+                }
+                else{
+                    if(get(MobileSideBar) > 0){
+                        MobileSideBar.update(v => v - 1)
+                    }
                 }
             }
-            else{
-                if(get(MobileSideBar) > 0){
-                    MobileSideBar.update(v => v - 1)
+            else if(moveX < -50 && Math.abs(moveY) < Math.abs(moveX)){
+                if(get(selectedCharID) === -1){
+                    if(get(MobileGUIStack) < 2){
+                        MobileGUIStack.update(v => v + 1)
+                    }
                 }
-            }
-        }
-        else if(moveX < -50 && Math.abs(moveY) < Math.abs(moveX)){
-            if(get(selectedCharID) === -1){
-                if(get(MobileGUIStack) < 2){
-                    MobileGUIStack.update(v => v + 1)
-                }
-            }
-            else{
-                if(get(MobileSideBar) < 3){
-                    MobileSideBar.update(v => v + 1)
+                else{
+                    if(get(MobileSideBar) < 3){
+                        MobileSideBar.update(v => v + 1)
+                    }
                 }
             }
         }
