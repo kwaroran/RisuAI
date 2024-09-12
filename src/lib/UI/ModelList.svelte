@@ -137,6 +137,10 @@
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai')}}>NovelAI Clio</button>
                 <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('novelai_kayra')}}>NovelAI Kayra</button>
             </Arcodion>
+            <Arcodion name="AI21">
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('jamba-1.5-large')}}>Jamba 1.5 Large</button>
+                <button class="hover:bg-selected px-6 py-2 text-lg" on:click={() => {changeModel('jamba-1.5-medium')}}>Jamba 1.5 Medium</button>
+            </Arcodion>
             <Arcodion name="Horde">
                 {#await getHordeModels()}
                     <button class="p-2">Loading...</button>
