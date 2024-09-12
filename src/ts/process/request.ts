@@ -505,6 +505,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             })
 
+            if(aiModel.startsWith('gpt4o1')){
+                body.max_completion_tokens = body.max_tokens
+                delete body.max_tokens
+            }
+
             if(db.generationSeed > 0){
                 body.seed = db.generationSeed
             }
