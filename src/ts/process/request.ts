@@ -236,6 +236,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4om-2024-07-18':
         case 'gpt4o-2024-08-06':
         case 'gpt4o-chatgpt':
+        case 'gpt4o1-preview':
+        case 'gpt4o1-mini':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -299,6 +301,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 formatedChat = formatedChat.filter(m => {
                     return m.content !== ''
                 })
+            }
+
+            if(aiModel.startsWith('gpt4o1')){
+                for(let i=0;i<formatedChat.length;i++){
+                    if(formatedChat[i].role === 'system'){
+                        formatedChat[i].content = `<system>${formatedChat[i].content}</system>`
+                        formatedChat[i].role = 'user'
+                    }
+                }
             }
 
             for(let i=0;i<biasString.length;i++){
@@ -483,6 +494,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
                     : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
                     : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
+                    : requestModel === 'gpt4o1-preview' ? 'o1-preview'
+                    : requestModel === 'gpt4o1-mini' ? 'o1-mini'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,

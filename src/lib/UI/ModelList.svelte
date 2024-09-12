@@ -56,6 +56,8 @@
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-2024-05-13')}}>GPT-4o 20240513</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-2024-08-06')}}>GPT-4o 20240806</button>
                     <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o-chatgpt')}}>GPT-4o ChatGPT</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o1-preview')}}>o1 Preview</button>
+                    <button class="p-2 hover:text-green-500" on:click={() => {changeModel('gpt4o1-mini')}}>o1 Mini</button>
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">

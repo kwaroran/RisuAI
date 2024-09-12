@@ -105,6 +105,10 @@ export function getModelName(name:string){
             return 'GPT-4o ChatGPT'
         case 'gpt4om':
             return 'GPT-4o Mini'
+        case 'gpt4o1-preview':
+            return 'o1 Preview'
+        case 'gpt4o1-mini':
+            return 'o1 Mini'
         case 'gpt4om-2024-07-18':
             return 'GPT-4o Mini (2024-07-18)'
         case 'gemini-1.5-pro-latest':
