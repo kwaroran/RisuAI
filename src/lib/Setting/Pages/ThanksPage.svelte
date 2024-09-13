@@ -21,7 +21,7 @@
         const supp = await fetch("https://sv.risuai.xyz/patreon/list")
 
         const list = await supp.json() as supporterL[]
-        const dummy:supporters = {
+        const thanks:supporters = {
             //random names
             I: list.filter((v) => v.amount < 5).map((v) => v.name),
             II: list.filter((v) => v.amount >= 5 && v.amount < 10).map((v) => v.name),
@@ -29,9 +29,10 @@
             IV: list.filter((v) => v.amount >= 20 && v.amount < 50).map((v) => v.name),
             V: list.filter((v) => v.amount >= 50).map((v) => v.name),
         }
-        return dummy
+        return thanks
     }
 </script>
+
 <h2 class="text-2xl font-bold mt-2">{language.supporterThanks}</h2>
 <span class="mb-2 text-textcolor2">{language.supporterThanksDesc}</span>
 
@@ -56,7 +57,7 @@
 
 {:then supporter}
     <h3 class="text-xl font-bold mt-4">Supporter V</h3>
-    <div class="flex w-full flex-wrap gap-2"> 
+    <div class="flex w-full max-w-full flex-wrap gap-2"> 
         {#each supporter.V as support}
             <div class="flex flex-col items-center justify-center border-selected border rounded">
                 <div class="flex justify-center items-center py-4 px-8">
@@ -66,7 +67,7 @@
         {/each}
     </div>
     <h3 class="text-xl font-bold mt-4">Supporter IV</h3>
-    <div class="flex w-full flex-wrap gap-2"> 
+    <div class="flex w-full max-w-3xl flex-wrap gap-2"> 
         {#each supporter.IV as support}
             <div class="flex flex-col items-center justify-center border-selected border rounded">
                 <div class="flex justify-center items-center py-4 px-8">
@@ -76,7 +77,7 @@
         {/each}
     </div>
     <h3 class="text-xl font-bold mt-4">Supporter III</h3>
-    <div class="flex w-full flex-wrap gap-2"> 
+    <div class="flex w-full max-w-3xl flex-wrap gap-2"> 
         {#each supporter.III as support}
             <!-- make a card -->
             <div class="flex flex-col items-center justify-center border-selected border rounded">
@@ -87,7 +88,7 @@
         {/each}
     </div>
     <h3 class="text-xl font-bold mt-4">Supporter II</h3>
-    <div class="flex w-full flex-wrap gap-2"> 
+    <div class="flex w-full max-w-3xl flex-wrap gap-2"> 
         {#each supporter.II as support}
             <!-- make a card -->
             <div class="flex flex-col items-center justify-center border-selected border rounded">
@@ -98,7 +99,7 @@
         {/each}
     </div>
     <h3 class="text-xl font-bold mt-4">Supporter I</h3>
-    <div class="flex w-full flex-wrap gap-2"> 
+    <div class="flex w-full max-w-3xl flex-wrap gap-2"> 
         {#each supporter.I as support}
             <!-- make a card -->
             <div class="flex flex-col items-center justify-center border-selected border rounded">
