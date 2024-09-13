@@ -229,12 +229,16 @@ export async function loadLoreBookV3Prompt(){
         searchDepth:number,
         regex:boolean
         fullWordMatching:boolean
+        recursiveAdditionalPrompt:string
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
         let mText = sliced.map((msg) => {
             return msg.data
         }).join('||')
+        if(arg.recursiveAdditionalPrompt){
+            mText += arg.recursiveAdditionalPrompt
+        }
         if(arg.regex){
             for(const regexString of arg.keys){
                 if(!regexString.startsWith('/')){
@@ -289,6 +293,7 @@ export async function loadLoreBookV3Prompt(){
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
+    let matchTimes = 0
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -450,7 +455,8 @@ export async function loadLoreBookV3Prompt(){
                         keys: query.keys,
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
-                        fullWordMatching: fullWordMatching
+                        fullWordMatching: fullWordMatching,
+                        recursiveAdditionalPrompt: recursiveAdditionalPrompt
                     })
                     if(query.negative){
                         if(result){
