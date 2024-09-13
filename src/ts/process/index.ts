@@ -17,7 +17,6 @@ import { groupOrder } from "./group";
 import { runTrigger } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
-import { cipherChat, decipherChat } from "./cipherChat";
 import { getInlayImage, supportsInlayImage } from "./files/image";
 import { getGenerationModelString } from "./models/modelString";
 import { connectionOpen, peerRevertChat, peerSafeCheck, peerSync } from "../sync/multiuser";
@@ -1049,10 +1048,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v
     })
 
-    if(db.cipherChat){
-        formated = cipherChat(formated)
-    }
-
 
     if(currentChar.depth_prompt && currentChar.depth_prompt.prompt && currentChar.depth_prompt.prompt.length > 0){
         //depth_prompt
@@ -1167,9 +1162,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 if(!result){
                     result = ''
                 }
-                if(db.cipherChat){
-                    result = decipherChat(result)
-                }
                 if(db.removeIncompleteResponse){
                     result = trimUntilPunctuation(result)
                 }
@@ -1220,9 +1212,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         for(let i=0;i<msgs.length;i++){
             let msg = msgs[i]
             let mess = msg[1]
-            if(db.cipherChat){
-                mess = decipherChat(result)
-            }
             let msgIndex = db.characters[selectedChar].chats[selectedChat].message.length
             let result2 = await processScriptFull(nowChatroom, reformatContent(mess), 'editoutput', msgIndex)
             if(i === 0 && arg.continue){
