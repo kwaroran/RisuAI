@@ -149,6 +149,10 @@ export function initMobileGesture(){
 
     document.addEventListener('touchstart', (ev) => {
         for(const touch of ev.changedTouches){
+            const ele = touch.target as HTMLElement
+            if(ele.tagName === 'BUTTON' || ele.tagName === 'INPUT' || ele.tagName === 'SELECT' || ele.tagName === 'TEXTAREA'){
+                return
+            }
             pressingPointers.set(touch.identifier, {x: touch.clientX, y: touch.clientY})
         }
     }, {

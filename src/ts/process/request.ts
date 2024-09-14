@@ -238,6 +238,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4o-chatgpt':
         case 'gpt4o1-preview':
         case 'gpt4o1-mini':
+        case 'jamba-1.5-large':
+        case 'jamba-1.5-medium':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -612,6 +614,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
             if(risuIdentify){
                 headers["X-Proxy-Risu"] = 'RisuAI'
+            }
+            if(aiModel.startsWith('jamba')){
+                headers['Authorization'] = 'Bearer ' + db.ai21Key
+                replacerURL = 'https://api.ai21.com/studio/v1/chat/completions'
             }
             if(multiGen){
                 // @ts-ignore

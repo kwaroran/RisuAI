@@ -96,6 +96,10 @@
             <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={$DataBase.hideApiKey} bind:value={$DataBase.google.projectId}/>
         {/if}
     {/if}
+    {#if $DataBase.aiModel.startsWith('jamba') || $DataBase.subModel.startsWith('jamba')}
+        <span class="text-textcolor">AI21 {language.apiKey}</span>
+        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.ai21Key}/>
+    {/if}
     {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
         <span class="text-textcolor">NovelList {language.apiKey}</span>
         <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
