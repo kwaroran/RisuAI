@@ -4,13 +4,11 @@
     import Help from "src/lib/Others/Help.svelte";
     import { DataBase } from "src/ts/storage/database";
     import { customProviderStore } from "src/ts/plugins/plugins";
-    import { getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
+    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
-    import { PlusIcon, TrashIcon } from "lucide-svelte";
-    import { onDestroy } from "svelte";
-    import { setRecommended } from "src/ts/process/templates/getRecomended";
+    import { PlusIcon, TrashIcon, FolderUpIcon, DownloadIcon } from "lucide-svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -24,8 +22,10 @@
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
-  import PromptSettings from "./PromptSettings.svelte";
-  import { openPresetList } from "src/ts/stores";
+    import PromptSettings from "./PromptSettings.svelte";
+    import { openPresetList } from "src/ts/stores";
+  import { selectSingleFile } from "src/ts/util";
+  import { isArray } from "lodash";
 
     let tokens = {
         mainPrompt: 0,
@@ -509,6 +509,19 @@
                 </tr>
             {/each}
         </table>
+        <div class="text-textcolor2 mt-2 flex items-center gap-2">
+            <button class="font-medium cursor-pointer hover:text-textcolor gap-2" on:click={() => {
+                const data = JSON.stringify($DataBase.bias, null, 2)
+                downloadFile('bias.json', data)
+            }}><DownloadIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-textcolor" on:click={async () => {
+                const sel = await selectSingleFile(['json'])
+                const utf8 = new TextDecoder().decode(sel.data)
+                if(Array.isArray(JSON.parse(utf8))){
+                    $DataBase.bias = JSON.parse(utf8)
+                }
+            }}><FolderUpIcon /></button>
+        </div>
     </Arcodion>
 
     {#if $DataBase.aiModel === 'reverse_proxy'}
