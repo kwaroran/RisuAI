@@ -1900,7 +1900,7 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                 }
-                if(dat.startsWith('func::')){
+                if(dat.startsWith('call::')){
                     if(arg.callStack && arg.callStack > 10){
                         nested[0] += `ERROR: Call stack limit reached`
                         break
