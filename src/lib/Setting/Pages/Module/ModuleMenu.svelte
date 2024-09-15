@@ -227,54 +227,7 @@
 {/if}
 
 {#if submenu === 3 && (Array.isArray(currentModule.trigger))}
-    <div class="flex items-start mt-2 gap-2">
-        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
-            currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggercode' &&
-            currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggerlua'
-        } on:click|stopPropagation={async () => {
-            const codeType = currentModule?.trigger?.[0]?.effect?.[0]?.type
-            if(codeType === 'triggercode' || codeType === 'triggerlua'){
-                const codeTrigger = currentModule?.trigger?.[0]?.effect?.[0]?.code
-                if(codeTrigger){
-                    const t = await alertConfirm(language.triggerSwitchWarn)
-                    if(!t){
-                        return
-                    }
-                }
-                currentModule.trigger = []
-            }
-        }}>{language.blockMode}</button>
-        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentModule?.trigger?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
-            if(currentModule?.trigger?.[0]?.effect?.[0]?.type !== 'triggerlua'){
-                if(currentModule?.trigger && currentModule?.trigger.length > 0){
-                    const t = await alertConfirm(language.triggerSwitchWarn)
-                    if(!t){
-                        return
-                    }
-                }
-                currentModule.trigger = [{
-                    comment: "",
-                    type: "start",
-                    conditions: [],
-                    effect: [{
-                        type: "triggerlua",
-                        code: ""
-                    }]
-                }]
-            }
-        }}>Lua</button>
-    </div>
-    {#if currentModule?.trigger?.[0]?.effect?.[0]?.type === 'triggerlua'}
-        <TextAreaInput margin="both" autocomplete="off" bind:value={currentModule.trigger[0].effect[0].code}></TextAreaInput>
-        <Button on:click={() => {
-            openURL(hubURL + '/redirect/docs/lua')
-        }}>{language.helpBlock}</Button>
-    {:else}
-        <TriggerList bind:value={currentModule.trigger} lowLevelAble={currentModule.lowLevelAccess} />
-        <button on:click={() => {addTrigger()}} class="hover:text-textcolor cursor-pointer">
-            <PlusIcon />
-        </button>
-    {/if}
+    <TriggerList bind:value={currentModule.trigger} lowLevelAble={currentModule.lowLevelAccess} />
 
     <div class="flex items-center mt-4">
         <Check bind:check={currentModule.lowLevelAccess} name={language.lowLevelAccess}/>

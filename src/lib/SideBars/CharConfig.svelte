@@ -637,67 +637,8 @@
         </div>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
-        <div class="flex items-start mt-2 gap-2">
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
-                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode' &&
-                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'
-            } on:click|stopPropagation={async () => {
-                    if(currentChar.type === 'character'){
-                        const codeType = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type
-                        if(codeType === 'triggercode' || codeType === 'triggerlua'){
-                            const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
-                            if(codeTrigger){
-                                const t = await alertConfirm(language.triggerSwitchWarn)
-                                if(!t){
-                                    return
-                                }
-                            }
-                            currentChar.data.triggerscript = []
-                        }
-                    }
-            }}>{language.blockMode}</button>
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'){
-                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
-                        }
-                    }
-                    currentChar.data.triggerscript = [{
-                        comment: "",
-                        type: "start",
-                        conditions: [],
-                        effect: [{
-                            type: "triggerlua",
-                            code: ""
-                        }]
-                    }]
-                }
-            }}>Lua</button>
-        </div>
-        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
-            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>        
-        {:else if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'}
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
-            <Button on:click={() => {
-                openURL(hubURL + '/redirect/docs/lua')
-            }}>{language.helpBlock}</Button>
-        {:else}
-            <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
-        {/if}
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.triggerscript
-                script.push({
-                    comment: "",
-                    type: "start",
-                    conditions: [],
-                    effect: []
-                })
-                currentChar.data.triggerscript = script
-            }
-        }}><PlusIcon /></button>
+        <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
+
 
         {#if currentChar.data.virtualscript || $DataBase.showUnrecommended}
             <span class="text-textcolor mt-4">{language.charjs} <Help key="charjs" unrecommended/></span>
