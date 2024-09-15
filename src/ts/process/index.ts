@@ -800,7 +800,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     let biases:[string,number][] = db.bias.concat(currentChar.bias).map((v) => {
-        return [risuChatParser(v[0].replaceAll("\\n","\n"), {chara: currentChar}),v[1]]
+        return [risuChatParser(v[0].replaceAll("\\n","\n").replaceAll("\\r","\r").replaceAll("\\\\","\\"), {chara: currentChar}),v[1]]
     })
 
     let memories:OpenAIChat[] = []
