@@ -498,19 +498,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(effect.inputVar, res)
                     break
                 }
-
-                case 'triggercode':{
-                    const triggerCodeResult = await risuCommandParser(effect.code,{
-                        chara:char,
-                        lowLevelAccess: trigger.lowLevelAccess,
-                        funcName: mode
-                    })
-
-                    if(triggerCodeResult['__stop_chat__'] === '1'){
-                        stopSending = true
-                    }
-                    break
-                }
                 case 'triggerlua':{
                     const triggerCodeResult = await runLua(effect.code,{
                         lowLevelAccess: trigger.lowLevelAccess,

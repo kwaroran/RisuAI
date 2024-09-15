@@ -656,25 +656,6 @@
                         }
                     }
             }}>{language.blockMode}</button>
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'){
-                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
-                        }
-                    }
-                    currentChar.data.triggerscript = [{
-                        comment: "",
-                        type: "start",
-                        conditions: [],
-                        effect: [{
-                            type: "triggercode",
-                            code: ""
-                        }]
-                    }]
-                }
-            }}>{language.codeMode}</button>
             <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
                 if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'){
                     if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
