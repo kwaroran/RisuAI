@@ -1,4 +1,4 @@
-import { parseChatML, risuChatParser, risuCommandParser } from "../parser";
+import { parseChatML, risuChatParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
