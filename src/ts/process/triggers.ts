@@ -301,28 +301,34 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case'setvar': {
                     const effectValue = risuChatParser(effect.value,{chara:char})
                     const varKey  = risuChatParser(effect.var,{chara:char})
+                    let originalVar = Number(getVar(varKey))
+                    if(Number.isNaN(originalVar)){
+                        originalVar = 0
+                    }
+                    let resultValue = ''
                     switch(effect.operator){
                         case '=':{
-                            setVar(varKey, effectValue)
+                            resultValue = effectValue
                             break
                         }
                         case '+=':{
-                            setVar(varKey, (Number(getVar(varKey)) + Number(effectValue)).toString())
+                            resultValue = (originalVar + Number(effectValue)).toString()
                             break
                         }
                         case '-=':{
-                            setVar(varKey, (Number(getVar(varKey)) - Number(effectValue)).toString())
+                            resultValue = (originalVar - Number(effectValue)).toString()
                             break
                         }
                         case '*=':{
-                            setVar(varKey, (Number(getVar(varKey)) * Number(effectValue)).toString())
+                            resultValue = (originalVar * Number(effectValue)).toString()
                             break
                         }
                         case '/=':{
-                            setVar(varKey, (Number(getVar(varKey)) / Number(effectValue)).toString())
+                            resultValue = (originalVar / Number(effectValue)).toString()
                             break
                         }
                     }
+                    setVar(varKey, resultValue)
                     break
                 }
                 case 'systemprompt':{
