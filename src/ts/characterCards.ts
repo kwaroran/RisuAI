@@ -156,7 +156,7 @@ async function importCharacterProcess(f:{
         return
     }
 
-    if(!readedChara){
+    if(readedCCv3){
         readedChara = readedCCv3
     }
 
