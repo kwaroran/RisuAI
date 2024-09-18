@@ -734,4 +734,5 @@ export const languageEnglish = {
     enableJsonSchema: "Enable Schema",
     strictJsonSchema: "Strict Schema",
     extractJson: "Extract JSON",
+    reloadSession: "Newer version of save data is found. reloading the session...",
 }
