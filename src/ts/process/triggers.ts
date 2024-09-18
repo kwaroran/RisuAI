@@ -3,7 +3,7 @@ import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { CurrentCharacter, CurrentChat, ReloadGUIPointer, selectedCharID } from "../stores";
 import { processMultiCommand } from "./command";
 import { parseKeyValue } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -531,6 +531,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     if(varChanged){
         const currentChat = get(CurrentChat)
         currentChat.scriptstate = chat.scriptstate
+        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt}
