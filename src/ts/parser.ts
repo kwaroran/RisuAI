@@ -650,7 +650,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     }
                     pointer--
                 }
-                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
@@ -664,7 +664,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         }
                         pointer--
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
                 }
                 return ''
             }
@@ -795,7 +795,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             }
             case 'first_msg_index':{
                 const selchar = db.characters[get(selectedCharID)]
-                return selchar.firstMsgIndex.toString()
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.fmIndex.toString()
             }
             case 'blank':
             case 'none':{
@@ -1631,7 +1632,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1679,9 +1680,10 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     }
     if(p1.startsWith('#func')){
         const statement = p1.split(' ')
-        if(matcherArg.funcName === statement[1]){
-            return {type:'parse',funcArg:statement.slice(2)}
+        if(statement.length > 1){
+            return {type:'function',funcArg:statement.slice(1)}
         }
+
     }
 
 
@@ -1697,7 +1699,8 @@ function trimLines(p1:string){
 function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherArg:matcherArg):string{
     switch(type.type){
         case 'pure':
-        case 'parse-pure':{
+        case 'parse-pure':
+        case 'function':{
             return p1
         }
         case 'parse':
@@ -1721,6 +1724,8 @@ export function risuChatParser(da:string, arg:{
     visualize?:boolean,
     role?:string
     runVar?:boolean
+    functions?:Map<string,{data:string,arg:string[]}>
+    callStack?:number
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -1753,12 +1758,20 @@ export function risuChatParser(da:string, arg:{
     let stackType = new Uint8Array(512)
     let pureModeNest:Map<number,boolean> = new Map()
     let pureModeNestType:Map<number,string> = new Map()
-    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
+    let blockNestType:Map<number,{
+        type:blockMatch,
+        type2?:string
+        funcArg?:string[]
+    }> = new Map()
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
     let thinkingMode = false
     let tempVar:{[key:string]:string} = {}
+    let functions:Map<string,{
+        data:string,
+        arg:string[]
+    }> = arg.functions ?? (new Map())
 
     const matcherObj = {
         chatID: chatID,
@@ -1839,7 +1852,7 @@ export function risuChatParser(da:string, arg:{
                         nested.unshift('')
                         stackType[nested.length] = 5
                         blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
+                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each' || matchResult.type === 'function'){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
                         }
@@ -1849,7 +1862,7 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('/')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
+                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each' || blockType.type === 'function'){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
                         }
@@ -1868,6 +1881,14 @@ export function risuChatParser(da:string, arg:{
                             da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
                             break
                         }
+                        if(blockType.type === 'function'){
+                            console.log(matchResult)
+                            functions.set(blockType.funcArg[0], {
+                                data: matchResult,
+                                arg: blockType.funcArg.slice(1)
+                            })
+                            break
+                        }
                         if(matchResult === ''){
                             break
                         }
@@ -1877,6 +1898,26 @@ export function risuChatParser(da:string, arg:{
                     if(stackType[nested.length] === 6){
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
+                        break
+                    }
+                }
+                if(dat.startsWith('call::')){
+                    if(arg.callStack && arg.callStack > 10){
+                        nested[0] += `ERROR: Call stack limit reached`
+                        break
+                    }
+                    const argData = dat.split('::').slice(1)
+                    const funcName = argData[0]
+                    const func = functions.get(funcName)
+                    console.log(func)
+                    if(func){
+                        let data = func.data
+                        for(let i = 0;i < argData.length;i++){
+                            data = data.replaceAll(`{{arg::${i}}}`, argData[i])
+                        }
+                        arg.functions = functions
+                        arg.callStack = (arg.callStack ?? 0) + 1
+                        nested[0] += risuChatParser(data, arg)
                         break
                     }
                 }
@@ -1996,424 +2037,6 @@ export function risuChatParser(da:string, arg:{
     return nested[0] + result
 }
 
-export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:string]:string}):Promise<{
-    text:string,
-    var:{[key:string]:string}
-}|void|null> {
-    const arra = p1.split('::')
-
-    switch(arra[0]){
-        case 'pushchat':
-        case 'addchat':
-        case 'add_chat':
-        case 'push_chat':{
-            const chat = get(CurrentChat)
-            chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'yield':{
-            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'setchat':
-        case 'set_chat':{
-            const chat = get(CurrentChat)
-            const message = chat.message?.at(Number(arra[1]))
-            if(message){
-                message.data = arra[2] ?? ''
-            }
-            CurrentChat.set(chat)
-        }
-        case 'set_chat_role':
-        case 'setchatrole':{
-            const chat = get(CurrentChat)
-            const message = chat.message?.at(Number(arra[1]))
-            if(message){
-                message.role = arra[2] === 'user' ? 'user' : 'char'
-            }
-            CurrentChat.set(chat)
-        }
-        case 'cutchat':
-        case 'cut_chat':{
-            const chat = get(CurrentChat)
-            chat.message = chat.message.slice(Number(arra[1]), Number(arra[2]))
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'insertchat':
-        case 'insert_chat':{
-            const chat = get(CurrentChat)
-            chat.message.splice(Number(arra[1]), 0, {role: arra[2] === 'user' ? 'user' : 'char', data: arra[3] ?? ''})
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'removechat':
-        case 'remove_chat':{
-            const chat = get(CurrentChat)
-            chat.message.splice(Number(arra[1]), 1)
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'regex':{
-            const reg = new RegExp(arra[1], arra[2])
-            const match = reg.exec(arra[3])
-            let res:string[] = []
-            for(let i = 0;i < match.length;i++){
-                res.push(match[i])
-            }
-            return {
-                text: makeArray(res),
-                var: vars
-            }
-        }
-        case 'replace_regex':
-        case 'replaceregex':{
-            const reg = new RegExp(arra[1], arra[2])
-            return {
-                text: arra[3].replace(reg, arra[4]),
-                var: vars
-            }
-        }
-        case 'call':{
-            //WIP
-            const called = await risuCommandParser(arra[1], {
-                db: matcherArg.db,
-                chara: matcherArg.chara,
-                funcName: arra[2],
-                passed: arra.slice(3),
-                recursiveCount: (matcherArg.recursiveCount ?? 0) + 1
-            })
-
-            return {
-                text: called['__return__'] ?? '',
-                var: vars
-            }
-        }
-        case 'stop_chat':{
-            vars['__stop_chat__'] = '1'
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'similaritysearch':
-        case 'similarity_search':
-        case 'similarity':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const processer = new HypaProcesser('MiniLM')
-            const source = arra[1]
-            const target = parseArray(arra[2])
-            await processer.addText(target)
-            const result = await processer.similaritySearch(source)
-            return {
-                text: makeArray(result),
-                var: vars
-            }
-        }
-        case 'image_generation':
-        case 'imagegeneration':
-        case 'imagegen':
-        case 'image_gen':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const prompt = arra[1]
-            const negative = arra[2] || ''
-            const char = matcherArg.chara
-
-            const gen = await generateAIImage(prompt, char as character, negative, 'inlay')
-            if(!gen){
-                return {
-                    text: 'ERROR: Image generation failed',
-                    var: vars
-                }
-            }
-            const imgHTML = new Image()
-            imgHTML.src = gen
-            const inlay = await writeInlayImage(imgHTML)
-            return {
-                text: inlay,
-                var: vars
-            }
-        }
-        case 'send_llm':
-        case 'llm':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const prompt = parseArray(arra[1])
-            let promptbody:OpenAIChat[] = prompt.map((f) => {
-                const dict = parseDict(f)
-                let role:'system'|'user'|'assistant' = 'assistant'
-                switch(dict['role']){
-                    case 'system':
-                    case 'sys':
-                        role = 'system'
-                        break
-                    case 'user':
-                        role = 'user'
-                        break
-                    case 'assistant':
-                    case 'bot':
-                    case 'char':{
-                        role = 'assistant'
-                        break
-                    }
-                }
-
-                return {
-                    content: dict['content'] ?? '',
-                    role: role,
-                }
-            })
-            const result = await requestChatData({
-                formated: promptbody,
-                bias: {},
-                useStreaming: false,
-                noMultiGen: true,
-            }, 'model')
-
-            if(result.type === 'fail'){
-                return {
-                    text: 'ERROR: ' + result.result,
-                    var: vars
-                }
-            }
-
-            if(result.type === 'streaming' || result.type === 'multiline'){
-                return {
-                    text: 'ERROR: Streaming and multiline is not supported in this context',
-                    var: vars
-                }
-            }
-
-            return {
-                text: result.result,
-                var: vars
-            }
-        }
-        case 'alert':{
-            alertNormal(arra[1])
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'input':
-        case 'alert_input':
-        case 'alertinput':{
-            const input = await alertInput(arra[1])
-            return {
-                text: input,
-                var: vars
-            }
-        }
-    }
-
-    const matched = basicMatcher(p1, matcherArg)
-    if(typeof(matched) === 'string'){
-        return {
-            text: matched,
-            var: vars
-        }
-    }
-
-    return matched
-}
-
-
-export async function risuCommandParser(da:string, arg:{
-    db?:Database
-    chara?:string|character|groupChat
-    funcName?:string
-    passed?:string[],
-    recursiveCount?:number
-    lowLevelAccess?:boolean
-} = {}):Promise<{[key:string]:string}>{
-    const db = arg.db ?? get(DataBase)
-    const aChara = arg.chara
-    let chara:character|string = null
-    let passed = arg.passed ?? []
-    let recursiveCount = arg.recursiveCount ?? 0
-
-    if(recursiveCount > 30){
-        return {}
-    }
-
-    if(aChara){
-        if(typeof(aChara) !== 'string' && aChara.type === 'group'){
-            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
-            if(gc.name !== 'Unknown Character'){
-                chara = gc
-            }
-        }
-        else{
-            chara = aChara
-        }
-    }
-    
-    let pointer = 0;
-    let nested:string[] = [""]
-    let stackType = new Uint8Array(512)
-    let pureModeNest:Map<number,boolean> = new Map()
-    let pureModeNestType:Map<number,string> = new Map()
-    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
-    const matcherObj = {
-        chatID: -1,
-        chara: chara,
-        rmVar: false,
-        db: db,
-        var: null,
-        tokenizeAccurate: false,
-        displaying: false,
-        role: null,
-        runVar: false,
-        consistantChar: false,
-        funcName: arg.funcName ?? null,
-        text: da,
-        recursiveCount: recursiveCount,
-        lowLevelAccess: arg.lowLevelAccess ?? false
-    }
-
-    let tempVar:{[key:string]:string} = {}
-
-    const isPureMode = () => {
-        return pureModeNest.size > 0
-    }
-    while(pointer < da.length){
-        switch(da[pointer]){
-            case '{':{
-                if(da[pointer + 1] !== '{' && da[pointer + 1] !== '#'){
-                    nested[0] += da[pointer]
-                    break
-                }
-                pointer++
-                nested.unshift('')
-                stackType[nested.length] = 1
-                break
-            }
-            case '}':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                pointer++
-                const dat = nested.shift()
-                if(dat.startsWith('#')){
-                    if(isPureMode()){
-                        nested[0] += `{{${dat}}}`
-                        nested.unshift('')
-                        stackType[nested.length] = 6
-                        break
-                    }
-                    const matchResult = blockStartMatcher(dat, matcherObj)
-                    if(matchResult.type === 'nothing'){
-                        nested[0] += `{{${dat}}}`
-                        break
-                    }
-                    else{
-                        nested.unshift('')
-                        stackType[nested.length] = 5
-                        blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
-                            pureModeNest.set(nested.length, true)
-                            pureModeNestType.set(nested.length, "block")
-                        }
-                        if(matchResult.funcArg){
-                            for(let i = 0;i < matchResult.funcArg.length;i++){
-                                tempVar[matchResult.funcArg[i]] = passed[i]
-                            }
-                        }
-                        break
-                    }
-                }
-                if(dat.startsWith('/')){
-                    if(stackType[nested.length] === 5){
-                        const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
-                            pureModeNest.delete(nested.length)
-                            pureModeNestType.delete(nested.length)
-                        }
-                        blockNestType.delete(nested.length)
-                        const dat2 = nested.shift()
-                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
-                        if(blockType.type === 'each'){
-                            const subind = blockType.type2.lastIndexOf(' ')
-                            const sub = blockType.type2.substring(subind + 1)
-                            const array = parseArray(blockType.type2.substring(0, subind))
-                            let added = ''
-                            for(let i = 0;i < array.length;i++){
-                                const res = matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
-                                added += res
-                            }
-                            da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
-                            break
-                        }
-                        if(matchResult === ''){
-                            break
-                        }
-                        nested[0] += matchResult
-                        break
-                    }
-                    if(stackType[nested.length] === 6){
-                        const sft = nested.shift()
-                        nested[0] += sft + `{{${dat}}}`
-                        break
-                    }
-                }
-                const mc = isPureMode() ? {
-                    text:null,
-                    var:tempVar
-                } : (await commandMatcher(dat, matcherObj, tempVar))
-                if(mc && (mc.text || mc.text === '')){
-                    tempVar = mc.var
-                    if(tempVar['__force_return__']){
-                        return tempVar
-                    }
-                    nested[0] += mc.text ?? `{{${dat}}}`
-                }
-                else{
-                    nested[0] += `{{${dat}}}`
-                }
-                break
-            }
-            default:{
-                nested[0] += da[pointer]
-                break
-            }
-        }
-        pointer++
-    }
-    return tempVar
-
-}
 
 
 export function getChatVar(key:string){

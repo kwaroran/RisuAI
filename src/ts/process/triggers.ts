@@ -1,9 +1,9 @@
-import { parseChatML, risuChatParser, risuCommandParser } from "../parser";
+import { parseChatML, risuChatParser } from "../parser";
 import { DataBase, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { CurrentCharacter, CurrentChat, ReloadGUIPointer, selectedCharID } from "../stores";
 import { processMultiCommand } from "./command";
 import { parseKeyValue } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -301,28 +301,34 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case'setvar': {
                     const effectValue = risuChatParser(effect.value,{chara:char})
                     const varKey  = risuChatParser(effect.var,{chara:char})
+                    let originalVar = Number(getVar(varKey))
+                    if(Number.isNaN(originalVar)){
+                        originalVar = 0
+                    }
+                    let resultValue = ''
                     switch(effect.operator){
                         case '=':{
-                            setVar(varKey, effectValue)
+                            resultValue = effectValue
                             break
                         }
                         case '+=':{
-                            setVar(varKey, (Number(getVar(varKey)) + Number(effectValue)).toString())
+                            resultValue = (originalVar + Number(effectValue)).toString()
                             break
                         }
                         case '-=':{
-                            setVar(varKey, (Number(getVar(varKey)) - Number(effectValue)).toString())
+                            resultValue = (originalVar - Number(effectValue)).toString()
                             break
                         }
                         case '*=':{
-                            setVar(varKey, (Number(getVar(varKey)) * Number(effectValue)).toString())
+                            resultValue = (originalVar * Number(effectValue)).toString()
                             break
                         }
                         case '/=':{
-                            setVar(varKey, (Number(getVar(varKey)) / Number(effectValue)).toString())
+                            resultValue = (originalVar / Number(effectValue)).toString()
                             break
                         }
                     }
+                    setVar(varKey, resultValue)
                     break
                 }
                 case 'systemprompt':{
@@ -498,19 +504,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(effect.inputVar, res)
                     break
                 }
-
-                case 'triggercode':{
-                    const triggerCodeResult = await risuCommandParser(effect.code,{
-                        chara:char,
-                        lowLevelAccess: trigger.lowLevelAccess,
-                        funcName: mode
-                    })
-
-                    if(triggerCodeResult['__stop_chat__'] === '1'){
-                        stopSending = true
-                    }
-                    break
-                }
                 case 'triggerlua':{
                     const triggerCodeResult = await runLua(effect.code,{
                         lowLevelAccess: trigger.lowLevelAccess,
@@ -544,6 +537,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     if(varChanged){
         const currentChat = get(CurrentChat)
         currentChat.scriptstate = chat.scriptstate
+        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt}

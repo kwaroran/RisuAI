@@ -5,17 +5,18 @@
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, CurrentVariablePointer, HideIconStore, ReloadGUIPointer } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, HideIconStore, ReloadGUIPointer } from "../../ts/stores";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
-    import { get } from "svelte/store";
+    import { get, type Unsubscriber } from "svelte/store";
     import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
-  import { longpress } from "src/ts/gui/longtouch";
-  import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
-  import { ConnectionOpenStore } from "src/ts/sync/multiuser";
+    import { longpress } from "src/ts/gui/longtouch";
+    import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+    import { ConnectionOpenStore } from "src/ts/sync/multiuser";
+    import { onDestroy, onMount } from "svelte";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -72,7 +73,7 @@
         $CurrentChat.message = msg
     }
 
-    function displaya(message:string, chatPointer?:any){
+    function displaya(message:string){
         msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
     }
 
@@ -91,23 +92,22 @@
     $: blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         try {
-            if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
-            lastParsed = ''
-            lastCharArg = charArg
-            lastChatId = chatID
-            translateText = false
-            try {
-                translated = get(DataBase).autoTranslate
-                if(translated){
-                    translateText = true
-                }
-            } catch (error) {}
-        }
+                if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
+                lastParsed = ''
+                lastCharArg = charArg
+                lastChatId = chatID
+                translateText = false
+                try {
+                    translated = get(DataBase).autoTranslate
+                    if(translated){
+                        translateText = true
+                    }
+                } catch (error) {}
+            }
             if(translateText){
                 if(!$DataBase.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID)
                     translating = true
-                    console.log(marked)
                     const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
                     translating = false
                     lastParsed = translated
@@ -141,7 +141,19 @@
         }
     }
 
-    $: displaya(message, $CurrentVariablePointer)
+    $: displaya(message)
+
+    const unsubscribers:Unsubscriber[] = []
+
+    onMount(()=>{
+        unsubscribers.push(ReloadGUIPointer.subscribe((v) => {
+            displaya(message)
+        }))
+    })
+
+    onDestroy(()=>{
+        unsubscribers.forEach(u => u())
+    })
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
@@ -280,13 +292,11 @@
                     style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
                 >
                     {#key $ReloadGUIPointer}
-                        {#key $CurrentVariablePointer}
-                            {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                                {@html lastParsed}
-                            {:then md}
-                                {@html md}
-                            {/await}
-                        {/key}
+                        {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                            {@html lastParsed}
+                        {:then md}
+                            {@html md}
+                        {/await}
                     {/key}
                 </span>
             {/if}

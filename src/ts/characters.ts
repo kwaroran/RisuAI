@@ -249,7 +249,7 @@ export async function exportChat(page:number){
                             <div class="chat">
                                 <h2>${char.name}</h2>
                                 <div>${await htmlChatParse(
-                                    char.firstMsgIndex === -1 ? char.firstMessage : char.alternateGreetings?.[char.firstMsgIndex ?? 0]
+                                    chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings?.[chat.fmIndex ?? 0]
                                 )}</div>
                             </div>
                             ${chatContentHTML}
@@ -513,6 +513,10 @@ export function characterFormatUpdate(index:number|character, arg:{
         db.characters[index] = cha
         setDatabase(db)
     }
+    cha.chats = cha.chats.map((v) => {
+        v.fmIndex ??= cha.firstMsgIndex ?? -1
+        return v
+    })
     return cha
 }
 

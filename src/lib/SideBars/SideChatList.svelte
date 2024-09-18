@@ -10,7 +10,7 @@
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { CurrentCharacter, MobileGUI } from "src/ts/stores";
+    import { CurrentCharacter, MobileGUI, ReloadGUIPointer } from "src/ts/stores";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
   import { onDestroy, onMount } from "svelte";
   import { v4 } from "uuid";
@@ -69,7 +69,7 @@
         const len = chara.chats.length
         let chats = chara.chats
         chats.unshift({
-            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[]
+            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1
         })
         if(cha.type === 'group'){
             cha.characters.map((c) => {
@@ -82,6 +82,7 @@
         }
         chara.chats = chats
         chara.chatPage = 0
+        $ReloadGUIPointer += 1
     }}>New Chat</Button>
     <div class="flex flex-col w-full mt-2 overflow-y-auto flex-grow" bind:this={ele}>
         {#key sorted}
@@ -89,6 +90,8 @@
         <button data-risu-idx={i} on:click={() => {
             if(!editMode){
                 chara.chatPage = i
+                $ReloadGUIPointer += 1
+
             }
         }} class="flex items-center text-textcolor  border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"class:bg-selected={i === chara.chatPage}>
             {#if editMode}
@@ -158,6 +161,7 @@
                     const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                     if(d){
                         chara.chatPage = 0
+                        $ReloadGUIPointer += 1
                         let chats = chara.chats
                         chats.splice(i, 1)
                         chara.chats = chats

@@ -12,7 +12,7 @@ import { checkRisuUpdate } from "../update";
 import { MobileGUI, botMakerMode, selectedCharID } from "../stores";
 import { Body, ResponseType, fetch as TauriFetch } from "@tauri-apps/api/http";
 import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS } from "../alert";
+import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
 import { hasher } from "../parser";
 import { characterURLImport, hubURL } from "../characterCards";
@@ -299,8 +299,8 @@ export async function saveDb(){
             }
             if(!gotChannel){
                 gotChannel = true
-                await alertNormalWait(language.activeTabChange)
-                gotChannel = false
+                alertWait(language.activeTabChange)
+                location.reload()
             }
         }
     }

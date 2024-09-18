@@ -288,8 +288,9 @@ export async function loadLoreBookV3Prompt(){
         pos:string,
         prompt:string
         role:'system'|'user'|'assistant'
-        priority:number
+        order:number
         tokens:number
+        priority:number
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
@@ -307,6 +308,7 @@ export async function loadLoreBookV3Prompt(){
             let pos = ''
             let depth = 0
             let scanDepth = loreDepth
+            let order = fullLore[i].insertorder
             let priority = fullLore[i].insertorder
             let forceState:string = 'none'
             let role:'system'|'user'|'assistant' = 'system'
@@ -381,7 +383,7 @@ export async function loadLoreBookV3Prompt(){
                         if(Number.isNaN(int)){
                             return false
                         }
-                        if(((char.firstMsgIndex ?? -1) + 1) !== int){
+                        if(((char.chats[page].fmIndex ?? -1) + 1) !== int){
                             activated = false
                         }
                     }
@@ -433,6 +435,10 @@ export async function loadLoreBookV3Prompt(){
                         if(Math.random() * 100 > parseInt(arg[0])){
                             activated = false
                         }
+                    }
+                    case 'priority':{
+                        priority = parseInt(arg[0])
+                        return
                     }
                     default:{
                         return false
@@ -486,8 +492,9 @@ export async function loadLoreBookV3Prompt(){
                     pos: pos,
                     prompt: content,
                     role: role,
-                    priority: priority,
-                    tokens: await tokenize(content)
+                    order: order,
+                    tokens: await tokenize(content),
+                    priority: priority
                 })
                 activatedIndexes.push(i)
                 if(recursiveScanning){
@@ -512,8 +519,12 @@ export async function loadLoreBookV3Prompt(){
         return false
     })
 
+    const activesResorted = activesFiltered.sort((a,b) => {
+        return b.order - a.order
+    })
+
     return {
-        actives: activesFiltered.reverse()
+        actives: activesResorted.reverse()
     }
 
 }
