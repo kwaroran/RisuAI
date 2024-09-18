@@ -2,7 +2,7 @@
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase } from "../../ts/storage/database";
-    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
+    import { CurrentCharacter, ReloadGUIPointer, selectedCharID } from "../../ts/stores";
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
@@ -66,7 +66,7 @@
                 const len = $CurrentCharacter.chats.length
                 let chats = $CurrentCharacter.chats
                 chats.unshift({
-                    message:[], note:'', name:`New Chat ${len + 1}`, localLore:[]
+                    message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1
                 })
                 if(cha.type === 'group'){
                     cha.characters.map((c) => {
@@ -78,6 +78,7 @@
                     })
                 }
                 $CurrentCharacter.chats = chats
+                $ReloadGUIPointer += 1
                 $CurrentCharacter.chatPage = len
                 close()
             }}>

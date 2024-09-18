@@ -2,7 +2,7 @@
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
-    import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
+    import { CharConfigSubMenu, CurrentChat, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
@@ -966,7 +966,7 @@
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={() => {
                                 if(currentChar.type === 'character'){
-                                    currentChar.data.firstMsgIndex = -1
+                                    $CurrentChat.fmIndex = -1
                                     let alternateGreetings = currentChar.data.alternateGreetings
                                     alternateGreetings.splice(i, 1)
                                     currentChar.data.alternateGreetings = alternateGreetings
@@ -1031,7 +1031,7 @@
                                 <th class="font-medium cursor-pointer w-10">
                                     <button class="hover:text-green-500" on:click={() => {
                                         if(currentChar.type === 'character'){
-                                            currentChar.data.firstMsgIndex = -1
+                                            $CurrentChat.fmIndex = -1
                                             let additionalAssets = currentChar.data.additionalAssets
                                             additionalAssets.splice(i, 1)
                                             currentChar.data.additionalAssets = additionalAssets

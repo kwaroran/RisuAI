@@ -1073,6 +1073,7 @@ export interface Chat{
     modules?:string[]
     id?:string
     bindedPersona?:string
+    fmIndex?:number
 }
 
 export interface Message{

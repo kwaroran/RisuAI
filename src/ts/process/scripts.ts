@@ -180,7 +180,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         const v = outScript.split(' ', 2)[1]
                         const selchar = db.characters[get(selectedCharID)]
                         const chat = selchar.chats[selchar.chatPage]
-                        let lastChat = selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                        let lastChat = chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
                         let pointer = chatID - 1
                         while(pointer >= 0){
                             if(chat.message[pointer].role === chat.message[chatID].role){

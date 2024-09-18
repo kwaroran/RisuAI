@@ -383,7 +383,7 @@ export async function loadLoreBookV3Prompt(){
                         if(Number.isNaN(int)){
                             return false
                         }
-                        if(((char.firstMsgIndex ?? -1) + 1) !== int){
+                        if(((char.chats[page].fmIndex ?? -1) + 1) !== int){
                             activated = false
                         }
                     }

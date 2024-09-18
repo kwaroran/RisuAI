@@ -601,32 +601,34 @@
                     <Chat
                         character={$CurrentSimpleCharacter}
                         name={$CurrentCharacter.name}
-                        message={$CurrentCharacter.firstMsgIndex === -1 ? $CurrentCharacter.firstMessage :
-                            $CurrentCharacter.alternateGreetings[$CurrentCharacter.firstMsgIndex]}
+                        message={$CurrentChat.fmIndex === -1 ? $CurrentCharacter.firstMessage :
+                            $CurrentCharacter.alternateGreetings[$CurrentChat.fmIndex]}
                         img={getCharImage($CurrentCharacter.image, 'css')}
                         idx={-1}
                         altGreeting={$CurrentCharacter.alternateGreetings.length > 0}
                         largePortrait={$CurrentCharacter.largePortrait}
                         onReroll={() => {
                             const cha = $CurrentCharacter
+                            const chat = $CurrentChat
                             if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex >= (cha.alternateGreetings.length - 1)){
-                                    cha.firstMsgIndex = -1
+                                if (chat.fmIndex >= (cha.alternateGreetings.length - 1)){
+                                    chat.fmIndex = -1
                                 }
                                 else{
-                                    cha.firstMsgIndex += 1
+                                    chat.fmIndex += 1
                                 }
                             }
-                            $CurrentCharacter = cha
+                            $CurrentChat = chat
                         }}
                         unReroll={() => {
                             const cha = $CurrentCharacter
+                            const chat = $CurrentChat
                             if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex === -1){
-                                    cha.firstMsgIndex = (cha.alternateGreetings.length - 1)
+                                if (chat.fmIndex === -1){
+                                    chat.fmIndex = (cha.alternateGreetings.length - 1)
                                 }
                                 else{
-                                    cha.firstMsgIndex -= 1
+                                    chat.fmIndex -= 1
                                 }
                             }
                             $CurrentCharacter = cha

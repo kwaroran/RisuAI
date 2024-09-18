@@ -650,7 +650,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     }
                     pointer--
                 }
-                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
@@ -664,7 +664,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         }
                         pointer--
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
                 }
                 return ''
             }
@@ -795,7 +795,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             }
             case 'first_msg_index':{
                 const selchar = db.characters[get(selectedCharID)]
-                return selchar.firstMsgIndex.toString()
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.fmIndex.toString()
             }
             case 'blank':
             case 'none':{

@@ -612,7 +612,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     if(nowChatroom.type !== 'group'){
-        const firstMsg = nowChatroom.firstMsgIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[nowChatroom.firstMsgIndex]
+        const firstMsg = currentChat.fmIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[currentChat.fmIndex]
 
         const chat:OpenAIChat = {
             role: 'assistant',
