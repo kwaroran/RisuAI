@@ -631,7 +631,7 @@
                                     chat.fmIndex -= 1
                                 }
                             }
-                            $CurrentCharacter = cha
+                            $CurrentChat = chat
                         }}
                         isLastMemory={false}
 
