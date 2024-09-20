@@ -1669,7 +1669,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1712,6 +1712,9 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1 === '#pure'){
         return {type:'pure'}
     }
+    if(p1 === '#pure_display' || p1 === '#puredisplay'){
+        return {type:'pure-display'}
+    }
     if(p1.startsWith('#each')){
         return {type:'each',type2:p1.substring(5).trim()}
     }
@@ -1737,6 +1740,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
     switch(type.type){
         case 'pure':
         case 'parse-pure':
+        case 'pure-display':
         case 'function':{
             return p1
         }
@@ -1891,7 +1895,10 @@ export function risuChatParser(da:string, arg:{
                         nested.unshift('')
                         stackType[nested.length] = 5
                         blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each' || matchResult.type === 'function'){
+                        if( matchResult.type === 'ignore' || matchResult.type === 'pure' ||
+                            matchResult.type === 'each' || matchResult.type === 'function' ||
+                            matchResult.type === 'pure-display'
+                        ){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
                         }
@@ -1901,7 +1908,10 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('/')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each' || blockType.type === 'function'){
+                        if( blockType.type === 'ignore' || blockType.type === 'pure' ||
+                            blockType.type === 'each' || blockType.type === 'function' ||
+                            blockType.type === 'pure-display'
+                        ){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
                         }
@@ -1926,6 +1936,10 @@ export function risuChatParser(da:string, arg:{
                                 data: matchResult,
                                 arg: blockType.funcArg.slice(1)
                             })
+                            break
+                        }
+                        if(blockType.type === 'pure-display'){
+                            nested[0] += matchResult.replaceAll('{{', '\\{\\{').replaceAll('}}', '\\}\\}')
                             break
                         }
                         if(matchResult === ''){
