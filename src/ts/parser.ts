@@ -1206,6 +1206,16 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object_element':{
                     return parseDict(arra[1])[arra[2]] ?? 'null'
                 }
+                case 'object_assert':
+                case 'dict_assert':
+                case 'dictassert':
+                case 'objectassert':{
+                    const dict = parseDict(arra[1])
+                    if(!dict[arra[2]]){
+                        dict[arra[2]] = arra[3]
+                    }
+                    return JSON.stringify(dict)
+                }
 
                 case 'element':
                 case 'ele':{
@@ -1250,6 +1260,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
                     return makeArray(arr)
                 }
+                case 'arrayassert':
+                case 'array_assert':{
+                    const arr = parseArray(arra[1])
+                    const index = Number(arra[2])
+                    if(index >= arr.length){
+                        arr[index] = arra[3]
+                    }
+                    return makeArray(arr)
+                }
                 case 'makearray':
                 case 'array':
                 case 'a':
@@ -1264,11 +1283,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object':
                 case 'o':
                 case 'make_object':{
-                    //ideas:
-                    //  - {{o::key1:value1::key2:value2}} - its confusing for users
-                    //  - {{o::key1:value1,key2:value2}} - since comma can break the parser, this is not good
-                    //  - {{o::key=value::key2=value2}} - this is good enough I think, just need to escape the equal sign
-
                     const sliced = arra.slice(1)
                     let out = {}
 
