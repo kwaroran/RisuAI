@@ -86,7 +86,8 @@ const normalCBS = [
     'chat_index', 'first_msg_index', 'blank', 'none', 'message_time', 'message_date', 'time',
     'date', 'isotime', 'isodate', 'message_idle_duration', 'idle_duration', 'br', 'newline',
     'model', 'axmodel', 'role', 'jbtoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
-    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure', 'slot', 'module_enabled'
+    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', 'slot', 'module_enabled',
+    'is_first_message', '/', '/if', '/each', '/pure', '/if_pure', '/func', '/pure_display'
 ]
 
 const normalCBSwithParams = [
@@ -97,7 +98,7 @@ const normalCBSwithParams = [
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
     'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot', 'rollp',
-    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal'
+    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal', 'arg'
 ]
 
 const displayRelatedCBS = [
@@ -105,7 +106,7 @@ const displayRelatedCBS = [
 ];
 
 const specialCBS = [
-    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ',
+    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ', '#func', '#pure_display'
 ]
 
 const deprecatedCBS = [
