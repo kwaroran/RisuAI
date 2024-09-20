@@ -607,6 +607,7 @@
                         idx={-1}
                         altGreeting={$CurrentCharacter.alternateGreetings.length > 0}
                         largePortrait={$CurrentCharacter.largePortrait}
+                        firstMessage={true}
                         onReroll={() => {
                             const cha = $CurrentCharacter
                             const chat = $CurrentChat

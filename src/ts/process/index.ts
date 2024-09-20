@@ -644,7 +644,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     let index = 0
     for(const msg of ms){
-        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, role: msg.role}), 'editprocess')
+        let formatedChat = await processScript(nowChatroom,risuChatParser(msg.data, {chara: currentChar, role: msg.role}), 'editprocess', {
+            chatRole: msg.role,
+        })
         let name = ''
         if(msg.role === 'char'){
             if(msg.saying){

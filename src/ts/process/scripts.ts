@@ -5,7 +5,7 @@ import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
-import { assetRegex, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
+import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
 import { runCharacterJS } from "../plugins/embedscript";
 import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
@@ -22,8 +22,8 @@ type pScript = {
     actions: string[]
 }
 
-export async function processScript(char:character|groupChat, data:string, mode:ScriptMode){
-    return (await processScriptFull(char, data, mode)).data
+export async function processScript(char:character|groupChat, data:string, mode:ScriptMode, cbsConditions:CbsConditions = {}){
+    return (await processScriptFull(char, data, mode, -1, cbsConditions)).data
 }
 
 export function exportRegex(s?:customscript[]){
@@ -66,7 +66,7 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 
 let bestMatchCache = new Map<string, string>()
 
-export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1){
+export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = get(DataBase)
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
@@ -102,7 +102,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
 
             let input = script.in
             if(pscript.actions.includes('cbs')){
-                input = risuChatParser(input, { chatID: chatID })
+                input = risuChatParser(input, { chatID: chatID, cbsConditions })
             }
 
             const reg = new RegExp(input, flag)
@@ -172,7 +172,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         }
                     }
                     else{
-                        data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
+                        data = risuChatParser(data.replace(reg, outScript), { chatID: chatID, cbsConditions })
                     }
                 }
                 else{
@@ -215,7 +215,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID })
+                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID, cbsConditions })
             }
         }
     }

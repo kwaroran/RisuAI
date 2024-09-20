@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
-    import { ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
+    import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
@@ -28,6 +28,7 @@
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
+    export let firstMessage = false
     let translating = false
     try {
         translating = get(DataBase).autoTranslate                
@@ -73,8 +74,16 @@
         $CurrentChat.message = msg
     }
 
+    function getCbsCondition(){
+        const cbsConditions:CbsConditions = {
+            firstmsg: firstMessage ?? false,
+            chatRole: $CurrentChat?.message?.[idx]?.role ?? null,
+        }
+        return cbsConditions
+    }
+
     function displaya(message:string){
-        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
+        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true, cbsConditions: getCbsCondition()})
     }
 
     const setStatusMessage = (message:string, timeout:number = 0)=>{
@@ -106,7 +115,7 @@
             }
             if(translateText){
                 if(!$DataBase.legacyTranslation){
-                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID)
+                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
                     const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
                     translating = false
@@ -115,7 +124,7 @@
                     return translated
                 }
                 else{
-                    const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                    const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     translating = true
                     const translated = await translateHTML(marked, false, charArg, chatID)
                     translating = false
@@ -125,7 +134,7 @@
                 }
             }
             else{
-                const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                 lastParsed = marked
                 lastCharArg = charArg
                 return marked

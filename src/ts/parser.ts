@@ -5,16 +5,12 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
+import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage, writeInlayImage } from './process/files/image';
+import { getInlayImage } from './process/files/image';
 import { getModuleAssets, getModuleLorebooks } from './process/modules';
-import { HypaProcesser } from './process/memory/hypamemory';
-import { generateAIImage } from './process/stableDiff';
-import { requestChatData } from './process/request';
 import type { OpenAIChat } from './process';
-import { alertInput, alertNormal } from './alert';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 
@@ -386,7 +382,13 @@ export interface simpleCharacterArgument{
 }
 
 
-export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back'|'pretranslate' = 'normal', chatID=-1) {
+export async function ParseMarkdown(
+    data:string,
+    charArg:(character|simpleCharacterArgument | groupChat | string) = null,
+    mode:'normal'|'back'|'pretranslate' = 'normal',
+    chatID=-1,
+    cbsConditions:CbsConditions = {}
+) {
     let firstParsed = ''
     const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
@@ -395,7 +397,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         firstParsed = data
     }
     if(char){
-        data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
+        data = (await processScriptFull(char, data, 'editdisplay', chatID, cbsConditions)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
@@ -625,6 +627,12 @@ type matcherArg = {
     text?:string,
     recursiveCount?:number
     lowLevelAccess?:boolean
+    cbsConditions:CbsConditions
+}
+
+export type CbsConditions = {
+    firstmsg?:boolean
+    chatRole?:string
 }
 function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
     text:string,
@@ -958,11 +966,26 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return db.subModel
             }
             case 'role': {
+                if(matcherArg.cbsConditions.chatRole){
+                    return matcherArg.cbsConditions.chatRole
+                }
+                if(matcherArg.cbsConditions.firstmsg){
+                    return 'char'
+                }
                 if (chatID !== -1) {
                     const selchar = db.characters[get(selectedCharID)]
                     return selchar.chats[selchar.chatPage].message[chatID].role;
                 }
-                return matcherArg.role ?? 'role'
+                return matcherArg.role ?? 'null'
+            }
+            case 'isfirstmsg':
+            case 'is_first_msg':
+            case 'is_first_message':
+            case 'isfirstmessage':{
+                if(matcherArg.cbsConditions.firstmsg){
+                    return '1'
+                }
+                return '0'
             }
             case 'jbtoggled':{
                 return db.jailbreakToggle ? '1' : '0'
@@ -1740,6 +1763,7 @@ export function risuChatParser(da:string, arg:{
     runVar?:boolean
     functions?:Map<string,{data:string,arg:string[]}>
     callStack?:number
+    cbsConditions?:CbsConditions
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -1798,6 +1822,7 @@ export function risuChatParser(da:string, arg:{
         role: arg.role,
         runVar: arg.runVar ?? false,
         consistantChar: arg.consistantChar ?? false,
+        cbsConditions: arg.cbsConditions ?? {}
     }
 
 
