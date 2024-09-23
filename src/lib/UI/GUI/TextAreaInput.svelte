@@ -71,7 +71,7 @@
         <div
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="true"
-            bind:innerText={value}
+            bind:textContent={value}
             on:keydown={(e) => {
                 handleKeyDown(e)
                 onInput()
@@ -83,7 +83,7 @@
                 e.preventDefault()
                 const text = e.clipboardData.getData('text/plain')
                 if(text){
-                    insertContent(text, 'paste')
+                    insertTextAtSelection(text)
                 }
             }}
             bind:this={inputDom}
@@ -93,7 +93,7 @@
         <div
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="plaintext-only"
-            bind:innerText={value}
+            bind:textContent={value}
             on:keydown={(e) => {
                 handleKeyDown(e)
                 onInput()
@@ -245,25 +245,50 @@
                 case 'ArrowDown':
                     selectingAutoComplete = Math.min(selectingAutoComplete + 1, autocompleteContents.length - 1)
                     e.preventDefault()
-                    break
+                    return
                 case 'ArrowUp':
                     selectingAutoComplete = Math.max(selectingAutoComplete - 1, 0)
                     e.preventDefault()
-                    break
+                    return
                 case 'Enter':
                 case 'Tab':
                     e.preventDefault()
                     if(selectingAutoComplete !== -1){
                         insertContent(autocompleteContents[selectingAutoComplete])
                     }
-                    break
+                    return
                 case 'Escape':
                     hideAutoComplete()
-                    break
+                    return
             }
         }
+        if(e.key === 'Enter' && isFirefox){
+            e.stopPropagation()
+            e.preventDefault()
+            insertTextAtSelection('\n')
+        }
     }
-    
+
+    function insertTextAtSelection(txt:string) {
+        let div = inputDom;
+        let sel = window.getSelection();
+        let text = div.textContent;
+        let before = Math.min(sel.focusOffset, sel.anchorOffset);
+        let after = Math.max(sel.focusOffset, sel.anchorOffset);
+        let afterStr = text.substring(after);
+        if (afterStr == "") afterStr = "\n";
+        div.textContent = text.substring(0, before) + txt + afterStr;
+        sel.removeAllRanges();
+        let range = document.createRange();
+        range.setStart(div.childNodes[0], before + txt.length);
+        range.setEnd(div.childNodes[0], before + txt.length);
+        sel.addRange(range);
+        try {
+            inputDom.dispatchEvent(new Event('input'))
+            inputDom.dispatchEvent(new Event('change'))
+        } catch (error) {}
+    }
+        
     $: optiValue = value
     $: highlightChange(value, highlightId)
 
