@@ -76,15 +76,20 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 function renderMarkdown(md:markdownit, data:string){
     const db = get(DataBase)
+    let quotes = ['“', '”', '‘', '’']
+    if(db?.customQuotes){
+        quotes = db.customQuotesData ?? quotes
+    }
+
     let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
 
     if(db?.unformatQuotes){
-        text = text.replace(/\uE9b0/gu, '“').replace(/\uE9b1/gu, '”')
-        text = text.replace(/\uE9b2/gu, '‘').replace(/\uE9b3/gu, '’')
+        text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
+        text = text.replace(/\uE9b2/gu, quotes[2]).replace(/\uE9b3/gu, quotes[3])
     }
     else{
-        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">“').replace(/\uE9b1/gu, '”</mark>')
-        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘').replace(/\uE9b3/gu, '’</mark>')
+        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">' + quotes[0]).replace(/\uE9b1/gu, quotes[1] + '</mark>')
+        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">' + quotes[2]).replace(/\uE9b3/gu, quotes[3] + '</mark>')
     }
 
     return text

@@ -316,6 +316,24 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={$DataBase.customQuotes} name={language.customQuotes}/>
+    </div>
+
+    {#if $DataBase.customQuotes}
+        <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
+        <TextInput bind:value={$DataBase.customQuotesData[0]} />
+
+        <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
+        <TextInput bind:value={$DataBase.customQuotesData[1]} />
+
+        <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
+        <TextInput bind:value={$DataBase.customQuotesData[2]} />
+
+        <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
+        <TextInput bind:value={$DataBase.customQuotesData[3]} />
+    {/if}
+
+    <div class="flex items-center mt-2">
         <Check bind:check={$DataBase.betaMobileGUI} name={language.betaMobileGUI}/>
         <Help key="betaMobileGUI"/>
     </div>

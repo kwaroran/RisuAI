@@ -440,6 +440,8 @@ export function setDatabase(data:Database){
         messages: 0,
         imports: 0
     }
+    data.customQuotes ??= false
+    data.customQuotesData ??= ['“','”','‘','’']
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -743,6 +745,8 @@ export interface Database{
         messages: number
         imports: number
     }
+    customQuotes:boolean
+    customQuotesData?:[string, string, string, string]
 }
 
 export interface customscript{
