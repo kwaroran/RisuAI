@@ -38,7 +38,7 @@
         hideAutoComplete()
     }}
 >
-    {#if !highlight || !CSS.highlights || isFirefox}
+    {#if !highlight}
         <textarea
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto"
             class:px-4={padding}
@@ -67,6 +67,28 @@
                 }
             }}
         />
+    {:else if isFirefox}
+        <div
+            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+            contenteditable="true"
+            bind:innerText={value}
+            on:keydown={(e) => {
+                handleKeyDown(e)
+                onInput()
+            }}
+            on:input={(e) => {
+                autoComplete()
+            }}
+            on:paste={(e) => {
+                e.preventDefault()
+                const text = e.clipboardData.getData('text/plain')
+                if(text){
+                    insertContent(text, 'paste')
+                }
+            }}
+            bind:this={inputDom}
+            translate="no"
+        >{value ?? ''}</div>
     {:else}
         <div
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
@@ -79,13 +101,14 @@
             on:input={(e) => {
                 autoComplete()
             }}
+            bind:this={inputDom}
             translate="no"
         >{value ?? ''}</div>
     {/if}
     <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>
         {#each autocompleteContents as content, i}
             <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} on:click={() => {
-                insertAutoComplete(content)
+                insertContent(content)
             }}>{content}</button>
         {/each}
     </div>
@@ -116,6 +139,7 @@
     let optiValue = value
     let autoCompleteDom: HTMLDivElement
     let autocompleteContents:string[] = []
+    let inputDom: HTMLDivElement
 
     const autoComplete = () => {
         if(isMobile){
@@ -160,27 +184,38 @@
         autoCompleteDom.style.display = 'flex'
     }
 
-    const insertAutoComplete = (insertContent:string) => {
+    const insertContent = (insertContent:string, type:'autoComplete'|'paste' = 'autoComplete') => {
         const sel = window.getSelection()
         if(sel){
             const range = sel.getRangeAt(0)
             let content = (range.startContainer).textContent
             let contentStart = content.substring(0, range.startOffset)
             let contentEnd = content.substring(range.startOffset)
-            contentStart = contentStart.substring(0, contentStart.lastIndexOf('{{'))
-
-            if(insertContent.endsWith(':')){
-                insertContent = `{{${insertContent}:`
-            }
-            else{
-                insertContent = `{{${insertContent}}}`
+            if(type === 'autoComplete'){
+                contentStart = contentStart.substring(0, contentStart.lastIndexOf('{{'))
+                if(insertContent.endsWith(':')){
+                    insertContent = `{{${insertContent}:`
+                }
+                else if(insertContent.startsWith('#')){
+                    insertContent = `{{${insertContent} `
+                }
+                else{
+                    insertContent = `{{${insertContent}}}`
+                }
             }
 
             const cons = contentStart + insertContent + contentEnd
             range.startContainer.textContent = cons
-
-            sel.collapse(range.startContainer, contentStart.length + insertContent.length)
             hideAutoComplete()
+
+            try {
+                sel.collapse(range.startContainer, contentStart.length + insertContent.length)                
+            } catch (error) {
+                inputDom.dispatchEvent(new Event('input'))
+                inputDom.dispatchEvent(new Event('change'))      
+            }
+            //invoke onInput
+            
         }
     }
 
@@ -218,7 +253,7 @@
                 case 'Tab':
                     e.preventDefault()
                     if(selectingAutoComplete !== -1){
-                        insertAutoComplete(autocompleteContents[selectingAutoComplete])
+                        insertContent(autocompleteContents[selectingAutoComplete])
                     }
                     break
                 case 'Escape':
