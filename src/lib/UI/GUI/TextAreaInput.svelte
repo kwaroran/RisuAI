@@ -210,12 +210,13 @@
 
             try {
                 sel.collapse(range.startContainer, contentStart.length + insertContent.length)                
-            } catch (error) {
-                inputDom.dispatchEvent(new Event('input'))
-                inputDom.dispatchEvent(new Event('change'))      
-            }
+            } catch (error) {}
             //invoke onInput
             
+            try {
+                inputDom.dispatchEvent(new Event('input'))
+                inputDom.dispatchEvent(new Event('change'))
+            } catch (error) {}
         }
     }
 
