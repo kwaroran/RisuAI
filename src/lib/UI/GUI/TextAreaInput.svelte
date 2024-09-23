@@ -245,21 +245,21 @@
                 case 'ArrowDown':
                     selectingAutoComplete = Math.min(selectingAutoComplete + 1, autocompleteContents.length - 1)
                     e.preventDefault()
-                    break
+                    return
                 case 'ArrowUp':
                     selectingAutoComplete = Math.max(selectingAutoComplete - 1, 0)
                     e.preventDefault()
-                    break
+                    return
                 case 'Enter':
                 case 'Tab':
                     e.preventDefault()
                     if(selectingAutoComplete !== -1){
                         insertContent(autocompleteContents[selectingAutoComplete])
                     }
-                    break
+                    return
                 case 'Escape':
                     hideAutoComplete()
-                    break
+                    return
             }
         }
         if(e.key === 'Enter' && isFirefox){
