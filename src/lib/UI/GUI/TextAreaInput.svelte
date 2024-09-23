@@ -132,7 +132,7 @@
     export let className = ''
     export let optimaizedInput = true
     export let highlight = false
-    let selectingAutoComplete = -1
+    let selectingAutoComplete = 0
     let highlightId = highlight ? getNewHighlightId() : 0
     let inpa = 0
     let highlightDom: HTMLDivElement
@@ -146,7 +146,7 @@
             return
         }
         //autocomplete
-        selectingAutoComplete = -1
+        selectingAutoComplete = 0
         const sel = window.getSelection()
         if(!sel){
             return
@@ -222,7 +222,7 @@
 
     const hideAutoComplete = () => {
         autoCompleteDom.style.display = 'none'
-        selectingAutoComplete = -1
+        selectingAutoComplete = 0
         autocompleteContents = []
     }
 
@@ -253,9 +253,7 @@
                 case 'Enter':
                 case 'Tab':
                     e.preventDefault()
-                    if(selectingAutoComplete !== -1){
-                        insertContent(autocompleteContents[selectingAutoComplete])
-                    }
+                    insertContent(autocompleteContents[selectingAutoComplete])
                     return
                 case 'Escape':
                     hideAutoComplete()
