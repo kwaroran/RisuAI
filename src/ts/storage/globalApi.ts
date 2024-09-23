@@ -43,6 +43,7 @@ export const isTauri = !!window.__TAURI__
 export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
 export const googleBuild = false
+export const isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
 
 interface fetchLog{
     body:string

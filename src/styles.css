@@ -251,3 +251,7 @@ html, body{
 .x-risu-risu-inlay-image > img{
   @apply rounded-lg focus:outline-none max-w-80 w-full
 }
+
+.z-100{
+  z-index: 100;
+}

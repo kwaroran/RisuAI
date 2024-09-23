@@ -5,16 +5,12 @@ import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
+import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage, writeInlayImage } from './process/files/image';
+import { getInlayImage } from './process/files/image';
 import { getModuleAssets, getModuleLorebooks } from './process/modules';
-import { HypaProcesser } from './process/memory/hypamemory';
-import { generateAIImage } from './process/stableDiff';
-import { requestChatData } from './process/request';
 import type { OpenAIChat } from './process';
-import { alertInput, alertNormal } from './alert';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 
@@ -80,15 +76,20 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 function renderMarkdown(md:markdownit, data:string){
     const db = get(DataBase)
+    let quotes = ['“', '”', '‘', '’']
+    if(db?.customQuotes){
+        quotes = db.customQuotesData ?? quotes
+    }
+
     let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
 
     if(db?.unformatQuotes){
-        text = text.replace(/\uE9b0/gu, '“').replace(/\uE9b1/gu, '”')
-        text = text.replace(/\uE9b2/gu, '‘').replace(/\uE9b3/gu, '’')
+        text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
+        text = text.replace(/\uE9b2/gu, quotes[2]).replace(/\uE9b3/gu, quotes[3])
     }
     else{
-        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">“').replace(/\uE9b1/gu, '”</mark>')
-        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘').replace(/\uE9b3/gu, '’</mark>')
+        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">' + quotes[0]).replace(/\uE9b1/gu, quotes[1] + '</mark>')
+        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">' + quotes[2]).replace(/\uE9b3/gu, quotes[3] + '</mark>')
     }
 
     return text
@@ -322,15 +323,15 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             case 'path':
                 return path.path
             case 'img':
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             case 'image':
                 return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>\n`
             case 'video':
-                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'video-img':
-                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'audio':
-                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>\n`
             case 'bg':
                 if(mode === 'back'){
                     return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
@@ -338,9 +339,9 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 break
             case 'asset':{
                 if(path.ext && videoExtention.includes(path.ext)){
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
                 }
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             }
         }
         return ''
@@ -386,7 +387,13 @@ export interface simpleCharacterArgument{
 }
 
 
-export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back'|'pretranslate' = 'normal', chatID=-1) {
+export async function ParseMarkdown(
+    data:string,
+    charArg:(character|simpleCharacterArgument | groupChat | string) = null,
+    mode:'normal'|'back'|'pretranslate' = 'normal',
+    chatID=-1,
+    cbsConditions:CbsConditions = {}
+) {
     let firstParsed = ''
     const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
@@ -395,7 +402,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         firstParsed = data
     }
     if(char){
-        data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
+        data = (await processScriptFull(char, data, 'editdisplay', chatID, cbsConditions)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
@@ -625,6 +632,12 @@ type matcherArg = {
     text?:string,
     recursiveCount?:number
     lowLevelAccess?:boolean
+    cbsConditions:CbsConditions
+}
+
+export type CbsConditions = {
+    firstmsg?:boolean
+    chatRole?:string
 }
 function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
     text:string,
@@ -958,11 +971,26 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return db.subModel
             }
             case 'role': {
+                if(matcherArg.cbsConditions.chatRole){
+                    return matcherArg.cbsConditions.chatRole
+                }
+                if(matcherArg.cbsConditions.firstmsg){
+                    return 'char'
+                }
                 if (chatID !== -1) {
                     const selchar = db.characters[get(selectedCharID)]
                     return selchar.chats[selchar.chatPage].message[chatID].role;
                 }
-                return matcherArg.role ?? 'role'
+                return matcherArg.role ?? 'null'
+            }
+            case 'isfirstmsg':
+            case 'is_first_msg':
+            case 'is_first_message':
+            case 'isfirstmessage':{
+                if(matcherArg.cbsConditions.firstmsg){
+                    return '1'
+                }
+                return '0'
             }
             case 'jbtoggled':{
                 return db.jailbreakToggle ? '1' : '0'
@@ -1206,6 +1234,16 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object_element':{
                     return parseDict(arra[1])[arra[2]] ?? 'null'
                 }
+                case 'object_assert':
+                case 'dict_assert':
+                case 'dictassert':
+                case 'objectassert':{
+                    const dict = parseDict(arra[1])
+                    if(!dict[arra[2]]){
+                        dict[arra[2]] = arra[3]
+                    }
+                    return JSON.stringify(dict)
+                }
 
                 case 'element':
                 case 'ele':{
@@ -1250,6 +1288,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
                     return makeArray(arr)
                 }
+                case 'arrayassert':
+                case 'array_assert':{
+                    const arr = parseArray(arra[1])
+                    const index = Number(arra[2])
+                    if(index >= arr.length){
+                        arr[index] = arra[3]
+                    }
+                    return makeArray(arr)
+                }
                 case 'makearray':
                 case 'array':
                 case 'a':
@@ -1264,11 +1311,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object':
                 case 'o':
                 case 'make_object':{
-                    //ideas:
-                    //  - {{o::key1:value1::key2:value2}} - its confusing for users
-                    //  - {{o::key1:value1,key2:value2}} - since comma can break the parser, this is not good
-                    //  - {{o::key=value::key2=value2}} - this is good enough I think, just need to escape the equal sign
-
                     const sliced = arra.slice(1)
                     let out = {}
 
@@ -1632,7 +1674,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1675,6 +1717,9 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1 === '#pure'){
         return {type:'pure'}
     }
+    if(p1 === '#pure_display' || p1 === '#puredisplay'){
+        return {type:'pure-display'}
+    }
     if(p1.startsWith('#each')){
         return {type:'each',type2:p1.substring(5).trim()}
     }
@@ -1700,6 +1745,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
     switch(type.type){
         case 'pure':
         case 'parse-pure':
+        case 'pure-display':
         case 'function':{
             return p1
         }
@@ -1726,6 +1772,7 @@ export function risuChatParser(da:string, arg:{
     runVar?:boolean
     functions?:Map<string,{data:string,arg:string[]}>
     callStack?:number
+    cbsConditions?:CbsConditions
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -1784,6 +1831,7 @@ export function risuChatParser(da:string, arg:{
         role: arg.role,
         runVar: arg.runVar ?? false,
         consistantChar: arg.consistantChar ?? false,
+        cbsConditions: arg.cbsConditions ?? {}
     }
 
 
@@ -1852,7 +1900,10 @@ export function risuChatParser(da:string, arg:{
                         nested.unshift('')
                         stackType[nested.length] = 5
                         blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each' || matchResult.type === 'function'){
+                        if( matchResult.type === 'ignore' || matchResult.type === 'pure' ||
+                            matchResult.type === 'each' || matchResult.type === 'function' ||
+                            matchResult.type === 'pure-display'
+                        ){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
                         }
@@ -1862,7 +1913,10 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('/')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each' || blockType.type === 'function'){
+                        if( blockType.type === 'ignore' || blockType.type === 'pure' ||
+                            blockType.type === 'each' || blockType.type === 'function' ||
+                            blockType.type === 'pure-display'
+                        ){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
                         }
@@ -1887,6 +1941,10 @@ export function risuChatParser(da:string, arg:{
                                 data: matchResult,
                                 arg: blockType.funcArg.slice(1)
                             })
+                            break
+                        }
+                        if(blockType.type === 'pure-display'){
+                            nested[0] += matchResult.replaceAll('{{', '\\{\\{').replaceAll('}}', '\\}\\}')
                             break
                         }
                         if(matchResult === ''){

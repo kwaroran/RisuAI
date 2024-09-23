@@ -80,13 +80,14 @@ export const removeHighlight = (id:number) => {
 }
 
 const normalCBS = [
-    'previous_char_chat', 'lastcharmessage', 'previous_user_chat', 'lastusermessage', 'char', 'bot',
-    'user', 'char_persona', 'description', 'char_desc', 'example_dialogue',
+    'char', 'user', 'char_persona', 'description', 'char_desc', 'example_dialogue', 'previous_char_chat',
+    'lastcharmessage', 'previous_user_chat', 'lastusermessage',
     'example_message', 'persona', 'user_persona', 'lorebook', 'world_info', 'history', 'messages',
     'chat_index', 'first_msg_index', 'blank', 'none', 'message_time', 'message_date', 'time',
     'date', 'isotime', 'isodate', 'message_idle_duration', 'idle_duration', 'br', 'newline',
     'model', 'axmodel', 'role', 'jbtoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
-    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure', 'slot', 'module_enabled'
+    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', 'slot', 'module_enabled',
+    'is_first_message', '/', '/if', '/each', '/pure', '/if_pure', '/func', '/pure_display'
 ]
 
 const normalCBSwithParams = [
@@ -97,15 +98,19 @@ const normalCBSwithParams = [
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
     'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot', 'rollp',
-    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal'
+    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal', 'arg'
 ]
 
 const displayRelatedCBS = [
     'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment', 'image'
 ];
 
+const nestedCBS = [
+    '#if', '#if_pure ', '#pure ', '#each ', '#func', '#pure_display'
+]
+
 const specialCBS = [
-    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ',
+    'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ', ...nestedCBS
 ]
 
 const deprecatedCBS = [
@@ -125,6 +130,11 @@ const decorators = [
 const deprecatedDecorators = [
     'end', 'assistant', 'user', 'system'
 ]
+
+export const AllCBS = [...normalCBS, ...(normalCBSwithParams.map((v) => {
+    return v + ':'
+})), ...displayRelatedCBS, ...nestedCBS]
+
 const highlighterSyntax = [
     {
         regex: /<(char|user|bot)>/gi,

@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "132.0.0"
+export let appVer = "134.0.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -440,6 +440,8 @@ export function setDatabase(data:Database){
         messages: 0,
         imports: 0
     }
+    data.customQuotes ??= false
+    data.customQuotesData ??= ['“','”','‘','’']
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -743,6 +745,8 @@ export interface Database{
         messages: number
         imports: number
     }
+    customQuotes:boolean
+    customQuotesData?:[string, string, string, string]
 }
 
 export interface customscript{

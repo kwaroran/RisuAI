@@ -1,5 +1,5 @@
 <div 
-    class={"border border-darkborderc relative z-20 n-scroll focus-within:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus-within:ring-borderc focus-within:ring-2 focus-within:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
+    class={"border border-darkborderc relative n-scroll focus-within:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus-within:ring-borderc focus-within:ring-2 focus-within:outline-none transition-colors duration-200 z-20 focus-within:z-40" + ((className) ? (' ' + className) : '')} 
     class:text-sm={size === 'sm' || (size === 'default' && $textAreaTextSize === 1)}
     class:text-md={size === 'md' || (size === 'default' && $textAreaTextSize === 2)}
     class:text-lg={size === 'lg' || (size === 'default' && $textAreaTextSize === 3)}
@@ -34,8 +34,11 @@
     class:mt-4={margin === 'top'}
     class:mt-2={margin === 'both'}
     bind:this={highlightDom}
+    on:focusout={() => {
+        hideAutoComplete()
+    }}
 >
-    {#if !highlight || !CSS.highlights || isFirefox}
+    {#if !highlight}
         <textarea
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto"
             class:px-4={padding}
@@ -64,22 +67,56 @@
                 }
             }}
         />
+    {:else if isFirefox}
+        <div
+            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+            contenteditable="true"
+            bind:innerText={value}
+            on:keydown={(e) => {
+                handleKeyDown(e)
+                onInput()
+            }}
+            on:input={(e) => {
+                autoComplete()
+            }}
+            on:paste={(e) => {
+                e.preventDefault()
+                const text = e.clipboardData.getData('text/plain')
+                if(text){
+                    insertContent(text, 'paste')
+                }
+            }}
+            bind:this={inputDom}
+            translate="no"
+        >{value ?? ''}</div>
     {:else}
         <div
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="plaintext-only"
             bind:innerText={value}
             on:keydown={(e) => {
+                handleKeyDown(e)
                 onInput()
             }}
+            on:input={(e) => {
+                autoComplete()
+            }}
+            bind:this={inputDom}
             translate="no"
-            
         >{value ?? ''}</div>
     {/if}
+    <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>
+        {#each autocompleteContents as content, i}
+            <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} on:click={() => {
+                insertContent(content)
+            }}>{content}</button>
+        {/each}
+    </div>
 </div>
 <script lang="ts">
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
-    import { highlighter, getNewHighlightId, removeHighlight } from 'src/ts/gui/highlight'
+    import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
+    import { isMobile } from 'src/ts/storage/globalApi';
     import { isFirefox, sleep } from 'src/ts/util';
     import { onDestroy, onMount } from 'svelte';
     export let size: 'xs'|'sm'|'md'|'lg'|'xl'|'default' = 'default'
@@ -95,10 +132,99 @@
     export let className = ''
     export let optimaizedInput = true
     export let highlight = false
+    let selectingAutoComplete = -1
     let highlightId = highlight ? getNewHighlightId() : 0
     let inpa = 0
     let highlightDom: HTMLDivElement
     let optiValue = value
+    let autoCompleteDom: HTMLDivElement
+    let autocompleteContents:string[] = []
+    let inputDom: HTMLDivElement
+
+    const autoComplete = () => {
+        if(isMobile){
+            return
+        }
+        //autocomplete
+        selectingAutoComplete = -1
+        const sel = window.getSelection()
+        if(!sel){
+            return
+        }
+
+        const range = sel.getRangeAt(0)
+
+        if(range){
+            const qValue = (range.startContainer).textContent
+            const splited = qValue.substring(0, range.startOffset).split('{{')
+            if(splited.length === 1){
+                hideAutoComplete()
+                return
+            }
+            const qText = splited.pop()
+            let filtered = AllCBS.filter((cb) => cb.startsWith(qText))
+            if(filtered.length === 0){
+                hideAutoComplete()
+                return
+            }
+            filtered = filtered.slice(0, 10)
+            autocompleteContents = filtered
+        }
+
+        const hlRect = highlightDom.getBoundingClientRect()
+        const rect = range.getBoundingClientRect()
+        if(rect.top === 0 && rect.left === 0){
+            hideAutoComplete()
+            return
+        }
+        const top = rect.top - hlRect.top + 15
+        const left = rect.left - hlRect.left
+        autoCompleteDom.style.top = top + 'px'
+        autoCompleteDom.style.left = left + 'px'
+        autoCompleteDom.style.display = 'flex'
+    }
+
+    const insertContent = (insertContent:string, type:'autoComplete'|'paste' = 'autoComplete') => {
+        const sel = window.getSelection()
+        if(sel){
+            const range = sel.getRangeAt(0)
+            let content = (range.startContainer).textContent
+            let contentStart = content.substring(0, range.startOffset)
+            let contentEnd = content.substring(range.startOffset)
+            if(type === 'autoComplete'){
+                contentStart = contentStart.substring(0, contentStart.lastIndexOf('{{'))
+                if(insertContent.endsWith(':')){
+                    insertContent = `{{${insertContent}:`
+                }
+                else if(insertContent.startsWith('#')){
+                    insertContent = `{{${insertContent} `
+                }
+                else{
+                    insertContent = `{{${insertContent}}}`
+                }
+            }
+
+            const cons = contentStart + insertContent + contentEnd
+            range.startContainer.textContent = cons
+            hideAutoComplete()
+
+            try {
+                sel.collapse(range.startContainer, contentStart.length + insertContent.length)                
+            } catch (error) {}
+            //invoke onInput
+            
+            try {
+                inputDom.dispatchEvent(new Event('input'))
+                inputDom.dispatchEvent(new Event('change'))
+            } catch (error) {}
+        }
+    }
+
+    const hideAutoComplete = () => {
+        autoCompleteDom.style.display = 'none'
+        selectingAutoComplete = -1
+        autocompleteContents = []
+    }
 
     onMount(() => {
         highlighter(highlightDom, highlightId)
@@ -111,6 +237,31 @@
     const highlightChange = async (value:string, highlightId:number) => {
         await sleep(1)
         highlighter(highlightDom, highlightId)
+    }
+
+    const handleKeyDown = (e:KeyboardEvent) => {
+        if(autocompleteContents.length >= 1){
+            switch(e.key){
+                case 'ArrowDown':
+                    selectingAutoComplete = Math.min(selectingAutoComplete + 1, autocompleteContents.length - 1)
+                    e.preventDefault()
+                    break
+                case 'ArrowUp':
+                    selectingAutoComplete = Math.max(selectingAutoComplete - 1, 0)
+                    e.preventDefault()
+                    break
+                case 'Enter':
+                case 'Tab':
+                    e.preventDefault()
+                    if(selectingAutoComplete !== -1){
+                        insertContent(autocompleteContents[selectingAutoComplete])
+                    }
+                    break
+                case 'Escape':
+                    hideAutoComplete()
+                    break
+            }
+        }
     }
     
     $: optiValue = value

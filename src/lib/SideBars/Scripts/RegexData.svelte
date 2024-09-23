@@ -8,13 +8,65 @@
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
+    import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
 
     export let value:customscript
     export let onRemove: () => void = () => {}
     export let onClose: () => void = () => {}
     export let onOpen: () => void = () => {}
-
     export let idx:number
+
+    const checkFlagContain = (flag:string, matchFlag:string) => {
+        if(flag.length === 1){
+            matchFlag = value.flag.replace(/<(.+?)>/g, '')
+        }
+        return matchFlag.includes(flag)
+    }
+
+    const toggleFlag = (flag:string) => {
+        console.log(flag, checkFlagContain(flag, value.flag), value.flag)
+        if(checkFlagContain(flag, value.flag)){
+            value.flag = value.flag.replace(flag, '')
+        }
+        else{
+            value.flag += flag
+        }
+    }
+
+    const getOrder = (flag:string) => {
+        const order = flag.match(/<order (-?\d+)>/)?.[1]
+        if(order === undefined || order === null){
+            return 0
+        }
+        return parseInt(order)
+    }
+
+    const changeOrder = (order:number) => {
+        if(value.flag.includes('<order')){
+            value.flag = value.flag.replace(/<order (-?\d+)>/, `<order ${order}>`)
+        }
+        else{
+            value.flag += `<order ${order}>`
+        }
+    }
+
+    const flags = [
+        //Vanila JS flags
+        ['Global (g)', 'g'],
+        ['Case Insensitive (i)', 'i'],
+        ['Multi Line (m)', 'm'],
+        ['Unicode (u)', 'u'],
+        ['Dot All (s)', 's'],
+
+        //Custom flags
+        ['Move Top', '<move_top>'],
+        ['Move Bottom', '<move_bottom>'],
+        ['Repeat Back', '<repeat_back>'],
+        ['IN CBS Parsing', '<cbs>'],
+        ['No Newline Subfix', '<no_end_nl>'],
+    ]
+
     let open = false
 </script>
 
@@ -60,8 +112,32 @@
             <span class="text-textcolor mt-6">OUT:</span>
             <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} />
             {#if value.ableFlag}
-                <span class="text-textcolor mt-6">FLAG:</span>
-                <TextInput size="sm" bind:value={value.flag} />
+                <!-- <span class="text-textcolor mt-6">FLAG:</span>
+                <TextInput size="sm" bind:value={value.flag} /> -->
+                <Arcodion styled name="FLAGS">
+                    <span class="text-textcolor mt-3">Normal Flag</span>
+                    <div class="grid w-full grid-cols-2 rounded-md border border-darkborderc">
+                        {#each flags as flag, i}
+                            <button class="w-full bg-darkbg border-darkborderc text-sm py-1"
+                                class:border-r-1={i % 2 === 0}
+                                class:border-b-1={i < flags.length - 2}
+                                class:text-textcolor2={!checkFlagContain(flag[1], value.flag)}
+                                class:text-textcolor={checkFlagContain(flag[1], value.flag)}
+                                on:click={() => {
+                                    toggleFlag(flag[1])
+                                }}
+                            >
+                                <span>{flag[0]}</span>
+                                </button>     
+                        {/each}
+                    </div>
+
+                    <span class="text-textcolor mt-3">Order Flag</span>
+                    <NumberInput value={getOrder(value.flag)} onChange={(e)=>{
+                        changeOrder(parseInt(e.currentTarget.value))
+                    }} />
+                    
+                </Arcodion>
             {/if}
             <div class="flex items-center mt-4">
                 <Check bind:check={value.ableFlag} onChange={() => {

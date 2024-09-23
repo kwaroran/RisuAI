@@ -24,6 +24,7 @@
 />
 
 <script lang="ts">
+    import type { ChangeEventHandler } from "svelte/elements";
     export let min:number = undefined
     export let max:number = undefined
     export let size: 'sm'|'md'|'lg' = 'sm'
@@ -33,7 +34,7 @@
     export let marginBottom = false
     export let fullwidth = false
     export let fullh = false
-    export let onChange = () => {}
+    export let onChange:ChangeEventHandler<HTMLInputElement>
     export let className = ''
     export let disabled = false
 </script>

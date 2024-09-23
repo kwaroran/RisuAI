@@ -735,4 +735,10 @@ export const languageEnglish = {
     strictJsonSchema: "Strict Schema",
     extractJson: "Extract JSON",
     reloadSession: "Newer version of save data is found. reloading the session...",
+    fixMarkdownNewline: "Fix Markdown Newline",
+    customQuotes: "Custom Quotes",
+    leadingSingleQuote: "Leading Single Quote",
+    leadingDoubleQuote: "Leading Double Quote",
+    trailingSingleQuote: "Trailing Single Quote",
+    trailingDoubleQuote: "Trailing Double Quote",
 }
