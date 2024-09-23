@@ -131,9 +131,9 @@ const deprecatedDecorators = [
     'end', 'assistant', 'user', 'system'
 ]
 
-export const AllCBS = [...normalCBS, ...(normalCBSwithParams.map((v) => {
+export const AllCBS = [...normalCBS, ...(normalCBSwithParams.concat(displayRelatedCBS).map((v) => {
     return v + ':'
-})), ...displayRelatedCBS, ...nestedCBS]
+})), ...nestedCBS]
 
 const highlighterSyntax = [
     {
