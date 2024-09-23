@@ -93,6 +93,9 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             if(outScript.startsWith('@@move_top') || outScript.startsWith('@@move_bottom') || pscript.actions.includes('move_top') || pscript.actions.includes('move_bottom')){
                 flag = flag.replace('g', '') //temperary fix
             }
+            if(outScript.endsWith('>') && !pscript.actions.includes('no_end_nl')){
+                outScript += '\n'
+            }
             //remove unsupported flag
             flag = flag.replace(/[^dgimsuvy]/g, '')
             
