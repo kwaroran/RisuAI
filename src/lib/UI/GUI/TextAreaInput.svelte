@@ -262,6 +262,11 @@
                     break
             }
         }
+        if(e.key === 'Enter' && isFirefox){
+            e.stopPropagation()
+            e.preventDefault()
+            insertContent('\n')
+        }
     }
     
     $: optiValue = value
