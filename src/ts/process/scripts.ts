@@ -262,7 +262,11 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         parsedScripts.sort((a, b) => b.order - a.order) //sort by order
     }
     for (const script of parsedScripts){
-        executeScript(script)
+        try {
+            executeScript(script)            
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     
