@@ -94,7 +94,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 flag = flag.replace('g', '') //temperary fix
             }
             //remove unsupported flag
-            flag = flag.replace(/[^gimuy]/g, '')
+            flag = flag.replace(/[^dgimsuvy]/g, '')
             
             if(flag.length === 0){
                 flag = 'u'
