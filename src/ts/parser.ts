@@ -323,15 +323,15 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             case 'path':
                 return path.path
             case 'img':
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             case 'image':
                 return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>\n`
             case 'video':
-                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'video-img':
-                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'audio':
-                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>\n`
             case 'bg':
                 if(mode === 'back'){
                     return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
@@ -339,9 +339,9 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 break
             case 'asset':{
                 if(path.ext && videoExtention.includes(path.ext)){
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
                 }
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             }
         }
         return ''
