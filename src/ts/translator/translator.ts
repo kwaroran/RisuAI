@@ -239,7 +239,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             return html
         }
     }
-    if(db.translatorType === 'llm' && (!(isTauri || Capacitor.isNativePlatform()))){
+    if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
         return translateLLM(html, {to: tr})
     }
