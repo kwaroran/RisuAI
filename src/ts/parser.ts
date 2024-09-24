@@ -323,7 +323,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             case 'path':
                 return path.path
             case 'img':
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
             case 'image':
                 return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>\n`
             case 'video':
