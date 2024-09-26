@@ -36,7 +36,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
     }
 
     const supaPrompt = db.supaMemoryPrompt === '' ?
-        "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\n"
+        "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output.]\n"
         : db.supaMemoryPrompt;
     let result = '';
 
