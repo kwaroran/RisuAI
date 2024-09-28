@@ -921,6 +921,9 @@
         <span class="text-textcolor mt-2">{language.defaultVariables} <Help key="defaultVariables" /></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.defaultVariables}></TextAreaInput>
 
+        <span class="text-textcolor mt-2">{language.translatorNote} <Help key="translatorNote" /></span>
+        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.translatorNote}></TextAreaInput>
+
         <span class="text-textcolor">{language.creator}</span>
         <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
 
