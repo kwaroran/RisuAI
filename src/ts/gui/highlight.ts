@@ -5,48 +5,53 @@ type HighlightInt = [Range, HighlightType]
 let highLights = new Map<number, HighlightInt[]>();
 
 export const highlighter = (highlightDom:HTMLElement, id:number) => {
-    if(highlightDom){
-        if(!CSS.highlights){
-            return
-        }
-
-        const walker = document.createTreeWalker(highlightDom, NodeFilter.SHOW_TEXT)
-        const nodes:Node[] = []
-        let currentNode = walker.nextNode();
-        while (currentNode) {
-            nodes.push(currentNode);
-            currentNode = walker.nextNode();
-        }
-        const str = "{{char}}"
-        if (!str) {
-            return;
-        }
-
-        const ranges:HighlightInt[] = []
-
-        nodes.map((el) => {
-            const text = el.textContent.toLowerCase()
-
-            const cbsParsed = simpleCBSHighlightParser(el,text)
-            ranges.push(...cbsParsed)
-
-            for(const syntax of highlighterSyntax){
-                const regex = syntax.regex
-                let match:RegExpExecArray | null;
-                while ((match = regex.exec(text)) !== null) {
-                    const length = match[0].length;
-                    const index = match.index;
-                    const range = new Range();
-                    range.setStart(el, index);
-                    range.setEnd(el, index + length);
-                    ranges.push([range, syntax.type])
-                }
+    try {
+    
+        if(highlightDom){
+            if(!CSS.highlights){
+                return
             }
-        });
-
-        highLights.set(id, ranges)
-
-        runHighlight()
+    
+            const walker = document.createTreeWalker(highlightDom, NodeFilter.SHOW_TEXT)
+            const nodes:Node[] = []
+            let currentNode = walker.nextNode();
+            while (currentNode) {
+                nodes.push(currentNode);
+                currentNode = walker.nextNode();
+            }
+            const str = "{{char}}"
+            if (!str) {
+                return;
+            }
+    
+            const ranges:HighlightInt[] = []
+    
+            nodes.map((el) => {
+                const text = el.textContent.toLowerCase()
+    
+                const cbsParsed = simpleCBSHighlightParser(el,text)
+                ranges.push(...cbsParsed)
+    
+                for(const syntax of highlighterSyntax){
+                    const regex = syntax.regex
+                    let match:RegExpExecArray | null;
+                    while ((match = regex.exec(text)) !== null) {
+                        const length = match[0].length;
+                        const index = match.index;
+                        const range = new Range();
+                        range.setStart(el, index);
+                        range.setEnd(el, index + length);
+                        ranges.push([range, syntax.type])
+                    }
+                }
+            });
+    
+            highLights.set(id, ranges)
+    
+            runHighlight()
+        }    
+    } catch (error) {
+        
     }
 }
 
@@ -131,9 +136,9 @@ const deprecatedDecorators = [
     'end', 'assistant', 'user', 'system'
 ]
 
-export const AllCBS = [...normalCBS, ...(normalCBSwithParams.map((v) => {
+export const AllCBS = [...normalCBS, ...(normalCBSwithParams.concat(displayRelatedCBS).map((v) => {
     return v + ':'
-})), ...displayRelatedCBS, ...nestedCBS]
+})), ...nestedCBS]
 
 const highlighterSyntax = [
     {

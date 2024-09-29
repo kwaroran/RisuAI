@@ -699,10 +699,25 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
 
         let attr:string[] = []
+        let role:'user'|'assistant'|'system' = msg.role === 'user' ? 'user' : 'assistant'
 
-        if(nowChatroom.type === 'group' || (usingPromptTemplate && db.promptSettings.sendName)){
-            formatedChat = name + ': ' + formatedChat
-            attr.push('nameAdded')
+        if(
+            (nowChatroom.type === 'group' && findCharacterbyIdwithCache(msg.saying).chaId !== currentChar.chaId) ||
+            (nowChatroom.type === 'group' && db.groupOtherBotRole === 'assistant') ||
+            (usingPromptTemplate && db.promptSettings.sendName)
+        ){
+            const form = db.groupTemplate || `<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`
+            formatedChat = risuChatParser(form, {chara: findCharacterbyIdwithCache(msg.saying).name}).replace('{{slot}}', formatedChat)
+            switch(db.groupOtherBotRole){
+                case 'user':
+                case 'assistant':
+                case 'system':
+                    role = db.groupOtherBotRole
+                    break
+                default:
+                    role = 'assistant'
+                    break
+            }
         }
         if(usingPromptTemplate && db.promptSettings.maxThoughtTagDepth !== -1){
             const depth = ms.length - index
@@ -712,7 +727,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
 
         const chat:OpenAIChat = {
-            role: msg.role === 'user' ? 'user' : 'assistant',
+            role: role,
             content: formatedChat,
             memo: msg.chatId,
             attr: attr,
@@ -725,6 +740,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         currentTokens += await tokenizer.tokenizeChat(chat)
         index++
     }
+    console.log(JSON.stringify(chats, null, 2))
 
     const depthPrompts = lorepmt.actives.filter(v => {
         return (v.pos === 'depth' && v.depth > 0) || v.pos === 'reverse_depth'

@@ -343,7 +343,8 @@ export async function importChat(){
                 message: [],
                 note: "",
                 name: "Imported Chat",
-                localLore: []
+                localLore: [],
+                fmIndex: -1
             }
 
             let isFirst = true
@@ -376,6 +377,7 @@ export async function importChat(){
             if(json.type === 'risuChat' && json.ver === 1){
                 const das:Chat = json.data
                 if(!(checkNullish(das.message) || checkNullish(das.note) || checkNullish(das.name) || checkNullish(das.localLore))){
+                    das.fmIndex ??= -1
                     db.characters[selectedID].chats.unshift(das)
                     setDatabase(db)
                     alertNormal(language.successImport)

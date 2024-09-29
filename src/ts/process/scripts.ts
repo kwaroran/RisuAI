@@ -97,7 +97,10 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 outScript += '\n'
             }
             //remove unsupported flag
-            flag = flag.replace(/[^dgimsuvy]/g, '')
+            flag = flag.trim().replace(/[^dgimsuvy]/g, '')
+
+            //remove repeated flags
+            flag = flag.split('').filter((v, i, a) => a.indexOf(v) === i).join('')
             
             if(flag.length === 0){
                 flag = 'u'

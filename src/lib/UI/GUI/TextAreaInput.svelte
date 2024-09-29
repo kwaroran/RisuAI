@@ -40,7 +40,7 @@
 >
     {#if !highlight}
         <textarea
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto"
+            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto"
             class:px-4={padding}
             class:py-2={padding}
             {autocomplete}
@@ -69,7 +69,7 @@
         />
     {:else if isFirefox}
         <div
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="true"
             bind:textContent={value}
             on:keydown={(e) => {
@@ -91,9 +91,9 @@
         >{value ?? ''}</div>
     {:else}
         <div
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-10 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="plaintext-only"
-            bind:textContent={value}
+            bind:innerText={value}
             on:keydown={(e) => {
                 handleKeyDown(e)
                 onInput()
@@ -132,7 +132,7 @@
     export let className = ''
     export let optimaizedInput = true
     export let highlight = false
-    let selectingAutoComplete = -1
+    let selectingAutoComplete = 0
     let highlightId = highlight ? getNewHighlightId() : 0
     let inpa = 0
     let highlightDom: HTMLDivElement
@@ -146,7 +146,7 @@
             return
         }
         //autocomplete
-        selectingAutoComplete = -1
+        selectingAutoComplete = 0
         const sel = window.getSelection()
         if(!sel){
             return
@@ -185,6 +185,7 @@
     }
 
     const insertContent = (insertContent:string, type:'autoComplete'|'paste' = 'autoComplete') => {
+        console.log(insertContent)
         const sel = window.getSelection()
         if(sel){
             const range = sel.getRangeAt(0)
@@ -222,7 +223,7 @@
 
     const hideAutoComplete = () => {
         autoCompleteDom.style.display = 'none'
-        selectingAutoComplete = -1
+        selectingAutoComplete = 0
         autocompleteContents = []
     }
 
@@ -253,9 +254,7 @@
                 case 'Enter':
                 case 'Tab':
                     e.preventDefault()
-                    if(selectingAutoComplete !== -1){
-                        insertContent(autocompleteContents[selectingAutoComplete])
-                    }
+                    insertContent(autocompleteContents[selectingAutoComplete])
                     return
                 case 'Escape':
                     hideAutoComplete()

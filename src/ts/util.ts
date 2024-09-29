@@ -471,13 +471,17 @@ export function parseMultilangString(data:string){
 }
 
 export const toLangName = (code:string) => {
-    switch(code){
-        case 'xx':{ //Special case for unknown language
-            return 'Unknown Language'
-        }
-        default:{
-            return new Intl.DisplayNames([code, 'en'], {type: 'language'}).of(code)
-        }
+    try {
+        switch(code){
+            case 'xx':{ //Special case for unknown language
+                return 'Unknown Language'
+            }
+            default:{
+                return new Intl.DisplayNames([code, 'en'], {type: 'language'}).of(code)
+            }
+        }   
+    } catch (error) {
+        return code
     }
 }
 

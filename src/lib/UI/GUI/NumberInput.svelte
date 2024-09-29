@@ -34,7 +34,7 @@
     export let marginBottom = false
     export let fullwidth = false
     export let fullh = false
-    export let onChange:ChangeEventHandler<HTMLInputElement>
+    export let onChange:ChangeEventHandler<HTMLInputElement> = () => {}
     export let className = ''
     export let disabled = false
 </script>

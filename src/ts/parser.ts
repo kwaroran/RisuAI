@@ -323,7 +323,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             case 'path':
                 return path.path
             case 'img':
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
             case 'image':
                 return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>\n`
             case 'video':
@@ -1782,9 +1782,14 @@ export function risuChatParser(da:string, arg:{
 
     if(aChara){
         if(typeof(aChara) !== 'string' && aChara.type === 'group'){
-            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
-            if(gc.name !== 'Unknown Character'){
-                chara = gc
+            if(aChara.chats[aChara.chatPage].message.length > 0){
+                const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
+                if(gc.name !== 'Unknown Character'){
+                    chara = gc
+                }
+            }
+            else{
+                chara = 'bot'
             }
         }
         else{
