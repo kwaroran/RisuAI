@@ -901,6 +901,7 @@ export interface character{
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
     lastInteraction?:number
+    translatorNote?:string
 }
 
 

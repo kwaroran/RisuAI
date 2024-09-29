@@ -161,6 +161,7 @@ export const languageEnglish = {
         ,
         strictJsonSchema: "If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.",
         extractJson: "If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{\"response\": {\"text\": [\"hello\"]}}`, you can put `response.text.0`.",
+        translatorNote: "Here, you can add a unique translation prompt for each character. This option only applies when using the Ax. model for translation. To apply it, include `{{slot::tnote}}` in the language settings. It doesn't work in group chats.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -741,4 +742,5 @@ export const languageEnglish = {
     leadingDoubleQuote: "Leading Double Quote",
     trailingSingleQuote: "Trailing Single Quote",
     trailingDoubleQuote: "Trailing Double Quote",
+    translatorNote: "Translator's Note",
 }

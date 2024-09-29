@@ -456,14 +456,23 @@ async function translateLLM(text:string, arg:{to:string}){
     })
 
     const db = get(DataBase)
+    const charIndex = get(selectedCharID)
+    const currentChar = db.characters[charIndex]
+    let translatorNote
+    if (currentChar.type === "character") {
+        translatorNote = currentChar.translatorNote ?? ""
+    } else {
+        translatorNote = ""
+    }
+
     let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
-    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text))
+    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text).replaceAll('{{slot::tnote}}', translatorNote))
     if(parsedPrompt){
         formated = parsedPrompt
     }
     else{
-        prompt = prompt.replaceAll('{{slot}}', arg.to)
+        prompt = prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{slot::tnote}}', translatorNote)
         formated = [
             {
                 'role': 'system',
