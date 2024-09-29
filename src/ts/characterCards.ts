@@ -415,6 +415,43 @@ export async function characterURLImport() {
 function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:string|undefined = undefined):character{
     const data = charaData.spec_version === '2.0' ? charaData.data : charaData
     console.log("Off spec detected, converting")
+    const charbook = charaData.spec_version === '2.0' ? charaData.data.character_book : null
+    let lorebook:loreBook[] = []
+    let loresettings:undefined|loreSettings = undefined
+    let loreExt:undefined|any = undefined
+    if(charbook){
+        if((!checkNullish(charbook.recursive_scanning)) &&
+            (!checkNullish(charbook.scan_depth)) &&
+            (!checkNullish(charbook.token_budget))){
+            loresettings = {
+                tokenBudget:charbook.token_budget,
+                scanDepth:charbook.scan_depth,
+                recursiveScanning: charbook.recursive_scanning,
+                fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
+            }
+        }
+
+        loreExt = charbook.extensions
+
+        for(const book of charbook.entries){
+            lorebook.push({
+                key: book.keys.join(', '),
+                secondkey: book.secondary_keys?.join(', ') ?? '',
+                insertorder: book.insertion_order,
+                comment: book.name ?? book.comment ?? "",
+                content: book.content,
+                mode: "normal",
+                alwaysActive: book.constant ?? false,
+                selective: book.selective ?? false,
+                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
+                activationPercent: book.extensions?.risu_activationPercent,
+                loreCache: book.extensions?.risu_loreCache ?? null,
+                //@ts-ignore
+                useRegex: book.use_regex ?? false
+            })
+        }
+    }
+
     return {
         name: data.name ?? 'unknown name',
         firstMessage: data.first_mes ?? 'unknown first message',
@@ -430,7 +467,7 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
         image: imgp,
         emotionImages: [],
         bias: [],
-        globalLore: [],
+        globalLore: lorebook,
         viewScreen: 'none',
         chaId: uuidv4(),
         sdData: defaultSdDataFunc(),
@@ -449,7 +486,10 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
         firstMsgIndex: -1,
         replaceGlobalNote: "",
         triggerscript: [],
-        additionalText: ''
+        additionalText: '',
+        loreExt: loreExt,
+        loreSettings: loresettings,
+        
     }
 }
 
