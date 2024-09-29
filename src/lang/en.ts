@@ -162,6 +162,8 @@ export const languageEnglish = {
         strictJsonSchema: "If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.",
         extractJson: "If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{\"response\": {\"text\": [\"hello\"]}}`, you can put `response.text.0`.",
         translatorNote: "Here, you can add a unique translation prompt for each character. This option only applies when using the Ax. model for translation. To apply it, include `{{slot::tnote}}` in the language settings. It doesn't work in group chats.",
+        groupInnerFormat: "This defines a format that is used in group chat for characters that isn't speaker. if it is not blank, it will use this format instead of the default format. if `Group Other Bot Role` is `assistant`, it will also be applied to the speaker.",
+        groupOtherBotRole: "This defines a role that is used in group chat for characters that isn't speaker.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -743,4 +745,7 @@ export const languageEnglish = {
     trailingSingleQuote: "Trailing Single Quote",
     trailingDoubleQuote: "Trailing Double Quote",
     translatorNote: "Translator's Note",
+    formatGroupInSingle: "Format Group in Single",
+    groupInnerFormat: "Non-Speaker Inner Format",
+    groupOtherBotRole: "Non-Speaker Role in Group",
 }

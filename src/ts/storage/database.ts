@@ -442,6 +442,7 @@ export function setDatabase(data:Database){
     }
     data.customQuotes ??= false
     data.customQuotesData ??= ['“','”','‘','’']
+    data.groupOtherBotRole ??= 'user'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -747,6 +748,8 @@ export interface Database{
     }
     customQuotes:boolean
     customQuotesData?:[string, string, string, string]
+    groupTemplate?:string
+    groupOtherBotRole?:string
 }
 
 export interface customscript{
@@ -1008,6 +1011,8 @@ export interface botPreset{
     jsonSchema?:string
     strictJsonSchema?:boolean
     extractJson?:string
+    groupTemplate?:string
+    groupOtherBotRole?:string
 }
 
 
@@ -1298,6 +1303,8 @@ export function saveCurrentPreset(){
         jsonSchema:db.jsonSchema ?? '',
         strictJsonSchema:db.strictJsonSchema ?? true,
         extractJson:db.extractJson ?? '',
+        groupOtherBotRole: db.groupOtherBotRole ?? 'user',
+        groupTemplate: db.groupTemplate ?? '',
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1390,6 +1397,8 @@ export function setPreset(db:Database, newPres: botPreset){
     db.jsonSchema = newPres.jsonSchema ?? ''
     db.strictJsonSchema = newPres.strictJsonSchema ?? true
     db.extractJson = newPres.extractJson ?? ''
+    db.groupOtherBotRole = newPres.groupOtherBotRole ?? 'user'
+    db.groupTemplate = newPres.groupTemplate ?? ''
     return db
 }
 

@@ -10,6 +10,8 @@
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
   import Help from "src/lib/Others/Help.svelte";
   import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
 
     let sorted = 0
     let opened = 0
@@ -112,7 +114,7 @@
     <TextInput bind:value={$DataBase.promptSettings.postEndInnerFormat}/>
 
     <Check bind:check={$DataBase.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
-    <Check bind:check={$DataBase.promptSettings.sendName} name={language.sendName} className="mt-4"/>
+    <Check bind:check={$DataBase.promptSettings.sendName} name={language.formatGroupInSingle} className="mt-4"/>
     <Check bind:check={$DataBase.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
     <Check bind:check={$DataBase.jsonSchemaEnabled} name={language.enableJsonSchema} className="mt-4"/>
     <Check bind:check={$DataBase.strictJsonSchema} name={language.strictJsonSchema} className="mt-4"/>
@@ -124,10 +126,18 @@
     {/if}
     <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
     <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
+    <span class="text-textcolor mt-4">{language.groupOtherBotRole} <Help key="groupOtherBotRole"/></span>
+    <SelectInput bind:value={$DataBase.groupOtherBotRole}>
+        <OptionInput value="user">User</OptionInput>
+        <OptionInput value="system">System</OptionInput>
+        <OptionInput value="assistant">assistant</OptionInput>
+    </SelectInput>
     <span class="text-textcolor mt-4">{language.customPromptTemplateToggle} <Help key='customPromptTemplateToggle' /></span>
     <TextAreaInput bind:value={$DataBase.customPromptTemplateToggle}/>
     <span class="text-textcolor mt-4">{language.defaultVariables} <Help key='defaultVariables' /></span>
     <TextAreaInput bind:value={$DataBase.templateDefaultVariables}/>
+    <span class="text-textcolor mt-4">{language.groupInnerFormat} <Help key='groupInnerFormat' /></span>
+    <TextAreaInput placeholder={`<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`} bind:value={$DataBase.groupTemplate}/>
     {#if $DataBase.jsonSchemaEnabled}
         <span class="text-textcolor mt-4">{language.jsonSchema} <Help key='jsonSchema' /></span>
         <TextAreaInput bind:value={$DataBase.jsonSchema}/>
