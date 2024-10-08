@@ -1,0 +1,1 @@
+call pnpm run runserver

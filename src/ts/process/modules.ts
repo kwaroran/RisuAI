@@ -167,20 +167,28 @@ export async function readModule(buf:Buffer):Promise<RisuModule> {
     return module
 }
 
-export async function importModule(){
+export async function importModule() {
     const f = await selectSingleFile(['json', 'lorebook', 'risum'])
-    if(!f){
+    if (!f) {
         return
     }
     let fileData = f.data
     const db = get(DataBase)
-    if(f.name.endsWith('.risum')){
+    if (f.name.endsWith('.risum')) {
         try {
             const buf = Buffer.from(fileData)
             const module = await readModule(buf)
             db.modules.push(module)
             setDatabase(db)
-            return   
+            console.log("Imported Module:", {
+                name: module.name,
+                description: module.description,
+                assets: module.assets,
+                triggers: module.trigger,
+                regex: module.regex,
+                lorebook: module.lorebook
+            })
+            return
         } catch (error) {
             console.error(error)
             alertError(language.errors.noData)
@@ -188,28 +196,36 @@ export async function importModule(){
     }
     try {
         const importData = JSON.parse(Buffer.from(fileData).toString())
-        if(importData.type === 'risuModule'){
-            if(
+        if (importData.type === 'risuModule') {
+            if (
                 (!importData.name)
                 || (!importData.id)
-            ){
+            ) {
                 alertError(language.errors.noData)
                 return
             }
             importData.id = v4()
 
-            if(importData.lowLevelAccess){
+            if (importData.lowLevelAccess) {
                 const conf = await alertConfirm(language.lowLevelAccessConfirm)
-                if(!conf){
+                if (!conf) {
                     return false
                 }
             }
             db.modules.push(importData)
             setDatabase(db)
+            console.log("Imported Module:", {
+                name: importData.name,
+                description: importData.description,
+                assets: importData.assets,
+                triggers: importData.trigger,
+                regex: importData.regex,
+                lorebook: importData.lorebook
+            })
             return
         }
-        if(importData.type === 'risu' && importData.data){
-            const lores:loreBook[] = importData.data
+        if (importData.type === 'risu' && importData.data) {
+            const lores: loreBook[] = importData.data
             const importModule = {
                 name: importData.name || 'Imported Lorebook',
                 description: importData.description || 'Converted from risu lorebook',
@@ -218,10 +234,18 @@ export async function importModule(){
             }
             db.modules.push(importModule)
             setDatabase(db)
+            console.log("Imported Module:", {
+                name: importModule.name,
+                description: importModule.description,
+                assets: importModule.assets,
+                triggers: importModule.trigger,
+                regex: importModule.regex,
+                lorebook: importModule.lorebook
+            })
             return
         }
-        if(importData.entries){
-            const lores:loreBook[] = convertExternalLorebook(importData.entries)
+        if (importData.entries) {
+            const lores: loreBook[] = convertExternalLorebook(importData.entries)
             const importModule = {
                 name: importData.name || 'Imported Lorebook',
                 description: importData.description || 'Converted from external lorebook',
@@ -230,10 +254,18 @@ export async function importModule(){
             }
             db.modules.push(importModule)
             setDatabase(db)
+            console.log("Imported Module:", {
+                name: importModule.name,
+                description: importModule.description,
+                assets: importModule.assets,
+                triggers: importModule.trigger,
+                regex: importModule.regex,
+                lorebook: importModule.lorebook
+            })
             return
         }
-        if(importData.type === 'regex'  && importData.data){
-            const regexs:customscript[] = importData.data
+        if (importData.type === 'regex' && importData.data) {
+            const regexs: customscript[] = importData.data
             const importModule = {
                 name: importData.name || 'Imported Regex',
                 description: importData.description || 'Converted from risu regex',
@@ -242,6 +274,14 @@ export async function importModule(){
             }
             db.modules.push(importModule)
             setDatabase(db)
+            console.log("Imported Module:", {
+                name: importModule.name,
+                description: importModule.description,
+                assets: importModule.assets,
+                triggers: importModule.trigger,
+                regex: importModule.regex,
+                lorebook: importModule.lorebook
+            })
             return
         }
     } catch (error) {

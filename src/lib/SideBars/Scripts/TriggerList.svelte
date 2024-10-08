@@ -18,6 +18,9 @@
     let sorted = 0
     let opened = 0
     const createStb = () => {
+        if (!ele) {
+            return;
+        }
         stb = Sortable.create(ele, {
             onEnd: async () => {
                 let idx:number[] = []

@@ -581,7 +581,11 @@ function updateErrorHandling(){
         alertError(event.error)
     }
     const rejectHandler = (event: PromiseRejectionEvent) => {
-        console.error(event.reason)
+        console.error('Promise Rejection Event:', event)
+        console.error('Reason:', event.reason)
+        if (event.reason && event.reason.stack) {
+            console.error('Stack Trace:', event.reason.stack)
+        }
         alertError(event.reason)
     }
     window.addEventListener('error', errorHandler)
