@@ -18,7 +18,14 @@
       "src-python/*"
     ],
     "targets": "all",
-    "createUpdaterArtifacts": "v1Compatible"
+    "createUpdaterArtifacts": "v1Compatible",
+    "fileAssociations": [
+      {
+        "ext": [
+          "risum", "risup", "charx"
+        ]
+      }
+    ]
   },
   "productName": "RisuAI",
   "mainBinaryName": "RisuAI",

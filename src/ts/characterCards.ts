@@ -15,6 +15,7 @@ import type { OnnxModelFiles } from "./process/transformers"
 import { CharXReader, CharXWriter } from "./process/processzip"
 import { Capacitor } from "@capacitor/core"
 import { exportModule, readModule, type RisuModule } from "./process/modules"
+import { readFile } from "@tauri-apps/plugin-fs"
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -407,6 +408,41 @@ export async function characterURLImport() {
                 handleFiles(files)
             }
         });
+    }
+
+    if("tauriOpenedFiles" in window){
+        //@ts-ignore
+        const files:string[] = window.tauriOpenedFiles
+        if(files){
+            for(const file of files){
+                const data = await readFile(file)
+                if(file.endsWith('.charx')){
+                    await importCharacterProcess({
+                        name: file,
+                        data: data
+                    })
+                }
+                if(file.endsWith('.risupreset') || file.endsWith('.risup')){
+                    await importPreset({
+                        name: file,
+                        data: data
+                    })
+                    SettingsMenuIndex.set(1)
+                    settingsOpen.set(true)
+                    alertNormal(language.successImport)
+                }
+                if(file.endsWith('risum')){
+                    const md = await readModule(Buffer.from(data))
+                    md.id = v4()
+                    const db = get(DataBase)
+                    db.modules.push(md)
+                    setDatabase(db)
+                    alertNormal(language.successImport)
+                    SettingsMenuIndex.set(14)
+                    settingsOpen.set(true)
+                }
+            }
+        }
     }
     
 }
