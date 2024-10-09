@@ -517,7 +517,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     if(triggerCodeResult.stopSending){
                         stopSending = true
                     }
-                    chat = triggerCodeResult.chat
+                    chat = get(CurrentChat)
                     break
                 }
             }

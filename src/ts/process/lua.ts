@@ -104,6 +104,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 const message = chat.message?.at(index)
                 if(message){
                     message.data = value
@@ -114,6 +115,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 const message = chat.message?.at(index)
                 if(message){
                     message.role = value === 'user' ? 'user' : 'char'
@@ -124,6 +126,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 chat.message = chat.message.slice(start,end)
                 CurrentChat.set(chat)
             })
@@ -131,6 +134,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 chat.message.splice(index, 1)
                 CurrentChat.set(chat)
             })
@@ -138,6 +142,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 chat.message.push({role: roleData, data: value})
                 CurrentChat.set(chat)
@@ -146,6 +151,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 chat.message.splice(index, 0, {role: roleData, data: value})
                 CurrentChat.set(chat)
@@ -154,6 +160,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 chat.message.splice(index, 1)
                 CurrentChat.set(chat)
             })
@@ -161,9 +168,11 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 return chat.message.length
             })
             luaEngine.global.set('getFullChatMain', (id:string) => {
+                chat = get(CurrentChat)
                 const data = JSON.stringify(chat.message.map((v) => {
                     return {
                         role: v.role,
@@ -178,6 +187,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                chat = get(CurrentChat)
                 chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
