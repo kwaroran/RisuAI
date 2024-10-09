@@ -10,10 +10,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.4.0", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "1.6.0", features = [ "updater", "app-all", "dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "protocol-all", "reqwest-client", "shell-open", "window-maximize", "window-set-fullscreen"] }
+tauri = { version = "2", features = ["protocol-asset"] }
 serde_json = "1.0"
 tiktoken-rs = "0.4.0"
 base64 = "0.21.0"
@@ -23,13 +23,23 @@ zip = "0.6.6"
 tar = "0.4.40"
 eventsource-client = "0.12.2"
 futures = "0.3.30"
-actix-web = "4.0"
-actix-cors = "0.6"
-actix-rt = "2.5"
 url = "2.2"
 uuid = { version = "1.9.1", features = [ "v4" ] }
+tauri-plugin-fs = "2"
+tauri-plugin-os = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-http = "2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+
+# [lib]
+# name = "alib"
+# crate-type = ["staticlib", "cdylib", "rlib", "lib"]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"

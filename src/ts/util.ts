@@ -2,12 +2,13 @@ import { get, writable, type Writable } from "svelte/store"
 import type { Database, Message } from "./storage/database"
 import { DataBase } from "./storage/database"
 import { selectedCharID } from "./stores"
-import {open} from '@tauri-apps/api/dialog'
-import { readBinaryFile } from "@tauri-apps/api/fs"
+import {open} from '@tauri-apps/plugin-dialog'
+import { readFile } from "@tauri-apps/plugin-fs"
 import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isTauri } from "./storage/globalApi"
+const appWindow = getCurrentWebviewWindow()
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
@@ -64,7 +65,7 @@ export async function selectSingleFile(ext:string[]){
     } else if (selected === null) {
         return null
     } else {
-        return {name: await basename(selected),data:await readBinaryFile(selected)}
+        return {name: await basename(selected),data:await readFile(selected)}
     }
 }
 
@@ -88,13 +89,13 @@ export async function selectMultipleFile(ext:string[]){
     if (Array.isArray(selected)) {
         let arr:{name:string, data:Uint8Array}[] = []
         for(const file of selected){
-            arr.push({name: await basename(file),data:await readBinaryFile(file)})
+            arr.push({name: await basename(file),data:await readFile(file)})
         }
         return arr
     } else if (selected === null) {
         return null
     } else {
-        return [{name: await basename(selected),data:await readBinaryFile(selected)}]
+        return [{name: await basename(selected),data:await readFile(selected)}]
     }
 }
 

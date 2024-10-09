@@ -2,10 +2,9 @@ import { alertConfirm, alertWait } from "./alert";
 import { language } from "../lang";
 import { Capacitor } from "@capacitor/core";
 import {
-    checkUpdate,
-    installUpdate,
-} from '@tauri-apps/api/updater'
-import { relaunch } from '@tauri-apps/api/process'
+    check,
+} from '@tauri-apps/plugin-updater'
+import { relaunch } from '@tauri-apps/plugin-process'
 
 export async function checkRisuUpdate(){
 
@@ -14,12 +13,12 @@ export async function checkRisuUpdate(){
     }
 
     try {
-        const checked = await checkUpdate()     
-        if(checked.shouldUpdate){
+        const checked = await check()     
+        if(checked){
             const conf = await alertConfirm(language.newVersion)
             if(conf){
-                alertWait(`Updating to ${checked.manifest.version}...`)
-                await installUpdate()
+                alertWait(`Updating to ${checked.version}...`)
+                await checked.downloadAndInstall()
                 await relaunch()
             }
         }

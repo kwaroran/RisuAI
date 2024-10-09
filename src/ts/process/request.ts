@@ -664,7 +664,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     url: replacerURL,
                 })
 
-                let dataUint = new Uint8Array([])
+                let dataUint:Uint8Array|Buffer = new Uint8Array([])
 
                 const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
                     async transform(chunk, control) {
@@ -1240,7 +1240,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const API_ENDPOINT="us-central1-aiplatform.googleapis.com"
             const PROJECT_ID=db.google.projectId
             const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
-                                        'palm2_unicorn' ? 'text-unicorn' : 
+                            aiModel ==='palm2_unicorn' ? 'text-unicorn' : 
                                         ''
             const LOCATION_ID="us-central1"
 

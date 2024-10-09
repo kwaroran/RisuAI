@@ -6,7 +6,7 @@
     import Help from "../Others/Help.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
     import { isTauri } from "src/ts/storage/globalApi";
-    import {open} from '@tauri-apps/api/dialog'
+    import {open} from '@tauri-apps/plugin-dialog'
     import { getModelName } from "src/ts/model/names";
 
     export let value = ""

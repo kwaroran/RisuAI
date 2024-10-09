@@ -4,7 +4,7 @@ export function preLoadCheck(){
     const searchParams = new URLSearchParams(location.search);
 
     //@ts-ignore
-    const isTauri = !!window.__TAURI__
+    const isTauri = !!window.__TAURI_INTERNALS__
     //@ts-ignore
     const isNodeServer = !!globalThis.__NODE__
     const isCapacitor = Capacitor.isNativePlatform();
