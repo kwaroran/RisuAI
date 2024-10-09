@@ -16,6 +16,7 @@ import { CharXReader, CharXWriter } from "./process/processzip"
 import { Capacitor } from "@capacitor/core"
 import { exportModule, readModule, type RisuModule } from "./process/modules"
 import { readFile } from "@tauri-apps/plugin-fs"
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -445,6 +446,20 @@ export async function characterURLImport() {
         }
     }
     
+    if(isTauri){
+        await onOpenUrl((urls) => {
+            for(const url of urls){
+                const splited = url.split('/')
+                const id = splited[splited.length - 1]
+                const type = splited[splited.length - 2]
+                switch(type){
+                    case 'realm':{
+                        downloadRisuHub(id)
+                    }
+                }
+            }
+        })
+    }
 }
 
 

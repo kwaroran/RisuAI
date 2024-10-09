@@ -68,6 +68,7 @@
     "dialog:default",
     "process:default",
     "shell:default",
-    "http:default"
+    "http:default",
+    "deep-link:default"
   ]
 }

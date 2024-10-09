@@ -28,6 +28,7 @@
     "@smithy/protocol-http": "^3.0.12",
     "@smithy/signature-v4": "^2.0.19",
     "@tauri-apps/api": "2.0.0",
+    "@tauri-apps/plugin-deep-link": "~2",
     "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-http": "~2",
