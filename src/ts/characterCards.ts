@@ -301,6 +301,14 @@ export async function characterURLImport() {
 
 
     const hash = location.hash
+    if(hash.startsWith('#import=')){
+        const url = hash.replace('#import=', '')
+        const res = await fetch(url, {
+            method: 'GET',
+        })
+        const data = new Uint8Array(await res.arrayBuffer())
+        importFile(getFileName(res), data)
+    }
     if(hash.startsWith('#import_module=')){
         const data = hash.replace('#import_module=', '')
         const importData = JSON.parse(Buffer.from(decodeURIComponent(data), 'base64').toString('utf-8'))
@@ -375,31 +383,7 @@ export async function characterURLImport() {
             for(const f of files){
                 const file = await f.getFile()
                 const data = new Uint8Array(await file.arrayBuffer())
-                if(f.name.endsWith('.charx')){
-                    await importCharacterProcess({
-                        name: f.name,
-                        data: data
-                    })
-                }
-                if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
-                    await importPreset({
-                        name: f.name,
-                        data: data
-                    })
-                    SettingsMenuIndex.set(1)
-                    settingsOpen.set(true)
-                    alertNormal(language.successImport)
-                }
-                if(f.name.endsWith('risum')){
-                    const md = await readModule(Buffer.from(data))
-                    md.id = v4()
-                    const db = get(DataBase)
-                    db.modules.push(md)
-                    setDatabase(db)
-                    alertNormal(language.successImport)
-                    SettingsMenuIndex.set(14)
-                    settingsOpen.set(true)
-                }
+                importFile(f.name, data);
             }
         }
         //@ts-ignore
@@ -417,31 +401,7 @@ export async function characterURLImport() {
         if(files){
             for(const file of files){
                 const data = await readFile(file)
-                if(file.endsWith('.charx')){
-                    await importCharacterProcess({
-                        name: file,
-                        data: data
-                    })
-                }
-                if(file.endsWith('.risupreset') || file.endsWith('.risup')){
-                    await importPreset({
-                        name: file,
-                        data: data
-                    })
-                    SettingsMenuIndex.set(1)
-                    settingsOpen.set(true)
-                    alertNormal(language.successImport)
-                }
-                if(file.endsWith('risum')){
-                    const md = await readModule(Buffer.from(data))
-                    md.id = v4()
-                    const db = get(DataBase)
-                    db.modules.push(md)
-                    setDatabase(db)
-                    alertNormal(language.successImport)
-                    SettingsMenuIndex.set(14)
-                    settingsOpen.set(true)
-                }
+                importFile(file, data)
             }
         }
     }
@@ -459,6 +419,64 @@ export async function characterURLImport() {
                 }
             }
         })
+    }
+
+    async function importFile(name:string, data:Uint8Array) {
+        if(name.endsWith('.charx') || name.endsWith('.png')){
+            await importCharacterProcess({
+                name: name,
+                data: data
+            })
+            return
+        }
+        if(name.endsWith('.risupreset') || name.endsWith('.risup')){
+            await importPreset({
+                name: name,
+                data: data
+            })
+            SettingsMenuIndex.set(1)
+            settingsOpen.set(true)
+            alertNormal(language.successImport)
+            return
+        }
+        if(name.endsWith('risum')){
+            const md = await readModule(Buffer.from(data))
+            md.id = v4()
+            const db = get(DataBase)
+            db.modules.push(md)
+            setDatabase(db)
+            alertNormal(language.successImport)
+            SettingsMenuIndex.set(14)
+            settingsOpen.set(true)
+            return
+        }
+    }
+
+    function getFileName(res : Response) : string {
+        return getFormContent(res.headers.get('content-disposition')) || getFromURL(res.url);
+    
+        function getFormContent(contentDisposition : string) {
+            if (!contentDisposition) return null;
+            const pattern = /filename\*=UTF-8''([^"';\n]+)|filename[^;\n=]*=["']?([^"';\n]+)["']?/;
+            const matches = contentDisposition.match(pattern);
+            if (matches) {
+                if (matches[1]) {
+                    return decodeURIComponent(matches[1]);
+                } else if (matches[2]) {
+                    return matches[2];
+                }
+            }
+            return null;
+        }
+        
+        function getFromURL(url : string) : string {
+            try {
+                const path = new URL(url).pathname;
+                return path.substring(path.lastIndexOf('/') + 1);
+            } catch {
+                return "";
+            }
+        }
     }
 }
 
