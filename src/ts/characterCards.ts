@@ -828,7 +828,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         alternateGreetings:data.alternate_greetings ?? [],
         tags:data.tags ?? [],
         creator:data.creator ?? '',
-        characterVersion: `${data.character_version}` ?? '',
+        characterVersion: `${data.character_version}` || '',
         personality:data.personality ?? '',
         scenario:data.scenario ?? '',
         firstMsgIndex: -1,
@@ -940,7 +940,7 @@ async function createBaseV2(char:character) {
             },
             tags: char.tags ?? [],
             creator: char.additionalData?.creator ?? '',
-            character_version: `${char.additionalData?.character_version}` ?? '',
+            character_version: `${char.additionalData?.character_version}` || '',
             extensions: {
                 risuai: {
                     // emotions: char.emotionImages,
@@ -1310,7 +1310,7 @@ export function createBaseV3(char:character){
             },
             tags: char.tags ?? [],
             creator: char.additionalData?.creator ?? '',
-            character_version: `${char.additionalData?.character_version}` ?? '',
+            character_version: `${char.additionalData?.character_version}` || '',
             extensions: {
                 risuai: {
                     bias: char.bias,
