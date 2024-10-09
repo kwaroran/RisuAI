@@ -94,6 +94,18 @@ const colorShemes = {
         darkBorderc: "#4b5563",
         darkbutton: "#374151",
         type:'dark'
+    },
+    "lite": {
+        bgcolor: "#1f2937",
+        darkbg: "#1C2533",
+        borderc: "#475569",
+        selected: "#475569",
+        draculared: "#ff5555",
+        textcolor: "#f8f8f2",
+        textcolor2: "#64748b",
+        darkBorderc: "#030712",
+        darkbutton: "#374151",
+        type:'dark'
     }
 
 } as const
@@ -122,7 +134,7 @@ export function updateColorScheme(){
     }
 
     if(get(isLite)){
-        colorScheme = structuredClone(colorShemes.light)
+        colorScheme = structuredClone(colorShemes.lite)
     }
 
     //set css variables
@@ -188,7 +200,7 @@ export function updateTextThemeAndCSS(){
         return
     }
     let textTheme = get(isLite) ? 'standard' : db.textTheme
-    let colorScheme = get(isLite) ? 'light' : db.colorScheme.type
+    let colorScheme = get(isLite) ? 'dark' : db.colorScheme.type
     switch(textTheme){
         case "standard":{
             if(colorScheme === 'dark'){

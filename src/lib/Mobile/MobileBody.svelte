@@ -9,9 +9,10 @@
     import { language } from "src/lang";
     import SideChatList from "../SideBars/SideChatList.svelte";
     import DevTool from "../SideBars/DevTool.svelte";
+    import { isLite } from "src/ts/lite";
 </script>
 
-{#if $MobileSideBar > 0}
+{#if $MobileSideBar > 0 && !$isLite}
 <div class="w-full px-2 py-1 text-textcolor2 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">
     <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 1} on:click={() => {
         $MobileSideBar = 1

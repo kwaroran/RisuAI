@@ -13,13 +13,11 @@
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import { AccountWarning } from './ts/storage/accountStorage';
     import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
-  import { isLite } from './ts/lite';
-  import LiteMain from './LiteMain.svelte';
-  import Botpreset from './lib/Setting/botpreset.svelte';
-  import ListedPersona from './lib/Setting/listedPersona.svelte';
-  import MobileHeader from './lib/Mobile/MobileHeader.svelte';
-  import MobileBody from './lib/Mobile/MobileBody.svelte';
-  import MobileFooter from './lib/Mobile/MobileFooter.svelte';
+    import Botpreset from './lib/Setting/botpreset.svelte';
+    import ListedPersona from './lib/Setting/listedPersona.svelte';
+    import MobileHeader from './lib/Mobile/MobileHeader.svelte';
+    import MobileBody from './lib/Mobile/MobileBody.svelte';
+    import MobileFooter from './lib/Mobile/MobileFooter.svelte';
 
   
     let didFirstSetup: boolean  = false
