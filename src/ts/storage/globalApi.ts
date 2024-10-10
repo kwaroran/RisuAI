@@ -43,7 +43,6 @@ import { encodeCapKeySafe } from "./mobileStorage";
 import { updateLorebooks } from "../characters";
 import { initMobileGesture } from "../hotkey";
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
-const appWindow = getCurrentWebviewWindow()
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI_INTERNALS__
@@ -52,6 +51,8 @@ export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
 export const googleBuild = false
 export const isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
+
+const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 interface fetchLog{
     body:string

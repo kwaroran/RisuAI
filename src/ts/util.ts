@@ -8,7 +8,7 @@ import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isTauri } from "./storage/globalApi"
-const appWindow = getCurrentWebviewWindow()
+const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
