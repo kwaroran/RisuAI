@@ -221,28 +221,26 @@ async function importCharacterProcess(f:{
 
         }
     }
-    else {
-        const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-        //fix readedChara version pointing number instead of string because of previous version
-        if(typeof (parsed as CharacterCardV2Risu)?.data?.character_version === 'number'){
-            (parsed as CharacterCardV2Risu).data.character_version = (parsed as CharacterCardV2Risu).data.character_version.toString()
-        }
-
-        const checkedVersion = CCardLib.character.check(parsed)
-        if(checkedVersion === 'v2' || checkedVersion === 'v3'){
-            if(await importCharacterCardSpec(parsed, img, "normal", assets)){
-                let db = get(DataBase)
-                return db.characters.length - 1
-            }
-        }
+    const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+    //fix readedChara version pointing number instead of string because of previous version
+    if(typeof (parsed as CharacterCardV2Risu)?.data?.character_version === 'number'){
+        (parsed as CharacterCardV2Risu).data.character_version = (parsed as CharacterCardV2Risu).data.character_version.toString()
     }
-    const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-    console.log(charaData)
-    const imgp = await saveAsset(await reencodeImage(img))
-    db.characters.push(convertOffSpecCards(charaData, imgp))
-    DataBase.set(db)
-    alertNormal(language.importedCharacter)
+
+    if(parsed.spec !== 'chara_card_v2' && parsed.spec !== 'chara_card_v3'){
+        const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        console.log(charaData)
+        const imgp = await saveAsset(await reencodeImage(img))
+        db.characters.push(convertOffSpecCards(charaData, imgp))
+        DataBase.set(db)
+        alertNormal(language.importedCharacter)
+        return db.characters.length - 1
+    }
+    await importCharacterCardSpec(parsed, img, "normal", assets)
+    
+    db = get(DataBase)
     return db.characters.length - 1
+    
 }
 
 export const getRealmInfo = async (realmPath:string) => {
