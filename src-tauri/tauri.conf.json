@@ -2,108 +2,53 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:5174",
-    "distDir": "../dist",
-    "withGlobalTauri": false
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5174"
   },
-  "package": {
-    "productName": "RisuAI",
-    "version": "124.2.2"
-  },
-  "tauri": {
-    "allowlist": {
-      "app": {
-        "all": true
-      },
-      "process": {
-        "relaunch": true
-      },
-      "protocol": {
-        "all": true,
-        "assetScope": ["asset","$APPDATA","$APPDATA/*","$APPDATA/**/*", "/data/**/*"]
-      },
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "fs":{
-        "all": true,
-        "scope": ["$APPDATA","$APPDATA/*","$APPDATA/**/*", "$DOWNLOAD/*", "/data/**/*", "$RESOURCE/*"]
-      },
-      "path":{
-        "all": true
-      },
-      "http": {
-        "all": true,
-        "request": true,
-        "scope": ["https://*/*", "https://*/**/*","http://*/*", "http://*/**/*"]
-      },
-      "window": {
-        "center": false,
-        "close": false,
-        "create": false,
-        "hide": false,
-        "maximize": true,
-        "minimize": false,
-        "print": false,
-        "requestUserAttention": false,
-        "setAlwaysOnTop": false,
-        "setCursorGrab": false,
-        "setCursorIcon": false,
-        "setCursorPosition": false,
-        "setCursorVisible": false,
-        "setDecorations": false,
-        "setFocus": false,
-        "setFullscreen": true,
-        "setIcon": false,
-        "setIgnoreCursorEvents": false,
-        "setMaxSize": false,
-        "setMinSize": false,
-        "setPosition": false,
-        "setResizable": false,
-        "setSize": false,
-        "setSkipTaskbar": false,
-        "setTitle": false,
-        "show": false,
-        "startDragging": false,
-        "unmaximize": false,
-        "unminimize": false
-      },
-      "dialog": {
-        "all": true
-      },
-      "os": {
-        "all": true
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "src-python/*"
+    ],
+    "targets": "all",
+    "createUpdaterArtifacts": "v1Compatible",
+    "fileAssociations": [
+      {
+        "ext": [
+          "risum", "risup", "charx"
+        ]
       }
-    },
-    "bundle": {
-      "active": true,
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "co.aiclient.risu",
-      "targets": "all",
-      "resources": [
-        "src-python/*"
-      ]
-    },
-    "security": {
-      "csp": null
-    },
+    ]
+  },
+  "productName": "RisuAI",
+  "mainBinaryName": "RisuAI",
+  "version": "136.0.1",
+  "identifier": "co.aiclient.risu",
+  "plugins": {
     "updater": {
-      "active": true,
-      "endpoints": ["https://github.com/kwaroran/RisuAI/releases/latest/download/latest.json"],
-      "dialog": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU2ODMzOTIxMDMxOTY1MUYKUldRZlpSa0RJVG1EVmx5Vm1WYlhFM29HMEJrUTRrYmg5dDQ0RFpvdUphNDdxQmVlWXJHVmV5TEYK",
+      "endpoints": [
+        "https://github.com/kwaroran/RisuAI/releases/latest/download/latest.json"
+      ],
       "windows": {
         "installMode": "passive"
       }
     },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["risuailocal"]
+      }
+    }
+  },
+  "app": {
+    "withGlobalTauri": false,
     "windows": [
       {
         "fullscreen": false,
@@ -113,8 +58,21 @@
         "height": 768,
         "minWidth": 300,
         "minHeight": 500,
-        "fileDropEnabled": false
+        "dragDropEnabled": false
       }
-    ]
+    ],
+    "security": {
+      "assetProtocol": {
+        "scope": [
+          "asset",
+          "$APPDATA",
+          "$APPDATA/*",
+          "$APPDATA/**/*",
+          "/data/**/*"
+        ],
+        "enable": true
+      },
+      "csp": null
+    }
   }
 }

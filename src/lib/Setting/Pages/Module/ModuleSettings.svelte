@@ -27,14 +27,6 @@
         
         }).sort((a, b) => {
             let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-
-            if(db.enabledModules.includes(a.id)){
-                score += 1000
-            }
-            if(db.enabledModules.includes(b.id)){
-                score -= 1000
-            }
-
             return score
         })
     }
@@ -73,14 +65,7 @@
                         </button>
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.download} on:click={async (e) => {
                             e.stopPropagation()
-                            const data = await alertCardExport('module')
-                            if(data.type === ''){
-                                exportModule(rmodule)
-                            }
-                            if(data.type === 'realm'){
-                                const index = $DataBase.modules.findIndex((v) => v.id === rmodule.id)
-                                $ShowRealmFrameStore = `module:${index}`
-                            }
+                            exportModule(rmodule)
                         }}>
                             <Share2Icon size={18}/>
                         </button>

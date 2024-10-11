@@ -35,6 +35,36 @@ self.addEventListener('fetch', (event) => {
                 }
                 case "init":{
                     event.respondWith(new Response("v2"))
+                    break
+                }
+                case 'share':{
+                    event.respondWith((async () => {
+                        const formData = await event.request.formData();
+                        /**
+                         * @type {File}
+                        */
+                        const character = formData.get('character')
+                        const preset = formData.get('preset')
+                        const module = formData.get('module')
+                        if(character){
+                            const buf = await character.arrayBuffer()
+                            await registerCache(`/sw/share/character`, buf, true)
+                            return Response.redirect("/#share_character", 303)
+                        }
+                        if(preset){
+                            const buf = await preset.arrayBuffer()
+                            await registerCache(`/sw/share/preset`, buf, true)
+                            return Response.redirect("/#share_preset", 303)
+                        }
+                        if(module){
+                            const buf = await module.arrayBuffer()
+                            await registerCache(`/sw/share/module`, buf, true)
+                            return Response.redirect("/#share_module", 303)
+                        }
+                        return Response.redirect("/", 303)
+
+                    })())
+                    break
                 }
                 default: {
                     event.respondWith(new Response(

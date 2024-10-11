@@ -51,15 +51,6 @@
             let currentChar:character|groupChat = $CurrentCharacter;
             let messages:Message[] = []
             
-            if(currentChar.type !== 'group'){
-                const firstMsg:string = currentChar.firstMsgIndex === -1 ? currentChar.firstMessage : currentChar.alternateGreetings[currentChar.firstMsgIndex]
-                messages.push({
-                    role: 'char',
-                    data: await processScript(currentChar,
-                        replacePlaceholders(firstMsg, currentChar.name),
-                    'editprocess')
-                })
-            }
             messages = [...messages, ...currentChar.chats[currentChar.chatPage].message];
             let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)

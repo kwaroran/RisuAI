@@ -26,9 +26,12 @@ export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Def
 export const settingsOpen = writable(false)
 export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
-
+export const openPresetList = writable(false)
+export const openPersonaList = writable(false)
+export const MobileGUI = writable(false)
+export const MobileGUIStack = writable(0)
+export const MobileSideBar = writable(0)
 //optimization
-
 export const CurrentCharacter = writable(null) as Writable<character | groupChat>
 export const CurrentSimpleCharacter = writable(null) as Writable<simpleCharacterArgument>
 export const CurrentChat = writable(null) as Writable<Chat>
@@ -37,17 +40,36 @@ export const CurrentUserIcon = writable('') as Writable<string>
 export const CurrentShowMemoryLimit = writable(false) as Writable<boolean>
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
-export const CurrentVariablePointer = writable({} as {[key:string]: string|number|boolean})
 export const ReloadGUIPointer = writable(0)
 export const OpenRealmStore = writable(false)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
 export const UserIconProtrait = writable(false)
+export const CustomCSSStore = writable('')
+export const SafeModeStore = writable(false)
+export const MobileSearch = writable('')
+export const CharConfigSubMenu = writable(0)
+
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let moduleHideIcon = false
 let characterHideIcon = false
+
+
+CustomCSSStore.subscribe((css) => {
+    console.log(css)
+    const q = document.querySelector('#customcss')
+    if(q){
+        q.innerHTML = css
+    }
+    else{
+        const s = document.createElement('style')
+        s.id = 'customcss'
+        s.innerHTML = css
+        document.body.appendChild(s)
+    }
+})
 
 function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
@@ -208,13 +230,6 @@ async function preInit(){
         if(getUserIcon() !== get(CurrentUserIcon)){
             CurrentUserIcon.set(getUserIcon())
         }
-
-        const variablePointer = get(CurrentVariablePointer)
-        const currentState = structuredClone(chat?.scriptstate)
-
-        if(!isEqual(variablePointer, currentState)){
-            CurrentVariablePointer.set(currentState)
-        }
     })
 }
 
@@ -226,9 +241,7 @@ function onModuleUpdate(){
         lastChatEnabledModules = []
     }
 
-    const m = getModules([
-        ...lastGlobalEnabledModules, ...lastChatEnabledModules
-    ])
+    const m = getModules()
     
     let moduleHideIcon = false
     let backgroundEmbedding = ''

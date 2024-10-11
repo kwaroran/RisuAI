@@ -19,6 +19,7 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
   import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+  import Help from "./Help.svelte";
     let btn
     let input = ''
     let cardExportType = 'realm'
@@ -80,7 +81,7 @@
             {:else if $alertStore.type === 'tos'}
                 <!-- svelte-ignore a11y-missing-attribute -->
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div class="text-textcolor">You should accept RisuRealm's <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
+                <div class="text-textcolor">You should accept <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
@@ -112,7 +113,7 @@
                             msg: 'yes'
                         })
                     }}>Accept</Button>
-                    <Button className="mt-4 flex-grow" on:click={() => {
+                    <Button styled={'outlined'} className="mt-4 flex-grow" on:click={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -304,7 +305,7 @@
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
-                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click={() => {
+                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click|stopPropagation|preventDefault={(e) => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importFromRealm'
@@ -318,7 +319,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importCharacter'
@@ -331,7 +332,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createfromScratch'
@@ -344,7 +345,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createGroup'
@@ -357,7 +358,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'cancel'
@@ -399,6 +400,21 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
+                    {#if $DataBase.useExperimental}
+                        <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: '2'
+                            })
+                        }}>
+                            <div class="flex flex-col justify-start items-start">
+                                <span>{language.createMultiuserRoom} <Help key="experimental"/></span>
+                            </div>
+                            <div class="ml-9 float-right flex-1 flex justify-end">
+                                <ChevronRightIcon />
+                            </div>
+                        </button>
+                    {/if}
                     <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
                         alertStore.set({
                             type: 'none',
@@ -436,7 +452,7 @@
             <span class="text-textcolor mt-4">{language.type}</span>
             {#if cardExportType === ''}
                 {#if $alertStore.submsg === 'module'}
-                    <span class="text-textcolor2 text-sm">{language.jsonDesc}</span>
+                    <span class="text-textcolor2 text-sm">{language.risuMDesc}</span>
                 {:else if $alertStore.submsg === 'preset'}
                     <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {:else}
@@ -457,10 +473,9 @@
                 {#if $alertStore.submsg === 'preset'}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Risupreset</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'json'} on:click={() => {cardExportType = 'json'}}>JSON</button>
                 {:else if $alertStore.submsg === 'module'}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>JSON</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>RisuM</button>
                 {:else}
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {

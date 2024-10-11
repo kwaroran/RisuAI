@@ -5,48 +5,53 @@ type HighlightInt = [Range, HighlightType]
 let highLights = new Map<number, HighlightInt[]>();
 
 export const highlighter = (highlightDom:HTMLElement, id:number) => {
-    if(highlightDom){
-        if(!CSS.highlights){
-            return
-        }
-
-        const walker = document.createTreeWalker(highlightDom, NodeFilter.SHOW_TEXT)
-        const nodes:Node[] = []
-        let currentNode = walker.nextNode();
-        while (currentNode) {
-            nodes.push(currentNode);
-            currentNode = walker.nextNode();
-        }
-        const str = "{{char}}"
-        if (!str) {
-            return;
-        }
-
-        const ranges:HighlightInt[] = []
-
-        nodes.map((el) => {
-            const text = el.textContent.toLowerCase()
-
-            const cbsParsed = simpleCBSHighlightParser(el,text)
-            ranges.push(...cbsParsed)
-
-            for(const syntax of highlighterSyntax){
-                const regex = syntax.regex
-                let match:RegExpExecArray | null;
-                while ((match = regex.exec(text)) !== null) {
-                    const length = match[0].length;
-                    const index = match.index;
-                    const range = new Range();
-                    range.setStart(el, index);
-                    range.setEnd(el, index + length);
-                    ranges.push([range, syntax.type])
-                }
+    try {
+    
+        if(highlightDom){
+            if(!CSS.highlights){
+                return
             }
-        });
-
-        highLights.set(id, ranges)
-
-        runHighlight()
+    
+            const walker = document.createTreeWalker(highlightDom, NodeFilter.SHOW_TEXT)
+            const nodes:Node[] = []
+            let currentNode = walker.nextNode();
+            while (currentNode) {
+                nodes.push(currentNode);
+                currentNode = walker.nextNode();
+            }
+            const str = "{{char}}"
+            if (!str) {
+                return;
+            }
+    
+            const ranges:HighlightInt[] = []
+    
+            nodes.map((el) => {
+                const text = el.textContent.toLowerCase()
+    
+                const cbsParsed = simpleCBSHighlightParser(el,text)
+                ranges.push(...cbsParsed)
+    
+                for(const syntax of highlighterSyntax){
+                    const regex = syntax.regex
+                    let match:RegExpExecArray | null;
+                    while ((match = regex.exec(text)) !== null) {
+                        const length = match[0].length;
+                        const index = match.index;
+                        const range = new Range();
+                        range.setStart(el, index);
+                        range.setEnd(el, index + length);
+                        ranges.push([range, syntax.type])
+                    }
+                }
+            });
+    
+            highLights.set(id, ranges)
+    
+            runHighlight()
+        }    
+    } catch (error) {
+        
     }
 }
 
@@ -80,13 +85,14 @@ export const removeHighlight = (id:number) => {
 }
 
 const normalCBS = [
-    'previous_char_chat', 'lastcharmessage', 'previous_user_chat', 'lastusermessage', 'char', 'bot',
-    'user', 'char_persona', 'description', 'char_desc', 'example_dialogue',
+    'char', 'user', 'char_persona', 'description', 'char_desc', 'example_dialogue', 'previous_char_chat',
+    'lastcharmessage', 'previous_user_chat', 'lastusermessage',
     'example_message', 'persona', 'user_persona', 'lorebook', 'world_info', 'history', 'messages',
     'chat_index', 'first_msg_index', 'blank', 'none', 'message_time', 'message_date', 'time',
     'date', 'isotime', 'isodate', 'message_idle_duration', 'idle_duration', 'br', 'newline',
     'model', 'axmodel', 'role', 'jbtoggled', 'random', 'maxcontext', 'lastmessage', 'lastmessageid',
-    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', '/', '/if', '/each', '/pure', '/if_pure', 'slot', 'module_enabled'
+    'lastmessageindex', 'emotionlist', 'assetlist', 'prefill_supported', 'unixtime', 'slot', 'module_enabled',
+    'is_first_message', '/', '/if', '/each', '/pure', '/if_pure', '/func', '/pure_display'
 ]
 
 const normalCBSwithParams = [
@@ -97,15 +103,19 @@ const normalCBSwithParams = [
     'arraypop', 'array_pop', 'arraypush', 'array_push', 'arraysplice', 'array_splice',
     'makearray', 'array', 'a', 'make_array', 'history', 'messages', 'range', 'date', 'time', 'datetimeformat', 'date_time_format',
     'random', 'pick', 'roll', 'datetimeformat', 'hidden_key', 'reverse', 'getglobalvar', 'position', 'slot', 'rollp',
-    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal'
+    'and', 'or', 'not', 'message_time_array', 'filter', 'greater', 'less', 'greater_equal', 'less_equal', 'arg'
 ]
 
 const displayRelatedCBS = [
-    'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment'
+    'raw', 'img', 'video', 'audio', 'bg', 'emotion', 'asset', 'video-img', 'comment', 'image'
 ];
 
+const nestedCBS = [
+    '#if', '#if_pure ', '#pure ', '#each ', '#func', '#pure_display'
+]
+
 const specialCBS = [
-    '#if', '#if_pure ', '#pure ', '#each ', 'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ',
+    'random:', 'pick:', 'roll:', 'datetimeformat:', '? ', 'hidden_key: ', 'reverse: ', ...nestedCBS
 ]
 
 const deprecatedCBS = [
@@ -125,6 +135,11 @@ const decorators = [
 const deprecatedDecorators = [
     'end', 'assistant', 'user', 'system'
 ]
+
+export const AllCBS = [...normalCBS, ...(normalCBSwithParams.concat(displayRelatedCBS).map((v) => {
+    return v + ':'
+})), ...nestedCBS]
+
 const highlighterSyntax = [
     {
         regex: /<(char|user|bot)>/gi,

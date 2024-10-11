@@ -246,7 +246,7 @@ export async function alertCardExport(type:string = ''){
 
 export async function alertTOS(){
 
-    if(localStorage.getItem('tos') === 'true'){
+    if(localStorage.getItem('tos2') === 'true'){
         return true
     }
 
@@ -263,7 +263,7 @@ export async function alertTOS(){
     }
 
     if(get(alertStore).msg === 'yes'){
-        localStorage.setItem('tos', 'true')
+        localStorage.setItem('tos2', 'true')
         return true
     }
 

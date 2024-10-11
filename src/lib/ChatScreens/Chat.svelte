@@ -1,20 +1,22 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
-    import { ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
+    import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
-    import { CurrentCharacter, CurrentChat, CurrentVariablePointer, HideIconStore, ReloadGUIPointer } from "../../ts/stores";
+    import { CurrentCharacter, CurrentChat, HideIconStore, ReloadGUIPointer } from "../../ts/stores";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
-    import { get } from "svelte/store";
+    import { get, type Unsubscriber } from "svelte/store";
     import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
     import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
-  import { longpress } from "src/ts/gui/longtouch";
-  import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+    import { longpress } from "src/ts/gui/longtouch";
+    import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+    import { ConnectionOpenStore } from "src/ts/sync/multiuser";
+    import { onDestroy, onMount } from "svelte";
     export let message = ''
     export let name = ''
     export let largePortrait = false
@@ -26,6 +28,7 @@
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
+    export let firstMessage = false
     let translating = false
     try {
         translating = get(DataBase).autoTranslate                
@@ -71,8 +74,16 @@
         $CurrentChat.message = msg
     }
 
-    function displaya(message:string, chatPointer?:any){
-        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true})
+    function getCbsCondition(){
+        const cbsConditions:CbsConditions = {
+            firstmsg: firstMessage ?? false,
+            chatRole: $CurrentChat?.message?.[idx]?.role ?? null,
+        }
+        return cbsConditions
+    }
+
+    function displaya(message:string){
+        msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true, cbsConditions: getCbsCondition()})
     }
 
     const setStatusMessage = (message:string, timeout:number = 0)=>{
@@ -90,23 +101,22 @@
     $: blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         try {
-            if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
-            lastParsed = ''
-            lastCharArg = charArg
-            lastChatId = chatID
-            translateText = false
-            try {
-                translated = get(DataBase).autoTranslate
-                if(translated){
-                    translateText = true
-                }
-            } catch (error) {}
-        }
+                if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
+                lastParsed = ''
+                lastCharArg = charArg
+                lastChatId = chatID
+                translateText = false
+                try {
+                    translated = get(DataBase).autoTranslate
+                    if(translated){
+                        translateText = true
+                    }
+                } catch (error) {}
+            }
             if(translateText){
                 if(!$DataBase.legacyTranslation){
-                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID)
+                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
-                    console.log(marked)
                     const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
                     translating = false
                     lastParsed = translated
@@ -114,7 +124,7 @@
                     return translated
                 }
                 else{
-                    const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                    const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     translating = true
                     const translated = await translateHTML(marked, false, charArg, chatID)
                     translating = false
@@ -124,7 +134,7 @@
                 }
             }
             else{
-                const marked = await ParseMarkdown(data, charArg, mode, chatID)
+                const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                 lastParsed = marked
                 lastCharArg = charArg
                 return marked
@@ -140,7 +150,19 @@
         }
     }
 
-    $: displaya(message, $CurrentVariablePointer)
+    $: displaya(message)
+
+    const unsubscribers:Unsubscriber[] = []
+
+    onMount(()=>{
+        unsubscribers.push(ReloadGUIPointer.subscribe((v) => {
+            displaya(message)
+        }))
+    })
+
+    onDestroy(()=>{
+        unsubscribers.forEach(u => u())
+    })
 </script>
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
@@ -202,20 +224,22 @@
                             </button>
                         {/if}
 
-                        <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
-                            if(!editMode){
-                                editMode = true
-                            }
-                            else{
-                                editMode = false
-                                edit()
-                            }
-                        }}>
-                            <PencilIcon size={20}/>
-                        </button>
-                        <button class="ml-2 hover:text-green-500 transition-colors" on:click={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
-                            <TrashIcon size={20}/>
-                        </button>
+                        {#if !$ConnectionOpenStore}
+                            <button class={"ml-2 hover:text-green-500 transition-colors "+(editMode?'text-green-400':'')} on:click={() => {
+                                if(!editMode){
+                                    editMode = true
+                                }
+                                else{
+                                    editMode = false
+                                    edit()
+                                }
+                            }}>
+                                <PencilIcon size={20}/>
+                            </button>
+                            <button class="ml-2 hover:text-green-500 transition-colors" on:click={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
+                                <TrashIcon size={20}/>
+                            </button>
+                        {/if}
                     {/if}
                     {#if $DataBase.translator !== '' && !blankMessage}
                         <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} on:click={async () => {
@@ -277,13 +301,11 @@
                     style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
                 >
                     {#key $ReloadGUIPointer}
-                        {#key $CurrentVariablePointer}
-                            {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                                {@html lastParsed}
-                            {:then md}
-                                {@html md}
-                            {/await}
-                        {/key}
+                        {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                            {@html lastParsed}
+                        {:then md}
+                            {@html md}
+                        {/await}
                     {/key}
                 </span>
             {/if}

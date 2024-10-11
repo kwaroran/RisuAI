@@ -58,7 +58,7 @@ export const languageEnglish = {
         bias:"bias is a key-value data which modifies the likelihood of string appearing.\nit can be -100 to 100, higher values will be more likely to appear, and lower values will be more unlikely to appear. \nAdditionaly, if its set to -101, it would work as 'strong ban word' for some models. \nWarning: if the tokenizer is wrong, it not work properly.",
         emotion: "Emotion Images option shows image depending at character's emotion which is analized by character's response. you must input emotion name as words *(like joy, happy, fear and etc.)* .emotion named **neutral** will be default emotion if it exists. must be more then 3 images to work properly.",
         imggen: "After analyzing the chat, apply the prompt to {{slot}}.",
-        regexScript: "Regex Script is a custom script that replaces string that matches IN to OUT.\n\nThere four type options."
+        regexScript: "Regex Script is a custom regex that replaces string that matches IN to OUT.\n\nThere four type options."
                 + "\n\n- **Modify Input** modifys user's input"
                 + "\n\n- **Modify Output** modifys character's output"
                 + "\n\n- **Modify Request Data** modifys current chat data when sent."
@@ -69,8 +69,14 @@ export const languageEnglish = {
                 + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
                 + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
                 + "\n\n- $(name)\n\n    - inserts the named group"
-                + "\n\nIf OUT starts with **@@**, it doesn't replaces the string, but instead does a special effect if matching string founds."
-                + "\n\n- @@emo (emotion name)\n\n    - if character is Emotion Images mode, sets (emotion name) as emotion and prevents default.",
+                + "\n\nFor flags, you can not only use native supported flags, but also use these flags, which are designed for advanced users:"
+                + "\n\n- `<inject>` - injects the result to the current string."
+                + "\n- `<move_top>` - moves the result to the top of the string."
+                + "\n- `<move_bottom>` - moves the result to the bottom of the string."
+                + "\n- `<repeat_back>` - if the match is not found, it carries the result from the previous match."
+                + "\n- `<order n>` - sets the order of the result. higher order will be shown first. `n` is a number. (like `<order 1>`) if this flag is not set, it will be set to 0."
+                + "\n- `<cbs>` - parses curly braced synatxes in IN."
+                + "\n\nTo use with native flags, you can use like `gi<cbs><move_top>`.",
         experimental: "This is a experimental feature. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
                 + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
@@ -86,7 +92,7 @@ export const languageEnglish = {
         utilityBot: "When activated, it ignores main prompt, jailbreak and other prompts. used for bot made for utility, not for roleplay.",
         loreSelective: "If Selective mode is toggled, both Activation Key and Secondary key should have a match to activate the lore.",
         loreRandomActivation: "If Use Probability Condition is abled, if the lore's other conditions are all met, the lore will be activated with a set probability which is set by 'Probability' each time a chat is sent.",
-        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{img::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
+        additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{image::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
         superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
         + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
         + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
@@ -134,7 +140,30 @@ export const languageEnglish = {
         legacyTranslation: "If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations.",
         luaHelp: "You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.",
         claudeCachingExperimental: "Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.",
+        urllora: "You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like `urn:air:flux1:lora:civitai:180891@776656` or just `civitai:180891@776656`) and paste it.",
+        namespace: "Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.",
+        moduleIntergration: "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.",
+        customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
+        betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.",
+        unrecommended: "This is a unrecommended setting. it is not recommended to use this setting.",
+        jsonSchema: "This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.\n\nHowever, since JSON Schema is hard to learn, In RisuAI, you can use subset of TypeScript interface instead of JSON Schema. RisuAI will convert it in runtime." +
+        "For example, if you want to send a JSON like this:\n\n```js\n{\n  \"name\": \"RisuAI\", //name must be RisuAI,\n  \"age\": 1, //age must be number,\n  \"icon\": \"slim\", //icon must be \'slim\' or 'rounded'\n  \"thoughts\": [\"Good View!\", \"Lorem\"] //thoughts must be array of strings\n}\n```\n\n" +
+        "You can put this TypeScript interface:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\n" +
+        "Name of the interface doesn't matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below." +
+        "<details><summary>Supported TypeScript Subset</summary>\n\n" +
+        `Supported types are \`boolean\`, \`number\`, \`string\`, \`Array\`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:\n
+        - Array of primitive types: (ex. \`string[]\`, \`Array<boolean>)\`
+        - Unit types between strings: (ex. \`'slim'|'rounded'\`).
 
+        Properties must be one in a line. if there is multiple properties in a line, it will throw an error. Properties and name of the interface must be only in latin characters, in ASCII range. name of the properties must not be surrounded by quotes or double quotes. Nesting inside the interface is not supported. it is not allowed to put \`{\` or \`}\` in the line that properties are defined. If you want to use more advanced types, use JSON Schema instead.
+        ` +
+        "</details>"
+        ,
+        strictJsonSchema: "If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.",
+        extractJson: "If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{\"response\": {\"text\": [\"hello\"]}}`, you can put `response.text.0`.",
+        translatorNote: "Here, you can add a unique translation prompt for each character. This option only applies when using the Ax. model for translation. To apply it, include `{{slot::tnote}}` in the language settings. It doesn't work in group chats.",
+        groupInnerFormat: "This defines a format that is used in group chat for characters that isn't speaker. if it is not blank, it will use this format instead of the default format. if `Group Other Bot Role` is `assistant`, it will also be applied to the speaker.",
+        groupOtherBotRole: "This defines a role that is used in group chat for characters that isn't speaker.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -615,6 +644,7 @@ export const languageEnglish = {
     trashDesc: "Deleted characters are moved to trash. you can restore or delete them permanently. deleted characters are automatically purged after 3 days.",
     shareExport: "Share/Export",
     risupresetDesc: "Risupreset format is a format specifically designed for RisuAI presets.",
+    risuMDesc: "RisuM format is a format that is specifically designed for RisuAI modules.",
     jsonDesc: "JSON format is a format that is easy to read and write for both humans and machines.",
     nickname: "Nickname",
     useRegexLorebook: "Use Regex",
@@ -683,4 +713,39 @@ export const languageEnglish = {
     sizeAndSpeed: "Size and Speed",
     useLegacyGUI: "Use Legacy GUI",
     claudeCachingExperimental: "Claude Caching",
+    openClose: "Open/Close",
+    hideApiKeys: "Hide API Keys",
+    unformatQuotes: "Disable Quote Formatting",
+    enableDevTools: "Enable Dev Tools",
+    selectFile: "Select File",
+    namespace: "Namespace",
+    moduleIntergration: "Module Integration",
+    previewInfo: "This preview shows prompt before model-specific processing.",
+    miscTools: "Misc Tools",
+    promptConvertion: "Prompt Convertion",
+    convertionStep1: "Select all file related to the prompt (Context, Instruct and Sampler JSON is supported)",
+    customCSS: "Custom CSS",
+    betaMobileGUI: "Beta Mobile GUI",
+    menu: "Menu",
+    connectionOpen: "Connection Open",
+    connectionOpenInfo: "Multiuser room is opened. you can share the room code to other users. others can join the room by using the code inside playground > Join Multiuser Room.",
+    createMultiuserRoom: "Create Multiuser Room",
+    connectionHost: "You are the host of the room.",
+    connectionGuest: "You are the guest of the room.",
+    otherUserRequesting: "Other user is already requesting. try again later.",
+    jsonSchema: "JSON Schema",
+    enableJsonSchema: "Enable Schema",
+    strictJsonSchema: "Strict Schema",
+    extractJson: "Extract JSON",
+    reloadSession: "Newer version of save data is found. reloading the session...",
+    fixMarkdownNewline: "Fix Markdown Newline",
+    customQuotes: "Custom Quotes",
+    leadingSingleQuote: "Leading Single Quote",
+    leadingDoubleQuote: "Leading Double Quote",
+    trailingSingleQuote: "Trailing Single Quote",
+    trailingDoubleQuote: "Trailing Double Quote",
+    translatorNote: "Translator's Note",
+    formatGroupInSingle: "Format Group in Single",
+    groupInnerFormat: "Non-Speaker Inner Format",
+    groupOtherBotRole: "Non-Speaker Role in Group",
 }

@@ -2,14 +2,14 @@
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
-    import { ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon } from 'lucide-svelte'
+    import { CharConfigSubMenu, CurrentChat, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
     import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile } from "../../ts/util";
+    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
     import {isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
@@ -29,10 +29,11 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-  import { applyModule } from "src/ts/process/modules";
-    
+    import { applyModule } from "src/ts/process/modules";
+    import { exportRegex, importRegex } from "src/ts/process/scripts";
+    import Arcodion from "../UI/Arcodion.svelte";
+    import SliderInput from "../UI/GUI/SliderInput.svelte";
 
-    let subMenu = 0
     let iconRemoveMode = false
     let emos:[string, string][] = []
     let tokens = {
@@ -103,6 +104,19 @@
         }
         emos = currentChar.data.emotionImages
         currentChar = currentChar
+
+        if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig) {
+            if (!(currentChar.data as character).gptSoVitsConfig.use_prompt) {
+                (currentChar.data as character).gptSoVitsConfig.prompt = undefined
+            }
+            if((currentChar.data as character).gptSoVitsConfig.use_auto_path){
+                (currentChar.data as character).gptSoVitsConfig.ref_audio_path = undefined;
+
+                (currentChar.data as character).gptSoVitsConfig.use_prompt = false;
+                (currentChar.data as character).gptSoVitsConfig.prompt = undefined;
+
+            }
+        }
     })
 
     let assetFileExtensions:string[] = []
@@ -147,35 +161,64 @@
             version: 'v2'
         };
     }
+    $: if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
+        (currentChar.data as character).gptSoVitsConfig = {
+            url: '',
+            use_auto_path: false,
+            ref_audio_path: '',
+            use_long_audio: false,
+            ref_audio_data: {
+                fileName: '',
+                assetId: ''  
+            },
+            volume: 1.0,
+            text_lang: 'auto',
+            text: 'en',
+            use_prompt: false,
+            prompt_lang: 'en',
+            top_p: 1,
+            temperature: 0.7,
+            speed: 1,
+            top_k: 5,
+            text_split_method: 'cut0',
+        };
+    }
+
+    $: {
+        if(currentChar.type === 'group' && ($CharConfigSubMenu === 4 || $CharConfigSubMenu === 5)){
+            $CharConfigSubMenu = 0
+        }
+    }
+
 </script>
 
-{#if licensed !== 'private'}
+{#if licensed !== 'private' && !$MobileGUI}
     <div class="flex gap-2 mb-2">
-        <button class={subMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {subMenu = 0}}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 0}}>
             <UserIcon />
         </button>
-        <button class={subMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 1}}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 1}}>
             <SmileIcon />
         </button>
-        <button class={subMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 3}}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 3}}>
             <BookIcon />
         </button>
         {#if currentChar.type === 'character'}
-            <button class={subMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 5}}>
+            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 5}}>
                 <Volume2Icon />
             </button>
-            <button class={subMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 4}}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 4}}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={subMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {subMenu = 2}}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 2}}>
             <ActivityIcon />
         </button>
     </div>
 {/if}
 
 
-{#if subMenu === 0}
+{#if $CharConfigSubMenu === 0}
     {#if currentChar.type !== 'group' && licensed !== 'private'}
         <TextInput size="xl" marginBottom placeholder="Character Name" bind:value={currentChar.data.name} />
         <span class="text-textcolor">{language.description} <Help key="charDesc"/></span>
@@ -243,40 +286,43 @@
         highlight
         placeholder={getAuthorNoteDefaultText()}
     />
-    <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>     
-    <div class="flex mt-6 items-center">
-        <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
-    </div>
+    <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
 
-    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
-        <div class="flex mt-2 items-center">
-            <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
-                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
-            }} />
+    {#if !$MobileGUI}
+        <div class="flex mt-6 items-center">
+            <Check bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
         </div>
-    {/each}
 
-    
-    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
-        {#if $DataBase.hanuraiEnable}
+        {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
             <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.hanuraiMemory}/>
+                <Check check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
+                    $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                }} />
             </div>
-        {:else if $DataBase.hypaMemory}
+        {/each}
+
+        
+        {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+            {#if $DataBase.hanuraiEnable}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.hanuraiMemory}/>
+                </div>
+            {:else if $DataBase.hypaMemory}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleHypaMemory}/>
+                </div>
+            {:else}
+                <div class="flex mt-2 items-center">
+                    <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleSuperMemory}/>
+                </div>
+            {/if}
+        {/if}
+
+        {#if currentChar.type === 'group'}
             <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleHypaMemory}/>
-            </div>
-        {:else}
-            <div class="flex mt-2 items-center">
-                <Check bind:check={currentChar.data.supaMemory} name={ language.ToggleSuperMemory}/>
+                <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
             </div>
         {/if}
-    {/if}
-
-    {#if currentChar.type === 'group'}
-        <div class="flex mt-2 items-center">
-            <Check bind:check={currentChar.data.orderByOrder} name={language.orderByOrder}/>
-        </div>
     {/if}
     {#if licensed === 'private'}
         <Button on:click={async () => {
@@ -299,10 +345,12 @@
 {:else if licensed === 'private'}
     <span>You are not allowed</span>
     {(() => {
-        subMenu = 0
+        $CharConfigSubMenu = 0
     })()}
-{:else if subMenu === 1}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
+{:else if $CharConfigSubMenu === 1}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
+    {/if}
     <span class="text-textcolor mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if currentChar.type === 'group'}
         <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
@@ -509,13 +557,16 @@
             }
         }}/>
     {/if}
-{:else if subMenu === 3}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>
+{:else if $CharConfigSubMenu === 3}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.loreBook} <Help key="lorebook"/></h2>
+    {/if}
     <LoreBook />
-{:else if subMenu === 4}
+{:else if $CharConfigSubMenu === 4}
     {#if currentChar.type === 'character'}
-        <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
-
+        {#if !$MobileGUI}
+            <h2 class="mb-2 text-2xl font-bold mt-2">{language.scripts}</h2>
+        {/if}
         <span class="text-textcolor mt-2">Bias <Help key="bias"/></span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
 
@@ -564,111 +615,43 @@
 
         <span class="text-textcolor mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <RegexList bind:value={currentChar.data.customscript} />
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.customscript
-                script.push({
-                  comment: "",
-                  in: "",
-                  out: "",
-                  type: "editinput"
-                })
-                currentChar.data.customscript = script
-            }
-        }}><PlusIcon /></button>
+        <div class="text-textcolor2 mt-2 flex gap-2">
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                if(currentChar.type === 'character'){
+                    let script = currentChar.data.customscript
+                    script.push({
+                    comment: "",
+                    in: "",
+                    out: "",
+                    type: "editinput"
+                    })
+                    currentChar.data.customscript = script
+                }
+            }}><PlusIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                exportRegex(currentChar.data.customscript)
+            }}><DownloadIcon /></button>
+            <button class="font-medium cursor-pointer hover:text-green-500" on:click={async () => {
+                currentChar.data.customscript = await importRegex(currentChar.data.customscript)
+            }}><FolderUpIcon /></button>
+        </div>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
-        <div class="flex items-start mt-2 gap-2">
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
-                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode' &&
-                currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'
-            } on:click|stopPropagation={async () => {
-                    if(currentChar.type === 'character'){
-                        const codeType = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type
-                        if(codeType === 'triggercode' || codeType === 'triggerlua'){
-                            const codeTrigger = currentChar.data?.triggerscript?.[0]?.effect?.[0]?.code
-                            if(codeTrigger){
-                                const t = await alertConfirm(language.triggerSwitchWarn)
-                                if(!t){
-                                    return
-                                }
-                            }
-                            currentChar.data.triggerscript = []
-                        }
-                    }
-            }}>{language.blockMode}</button>
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggercode'){
-                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
-                        }
-                    }
-                    currentChar.data.triggerscript = [{
-                        comment: "",
-                        type: "start",
-                        conditions: [],
-                        effect: [{
-                            type: "triggercode",
-                            code: ""
-                        }]
-                    }]
-                }
-            }}>{language.codeMode}</button>
-            <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
-                if(currentChar.type === 'character' && currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type !== 'triggerlua'){
-                    if(currentChar.data?.triggerscript && currentChar.data?.triggerscript.length > 0){
-                        const t = await alertConfirm(language.triggerSwitchWarn)
-                        if(!t){
-                            return
-                        }
-                    }
-                    currentChar.data.triggerscript = [{
-                        comment: "",
-                        type: "start",
-                        conditions: [],
-                        effect: [{
-                            type: "triggerlua",
-                            code: ""
-                        }]
-                    }]
-                }
-            }}>Lua</button>
-        </div>
-        {#if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggercode'}
-            <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>        
-        {:else if currentChar.data?.triggerscript?.[0]?.effect?.[0]?.type === 'triggerlua'}
-            <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.triggerscript[0].effect[0].code}></TextAreaInput>
-            <Button on:click={() => {
-                openURL(hubURL + '/redirect/docs/lua')
-            }}>{language.helpBlock}</Button>
-        {:else}
-            <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
-        {/if}
-        <button class="font-medium cursor-pointer hover:text-green-500 mb-2" on:click={() => {
-            if(currentChar.type === 'character'){
-                let script = currentChar.data.triggerscript
-                script.push({
-                    comment: "",
-                    type: "start",
-                    conditions: [],
-                    effect: []
-                })
-                currentChar.data.triggerscript = script
-            }
-        }}><PlusIcon /></button>
+        <TriggerList bind:value={currentChar.data.triggerscript} lowLevelAble={currentChar.data.lowLevelAccess} />
+
 
         {#if currentChar.data.virtualscript || $DataBase.showUnrecommended}
             <span class="text-textcolor mt-4">{language.charjs} <Help key="charjs" unrecommended/></span>
             <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.virtualscript}></TextAreaInput>
         {/if}
     {/if}
-{:else if subMenu === 5}
+{:else if $CharConfigSubMenu === 5}
     {#if currentChar.type === 'character'}
-        <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
+        {#if !$MobileGUI}
+            <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
+        {/if}
         <span class="text-textcolor">{language.provider}</span>
-        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={() => {
+        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={(e) => {
             if(currentChar.type === 'character'){
                 currentChar.data.ttsSpeech = ''
             }
@@ -681,6 +664,7 @@
             <OptionInput value="novelai">NovelAI</OptionInput>
             <OptionInput value="huggingface">Huggingface</OptionInput>
             <OptionInput value="vits">VITS</OptionInput>
+            <OptionInput value="gptsovits">GPT-SoVITS</OptionInput>
         </SelectInput>
         
 
@@ -764,23 +748,20 @@
                 <OptionInput value="v1">v1</OptionInput>
                 <OptionInput value="v2">v2</OptionInput>
             </SelectInput>
-        {/if}
-        {#if currentChar.data.ttsMode === 'openai'}
+        {:else if currentChar.data.ttsMode === 'openai'}
             <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.oaiVoice}>
                 <OptionInput value="">Unset</OptionInput>
                 {#each oaiVoices as voice}
                     <OptionInput value={voice}>{voice}</OptionInput>
                 {/each}
             </SelectInput>
-        {/if}
-        {#if currentChar.data.ttsMode === 'huggingface'}
+        {:else if currentChar.data.ttsMode === 'huggingface'}
             <span class="text-textcolor">Model</span>
             <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.model} />
 
             <span class="text-textcolor">Language</span>
             <TextInput className="mb-4 mt-2" bind:value={currentChar.data.hfTTS.language} placeholder="en" />
-        {/if}
-        {#if currentChar.data.ttsMode === 'vits'}
+        {:else if currentChar.data.ttsMode === 'vits'}
             {#if currentChar.data.vits}
                 <span class="text-textcolor">{currentChar.data.vits.name ?? 'Unnamed VitsModel'}</span>
             {:else}
@@ -792,6 +773,110 @@
                     currentChar.data.vits = model
                 }
             }}>{language.selectModel}</Button>
+        {:else if currentChar.data.ttsMode === 'gptsovits'}
+            <span class="text-textcolor">Volume</span>
+            <SliderInput min={0.0} max={1.0} step={0.01} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.volume}/>
+            <span class="text-textcolor">URL</span>
+            <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.url}/>
+
+            <span class="text-textcolor">Use Auto Path</span>
+            <Check bind:check={currentChar.data.gptSoVitsConfig.use_auto_path}/>
+
+            {#if !currentChar.data.gptSoVitsConfig.use_auto_path}
+                <span class="text-textcolor">Reference Audio Path (e.g. C:/Users/user/Downloads/GPT-SoVITS-v2-240821)</span>
+                <TextInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.ref_audio_path}/>
+            {/if}
+
+            <span class="text-textcolor">Use Long Audio</span>
+            <Check bind:check={currentChar.data.gptSoVitsConfig.use_long_audio}/>
+
+            <span class="text-textcolor">Reference Audio Data (3~10s audio file)</span>
+            <Button on:click={async () => {
+                const audio = await selectSingleFile([
+                    'wav',
+                    'ogg',
+                    'aac',
+                    'mp3'
+                ])
+                if(!audio){
+                    return null
+                }
+                const saveId = await saveAsset(audio.data)
+                // @ts-expect-error not groupChat
+                currentChar.data.gptSoVitsConfig.ref_audio_data = {
+                    fileName: audio.name,
+                    assetId: saveId
+                }
+
+            }}
+            className="h-10">
+                
+                {#if currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === '' || currentChar.data.gptSoVitsConfig.ref_audio_data.assetId === undefined}
+                    {language.selectFile}
+                {:else}
+                    {currentChar.data.gptSoVitsConfig.ref_audio_data.fileName}
+                {/if}
+            </Button>
+            <span class="text-textcolor">Text Language</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.text_lang}>
+                <OptionInput value="auto">Multi-language Mixed</OptionInput>
+                <OptionInput value="auto_yue">Multi-language Mixed (Cantonese)</OptionInput>
+                <OptionInput value="en">English</OptionInput>
+                <OptionInput value="zh">Chinese-English Mixed</OptionInput>
+                <OptionInput value="ja">Japanese-English Mixed</OptionInput>
+                <OptionInput value="yue">Cantonese-English Mixed</OptionInput>
+                <OptionInput value="ko">Korean-English Mixed</OptionInput>
+                <OptionInput value="all_zh">Chinese</OptionInput>
+                <OptionInput value="all_ja">Japanese</OptionInput>
+                <OptionInput value="all_yue">Cantonese</OptionInput>
+                <OptionInput value="all_ko">Korean</OptionInput>
+            </SelectInput>
+
+            {#if !currentChar.data.gptSoVitsConfig.use_long_audio}
+                <span class="text-textcolor">Use Reference Audio Script</span>
+                <Check bind:check={currentChar.data.gptSoVitsConfig.use_prompt}/>
+            {/if}
+
+            {#if currentChar.data.gptSoVitsConfig.use_prompt && !currentChar.data.gptSoVitsConfig.use_long_audio}
+                <span class="text-textcolor">Reference Audio Script</span>
+                <TextAreaInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt}/>
+            {/if}
+
+            <span class="text-textcolor">Reference Audio Language</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.prompt_lang}>
+                <OptionInput value="auto">Multi-language Mixed</OptionInput>
+                <OptionInput value="auto_yue">Multi-language Mixed (Cantonese)</OptionInput>
+                <OptionInput value="en">English</OptionInput>
+                <OptionInput value="zh">Chinese-English Mixed</OptionInput>
+                <OptionInput value="ja">Japanese-English Mixed</OptionInput>
+                <OptionInput value="yue">Cantonese-English Mixed</OptionInput>
+                <OptionInput value="ko">Korean-English Mixed</OptionInput>
+                <OptionInput value="all_zh">Chinese</OptionInput>
+                <OptionInput value="all_ja">Japanese</OptionInput>
+                <OptionInput value="all_yue">Cantonese</OptionInput>
+                <OptionInput value="all_ko">Korean</OptionInput>
+            </SelectInput>
+            <span class="text-textcolor">Top P</span>
+            <SliderInput min={0.0} max={1.0} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.top_p}/>
+
+            <span class="text-textcolor">Temperature</span>
+            <SliderInput min={0.0} max={1.0} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.temperature}/>
+
+            <span class="text-textcolor">Speed</span>
+            <SliderInput min={0.6} max={1.65} step={0.05} fixed={2} bind:value={currentChar.data.gptSoVitsConfig.speed}/>
+
+            <span class="text-textcolor">Top K</span>
+            <SliderInput min={1} max={100} step={1} bind:value={currentChar.data.gptSoVitsConfig.top_k}/>
+
+            <span class="text-textcolor">Text Split Method</span>
+            <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.gptSoVitsConfig.text_split_method}>
+                <OptionInput value="cut0">Cut 0 (No splitting)</OptionInput>
+                <OptionInput value="cut1">Cut 1 (Split every 4 sentences)</OptionInput>
+                <OptionInput value="cut2">Cut 2 (Split every 50 characters)</OptionInput>
+                <OptionInput value="cut3">Cut 3 (Split by Chinese periods)</OptionInput>
+                <OptionInput value="cut4">Cut 4 (Split by English periods)</OptionInput>
+                <OptionInput value="cut5">Cut 5 (Split by various punctuation marks)</OptionInput>
+            </SelectInput>        
         {/if}
         {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
@@ -799,8 +884,10 @@
             </div>
         {/if}
     {/if}
-{:else if subMenu === 2}
-    <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
+{:else if $CharConfigSubMenu === 2}
+    {#if !$MobileGUI}
+        <h2 class="mb-2 text-2xl font-bold mt-2">{language.advancedSettings}</h2>
+    {/if}
     {#if currentChar.type !== 'group'}
         <span class="text-textcolor">{language.exampleMessage} <Help key="exampleMessage"/></span>
         <TextAreaInput highlight margin="both" autocomplete="off" bind:value={currentChar.data.exampleMessage}></TextAreaInput>
@@ -833,6 +920,9 @@
 
         <span class="text-textcolor mt-2">{language.defaultVariables} <Help key="defaultVariables" /></span>
         <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.defaultVariables}></TextAreaInput>
+
+        <span class="text-textcolor mt-2">{language.translatorNote} <Help key="translatorNote" /></span>
+        <TextAreaInput margin="both" autocomplete="off" bind:value={currentChar.data.translatorNote}></TextAreaInput>
 
         <span class="text-textcolor">{language.creator}</span>
         <TextInput size="sm" autocomplete="off" bind:value={currentChar.data.additionalData.creator} />
@@ -879,7 +969,7 @@
                         <th class="font-medium cursor-pointer w-10">
                             <button class="hover:text-green-500" on:click={() => {
                                 if(currentChar.type === 'character'){
-                                    currentChar.data.firstMsgIndex = -1
+                                    $CurrentChat.fmIndex = -1
                                     let alternateGreetings = currentChar.data.alternateGreetings
                                     alternateGreetings.splice(i, 1)
                                     currentChar.data.alternateGreetings = alternateGreetings
@@ -893,71 +983,72 @@
             </table>
         </div>
       
-        <span class="text-textcolor mt-2">{language.additionalAssets} <Help key="additionalAssets" /></span>
-        <div class="w-full max-w-full border border-selected rounded-md p-2">
-            <table class="contain w-full max-w-full tabler mt-2">
-                <tr>
-                    <th class="font-medium">{language.value}</th>
-                    <th class="font-medium cursor-pointer w-10">
-                        <button class="hover:text-green-500" on:click={async () => {
-                            if(currentChar.type === 'character'){
-                                const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
-                                currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
-                                if(!da){
-                                    return
-                                }
-                                for(const f of da){
-                                    const img = f.data
-                                    const name = f.name
-                                    const extension = name.split('.').pop().toLowerCase()
-                                    const imgp = await saveAsset(img,'', extension)
-                                    currentChar.data.additionalAssets.push([name, imgp, extension])
-                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets
-                                }
-                            }
-                        }}>
-                            <PlusIcon />
-                        </button>
-                    </th>
-                </tr>
-                {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+        <Arcodion styled name={language.additionalAssets} help="additionalAssets">
+            <div class="w-full max-w-full border border-selected rounded-md p-2">
+                <table class="contain w-full max-w-full tabler mt-2">
                     <tr>
-                        <div class="text-textcolor2"> No Assets</div>
-                    </tr>
-                {:else}
-                    {#each currentChar.data.additionalAssets as assets, i}
-                        <tr>
-                            <td class="font-medium truncate">
-                                {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
-                                    {#if assetFileExtensions[i] === 'mp4'}
-                                    <!-- svelte-ignore a11y-media-has-caption -->
-                                        <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
-                                    {:else if assetFileExtensions[i] === 'mp3'}
-                                        <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
-                                    {:else}
-                                        <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
-                                    {/if}
-                                {/if}
-                                <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
-                            </td>
-                            
-                            <th class="font-medium cursor-pointer w-10">
-                                <button class="hover:text-green-500" on:click={() => {
-                                    if(currentChar.type === 'character'){
-                                        currentChar.data.firstMsgIndex = -1
-                                        let additionalAssets = currentChar.data.additionalAssets
-                                        additionalAssets.splice(i, 1)
-                                        currentChar.data.additionalAssets = additionalAssets
+                        <th class="font-medium">{language.value}</th>
+                        <th class="font-medium cursor-pointer w-10">
+                            <button class="hover:text-green-500" on:click={async () => {
+                                if(currentChar.type === 'character'){
+                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
+                                    currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
+                                    if(!da){
+                                        return
                                     }
-                                }}>
-                                    <TrashIcon />
-                                </button>
-                            </th>
+                                    for(const f of da){
+                                        const img = f.data
+                                        const name = f.name
+                                        const extension = name.split('.').pop().toLowerCase()
+                                        const imgp = await saveAsset(img,'', extension)
+                                        currentChar.data.additionalAssets.push([name, imgp, extension])
+                                        currentChar.data.additionalAssets = currentChar.data.additionalAssets
+                                    }
+                                }
+                            }}>
+                                <PlusIcon />
+                            </button>
+                        </th>
+                    </tr>
+                    {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
+                        <tr>
+                            <div class="text-textcolor2"> No Assets</div>
                         </tr>
-                    {/each}
-                {/if}
-            </table>
-        </div>
+                    {:else}
+                        {#each currentChar.data.additionalAssets as assets, i}
+                            <tr>
+                                <td class="font-medium truncate">
+                                    {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
+                                        {#if assetFileExtensions[i] === 'mp4'}
+                                        <!-- svelte-ignore a11y-media-has-caption -->
+                                            <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
+                                        {:else if assetFileExtensions[i] === 'mp3'}
+                                            <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
+                                        {:else if ['png', 'webp', 'jpeg', 'jpg', 'gif'].includes(assetFileExtensions[i])}
+                                            <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
+                                        {/if}
+                                    {/if}
+                                    <TextInput size="sm" marginBottom bind:value={currentChar.data.additionalAssets[i][0]} placeholder="..." />
+                                </td>
+                                
+                                <th class="font-medium cursor-pointer w-10">
+                                    <button class="hover:text-green-500" on:click={() => {
+                                        if(currentChar.type === 'character'){
+                                            $CurrentChat.fmIndex = -1
+                                            let additionalAssets = currentChar.data.additionalAssets
+                                            additionalAssets.splice(i, 1)
+                                            currentChar.data.additionalAssets = additionalAssets
+                                        }
+                                    }}>
+                                        <TrashIcon />
+                                    </button>
+                                </th>
+                            </tr>
+                        {/each}
+                    {/if}
+                </table>
+            </div>
+        </Arcodion>
 
         <div class="flex items-center mt-4">
             <Check bind:check={currentChar.data.lowLevelAccess} name={language.lowLevelAccess}/>

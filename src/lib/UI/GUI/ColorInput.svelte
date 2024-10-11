@@ -1,11 +1,13 @@
 <script lang="ts">
     import ColorPicker from 'svelte-awesome-color-picker';
     export let value = '#000000';
+    export let nullable = false;
 </script>
 
 <div class="cl rounded-full bg-white">
     <ColorPicker
         label="" bind:hex={value} on:input
+        nullable={nullable}
     />
 </div>
 

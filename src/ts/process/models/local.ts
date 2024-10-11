@@ -1,12 +1,11 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { sleep } from "src/ts/util";
 import * as path from "@tauri-apps/api/path";
-import { exists, readTextFile } from "@tauri-apps/api/fs";
+import { exists, readTextFile } from "@tauri-apps/plugin-fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
 import { get } from "svelte/store";
 import { DataBase } from "src/ts/storage/database";
-import { resolveResource } from '@tauri-apps/api/path'
 let serverRunning = false;
 
 export function checkLocalModel():Promise<string>{

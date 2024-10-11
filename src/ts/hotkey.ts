@@ -1,7 +1,9 @@
 import { get } from "svelte/store"
-import { alertToast, doingAlert } from "./alert"
+import { alertSelect, alertToast, doingAlert } from "./alert"
 import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
-import { selectedCharID, settingsOpen } from "./stores"
+import { MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
+import { language } from "src/lang"
+import { updateTextThemeAndCSS } from "./gui/colorscheme"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -73,6 +75,25 @@ export function initHotkey(){
                     ev.stopPropagation()
                     break
                 }
+                case 'p':{
+                    openPresetList.set(!get(openPresetList))
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case 'e':{
+                    openPersonaList.set(!get(openPersonaList))
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
+                case '.':{
+                    SafeModeStore.set(!get(SafeModeStore))
+                    updateTextThemeAndCSS()
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    break
+                }
             }
         }
         if(ev.key === 'Escape'){
@@ -84,6 +105,93 @@ export function initHotkey(){
             }
             ev.preventDefault()
         }
+    })
+
+
+    let touchs = 0
+    let touchStartTime = 0
+    //check for triple touch
+    document.addEventListener('touchstart', async (ev) => {
+        touchs++
+        if(touchs > 2){
+            if(Date.now() - touchStartTime > 300){
+                return
+            }
+            touchs = 0
+            if(doingAlert()){
+                return
+            }
+            const selStr = await alertSelect([
+                language.presets,
+                language.persona,
+                language.cancel
+            ])
+            const sel = parseInt(selStr)
+            if(sel === 0){
+                openPresetList.set(!get(openPresetList))
+            }
+            if(sel === 1){
+                openPersonaList.set(!get(openPersonaList))
+            }
+        }
+        if(touchs === 1){
+            touchStartTime = Date.now()
+        }
+    })
+    document.addEventListener('touchend', (ev) => {
+        touchs = 0
+    })
+}
+
+export function initMobileGesture(){
+
+    let pressingPointers = new Map<number, {x:number, y:number}>()
+
+    document.addEventListener('touchstart', (ev) => {
+        for(const touch of ev.changedTouches){
+            const ele = touch.target as HTMLElement
+            if(ele.tagName === 'BUTTON' || ele.tagName === 'INPUT' || ele.tagName === 'SELECT' || ele.tagName === 'TEXTAREA'){
+                return
+            }
+            pressingPointers.set(touch.identifier, {x: touch.clientX, y: touch.clientY})
+        }
+    }, {
+        passive: true
+    })
+    document.addEventListener('touchend', (ev) => {
+        for(const touch of ev.changedTouches){
+            const d = pressingPointers.get(touch.identifier)
+            const moveX = touch.clientX - d.x
+            const moveY = touch.clientY - d.y
+            pressingPointers.delete(touch.identifier)
+
+            if(moveX > 50 && Math.abs(moveY) < Math.abs(moveX)){
+                if(get(selectedCharID) === -1){
+                    if(get(MobileGUIStack) > 0){
+                        MobileGUIStack.update(v => v - 1)
+                    }
+                }
+                else{
+                    if(get(MobileSideBar) > 0){
+                        MobileSideBar.update(v => v - 1)
+                    }
+                }
+            }
+            else if(moveX < -50 && Math.abs(moveY) < Math.abs(moveX)){
+                if(get(selectedCharID) === -1){
+                    if(get(MobileGUIStack) < 2){
+                        MobileGUIStack.update(v => v + 1)
+                    }
+                }
+                else{
+                    if(get(MobileSideBar) < 3){
+                        MobileSideBar.update(v => v + 1)
+                    }
+                }
+            }
+        }
+    }, {
+        passive: true
     })
 }
 

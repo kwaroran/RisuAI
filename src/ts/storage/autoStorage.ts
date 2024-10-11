@@ -2,7 +2,7 @@ import localforage from "localforage"
 import { isNodeServer, replaceDbResources } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
-import { alertSelect, alertStore } from "../alert"
+import { alertInput, alertSelect, alertStore } from "../alert"
 import { get } from "svelte/store"
 import { DataBase, type Database } from "./database"
 import { AccountStorage } from "./accountStorage"
@@ -67,6 +67,13 @@ export class AutoStorage{
                     return true
                 }
             }
+
+            const confirm = await alertInput(`to overwrite your data, type "RISUAI"`)
+            if(confirm !== "RISUAI"){
+                localStorage.setItem('dosync', 'avoid')
+                return false
+            }
+
             let replaced:{[key:string]:string} = {}
             
             for(const key of keys){

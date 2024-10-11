@@ -1,11 +1,11 @@
-import { BaseDirectory, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
+import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { alertError, alertNormal, alertStore, alertWait } from "../alert";
 import { LocalWriter, forageStorage, isTauri } from "../storage/globalApi";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
 import { get } from "svelte/store";
 import { DataBase } from "../storage/database";
-import { save } from "@tauri-apps/api/dialog";
-import { relaunch } from "@tauri-apps/api/process";
+import { save } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 
@@ -41,7 +41,7 @@ export async function SaveLocalBackup(){
     
 
     if(isTauri){
-        const assets = await readDir('assets', {dir: BaseDirectory.AppData})
+        const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
         let i = 0;
         for(let asset of assets){
             i += 1;
@@ -50,7 +50,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await readBinaryFile(asset.path))
+            await writer.writeBackup(key, await readFile(asset.name, {baseDir: BaseDirectory.AppData}))
         }
     }
     else{
@@ -63,7 +63,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await forageStorage.getItem(key))
+            await writer.writeBackup(key, await forageStorage.getItem(key) as unknown as Uint8Array)
             if(forageStorage.isAccount){
                 await sleep(1000)
             }
@@ -115,7 +115,7 @@ export async function LoadLocalBackup(){
                         const dbData = await decodeRisuSave(db)
                         DataBase.set(dbData)
                         if(isTauri){
-                            await writeBinaryFile('database/database.bin', db, {dir: BaseDirectory.AppData})
+                            await writeFile('database/database.bin', db, {baseDir: BaseDirectory.AppData})
                             relaunch()
                             alertStore.set({
                                 type: "wait",
@@ -133,7 +133,7 @@ export async function LoadLocalBackup(){
                         continue
                     }
                     if(isTauri){
-                        await writeBinaryFile(`assets/` + name, data ,{dir: BaseDirectory.AppData})
+                        await writeFile(`assets/` + name, data ,{baseDir: BaseDirectory.AppData})
                     }
                     else{
                         await forageStorage.setItem('assets/' + name, data)

@@ -21,6 +21,8 @@ import { runTransformers } from "./transformers";
 import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
+import { OobaParams } from "./prompt";
+import { extractJSON, getOpenAIJSONSchema } from "./templates/jsonSchema";
 
 
 
@@ -79,6 +81,60 @@ interface OaiFunctions {
     };
 }
 
+
+type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'
+type ParameterMap = {
+    [key in Parameter]?: string;
+};
+
+function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap = {}) {
+    const db = get(DataBase)
+    for(const parameter of parameters){
+        let value = 0
+        switch(parameter){
+            case 'temperature':{
+                value = db.temperature === -1000 ? -1000 : (db.temperature / 100)
+                break
+            }
+            case 'top_k':{
+                value = db.top_k
+                break
+            }
+            case 'repetition_penalty':{
+                value = db.repetition_penalty
+                break
+            }
+            case 'min_p':{
+                value = db.min_p
+                break
+            }
+            case 'top_a':{
+                value = db.top_a
+                break
+            }
+            case 'top_p':{
+                value = db.top_p
+                break
+            }
+            case 'frequency_penalty':{
+                value = db.frequencyPenalty === -1000 ? -1000 : (db.frequencyPenalty / 100)
+                break
+            }
+            case 'presence_penalty':{
+                value = db.PresensePenalty === -1000 ? -1000 : (db.PresensePenalty / 100)
+                break
+            }
+        }
+
+        if(value === -1000){
+            continue
+        }
+
+        data[rename[parameter] ?? parameter] = value
+    }
+    return data
+}
+
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = get(DataBase)
     let trys = 0
@@ -131,7 +187,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     let useStreaming = db.useStreaming && arg.useStreaming
     arg.continue = arg.continue ?? false
     let biasString = arg.biasString ?? []
-    const aiModel = (model === 'model' || (!db.advancedBotSettings)) ? db.aiModel : db.subModel
+    const aiModel = model === 'model' ? db.aiModel : db.subModel
     const multiGen = (db.genTime > 1 && aiModel.startsWith('gpt') && (!arg.continue)) && (!arg.noMultiGen)
 
     let raiModel = aiModel
@@ -180,6 +236,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4om-2024-07-18':
         case 'gpt4o-2024-08-06':
         case 'gpt4o-chatgpt':
+        case 'gpt4o1-preview':
+        case 'gpt4o1-mini':
+        case 'jamba-1.5-large':
+        case 'jamba-1.5-medium':
         case 'reverse_proxy':{
             let formatedChat:OpenAIChatExtra[] = []
             for(let i=0;i<formated.length;i++){
@@ -243,6 +303,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 formatedChat = formatedChat.filter(m => {
                     return m.content !== ''
                 })
+            }
+
+            if(aiModel.startsWith('gpt4o1')){
+                for(let i=0;i<formatedChat.length;i++){
+                    if(formatedChat[i].role === 'system'){
+                        formatedChat[i].content = `<system>${formatedChat[i].content}</system>`
+                        formatedChat[i].role = 'user'
+                    }
+                }
             }
 
             for(let i=0;i<biasString.length;i++){
@@ -399,7 +468,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
 
             db.cipherChat = false
-            let body = ({
+            let body:{
+                [key:string]:any
+            } = ({
                 model: aiModel === 'openrouter' ? openrouterRequestModel :
                     requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
                     : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
@@ -425,64 +496,59 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
                     : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
                     : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
+                    : requestModel === 'gpt4o1-preview' ? 'o1-preview'
+                    : requestModel === 'gpt4o1-mini' ? 'o1-mini'
                     : (!requestModel) ? 'gpt-3.5-turbo'
                     : requestModel,
                 messages: formatedChat,
-                temperature: temperature,
                 max_tokens: maxTokens,
-                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
                 logit_bias: bias,
                 stream: false,
-                top_p: db.top_p,
 
             })
 
+            if(aiModel.startsWith('gpt4o1')){
+                body.max_completion_tokens = body.max_tokens
+                delete body.max_tokens
+            }
+
             if(db.generationSeed > 0){
-                // @ts-ignore
                 body.seed = db.generationSeed
             }
 
             if(db.putUserOpen){
-                // @ts-ignore
                 body.user = getOpenUserString()
             }
 
-            if(aiModel === 'openrouter'){
-                if(db.top_k !== 0){
-                    //@ts-ignore
-                    body.top_k = db.top_k
+            if(db.jsonSchemaEnabled){
+                body.response_format = {
+                    "type": "json_schema",
+                    "json_schema": getOpenAIJSONSchema()
                 }
+            }
+
+            if(aiModel === 'openrouter'){
                 if(db.openrouterFallback){
-                    //@ts-ignore
                     body.route = "fallback"
                 }
-                //@ts-ignore
-                body.repetition_penalty = db.repetition_penalty
-                //@ts-ignore
-                body.min_p = db.min_p
-                //@ts-ignore
-                body.top_a = db.top_a
-                //@ts-ignore
                 body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
 
                 if(db.openrouterProvider){
-                    //@ts-ignore
                     body.provider = {
                         order: [db.openrouterProvider]
                     }
                 }
 
                 if(db.useInstructPrompt){
-                    //@ts-ignore
                     delete body.messages
-
                     const prompt = applyChatTemplate(formated)
-
-                    //@ts-ignore
                     body.prompt = prompt
                 }
             }
+
+            body = applyParameters(body,
+                aiModel === 'openrouter' ? ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'] : ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+            )
 
             if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
                 const OobaBodyTemplate = db.reverseProxyOobaArgs
@@ -549,6 +615,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(risuIdentify){
                 headers["X-Proxy-Risu"] = 'RisuAI'
             }
+            if(aiModel.startsWith('jamba')){
+                headers['Authorization'] = 'Bearer ' + db.ai21Key
+                replacerURL = 'https://api.ai21.com/studio/v1/chat/completions'
+            }
             if(multiGen){
                 // @ts-ignore
                 body.n = db.genTime
@@ -594,11 +664,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     url: replacerURL,
                 })
 
-                let dataUint = new Uint8Array([])
+                let dataUint:Uint8Array|Buffer = new Uint8Array([])
 
                 const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
                     async transform(chunk, control) {
                         dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
+                        let JSONreaded:{[key:string]:string} = {}
                         try {
                             const datas = dataUint.toString().split('\n')
                             let readed:{[key:string]:string} = {}
@@ -607,7 +678,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     try {
                                         const rawChunk = data.replace("data: ", "")
                                         if(rawChunk === "[DONE]"){
-                                            control.enqueue(readed)
+                                            if(db.extractJson && db.jsonSchemaEnabled){
+                                                for(const key in readed){
+                                                    const extracted = extractJSON(readed[key], db.extractJson)
+                                                    JSONreaded[key] = extracted
+                                                }
+                                                console.log(JSONreaded)
+                                                control.enqueue(JSONreaded)
+                                            }
+                                            else{
+                                                control.enqueue(readed)
+                                            }
                                             return
                                         }
                                         const choices = JSON.parse(rawChunk).choices
@@ -632,7 +713,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                     } catch (error) {}
                                 }
                             }
-                            control.enqueue(readed)
+                            if(db.extractJson && db.jsonSchemaEnabled){
+                                for(const key in readed){
+                                    const extracted = extractJSON(readed[key], db.extractJson)
+                                    JSONreaded[key] = extracted
+                                }
+                                console.log(JSONreaded)
+                                control.enqueue(JSONreaded)
+                            }
+                            else{
+                                control.enqueue(readed)
+                            }
                         } catch (error) {
                             
                         }
@@ -699,6 +790,21 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             if(res.ok){
                 try {
                     if(multiGen && dat.choices){
+                        if(db.extractJson && db.jsonSchemaEnabled){
+
+                            const c = dat.choices.map((v:{
+                                message:{content:string}
+                            }) => {
+                                const extracted = extractJSON(v.message.content, db.extractJson)
+                                return ["char",extracted]
+                            })
+
+                            return {
+                                type: 'multiline',
+                                result: c
+                            }
+
+                        }
                         return {
                             type: 'multiline',
                             result: dat.choices.map((v) => {
@@ -709,9 +815,31 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     }
 
                     if(dat?.choices[0]?.text){
+                        if(db.extractJson && db.jsonSchemaEnabled){
+                            try {
+                                const parsed = JSON.parse(dat.choices[0].text)
+                                const extracted = extractJSON(parsed, db.extractJson)
+                                return {
+                                    type: 'success',
+                                    result: extracted
+                                }
+                            } catch (error) {
+                                console.log(error)
+                                return {
+                                    type: 'success',
+                                    result: dat.choices[0].text
+                                }
+                            }
+                        }
                         return {
                             type: 'success',
                             result: dat.choices[0].text
+                        }
+                    }
+                    if(db.extractJson && db.jsonSchemaEnabled){
+                        return {
+                            type: 'success',
+                            result:  extractJSON(dat.choices[0].message.content, db.extractJson)
                         }
                     }
                     const msg:OpenAIChatFull = (dat.choices[0].message)
@@ -814,7 +942,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 "parameters":payload
             }
 
-            const da = await globalFetch("https://api.novelai.net/ai/generate", {
+            const da = await globalFetch(aiModel === 'novelai_kayra' ? "https://text.novelai.net/ai/generate" : "https://api.novelai.net/ai/generate", {
                 body: body,
                 headers: {
                     "Authorization": "Bearer " + db.novelai.token
@@ -889,7 +1017,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mancer':{
             let streamUrl = db.textgenWebUIStreamURL.replace(/\/api.*/, "/api/v1/stream")
             let blockingUrl = db.textgenWebUIBlockingURL.replace(/\/api.*/, "/api/v1/generate")
-            let bodyTemplate:any
+            let bodyTemplate:{[key:string]:any} = {}
             const suggesting = model === "submodel"
             const prompt = applyChatTemplate(formated)
             let stopStrings = getStopStrings(suggesting)
@@ -1035,8 +1163,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const OobaBodyTemplate = db.reverseProxyOobaArgs
             const keys = Object.keys(OobaBodyTemplate)
             for(const key of keys){
-                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
+                if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null && OobaParams.includes(key)){
                     bodyTemplate[key] = OobaBodyTemplate[key]
+                }
+                else if(bodyTemplate[key]){
+                    delete bodyTemplate[key]
                 }
             }
 
@@ -1109,7 +1240,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             const API_ENDPOINT="us-central1-aiplatform.googleapis.com"
             const PROJECT_ID=db.google.projectId
             const MODEL_ID= aiModel === 'palm2' ? 'text-bison' :
-                                        'palm2_unicorn' ? 'text-unicorn' : 
+                            aiModel ==='palm2_unicorn' ? 'text-unicorn' : 
                                         ''
             const LOCATION_ID="us-central1"
 
@@ -1153,7 +1284,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gemini-pro':
         case 'gemini-pro-vision':
         case 'gemini-1.5-pro-latest':
+        case 'gemini-1.5-pro-exp-0801':
+        case 'gemini-1.5-pro-exp-0827':
         case 'gemini-1.5-flash':
+        case 'gemini-1.5-pro-002':
         case 'gemini-ultra':
         case 'gemini-ultra-vision':{
             interface GeminiPart{
@@ -1292,11 +1426,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             const body = {
                 contents: reformatedChat,
-                generation_config: {
+                generation_config: applyParameters({
                     "maxOutputTokens": maxTokens,
-                    "temperature": temperature,
-                    "topP": db.top_p,
-                },
+                }, ['temperature', 'top_p'], {
+                    'top_p': "topP"
+                }),
                 safetySettings: uncensoredCatagory
             }
 
@@ -1366,14 +1500,20 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 url.pathname = 'api/v1/generate'
             }
 
-            const body:KoboldGenerationInputSchema = {
+            const body = applyParameters({
                 "prompt": prompt,
-                "temperature": (db.temperature / 100),
-                "top_p": db.top_p,
                 max_length: maxTokens,
                 max_context_length: db.maxContext,
                 n: 1
-            }
+            }, [
+                'temperature',
+                'top_p',
+                'repetition_penalty',
+                'top_k',
+                'top_a'
+            ], {
+                'repetition_penalty': 'rep_pen'
+            }) as KoboldGenerationInputSchema
             
             const da = await globalFetch(url.toString(), {
                 method: "POST",
@@ -1535,7 +1675,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             }
         }
         case 'cohere-command-r':
-        case 'cohere-command-r-plus':{
+        case 'cohere-command-r-plus':
+        case 'cohere-command-r-08-2024':
+        case 'cohere-command-r-03-2024':
+        case 'cohere-command-r-plus-04-2024':
+        case 'cohere-command-r-plus-08-2024':{
             const modelName = aiModel.replace('cohere-', '')
             let lastChatPrompt = ''
             let preamble = ''
@@ -1566,10 +1710,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             //reformat chat
 
-
-
-
-            let body = {
+            let body = applyParameters({
                 message: lastChatPrompt,
                 chat_history: formated.map((v) => {
                     if(v.role === 'assistant'){
@@ -1594,13 +1735,17 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }).filter((v) => v !== null).filter((v) => {
                     return v.message
                 }),
-                temperature: temperature,
-                k: db.top_k,
-                p: (db.top_p > 0.99) ? 0.99 : (db.top_p < 0.01) ? 0.01 : db.top_p,
-                presence_penalty: arg.PresensePenalty || (db.PresensePenalty / 100),
-                frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
-            }
+            }, [
+                'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'
+            ], {
+                'top_k': 'k',
+                'top_p': 'p',
+            })
 
+            if(aiModel !== 'cohere-command-r-03-2024' && aiModel !== 'cohere-command-r-plus-04-2024'){
+                body.safety_mode = "NONE"
+            }
+            
             if(preamble){
                 if(body.chat_history.length > 0){
                     // @ts-ignore
@@ -1873,16 +2018,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
 
 
-                let body = {
+                let body = applyParameters({
                     model: raiModel,
                     messages: finalChat,
                     system: systemPrompt.trim(),
                     max_tokens: maxTokens,
-                    temperature: temperature,
-                    top_p: db.top_p,
-                    top_k: db.top_k,
                     stream: useStreaming ?? false
-                }
+                }, ['temperature', 'top_k', 'top_p'])
 
                 if(systemPrompt === ''){
                     delete body.system
@@ -1995,6 +2137,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
                 if(db.claudeCachingExperimental){
                     headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
+                }
+
+                if(db.usePlainFetch){
+                    headers['anthropic-dangerous-direct-browser-access'] = 'true'
                 }
 
                 if(useStreaming){

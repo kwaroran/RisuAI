@@ -229,12 +229,16 @@ export async function loadLoreBookV3Prompt(){
         searchDepth:number,
         regex:boolean
         fullWordMatching:boolean
+        recursiveAdditionalPrompt:string
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
         let mText = sliced.map((msg) => {
             return msg.data
         }).join('||')
+        if(arg.recursiveAdditionalPrompt){
+            mText += arg.recursiveAdditionalPrompt
+        }
         if(arg.regex){
             for(const regexString of arg.keys){
                 if(!regexString.startsWith('/')){
@@ -284,11 +288,13 @@ export async function loadLoreBookV3Prompt(){
         pos:string,
         prompt:string
         role:'system'|'user'|'assistant'
-        priority:number
+        order:number
         tokens:number
+        priority:number
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
+    let matchTimes = 0
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -302,6 +308,7 @@ export async function loadLoreBookV3Prompt(){
             let pos = ''
             let depth = 0
             let scanDepth = loreDepth
+            let order = fullLore[i].insertorder
             let priority = fullLore[i].insertorder
             let forceState:string = 'none'
             let role:'system'|'user'|'assistant' = 'system'
@@ -376,7 +383,7 @@ export async function loadLoreBookV3Prompt(){
                         if(Number.isNaN(int)){
                             return false
                         }
-                        if(((char.firstMsgIndex ?? -1) + 1) !== int){
+                        if(((char.chats[page].fmIndex ?? -1) + 1) !== int){
                             activated = false
                         }
                     }
@@ -429,6 +436,10 @@ export async function loadLoreBookV3Prompt(){
                             activated = false
                         }
                     }
+                    case 'priority':{
+                        priority = parseInt(arg[0])
+                        return
+                    }
                     default:{
                         return false
                     }
@@ -450,7 +461,8 @@ export async function loadLoreBookV3Prompt(){
                         keys: query.keys,
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
-                        fullWordMatching: fullWordMatching
+                        fullWordMatching: fullWordMatching,
+                        recursiveAdditionalPrompt: recursiveAdditionalPrompt
                     })
                     if(query.negative){
                         if(result){
@@ -480,8 +492,9 @@ export async function loadLoreBookV3Prompt(){
                     pos: pos,
                     prompt: content,
                     role: role,
-                    priority: priority,
-                    tokens: await tokenize(content)
+                    order: order,
+                    tokens: await tokenize(content),
+                    priority: priority
                 })
                 activatedIndexes.push(i)
                 if(recursiveScanning){
@@ -506,8 +519,12 @@ export async function loadLoreBookV3Prompt(){
         return false
     })
 
+    const activesResorted = activesFiltered.sort((a,b) => {
+        return b.order - a.order
+    })
+
     return {
-        actives: activesFiltered.reverse()
+        actives: activesResorted.reverse()
     }
 
 }

@@ -4,6 +4,7 @@ import { downloadFile } from "../storage/globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
 import { isLite } from "../lite";
+import { CustomCSSStore, SafeModeStore } from "../stores";
 
 export interface ColorScheme{
     bgcolor: string;
@@ -35,8 +36,8 @@ export const defaultColorScheme: ColorScheme = {
 const colorShemes = {
     "default": defaultColorScheme,
     "light": {
-        bgcolor: "#f0f0f0",
-        darkbg: "#ffffff",
+        bgcolor: "#ffffff",
+        darkbg: "#f0f0f0",
         borderc: "#0f172a",
         selected: "#e0e0e0",
         draculared: "#ff5555",
@@ -93,6 +94,18 @@ const colorShemes = {
         darkBorderc: "#4b5563",
         darkbutton: "#374151",
         type:'dark'
+    },
+    "lite": {
+        bgcolor: "#1f2937",
+        darkbg: "#1C2533",
+        borderc: "#475569",
+        selected: "#475569",
+        draculared: "#ff5555",
+        textcolor: "#f8f8f2",
+        textcolor2: "#64748b",
+        darkBorderc: "#030712",
+        darkbutton: "#374151",
+        type:'dark'
     }
 
 } as const
@@ -121,7 +134,7 @@ export function updateColorScheme(){
     }
 
     if(get(isLite)){
-        colorScheme = structuredClone(colorShemes.light)
+        colorScheme = structuredClone(colorShemes.lite)
     }
 
     //set css variables
@@ -179,14 +192,15 @@ export async function importColorScheme(){
     
     }
 }
-export function updateTextTheme(){
+
+export function updateTextThemeAndCSS(){
     let db = get(DataBase)
     const root = document.querySelector(':root') as HTMLElement;
     if(!root){
         return
     }
     let textTheme = get(isLite) ? 'standard' : db.textTheme
-    let colorScheme = get(isLite) ? 'light' : db.colorScheme.type
+    let colorScheme = get(isLite) ? 'dark' : db.colorScheme.type
     switch(textTheme){
         case "standard":{
             if(colorScheme === 'dark'){
@@ -230,8 +244,8 @@ export function updateTextTheme(){
             root.style.setProperty('--FontColorItalic', db.customTextTheme.FontColorItalic);
             root.style.setProperty('--FontColorBold', db.customTextTheme.FontColorBold);
             root.style.setProperty('--FontColorItalicBold', db.customTextTheme.FontColorItalicBold);
-            root.style.setProperty('--FontColorQuote1', db.customTextTheme.FontColorQuote1);
-            root.style.setProperty('--FontColorQuote2', db.customTextTheme.FontColorQuote2);
+            root.style.setProperty('--FontColorQuote1', db.customTextTheme.FontColorQuote1 ?? '#8BE9FD');
+            root.style.setProperty('--FontColorQuote2', db.customTextTheme.FontColorQuote2 ?? '#FFB86C');
             break
         }
     }
@@ -249,5 +263,12 @@ export function updateTextTheme(){
             root.style.setProperty('--risu-font-family', db.customFont);
             break
         }
+    }
+
+    if(!get(SafeModeStore)){
+        CustomCSSStore.set(db.customCSS ?? '')
+    }
+    else{
+        CustomCSSStore.set('')
     }
 }

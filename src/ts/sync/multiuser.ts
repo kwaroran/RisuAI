@@ -1,23 +1,65 @@
 import { v4 } from 'uuid';
-import { alertError, alertInput, alertNormal, alertWait } from '../alert';
-import { get } from 'svelte/store';
-import { DataBase, setDatabase, type character, saveImage } from '../storage/database';
-import { selectedCharID } from '../stores';
+import { alertError, alertInput, alertNormal, alertStore, alertWait } from '../alert';
+import { get, writable } from 'svelte/store';
+import { DataBase, setDatabase, type character, saveImage, type Chat } from '../storage/database';
+import { CurrentChat, selectedCharID } from '../stores';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
 import { readImage } from '../storage/globalApi';
+import { doingChat } from '../process';
 
 async function importPeerJS(){
     return await import('peerjs');
 }
 
+interface ReciveFirst{
+    type: 'receive-char',
+    data: character
+}
+interface RequestFirst{
+    type: 'request-char'
+}
+interface ReciveAsset{
+    type: 'receive-asset',
+    id: string,
+    data: Uint8Array
+}
+interface RequestSync{
+    type: 'request-chat-sync',
+    id: string,
+    data: Chat
+}
+interface ReciveSync{
+    type: 'receive-chat',
+    data: Chat
+}
+interface RequestChatSafe{
+    type: 'request-chat-safe',
+    id: string
+}
+interface ResponseChatSafe{
+    type: 'response-chat-safe'
+    data: boolean,
+    id: string
+}
+interface RequestChat{
+    type: 'request-chat'
+}
+
+type ReciveData = ReciveFirst|RequestFirst|ReciveAsset|RequestSync|ReciveSync|RequestChatSafe|ResponseChatSafe|RequestChat
+
 let conn:DataConnection
 let peer:Peer
 let connections:DataConnection[] = []
-let connectionOpen = false
+export let connectionOpen = false
+let requestChatSafeQueue = new Map<string, {remaining:number,safe:boolean,conn?:DataConnection}>()
+export let ConnectionOpenStore = writable(false)
+export let ConnectionIsHost = writable(false)
+export let RoomIdStore = writable('')
 
 export async function createMultiuserRoom(){
     //create a room with webrtc
+    ConnectionIsHost.set(true)
     alertWait("Loading...")
 
     const peerJS = await importPeerJS();
@@ -93,7 +135,96 @@ export async function createMultiuserRoom(){
                     return
                 }
                 char.chats[char.chatPage] = recivedChar.chats[0]
-                sendPeerChar()
+            }
+            if(data.type === 'request-chat-sync'){
+                const db = get(DataBase)
+                const selectedCharId = get(selectedCharID)
+                const char = db.characters[selectedCharId]
+                char.chats[char.chatPage] = data.data
+                db.characters[selectedCharId] = char
+                latestSyncChat = data.data
+                setDatabase(db)
+
+                for(const connection of connections){
+                    if(connection.connectionId === conn.connectionId){
+                        continue
+                    }
+                    const rs:ReciveSync = {
+                        type: 'receive-chat',
+                        data: data.data
+                    }
+                    connection.send(rs)
+                }
+            }
+            if(data.type === 'request-chat'){
+                const db = get(DataBase)
+                const selectedCharId = get(selectedCharID)
+                const char = db.characters[selectedCharId]
+                const chat = char.chats[char.chatPage]
+                const rs:ReciveSync = {
+                    type: 'receive-chat',
+                    data: chat
+                }
+                conn.send(rs)
+            }
+            if(data.type === 'request-chat-safe'){
+                const queue = {
+                    remaining: connections.length,
+                    safe: true,
+                    conn: conn
+                }
+                requestChatSafeQueue.set(data.id, queue)
+                for(const connection of connections){
+                    if(connection.connectionId === conn.connectionId){
+                        queue.remaining--
+                        requestChatSafeQueue.set(data.id, queue)
+                        continue
+                    }
+                    const rs:RequestChatSafe = {
+                        type: 'request-chat-safe',
+                        id: data.id
+                    }
+                    connection.send(rs)
+                }
+                if(queue.remaining === 0){
+                    if(waitingMultiuserId === data.id){
+                        waitingMultiuserId = ''
+                        waitingMultiuserSafe = queue.safe
+                    }
+                    else if(queue.conn){
+                        const rs:ResponseChatSafe = {
+                            type: 'response-chat-safe',
+                            data: queue.safe,
+                            id: data.id
+                        }
+                        queue.conn.send(rs)
+                        requestChatSafeQueue.delete(data.id)
+                    }
+                }
+            }
+            if(data.type === 'response-chat-safe'){
+                const queue = requestChatSafeQueue.get(data.id)
+                if(queue){
+                    queue.remaining--
+                    if(!data.data){
+                        queue.safe = false
+                    }
+                    if(queue.remaining === 0){
+                        if(waitingMultiuserId === data.id){
+                            waitingMultiuserId = ''
+                            waitingMultiuserSafe = queue.safe
+                        }
+                        else if(queue.conn){
+                            const rs:ResponseChatSafe = {
+                                type: 'response-chat-safe',
+                                data: queue.safe,
+                                id: data.id
+                            }
+                            queue.conn.send(rs)
+                            requestChatSafeQueue.delete(data.id)
+                        }
+                    }
+                }
             }
         });
 
@@ -111,28 +242,23 @@ export async function createMultiuserRoom(){
     }
 
     connectionOpen = true
-    alertNormal("Room ID: " + roomId)
+    ConnectionOpenStore.set(true)
+    RoomIdStore.set(roomId)
+    alertStore.set({
+        type: 'none',
+        msg: ''
+    })
     return
 }
 
-interface ReciveFirst{
-    type: 'receive-char',
-    data: character
-}
-interface RequestFirst{
-    type: 'request-char'
-}
-interface ReciveAsset{
-    type: 'receive-asset',
-    id: string,
-    data: Uint8Array
-}
-
-type ReciveData = ReciveFirst|RequestFirst|ReciveAsset
+let waitingMultiuserId = ''
+let waitingMultiuserSafe = false
+let latestSyncChat:Chat|null = null
 
 export async function joinMultiuserRoom(){
 
     //join a room with webrtc
+    ConnectionIsHost.set(false)
     alertWait("Loading...")
     const peerJS = await importPeerJS();
     peer = new peerJS.Peer(
@@ -145,6 +271,7 @@ export async function joinMultiuserRoom(){
     
         let open = false
         conn = peer.connect(roomId);
+        RoomIdStore.set(roomId)
 
         conn.on('open', function() {
             alertWait("Waiting for host to accept connection")
@@ -179,6 +306,32 @@ export async function joinMultiuserRoom(){
                 }
                 case 'receive-asset':{
                     saveImage(data.data, data.id)
+                    break
+                }
+                case 'receive-chat':{
+                    const db = get(DataBase)
+                    const selectedCharId = get(selectedCharID)
+                    const char = structuredClone(db.characters[selectedCharId])
+                    char.chats[char.chatPage] = data.data
+                    db.characters[selectedCharId] = char
+                    latestSyncChat = data.data
+                    setDatabase(db)
+                    break
+                }
+                case 'request-chat-safe':{
+                    const rs:ResponseChatSafe = {
+                        type: 'response-chat-safe',
+                        data: !get(doingChat) || data.id === waitingMultiuserId,
+                        id: data.id
+                    }
+                    conn.send(rs)
+                    break
+                }
+                case 'response-chat-safe':{
+                    if(data.id === waitingMultiuserId){
+                        waitingMultiuserId = ''
+                        waitingMultiuserSafe = data.data
+                    }
                 }
             }
         });
@@ -186,6 +339,7 @@ export async function joinMultiuserRoom(){
         conn.on('close', function() {
             alertError("Connection closed")
             connectionOpen = false
+            ConnectionOpenStore.set(false)
             selectedCharID.set(-1)
         })
     
@@ -199,29 +353,78 @@ export async function joinMultiuserRoom(){
             }
         }        
         connectionOpen = true
+        ConnectionOpenStore.set(true)
         alertNormal("Connected")
     });
     
 }
 
 
-export function sendPeerChar(){
+export async function peerSync(){
     if(!connectionOpen){
         return
     }
+    await sleep(1)
+    const chat = get(CurrentChat)
+    latestSyncChat = chat
     if(!conn){
         // host user
         for(const connection of connections){
             connection.send({
-                type: 'receive-char',
-                data: get(DataBase).characters[get(selectedCharID)]
+                type: 'receive-chat',
+                data: chat
             });
         }
     }
     else{
         conn.send({
-            type: 'receive-char',
-            data: get(DataBase).characters[get(selectedCharID)]
-        });
+            type: 'request-chat-sync',
+            data: chat
+        } as RequestSync)
     }
+}
+
+export async function peerSafeCheck() {
+    if(!connectionOpen){
+        return true
+    }
+    await sleep(500)
+    if(!conn){
+        waitingMultiuserId = v4()
+        requestChatSafeQueue.set(waitingMultiuserId, {
+            remaining: connections.length,
+            safe: true,
+        })
+        for(const connection of connections){
+            const rs:RequestChatSafe = {
+                type: 'request-chat-safe',
+                id: waitingMultiuserId
+            }
+            connection.send(rs)
+        }
+        while(waitingMultiuserId !== ''){
+            await sleep(100)
+        }
+        return waitingMultiuserSafe
+    }
+    else{
+        waitingMultiuserId = v4()
+        const rs:RequestChatSafe = {
+            type: 'request-chat-safe',
+            id: waitingMultiuserId
+        }
+        conn.send(rs)
+        while(waitingMultiuserId !== ''){
+            await sleep(100)
+        }
+        return waitingMultiuserSafe
+
+    }
+}
+
+export function peerRevertChat() {
+    if(!connectionOpen || !latestSyncChat){
+        return
+    }
+    CurrentChat.set(latestSyncChat)
 }

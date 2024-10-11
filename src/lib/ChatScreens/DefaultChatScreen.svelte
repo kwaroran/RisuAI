@@ -25,6 +25,7 @@
     import { postChatFile } from 'src/ts/process/files/multisend';
     import { getInlayImage } from 'src/ts/process/files/image';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
+  import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
 
     let messageInput:string = ''
     let messageInputTranslate:string = ''
@@ -81,7 +82,8 @@
                     if($DataBase.useSayNothing){
                         cha.push({
                             role: 'user',
-                            data: '*says nothing*'
+                            data: '*says nothing*',
+                            name: $ConnectionOpenStore ? $CurrentUsername : null
                         })
                     }
                 }
@@ -98,14 +100,16 @@
                 cha.push({
                     role: 'user',
                     data: await processScript(char,messageInput,'editinput'),
-                    time: Date.now()
+                    time: Date.now(),
+                    name: $ConnectionOpenStore ? $CurrentUsername : null
                 })
             }
             else{
                 cha.push({
                     role: 'user',
                     data: messageInput,
-                    time: Date.now()
+                    time: Date.now(),
+                    name: $ConnectionOpenStore ? $CurrentUsername : null
                 })
             }
         }
@@ -583,9 +587,9 @@
                     <Chat
                         character={$CurrentSimpleCharacter}
                         idx={chat.index}
-                        name={$CurrentUsername} 
+                        name={chat.name ?? $CurrentUsername} 
                         message={chat.data}
-                        img={getCharImage($CurrentUserIcon, 'css')}
+                        img={$ConnectionOpenStore ? '' : getCharImage($CurrentUserIcon, 'css')}
                         isLastMemory={$CurrentChat.lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
                         largePortrait={$UserIconProtrait}
                         MessageGenerationInfo={chat.generationInfo}
@@ -597,35 +601,38 @@
                     <Chat
                         character={$CurrentSimpleCharacter}
                         name={$CurrentCharacter.name}
-                        message={$CurrentCharacter.firstMsgIndex === -1 ? $CurrentCharacter.firstMessage :
-                            $CurrentCharacter.alternateGreetings[$CurrentCharacter.firstMsgIndex]}
+                        message={$CurrentChat.fmIndex === -1 ? $CurrentCharacter.firstMessage :
+                            $CurrentCharacter.alternateGreetings[$CurrentChat.fmIndex]}
                         img={getCharImage($CurrentCharacter.image, 'css')}
                         idx={-1}
                         altGreeting={$CurrentCharacter.alternateGreetings.length > 0}
                         largePortrait={$CurrentCharacter.largePortrait}
+                        firstMessage={true}
                         onReroll={() => {
                             const cha = $CurrentCharacter
+                            const chat = $CurrentChat
                             if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex >= (cha.alternateGreetings.length - 1)){
-                                    cha.firstMsgIndex = -1
+                                if (chat.fmIndex >= (cha.alternateGreetings.length - 1)){
+                                    chat.fmIndex = -1
                                 }
                                 else{
-                                    cha.firstMsgIndex += 1
+                                    chat.fmIndex += 1
                                 }
                             }
-                            $CurrentCharacter = cha
+                            $CurrentChat = chat
                         }}
                         unReroll={() => {
                             const cha = $CurrentCharacter
+                            const chat = $CurrentChat
                             if(cha.type !== 'group'){
-                                if (cha.firstMsgIndex === -1){
-                                    cha.firstMsgIndex = (cha.alternateGreetings.length - 1)
+                                if (chat.fmIndex === -1){
+                                    chat.fmIndex = (cha.alternateGreetings.length - 1)
                                 }
                                 else{
-                                    cha.firstMsgIndex -= 1
+                                    chat.fmIndex -= 1
                                 }
                             }
-                            $CurrentCharacter = cha
+                            $CurrentChat = chat
                         }}
                         isLastMemory={false}
 

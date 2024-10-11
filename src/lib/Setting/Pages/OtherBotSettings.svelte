@@ -13,6 +13,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     $:{
         $DataBase.NAIImgConfig ??= {
             width: 512,
@@ -75,6 +76,7 @@
             <OptionInput value="dalle" >Dall-E</OptionInput>
             <OptionInput value="stability" >Stability API</OptionInput>
             <OptionInput value="comfy" >ComfyUI</OptionInput>
+            <OptionInput value="fal" >Fal.ai</OptionInput>
         </SelectInput>
         
         {#if $DataBase.sdProvider === 'webui'}
@@ -294,11 +296,42 @@
             <span class="text-textcolor">Timeout (sec)</span>
             <NumberInput size="sm" marginBottom bind:value={$DataBase.comfyConfig.timeout} min={1} max={120} />
         {/if}
+
+        {#if $DataBase.sdProvider === 'fal'}
+            <span class="text-textcolor">Fal.ai API Key</span>
+            <TextInput size="sm" marginBottom placeholder="..." bind:value={$DataBase.falToken}/>
+
+            <span class="text-textcolor mt-4">Width</span>
+            <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.sdConfig.width}/>
+            <span class="text-textcolor mt-4">Height</span>
+            <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={$DataBase.sdConfig.height}/>
+
+            <span class="text-textcolor mt-4">Model</span>
+            <SelectInput className="mt-2" bind:value={$DataBase.falModel}>
+                <OptionInput value="fal-ai/flux/dev" >Flux[Dev]</OptionInput>
+                <OptionInput value="fal-ai/flux-lora" >Flux[Dev] with Lora</OptionInput>
+                <OptionInput value="fal-ai/flux-pro" >Flux[Pro]</OptionInput>
+                <OptionInput value="fal-ai/flux/schnell" >Flux[Schnell]</OptionInput>
+            </SelectInput>
+
+            {#if $DataBase.falModel === 'fal-ai/flux-lora'}
+                <span class="text-textcolor mt-4">Lora Model URL <Help key="urllora" /></span>
+                <TextInput size="sm" marginBottom bind:value={$DataBase.falLora}/>
+
+                <span class="text-textcolor mt-4">Lora Weight</span>
+                <SliderInput fixed={2} min={0}  max={2} step={0.01} bind:value={$DataBase.falLoraScale}/>
+            {/if}
+
+
+        {/if}
     </Arcodion>
 {/if}
 
 {#if submenu === 1 || submenu === -1}
 <Arcodion name="TTS" styled disabled={submenu !== -1}>
+    <span class="text-textcolor mt-2">Auto Speech</span>
+    <CheckInput bind:check={$DataBase.ttsAutoSpeech}/>
+
     <span class="text-textcolor mt-2">ElevenLabs API key</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.elevenLabKey}/>
     

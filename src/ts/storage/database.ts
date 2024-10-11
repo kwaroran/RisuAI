@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "124.2.2"
+export let appVer = "136.0.1"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -428,7 +428,21 @@ export function setDatabase(data:Database){
         negInputName: 'text',
         timeout: 30
     }
-
+    data.hideApiKey ??= true
+    data.unformatQuotes ??= false
+    data.ttsAutoSpeech ??= false
+    data.translatorInputLanguage ??= 'auto'
+    data.falModel ??= 'fal-ai/flux/dev'
+    data.falLoraScale ??= 1
+    data.customCSS ??= ''
+    data.strictJsonSchema ??= true
+    data.statics ??= {
+        messages: 0,
+        imports: 0
+    }
+    data.customQuotes ??= false
+    data.customQuotesData ??= ['“','”','‘','’']
+    data.groupOtherBotRole ??= 'user'
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -508,6 +522,7 @@ export interface Database{
     NAII2I:boolean
     NAIREF:boolean
     NAIImgConfig:NAIImgConfig
+    ttsAutoSpeech?:boolean
     runpodKey:string
     promptPreprocess:boolean
     bias: [string, number][]
@@ -612,6 +627,7 @@ export interface Database{
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
     translatorType:'google'|'deepl'|'none'|'llm'|'deeplX',
+    translatorInputLanguage?:string
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
@@ -710,6 +726,30 @@ export interface Database{
     comfyUiUrl: string
     useLegacyGUI: boolean
     claudeCachingExperimental: boolean
+    hideApiKey: boolean
+    unformatQuotes: boolean
+    enableDevTools: boolean
+    falToken: string
+    falModel: string
+    falLora: string
+    falLoraName: string
+    falLoraScale: number
+    moduleIntergration: string
+    customCSS: string
+    betaMobileGUI:boolean
+    jsonSchemaEnabled:boolean
+    jsonSchema:string
+    strictJsonSchema:boolean
+    extractJson:string
+    ai21Key:string
+    statics: {
+        messages: number
+        imports: number
+    }
+    customQuotes:boolean
+    customQuotesData?:[string, string, string, string]
+    groupTemplate?:string
+    groupOtherBotRole?:string
 }
 
 export interface customscript{
@@ -802,6 +842,27 @@ export interface character{
         voice?: string
         version?: string
     }
+    gptSoVitsConfig?:{
+        url?:string
+        use_auto_path?:boolean
+        ref_audio_path?:string
+        use_long_audio?:boolean
+        ref_audio_data?: {
+            fileName:string
+            assetId:string
+        }
+        volume?:number
+        text_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
+        text?:string
+        use_prompt?:boolean
+        prompt?:string | null
+        prompt_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
+        top_p?:number
+        temperature?:number
+        speed?:number
+        top_k?:number
+        text_split_method?: "cut0" | "cut1" | "cut2" | "cut3" | "cut4" | "cut5"
+    }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
     ttsReadOnlyQuoted?:boolean
@@ -842,6 +903,8 @@ export interface character{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
+    translatorNote?:string
 }
 
 
@@ -890,6 +953,7 @@ export interface groupChat{
     defaultVariables?:string
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
+    lastInteraction?:number
 }
 
 export interface botPreset{
@@ -939,6 +1003,16 @@ export interface botPreset{
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
+    moduleIntergration?:string
+    top_k?:number
+    instructChatTemplate?:string
+    JinjaTemplate?:string
+    jsonSchemaEnabled?:boolean
+    jsonSchema?:string
+    strictJsonSchema?:boolean
+    extractJson?:string
+    groupTemplate?:string
+    groupOtherBotRole?:string
 }
 
 
@@ -1009,6 +1083,7 @@ export interface Chat{
     modules?:string[]
     id?:string
     bindedPersona?:string
+    fmIndex?:number
 }
 
 export interface Message{
@@ -1018,6 +1093,8 @@ export interface Message{
     chatId?:string
     time?: number
     generationInfo?: MessageGenerationInfo
+    name?:string
+    otherUser?:boolean
 }
 
 export interface MessageGenerationInfo{
@@ -1040,7 +1117,7 @@ interface AINsettings{
     top_k:number
 }
 
-interface OobaSettings{
+export interface OobaSettings{
     max_new_tokens: number,
     do_sample: boolean,
     temperature: number,
@@ -1218,6 +1295,16 @@ export function saveCurrentPreset(){
         useInstructPrompt: db.useInstructPrompt,
         customPromptTemplateToggle: db.customPromptTemplateToggle ?? "",
         templateDefaultVariables: db.templateDefaultVariables ?? "",
+        moduleIntergration: db.moduleIntergration ?? "",
+        top_k: db.top_k,
+        instructChatTemplate: db.instructChatTemplate,
+        JinjaTemplate: db.JinjaTemplate ?? '',
+        jsonSchemaEnabled:db.jsonSchemaEnabled??false,
+        jsonSchema:db.jsonSchema ?? '',
+        strictJsonSchema:db.strictJsonSchema ?? true,
+        extractJson:db.extractJson ?? '',
+        groupOtherBotRole: db.groupOtherBotRole ?? 'user',
+        groupTemplate: db.groupTemplate ?? '',
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1302,6 +1389,16 @@ export function setPreset(db:Database, newPres: botPreset){
     db.useInstructPrompt = newPres.useInstructPrompt ?? false
     db.customPromptTemplateToggle = newPres.customPromptTemplateToggle ?? ''
     db.templateDefaultVariables = newPres.templateDefaultVariables ?? ''
+    db.moduleIntergration = newPres.moduleIntergration ?? ''
+    db.top_k = newPres.top_k ?? db.top_k
+    db.instructChatTemplate = newPres.instructChatTemplate ?? db.instructChatTemplate
+    db.JinjaTemplate = newPres.JinjaTemplate ?? db.JinjaTemplate
+    db.jsonSchemaEnabled = newPres.jsonSchemaEnabled ?? false
+    db.jsonSchema = newPres.jsonSchema ?? ''
+    db.strictJsonSchema = newPres.strictJsonSchema ?? true
+    db.extractJson = newPres.extractJson ?? ''
+    db.groupOtherBotRole = newPres.groupOtherBotRole ?? 'user'
+    db.groupTemplate = newPres.groupTemplate ?? ''
     return db
 }
 
@@ -1310,6 +1407,7 @@ import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
+import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
@@ -1334,8 +1432,10 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
                 'risupreset'
             )
         }))
+        
         if(type === 'risupreset'){
-            downloadFile(pres.name + "_preset.risupreset", buf)
+            const buf2 = await encodeRPack(buf)
+            downloadFile(pres.name + "_preset.risup", buf2)
         }
         else{
             return {
@@ -1361,14 +1461,18 @@ export async function importPreset(f:{
     data:Uint8Array
 }|null = null){
     if(!f){
-        f = await selectSingleFile(["json", "preset", "risupreset"])
+        f = await selectSingleFile(["json", "preset", "risupreset", "risup"])
     }
     if(!f){
         return
     }
     let pre:any
-    if(f.name.endsWith('.risupreset')){
-        const decoded = await decodeMsgpack(fflate.decompressSync(f.data))
+    if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
+        let data = f.data
+        if(f.name.endsWith('.risup')){
+            data = await decodeRPack(data)
+        }
+        const decoded = await decodeMsgpack(fflate.decompressSync(data))
         console.log(decoded)
         if((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset'){
             pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset')))}

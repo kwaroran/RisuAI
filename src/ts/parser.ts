@@ -4,17 +4,13 @@ import { DataBase, setDatabase, type Database, type Message, type character, typ
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
-import css from '@adobe/css-tools'
-import { CurrentCharacter, CurrentChat, SizeStore, selectedCharID } from './stores';
+import css, { type CssAtRuleAST } from '@adobe/css-tools'
+import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage, writeInlayImage } from './process/files/image';
-import { getModuleLorebooks } from './process/modules';
-import { HypaProcesser } from './process/memory/hypamemory';
-import { generateAIImage } from './process/stableDiff';
-import { requestChatData } from './process/request';
+import { getInlayImage } from './process/files/image';
+import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import type { OpenAIChat } from './process';
-import { alertInput, alertNormal } from './alert';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 
@@ -79,11 +75,24 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 
 function renderMarkdown(md:markdownit, data:string){
-    return md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
-        .replace(/\uE9b0/gu, '<mark risu-mark="quote2">“')
-        .replace(/\uE9b1/gu, '”</mark>')
-        .replace(/\uE9b2/gu, '<mark risu-mark="quote1">‘')
-        .replace(/\uE9b3/gu, '’</mark>')
+    const db = get(DataBase)
+    let quotes = ['“', '”', '‘', '’']
+    if(db?.customQuotes){
+        quotes = db.customQuotesData ?? quotes
+    }
+
+    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
+
+    if(db?.unformatQuotes){
+        text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
+        text = text.replace(/\uE9b2/gu, quotes[2]).replace(/\uE9b3/gu, quotes[3])
+    }
+    else{
+        text = text.replace(/\uE9b0/gu, '<mark risu-mark="quote2">' + quotes[0]).replace(/\uE9b1/gu, quotes[1] + '</mark>')
+        text = text.replace(/\uE9b2/gu, '<mark risu-mark="quote1">' + quotes[2]).replace(/\uE9b3/gu, quotes[3] + '</mark>')
+    }
+
+    return text
 }
 
 async function renderHighlightableMarkdown(data:string) {
@@ -242,7 +251,7 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 
-export const assetRegex = /{{(raw|img|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
+export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const db = get(DataBase)
@@ -270,6 +279,16 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             const emoPath = await getFileSrc(emo[1])
             emoPaths[emo[0].toLocaleLowerCase()] = {
                 path: emoPath,
+            }
+        }
+    }
+    const moduleAssets = getModuleAssets()
+    if(moduleAssets.length > 0){
+        for(const asset of moduleAssets){
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[asset[0].toLocaleLowerCase()] = {
+                path: assetPath,
+                ext: asset[2]
             }
         }
     }
@@ -301,15 +320,18 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         }
         switch(type){
             case 'raw':
+            case 'path':
                 return path.path
             case 'img':
                 return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+            case 'image':
+                return `<div class="risu-inlay-image"><img src="${path.path}" alt="${path.path}" style="${assetWidthString}"/></div>\n`
             case 'video':
-                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video controls autoplay loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'video-img':
-                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
             case 'audio':
-                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>`
+                return `<audio controls autoplay loop><source src="${path.path}" type="audio/mpeg"></audio>\n`
             case 'bg':
                 if(mode === 'back'){
                     return `<div style="width:100%;height:100%;background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),url(${path.path}); background-size: cover;"></div>`
@@ -317,9 +339,9 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 break
             case 'asset':{
                 if(path.ext && videoExtention.includes(path.ext)){
-                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>`
+                    return `<video autoplay muted loop><source src="${path.path}" type="video/mp4"></video>\n`
                 }
-                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>`
+                return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             }
         }
         return ''
@@ -365,7 +387,13 @@ export interface simpleCharacterArgument{
 }
 
 
-export async function ParseMarkdown(data:string, charArg:(character|simpleCharacterArgument | groupChat | string) = null, mode:'normal'|'back'|'pretranslate' = 'normal', chatID=-1) {
+export async function ParseMarkdown(
+    data:string,
+    charArg:(character|simpleCharacterArgument | groupChat | string) = null,
+    mode:'normal'|'back'|'pretranslate' = 'normal',
+    chatID=-1,
+    cbsConditions:CbsConditions = {}
+) {
     let firstParsed = ''
     const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
@@ -374,7 +402,7 @@ export async function ParseMarkdown(data:string, charArg:(character|simpleCharac
         firstParsed = data
     }
     if(char){
-        data = (await processScriptFull(char, data, 'editdisplay', chatID)).data
+        data = (await processScriptFull(char, data, 'editdisplay', chatID, cbsConditions)).data
     }
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
@@ -421,6 +449,32 @@ function encodeStyle(txt:string){
 }
 const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
 
+function decodeStyleRule(rule:CssAtRuleAST){
+    if(rule.type === 'rule'){
+        if(rule.selectors){
+            for(let i=0;i<rule.selectors.length;i++){
+                let slt:string = rule.selectors[i]
+                if(slt){
+                    let selectors = (slt.split(' ') ?? []).map((v) => {
+                        if(v.startsWith('.')){
+                            return ".x-risu-" + v.substring(1)
+                        }
+                        return v
+                    }).join(' ')
+
+                    rule.selectors[i] = ".chattext " + selectors
+                }
+            }
+        }
+    }
+    if(rule.type === 'media' || rule.type === 'supports' || rule.type === 'document' || rule.type === 'host' || rule.type === 'container' ){
+        for(let i=0;i<rule.rules.length;i++){
+            rule.rules[i] = decodeStyleRule(rule.rules[i])
+        }
+    }
+    return rule
+}
+
 function decodeStyle(text:string){
 
     return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
@@ -428,26 +482,10 @@ function decodeStyle(text:string){
             const ast = css.parse(Buffer.from(txt, 'hex').toString('utf-8'))
             const rules = ast?.stylesheet?.rules
             if(rules){
-                for(const rule of rules){
-
-                    if(rule.type === 'rule'){
-                        if(rule.selectors){
-                            for(let i=0;i<rule.selectors.length;i++){
-                                let slt:string = rule.selectors[i]
-                                if(slt){
-                                    let selectors = (slt.split(' ') ?? []).map((v) => {
-                                        if(v.startsWith('.')){
-                                            return ".x-risu-" + v.substring(1)
-                                        }
-                                        return v
-                                    }).join(' ')
-        
-                                    rule.selectors[i] = ".chattext " + selectors
-                                }
-                            }
-                        }
-                    }
+                for(let i=0;i<rules.length;i++){
+                    rules[i] = decodeStyleRule(rules[i])
                 }
+                ast.stylesheet.rules = rules
             }
             return `<style>${css.stringify(ast)}</style>`
 
@@ -594,6 +632,12 @@ type matcherArg = {
     text?:string,
     recursiveCount?:number
     lowLevelAccess?:boolean
+    cbsConditions:CbsConditions
+}
+
+export type CbsConditions = {
+    firstmsg?:boolean
+    chatRole?:string
 }
 function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|null = null ):{
     text:string,
@@ -619,7 +663,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     }
                     pointer--
                 }
-                return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
             }
             case 'previous_user_chat':
             case 'lastusermessage':{
@@ -633,7 +677,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         }
                         pointer--
                     }
-                    return selchar.firstMsgIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[selchar.firstMsgIndex]
+                    return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
                 }
                 return ''
             }
@@ -764,7 +808,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             }
             case 'first_msg_index':{
                 const selchar = db.characters[get(selectedCharID)]
-                return selchar.firstMsgIndex.toString()
+                const chat = selchar.chats[selchar.chatPage]
+                return chat.fmIndex.toString()
             }
             case 'blank':
             case 'none':{
@@ -926,11 +971,26 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return db.subModel
             }
             case 'role': {
+                if(matcherArg.cbsConditions.chatRole){
+                    return matcherArg.cbsConditions.chatRole
+                }
+                if(matcherArg.cbsConditions.firstmsg){
+                    return 'char'
+                }
                 if (chatID !== -1) {
                     const selchar = db.characters[get(selectedCharID)]
                     return selchar.chats[selchar.chatPage].message[chatID].role;
                 }
-                return matcherArg.role ?? 'role'
+                return matcherArg.role ?? 'null'
+            }
+            case 'isfirstmsg':
+            case 'is_first_msg':
+            case 'is_first_message':
+            case 'isfirstmessage':{
+                if(matcherArg.cbsConditions.firstmsg){
+                    return '1'
+                }
+                return '0'
             }
             case 'jbtoggled':{
                 return db.jailbreakToggle ? '1' : '0'
@@ -1174,6 +1234,16 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object_element':{
                     return parseDict(arra[1])[arra[2]] ?? 'null'
                 }
+                case 'object_assert':
+                case 'dict_assert':
+                case 'dictassert':
+                case 'objectassert':{
+                    const dict = parseDict(arra[1])
+                    if(!dict[arra[2]]){
+                        dict[arra[2]] = arra[3]
+                    }
+                    return JSON.stringify(dict)
+                }
 
                 case 'element':
                 case 'ele':{
@@ -1218,6 +1288,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     arr.splice(Number(arra[2]), Number(arra[3]), arra[4])
                     return makeArray(arr)
                 }
+                case 'arrayassert':
+                case 'array_assert':{
+                    const arr = parseArray(arra[1])
+                    const index = Number(arra[2])
+                    if(index >= arr.length){
+                        arr[index] = arra[3]
+                    }
+                    return makeArray(arr)
+                }
                 case 'makearray':
                 case 'array':
                 case 'a':
@@ -1232,11 +1311,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'object':
                 case 'o':
                 case 'make_object':{
-                    //ideas:
-                    //  - {{o::key1:value1::key2:value2}} - its confusing for users
-                    //  - {{o::key1:value1,key2:value2}} - since comma can break the parser, this is not good
-                    //  - {{o::key=value::key2=value2}} - this is good enough I think, just need to escape the equal sign
-
                     const sliced = arra.slice(1)
                     let out = {}
 
@@ -1600,7 +1674,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1643,14 +1717,18 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1 === '#pure'){
         return {type:'pure'}
     }
+    if(p1 === '#pure_display' || p1 === '#puredisplay'){
+        return {type:'pure-display'}
+    }
     if(p1.startsWith('#each')){
         return {type:'each',type2:p1.substring(5).trim()}
     }
     if(p1.startsWith('#func')){
         const statement = p1.split(' ')
-        if(matcherArg.funcName === statement[1]){
-            return {type:'parse',funcArg:statement.slice(2)}
+        if(statement.length > 1){
+            return {type:'function',funcArg:statement.slice(1)}
         }
+
     }
 
 
@@ -1666,7 +1744,9 @@ function trimLines(p1:string){
 function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherArg:matcherArg):string{
     switch(type.type){
         case 'pure':
-        case 'parse-pure':{
+        case 'parse-pure':
+        case 'pure-display':
+        case 'function':{
             return p1
         }
         case 'parse':
@@ -1690,6 +1770,9 @@ export function risuChatParser(da:string, arg:{
     visualize?:boolean,
     role?:string
     runVar?:boolean
+    functions?:Map<string,{data:string,arg:string[]}>
+    callStack?:number
+    cbsConditions?:CbsConditions
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? get(DataBase)
@@ -1699,9 +1782,14 @@ export function risuChatParser(da:string, arg:{
 
     if(aChara){
         if(typeof(aChara) !== 'string' && aChara.type === 'group'){
-            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
-            if(gc.name !== 'Unknown Character'){
-                chara = gc
+            if(aChara.chats[aChara.chatPage].message.length > 0){
+                const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
+                if(gc.name !== 'Unknown Character'){
+                    chara = gc
+                }
+            }
+            else{
+                chara = 'bot'
             }
         }
         else{
@@ -1722,12 +1810,20 @@ export function risuChatParser(da:string, arg:{
     let stackType = new Uint8Array(512)
     let pureModeNest:Map<number,boolean> = new Map()
     let pureModeNestType:Map<number,string> = new Map()
-    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
+    let blockNestType:Map<number,{
+        type:blockMatch,
+        type2?:string
+        funcArg?:string[]
+    }> = new Map()
     let commentMode = false
     let commentLatest:string[] = [""]
     let commentV = new Uint8Array(512)
     let thinkingMode = false
     let tempVar:{[key:string]:string} = {}
+    let functions:Map<string,{
+        data:string,
+        arg:string[]
+    }> = arg.functions ?? (new Map())
 
     const matcherObj = {
         chatID: chatID,
@@ -1740,6 +1836,7 @@ export function risuChatParser(da:string, arg:{
         role: arg.role,
         runVar: arg.runVar ?? false,
         consistantChar: arg.consistantChar ?? false,
+        cbsConditions: arg.cbsConditions ?? {}
     }
 
 
@@ -1808,7 +1905,10 @@ export function risuChatParser(da:string, arg:{
                         nested.unshift('')
                         stackType[nested.length] = 5
                         blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
+                        if( matchResult.type === 'ignore' || matchResult.type === 'pure' ||
+                            matchResult.type === 'each' || matchResult.type === 'function' ||
+                            matchResult.type === 'pure-display'
+                        ){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
                         }
@@ -1818,7 +1918,10 @@ export function risuChatParser(da:string, arg:{
                 if(dat.startsWith('/')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
+                        if( blockType.type === 'ignore' || blockType.type === 'pure' ||
+                            blockType.type === 'each' || blockType.type === 'function' ||
+                            blockType.type === 'pure-display'
+                        ){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
                         }
@@ -1837,6 +1940,18 @@ export function risuChatParser(da:string, arg:{
                             da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
                             break
                         }
+                        if(blockType.type === 'function'){
+                            console.log(matchResult)
+                            functions.set(blockType.funcArg[0], {
+                                data: matchResult,
+                                arg: blockType.funcArg.slice(1)
+                            })
+                            break
+                        }
+                        if(blockType.type === 'pure-display'){
+                            nested[0] += matchResult.replaceAll('{{', '\\{\\{').replaceAll('}}', '\\}\\}')
+                            break
+                        }
                         if(matchResult === ''){
                             break
                         }
@@ -1846,6 +1961,26 @@ export function risuChatParser(da:string, arg:{
                     if(stackType[nested.length] === 6){
                         const sft = nested.shift()
                         nested[0] += sft + `{{${dat}}}`
+                        break
+                    }
+                }
+                if(dat.startsWith('call::')){
+                    if(arg.callStack && arg.callStack > 10){
+                        nested[0] += `ERROR: Call stack limit reached`
+                        break
+                    }
+                    const argData = dat.split('::').slice(1)
+                    const funcName = argData[0]
+                    const func = functions.get(funcName)
+                    console.log(func)
+                    if(func){
+                        let data = func.data
+                        for(let i = 0;i < argData.length;i++){
+                            data = data.replaceAll(`{{arg::${i}}}`, argData[i])
+                        }
+                        arg.functions = functions
+                        arg.callStack = (arg.callStack ?? 0) + 1
+                        nested[0] += risuChatParser(data, arg)
                         break
                     }
                 }
@@ -1965,424 +2100,6 @@ export function risuChatParser(da:string, arg:{
     return nested[0] + result
 }
 
-export async function commandMatcher(p1:string,matcherArg:matcherArg,vars:{[key:string]:string}):Promise<{
-    text:string,
-    var:{[key:string]:string}
-}|void|null> {
-    const arra = p1.split('::')
-
-    switch(arra[0]){
-        case 'pushchat':
-        case 'addchat':
-        case 'add_chat':
-        case 'push_chat':{
-            const chat = get(CurrentChat)
-            chat.message.push({role: arra[1] === 'user' ? 'user' : 'char', data: arra[2] ?? ''})
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'yield':{
-            vars['__return__'] = (vars['__return__'] ?? '') + arra[1]
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'setchat':
-        case 'set_chat':{
-            const chat = get(CurrentChat)
-            const message = chat.message?.at(Number(arra[1]))
-            if(message){
-                message.data = arra[2] ?? ''
-            }
-            CurrentChat.set(chat)
-        }
-        case 'set_chat_role':
-        case 'setchatrole':{
-            const chat = get(CurrentChat)
-            const message = chat.message?.at(Number(arra[1]))
-            if(message){
-                message.role = arra[2] === 'user' ? 'user' : 'char'
-            }
-            CurrentChat.set(chat)
-        }
-        case 'cutchat':
-        case 'cut_chat':{
-            const chat = get(CurrentChat)
-            chat.message = chat.message.slice(Number(arra[1]), Number(arra[2]))
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'insertchat':
-        case 'insert_chat':{
-            const chat = get(CurrentChat)
-            chat.message.splice(Number(arra[1]), 0, {role: arra[2] === 'user' ? 'user' : 'char', data: arra[3] ?? ''})
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'removechat':
-        case 'remove_chat':{
-            const chat = get(CurrentChat)
-            chat.message.splice(Number(arra[1]), 1)
-            CurrentChat.set(chat)
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'regex':{
-            const reg = new RegExp(arra[1], arra[2])
-            const match = reg.exec(arra[3])
-            let res:string[] = []
-            for(let i = 0;i < match.length;i++){
-                res.push(match[i])
-            }
-            return {
-                text: makeArray(res),
-                var: vars
-            }
-        }
-        case 'replace_regex':
-        case 'replaceregex':{
-            const reg = new RegExp(arra[1], arra[2])
-            return {
-                text: arra[3].replace(reg, arra[4]),
-                var: vars
-            }
-        }
-        case 'call':{
-            //WIP
-            const called = await risuCommandParser(arra[1], {
-                db: matcherArg.db,
-                chara: matcherArg.chara,
-                funcName: arra[2],
-                passed: arra.slice(3),
-                recursiveCount: (matcherArg.recursiveCount ?? 0) + 1
-            })
-
-            return {
-                text: called['__return__'] ?? '',
-                var: vars
-            }
-        }
-        case 'stop_chat':{
-            vars['__stop_chat__'] = '1'
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'similaritysearch':
-        case 'similarity_search':
-        case 'similarity':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const processer = new HypaProcesser('MiniLM')
-            const source = arra[1]
-            const target = parseArray(arra[2])
-            await processer.addText(target)
-            const result = await processer.similaritySearch(source)
-            return {
-                text: makeArray(result),
-                var: vars
-            }
-        }
-        case 'image_generation':
-        case 'imagegeneration':
-        case 'imagegen':
-        case 'image_gen':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const prompt = arra[1]
-            const negative = arra[2] || ''
-            const char = matcherArg.chara
-
-            const gen = await generateAIImage(prompt, char as character, negative, 'inlay')
-            if(!gen){
-                return {
-                    text: 'ERROR: Image generation failed',
-                    var: vars
-                }
-            }
-            const imgHTML = new Image()
-            imgHTML.src = gen
-            const inlay = await writeInlayImage(imgHTML)
-            return {
-                text: inlay,
-                var: vars
-            }
-        }
-        case 'send_llm':
-        case 'llm':{
-            if(!matcherArg.lowLevelAccess){
-                return {
-                    text: '',
-                    var: vars
-                }
-            }
-            const prompt = parseArray(arra[1])
-            let promptbody:OpenAIChat[] = prompt.map((f) => {
-                const dict = parseDict(f)
-                let role:'system'|'user'|'assistant' = 'assistant'
-                switch(dict['role']){
-                    case 'system':
-                    case 'sys':
-                        role = 'system'
-                        break
-                    case 'user':
-                        role = 'user'
-                        break
-                    case 'assistant':
-                    case 'bot':
-                    case 'char':{
-                        role = 'assistant'
-                        break
-                    }
-                }
-
-                return {
-                    content: dict['content'] ?? '',
-                    role: role,
-                }
-            })
-            const result = await requestChatData({
-                formated: promptbody,
-                bias: {},
-                useStreaming: false,
-                noMultiGen: true,
-            }, 'model')
-
-            if(result.type === 'fail'){
-                return {
-                    text: 'ERROR: ' + result.result,
-                    var: vars
-                }
-            }
-
-            if(result.type === 'streaming' || result.type === 'multiline'){
-                return {
-                    text: 'ERROR: Streaming and multiline is not supported in this context',
-                    var: vars
-                }
-            }
-
-            return {
-                text: result.result,
-                var: vars
-            }
-        }
-        case 'alert':{
-            alertNormal(arra[1])
-            return {
-                text: '',
-                var: vars
-            }
-        }
-        case 'input':
-        case 'alert_input':
-        case 'alertinput':{
-            const input = await alertInput(arra[1])
-            return {
-                text: input,
-                var: vars
-            }
-        }
-    }
-
-    const matched = basicMatcher(p1, matcherArg)
-    if(typeof(matched) === 'string'){
-        return {
-            text: matched,
-            var: vars
-        }
-    }
-
-    return matched
-}
-
-
-export async function risuCommandParser(da:string, arg:{
-    db?:Database
-    chara?:string|character|groupChat
-    funcName?:string
-    passed?:string[],
-    recursiveCount?:number
-    lowLevelAccess?:boolean
-} = {}):Promise<{[key:string]:string}>{
-    const db = arg.db ?? get(DataBase)
-    const aChara = arg.chara
-    let chara:character|string = null
-    let passed = arg.passed ?? []
-    let recursiveCount = arg.recursiveCount ?? 0
-
-    if(recursiveCount > 30){
-        return {}
-    }
-
-    if(aChara){
-        if(typeof(aChara) !== 'string' && aChara.type === 'group'){
-            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
-            if(gc.name !== 'Unknown Character'){
-                chara = gc
-            }
-        }
-        else{
-            chara = aChara
-        }
-    }
-    
-    let pointer = 0;
-    let nested:string[] = [""]
-    let stackType = new Uint8Array(512)
-    let pureModeNest:Map<number,boolean> = new Map()
-    let pureModeNestType:Map<number,string> = new Map()
-    let blockNestType:Map<number,{type:blockMatch,type2?:string}> = new Map()
-    const matcherObj = {
-        chatID: -1,
-        chara: chara,
-        rmVar: false,
-        db: db,
-        var: null,
-        tokenizeAccurate: false,
-        displaying: false,
-        role: null,
-        runVar: false,
-        consistantChar: false,
-        funcName: arg.funcName ?? null,
-        text: da,
-        recursiveCount: recursiveCount,
-        lowLevelAccess: arg.lowLevelAccess ?? false
-    }
-
-    let tempVar:{[key:string]:string} = {}
-
-    const isPureMode = () => {
-        return pureModeNest.size > 0
-    }
-    while(pointer < da.length){
-        switch(da[pointer]){
-            case '{':{
-                if(da[pointer + 1] !== '{' && da[pointer + 1] !== '#'){
-                    nested[0] += da[pointer]
-                    break
-                }
-                pointer++
-                nested.unshift('')
-                stackType[nested.length] = 1
-                break
-            }
-            case '}':{
-                if(da[pointer + 1] !== '}' || nested.length === 1 || stackType[nested.length] !== 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                pointer++
-                const dat = nested.shift()
-                if(dat.startsWith('#')){
-                    if(isPureMode()){
-                        nested[0] += `{{${dat}}}`
-                        nested.unshift('')
-                        stackType[nested.length] = 6
-                        break
-                    }
-                    const matchResult = blockStartMatcher(dat, matcherObj)
-                    if(matchResult.type === 'nothing'){
-                        nested[0] += `{{${dat}}}`
-                        break
-                    }
-                    else{
-                        nested.unshift('')
-                        stackType[nested.length] = 5
-                        blockNestType.set(nested.length, matchResult)
-                        if(matchResult.type === 'ignore' || matchResult.type === 'pure' || matchResult.type === 'each'){
-                            pureModeNest.set(nested.length, true)
-                            pureModeNestType.set(nested.length, "block")
-                        }
-                        if(matchResult.funcArg){
-                            for(let i = 0;i < matchResult.funcArg.length;i++){
-                                tempVar[matchResult.funcArg[i]] = passed[i]
-                            }
-                        }
-                        break
-                    }
-                }
-                if(dat.startsWith('/')){
-                    if(stackType[nested.length] === 5){
-                        const blockType = blockNestType.get(nested.length)
-                        if(blockType.type === 'ignore' || blockType.type === 'pure' || blockType.type === 'each'){
-                            pureModeNest.delete(nested.length)
-                            pureModeNestType.delete(nested.length)
-                        }
-                        blockNestType.delete(nested.length)
-                        const dat2 = nested.shift()
-                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
-                        if(blockType.type === 'each'){
-                            const subind = blockType.type2.lastIndexOf(' ')
-                            const sub = blockType.type2.substring(subind + 1)
-                            const array = parseArray(blockType.type2.substring(0, subind))
-                            let added = ''
-                            for(let i = 0;i < array.length;i++){
-                                const res = matchResult.replaceAll(`{{slot::${sub}}}`, array[i])
-                                added += res
-                            }
-                            da = da.substring(0, pointer + 1) + added.trim() + da.substring(pointer + 1)
-                            break
-                        }
-                        if(matchResult === ''){
-                            break
-                        }
-                        nested[0] += matchResult
-                        break
-                    }
-                    if(stackType[nested.length] === 6){
-                        const sft = nested.shift()
-                        nested[0] += sft + `{{${dat}}}`
-                        break
-                    }
-                }
-                const mc = isPureMode() ? {
-                    text:null,
-                    var:tempVar
-                } : (await commandMatcher(dat, matcherObj, tempVar))
-                if(mc && (mc.text || mc.text === '')){
-                    tempVar = mc.var
-                    if(tempVar['__force_return__']){
-                        return tempVar
-                    }
-                    nested[0] += mc.text ?? `{{${dat}}}`
-                }
-                else{
-                    nested[0] += `{{${dat}}}`
-                }
-                break
-            }
-            default:{
-                nested[0] += da[pointer]
-                break
-            }
-        }
-        pointer++
-    }
-    return tempVar
-
-}
 
 
 export function getChatVar(key:string){

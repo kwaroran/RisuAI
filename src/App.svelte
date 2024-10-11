@@ -1,6 +1,6 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore } from './ts/stores';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI } from './ts/stores';
     import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
@@ -13,9 +13,13 @@
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import { AccountWarning } from './ts/storage/accountStorage';
     import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
-  import { isLite } from './ts/lite';
-  import LiteMain from './LiteMain.svelte';
+    import Botpreset from './lib/Setting/botpreset.svelte';
+    import ListedPersona from './lib/Setting/listedPersona.svelte';
+    import MobileHeader from './lib/Mobile/MobileHeader.svelte';
+    import MobileBody from './lib/Mobile/MobileBody.svelte';
+    import MobileFooter from './lib/Mobile/MobileFooter.svelte';
 
+  
     let didFirstSetup: boolean  = false
     let gridOpen = false
 
@@ -38,11 +42,14 @@
         </div>
     {:else if !didFirstSetup}
         <WelcomeRisu />
-    {:else if $isLite}
-        <LiteMain />
     {:else if $settingsOpen}
         <Settings />
-        
+    {:else if $MobileGUI}
+        <div class="w-full h-full flex flex-col">
+            <MobileHeader />
+            <MobileBody />
+            <MobileFooter />
+        </div>
     {:else}
         {#if gridOpen}
             <GridChars endGrid={() => {gridOpen = false}} />
@@ -72,5 +79,11 @@
     {/if}
     {#if $AccountWarning}
         <AccountWarningComp />
+    {/if}
+    {#if $openPresetList}
+        <Botpreset close={() => {$openPresetList = false}} />
+    {/if}
+    {#if $openPersonaList}
+        <ListedPersona close={() => {$openPersonaList = false}} />
     {/if}
 </main>

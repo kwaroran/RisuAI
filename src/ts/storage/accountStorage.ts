@@ -2,12 +2,14 @@ import { get, writable } from "svelte/store"
 import { DataBase } from "./database"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertLogin, alertStore } from "../alert"
+import { alertError, alertLogin, alertStore, alertWait } from "../alert"
 import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
+import { language } from "src/lang"
 
 export const AccountWarning = writable('')
+const risuSession = Date.now().toFixed(0)
 
 let seenWarnings:string[] = []
 
@@ -26,7 +28,8 @@ export class AccountStorage{
                     'content-type': 'application/json',
                     'x-risu-key': key,
                     'x-risu-auth': this.auth,
-                    'X-Format': 'nocheck'
+                    'X-Format': 'nocheck',
+                    'x-risu-session': risuSession
                 }
             })
             if(da.headers.get('Content-Type') === 'application/json'){
@@ -36,6 +39,11 @@ export class AccountStorage{
                         seenWarnings.push(json.warning)
                         AccountWarning.set(json.warning)
                     }
+                }
+                if(json?.reloadSession){
+                    alertWait(language.reloadSession)
+                    location.reload()
+                    return
                 }
             }
 
