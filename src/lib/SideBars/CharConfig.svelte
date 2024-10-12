@@ -82,7 +82,7 @@
     }
 
 
-    const unsub = DataBase.subscribe((v) => {
+    const unsub = DataBase.subscribe(async (v) => {
         database = v
         const cha = (v.characters[$selectedCharID])
         if(!cha){
@@ -117,6 +117,7 @@
 
             }
         }
+
     })
 
     let assetFileExtensions:string[] = []
@@ -184,9 +185,55 @@
         };
     }
 
+    let fishSpeechModels:{
+        _id:string,
+        title:string,
+        description:string
+    }[] = []
+
+    $: if (currentChar.data.ttsMode === 'fishspeech' && (currentChar.data as character).fishSpeechConfig === undefined) {
+        (currentChar.data as character).fishSpeechConfig = {
+            model: {
+                _id: '',
+                title: '',
+                description: ''
+            },
+            chunk_length: 200,
+            normalize: false,
+        };
+    }
+
     $: {
         if(currentChar.type === 'group' && ($CharConfigSubMenu === 4 || $CharConfigSubMenu === 5)){
             $CharConfigSubMenu = 0
+        }
+
+    }
+
+    async function getFishSpeechModels() {
+        try {
+            const res = await fetch(`https://api.fish.audio/model?self=true`, {
+                headers: {
+                    'Authorization': `Bearer ${$DataBase.fishSpeechKey}`
+                }
+            });
+            const data = await res.json();
+            console.log(data.items);
+            console.log(currentChar.data)
+            
+            if (Array.isArray(data.items)) {
+                fishSpeechModels = data.items.map((item) => ({
+                    _id: item._id || '',
+                    title: item.title || '',
+                    description: item.description || ''
+                }));
+            } else {
+                console.error('Expected an array of items, but received:', data.items);
+                fishSpeechModels = [];
+            }
+        } catch (error) {
+            console.error('Error fetching fish speech models:', error);
+            fishSpeechModels = [];
         }
     }
 
@@ -665,6 +712,7 @@
             <OptionInput value="huggingface">Huggingface</OptionInput>
             <OptionInput value="vits">VITS</OptionInput>
             <OptionInput value="gptsovits">GPT-SoVITS</OptionInput>
+            <OptionInput value="fishspeech">fish-speech</OptionInput>
         </SelectInput>
         
 
@@ -877,6 +925,31 @@
                 <OptionInput value="cut4">Cut 4 (Split by English periods)</OptionInput>
                 <OptionInput value="cut5">Cut 5 (Split by various punctuation marks)</OptionInput>
             </SelectInput>        
+        {:else if currentChar.data.ttsMode === 'fishspeech'}
+            {#await getFishSpeechModels()}
+                <span class="text-textcolor">Loading...</span>
+            {:then}
+                <span class="text-textcolor">Model</span>
+                <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.fishSpeechConfig.model._id}>
+                    <OptionInput value="">Not selected</OptionInput>
+                    {#each fishSpeechModels as model}
+                        <OptionInput value={model._id}>
+                            <div class="flex items-center">
+                                <span>{model.title}</span>
+                                <span class="text-sm text-textcolor2">{model.description}</span>
+                            </div>
+                        </OptionInput>
+                    {/each}
+                </SelectInput>
+            {:catch}
+                <span class="text-textcolor">An error occurred while fetching the models.</span>
+            {/await}
+
+            <span class="text-textcolor">Chunk Length</span>
+            <NumberInput className="mb-4 mt-2" bind:value={currentChar.data.fishSpeechConfig.chunk_length}/>
+
+            <span class="mt-2 text-textcolor">Normalize</span>
+            <Check className="mb-4 mt-2" bind:check={currentChar.data.fishSpeechConfig.normalize}/>
         {/if}
         {#if currentChar.data.ttsMode}
             <div class="flex items-center mt-2">
