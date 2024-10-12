@@ -9,9 +9,9 @@
 RisuAI, or Risu for short, is a cross platform AI chatting software / web application with powerful features such as multiple API support, assets in the chat, regex functions and much more.
 
 # Screenshots
-|![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe) | ![image](https://github.com/kwaroran/RisuAI/assets/116663078/30d29f85-1380-4c73-9b82-1a40f2c5d2ea) |
-| --- | --- |
-|![a04a68f26852d53a1aedd661f3ebbc5fd78400007e1cf85ff28f3a09243fb3ca](https://github.com/kwaroran/RisuAI/assets/116663078/faad0de5-56f3-4176-b38e-61c2d3a8698e) | ![Screenshot_11](https://github.com/kwaroran/RisuAI/assets/116663078/ef946882-2311-43e7-81e7-5ca2d484fa90) |
+| ![Screenshot_6](https://github.com/kwaroran/RisuAI/assets/116663078/cccb9b33-5dbd-47d7-9c85-61464790aafe)                                                     | ![image](https://github.com/kwaroran/RisuAI/assets/116663078/30d29f85-1380-4c73-9b82-1a40f2c5d2ea)         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| ![a04a68f26852d53a1aedd661f3ebbc5fd78400007e1cf85ff28f3a09243fb3ca](https://github.com/kwaroran/RisuAI/assets/116663078/faad0de5-56f3-4176-b38e-61c2d3a8698e) | ![Screenshot_11](https://github.com/kwaroran/RisuAI/assets/116663078/ef946882-2311-43e7-81e7-5ca2d484fa90) |
 
 
 ## Features
@@ -39,3 +39,20 @@ You can get detailed information on https://github.com/kwaroran/RisuAI/wiki (Wor
 
 - [RisuAI Website](https://risuai.net) (Recommended)
 - [Github Releases](https://github.com/kwaroran/RisuAI/releases)
+
+### Docker Installation
+
+You can also run RisuAI using Docker. This method is particularly useful for web hosting.
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/kwaroran/RisuAI.git
+   cd RisuAI
+   ```
+
+2. Build and run the Docker container:
+   ```
+   docker-compose up -d
+   ```
+
+3. Access RisuAI at `http://localhost:6001` in your web browser.
