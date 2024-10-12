@@ -347,6 +347,9 @@
     <span class="text-textcolor">Huggingface Key</span>
     <TextInput size="sm" marginBottom bind:value={$DataBase.huggingfaceKey} placeholder="hf_..."/>
 
+    <span class="text-textcolor">fish-speech API Key</span>
+    <TextInput size="sm" marginBottom bind:value={$DataBase.fishSpeechKey}/>
+
 </Arcodion>
 {/if}
 

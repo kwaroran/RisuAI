@@ -351,6 +351,7 @@ export function setDatabase(data:Database){
     data.newOAIHandle ??= true
     data.gptVisionQuality ??= 'low'
     data.huggingfaceKey ??= ''
+    data.fishSpeechKey ??= ''
     data.statistics ??= {}
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
@@ -651,6 +652,7 @@ export interface Database{
     tpo?:boolean
     automark?:boolean
     huggingfaceKey:string
+    fishSpeechKey:string
     allowAllExtentionFiles?:boolean
     translatorPrompt:string
     translatorMaxResponse:number
@@ -862,6 +864,16 @@ export interface character{
         speed?:number
         top_k?:number
         text_split_method?: "cut0" | "cut1" | "cut2" | "cut3" | "cut4" | "cut5"
+    }
+    fishSpeechConfig?:{
+        model?: {
+            _id:string
+            title:string
+            description:string
+        },
+        chunk_length:number,
+        normalize:boolean,
+        
     }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
