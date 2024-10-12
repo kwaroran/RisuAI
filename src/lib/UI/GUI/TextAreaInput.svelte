@@ -269,6 +269,9 @@
     }
 
     function insertTextAtSelection(txt:string) {
+
+        txt = txt.replace(/\r/g, '')
+
         let div = inputDom;
         let sel = window.getSelection();
         let text = div.textContent;
