@@ -3,8 +3,8 @@ services:
     container_name: risuai
     build: .
     restart: always
-    expose:
-      - 6001
+    ports:
+      - 6001:6001
     volumes:
       - risuai-save:/app/save
 
