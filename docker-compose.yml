@@ -1,0 +1,12 @@
+services:
+  risuai:
+    container_name: risuai
+    build: .
+    restart: always
+    expose:
+      - 6001
+    volumes:
+      - risuai-save:/app/save
+
+volumes:
+  risuai-save:
