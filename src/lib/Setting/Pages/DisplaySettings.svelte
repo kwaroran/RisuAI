@@ -14,6 +14,9 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
   import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+  import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import Button from "src/lib/UI/GUI/Button.svelte";
+  import { CustomGUISettingMenuStore } from "src/ts/stores";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -50,7 +53,14 @@
         <OptionInput value="" >Standard Risu</OptionInput>
         <OptionInput value="waifu" >Waifulike</OptionInput>
         <OptionInput value="waifuMobile" >WaifuCut</OptionInput>
+        <!-- <OptionInput value="custom" >Custom GUI</OptionInput> -->
     </SelectInput>
+
+    {#if $DataBase.theme === "custom"}
+        <Button className="mt-2" on:click={() => {
+            CustomGUISettingMenuStore.set(true)
+        }}>{language.defineCustomGUI}</Button>
+    {/if}
 
 
     {#if $DataBase.theme === "waifu"}

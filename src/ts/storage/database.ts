@@ -444,6 +444,7 @@ export function setDatabase(data:Database){
     data.customQuotes ??= false
     data.customQuotesData ??= ['“','”','‘','’']
     data.groupOtherBotRole ??= 'user'
+    data.customGUI ??= ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
@@ -752,6 +753,7 @@ export interface Database{
     customQuotesData?:[string, string, string, string]
     groupTemplate?:string
     groupOtherBotRole?:string
+    customGUI:string
 }
 
 export interface customscript{

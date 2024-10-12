@@ -748,4 +748,5 @@ export const languageEnglish = {
     formatGroupInSingle: "Format Group in Single",
     groupInnerFormat: "Non-Speaker Inner Format",
     groupOtherBotRole: "Non-Speaker Role in Group",
+    defineCustomGUI: "Define Custom GUI",
 }

@@ -50,6 +50,7 @@ export const CustomCSSStore = writable('')
 export const SafeModeStore = writable(false)
 export const MobileSearch = writable('')
 export const CharConfigSubMenu = writable(0)
+export const CustomGUISettingMenuStore = writable(false)
 
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []

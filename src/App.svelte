@@ -1,6 +1,6 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI } from './ts/stores';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore } from './ts/stores';
     import { DataBase, loadedStore } from './ts/storage/database';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
@@ -18,6 +18,7 @@
     import MobileHeader from './lib/Mobile/MobileHeader.svelte';
     import MobileBody from './lib/Mobile/MobileBody.svelte';
     import MobileFooter from './lib/Mobile/MobileFooter.svelte';
+    import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
 
   
     let didFirstSetup: boolean  = false
@@ -40,6 +41,8 @@
             </svg>
             <span>Loading...</span>
         </div>
+    {:else if $CustomGUISettingMenuStore}
+        <CustomGUISettingMenu />
     {:else if !didFirstSetup}
         <WelcomeRisu />
     {:else if $settingsOpen}
