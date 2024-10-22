@@ -551,9 +551,12 @@
                             <td class="font-medium truncate w-1/2">
                                 <TextInput marginBottom size='lg' bind:value={currentChar.data.emotionImages[i][0]} />
                             </td>
-                            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
-                                rmCharEmotion($selectedCharID,i)
-                            }}><TrashIcon /></button>
+                            <td>
+                                <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                                    rmCharEmotion($selectedCharID,i)
+                                }}><TrashIcon /></button>
+                            </td>
+
                         </tr>
                     {/each}
                 {/if}

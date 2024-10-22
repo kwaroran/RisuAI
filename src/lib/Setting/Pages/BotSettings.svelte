@@ -489,7 +489,7 @@
             </tr>
             {#if $DataBase.bias.length === 0}
                 <tr>
-                    <div class="text-textcolor2">{language.noBias}</div>
+                    <td colspan="3" class="text-textcolor2">{language.noBias}</td>
                 </tr>
             {/if}
             {#each $DataBase.bias as bias, i}
