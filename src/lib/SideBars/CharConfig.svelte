@@ -538,7 +538,7 @@
                 </tr>
                 {#if currentChar.data.emotionImages.length === 0}
                     <tr>
-                        <div class="text-textcolor2">{language.noImages}</div>
+                        <td colspan="3">{language.noImages}</td>
                     </tr>
                 {:else}
                     {#each emos as emo, i}
@@ -636,7 +636,8 @@
             </tr>
             {#if currentChar.data.bias.length === 0}
                 <tr>
-                    <div class="text-textcolor2"> {language.noBias}</div>
+                    <td colspan="3">{language.noBias}</td>
+
                 </tr>
             {/if}
             {#each currentChar.data.bias as bias, i}
@@ -1036,7 +1037,7 @@
                 </tr>
                 {#if currentChar.data.alternateGreetings.length === 0}
                     <tr>
-                        <div class="text-textcolor2"> No Messages</div>
+                        <td colspan="3">{language.noData}</td>
                     </tr>
                 {/if}
                 {#each currentChar.data.alternateGreetings as bias, i}
@@ -1092,7 +1093,7 @@
                     </tr>
                     {#if (!currentChar.data.additionalAssets) || currentChar.data.additionalAssets.length === 0}
                         <tr>
-                            <div class="text-textcolor2"> No Assets</div>
+                            <td class="text-textcolor2"> No Assets</td>
                         </tr>
                     {:else}
                         {#each currentChar.data.additionalAssets as assets, i}

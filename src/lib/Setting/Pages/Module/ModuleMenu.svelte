@@ -192,7 +192,7 @@
             </tr>
             {#if (!currentModule.assets) || currentModule.assets.length === 0}
                 <tr>
-                    <div class="text-textcolor2"> No Assets</div>
+                    <td colspan="3">{language.noData}</td>
                 </tr>
             {:else}
                 {#each currentModule.assets as assets, i}
