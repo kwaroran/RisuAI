@@ -475,6 +475,7 @@
 {#if submenu === 3 || submenu === -1}
     <Arcodion styled name="Bias " help="bias">
         <table class="contain w-full max-w-full tabler">
+            <tbody>
             <tr>
                 <th class="font-medium">Bias</th>
                 <th class="font-medium">{language.value}</th>
@@ -508,6 +509,7 @@
                     </td>
                 </tr>
             {/each}
+            </tbody>
         </table>
         <div class="text-textcolor2 mt-2 flex items-center gap-2">
             <button class="font-medium cursor-pointer hover:text-textcolor gap-2" on:click={() => {
@@ -527,6 +529,7 @@
     {#if $DataBase.aiModel === 'reverse_proxy'}
     <Arcodion styled name="{language.additionalParams} " help="additionalParams">
         <table class="contain w-full max-w-full tabler">
+            <tbody>
             <tr>
                 <th class="font-medium">{language.key}</th>
                 <th class="font-medium">{language.value}</th>
@@ -560,6 +563,7 @@
                     </td>
                 </tr>
             {/each}
+            </tbody>
         </table>
     </Arcodion>
     {/if}

@@ -167,6 +167,7 @@
 {#if submenu === 5 && (Array.isArray(currentModule.assets))}
     <div class="w-full max-w-full border border-selected rounded-md p-2">
         <table class="contain w-full max-w-full tabler mt-2">
+            <tbody>
             <tr>
                 <th class="font-medium">{language.value}</th>
                 <th class="font-medium cursor-pointer w-10">
@@ -222,6 +223,7 @@
                     </tr>
                 {/each}
             {/if}
+            </tbody>
         </table>
     </div>
 {/if}

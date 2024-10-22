@@ -35,13 +35,13 @@
                     <span>{chat.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         exportChat(i)
                     }}>
                         <DownloadIcon size={18}/>
-                    </button>
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                    </div>
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($CurrentCharacter.chats.length === 1){
                             alertError(language.errors.onlyOneChat)
@@ -56,7 +56,7 @@
                         }
                     }}>
                         <TrashIcon size={18}/>
-                    </button>
+                    </div>
                 </div>
             </button>
         {/each}

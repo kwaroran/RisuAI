@@ -38,13 +38,13 @@
                     <span>{presets.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
                         e.stopPropagation()
                         copyPreset(i)
                     }}>
                         <CopyIcon size={18}/>
-                    </button>
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={async (e) => {
+                    </div>
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={async (e) => {
                         e.stopPropagation()
                         const data = await alertCardExport('preset')
                         console.log(data.type)
@@ -57,8 +57,8 @@
                     }}>
 
                         <Share2Icon size={18} />
-                    </button>
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                    </div>
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($DataBase.botPresets.length === 1){
                             alertError(language.errors.onlyOneChat)
@@ -74,7 +74,7 @@
                         }
                     }}>
                         <TrashIcon size={18}/>
-                    </button>
+                    </div>
                 </div>
             </button>
         {/each}

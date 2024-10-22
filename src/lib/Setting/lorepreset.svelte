@@ -30,7 +30,7 @@
                     <span>{lore.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
                         e.stopPropagation()
                         if($DataBase.loreBook.length === 1){
                             return
@@ -44,7 +44,7 @@
                         }
                     }}>
                         <TrashIcon size={18}/>
-                    </button>
+                    </div>
                 </div>
             </button>
         {/each}

@@ -24,7 +24,7 @@
     export let img:string|Promise<string> = ''
     export let idx = -1
     export let rerollIcon = false
-    export let MessageGenerationInfo:MessageGenerationInfo|null = null
+    export let messageGenerationInfo:MessageGenerationInfo|null = null
     export let onReroll = () => {}
     export let unReroll = () => {}
     export let character:simpleCharacterArgument|string|null = null
@@ -264,20 +264,20 @@
                     {/if}
                 </div>
             </div>
-            {#if MessageGenerationInfo && $DataBase.requestInfoInsideChat}
+            {#if messageGenerationInfo && $DataBase.requestInfoInsideChat}
                 <div>
                     <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
                                     hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                             on:click={() => {
                                 alertRequestData({
-                                    genInfo: MessageGenerationInfo,
+                                    genInfo: messageGenerationInfo,
                                     idx: idx,
                                 })
                             }}
                     >
                         <BotIcon size={20} />
                         <span class="ml-1">
-                            {capitalize(getModelShortName(MessageGenerationInfo.model))}
+                            {capitalize(getModelShortName(messageGenerationInfo.model))}
                         </span>
                     </button>
                 </div>

@@ -530,6 +530,7 @@
         <div class="w-full max-w-full border border-selected p-2 rounded-md">
 
             <table class="w-full max-w-full tabler">
+                <tbody>
                 <tr>
                     <th class="font-medium w-1/3">{language.image}</th>
                     <th class="font-medium w-1/2">{language.emotion}</th>
@@ -556,6 +557,7 @@
                         </tr>
                     {/each}
                 {/if}
+                </tbody>
             </table>
 
         </div>
@@ -618,6 +620,7 @@
         <div class="w-full max-w-full border border-selected rounded-md p-2">
 
         <table class="w-full max-w-full tabler mt-2">
+            <tbody>
             <tr>
                 <th class="font-medium w-1/2">Bias</th>
                 <th class="font-medium w-1/3">{language.value}</th>
@@ -655,6 +658,7 @@
                     </td>
                 </tr>
             {/each}
+            </tbody>
             
         </table>
 
@@ -1015,6 +1019,7 @@
         <span class="text-textcolor mt-2">{language.altGreet}</span>
         <div class="w-full max-w-full border border-selected rounded-md p-2">
             <table class="contain w-full max-w-full tabler mt-2">
+                <tbody>
                 <tr>
                     <th class="font-medium">{language.value}</th>
                     <th class="font-medium cursor-pointer w-10">
@@ -1053,12 +1058,14 @@
                         </th>
                     </tr>
                 {/each}
+            </tbody>
             </table>
         </div>
       
         <Arcodion styled name={language.additionalAssets} help="additionalAssets">
             <div class="w-full max-w-full border border-selected rounded-md p-2">
                 <table class="contain w-full max-w-full tabler mt-2">
+                <tbody>
                     <tr>
                         <th class="font-medium">{language.value}</th>
                         <th class="font-medium cursor-pointer w-10">
@@ -1119,6 +1126,7 @@
                             </tr>
                         {/each}
                     {/if}
+                </tbody>
                 </table>
             </div>
         </Arcodion>
