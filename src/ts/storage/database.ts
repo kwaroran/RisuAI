@@ -445,6 +445,7 @@ export function setDatabase(data:Database){
     data.customQuotesData ??= ['“','”','‘','’']
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
+    data.theme = ''
     changeLanguage(data.language)
     DataBase.set(data)
 }

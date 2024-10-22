@@ -5,7 +5,6 @@ import { forageStorage, getUnpargeables, isTauri, openURL } from "../storage/glo
 import { BaseDirectory, exists, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/plugin-process';
-import { isEqual } from "lodash";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
@@ -155,7 +154,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
             }
             const formatedKey = newFormatKeys(key)
             if(!fileNames.includes(formatedKey)){
-                await createFileInFolder(ACCESS_TOKEN, formatedKey, await readFile(asset.name, {baseDir: BaseDirectory.AppData}))
+                await createFileInFolder(ACCESS_TOKEN, formatedKey, await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData}))
             }
         }
     }

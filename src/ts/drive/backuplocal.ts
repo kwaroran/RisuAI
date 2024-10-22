@@ -50,7 +50,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await readFile(asset.name, {baseDir: BaseDirectory.AppData}))
+            await writer.writeBackup(key, await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData}))
         }
     }
     else{
