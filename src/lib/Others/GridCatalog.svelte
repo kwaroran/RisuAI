@@ -9,9 +9,13 @@
     import { language } from "src/lang";
     import { parseMultilangString } from "src/ts/util";
   import { checkCharOrder } from "src/ts/storage/globalApi";
-    export let endGrid = () => {}
-    let search = ''
-    let selected = 0
+  interface Props {
+    endGrid?: any;
+  }
+
+  let { endGrid = () => {} }: Props = $props();
+    let search = $state('')
+    let selected = $state(0)
 
     function changeChar(index = -1){
         characterFormatUpdate(index)
@@ -53,7 +57,7 @@
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
         <h1 class="text-textcolor text-2xl font-bold mt-2 flex items-center mx-4 mb-2">
-            <button class="mr-2 hover:text-textcolor text-textcolor2" on:click={() => {
+            <button class="mr-2 hover:text-textcolor text-textcolor2" onclick={() => {
                 endGrid()
             }}><ArrowLeft /></button>
             <span>Catalog</span>
@@ -61,13 +65,13 @@
         <div class="mx-4 mb-6 flex flex-col">
             <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off"/>
             <div class="flex flex-wrap gap-2 mt-2">
-                <Button selected={selected === 0} size="sm" on:click={() => {selected = 0}}>
+                <Button selected={selected === 0} size="sm" onclick={() => {selected = 0}}>
                     {language.grid}
                 </Button>
-                <Button selected={selected === 1} size="sm" on:click={() => {selected = 1}}>
+                <Button selected={selected === 1} size="sm" onclick={() => {selected = 1}}>
                     {language.list}
                 </Button>
-                <Button selected={selected === 2} size="sm" on:click={() => {selected = 2}}>
+                <Button selected={selected === 2} size="sm" onclick={() => {selected = 2}}>
                     {language.trash}
                 </Button>
             </div>
@@ -100,12 +104,12 @@
                         <h4 class="text-textcolor font-bold text-lg mb-1">{char.name || "Unnamed"}</h4>
                         <span class="text-textcolor2">{parseMultilangString(char.desc)['en'] || parseMultilangString(char.desc)['xx'] || 'No description'}</span>
                         <div class="flex gap-2 justify-end">
-                            <button class="hover:text-textcolor text-textcolor2" on:click={() => {
+                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 changeChar(char.index)
                             }}>
                                 <Inspect />
                             </button>
-                            <button class="hover:text-textcolor text-textcolor2" on:click={() => {
+                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 removeChar(char.index, char.name)
                             }}>
                                 <TrashIcon />
@@ -123,13 +127,13 @@
                         <h4 class="text-textcolor font-bold text-lg mb-1">{char.name || "Unnamed"}</h4>
                         <span class="text-textcolor2">{parseMultilangString(char.desc)['en'] || parseMultilangString(char.desc)['xx'] || 'No description'}</span>
                         <div class="flex gap-2 justify-end">
-                            <button class="hover:text-textcolor text-textcolor2" on:click={() => {
+                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 $DataBase.characters[char.index].trashTime = undefined
                                 checkCharOrder()
                             }}>
                                 <Undo2Icon />
                             </button>
-                            <button class="hover:text-textcolor text-textcolor2" on:click={() => {
+                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 removeChar(char.index, char.name, 'permanent')
                             }}>
                                 <TrashIcon />

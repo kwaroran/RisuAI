@@ -34,7 +34,7 @@
     class:mt-4={margin === 'top'}
     class:mt-2={margin === 'both'}
     bind:this={highlightDom}
-    on:focusout={() => {
+    onfocusout={() => {
         hideAutoComplete()
     }}
 >
@@ -47,7 +47,7 @@
             {placeholder}
             id={id}
             bind:value={value}
-            on:input={(e) => {
+            oninput={(e) => {
                 if(optimaizedInput){
                     if(inpa++ > 10){
                         value = e.currentTarget.value
@@ -60,26 +60,26 @@
                     onInput()
                 }
             }}
-            on:change={(e) => {
+            onchange={(e) => {
                 if(optimaizedInput){
                     value = e.currentTarget.value
                     onInput()
                 }
             }}
-        />
+></textarea>
     {:else if isFirefox}
         <div
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="true"
             bind:textContent={value}
-            on:keydown={(e) => {
+            onkeydown={(e) => {
                 handleKeyDown(e)
                 onInput()
             }}
-            on:input={(e) => {
+            oninput={(e) => {
                 autoComplete()
             }}
-            on:paste={(e) => {
+            onpaste={(e) => {
                 e.preventDefault()
                 const text = e.clipboardData.getData('text/plain')
                 if(text){
@@ -94,11 +94,11 @@
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
             contenteditable="plaintext-only"
             bind:innerText={value}
-            on:keydown={(e) => {
+            onkeydown={(e) => {
                 handleKeyDown(e)
                 onInput()
             }}
-            on:input={(e) => {
+            oninput={(e) => {
                 autoComplete()
             }}
             bind:this={inputDom}
@@ -107,39 +107,59 @@
     {/if}
     <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>
         {#each autocompleteContents as content, i}
-            <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} on:click={() => {
+            <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} onclick={() => {
                 insertContent(content)
             }}>{content}</button>
         {/each}
     </div>
 </div>
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
     import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
     import { isMobile } from 'src/ts/storage/globalApi';
     import { isFirefox, sleep } from 'src/ts/util';
     import { onDestroy, onMount } from 'svelte';
-    export let size: 'xs'|'sm'|'md'|'lg'|'xl'|'default' = 'default'
-    export let autocomplete: 'on'|'off' = 'off'
-    export let placeholder: string = ''
-    export let value:string
-    export let id:string = undefined
-    export let padding = true
-    export let margin:"none"|"top"|"bottom"|"both" = "none"
-    export let onInput = () => {}
-    export let fullwidth = false
-    export let height:'20'|'24'|'28'|'32'|'36'|'full'|'default' = 'default'
-    export let className = ''
-    export let optimaizedInput = true
-    export let highlight = false
-    let selectingAutoComplete = 0
+    interface Props {
+        size?: 'xs'|'sm'|'md'|'lg'|'xl'|'default';
+        autocomplete?: 'on'|'off';
+        placeholder?: string;
+        value: string;
+        id?: string;
+        padding?: boolean;
+        margin?: "none"|"top"|"bottom"|"both";
+        onInput?: any;
+        fullwidth?: boolean;
+        height?: '20'|'24'|'28'|'32'|'36'|'full'|'default';
+        className?: string;
+        optimaizedInput?: boolean;
+        highlight?: boolean;
+    }
+
+    let {
+        size = 'default',
+        autocomplete = 'off',
+        placeholder = '',
+        value = $bindable(),
+        id = undefined,
+        padding = true,
+        margin = "none",
+        onInput = () => {},
+        fullwidth = false,
+        height = 'default',
+        className = '',
+        optimaizedInput = true,
+        highlight = false
+    }: Props = $props();
+    let selectingAutoComplete = $state(0)
     let highlightId = highlight ? getNewHighlightId() : 0
-    let inpa = 0
-    let highlightDom: HTMLDivElement
-    let optiValue = value
-    let autoCompleteDom: HTMLDivElement
-    let autocompleteContents:string[] = []
-    let inputDom: HTMLDivElement
+    let inpa = $state(0)
+    let highlightDom: HTMLDivElement = $state()
+    let optiValue = $state(value)
+    let autoCompleteDom: HTMLDivElement = $state()
+    let autocompleteContents:string[] = $state([])
+    let inputDom: HTMLDivElement = $state()
 
     const autoComplete = () => {
         if(isMobile){
@@ -291,7 +311,11 @@
         } catch (error) {}
     }
         
-    $: optiValue = value
-    $: highlightChange(value, highlightId)
+    run(() => {
+        optiValue = value
+    });
+    run(() => {
+        highlightChange(value, highlightId)
+    });
 
 </script>

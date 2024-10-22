@@ -11,11 +11,21 @@
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
 
-    export let value:customscript
-    export let onRemove: () => void = () => {}
-    export let onClose: () => void = () => {}
-    export let onOpen: () => void = () => {}
-    export let idx:number
+  interface Props {
+    value: customscript;
+    onRemove?: () => void;
+    onClose?: () => void;
+    onOpen?: () => void;
+    idx: number;
+  }
+
+  let {
+    value = $bindable(),
+    onRemove = () => {},
+    onClose = () => {},
+    onOpen = () => {},
+    idx
+  }: Props = $props();
 
     const checkFlagContain = (flag:string, matchFlag:string) => {
         if(flag.length === 1){
@@ -67,12 +77,12 @@
         ['No Newline Subfix', '<no_end_nl>'],
     ]
 
-    let open = false
+    let open = $state(false)
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full ">
-        <button class="endflex valuer border-borderc" on:click={() => {
+        <button class="endflex valuer border-borderc" onclick={() => {
             open = !open
             if(open){
                 onOpen()
@@ -83,7 +93,7 @@
         }}>
             <span>{value.comment.length === 0 ? 'Unnamed Script' : value.comment}</span>
         </button>
-        <button class="valuer" on:click={async () => {
+        <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
                 if(!open){
@@ -123,7 +133,7 @@
                                 class:border-b-1={i < flags.length - 2}
                                 class:text-textcolor2={!checkFlagContain(flag[1], value.flag)}
                                 class:text-textcolor={checkFlagContain(flag[1], value.flag)}
-                                on:click={() => {
+                                onclick={() => {
                                     toggleFlag(flag[1])
                                 }}
                             >

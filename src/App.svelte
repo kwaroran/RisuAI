@@ -21,8 +21,8 @@
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
 
   
-    let didFirstSetup: boolean  = false
-    let gridOpen = false
+    let didFirstSetup: boolean  = $state(false)
+    let gridOpen = $state(false)
 
     DataBase.subscribe(db => {
         if(db.didFirstSetup !== didFirstSetup){
@@ -61,7 +61,7 @@
                 <Sidebar openGrid={() => {gridOpen = true}} hidden={!$sideBarStore} />
             {:else}
                 <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" class:fixed={$sideBarStore} class:hidden={!$sideBarStore} >
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
 
 

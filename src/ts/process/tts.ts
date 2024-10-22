@@ -1,10 +1,10 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, type character } from "../storage/database";
+import { DataBase, getCurrentCharacter, type character } from "../storage/database";
 import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch, loadAsset } from "../storage/globalApi";
 import { language } from "src/lang";
-import { getCurrentCharacter, sleep } from "../util";
+import { sleep } from "../util";
 import { registerOnnxModel, runVITS } from "./transformers";
 
 let sourceNode:AudioBufferSourceNode = null

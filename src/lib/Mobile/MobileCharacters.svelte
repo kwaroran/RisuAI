@@ -57,7 +57,7 @@
 <div class="flex flex-col items-center w-full overflow-y-auto h-full">
     {#each sortChar($DataBase.characters) as char, i}
         {#if char.name.toLocaleLowerCase().includes($MobileSearch.toLocaleLowerCase())}
-            <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} on:click={() => {
+            <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} onclick={() => {
                 changeChar(char.i)
             }}>
                 <BarIcon additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
@@ -75,7 +75,7 @@
     {/each}
 </div>
 
-<button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" on:click={() => {
+<button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" onclick={() => {
     addCharacter()
 }}>
     <PlusIcon size={24} />

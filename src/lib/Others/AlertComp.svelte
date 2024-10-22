@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run, preventDefault, stopPropagation } from 'svelte/legacy';
+
     import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
     import { DataBase } from '../../ts/storage/database';
     import { getCharImage } from '../../ts/characters';
@@ -14,19 +16,19 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
     import { getFetchData } from 'src/ts/storage/globalApi';
-    import { CurrentChat, CurrentCharacter } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
-  import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
-  import Help from "./Help.svelte";
+    import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
+    import Help from "./Help.svelte";
     let btn
-    let input = ''
-    let cardExportType = 'realm'
-    let cardExportType2 = ''
-    let cardLicense = ''
-    let generationInfoMenuIndex = 0
-    $: {
+    let input = $state('')
+    let cardExportType = $state('realm')
+    let cardExportType2 = $state('')
+    let cardLicense = $state('')
+    let generationInfoMenuIndex = $state(0)
+    run(() => {
         if(btn){
             btn.focus()
         }
@@ -38,7 +40,7 @@
             cardExportType2 = ''
             cardLicense = ''
         }
-    }
+    });
 
     const beautifyJSON = (data:string) =>{
         try {
@@ -47,9 +49,17 @@
             return data
         }
     }
+
+    interface Props{
+        onclick?: (e:MouseEvent) => void
+    }
+
+    let {
+        onclick
+    }:Props = $props()
 </script>
 
-<svelte:window on:message={async (e) => {
+<svelte:window onmessage={async (e) => {
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1")){
         if(e.data.msg.data.vaild && $alertStore.type === 'login'){
             $alertStore = {
@@ -79,9 +89,9 @@
                     {/await}
                 </span>
             {:else if $alertStore.type === 'tos'}
-                <!-- svelte-ignore a11y-missing-attribute -->
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div class="text-textcolor">You should accept <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" on:click={() => {
+                <!-- svelte-ignore a11y_missing_attribute -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <div class="text-textcolor">You should accept <a class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" onclick={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
@@ -92,13 +102,13 @@
             {/if}
             {#if $alertStore.type === 'ask'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" on:click={() => {
+                    <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>YES</Button>
-                    <Button className="mt-4 flex-grow" on:click={() => {
+                    <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -107,13 +117,13 @@
                 </div>
             {:else if $alertStore.type === 'tos'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" on:click={() => {
+                    <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>Accept</Button>
-                    <Button styled={'outlined'} className="mt-4 flex-grow" on:click={() => {
+                    <Button styled={'outlined'} className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -122,7 +132,7 @@
                 </div>
             {:else if $alertStore.type === 'select'}
                 {#each $alertStore.msg.split('||') as n, i}
-                    <Button className="mt-4" on:click={() => {
+                    <Button className="mt-4" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: i.toString()
@@ -130,7 +140,7 @@
                     }}>{n}</Button>
                 {/each}
             {:else if $alertStore.type === 'error' || $alertStore.type === 'normal' || $alertStore.type === 'markdown'}
-               <Button className="mt-4" on:click={() => {
+               <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
                         msg: ''
@@ -138,7 +148,7 @@
                 }}>OK</Button>
             {:else if $alertStore.type === 'input'}
                 <TextInput value="" id="alert-input" autocomplete="off" marginTop />
-                <Button className="mt-4" on:click={() => {
+                <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
                         //@ts-ignore
@@ -182,16 +192,16 @@
                 </div>
             {:else if $alertStore.type === 'requestdata'}
                 <div class="flex flex-wrap gap-2">
-                    <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
+                    <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
                         {language.tokens}
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 1} size="sm" on:click={() => {generationInfoMenuIndex = 1}}>
+                    <Button selected={generationInfoMenuIndex === 1} size="sm" onclick={() => {generationInfoMenuIndex = 1}}>
                         {language.metaData}
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 2} size="sm" on:click={() => {generationInfoMenuIndex = 2}}>
+                    <Button selected={generationInfoMenuIndex === 2} size="sm" onclick={() => {generationInfoMenuIndex = 2}}>
                         {language.log}
                     </Button>
-                    <button class="ml-auto" on:click={() => {
+                    <button class="ml-auto" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: ''
@@ -229,17 +239,17 @@
                     <span class="text-amber-500">Model</span>
                     <span class="text-amber-500 justify-self-end">{$alertGenerationInfoStore.genInfo.model}</span>
                     <span class="text-green-500">ID</span>
-                    <span class="text-green-500 justify-self-end">{$CurrentChat.message[$alertGenerationInfoStore.idx].chatId ?? "None"}</span>
+                    <span class="text-green-500 justify-self-end">{$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].chatId ?? "None"}</span>
                     <span class="text-red-500">GenID</span>
                     <span class="text-red-500 justify-self-end">{$alertGenerationInfoStore.genInfo.generationId}</span>
                     <span class="text-cyan-500">Saying</span>
-                    <span class="text-cyan-500 justify-self-end">{$CurrentChat.message[$alertGenerationInfoStore.idx].saying}</span>
+                    <span class="text-cyan-500 justify-self-end">{$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].saying}</span>
                     <span class="text-purple-500">Size</span>
-                    <span class="text-purple-500 justify-self-end">{JSON.stringify($CurrentChat.message[$alertGenerationInfoStore.idx]).length} Bytes</span>
+                    <span class="text-purple-500 justify-self-end">{JSON.stringify($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]).length} Bytes</span>
                     <span class="text-yellow-500">Time</span>
-                    <span class="text-yellow-500 justify-self-end">{(new Date($CurrentChat.message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
+                    <span class="text-yellow-500 justify-self-end">{(new Date($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
                     <span class="text-green-500">Tokens</span>
-                    {#await tokenize($CurrentChat.message[$alertGenerationInfoStore.idx].data)}
+                    {#await tokenize($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].data)}
                         <span class="text-green-500 justify-self-end">Loading</span>
                     {:then tokens} 
                         <span class="text-green-500 justify-self-end">{tokens}</span>
@@ -263,13 +273,13 @@
                 {/if}
             {:else if $alertStore.type === 'hypaV2'}
                 <div class="flex flex-wrap gap-2 mb-4 max-w-full w-124">
-                    <Button selected={generationInfoMenuIndex === 0} size="sm" on:click={() => {generationInfoMenuIndex = 0}}>
+                    <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
                         Chunks
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 1} size="sm" on:click={() => {generationInfoMenuIndex = 1}}>
+                    <Button selected={generationInfoMenuIndex === 1} size="sm" onclick={() => {generationInfoMenuIndex = 1}}>
                         Summarized
                     </Button>
-                    <button class="ml-auto" on:click={() => {
+                    <button class="ml-auto" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: ''
@@ -278,20 +288,20 @@
                 </div>
                 {#if generationInfoMenuIndex === 0}
                     <div class="flex flex-col gap-2 w-full">
-                        {#each $CurrentChat.hypaV2Data.chunks as chunk}
+                        {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk}
                             <TextAreaInput bind:value={chunk.text} />
                         {/each}
 
-                        <Button on:click={() => {
-                            $CurrentChat.hypaV2Data.chunks.push({
+                        <Button onclick={() => {
+                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks.push({
                                 text: '',
                                 targetId: 'all'
                             })
-                            $CurrentChat.hypaV2Data.chunks = $CurrentChat.hypaV2Data.chunks
+                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks
                         }}>+</Button>
                     </div>
                 {:else}
-                    {#each $CurrentChat.hypaV2Data.chunks as chunk, i}
+                    {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk, i}
                         <div class="flex flex-col p-2 rounded-md border-darkborderc border">
                             {#if i === 0}
                                 <span class="text-green-500">Active</span>
@@ -305,12 +315,12 @@
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
-                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" on:click|stopPropagation|preventDefault={(e) => {
+                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" onclick={stopPropagation(preventDefault((e) => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importFromRealm'
                         })
-                    }}>
+                    }))}>
                         <div class="flex flex-col justify-start items-start">
                             <span class="text-2xl font-bold">{language.importFromRealm}</span>
                             <span class="text-textcolor2">{language.importFromRealmDesc}</span>
@@ -319,12 +329,12 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'importCharacter'
                         })
-                    }}>
+                    }))}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.importCharacter}</span>
                         </div>
@@ -332,12 +342,12 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createfromScratch'
                         })
-                    }}>
+                    }))}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createfromScratch}</span>
                         </div>
@@ -345,12 +355,12 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'createGroup'
                         })
-                    }}>
+                    }))}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createGroup}</span>
                         </div>
@@ -358,12 +368,12 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click|stopPropagation|preventDefault={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'cancel'
                         })
-                    }}>
+                    }))}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
                         </div>
@@ -374,7 +384,7 @@
                     <h1 class="text-xl mb-4 font-bold">
                         {language.chatOptions}
                     </h1>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: '0'
@@ -387,7 +397,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: '1'
@@ -401,7 +411,7 @@
                         </div>
                     </button>
                     {#if $DataBase.useExperimental}
-                        <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                        <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
                             alertStore.set({
                                 type: 'none',
                                 msg: '2'
@@ -415,7 +425,7 @@
                             </div>
                         </button>
                     {/if}
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" on:click={() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'cancel'
@@ -431,13 +441,13 @@
     </div>
 
 {:else if $alertStore.type === 'cardexport'}
-    <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" on:click={close}>
-        <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" on:click|stopPropagation>
+    <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" onclick={close}>
+        <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" onclick={stopPropagation(onclick)}>
             <h1 class="font-bold text-2xl w-full">
                 <span>
                     {language.shareExport}
                 </span>
-                <button class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                <button class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
                     alertStore.set({
                         type: 'none',
                         msg: JSON.stringify({
@@ -457,7 +467,7 @@
                     <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {:else}
                     <span class="text-textcolor2 text-sm">{language.ccv3Desc}</span>
-                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets($CurrentCharacter)}
+                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets($DataBase.characters[$selectedCharID])}
                         <span class="text-red-500 text-sm">{language.notCharxWarn}</span>
                     {/if}
                 {/if}
@@ -471,18 +481,18 @@
             {/if}
             <div class="flex items-center flex-wrap mt-2">
                 {#if $alertStore.submsg === 'preset'}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>Risupreset</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {cardExportType = ''}}>Risupreset</button>
                 {:else if $alertStore.submsg === 'module'}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} on:click={() => {cardExportType = ''}}>RisuM</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} onclick={() => {cardExportType = ''}}>RisuM</button>
                 {:else}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} on:click={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} on:click={() => {
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {
                         cardExportType = ''
-                        cardExportType2 = isCharacterHasAssets($CurrentCharacter) ? 'charx' : ''
+                        cardExportType2 = isCharacterHasAssets($DataBase.characters[$selectedCharID]) ? 'charx' : ''
                     }}>Character Card V3</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} on:click={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
+                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} onclick={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}
             </div>
             {#if $alertStore.submsg === '' && cardExportType === ''}
@@ -493,7 +503,7 @@
                     <OptionInput value="charx">CHARX</OptionInput>
                 </SelectInput>
             {/if}
-            <Button className="mt-4" on:click={() => {
+            <Button className="mt-4" onclick={() => {
                 alertStore.set({
                     type: 'none',
                     msg: JSON.stringify({
@@ -507,7 +517,7 @@
 
 {:else if $alertStore.type === 'toast'}
     <div class="toast-anime absolute right-0 bottom-0 bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-11/12 overflow-y-auto z-50 text-textcolor"
-        on:animationend={() => {
+        onanimationend={() => {
             alertStore.set({
                 type: 'none',
                 msg: ''

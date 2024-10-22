@@ -4,9 +4,9 @@
     import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
     import { onDestroy } from "svelte";
 
-    let backgroundHTML = ''
+    let backgroundHTML = $state('')
     let lastdb:Database
-    let currentChar:character|groupChat
+    let currentChar:character|groupChat = $state()
     let selectedId = 0
 
     function checkUpdate(){

@@ -16,7 +16,7 @@
     let estaStorage:{
         key:string,
         size:string,
-    }[] = []
+    }[] = $state([])
 
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
@@ -146,7 +146,7 @@
     </div>
 {/if}
 <button
-    on:click={async () => {
+    onclick={async () => {
         alertMd(getRequestLog())
     }}
     class="drop-shadow-lg p-3 border-darkborderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
@@ -154,7 +154,7 @@
 </button>
 {#if Capacitor.isNativePlatform()}
     <button
-        on:click={async () => {
+        onclick={async () => {
             estaStorage = await capStorageInvestigation()
         }}
         class="drop-shadow-lg p-3 border-darkborderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
@@ -174,7 +174,7 @@
 {/if}
 {#if $DataBase.tpo}
     <button
-        on:click={async () => {
+        onclick={async () => {
             installPython()
         }}
         class="drop-shadow-lg p-3 border-darkbutton border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">

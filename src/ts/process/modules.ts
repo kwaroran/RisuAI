@@ -1,13 +1,11 @@
 import { language } from "src/lang"
 import { alertConfirm, alertError, alertModuleSelect, alertNormal, alertStore } from "../alert"
-import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
+import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentCharacter, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
 import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../storage/globalApi"
 import { get } from "svelte/store"
-import { CurrentCharacter, CurrentChat } from "../stores"
 import { selectSingleFile, sleep } from "../util"
 import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook"
-import { encode } from "msgpackr"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
 import { convertImage } from "../parser"
 import { Capacitor } from "@capacitor/core"
@@ -274,7 +272,7 @@ function getModuleByIds(ids:string[]){
 let lastModules = ''
 let lastModuleData:RisuModule[] = []
 export function getModules(){
-    const currentChat = get(CurrentChat)
+    const currentChat = getCurrentChat()
     const db = get(DataBase)
     let ids = db.enabledModules ?? []
     if (currentChat){
@@ -368,7 +366,7 @@ export async function applyModule() {
         return
     }
 
-    const currentChar = get(CurrentCharacter)
+    const currentChar = getCurrentCharacter()
     if (!currentChar) {
         return
     }
@@ -392,7 +390,7 @@ export async function applyModule() {
         }
     }
 
-    CurrentCharacter.set(currentChar)
+    setCurrentCharacter(currentChar)
 
     alertNormal(language.successApplyModule)
 }

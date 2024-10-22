@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
-    import { CharEmotion, CurrentCharacter, ShowVN, selectedCharID } from "../../ts/stores";
+    import { CharEmotion, ShowVN, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
@@ -11,8 +13,8 @@
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import VisualNovelMain from "../VisualNovel/VisualNovelMain.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
-    let openChatList = false
-    let openModuleList = false
+    let openChatList = $state(false)
+    let openModuleList = $state(false)
 
     const wallPaper = `background: url(${defaultWallpaper})`
     const externalStyles = 
@@ -20,14 +22,16 @@
         +   ($DataBase.textBorder ? "text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" : '')
         +   ($DataBase.textScreenRounded ? "border-radius: 2rem; padding: 1rem;" : '')
         +   ($DataBase.textScreenBorder ? `border: 0.3rem solid ${$DataBase.textScreenBorder};` : '')
-    let bgImg= ''
-    let lastBg = ''
-    $: (async () =>{
-        if($DataBase.customBackground !== lastBg){
-            lastBg = $DataBase.customBackground
-            bgImg = await getCustomBackground($DataBase.customBackground)
-        }
-    })()
+    let bgImg= $state('')
+    let lastBg = $state('')
+    run(() => {
+        (async () =>{
+            if($DataBase.customBackground !== lastBg){
+                lastBg = $DataBase.customBackground
+                bgImg = await getCustomBackground($DataBase.customBackground)
+            }
+        })()
+    });
 </script>
 
 {#if $ShowVN}
@@ -38,7 +42,7 @@
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
             {#if $selectedCharID >= 0}
-                {#if $CurrentCharacter.viewScreen !== 'none' && ($CurrentCharacter.type === 'group' || (!$CurrentCharacter.inlayViewScreen))}
+                {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none' && ($DataBase.characters[$selectedCharID].type === 'group' || (!$DataBase.characters[$selectedCharID].inlayViewScreen))}
                     <ResizeBox />
                 {/if}
             {/if}
@@ -50,13 +54,13 @@
         <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
-            {#if $CurrentCharacter.viewScreen !== 'none'}
+            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
                 <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * ($DataBase.waifuWidth2 / 100)}rem">
                     <TransitionImage classType="waifu" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>
             {/if}
         {/if}
-        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}>
+        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
     </div>
@@ -65,13 +69,13 @@
         <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
-            class:per33={$selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none'}
-            class:h-full={!($selectedCharID >= 0 && $CurrentCharacter.viewScreen !== 'none')}
+            class:per33={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            class:h-full={!($selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none')}
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
         {#if $selectedCharID >= 0}
-            {#if $CurrentCharacter.viewScreen !== 'none'}
+            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
                 <div class="h-full w-full absolute bottom-0 left-0 max-w-full">
                     <TransitionImage classType="mobile" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
                 </div>

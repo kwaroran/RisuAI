@@ -1,8 +1,10 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
 	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
     import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
-    import { CurrentCharacter, selectedCharID } from "../../ts/stores";
+    import { selectedCharID } from "../../ts/stores";
     import { translate } from "src/ts/translator/translator";
     import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
     import { alertConfirm } from "src/ts/alert";
@@ -13,21 +15,19 @@
     import { get } from "svelte/store";
     import { ParseMarkdown } from "src/ts/parser";
 
-    export let send: () => any;
-    export let messageInput:(string:string) => any;
-    let suggestMessages:string[] = $CurrentCharacter?.chats[$CurrentCharacter.chatPage]?.suggestMessages
-    let suggestMessagesTranslated:string[]
-    let toggleTranslate:boolean = $DataBase.autoTranslate
-    let progress:boolean;
+    interface Props {
+        send: () => any;
+        messageInput: (string:string) => any;
+    }
+
+    let { send, messageInput }: Props = $props();
+    let suggestMessages:string[] = $state($DataBase.characters[$selectedCharID]?.chats[$DataBase.characters[$selectedCharID].chatPage]?.suggestMessages)
+    let suggestMessagesTranslated:string[] = $state()
+    let toggleTranslate:boolean = $state($DataBase.autoTranslate)
+    let progress:boolean = $state();
     let progressChatPage=-1;
     let abortController:AbortController;
-    let chatPage:number
-    $: {
-        $selectedCharID
-        //FIXME add selectedChatPage for optimize render
-        chatPage = $CurrentCharacter.chatPage
-        updateSuggestions()
-    }
+    let chatPage:number = $state()
 
     const updateSuggestions = () => {
         if($selectedCharID > -1 && !$doingChat) {
@@ -35,7 +35,7 @@
                 progress=false
                 abortController?.abort()
             }
-            let currentChar = $CurrentCharacter;
+            let currentChar = $DataBase.characters[$selectedCharID];
             suggestMessages = currentChar?.chats[currentChar.chatPage].suggestMessages
         }
     }
@@ -48,7 +48,7 @@
             suggestMessages = []
         }
         if(!v && $selectedCharID > -1 && (!suggestMessages || suggestMessages.length === 0) && !progress){
-            let currentChar:character|groupChat = $CurrentCharacter;
+            let currentChar:character|groupChat = $DataBase.characters[$selectedCharID];
             let messages:Message[] = []
             
             messages = [...messages, ...currentChar.chats[currentChar.chatPage].message];
@@ -112,20 +112,26 @@
 
     onDestroy(unsub)
 
-    $: {translateSuggest(toggleTranslate, suggestMessages)}
+    run(() => {
+        $selectedCharID
+        //FIXME add selectedChatPage for optimize render
+        chatPage = $DataBase.characters[$selectedCharID].chatPage
+        updateSuggestions()
+    });
+    run(() => {translateSuggest(toggleTranslate, suggestMessages)});
 </script>
 
 <div class="ml-4 flex flex-wrap">
     {#if progress}
         <div class="flex bg-textcolor2 p-2 rounded-lg items-center">
-            <div class="loadmove mx-2"/>
+            <div class="loadmove mx-2"></div>
             <div>{language.creatingSuggestions}</div>
         </div>        
     {:else if !$doingChat}
         {#if $DataBase.translator !== ''}
             <div class="flex mr-2 mb-2">
                 <button class={"bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-textcolor')}
-                    on:click={() => {
+                    onclick={() => {
                         toggleTranslate = !toggleTranslate
                     }}
                 >
@@ -137,7 +143,7 @@
 
         <div class="flex mr-2 mb-2">
             <button class="bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded text-textcolor"
-                on:click={() => {
+                onclick={() => {
                     alertConfirm(language.askReRollAutoSuggestions).then((result) => {
                         if(result) {
                             suggestMessages = []
@@ -152,7 +158,7 @@
         </div>
         {#each suggestMessages??[] as suggest, i}
             <div class="flex mr-2 mb-2">
-                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded" onclick={() => {
                     suggestMessages = []
                     messageInput(suggest)
                     send()
@@ -161,7 +167,7 @@
                     {@html md}
                 {/await}
                 </button>
-                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" on:click={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" onclick={() => {
                     messageInput(suggest)
                 }}>
                     <CopyIcon/>

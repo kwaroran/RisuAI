@@ -5,11 +5,15 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import type { RisuModule } from "src/ts/process/modules";
     import { DataBase } from "src/ts/storage/database";
-    import { CurrentChat } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
-    export let close = (i:string) => {}
-    export let alertMode = false
-    let moduleSearch = ''
+    interface Props {
+        close?: any;
+        alertMode?: boolean;
+    }
+
+    let { close = (i:string) => {}, alertMode = false }: Props = $props();
+    let moduleSearch = $state('')
 
     function sortModules(modules:RisuModule[], search:string){
         const db = $DataBase
@@ -31,7 +35,7 @@
         <div class="flex items-center text-textcolor">
             <h2 class="mt-0 mb-0 text-lg">{language.modules}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" on:click={() => {
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={() => {
                     close('')
                 }}>
                     <XIcon size={24}/>
@@ -60,7 +64,7 @@
                         <div class="flex-grow flex justify-end">
 
                             {#if alertMode}
-                                <button class={"text-textcolor2 mr-2 cursor-pointer hover:text-blue-500 transition-colors"} on:click={async (e) => {
+                                <button class={"text-textcolor2 mr-2 cursor-pointer hover:text-blue-500 transition-colors"} onclick={async (e) => {
                                     e.stopPropagation()
 
                                     close(rmodule.id)
@@ -71,19 +75,19 @@
                                 <button class="mr-2 text-textcolor2 cursor-not-allowed">
                                 </button>
                             {:else}
-                                <button class={(!$CurrentChat.modules.includes(rmodule.id)) ?
+                                <button class={(!$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?
                                         "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" :
                                         "mr-2 cursor-pointer text-blue-500"
-                                } on:click={async (e) => {
+                                } onclick={async (e) => {
                                     e.stopPropagation()
 
-                                    if($CurrentChat.modules.includes(rmodule.id)){
-                                        $CurrentChat.modules.splice($CurrentChat.modules.indexOf(rmodule.id), 1)
+                                    if($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)){
+                                        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.splice($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.indexOf(rmodule.id), 1)
                                     }
                                     else{
-                                        $CurrentChat.modules.push(rmodule.id)
+                                        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.push(rmodule.id)
                                     }
-                                    $CurrentChat.modules = $CurrentChat.modules
+                                    $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules
                                 }}>
                                     <CheckCircle2Icon size={18}/>
                                 </button>
@@ -94,7 +98,7 @@
             {/if}
         </div>
         <div>
-            <Button className="mt-4 flex-grow-0" size="sm" on:click={() => {
+            <Button className="mt-4 flex-grow-0" size="sm" onclick={() => {
                 $SettingsMenuIndex = 14
                 $settingsOpen = true
                 close('')

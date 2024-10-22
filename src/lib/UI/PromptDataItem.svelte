@@ -9,10 +9,19 @@
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
     import { DataBase } from "src/ts/storage/database";
-    export let promptItem:PromptItem
-    export let onRemove:() => void = () => {}
-    export let moveUp:() => void = () => {}
-    export let moveDown:() => void = () => {}
+    interface Props {
+        promptItem: PromptItem;
+        onRemove?: () => void;
+        moveUp?: () => void;
+        moveDown?: () => void;
+    }
+
+    let {
+        promptItem = $bindable(),
+        onRemove = () => {},
+        moveUp = () => {},
+        moveDown = () => {}
+    }: Props = $props();
 
     const chatPromptChange = () => {
         const currentprompt = promptItem as PromptItemChat
@@ -30,13 +39,13 @@
 
 <div class="flex flex-col first:mt-0 mt-2 border border-selected p-4 rounded-md bg-darkbg">
     <span class="mb-2">
-        <button class="float-right" on:click={onRemove}><XIcon /></button>
-        <button class="float-right" on:click={moveDown}><ArrowDown /></button>
-        <button class="float-right" on:click={moveUp}><ArrowUp /></button>
+        <button class="float-right" onclick={onRemove}><XIcon /></button>
+        <button class="float-right" onclick={moveDown}><ArrowDown /></button>
+        <button class="float-right" onclick={moveUp}><ArrowUp /></button>
     </span>
     <span>{language.type}
     </span>
-    <SelectInput bind:value={promptItem.type} on:change={() => {
+    <SelectInput bind:value={promptItem.type} onchange={() => {
         if(promptItem.type === 'plain' || promptItem.type === 'jailbreak' || promptItem.type === 'cot'){
             promptItem.text = ""
             promptItem.role = "system"

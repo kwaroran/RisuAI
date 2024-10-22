@@ -429,12 +429,6 @@ export async function decryptBuffer(data:Uint8Array, keys:string){
     return result
 }
 
-export function getCurrentCharacter(){
-    const db = get(DataBase)
-    const selectedChar = get(selectedCharID)
-    return db.characters[selectedChar]
-}
-
 export function toState<T>(t:T):Writable<T>{
     return writable(t)
 }

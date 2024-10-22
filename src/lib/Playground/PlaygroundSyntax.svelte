@@ -4,8 +4,8 @@
     import { risuChatParser } from 'src/ts/parser';
     import { language } from 'src/lang';
     import { sleep } from 'src/ts/util';
-    let input = "";
-    let output = "";
+    let input = $state("");
+    let output = $state("");
     const onInput = async () => {
         try {
             await sleep(1)

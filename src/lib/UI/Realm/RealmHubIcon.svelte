@@ -1,17 +1,23 @@
 <script lang="ts">
+    import { stopPropagation } from 'svelte/legacy';
+
     import { BookIcon, ImageIcon, SmileIcon } from "lucide-svelte";
     import { alertNormal } from "src/ts/alert";
     import { hubURL, type hubType } from "src/ts/characterCards";
     import { trimNonLatin } from "src/ts/storage/globalApi";
     import { parseMultilangString } from "src/ts/util";
 
-    export let onClick = () => {}
-    export let chara:hubType
+    interface Props {
+        onClick?: any;
+        chara: hubType;
+    }
+
+    let { onClick = () => {}, chara }: Props = $props();
 
 </script>
 
 
-<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" on:click={onClick}>
+<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" onclick={onClick}>
     <div class="flex gap-2 w-full">
     <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
     <div class="flex flex-col flex-grow min-w-0">
@@ -29,13 +35,13 @@
         <div class="flex-grow"></div>
         <div class="flex flex-wrap w-full flex-row-reverse gap-1">
             {#if chara.hasEmotion}
-                <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes emotion images")}}><SmileIcon /></button>
+                <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes emotion images")})}><SmileIcon /></button>
             {/if}
             {#if chara.hasAsset}
-                <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes additional assets")}}><ImageIcon /></button>
+                <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes additional assets")})}><ImageIcon /></button>
             {/if}
             {#if chara.hasLore}
-                <button class="text-textcolor2 hover:text-green-500 transition-colors" on:click|stopPropagation={() => {alertNormal("This character includes lorebook")}}><BookIcon /></button>
+                <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes lorebook")})}><BookIcon /></button>
             {/if}
         </div>
     </div>

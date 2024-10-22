@@ -7,8 +7,12 @@
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { ShowRealmFrameStore } from "src/ts/stores";
 
-    let editMode = false
-    export let close = () => {}
+    let editMode = $state(false)
+    interface Props {
+        close?: any;
+    }
+
+    let { close = () => {} }: Props = $props();
 
 </script>
 
@@ -17,13 +21,13 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" on:click={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
                     <XIcon size={24}/>
                 </button>
             </div>
         </div>
         {#each $DataBase.botPresets as presets, i}
-            <button on:click={() => {
+            <button onclick={() => {
                 if(!editMode){
                     changeToPreset(i)
                     close()
@@ -38,13 +42,13 @@
                     <span>{presets.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={(e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" onclick={(e) => {
                         e.stopPropagation()
                         copyPreset(i)
                     }}>
                         <CopyIcon size={18}/>
                     </div>
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" on:click={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" onclick={async (e) => {
                         e.stopPropagation()
                         const data = await alertCardExport('preset')
                         console.log(data.type)
@@ -58,7 +62,7 @@
 
                         <Share2Icon size={18} />
                     </div>
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                         e.stopPropagation()
                         if($DataBase.botPresets.length === 1){
                             alertError(language.errors.onlyOneChat)
@@ -79,7 +83,7 @@
             </button>
         {/each}
         <div class="flex mt-2 items-center">
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
                 let botPresets = $DataBase.botPresets
                 let newPreset = structuredClone(prebuiltPresets.OAI2)
                 newPreset.name = `New Preset`
@@ -89,12 +93,12 @@
             }}>
                 <PlusIcon/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importPreset()
             }}>
                 <FolderUpIcon size={18}/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
                 <PencilIcon size={18}/>

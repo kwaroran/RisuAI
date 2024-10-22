@@ -12,12 +12,12 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     import { Capacitor } from "@capacitor/core";
-    let openIframe = false
-    let openIframeURL = ''
+    let openIframe = $state(false)
+    let openIframeURL = $state('')
     let popup:Window = null
 </script>
 
-<svelte:window on:message={async (e) => {
+<svelte:window onmessage={async (e) => {
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1")){
         if(e.data.msg.type === 'drive'){
             await loadRisuAccountData()
@@ -42,7 +42,7 @@
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.account} & {language.files}</h2>
 
 <Button
-    on:click={async () => {
+    onclick={async () => {
         if(await alertConfirm(language.backupConfirm)){
             SaveLocalBackup()
         }
@@ -51,7 +51,7 @@
 </Button>
 
 <Button
-    on:click={async () => {
+    onclick={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             LoadLocalBackup()
         }
@@ -61,7 +61,7 @@
 
 {#if !$DataBase.account}
     <Button
-        on:click={async () => {
+        onclick={async () => {
             if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
                 loadInternalBackup()
             }
@@ -71,7 +71,7 @@
 {/if}
 
 <Button
-    on:click={async () => {
+    onclick={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
             
@@ -87,7 +87,7 @@
 </Button>
 
 <Button
-    on:click={async () => {
+    onclick={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
             if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
@@ -102,13 +102,13 @@
     {language.loadbackup}
 </Button>
 
-<Button on:click={exportAsDataset} className="mt-2">
+<Button onclick={exportAsDataset} className="mt-2">
     {language.exportAsDataset}
 </Button>
 <div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
         <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
-            <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" on:click={async () => {
+            <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" onclick={async () => {
                 if($DataBase.account.useSync || forageStorage.isAccount){
                     unMigrationAccount()
                 }
@@ -139,14 +139,14 @@
         {/if}
     {:else}
         <span>{language.notLoggedIn}</span>
-        <button class="bg-selected p-2 rounded-md mt-2 hover:bg-green-500 transition-colors" on:click={() => {
+        <button class="bg-selected p-2 rounded-md mt-2 hover:bg-green-500 transition-colors" onclick={() => {
             openIframeURL = hubURL + '/hub/login'
             openIframe = true
         }}>
             Login
         </button>
     {/if}
-    <!-- <Button on:click={autoServerBackup}>Auto Server Backups</Button> -->
+    <!-- <Button onclick={autoServerBackup}>Auto Server Backups</Button> -->
 
 </div>
 {#if openIframe}

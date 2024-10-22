@@ -6,7 +6,7 @@
     max={max}
     step={step}
     bind:value
-    on:change
+    onchange
 > -->
 
 <div class="w-full flex" class:mb-4={marginBottom}>
@@ -14,6 +14,7 @@
 
     <div class="relative h-8 border-darkborderc border rounded-full cursor-pointer rounded-r-none border-r-0 flex justify-center items-center">
       <CheckInput check={value !== -1000} margin={false} onChange={(c) => {
+        onchange?.()
         if(c) {
           value = min;
         } else {
@@ -28,23 +29,23 @@
     style:background={
       `linear-gradient(to right, var(--risu-theme-darkbutton) 0%, var(--risu-theme-darkbutton) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) ${(value - min) / (max - min) * 100}%, var(--risu-theme-darkbg) 100%)`
     }
-    on:pointerdown={(event) => {
+    onpointerdown={(event) => {
       mouseDown = true;
       changeValue(event);
     }}
 
-    on:pointermove={(event) => {
+    onpointermove={(event) => {
       if (mouseDown) {
         changeValue(event);
       }
     }}
 
 
-    on:pointerup={() => {
+    onpointerup={() => {
       mouseDown = false;
     }}
 
-    on:pointerleave={() => {
+    onpointerleave={() => {
       mouseDown = false;
     }}
     bind:this={slider}
@@ -67,17 +68,33 @@
   import { language } from "src/lang";
   import CheckInput from "./CheckInput.svelte";
 
-    export let min:number = undefined
-    export let max:number = undefined
-    export let value:number
-    export let marginBottom = false
-    export let step = 1
-    export let fixed = 0
-    export let multiple = 1
-    let slider: HTMLDivElement
-    let mouseDown = false
-    export let disableable = false
-    export let customText: string|undefined = undefined
+    let slider: HTMLDivElement = $state()
+    let mouseDown = $state(false)
+  interface Props {
+    min?: number;
+    max?: number;
+    value: number;
+    marginBottom?: boolean;
+    step?: number;
+    fixed?: number;
+    multiple?: number;
+    disableable?: boolean;
+    customText?: string|undefined;
+    onchange?: Function;
+  }
+
+  let {
+    min = undefined,
+    max = undefined,
+    value = $bindable(),
+    marginBottom = false,
+    step = 1,
+    fixed = 0,
+    multiple = 1,
+    disableable = false,
+    customText = undefined,
+    onchange
+  }: Props = $props();
 
     function changeValue(event) {
         const rect = slider.getBoundingClientRect();

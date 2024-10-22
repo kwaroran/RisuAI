@@ -3,28 +3,37 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import type { triggerscript } from "src/ts/storage/database";
-    import Check from "../../UI/GUI/CheckInput.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
-    import { CurrentCharacter } from "src/ts/stores";
 
-    export let value:triggerscript
-    export let lowLevelAble:boolean = false
-    export let onRemove: () => void = () => {}
-    export let onClose: () => void = () => {}
-    export let onOpen: () => void = () => {}
 
-    export let idx:number
-    let open = false
+    interface Props {
+        value: triggerscript;
+        lowLevelAble?: boolean;
+        onRemove?: () => void;
+        onClose?: () => void;
+        onOpen?: () => void;
+        idx: number;
+    }
+
+    let {
+        value = $bindable(),
+        lowLevelAble = false,
+        onRemove = () => {},
+        onClose = () => {},
+        onOpen = () => {},
+        idx
+    }: Props = $props();
+    let open = $state(false)
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx2={idx}>
     <div class="flex items-center transition-colors w-full ">
-        <button class="endflex valuer border-borderc" on:click={() => {
+        <button class="endflex valuer border-borderc" onclick={() => {
             open = !open
             if(open){
                 onOpen()
@@ -35,7 +44,7 @@
         }}>
             <span>{value.comment.length === 0 ? 'Unnamed Trigger' : value.comment}</span>
         </button>
-        <button class="valuer" on:click={async () => {
+        <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
                 if(!open){
@@ -60,7 +69,7 @@
             </SelectInput>
             
             <span class="text-textcolor mt-4">Conditions
-                <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
                     value.conditions.push({
                         type: 'value',
                         value: '',
@@ -80,16 +89,16 @@
                         <hr class="border-selected my-4" />
                     {/if}
                     <span class="text-textcolor2 text-sm">{language.type}
-                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
                             value.conditions.splice(i, 1)
                             value.conditions = value.conditions
         
                         }}><XIcon size={18} /></button>
 
                     </span>
-                    <SelectInput bind:value={cond.type} size="sm" on:change={() => {
+                    <SelectInput bind:value={cond.type} size="sm" onchange={() => {
                         if(cond.type === 'exists'){
-                            cond = {
+                            value.conditions[i] = {
                                 type: 'exists',
                                 value: '',
                                 type2: 'loose',
@@ -97,7 +106,7 @@
                             }
                         }
                         if(cond.type === 'var' || cond.type === 'value'){
-                            cond = {
+                            value.conditions[i] = {
                                 type: cond.type,
                                 var: '',
                                 value: '',
@@ -105,7 +114,7 @@
                             }
                         }
                         if(cond.type === 'chatindex'){
-                            cond = {
+                            value.conditions[i] = {
                                 type: 'chatindex',
                                 value: '',
                                 operator: '='
@@ -158,7 +167,7 @@
             </div>
 
             <span class="text-textcolor mt-4">Effects
-                <button aria-labelledby="Add Effects" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                <button aria-labelledby="Add Effects" class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
                     if(value.type === 'start'){
                         value.effect.push({
                             type: 'systemprompt',
@@ -188,23 +197,23 @@
                         <hr class="border-selected my-4" />
                     {/if}
                     <span class="text-textcolor2 text-sm">{language.type}
-                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" on:click={() => {
+                        <button aria-labelledby="Add Conditions" class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
                             value.effect.splice(i, 1)
                             value.effect = value.effect
         
                         }}><XIcon size={18} /></button>
 
                     </span>
-                    <SelectInput bind:value={effect.type} size="sm" on:change={() => {
+                    <SelectInput bind:value={effect.type} size="sm" onchange={() => {
                         if(effect.type === 'systemprompt'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'systemprompt',
                                 value: '',
                                 location: 'historyend'
                             }
                         }
                         else if(effect.type === 'setvar'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'setvar',
                                 var: '',
                                 value: '',
@@ -212,38 +221,38 @@
                             }
                         }
                         else if(effect.type === 'impersonate'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'impersonate',
                                 role: 'char',
                                 value: ''
                             }
                         }
                         else if(effect.type === 'command'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'command',
                                 value: ''
                             }
                         }
                         else if(effect.type === 'stop'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'stop',
                             }
                         }
                         else if(effect.type === 'runtrigger'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'runtrigger',
                                 value: ''
                             }
                         }
                         else if(effect.type === 'runLLM'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'runLLM',
                                 value: '',
                                 inputVar: ''
                             }
                         }
                         else if(effect.type === 'checkSimilarity'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'checkSimilarity',
                                 source: '',
                                 value: '',
@@ -251,7 +260,7 @@
                             }
                         }
                         else if(effect.type === 'showAlert'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'showAlert',
                                 alertType: 'normal',
                                 value: '',
@@ -259,7 +268,7 @@
                             }
                         }
                         else if(effect.type === 'extractRegex'){
-                            effect ={
+                            value.effect[i] ={
                                 type: 'extractRegex',
                                 value: '',
                                 regex: '',
@@ -269,7 +278,7 @@
                             }
                         }
                         else if(effect.type === 'runImgGen'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'runImgGen',
                                 value: '',
                                 negValue: '',
@@ -277,19 +286,19 @@
                             }
                         }
                         else if(effect.type === 'sendAIprompt'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'sendAIprompt'                           
                             }
                         }
                         else if(effect.type === 'cutchat'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'cutchat',
                                 start: '',
                                 end: ''                           
                             }
                         }
                         else if(effect.type === 'modifychat'){
-                            effect = {
+                            value.effect[i] = {
                                 type: 'modifychat',
                                 value: '',
                                 index: ''

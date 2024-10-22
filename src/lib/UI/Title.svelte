@@ -4,7 +4,7 @@
     import { openURL } from "src/ts/storage/globalApi";
     import { sideBarStore } from "src/ts/stores";
 
-    let specialDay = ''
+    let specialDay = $state('')
     const today = new Date()
     if (today.getMonth() === 11 && today.getDate() >= 19 && today.getDate() <= 25) {
         specialDay = 'christmas'
@@ -29,11 +29,11 @@
             specialDay = 'midAutumn'
         }
     }
-    let iconAnimation = 0
-    let clicks = 0
-    let score = 0
-    let time = 20
-    let miniGameStart = false
+    let iconAnimation = $state(0)
+    let clicks = $state(0)
+    let score = $state(0)
+    let time = $state(20)
+    let miniGameStart = $state(false)
 
     const onClick = () => {
         if(specialDay === 'newYear'){
@@ -74,8 +74,8 @@ You've had:
 
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} on:click={onClick}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} onclick={onClick}>
     {#if specialDay === 'midAutumn'}
         <span class="text-amber-400">🐉RisuAI🐉</span>
     {:else if specialDay === 'chuseok'}
@@ -91,12 +91,12 @@ You've had:
         RisuAI
     {/if}
     {#if specialDay === 'christmas'}
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         {#if clicks < 5}
             <img src="./santa.png" alt="santa" class="absolute logo-top"
                 style:top={(-20 + iconAnimation).toFixed(0) + 'px'}
                 style:right={'-30px'}
-                on:click={async () => {
+                onclick={async () => {
                     iconAnimation = Math.random() * 300
                     clicks++
                     if(clicks === 5){
@@ -107,7 +107,7 @@ You've had:
         {/if}
     {/if}
     {#if specialDay === 'anniversary'}
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         {#if clicks < 5}
             <img src="./birthday.png" alt="birthday" class="absolute logo-top"
                 style:top={(-28 + iconAnimation).toFixed(0) + 'px'}
@@ -116,18 +116,18 @@ You've had:
         {/if}
     {/if}
     {#if specialDay === 'newYear'}
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <img src="./sun.webp" alt="sun" class="absolute -z-10"
             style:top={'-50px'}
             style:right={'0px'}
-            on:click={onClick}
+            onclick={onClick}
         >
     {/if}
 </h2>
 
 {#if specialDay === 'anniversary'}
     <h1>
-        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" on:click={() => {
+        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" onclick={() => {
             openURL('https://risuai.net')
         }}>Happy 1st Anniversary!</span>
     </h1>
@@ -136,11 +136,11 @@ You've had:
     <div class="bg-black w-full p-3 mt-4 mb-4 rounded-md max-w-2xl" id="minigame-div">
         <span class="font-semibold text-lg">Score: {score}</span><br>
         <span class="font-semibold text-lg">Time: {time.toFixed(0)}</span>
-        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <img src="./santa.png" alt="santa"
             style:margin-left={iconAnimation + 'px'}
             class:grayscale={!miniGameStart}
-            on:click={async () => {
+            onclick={async () => {
                 const miniGameDiv = document.getElementById('minigame-div')
                 const max = miniGameDiv.clientWidth - 70
                 iconAnimation = Math.random() * max

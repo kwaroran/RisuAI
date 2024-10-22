@@ -32,7 +32,7 @@ export default defineConfig({
       host: '0.0.0.0', // listen on all addresses
       port: 5174,
       strictPort: true,
-      hmr: false,
+      // hmr: false,
     },
     // to make use of `TAURI_DEBUG` and other env variables
     // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand

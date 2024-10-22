@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
     import { downloadRisuHub, getRisuHub, hubAdditionalHTML, type hubType } from "src/ts/characterCards";
     import { ArrowLeft, ArrowRight, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
     import { alertInput } from "src/ts/alert";
@@ -11,16 +13,16 @@
   import { googleBuild } from "src/ts/storage/globalApi";
   import { split } from "lodash";
 
-    let openedData:null|hubType = null
+    let openedData:null|hubType = $state(null)
 
-    let charas:hubType[] = []
+    let charas:hubType[] = $state([])
 
-    let page = 0
-    let sort = ''
+    let page = $state(0)
+    let sort = $state('')
 
-    let search = ''
-    let menuOpen = false
-    let nsfw = false
+    let search = $state('')
+    let menuOpen = $state(false)
+    let nsfw = $state(false)
 
     async function getHub(){
         charas = await getRisuHub({
@@ -39,7 +41,7 @@
     <div class="flex items-stretch w-2xl max-w-full">
         <input bind:value={search} class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full">
             <button
-            on:click={() => {
+            onclick={() => {
                 page = 0
                 getHub()
             }}
@@ -48,7 +50,7 @@
             <SearchIcon />
         </button>
         <button
-            on:click={(e) => {
+            onclick={(e) => {
                 menuOpen = true
             }}
             class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
@@ -60,14 +62,14 @@
 {#if $MobileGUI}
 <div class="ml-4 flex items-start ">
     <div class="p-2 flex mb-3 overflow-x-auto rounded-lg border-darkborderc border gap-2">
-        <button on:click={() => {
+        <button onclick={() => {
             nsfw = !nsfw
             getHub()
         }}>
             {nsfw ? 'NSFW' : 'SFW'}
         </button>
         <div class="h-full border-r border-r-selected"></div>
-        <button on:click={() => {
+        <button onclick={() => {
             switch(sort){
                 case '':
                     sort = 'trending'
@@ -95,32 +97,32 @@
 </div>
 {:else}
     <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} on:click={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} onclick={() => {
             nsfw = !nsfw
             getHub()
         }}>
             NSFW
         </button>
         <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} on:click={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} onclick={() => {
             sort = ''
             getHub()
         }}>
             {language.recent}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} on:click={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} onclick={() => {
             sort = 'trending'
             getHub()
         }}>
             {language.trending}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} on:click={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} onclick={() => {
             sort = 'downloads'
             getHub()
         }}>
             {language.downloads}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} on:click={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} onclick={() => {
             sort = 'random'
             getHub()
         }}>
@@ -139,7 +141,7 @@
 {#if sort !== 'random'}
     <div class="w-full flex justify-center">
         <div class="flex">
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" onclick={() => {
                 if(page > 0){
                     page -= 1
                     getHub()
@@ -150,7 +152,7 @@
             <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
                 <span>{page + 1}</span>
             </button>
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" on:click={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" onclick={() => {
                 page += 1
                 getHub()
             }}>
@@ -166,8 +168,8 @@
 
 
 {#if menuOpen}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" on:click={() => {
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" onclick={() => {
         menuOpen = false
     }}>
         <div class="max-w-full bg-darkbg rounded-md flex flex-col gap-4 overflow-y-auto p-4">
@@ -175,12 +177,12 @@
                 <span>
                     Menu
                 </span>
-                <button class="float-right text-textcolor2 hover:text-green-500" on:click={() => {menuOpen = false}}>
+                <button class="float-right text-textcolor2 hover:text-green-500" onclick={() => {menuOpen = false}}>
                     <XIcon />
                 </button>
             </h1>
             <div class=" mt-2 w-full border-t-2 border-t-bgcolor"></div>
-            <button class="w-full hover:bg-selected p-4" on:click|stopPropagation={async () => {
+            <button class="w-full hover:bg-selected p-4" onclick={stopPropagation(async () => {
                 menuOpen = false
                 const input = await alertInput('Input URL or ID')
                 if(input.startsWith("http")){
@@ -194,7 +196,7 @@
                 const id = input.split("?").at(-1)
                 downloadRisuHub(id)
 
-            }}>Import Character from URL or ID</button>
+            })}>Import Character from URL or ID</button>
         </div>
     </div>
 {/if}

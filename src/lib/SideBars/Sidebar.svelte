@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
     import {
     CharEmotion,
     DynamicGUI,
@@ -7,13 +9,8 @@
     settingsOpen,
     sideBarClosing,
     sideBarStore,
-    CurrentCharacter,
-
     OpenRealmStore,
-
     PlaygroundStore
-
-
   } from "../../ts/stores";
     import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
     import BarIcon from "./BarIcon.svelte";
@@ -53,11 +50,10 @@
     import { ConnectionIsHost, ConnectionOpenStore, joinMultiuserRoom, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
-  let sideBarMode = 0;
-  let editMode = false;
-  let menuMode = 0;
-  let devTool = false
-  export let openGrid = () => {};
+  let sideBarMode = $state(0);
+  let editMode = $state(false);
+  let menuMode = $state(0);
+  let devTool = $state(false)
 
   function reseter() {
     menuMode = 0;
@@ -69,11 +65,16 @@
 
   type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
   type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string}
-  let charImages: sortType[] = [];
-  let IconRounded = false
-  let openFolders:string[] = []
-  let currentDrag: DragData = null
-  export let hidden = false
+  let charImages: sortType[] = $state([]);
+  let IconRounded = $state(false)
+  let openFolders:string[] = $state([])
+  let currentDrag: DragData = $state(null)
+  interface Props {
+    openGrid?: any;
+    hidden?: boolean;
+  }
+
+  let { openGrid = () => {}, hidden = false }: Props = $props();
 
   sideBarClosing.set(false)
 
@@ -311,7 +312,7 @@
 >
   <button
     class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer text-white mt-2 items-center justify-center rounded-md bg-textcolor2 transition-colors hover:bg-green-500"
-    on:click={() => {
+    onclick={() => {
       menuMode = 1 - menuMode;
     }}><ListIcon />
   </button>
@@ -360,39 +361,39 @@
     {/if}
   </div>
   <div class="flex flex-grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
-    <div class="h-4 min-h-4 w-14" on:dragover={(e) => {
+    <div class="h-4 min-h-4 w-14" ondragover={(e) => {
       e.preventDefault()
       e.dataTransfer.dropEffect = 'move'
       e.currentTarget.classList.add('bg-green-500')
-    }} on:dragleave={(e) => {
+    }} ondragleave={(e) => {
       e.currentTarget.classList.remove('bg-green-500')
-    }} on:drop={(e) => {
+    }} ondrop={(e) => {
       e.preventDefault()
       e.currentTarget.classList.remove('bg-green-500')
       const da = currentDrag
       if(da){
         inserter(da,{index:0})
       }
-    }} on:dragenter={preventAll} />
+    }} ondragenter={preventAll}></div>
     {#each charImages as char, ind}
       <div class="group relative flex items-center px-2"
         draggable="true"
-        on:dragstart={(e) => {avatarDragStart({index:ind}, e)}}
-        on:dragover={avatarDragOver}
-        on:drop={(e) => {avatarDrop({index:ind}, e)}}
-        on:dragenter={preventAll}
+        ondragstart={(e) => {avatarDragStart({index:ind}, e)}}
+        ondragover={avatarDragOver}
+        ondrop={(e) => {avatarDrop({index:ind}, e)}}
+        ondragenter={preventAll}
       >
         <SidebarIndicator
           isActive={char.type === 'normal' && $selectedCharID === char.index && sideBarMode !== 1}
         />
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
-            on:click={() => {
+            onclick={() => {
               if(char.type === "normal"){
                 changeChar(char.index, {reseter});
               }
             }}
-            on:keydown={(e) => {
+            onkeydown={(e) => {
               if (e.key === "Enter") {
                 if(char.type === "normal"){
                   changeChar(char.index, {reseter});
@@ -407,7 +408,7 @@
             {#key char.color}
             {#key char.name}
               <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color}
-              on:contextmenu={async (e) => {
+              oncontextmenu={async (e) => {
                 e.preventDefault()
                 const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.cancel]))
                 if(sel === 0){
@@ -471,39 +472,39 @@
           class:bg-indigo-700={char.color === 'indigo'}
           class:bg-purple-700={char.color === 'purple'}
           class:bg-pink-700={char.color === 'pink'}></div>
-          <div class="h-4 min-h-4 w-14 relative z-10" on:dragover={(e) => {
+          <div class="h-4 min-h-4 w-14 relative z-10" ondragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
             e.currentTarget.classList.add('bg-green-500')
-          }} on:dragleave={(e) => {
+          }} ondragleave={(e) => {
             e.currentTarget.classList.remove('bg-green-500')
-          }} on:drop={(e) => {
+          }} ondrop={(e) => {
             e.preventDefault()
             e.currentTarget.classList.remove('bg-green-500')
             const da = currentDrag
             if(da && char.type === 'folder'){
               inserter(da,{index:0,folder:char.id})
             }
-          }} on:dragenter={preventAll}/>
+          }} ondragenter={preventAll}></div>
           {#each char.folder as char2, ind}
               <div class="group relative flex items-center px-2 z-10"
               draggable="true"
-              on:dragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
-              on:dragover={avatarDragOver}
-              on:drop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
-              on:dragenter={preventAll}
+              ondragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
+              ondragover={avatarDragOver}
+              ondrop={(e) => {if(char.type === 'folder'){avatarDrop({index: ind, folder:char.id}, e)}}}
+              ondragenter={preventAll}
             >
               <SidebarIndicator
                 isActive={$selectedCharID === char2.index && sideBarMode !== 1}
               />
-              <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+              <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
               <div
-                  on:click={() => {
+                  onclick={() => {
                     if(char2.type === "normal"){
                       changeChar(char2.index, {reseter});
                     }
                   }}
-                  on:keydown={(e) => {
+                  onkeydown={(e) => {
                     if (e.key === "Enter") {
                       if(char2.type === "normal"){
                         changeChar(char2.index, {reseter});
@@ -515,37 +516,38 @@
                 <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char2.name}/>
               </div>
             </div>
-            <div class="h-4 min-h-4 w-14 relative z-20" on:dragover={(e) => {
+            <div class="h-4 min-h-4 w-14 relative z-20" ondragover={(e) => {
               e.preventDefault()
               e.dataTransfer.dropEffect = 'move'
               e.currentTarget.classList.add('bg-green-500')
-            }} on:dragleave={(e) => {
+            }} ondragleave={(e) => {
               e.currentTarget.classList.remove('bg-green-500')
-            }} on:drop={(e) => {
+            }} ondrop={(e) => {
               e.preventDefault()
               e.currentTarget.classList.remove('bg-green-500')
               const da = currentDrag
               if(da && char.type === 'folder'){
                 inserter(da,{index:ind+1,folder:char.id})
               }
-            }} on:dragenter={preventAll}/>
+            }} ondragenter={preventAll}></div>
           {/each}
         </div>
         {/key}
       {/if}
-      <div class="h-4 min-h-4 w-14" on:dragover|preventDefault={(e) => {
+      <div class="h-4 min-h-4 w-14" ondragover={((e) => {
+        e.preventDefault()
         e.dataTransfer.dropEffect = 'move'
         e.currentTarget.classList.add('bg-green-500')
-      }} on:dragleave={(e) => {
+      })} ondragleave={(e) => {
         e.currentTarget.classList.remove('bg-green-500')
-      }} on:drop={(e) => {
+      }} ondrop={(e) => {
         e.preventDefault()
         e.currentTarget.classList.remove('bg-green-500')
         const da = currentDrag
         if(da){
           inserter(da,{index:ind+1})
         }
-      }} on:dragenter={preventAll} />
+      }} ondragenter={preventAll}></div>
     {/each}
     <div class="flex flex-col items-center space-y-2 px-2">
       <BaseRoundedButton
@@ -583,7 +585,7 @@
   class:dynamic-sidebar={$DynamicGUI}
   class:hidden={hidden}
   class:flex={!hidden}
-  on:animationend={() => {
+  onanimationend={() => {
     if($sideBarClosing){
       $sideBarClosing = false
       sideBarStore.set(false)
@@ -592,7 +594,7 @@
 >
   <button
     class="flex w-full justify-end text-textcolor"
-    on:click={async () => {
+    onclick={async () => {
       if($sideBarClosing){
         return
       }
@@ -607,8 +609,8 @@
         <h1 class="text-xl">Welcome to RisuAI!</h1>
         <span class="text-xs text-textcolor2">Select a bot to start chating</span>
       </div>
-    {:else if $CurrentCharacter?.chaId === '§playground'}
-      <SideChatList bind:chara={ $CurrentCharacter} />
+    {:else if $DataBase.characters[$selectedCharID]?.chaId === '§playground'}
+      <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
     {:else if $ConnectionOpenStore}
       <div class="flex flex-col">
         <h1 class="text-xl">{language.connectionOpen}</h1>
@@ -627,16 +629,16 @@
       </div>
     {:else}
       <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
-        <button on:click={() => {
+        <button onclick={() => {
           devTool = false
           botMakerMode.set(false)
         }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool}>{language.Chat}</button>
-        <button on:click={() => {
+        <button onclick={() => {
           devTool = false
           botMakerMode.set(true)
         }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
         {#if $DataBase.enableDevTools}
-          <button on:click={() => {
+          <button onclick={() => {
             devTool = true
           }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool}>
             <WrenchIcon size={18} />
@@ -648,14 +650,14 @@
       {:else if $botMakerMode}
         <CharConfig />
       {:else}
-        <SideChatList bind:chara={ $CurrentCharacter} />
+        <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
       {/if}
     {/if}
   {/if}
 </div>
 
 {#if $DynamicGUI}
-    <div class="flex-grow h-full min-w-12" class:hidden={hidden} on:click={() => {
+    <div class="flex-grow h-full min-w-12" class:hidden={hidden} onclick={() => {
       if($sideBarClosing){
         return
       }

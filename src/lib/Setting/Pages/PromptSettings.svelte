@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import { ArrowLeft, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
@@ -15,37 +17,45 @@
 
     let sorted = 0
     let opened = 0
-    let warns: string[] = []
-    export let onGoBack: () => void = () => {}
-    export let mode: 'independent'|'inline' = 'independent'
-    let tokens = 0
-    let extokens = 0
+    let warns: string[] = $state([])
+    let tokens = $state(0)
+    let extokens = $state(0)
     executeTokenize($DataBase.promptTemplate)
-    export let subMenu = 0
+  interface Props {
+    onGoBack?: () => void;
+    mode?: 'independent'|'inline';
+    subMenu?: number;
+  }
+
+  let { onGoBack = () => {}, mode = 'independent', subMenu = $bindable(0) }: Props = $props();
 
     async function executeTokenize(prest: PromptItem[]){
         tokens = await tokenizePreset(prest, true)
         extokens = await tokenizePreset(prest, false)
     }
 
-    $: warns = templateCheck($DataBase)
-    $: executeTokenize($DataBase.promptTemplate)
+    run(() => {
+    warns = templateCheck($DataBase)
+  });
+    run(() => {
+    executeTokenize($DataBase.promptTemplate)
+  });
 </script>
 {#if mode === 'independent'}
     <h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
-        <button class="mr-2 text-textcolor2 hover:text-textcolor" on:click={onGoBack}>
+        <button class="mr-2 text-textcolor2 hover:text-textcolor" onclick={onGoBack}>
             <ArrowLeft />
         </button>
         {language.promptTemplate}
     </h2>
 
     <div class="flex w-full rounded-md border border-selected">
-        <button on:click={() => {
+        <button onclick={() => {
             subMenu = 0
         }} class="p-2 flex-1" class:bg-selected={subMenu === 0}>
             <span>{language.template}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             subMenu = 1
         }} class="p-2 flex-1" class:bg-selected={subMenu === 1}>
             <span>{language.settings}</span>
@@ -69,7 +79,7 @@
         {/if}
         {#key sorted}
             {#each $DataBase.promptTemplate as prompt, i}
-                <PromptDataItem bind:promptItem={prompt} onRemove={() => {
+                <PromptDataItem bind:promptItem={$DataBase.promptTemplate[i]} onRemove={() => {
                     let templates = $DataBase.promptTemplate
                     templates.splice(i, 1)
                     $DataBase.promptTemplate = templates
@@ -96,7 +106,7 @@
         {/key}
     </div>
 
-    <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+    <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
         let value = $DataBase.promptTemplate ?? []
         value.push({
             type: "plain",

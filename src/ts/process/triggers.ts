@@ -1,9 +1,9 @@
 import { parseChatML, risuChatParser } from "../parser";
-import { DataBase, type Chat, type character } from "../storage/database";
+import { DataBase, getCurrentCharacter, getCurrentChat, type Chat, type character } from "../storage/database";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat, ReloadGUIPointer, selectedCharID } from "../stores";
+import { ReloadGUIPointer, selectedCharID } from "../stores";
 import { processMultiCommand } from "./command";
 import { parseKeyValue } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -157,7 +157,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     let stopSending = arg.stopSending ?? false
     const CharacterlowLevelAccess = char.lowLevelAccess ?? false
     let sendAIprompt = false
-    const currentChat = get(CurrentChat)
+    const currentChat = getCurrentChat()
     let additonalSysPrompt:additonalSysPrompt = arg.additonalSysPrompt ?? {
         start:'',
         historyend: '',
@@ -190,7 +190,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
 
     function setVar(key:string, value:string){
         const selectedCharId = get(selectedCharID)
-        const currentCharacter = get(CurrentCharacter)
+        const currentCharacter = getCurrentCharacter()
         const db = get(DataBase)
         varChanged = true
         chat.scriptstate ??= {}
@@ -517,7 +517,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     if(triggerCodeResult.stopSending){
                         stopSending = true
                     }
-                    chat = get(CurrentChat)
+                    chat = getCurrentChat()
                     break
                 }
             }
@@ -535,7 +535,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         caculatedTokens += await tokenize(additonalSysPrompt.promptend)
     }
     if(varChanged){
-        const currentChat = get(CurrentChat)
+        const currentChat = getCurrentChat()
         currentChat.scriptstate = chat.scriptstate
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }

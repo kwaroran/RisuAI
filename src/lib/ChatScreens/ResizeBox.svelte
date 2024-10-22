@@ -6,7 +6,7 @@
     import { getEmotion } from '../../ts/util';
     import { DataBase } from '../../ts/storage/database';
 
-    let box;
+    let box = $state();
     let isResizing = false;
     let initialWidth;
     let initialHeight;
@@ -88,9 +88,9 @@
     <TransitionImage classType='risu' src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
     <div
       class="resize-handle"
-      on:mousedown="{handleStart}"
-      on:mouseup="{handleEnd}"
-      on:touchstart="{handleStart}"
-      on:touchend="{handleEnd}"
+      onmousedown={handleStart}
+      onmouseup={handleEnd}
+      ontouchstart={handleStart}
+      ontouchend={handleEnd}
     ></div>
 </div>

@@ -16,16 +16,16 @@
 
 <div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2">
     {#each $DataBase.personas as persona, i}
-        <button on:click={() => {
+        <button onclick={() => {
             changeUserPersona(i)
         }}>
             {#if persona.icon === ''}
-                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona} />
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}></div>
             {:else}
                 {#await getCharImage(persona.icon, 'css')}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}/>
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}></div>
                 {:then im} 
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === $DataBase.selectedPersona} />                
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === $DataBase.selectedPersona}></div>                
                 {/await}
             {/if}
         </button>
@@ -62,14 +62,14 @@
 
 <div class="flex w-full items-starts rounded-md border-darkborderc border p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
-        <button on:click={() => {selectUserImg()}}>
+        <button onclick={() => {selectUserImg()}}>
             {#if $DataBase.userIcon === ''}
-                <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
             {:else}
                 {#await getCharImage($DataBase.userIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                 {:then im} 
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
                 {/await}
             {/if}
         </button>
@@ -80,10 +80,10 @@
         <span class="text-sm text-textcolor2">{language.description}</span>
         <TextAreaInput autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div class="flex gap-2 mt-4 max-w-full flex-wrap">
-            <Button on:click={exportUserPersona}>{language.export}</Button>
-            <Button on:click={importUserPersona}>{language.import}</Button>
+            <Button onclick={exportUserPersona}>{language.export}</Button>
+            <Button onclick={importUserPersona}>{language.import}</Button>
 
-            <Button styled="danger" on:click={async () => {
+            <Button styled="danger" onclick={async () => {
                 if($DataBase.personas.length === 1){
                     return
                 }

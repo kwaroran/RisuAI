@@ -450,6 +450,30 @@ export function setDatabase(data:Database){
     DataBase.set(data)
 }
 
+export function getCurrentCharacter(){
+    const db = get(DataBase)
+    db.characters ??= []
+    const char = db.characters?.[get(selectedCharID)]
+    return char
+}
+
+export function setCurrentCharacter(char:character|groupChat){
+    const db = get(DataBase)
+    db.characters ??= []
+    db.characters[get(selectedCharID)] = char
+    DataBase.set(db)
+}
+
+export function getCurrentChat(){
+    const char = getCurrentCharacter()
+    return char?.chats[char.chatPage]
+}
+
+export function setCurrentChat(chat:Chat){
+    const char = getCurrentCharacter()
+    char.chats[char.chatPage] = chat
+    setCurrentCharacter(char)
+}
 
 export interface Database{
     characters: (character|groupChat)[],
@@ -1423,6 +1447,7 @@ import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
+import { selectedCharID } from '../stores';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

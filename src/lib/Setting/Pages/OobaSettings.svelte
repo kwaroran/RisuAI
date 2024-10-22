@@ -9,7 +9,11 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
-    export let instructionMode = false
+    interface Props {
+        instructionMode?: boolean;
+    }
+
+    let { instructionMode = false }: Props = $props();
 </script>
 
 <Arcodion name="Ooba Settings" styled>
@@ -131,7 +135,7 @@
         {#if $DataBase.localStopStrings}
             <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
                 <div class="p-2">
-                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                         let localStopStrings = $DataBase.localStopStrings
                         localStopStrings.push('')
                         $DataBase.localStopStrings = localStopStrings
@@ -143,7 +147,7 @@
                             <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
                         </div>
                         <div>
-                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                                 let localStopStrings = $DataBase.localStopStrings
                                 localStopStrings.splice(i, 1)
                                 $DataBase.localStopStrings = localStopStrings

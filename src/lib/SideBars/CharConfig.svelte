@@ -1,8 +1,10 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
-    import { CharConfigSubMenu, CurrentChat, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
+    import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores";
     import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
@@ -34,14 +36,14 @@
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
 
-    let iconRemoveMode = false
-    let emos:[string, string][] = []
-    let tokens = {
+    let iconRemoveMode = $state(false)
+    let emos:[string, string][] = $state([])
+    let tokens = $state({
         desc: 0,
         firstMsg: 0,
         localNote: 0,
         charaNote: 0
-    }
+    })
 
     let lasttokens = {
         desc: '',
@@ -72,14 +74,14 @@
 
     }
 
-    let database:Database
+    let database:Database = $state()
     let currentChar:{
         type: 'character',
         data: character
     }|{
         type: 'group',
         data: groupChat
-    }
+    } = $state()
 
 
     const unsub = DataBase.subscribe(async (v) => {
@@ -120,11 +122,11 @@
 
     })
 
-    let assetFileExtensions:string[] = []
-    let assetFilePath:string[] = []
-    let licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
+    let assetFileExtensions:string[] = $state([])
+    let assetFilePath:string[] = $state([])
+    let licensed = $state((currentChar.type === 'character') ? currentChar.data.license : '')
 
-    $: {
+    run(() => {
         if(database.characters[$selectedCharID].chaId === currentChar.data.chaId){
             database.characters[$selectedCharID] = currentChar.data
         }
@@ -149,66 +151,74 @@
             }
         }
         
-    }
+    });
 
     onDestroy(unsub);
 
 
-    $:licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
-    $: if (currentChar.data.ttsMode === 'novelai' && (currentChar.data as character).naittsConfig === undefined) {
-        (currentChar.data as character).naittsConfig = {
-            customvoice: false,
-            voice: 'Aini',
-            version: 'v2'
-        };
-    }
-    $: if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
-        (currentChar.data as character).gptSoVitsConfig = {
-            url: '',
-            use_auto_path: false,
-            ref_audio_path: '',
-            use_long_audio: false,
-            ref_audio_data: {
-                fileName: '',
-                assetId: ''  
-            },
-            volume: 1.0,
-            text_lang: 'auto',
-            text: 'en',
-            use_prompt: false,
-            prompt_lang: 'en',
-            top_p: 1,
-            temperature: 0.7,
-            speed: 1,
-            top_k: 5,
-            text_split_method: 'cut0',
-        };
-    }
+    run(() => {
+        licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
+    });
+    run(() => {
+        if (currentChar.data.ttsMode === 'novelai' && (currentChar.data as character).naittsConfig === undefined) {
+            (currentChar.data as character).naittsConfig = {
+                customvoice: false,
+                voice: 'Aini',
+                version: 'v2'
+            };
+        }
+    });
+    run(() => {
+        if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
+            (currentChar.data as character).gptSoVitsConfig = {
+                url: '',
+                use_auto_path: false,
+                ref_audio_path: '',
+                use_long_audio: false,
+                ref_audio_data: {
+                    fileName: '',
+                    assetId: ''  
+                },
+                volume: 1.0,
+                text_lang: 'auto',
+                text: 'en',
+                use_prompt: false,
+                prompt_lang: 'en',
+                top_p: 1,
+                temperature: 0.7,
+                speed: 1,
+                top_k: 5,
+                text_split_method: 'cut0',
+            };
+        }
+    });
 
     let fishSpeechModels:{
         _id:string,
         title:string,
         description:string
-    }[] = []
+    }[] = $state([])
 
-    $: if (currentChar.data.ttsMode === 'fishspeech' && (currentChar.data as character).fishSpeechConfig === undefined) {
-        (currentChar.data as character).fishSpeechConfig = {
-            model: {
-                _id: '',
-                title: '',
-                description: ''
-            },
-            chunk_length: 200,
-            normalize: false,
-        };
-    }
+    run(() => {
+        if (currentChar.data.ttsMode === 'fishspeech' && (currentChar.data as character).fishSpeechConfig === undefined) {
+            (currentChar.data as character).fishSpeechConfig = {
+                model: {
+                    _id: '',
+                    title: '',
+                    description: ''
+                },
+                chunk_length: 200,
+                normalize: false,
+            };
+        }
+    });
 
-    $: {
+    run(() => {
         if(currentChar.type === 'group' && ($CharConfigSubMenu === 4 || $CharConfigSubMenu === 5)){
             $CharConfigSubMenu = 0
         }
 
-    }
+    });
 
     async function getFishSpeechModels() {
         try {
@@ -241,24 +251,24 @@
 
 {#if licensed !== 'private' && !$MobileGUI}
     <div class="flex gap-2 mb-2">
-        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 0}}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
             <UserIcon />
         </button>
-        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 1}}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}}>
             <SmileIcon />
         </button>
-        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 3}}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}}>
             <BookIcon />
         </button>
         {#if currentChar.type === 'character'}
-            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 5}}>
+            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}}>
                 <Volume2Icon />
             </button>
-            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 4}}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} on:click={() => {$CharConfigSubMenu = 2}}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}}>
             <ActivityIcon />
         </button>
     </div>
@@ -304,7 +314,7 @@
                                 class:bg-selected={currentChar.data.characterTalks[i] < (1 / 6 * barIndex)}
                                 class:rounded-l-lg={barIndex === 1}
                                 class:rounded-r-lg={barIndex === 6}
-                                on:click={() => {
+                                onclick={() => {
                                     if(currentChar.data.type === 'group'){
                                         currentChar.data.characterTalks[i] = (1 / 6 * barIndex)
                                     }
@@ -319,7 +329,7 @@
             {/if}
         </div>
         <div class="text-textcolor2 mt-1 flex mb-6">
-            <button on:click={addGroupChar} class="hover:text-textcolor cursor-pointer">
+            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer">
                 <PlusIcon />
             </button>
         </div>
@@ -372,7 +382,7 @@
         {/if}
     {/if}
     {#if licensed === 'private'}
-        <Button on:click={async () => {
+        <Button onclick={async () => {
             const conf = await alertConfirm(language.removeConfirm + currentChar.data.name)
             if(!conf){
                 return
@@ -400,17 +410,17 @@
     {/if}
     <span class="text-textcolor mt-2 mb-2">{currentChar.type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if currentChar.type === 'group'}
-        <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
+        <button onclick={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
             {#await getCharImage(currentChar.data.image, 'css')}
                 <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
             {:then im}
-                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im} />     
+                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im}></div>     
             {/await}
         </button>
     {:else}
         <div class="p-2 border-darkborderc border rounded-md flex flex-wrap gap-2">
             {#if currentChar.data.image !== '' && currentChar.data.image}
-                <button on:click={() => {
+                <button onclick={() => {
                     if(
                         currentChar.type === 'character' &&
                         currentChar.data.image !== '' &&
@@ -429,19 +439,19 @@
                         <div
                             class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
                             class:ring-red-500={iconRemoveMode}
-                        />
+></div>
                     {:then im}
                         <div
                             class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
                             class:ring-red-500={iconRemoveMode}
                             style={im}
-                        />     
+></div>     
                     {/await}
                 </button>
             {/if}
             {#if currentChar.data.ccAssets}
                 {#each currentChar.data.ccAssets as assets, i}
-                    <button on:click={async () => {
+                    <button onclick={async () => {
                         if(!iconRemoveMode){
                             changeCharImage($selectedCharID, i)
                             currentChar = currentChar
@@ -456,17 +466,17 @@
                             <div
                                 class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
                                 class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
-                            />
+></div>
                         {:then im}
                             <div
                                 class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
                                 style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
-                            />     
+></div>     
                         {/await}
                     </button>
                 {/each}
             {/if}
-            <button on:click={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
+            <button onclick={async () => {await selectCharImg($selectedCharID);currentChar = currentChar}}>
                 <div
                     class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500"
                     style={currentChar.data.largePortrait ? 'height: 10.66rem;' : ''}
@@ -476,7 +486,7 @@
             </button>
         </div>
         <div class="flex w-full items-end justify-end mt-2">
-            <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} on:click={() => {
+            <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} onclick={() => {
                 iconRemoveMode = !iconRemoveMode
             }}>
                 <TrashIcon size="18" />
@@ -491,17 +501,17 @@
     {/if}
 
     {#if currentChar.type === 'group'}
-        <Button on:click={makeGroupImage}>
+        <Button onclick={makeGroupImage}>
             {language.createGroupImg}
         </Button>
     {/if}
 
 
     <span class="text-textcolor mt-6 mb-2">{language.viewScreen}</span>
-    <!-- svelte-ignore empty-block -->
+    <!-- svelte-ignore block_empty -->
 
     {#if currentChar.type !== 'group'}
-        <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen} on:change={() => {
+        <SelectInput className="mb-2" bind:value={currentChar.data.viewScreen} onchange={() => {
             if(currentChar.type === 'character'){
                 currentChar.data = updateInlayScreen(currentChar.data)
             }
@@ -552,7 +562,7 @@
                                 <TextInput marginBottom size='lg' bind:value={currentChar.data.emotionImages[i][0]} />
                             </td>
                             <td>
-                                <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                                <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
                                     rmCharEmotion($selectedCharID,i)
                                 }}><TrashIcon /></button>
                             </td>
@@ -567,7 +577,7 @@
 
         <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
             {#if !$addingEmotion}
-                <button class="cursor-pointer hover:text-green-500" on:click={() => {addCharEmotion($selectedCharID)}}>
+                <button class="cursor-pointer hover:text-green-500" onclick={() => {addCharEmotion($selectedCharID)}}>
                     <PlusIcon />
                 </button>
             {:else}
@@ -628,7 +638,7 @@
                 <th class="font-medium w-1/2">Bias</th>
                 <th class="font-medium w-1/3">{language.value}</th>
                 <th>
-                    <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+                    <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
                         if(currentChar.type === 'character'){
                             let bia = currentChar.data.bias
                             bia.push(['', 0])
@@ -652,7 +662,7 @@
                         <NumberInput fullh fullwidth bind:value={currentChar.data.bias[i][1]} max={100} min={-100} />
                     </td>
                     <td>
-                        <button class="font-medium flex justify-center items-center w-full h-full cursor-pointer hover:text-green-500" on:click={() => {
+                        <button class="font-medium flex justify-center items-center w-full h-full cursor-pointer hover:text-green-500" onclick={() => {
                             if(currentChar.type === 'character'){
                                 let bia = currentChar.data.bias
                                 bia.splice(i, 1)
@@ -671,7 +681,7 @@
         <span class="text-textcolor mt-4">{language.regexScript} <Help key="regexScript"/></span>
         <RegexList bind:value={currentChar.data.customscript} />
         <div class="text-textcolor2 mt-2 flex gap-2">
-            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+            <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
                 if(currentChar.type === 'character'){
                     let script = currentChar.data.customscript
                     script.push({
@@ -683,10 +693,10 @@
                     currentChar.data.customscript = script
                 }
             }}><PlusIcon /></button>
-            <button class="font-medium cursor-pointer hover:text-green-500" on:click={() => {
+            <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
                 exportRegex(currentChar.data.customscript)
             }}><DownloadIcon /></button>
-            <button class="font-medium cursor-pointer hover:text-green-500" on:click={async () => {
+            <button class="font-medium cursor-pointer hover:text-green-500" onclick={async () => {
                 currentChar.data.customscript = await importRegex(currentChar.data.customscript)
             }}><FolderUpIcon /></button>
         </div>
@@ -706,7 +716,7 @@
             <h2 class="mb-2 text-2xl font-bold mt-2">TTS</h2>
         {/if}
         <span class="text-textcolor">{language.provider}</span>
-        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} on:change={(e) => {
+        <SelectInput className="mb-4 mt-2" bind:value={currentChar.data.ttsMode} onchange={(e) => {
             if(currentChar.type === 'character'){
                 currentChar.data.ttsSpeech = ''
             }
@@ -823,7 +833,7 @@
             {:else}
                 <span class="text-textcolor">No Model</span>
             {/if}
-            <Button on:click={async () => {
+            <Button onclick={async () => {
                 const model = await registerOnnxModel()
                 if(model && currentChar.type === 'character'){
                     currentChar.data.vits = model
@@ -847,7 +857,7 @@
             <Check bind:check={currentChar.data.gptSoVitsConfig.use_long_audio}/>
 
             <span class="text-textcolor">Reference Audio Data (3~10s audio file)</span>
-            <Button on:click={async () => {
+            <Button onclick={async () => {
                 const audio = await selectSingleFile([
                     'wav',
                     'ogg',
@@ -1027,7 +1037,7 @@
                 <tr>
                     <th class="font-medium">{language.value}</th>
                     <th class="font-medium cursor-pointer w-10">
-                        <button class="hover:text-green-500" on:click={() => {
+                        <button class="hover:text-green-500" onclick={() => {
                             if(currentChar.type === 'character'){
                                 let alternateGreetings = currentChar.data.alternateGreetings
                                 alternateGreetings.push('')
@@ -1049,9 +1059,9 @@
                             <TextAreaInput highlight bind:value={currentChar.data.alternateGreetings[i]} placeholder="..." fullwidth />
                         </td>
                         <th class="font-medium cursor-pointer w-10">
-                            <button class="hover:text-green-500" on:click={() => {
+                            <button class="hover:text-green-500" onclick={() => {
                                 if(currentChar.type === 'character'){
-                                    $CurrentChat.fmIndex = -1
+                                    $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].fmIndex = -1
                                     let alternateGreetings = currentChar.data.alternateGreetings
                                     alternateGreetings.splice(i, 1)
                                     currentChar.data.alternateGreetings = alternateGreetings
@@ -1073,7 +1083,7 @@
                     <tr>
                         <th class="font-medium">{language.value}</th>
                         <th class="font-medium cursor-pointer w-10">
-                            <button class="hover:text-green-500" on:click={async () => {
+                            <button class="hover:text-green-500" onclick={async () => {
                                 if(currentChar.type === 'character'){
                                     const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
                                     currentChar.data.additionalAssets = currentChar.data.additionalAssets ?? []
@@ -1104,7 +1114,7 @@
                                 <td class="font-medium truncate">
                                     {#if assetFilePath[i] && database.useAdditionalAssetsPreview}
                                         {#if assetFileExtensions[i] === 'mp4'}
-                                        <!-- svelte-ignore a11y-media-has-caption -->
+                                        <!-- svelte-ignore a11y_media_has_caption -->
                                             <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
                                         {:else if assetFileExtensions[i] === 'mp3'}
                                             <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
@@ -1116,9 +1126,9 @@
                                 </td>
                                 
                                 <th class="font-medium cursor-pointer w-10">
-                                    <button class="hover:text-green-500" on:click={() => {
+                                    <button class="hover:text-green-500" onclick={() => {
                                         if(currentChar.type === 'character'){
-                                            $CurrentChat.fmIndex = -1
+                                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].fmIndex = -1
                                             let additionalAssets = currentChar.data.additionalAssets
                                             additionalAssets.splice(i, 1)
                                             currentChar.data.additionalAssets = additionalAssets
@@ -1151,7 +1161,7 @@
 
         {#if $DataBase.supaModelType !== 'none' && $DataBase.hypav2}
             <Button
-                on:click={() => {
+                onclick={() => {
                     currentChar.data.chats[currentChar.data.chatPage].hypaV2Data ??= {
                         chunks: [],
                         mainChunks: []
@@ -1168,7 +1178,7 @@
         {/if}
 
         <Button
-            on:click={applyModule}
+            onclick={applyModule}
             className="mt-4"
         >
             {language.applyModule}
@@ -1180,7 +1190,7 @@
             && currentChar.data.license !== 'CC BY-NC-ND 4.0'
             || $DataBase.tpo
         }
-            <Button size="lg" on:click={async () => {
+            <Button size="lg" onclick={async () => {
                 const res = await exportChar($selectedCharID)
             }} className="mt-2">{language.exportCharacter}</Button>
         {/if}
@@ -1188,7 +1198,7 @@
         {#if currentChar.data.license !== 'CC BY-NC-SA 4.0'
             && currentChar.data.license !== 'CC BY-SA 4.0'
         }
-            <Button size="lg" on:click={async () => {
+            <Button size="lg" onclick={async () => {
                 if(await alertTOS()){
                     $ShowRealmFrameStore = 'character'
                 }
@@ -1211,7 +1221,7 @@
             <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
         </div>
     {/if}
-    <Button on:click={async () => {
+    <Button onclick={async () => {
         removeChar($selectedCharID, currentChar.data.name)
     }} className="mt-2" size="sm">{ currentChar.type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
 {/if}

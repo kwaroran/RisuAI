@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CurrentCharacter, CurrentChat, selectedCharID } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
@@ -16,12 +16,12 @@
     import { doingChat, previewFormated, sendChat } from "src/ts/process";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
-  import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import OptionInput from "../UI/GUI/OptionInput.svelte";
 
-    let previewMode = 'chat'
-    let previewJoin = 'yes'
-    let instructType = 'chatml'
-    let instructCustom = ''
+    let previewMode = $state('chat')
+    let previewJoin = $state('yes')
+    let instructType = $state('chatml')
+    let instructCustom = $state('')
 
     const preview = async () => {
         if($doingChat){
@@ -85,20 +85,20 @@
         alertMd(md)
     }
     
-    let autopilot = []
+    let autopilot = $state([])
 </script>
 
 <Arcodion styled name={"Variables"}>
     <div class="rounded-md border border-darkborderc grid grid-cols-2 gap-2 p-2">
-        {#if $CurrentChat.scriptstate &&  Object.keys($CurrentChat.scriptstate).length > 0}
-            {#each Object.keys($CurrentChat.scriptstate) as key}
+        {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate &&  Object.keys($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate).length > 0}
+            {#each Object.keys($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate) as key}
                 <span>{key}</span>
-                {#if typeof $CurrentChat.scriptstate[key] === "object"}
+                {#if typeof $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate[key] === "object"}
                     <div class="p-2 text-center">Object</div>
-                {:else if typeof $CurrentChat.scriptstate[key] === "string"}
-                    <TextInput bind:value={$CurrentChat.scriptstate[key]} />
-                {:else if typeof $CurrentChat.scriptstate[key] === "number"}
-                    <NumberInput bind:value={$CurrentChat.scriptstate[key]} />
+                {:else if typeof $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate[key] === "string"}
+                    <TextInput bind:value={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate[key] as string} />
+                {:else if typeof $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate[key] === "number"}
+                    <NumberInput bind:value={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].scriptstate[key] as number} />
                 {/if}
             {/each}
         {:else}
@@ -109,7 +109,7 @@
 
 <Arcodion styled name={"Tokens"}>
     <div class="rounded-md border border-darkborderc grid grid-cols-2 gap-2 p-2">
-        {#await getCharToken($CurrentCharacter)}
+        {#await getCharToken($DataBase.characters[$selectedCharID])}
             <span>Character Persistant</span>
             <div class="p-2 text-center">Loading...</div>
             <span>Character Dynamic</span>
@@ -120,7 +120,7 @@
             <span>Character Dynamic</span>
             <div class="p-2 text-center">{token.dynamic} Tokens</div>
         {/await}
-        {#await getChatToken($CurrentChat)}
+        {#await getChatToken($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage])}
             <span>Current Chat</span>
             <div class="p-2 text-center">Loading...</div>
         {:then token}
@@ -142,26 +142,26 @@
 
 <Arcodion styled name={"Autopilot"}>
     <div class="flex flex-col p-2 border border-darkborderc rounded-md">
-        {#each autopilot as text}
-            <TextAreaInput bind:value={text} />
+        {#each autopilot as text, i}
+            <TextAreaInput bind:value={autopilot[i]} />
         {/each}
     </div>
     <div class="flex justify-end">
-        <button class="text-textcolor2 hover:text-textcolor" on:click={() => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
             autopilot.pop()
             autopilot = autopilot
         }}>
             <TrashIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" on:click={() => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
             autopilot.push('')
             autopilot = autopilot
         }}>
             <PlusIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" on:click={async () => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={async () => {
             const selected = await selectSingleFile([
                 'txt', 'csv', 'json'
             ])
@@ -190,7 +190,7 @@
             <FolderUpIcon />
         </button>
     </div>
-    <Button className="mt-2" on:click={async () => {
+    <Button className="mt-2" onclick={async () => {
         if($doingChat){
             return
         }
@@ -243,9 +243,9 @@
         <OptionInput value="yes">With Join</OptionInput>
         <OptionInput value="no">Without Join</OptionInput>
     </SelectInput>
-    <Button className="mt-2" on:click={() => {preview()}}>Run</Button>
+    <Button className="mt-2" onclick={() => {preview()}}>Run</Button>
 </Arcodion>
 
-<Button className="mt-2" on:click={() => {
+<Button className="mt-2" onclick={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>

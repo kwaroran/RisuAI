@@ -10,18 +10,22 @@
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { CurrentCharacter, MobileGUI, ReloadGUIPointer } from "src/ts/stores";
+    import { MobileGUI, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
-  import { onDestroy, onMount } from "svelte";
-  import { v4 } from "uuid";
-  import { reverse } from "lodash";
+    import { onDestroy, onMount } from "svelte";
+    import { v4 } from "uuid";
+    import { reverse } from "lodash";
 
-    export let chara:character|groupChat
-    let editMode = false
+  interface Props {
+    chara: character|groupChat;
+  }
+
+  let { chara = $bindable() }: Props = $props();
+    let editMode = $state(false)
 
     let stb: Sortable = null
-    let ele: HTMLDivElement
-    let sorted = 0
+    let ele: HTMLDivElement = $state()
+    let sorted = $state(0)
     let opened = 0
     const createStb = () => {
         stb = Sortable.create(ele, {
@@ -64,7 +68,7 @@
 </script>
 <div class="flex flex-col w-full h-[calc(100%-2rem)] max-h-[calc(100%-2rem)]">
 
-    <Button className="relative bottom-2" on:click={() => {
+    <Button className="relative bottom-2" onclick={() => {
         const cha = chara
         const len = chara.chats.length
         let chats = chara.chats
@@ -87,7 +91,7 @@
     <div class="flex flex-col w-full mt-2 overflow-y-auto flex-grow" bind:this={ele}>
         {#key sorted}
         {#each chara.chats as chat, i}
-        <button data-risu-idx={i} on:click={() => {
+        <button data-risu-idx={i} onclick={() => {
             if(!editMode){
                 chara.chatPage = i
                 $ReloadGUIPointer += 1
@@ -100,7 +104,7 @@
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async () => {
+                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async () => {
                     const option = await alertChatOptions()
                     switch(option){
                         case 0:{
@@ -141,18 +145,18 @@
                 }}>
                     <MenuIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={() => {
+                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
                     editMode = !editMode
                 }}>
                     <PencilIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" on:click={async (e) => {
+                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                     e.stopPropagation()
                     exportChat(i)
                 }}>
                     <DownloadIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                     e.stopPropagation()
                     if(chara.chats.length === 1){
                         alertError(language.errors.onlyOneChat)
@@ -177,19 +181,19 @@
     
     <div class="border-t border-selected mt-2">
         <div class="flex mt-2 ml-2 items-center">
-            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
             }}>
                 <FolderUpIcon size={18}/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
                 <PencilIcon size={18}/>
             </button>
         </div>
 
-        {#if $CurrentCharacter?.chaId !== '§playground'}
+        {#if $DataBase.characters[$selectedCharID]?.chaId !== '§playground'}
 
             
             {#if parseKeyValue($DataBase.customPromptTemplateToggle).length > 4}

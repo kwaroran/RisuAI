@@ -15,7 +15,7 @@
     import ToolConvertion from "./ToolConvertion.svelte";
   import { joinMultiuserRoom } from "src/ts/sync/multiuser";
 
-    let easterEggTouch = 0
+    let easterEggTouch = $state(0)
 
     const playgroundChat = () => {
         let db = get(DataBase)
@@ -50,52 +50,52 @@
     {#if $PlaygroundStore === 1}
         <h2 class="text-4xl text-textcolor my-6 font-black relative">{language.playground}</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 w-full max-w-4xl p-2">
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1 md:col-span-2" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1 md:col-span-2" onclick={() => {
                 playgroundChat()
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.Chat}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(3)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.embedding}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(4)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.tokenizer}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(5)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.syntax}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(6)
             }}>
                 <h1 class="text-2xl font-bold text-start">Jinja</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(7)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.imageGeneration}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(8)
             }}>
                 <h1 class="text-2xl font-bold text-start">Parser</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(101)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.promptConvertion}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 joinMultiuserRoom()
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.joinMultiUserRoom}</h1>
             </button>
-            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 easterEggTouch += 1
             }}>
                 <h1 class="text-2xl font-bold text-start">
@@ -115,7 +115,7 @@
         {/if}
         <div class="w-full max-w-4xl flex flex-col p-2">
             <div class="flex items-center mt-4">
-                <button class="mr-2 text-textcolor2 hover:text-green-500" on:click={() => ($PlaygroundStore = 1)}>
+                <button class="mr-2 text-textcolor2 hover:text-green-500" onclick={() => ($PlaygroundStore = 1)}>
                 <ArrowLeft/>
                 </button>
             </div>

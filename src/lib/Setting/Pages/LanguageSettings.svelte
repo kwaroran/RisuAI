@@ -12,13 +12,13 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
-    let langChanged = false
+    let langChanged = $state(false)
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
 <span class="text-textcolor mt-4">{language.UiLanguage}</span>
-<SelectInput className="mt-2" bind:value={$DataBase.language} on:change={async () => {
+<SelectInput className="mt-2" bind:value={$DataBase.language} onchange={async () => {
     if($DataBase.language === 'translang'){
 
         const j = await alertSelect([

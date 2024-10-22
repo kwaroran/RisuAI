@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase } from "../storage/database";
+import { selectedCharID } from "../stores";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
@@ -222,17 +222,17 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return JSON.stringify(p)
         }
         case 'trigger':{
-            const currentChar = get(CurrentCharacter)
+            const currentChar = getCurrentCharacter()
             if(currentChar.type === 'group'){
                 return;
             }
             const triggerResult = await runTrigger(currentChar, 'manual', {
-                chat: get(CurrentChat),
+                chat: getCurrentChat(),
                 manualName: arg
             });
 
             if(triggerResult){
-               CurrentChat.set(triggerResult.chat);
+               setCurrentChat(triggerResult.chat);
             }
             return
         }

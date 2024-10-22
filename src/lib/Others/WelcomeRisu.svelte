@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
 
     import { ArrowBigLeftIcon, Send } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
@@ -7,9 +9,9 @@
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
 
-    let step = 0
-    let provider = ''
-    let input = ''
+    let step = $state(0)
+    let provider = $state('')
+    let input = $state('')
 
     if(step === 0){
         const browserLang = navigator.language
@@ -21,7 +23,7 @@
             step = 1
         }
     }
-    let start = false
+    let start = $state(false)
 
     function send(){
         switch(step){
@@ -60,7 +62,7 @@
         }
     }
 
-    $: {
+    run(() => {
         if(step === 10){
             setTimeout(() => {
                 $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)
@@ -84,13 +86,13 @@
             }, 1000);
         }
 
-    }
+    });
 </script>
 
 <div class="w-full h-full flex justify-center welcome-bg text-textcolor relative bg-gray-900">
     <div class="w-2xl overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-hidden" class:justify-center={!start}>
         {#if !start}
-            <div class="w-full justify-center flex mt-8 logo-animation" on:animationend={() => {
+            <div class="w-full justify-center flex mt-8 logo-animation" onanimationend={() => {
                 start = true
             }}>
                 <img src="/logo_typo_trans.png" alt="logo" class="w-full max-w-screen-sm  mb-0">
@@ -100,32 +102,32 @@
                 {#if step === 0}
                     <h2 class="animate-bounce">Choose your language</h2>
                     <div class="flex flex-col items-start ml-2">
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('de')
                             $DataBase.language='de'
                             step = 1
                         }}>• Deutsch</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('en')
                             $DataBase.language='en'
                             step = 1
                         }}>• English</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('ko')
                             $DataBase.language='ko'
                             step = 1
                         }}>• 한국어</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('cn')
                             $DataBase.language='cn'
                             step = 1
                         }}>• 中文</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('zh-Hant')
                             $DataBase.language='zh-Hant'
                             step = 1
                         }}>• 中文(繁體)</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('vi')
                             $DataBase.language='vi'
                             step = 1
@@ -140,28 +142,28 @@
                     {/if}
                     {#if step === 2}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openai'
                                 step = 3
                             }}>
                                 <h1 class="text-2xl font-bold text-start">OpenAI</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIProvider}</span>
                             </button>
-                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'horde'
                                 step = 10
                             }}>
                                 <h1 class="text-2xl font-bold text-start">Horde</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
                             </button>
-                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openrouter'
                                 step = 3
                             }}>
                                 <h1 class="text-2xl font-bold text-start">OpenRouter</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openrouterProvider}</span>
                             </button>
-                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'later'
                                 step = 10
                             }}>
@@ -185,7 +187,7 @@
                     <div class="flex items-end mb-2 w-full mt-auto ">
                         <input class="flex-grow text-textcolor p-2 min-w-0 bg-transparent input-text text-xl ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                             bind:value={input}
-                            on:keydown={(e) => {
+                            onkeydown={(e) => {
                                 if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                                     e.preventDefault()
                                     send()
@@ -193,7 +195,7 @@
                             }}
                             style:height={'44px'}
                         />
-                        <div on:click={send}
+                        <div onclick={send}
                             class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors">
                             <Send />
                         </div>

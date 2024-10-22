@@ -10,7 +10,7 @@
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.files}</h2>
 <button
-    on:click={async () => {
+    onclick={async () => {
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
             if(isTauri || isNodeServer){
@@ -26,7 +26,7 @@
 </button>
 
 <button
-    on:click={async () => {
+    onclick={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
             if(isTauri || isNodeServer){
@@ -43,7 +43,7 @@
 
 
 <!-- <button
-    on:click={async () => {
+    onclick={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
             checkDriver('reftoken')

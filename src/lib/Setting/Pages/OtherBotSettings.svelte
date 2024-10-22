@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
@@ -14,7 +16,7 @@
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
-    $:{
+    run(() => {
         $DataBase.NAIImgConfig ??= {
             width: 512,
             height: 512,
@@ -34,31 +36,31 @@
             $DataBase.NAIImgConfig.sm = false
             $DataBase.NAIImgConfig.sm_dyn = false
         }
-    }
+    });
 
-    let submenu = $DataBase.useLegacyGUI ? -1 : 0
+    let submenu = $state($DataBase.useLegacyGUI ? -1 : 0)
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
 
 
 {#if submenu !== -1}
     <div class="flex w-full rounded-md border border-darkborderc mb-4">
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 0
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
             <span>{language.longTermMemory}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 1
         }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
             <span>TTS</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 2
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
             <span>{language.emotionImage}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 3
         }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
             <span>{language.imageGeneration}</span>
@@ -157,7 +159,7 @@
                 <span class="text-textcolor2 mb-6 text-sm">{$DataBase.NAIImgConfig.noise}</span>
         
                 <span class="text-textcolor">Base image</span>
-                <button on:click={async () => {
+                <button onclick={async () => {
                     const img = await selectSingleFile([
                         'jpg',
                         'jpeg',
@@ -171,12 +173,12 @@
                     $DataBase.NAIImgConfig.image = saveId
                 }}>
                     {#if $DataBase.NAIImgConfig.image === ''}
-                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                     {:else}
                         {#await getCharImage($DataBase.NAIImgConfig.image, 'css')}
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                         {:then im} 
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
                         {/await}
                     {/if}
                 </button>
@@ -199,7 +201,7 @@
 
 
                 <span class="text-textcolor">Reference image</span>
-                <button on:click={async () => {
+                <button onclick={async () => {
                     const img = await selectSingleFile([
                         'jpg',
                         'jpeg',
@@ -213,12 +215,12 @@
                     $DataBase.NAIImgConfig.refimage = saveId
                 }}>
                     {#if $DataBase.NAIImgConfig.refimage === ''}
-                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                     {:else}
                         {#await getCharImage($DataBase.NAIImgConfig.refimage, 'css')}
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"/>
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                         {:then im} 
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
                         {/await}
                     {/if}
                 </button>
@@ -372,7 +374,7 @@
             $DataBase.hypav2 ? 'hypaV2' :
             $DataBase.supaModelType !== 'none' ? 'supaMemory' :
             $DataBase.hanuraiEnable ? 'hanuraiMemory' : 'none'
-        } on:change={(v) => {
+        } onchange={(v) => {
             //@ts-ignore
             const value = v.target.value
             if (value === 'supaMemory'){

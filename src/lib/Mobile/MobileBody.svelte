@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CurrentCharacter, MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores";
+    import { MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores";
     import Settings from "../Setting/Settings.svelte";
     import RealmMain from "../UI/Realm/RealmMain.svelte";
     import MobileCharacters from "./MobileCharacters.svelte";
@@ -10,21 +10,22 @@
     import SideChatList from "../SideBars/SideChatList.svelte";
     import DevTool from "../SideBars/DevTool.svelte";
     import { isLite } from "src/ts/lite";
+  import { DataBase } from "src/ts/storage/database";
 </script>
 
 {#if $MobileSideBar > 0 && !$isLite}
 <div class="w-full px-2 py-1 text-textcolor2 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">
-    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 1} on:click={() => {
+    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 1} onclick={() => {
         $MobileSideBar = 1
     }}>
         {language.Chat}
     </button>
-    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 2} on:click={() => {
+    <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 2} onclick={() => {
         $MobileSideBar = 2
     }}>
         {language.character}
     </button>
-    <button class:text-textcolor={$MobileSideBar === 3} on:click={() => {
+    <button class:text-textcolor={$MobileSideBar === 3} onclick={() => {
         $MobileSideBar = 3
     }}>
         <WrenchIcon size={18} />
@@ -35,7 +36,7 @@
     {#if $MobileSideBar > 0}
         <div class="w-full flex flex-col p-2 mt-2 h-full">
             {#if $MobileSideBar === 1}
-                <SideChatList bind:chara={$CurrentCharacter} />
+                <SideChatList bind:chara={$DataBase.characters[$selectedCharID]} />
             {:else if $MobileSideBar === 2}
                 <CharConfig />
             {:else if $MobileSideBar === 3}

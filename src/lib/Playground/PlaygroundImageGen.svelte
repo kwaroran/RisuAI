@@ -5,10 +5,10 @@
     import { generateAIImage } from "src/ts/process/stableDiff";
     import { createBlankChar } from "src/ts/characters";
 
-    let prompt = "";
-    let negPrompt = "";
-    let img = "";
-    let generating = false
+    let prompt = $state("");
+    let negPrompt = $state("");
+    let img = $state("");
+    let generating = $state(false)
 
     const run = async () => {
         console.log('running')
@@ -40,9 +40,9 @@
     <img src={img} class="max-w-full mt-4" alt="Generated"/>
 
 {/if}
-<Button className="mt-6" on:click={run}>
+<Button className="mt-6" onclick={run}>
     {#if generating}
-        <div class="loadmove" />
+        <div class="loadmove"></div>
     {:else}
         Generate
     {/if}

@@ -1,8 +1,7 @@
-import { get } from "svelte/store";
 import { runTrigger } from "./process/triggers";
-import { CurrentCharacter, CurrentChat } from "./stores";
 import { runCharacterJS } from "./plugins/embedscript";
 import { sleep } from "./util";
+import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database";
 
 
 function nodeObserve(node:HTMLElement){
@@ -15,17 +14,17 @@ function nodeObserve(node:HTMLElement){
     }
     if(triggerName){
         node.addEventListener('click', async () => {
-            const currentChar = get(CurrentCharacter)
+            const currentChar = getCurrentCharacter()
             if(currentChar.type === 'group'){
                 return;
             }
             const triggerResult = await runTrigger(currentChar, 'manual', {
-                chat: get(CurrentChat),
+                chat: getCurrentChat(),
                 manualName: triggerName,
             });
 
             if(triggerResult){
-               CurrentChat.set(triggerResult.chat);
+               setCurrentChat(triggerResult.chat);
             }
             
         }, {

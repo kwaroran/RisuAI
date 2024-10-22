@@ -9,25 +9,36 @@
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import { tokenizeAccurate } from "src/ts/tokenizer";
-    export let value:loreBook
-    export let onRemove: () => void = () => {}
-    export let onClose: () => void = () => {}
-    export let onOpen: () => void = () => {}
-    export let lorePlus = false
 
-    export let idx:number
-    let open = false
+    interface Props {
+        value: loreBook;
+        onRemove?: () => void;
+        onClose?: () => void;
+        onOpen?: () => void;
+        lorePlus?: boolean;
+        idx: number;
+    }
+
+    let {
+        value = $bindable(),
+        onRemove = () => {},
+        onClose = () => {},
+        onOpen = () => {},
+        lorePlus = false,
+        idx
+    }: Props = $props();
+    let open = $state(false)
 
     async function getTokens(data:string){
         tokens = await tokenizeAccurate(data)
         return tokens
     }
-    let tokens = 0
+    let tokens = $state(0)
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full p-1">
-        <button class="endflex valuer border-darkborderc" on:click={() => {
+        <button class="endflex valuer border-darkborderc" onclick={() => {
             value.secondkey = value.secondkey ?? ''
             open = !open
             if(open){
@@ -39,7 +50,7 @@
         }}>
             <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
-        <button class="valuer" on:click={async () => {
+        <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
                 if(!open){

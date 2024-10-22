@@ -1,8 +1,8 @@
 import { v4 } from 'uuid';
 import { alertError, alertInput, alertNormal, alertStore, alertWait } from '../alert';
 import { get, writable } from 'svelte/store';
-import { DataBase, setDatabase, type character, saveImage, type Chat } from '../storage/database';
-import { CurrentChat, selectedCharID } from '../stores';
+import { DataBase, setDatabase, type character, saveImage, type Chat, getCurrentChat, setCurrentChat } from '../storage/database';
+import { selectedCharID } from '../stores';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
 import { readImage } from '../storage/globalApi';
@@ -365,7 +365,7 @@ export async function peerSync(){
         return
     }
     await sleep(1)
-    const chat = get(CurrentChat)
+    const chat = getCurrentChat()
     latestSyncChat = chat
     if(!conn){
         // host user
@@ -426,5 +426,5 @@ export function peerRevertChat() {
     if(!connectionOpen || !latestSyncChat){
         return
     }
-    CurrentChat.set(latestSyncChat)
+    setCurrentChat(latestSyncChat)
 }

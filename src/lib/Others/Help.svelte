@@ -1,4 +1,4 @@
-<button title={name+' '+language.showHelp} class="relative help inline-block cursor-default hover:text-green-500" on:click={() => {
+<button title={name+' '+language.showHelp} class="relative help inline-block cursor-default hover:text-green-500" onclick={() => {
     alertMd(language.help[key])
 }}>
     
@@ -19,7 +19,11 @@
     import { language } from "src/lang";
     import { alertMd } from "src/ts/alert";
 
-    export let unrecommended = false
-    export let key: (keyof (typeof language.help))
-    export let name = ''
+    interface Props {
+        unrecommended?: boolean;
+        key: (keyof (typeof language.help));
+        name?: string;
+    }
+
+    let { unrecommended = false, key, name = '' }: Props = $props();
 </script>

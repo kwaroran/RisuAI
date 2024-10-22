@@ -1,17 +1,21 @@
 <script lang="ts">
     import { DataBase, type loreBook } from "src/ts/storage/database";
     import LoreBookData from "./LoreBookData.svelte";
-    import { CurrentChat, CurrentCharacter } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { sleep, sortableOptions } from "src/ts/util";
 
-    export let globalMode = false
-    export let submenu = 0
-    export let lorePlus = false
+    interface Props {
+        globalMode?: boolean;
+        submenu?: number;
+        lorePlus?: boolean;
+    }
+
+    let { globalMode = false, submenu = 0, lorePlus = false }: Props = $props();
     let stb: Sortable = null
-    let ele: HTMLDivElement
-    let sorted = 0
+    let ele: HTMLDivElement = $state()
+    let sorted = $state(0)
     const createStb = () => {
         stb = Sortable.create(ele, {
             onEnd: async () => {
@@ -29,16 +33,16 @@
                 else if(submenu === 1){
                     let newLore:loreBook[] = []
                     idx.forEach((i) => {
-                        newLore.push($CurrentChat.localLore[i])
+                        newLore.push($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore[i])
                     })
-                    $CurrentChat.localLore = newLore
+                    $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore = newLore
                 }
                 else{
                     let newLore:loreBook[] = []
                     idx.forEach((i) => {
-                        newLore.push($CurrentCharacter.globalLore[i])
+                        newLore.push($DataBase.characters[$selectedCharID].globalLore[i])
                     })
-                    $CurrentCharacter.globalLore = newLore
+                    $DataBase.characters[$selectedCharID].globalLore = newLore
                 }
                 try {
                     stb.destroy()
@@ -94,26 +98,26 @@
                 {/each}
             {/if}
         {:else if submenu === 0}
-            {#if $CurrentCharacter.globalLore.length === 0}
+            {#if $DataBase.characters[$selectedCharID].globalLore.length === 0}
                 <span class="text-textcolor2">No Lorebook</span>
             {:else}
-                {#each $CurrentCharacter.globalLore as book, i}
-                    <LoreBookData bind:value={$CurrentCharacter.globalLore[i]} idx={i} onRemove={() => {
-                        let lore  = $CurrentCharacter.globalLore
+                {#each $DataBase.characters[$selectedCharID].globalLore as book, i}
+                    <LoreBookData bind:value={$DataBase.characters[$selectedCharID].globalLore[i]} idx={i} onRemove={() => {
+                        let lore  = $DataBase.characters[$selectedCharID].globalLore
                         lore.splice(i, 1)
-                        $CurrentCharacter.globalLore = lore
+                        $DataBase.characters[$selectedCharID].globalLore = lore
                     }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
                 {/each}
             {/if}
         {:else if submenu === 1}
-            {#if $CurrentChat.localLore.length === 0}
+            {#if $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore.length === 0}
                 <span class="text-textcolor2">No Lorebook</span>
             {:else}
-                {#each $CurrentChat.localLore as book, i}
-                    <LoreBookData bind:value={$CurrentChat.localLore[i]} idx={i} onRemove={() => {
-                        let lore  = $CurrentChat.localLore
+                {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore as book, i}
+                    <LoreBookData bind:value={$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore[i]} idx={i} onRemove={() => {
+                        let lore  = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore
                         lore.splice(i, 1)
-                        $CurrentChat.localLore = lore
+                        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].localLore = lore
                     }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
                 {/each}
             {/if}

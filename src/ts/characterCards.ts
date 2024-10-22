@@ -1,12 +1,12 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat } from "./storage/database"
+import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter } from "./storage/database"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { CurrentCharacter, SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
+import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
 import { convertImage, hasher } from "./parser"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
@@ -1450,12 +1450,12 @@ export async function shareRisuHub2(char:character, arg:{
         else{
             const resJSON = await res.json()
             alertMd(resJSON.message)
-            const currentChar = get(CurrentCharacter)
+            const currentChar = getCurrentCharacter()
             if(currentChar.type === 'group'){
                 return
             }
             currentChar.realmId = resJSON.id
-            CurrentCharacter.set(currentChar)
+            setCurrentCharacter(currentChar)
         }   
     } catch (error) {
         alertError(`${error}`)

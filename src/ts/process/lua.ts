@@ -1,8 +1,8 @@
 import { getChatVar, hasher, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { DataBase, setDatabase, type Chat, type character, type groupChat } from "../storage/database";
+import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database";
 import { get } from "svelte/store";
-import { CurrentCharacter, CurrentChat, ReloadGUIPointer, selectedCharID } from "../stores";
+import { ReloadGUIPointer, selectedCharID } from "../stores";
 import { alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
@@ -35,12 +35,12 @@ export async function runLua(code:string, arg:{
     mode?: string,
     data?: any
 }){
-    const char = arg.char ?? get(CurrentCharacter)
+    const char = arg.char ?? getCurrentCharacter()
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
     const mode = arg.mode ?? 'manual'
     const data = arg.data ?? {}
-    let chat = arg.chat ?? get(CurrentChat)
+    let chat = arg.chat ?? getCurrentChat()
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
@@ -104,75 +104,75 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 const message = chat.message?.at(index)
                 if(message){
                     message.data = value
                 }
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('setChatRole', (id:string, index:number, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 const message = chat.message?.at(index)
                 if(message){
                     message.role = value === 'user' ? 'user' : 'char'
                 }
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('cutChat', (id:string, start:number, end:number) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 chat.message = chat.message.slice(start,end)
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('removeChat', (id:string, index:number) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 chat.message.splice(index, 1)
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('addChat', (id:string, role:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 chat.message.push({role: roleData, data: value})
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 chat.message.splice(index, 0, {role: roleData, data: value})
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('removeChat', (id:string, index:number) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 chat.message.splice(index, 1)
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
             luaEngine.global.set('getChatLength', (id:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 return chat.message.length
             })
             luaEngine.global.set('getFullChatMain', (id:string) => {
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 const data = JSON.stringify(chat.message.map((v) => {
                     return {
                         role: v.role,
@@ -187,14 +187,14 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = get(CurrentChat)
+                chat = getCurrentChat()
                 chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
                         data: v.data
                     }
                 })
-                CurrentChat.set(chat)
+                setCurrentChat(chat)
             })
 
             luaEngine.global.set('logMain', (value:string) => {

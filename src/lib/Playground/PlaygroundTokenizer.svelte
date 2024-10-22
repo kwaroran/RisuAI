@@ -3,9 +3,9 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { language } from 'src/lang';
 
-    let input = "";
-    let output = "";
-    let outputLength = 0;
+    let input = $state("");
+    let output = $state("");
+    let outputLength = $state(0);
     const onInput = async () => {
         try {
             const tokenized = await encode(input);

@@ -6,6 +6,7 @@ import { loadData } from "./ts/storage/globalApi";
 import { initHotkey } from "./ts/hotkey";
 import { polyfill } from "./ts/polyfill";
 import { preLoadCheck } from "./preload";
+import { mount } from "svelte";
 
 const errorHandler = (event: ErrorEvent) => {
     console.error(event.error)
@@ -30,9 +31,9 @@ if(preLoadCheck()){
     try {
         polyfill()
     
-        app = new App({
-          target: document.getElementById("app"),
-        });
+        app = mount(App, {
+                  target: document.getElementById("app"),
+                });
         
         loadData()
         initHotkey()

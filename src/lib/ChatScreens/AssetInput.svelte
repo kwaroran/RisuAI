@@ -1,15 +1,21 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
 	import { get } from 'svelte/store';
     import { FileAudioIcon, PlusIcon } from "lucide-svelte";
     import { DataBase, setDatabase, type character, type groupChat } from "src/ts/storage/database";
     import { getFileSrc, saveAsset } from "src/ts/storage/globalApi";
     import { selectMultipleFile } from "src/ts/util";
-    export let currentCharacter:character|groupChat;
-    export let onSelect:(additionalAsset:[string,string,string])=>void;
-    let assetFileExtensions:string[] = []
-    let assetFilePath:string[] = []
+    interface Props {
+        currentCharacter: character|groupChat;
+        onSelect: (additionalAsset:[string,string,string])=>void;
+    }
 
-    $:{
+    let { currentCharacter = $bindable(), onSelect }: Props = $props();
+    let assetFileExtensions:string[] = $state([])
+    let assetFilePath:string[] = $state([])
+
+    run(() => {
         if(currentCharacter.type ==='character'){
             if(currentCharacter.additionalAssets){
                 for(let i = 0; i < currentCharacter.additionalAssets.length; i++){
@@ -25,10 +31,10 @@
                 }
             }
         }
-    }
+    });
 </script>
 {#if currentCharacter.type ==='character'}
-    <button class="hover:text-green-500 bg-textcolor2 flex justify-center items-center w-16 h-16 m-1 rounded-md" on:click={async () => {
+    <button class="hover:text-green-500 bg-textcolor2 flex justify-center items-center w-16 h-16 m-1 rounded-md" onclick={async () => {
         if(currentCharacter.type === 'character'){
             const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif'])
             currentCharacter.additionalAssets = currentCharacter.additionalAssets ?? []
@@ -52,12 +58,12 @@
     </button>
     {#if currentCharacter.additionalAssets}
         {#each currentCharacter.additionalAssets as additionalAsset, i}
-                <button on:click={()=>{
+                <button onclick={()=>{
                     onSelect(additionalAsset)
                 }}>
                     {#if assetFilePath[i]}
                         {#if assetFileExtensions[i] === 'mp4'}
-                            <!-- svelte-ignore a11y-media-has-caption -->
+                            <!-- svelte-ignore a11y_media_has_caption -->
                             <video class="w-16 h-16 m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
                         {:else if assetFileExtensions[i] === 'mp3'}
                             <div class='w-16 h-16 m-1 rounded-md bg-slate-500 flex flex-col justify-center items-center'>

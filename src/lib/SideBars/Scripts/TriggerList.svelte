@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
     import type { triggerscript } from "src/ts/storage/database";
     import TriggerData from "./TriggerData.svelte";
-    export let value:triggerscript[] = []
-    export let lowLevelAble = false
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
@@ -13,9 +13,15 @@
   import { openURL } from "src/ts/storage/globalApi";
   import { hubURL } from "src/ts/characterCards";
   import { PlusIcon } from "lucide-svelte";
+  interface Props {
+    value?: triggerscript[];
+    lowLevelAble?: boolean;
+  }
+
+  let { value = $bindable([]), lowLevelAble = false }: Props = $props();
     let stb: Sortable = null
-    let ele: HTMLDivElement
-    let sorted = 0
+    let ele: HTMLDivElement = $state()
+    let sorted = $state(0)
     let opened = 0
     const createStb = () => {
         if (!ele) {
@@ -74,7 +80,7 @@
     <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
         value?.[0]?.effect?.[0]?.type !== 'triggercode' &&
         value?.[0]?.effect?.[0]?.type !== 'triggerlua'
-    } on:click|stopPropagation={async () => {
+    } onclick={stopPropagation(async () => {
         const codeType = value?.[0]?.effect?.[0]?.type
         if(codeType === 'triggercode' || codeType === 'triggerlua'){
             const codeTrigger = value?.[0]?.effect?.[0]?.code
@@ -86,8 +92,8 @@
             }
             value = []
         }
-    }}>{language.blockMode}</button>
-    <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={value?.[0]?.effect?.[0]?.type === 'triggerlua'} on:click|stopPropagation={async () => {
+    })}>{language.blockMode}</button>
+    <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={value?.[0]?.effect?.[0]?.type === 'triggerlua'} onclick={stopPropagation(async () => {
         if(value?.[0]?.effect?.[0]?.type !== 'triggerlua'){
             if(value && value.length > 0){
                 const t = await alertConfirm(language.triggerSwitchWarn)
@@ -105,11 +111,11 @@
                 }]
             }]
         }
-    }}>Lua</button>
+    })}>Lua</button>
 </div>
 {#if value?.[0]?.effect?.[0]?.type === 'triggerlua'}
     <TextAreaInput margin="both" autocomplete="off" bind:value={value[0].effect[0].code}></TextAreaInput>
-    <Button on:click={() => {
+    <Button onclick={() => {
         openURL(hubURL + '/redirect/docs/lua')
     }}>{language.helpBlock}</Button>
 {:else}
@@ -127,7 +133,7 @@
             {/each}
         {/key}
     </div>
-    <button class="font-medium cursor-pointer hover:text-textcolor mb-2 text-textcolor2" on:click={() => {
+    <button class="font-medium cursor-pointer hover:text-textcolor mb-2 text-textcolor2" onclick={() => {
         value.push({
             comment: "",
             type: "start",

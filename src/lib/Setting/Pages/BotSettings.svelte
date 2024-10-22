@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
@@ -27,13 +29,17 @@
   import { selectSingleFile } from "src/ts/util";
   import { isArray } from "lodash";
 
-    let tokens = {
+    let tokens = $state({
         mainPrompt: 0,
         jailbreak: 0,
         globalNote: 0,
-    }
+    })
 
-    export let goPromptTemplate = () => {}
+  interface Props {
+    goPromptTemplate?: any;
+  }
+
+  let { goPromptTemplate = () => {} }: Props = $props();
 
     async function loadTokenize(){
         tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt, true)
@@ -41,32 +47,34 @@
         tokens.globalNote = await tokenizeAccurate($DataBase.globalNote, true)
     }
 
-    $: if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
-        $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
-    }
+    run(() => {
+    if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
+          $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
+      }
+  });
 
-    let submenu = $DataBase.useLegacyGUI ? -1 : 0
+    let submenu = $state($DataBase.useLegacyGUI ? -1 : 0)
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
 {#if submenu !== -1}
     <div class="flex w-full rounded-md border border-darkborderc mb-4">
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 0
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
             <span>{language.model}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 1
         }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
             <span>{language.parameters}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 2
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
             <span>{language.prompt}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 3
         }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
             <span>{language.others}</span>
@@ -368,7 +376,7 @@
         {#if $DataBase.localStopStrings}
             <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
                 <div class="p-2">
-                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                         let localStopStrings = $DataBase.localStopStrings
                         localStopStrings.push('')
                         $DataBase.localStopStrings = localStopStrings
@@ -380,7 +388,7 @@
                             <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
                         </div>
                         <div>
-                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                                 let localStopStrings = $DataBase.localStopStrings
                                 localStopStrings.splice(i, 1)
                                 $DataBase.localStopStrings = localStopStrings
@@ -480,7 +488,7 @@
                 <th class="font-medium">Bias</th>
                 <th class="font-medium">{language.value}</th>
                 <th>
-                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" onclick={() => {
                         let bia = $DataBase.bias
                         bia.push(['', 0])
                         $DataBase.bias = bia
@@ -501,7 +509,7 @@
                         <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-101} size="lg" fullwidth/>
                     </td>
                     <td>
-                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                             let bia = $DataBase.bias
                             bia.splice(i, 1)
                             $DataBase.bias = bia
@@ -512,11 +520,11 @@
             </tbody>
         </table>
         <div class="text-textcolor2 mt-2 flex items-center gap-2">
-            <button class="font-medium cursor-pointer hover:text-textcolor gap-2" on:click={() => {
+            <button class="font-medium cursor-pointer hover:text-textcolor gap-2" onclick={() => {
                 const data = JSON.stringify($DataBase.bias, null, 2)
                 downloadFile('bias.json', data)
             }}><DownloadIcon /></button>
-            <button class="font-medium cursor-pointer hover:text-textcolor" on:click={async () => {
+            <button class="font-medium cursor-pointer hover:text-textcolor" onclick={async () => {
                 const sel = await selectSingleFile(['json'])
                 const utf8 = new TextDecoder().decode(sel.data)
                 if(Array.isArray(JSON.parse(utf8))){
@@ -534,7 +542,7 @@
                 <th class="font-medium">{language.key}</th>
                 <th class="font-medium">{language.value}</th>
                 <th>
-                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" onclick={() => {
                         let additionalParams = $DataBase.additionalParams
                         additionalParams.push(['', ''])
                         $DataBase.additionalParams = additionalParams
@@ -555,7 +563,7 @@
                         <TextInput bind:value={$DataBase.additionalParams[i][1]} size="lg" fullwidth/>
                     </td>
                     <td>
-                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                             let additionalParams = $DataBase.additionalParams
                             additionalParams.splice(i, 1)
                             $DataBase.additionalParams = additionalParams
@@ -595,7 +603,7 @@
         <TextAreaInput bind:value={$DataBase.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
     </Arcodion>
     {#if submenu !== -1}
-        <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
+        <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
     {/if}
 {/if}
 
@@ -623,9 +631,9 @@
 
 {#if $DataBase.promptTemplate && submenu === -1}
     <div class="mt-2">
-        <Button on:click={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
+        <Button onclick={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
     </div>
 {/if}
 {#if submenu === -1}
-    <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
+    <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}

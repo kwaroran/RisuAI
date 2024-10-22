@@ -1,11 +1,11 @@
 import DOMPurify from 'isomorphic-dompurify';
 import markdownit from 'markdown-it'
-import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
+import { DataBase, getCurrentCharacter, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
@@ -348,7 +348,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     })
 
     if(needsSourceAccess){
-        const chara = get(CurrentCharacter)
+        const chara = getCurrentCharacter()
         if(chara.image){}
         data = data.replace(/\uE9b4CHAR\uE9b4/g,
             chara.image ? (await getFileSrc(chara.image)) : ''

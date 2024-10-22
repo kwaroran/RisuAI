@@ -1,13 +1,12 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-import { DataBase, type groupChat, type character, type Chat } from "./storage/database";
+import { DataBase, type groupChat, type character, type Chat, getCurrentCharacter } from "./storage/database";
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat } from "./process";
 import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./storage/globalApi";
-import { CurrentCharacter } from "./stores";
 
 
 export const tokenizerList = [
@@ -353,7 +352,7 @@ export async function getCharToken(char?:character|groupChat|null){
     let dynamic = 0
 
     if(!char){
-        const c = get(CurrentCharacter)
+        const c = getCurrentCharacter()
         char = c
     }
     if(char.type === 'group'){
