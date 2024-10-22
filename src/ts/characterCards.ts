@@ -300,12 +300,19 @@ export async function characterURLImport() {
 
     const hash = location.hash
     if(hash.startsWith('#import=')){
+        location.hash = ''
         const url = hash.replace('#import=', '')
-        const res = await fetch(url, {
-            method: 'GET',
-        })
-        const data = new Uint8Array(await res.arrayBuffer())
-        importFile(getFileName(res), data)
+        try {
+            const res = await fetch(url, {
+                method: 'GET',
+            })
+            const data = new Uint8Array(await res.arrayBuffer())
+            await importFile(getFileName(res), data)
+            checkCharOrder()
+        } catch (error) {
+            alertError(language.errors.noData)
+            return null
+        }
     }
     if(hash.startsWith('#import_module=')){
         const data = hash.replace('#import_module=', '')
@@ -381,7 +388,7 @@ export async function characterURLImport() {
             for(const f of files){
                 const file = await f.getFile()
                 const data = new Uint8Array(await file.arrayBuffer())
-                importFile(f.name, data);
+                await importFile(f.name, data);
             }
         }
         //@ts-ignore
@@ -399,7 +406,7 @@ export async function characterURLImport() {
         if(files){
             for(const file of files){
                 const data = await readFile(file)
-                importFile(file, data)
+                await importFile(file, data)
             }
         }
     }
@@ -451,9 +458,9 @@ export async function characterURLImport() {
     }
 
     function getFileName(res : Response) : string {
-        return getFormContent(res.headers.get('content-disposition')) || getFromURL(res.url);
+        return getFromContent(res.headers.get('content-disposition')) || getFromURL(res.url);
     
-        function getFormContent(contentDisposition : string) {
+        function getFromContent(contentDisposition : string) {
             if (!contentDisposition) return null;
             const pattern = /filename\*=UTF-8''([^"';\n]+)|filename[^;\n=]*=["']?([^"';\n]+)["']?/;
             const matches = contentDisposition.match(pattern);
