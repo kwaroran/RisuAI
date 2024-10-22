@@ -300,6 +300,7 @@ export async function characterURLImport() {
 
     const hash = location.hash
     if(hash.startsWith('#import=')){
+        location.hash = ''
         const url = hash.replace('#import=', '')
         try {
             const res = await fetch(url, {
