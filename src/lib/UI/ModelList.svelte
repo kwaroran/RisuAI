@@ -71,9 +71,10 @@
                 {/if}
             </Arcodion>
             <Arcodion name="Anthropic Claude">
-                <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-5-sonnet-20240620')}}>Claude 3.5 Sonnet (20240620)</button>
+                <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-5-sonnet-20241022')}}>Claude 3.5 Sonnet (20241022)</button>
                 <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-haiku-20240307')}}>Claude 3 Haiku (20240307)</button>
                 {#if showUnrec}
+                    <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-5-sonnet-20240620')}}>Claude 3.5 Sonnet (20240620)</button>
                     <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-opus-20240229')}}>Claude 3 Opus (20240229)</button>
                     <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-3-sonnet-20240229')}}>Claude 3 Sonnet (20240229)</button>
                     <button class="p-2 hover:text-green-500" onclick={() => {changeModel('claude-2.1')}}>claude-2.1</button>

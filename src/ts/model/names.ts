@@ -81,6 +81,8 @@ export function getModelName(name:string){
             return 'Claude 3 Opus (20240229)'
         case 'claude-3-5-sonnet-20240620':
             return 'Claude 3.5 Sonnet (20240620)'
+        case 'claude-3-5-sonnet-20241022':
+            return 'Claude 3.5 Sonnet (20241022)'
         case 'claude-3-sonnet-20240229':
             return 'Claude 3 Sonnet (20240229)'
         case 'mistral-large-latest':

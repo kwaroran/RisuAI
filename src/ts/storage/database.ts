@@ -1,6 +1,6 @@
 export const DataBase = writable({} as any as Database)
 export const loadedStore = writable(false)
-export let appVer = "137.0.0"
+export let appVer = "137.1.0"
 export let webAppSubVer = ''
 
 import { get, writable } from 'svelte/store';
@@ -445,7 +445,6 @@ export function setDatabase(data:Database){
     data.customQuotesData ??= ['“','”','‘','’']
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
-    data.theme = ''
     changeLanguage(data.language)
     DataBase.set(data)
 }
