@@ -151,6 +151,7 @@
             <OptionInput value="claude-3-opus-20240229">claude-3-opus-20240229</OptionInput>
             <OptionInput value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</OptionInput>
             <OptionInput value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</OptionInput>
+            <OptionInput value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022</OptionInput>
             <OptionInput value="custom">Custom</OptionInput>
         </SelectInput>
         {#if $DataBase.proxyRequestModel === 'custom'}
