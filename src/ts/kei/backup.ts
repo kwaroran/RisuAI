@@ -1,10 +1,9 @@
-import { get } from "svelte/store"
 import { alertNormal, alertSelect } from "../alert"
 import { keiServerURL } from "./kei"
-import { DataBase, setDatabase } from "../storage/database"
+import { getDatabase, setDatabase } from "../storage/database.svelte"
 
 export async function autoServerBackup(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const res = await fetch(keiServerURL() + '/autobackup/list', {
         method: 'POST',
         headers: {
@@ -81,7 +80,7 @@ export async function autoServerBackup(){
 let lastKeiSave = 0
 export async function saveDbKei() {
     try{
-        let db = get(DataBase)
+        let db = getDatabase()
         if(db.account.kei){
             if(Date.now() - lastKeiSave < 60000 * 5){
                 return

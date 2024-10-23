@@ -1,13 +1,10 @@
-import { DataBase, type Chat, type character } from "src/ts/storage/database";
+import { getDatabase, type Chat, type character } from "src/ts/storage/database.svelte";
 import { HypaProcesser } from '../memory/hypamemory'
-import type { OpenAIChat } from "..";
-import { stringlizeChat } from "../stringlize";
-import { get } from "svelte/store";
 import { getUserName } from "src/ts/util";
 
 export async function additionalInformations(char: character,chats:Chat,){
     const processer = new HypaProcesser('MiniLM')
-    const db = get(DataBase)
+    const db = getDatabase()
 
     const info = char.additionalText
     if(info){

@@ -1,11 +1,11 @@
 import DOMPurify from 'isomorphic-dompurify';
 import markdownit from 'markdown-it'
-import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
+import { getCurrentCharacter, getDatabase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { getFileSrc } from './storage/globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
@@ -75,7 +75,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 
 function renderMarkdown(md:markdownit, data:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     let quotes = ['“', '”', '‘', '’']
     if(db?.customQuotes){
         quotes = db.customQuotesData ?? quotes
@@ -254,7 +254,7 @@ async function renderHighlightableMarkdown(data:string) {
 export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
-    const db = get(DataBase)
+    const db = getDatabase()
     const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
 
     let assetPaths:{[key:string]:{
@@ -348,7 +348,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     })
 
     if(needsSourceAccess){
-        const chara = get(CurrentCharacter)
+        const chara = getCurrentCharacter()
         if(chara.image){}
         data = data.replace(/\uE9b4CHAR\uE9b4/g,
             chara.image ? (await getFileSrc(chara.image)) : ''
@@ -500,7 +500,7 @@ export async function hasher(data:Uint8Array){
 }
 
 export async function convertImage(data:Uint8Array) {
-    if(!get(DataBase).imageCompression){
+    if(!getDatabase().imageCompression){
         return data
     }
     const type = checkImageType(data)
@@ -1775,7 +1775,7 @@ export function risuChatParser(da:string, arg:{
     cbsConditions?:CbsConditions
 } = {}):string{
     const chatID = arg.chatID ?? -1
-    const db = arg.db ?? get(DataBase)
+    const db = arg.db ?? getDatabase()
     const aChara = arg.chara
     const visualize = arg.visualize ?? false
     let chara:character|string = null
@@ -1797,7 +1797,7 @@ export function risuChatParser(da:string, arg:{
         }
     }
     if(arg.tokenizeAccurate){
-        const db = arg.db ?? get(DataBase)
+        const db = arg.db ?? getDatabase()
         const selchar = chara ?? db.characters[get(selectedCharID)]
         if(!selchar){
             chara = 'bot'
@@ -2103,7 +2103,7 @@ export function risuChatParser(da:string, arg:{
 
 
 export function getChatVar(key:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     if(!char){
@@ -2126,12 +2126,12 @@ export function getChatVar(key:string){
 }
 
 export function getGlobalChatVar(key:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.globalChatVariables[key] ?? 'null'
 }
 
 export function setChatVar(key:string, value:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     const chat = char.chats[char.chatPage]

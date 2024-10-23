@@ -1,7 +1,7 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore } from './ts/stores';
-    import { DataBase, loadedStore } from './ts/storage/database';
+    import { DBState, loadedStore } from './ts/storage/database.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';
@@ -21,14 +21,8 @@
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
 
   
-    let didFirstSetup: boolean  = false
-    let gridOpen = false
-
-    DataBase.subscribe(db => {
-        if(db.didFirstSetup !== didFirstSetup){
-            didFirstSetup = db.didFirstSetup || false
-        }
-    })
+    let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
+    let gridOpen = $state(false)
 
 </script>
 
@@ -61,7 +55,7 @@
                 <Sidebar openGrid={() => {gridOpen = true}} hidden={!$sideBarStore} />
             {:else}
                 <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" class:fixed={$sideBarStore} class:hidden={!$sideBarStore} >
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
 
 

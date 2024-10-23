@@ -1,5 +1,9 @@
 <script lang="ts">
-  export let isActive: boolean;
+  interface Props {
+    isActive: boolean;
+  }
+
+  let { isActive }: Props = $props();
 </script>
 
 <div
@@ -14,4 +18,4 @@
       duration-300
       {isActive ? 'bg-white !h-[20px]' : 'group-hover:h-[10px]'}
     "
-/>
+></div>

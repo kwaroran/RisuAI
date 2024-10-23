@@ -1,8 +1,3 @@
-export const DataBase = writable({} as any as Database)
-export const loadedStore = writable(false)
-export let appVer = "137.1.0"
-export let webAppSubVer = ''
-
 import { get, writable } from 'svelte/store';
 import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
@@ -16,6 +11,14 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
+
+export const DBState = $state({
+    db: {} as any as Database
+})
+export const loadedStore = writable(false)
+export let appVer = "137.1.0"
+export let webAppSubVer = '-svelte5-exp'
+
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -446,9 +449,48 @@ export function setDatabase(data:Database){
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
     changeLanguage(data.language)
-    DataBase.set(data)
+    setDatabaseLite(data)
 }
 
+export function setDatabaseLite(data:Database){
+    DBState.db = data
+}
+
+interface getDatabaseOptions{
+    snapshot?:boolean
+}
+
+export function getDatabase(options:getDatabaseOptions = {}):Database{
+    if(options.snapshot){
+        return $state.snapshot(DBState.db) as Database
+    }
+    return DBState.db as Database
+}
+
+export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
+    const db = getDatabase(options)
+    db.characters ??= []
+    const char = db.characters?.[get(selectedCharID)]
+    return char
+}
+
+export function setCurrentCharacter(char:character|groupChat){
+    const db = getDatabase()
+    db.characters ??= []
+    db.characters[get(selectedCharID)] = char
+    setDatabaseLite(db)
+}
+
+export function getCurrentChat(){
+    const char = getCurrentCharacter()
+    return char?.chats[char.chatPage]
+}
+
+export function setCurrentChat(chat:Chat){
+    const char = getCurrentCharacter()
+    char.chats[char.chatPage] = chat
+    setCurrentCharacter(char)
+}
 
 export interface Database{
     characters: (character|groupChat)[],
@@ -930,7 +972,7 @@ export interface loreSettings{
 }
 
 
-export interface groupChat{
+export interface groupChat{ 
     type: 'group'
     image?:string
     firstMessage:string
@@ -968,6 +1010,30 @@ export interface groupChat{
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
     lastInteraction?:number
+
+    //lazy hack for typechecking
+    voicevoxConfig?:any
+    ttsSpeech?:string
+    naittsConfig?:any
+    oaiVoice?:string
+    hfTTS?: any
+    vits?: OnnxModelFiles
+    gptSoVitsConfig?:any
+    fishSpeechConfig?:any
+    ttsReadOnlyQuoted?:boolean
+    exampleMessage?:string
+    systemPrompt?:string
+    replaceGlobalNote?:string
+    additionalText?:string
+    personality?:string
+    scenario?:string
+    translatorNote?:string
+    additionalData?: any
+    depth_prompt?: { depth: number, prompt: string }
+    additionalAssets?:[string, string, string][]
+    utilityBot?:boolean
+    license?:string
+    realmId:string
 }
 
 export interface botPreset{
@@ -1262,7 +1328,7 @@ export const defaultSdDataFunc = () =>{
 }
 
 export function saveCurrentPreset(){
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     pres[db.botPresetsId] = {
         name: pres[db.botPresetsId].name,
@@ -1326,7 +1392,7 @@ export function saveCurrentPreset(){
 
 export function copyPreset(id:number){
     saveCurrentPreset()
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     const newPres = structuredClone(pres[id])
     newPres.name += " Copy"
@@ -1338,7 +1404,7 @@ export function changeToPreset(id =0, savecurrent = true){
     if(savecurrent){
         saveCurrentPreset()
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
@@ -1422,10 +1488,11 @@ import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
+import { selectedCharID } from '../stores';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = structuredClone(db.botPresets[id])
     console.log(pres)
     pres.openAIKey = ''
@@ -1496,7 +1563,7 @@ export async function importPreset(f:{
         pre = {...presetTemplate,...(JSON.parse(Buffer.from(f.data).toString('utf-8')))}
         console.log(pre)
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     if(pre.presetVersion && pre.presetVersion >= 3){
         //NAI preset
         const pr = structuredClone(prebuiltPresets.NAI2)

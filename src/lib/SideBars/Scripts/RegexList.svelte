@@ -1,13 +1,17 @@
 <script lang="ts">
-    import type { customscript } from "src/ts/storage/database";
+    import type { customscript } from "src/ts/storage/database.svelte";
     import RegexData from "./RegexData.svelte";
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
-    export let value:customscript[] = []
+    interface Props {
+        value?: customscript[];
+    }
+
+    let { value = $bindable([]) }: Props = $props();
     let stb: Sortable = null
-    let ele: HTMLDivElement
-    let sorted = 0
+    let ele: HTMLDivElement = $state()
+    let sorted = $state(0)
     let opened = 0
     const createStb = () => {
         stb = Sortable.create(ele, {

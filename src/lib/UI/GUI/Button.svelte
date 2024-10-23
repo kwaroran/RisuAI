@@ -1,5 +1,5 @@
 <button
-    on:click
+    onclick={onclick}
     class="{
         styled === 'primary' ? ((selected ? 'bg-bg-selected' : 'bg-darkbutton') + " hover:bg-selected focus:ring-selected border-darkborderc")
         : styled === 'outlined' ? 'bg-transparent hover:bg-darkbg focus:ring-selected border-darkborderc text-textcolor2'
@@ -14,11 +14,27 @@
     class:text-md = {size == "md"}
     class:text-sm = {size == "sm"}
     class:text-lg = {size == "lg"}>
-    <slot></slot>
+    {@render children?.()}
 </button>
 <script lang="ts">
-    export let selected = false
-    export let styled:'primary'|'danger'|'outlined' = 'primary'
-    export let className = ""
-    export let size: "sm" | "md" | "lg" = "md"
+
+    interface Props {
+        selected?: boolean;
+        styled?: 'primary'|'danger'|'outlined';
+        className?: string;
+        size?: "sm" | "md" | "lg";
+        children?: import('svelte').Snippet;
+        onclick?: (event: MouseEvent & {
+            currentTarget: EventTarget & HTMLButtonElement;
+        }) => any
+    }
+
+    let {
+        selected = false,
+        styled = 'primary',
+        className = "",
+        size = "md",
+        children,
+        onclick
+    }: Props = $props();
 </script>

@@ -4,7 +4,7 @@
     import { selectMultipleFile } from "src/ts/util";
     import { detectPromptJSONType, promptConvertion } from "src/ts/process/prompt";
 
-    let files: { name: string, content: string, type:string }[] = []
+    let files: { name: string, content: string, type:string }[] = $state([])
 
     const addFile = async () => {
         const selFiles = await selectMultipleFile(['json'])
@@ -42,8 +42,8 @@
             <Button>Delete</Button>
         </div>
     {/each}
-    <Button on:click={addFile}>Add</Button>
+    <Button onclick={addFile}>Add</Button>
 </div>
-<Button className="mt-6" on:click={() => {
+<Button className="mt-6" onclick={() => {
     promptConvertion(files)
 }}>Run</Button>

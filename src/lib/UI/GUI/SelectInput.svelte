@@ -11,13 +11,27 @@
     class:px-6={size === 'lg'}
     class:py-3={size === 'lg'}
     bind:value
-    on:change
+    onchange={onchange}
 >
-    <slot></slot>
+    {@render children?.()}
 </select>
 <script lang="ts">
-    export let value:string
-    export let className:string = ""
-    export let size:'sm'|'md'|'lg'|'xl' = 'md'
+    interface Props {
+        value: string;
+        className?: string;
+        size?: 'sm'|'md'|'lg'|'xl';
+        children?: import('svelte').Snippet;
+        onchange?: (event: Event & {
+            currentTarget: EventTarget & HTMLSelectElement;
+        }) => any;
+    }
+
+    let {
+        value = $bindable(),
+        className = "",
+        size = 'md',
+        children,
+        onchange
+    }: Props = $props();
 
 </script>

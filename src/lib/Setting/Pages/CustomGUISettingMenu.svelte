@@ -1,5 +1,4 @@
 <script lang="ts">
-
     interface CustomTree {
         name: string; // dom name, like div, span, etc. for component, we use 'component'
         type: string; // type, used for identifying in editor
@@ -7,11 +6,11 @@
         children: CustomTree[]; // children, used for nesting
     }
 
-    let tree:CustomTree[] = [] //children of the main tree
-    let mainTree:HTMLDivElement
-    let menuOpen:boolean = false
-    let subMenu = 0
-    let selectedContatiner = 'root'
+    let tree:CustomTree[] = $state([]) //children of the main tree
+    let mainTree:HTMLDivElement = $state()
+    let menuOpen:boolean = $state(false)
+    let subMenu = $state(0)
+    let selectedContatiner = $state('root')
 
     const builtContainerTrees:CustomTree[] = [
         {
@@ -205,15 +204,32 @@
         })
         return html
     }
+
+    interface Props{
+        oncontextmenu?: (event: MouseEvent & {
+            currentTarget: EventTarget & HTMLDivElement;
+        }) => any
+    }
+
+    let {
+        oncontextmenu
+    }:Props = $props()
 </script>
 
+<!-- svelte-ignore a11y_role_has_required_aria_props -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="w-full h-full relative flex p-4 border"
     class:border-blue-500={selectedContatiner === 'root'}
-    on:click={() => {
+    role="option"
+    tabindex="0"
+    onclick={() => {
         selectedContatiner = 'root'
         renderMainTree(tree)
     }}
-    on:contextmenu|preventDefault
+    oncontextmenu={(e) => {
+        e.preventDefault()
+        oncontextmenu?.(e)
+    }}
     bind:this={mainTree}
 >
     
@@ -221,13 +237,13 @@
 {#if menuOpen}
 <div class="w-138 max-w-full h-full bg-white text-black border-l border-l-black p-4 flex flex-col gap-2 z-20">
     <div class="flex">
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 0} on:click={() => {
+        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 0} onclick={() => {
             subMenu = 0
         }}>Component</button>
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 1} on:click={() => {
+        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 1} onclick={() => {
             subMenu = 1
         }}>Container</button>
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 2} on:click={() => {
+        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 2} onclick={() => {
             subMenu = 2
         }}>Help</button>
     </div>
@@ -236,14 +252,14 @@
     </div>
     {#if subMenu === 0}
         {#each builtComponentTrees as component, i}
-            <button class="p-2 border border-black rounded" on:click={() => {
+            <button class="p-2 border border-black rounded" onclick={() => {
                 addContainerToTree(structuredClone(component), selectedContatiner)
                 renderMainTree(tree)
             }}>{component.type}</button>
         {/each}
     {:else if subMenu === 1}
         {#each builtContainerTrees as container, i}
-            <button class="p-2 border border-black rounded" on:click={() => {
+            <button class="p-2 border border-black rounded" onclick={() => {
                 addContainerToTree(structuredClone(container), selectedContatiner)
                 renderMainTree(tree)
             }}>{container.type}</button>
@@ -254,7 +270,7 @@
     {/if}
 </div>
 {:else}
-    <button class="absolute top-0 right-0 z-20 p-2 border bg-white rounded" on:click={() => {
+    <button class="absolute top-0 right-0 z-20 p-2 border bg-white rounded" onclick={() => {
         menuOpen = !menuOpen
     }}>Menu</button>
 {/if}

@@ -2,8 +2,8 @@
     import { language } from "src/lang";
     import { Template } from '@huggingface/jinja';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-    let input = "";
-    let json = JSON.stringify({
+    let input = $state("");
+    let json = $state(JSON.stringify({
         "messages": [{
             "role": "user",
             "content": "Hello, I'm a user!"
@@ -13,8 +13,8 @@
         }],
         "eos_token": "",
         "bos_token": ""
-    }, null, 4)
-    let output = "";
+    }, null, 4))
+    let output = $state("");
     const onInput = () => {
         try {
             const template = new Template(input);

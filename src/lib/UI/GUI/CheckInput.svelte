@@ -1,14 +1,29 @@
 <script lang="ts">
     import { CheckIcon } from "lucide-svelte";
 
-    export let check = false
-    export let onChange = (check:boolean) => {}
-    export let margin = true
-    export let name = ''
-    export let hiddenName = false
-    export let reverse = false
-    export let className = ""
-    export let grayText = false
+    interface Props {
+        check?: boolean;
+        onChange?: any;
+        margin?: boolean;
+        name?: string;
+        hiddenName?: boolean;
+        reverse?: boolean;
+        className?: string;
+        grayText?: boolean;
+        children?: import('svelte').Snippet;
+    }
+
+    let {
+        check = $bindable(),
+        onChange = (check:boolean) => {},
+        margin = true,
+        name = '',
+        hiddenName = false,
+        reverse = false,
+        className = "",
+        grayText = false,
+        children
+    }: Props = $props();
 </script>
 
 <label 
@@ -18,14 +33,14 @@
     aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
 >
     {#if reverse}
-        <span>{name}<slot /></span>
+        <span>{name}{@render children?.()}</span>
     {/if}
     <input 
         class="hidden" 
         type="checkbox" 
         alt={name}
         bind:checked={check}
-        on:change={() => {
+        onchange={() => {
             onChange(check)
         }}
         aria-describedby="{name} {check ? 'abled' : 'disabled'}"
@@ -44,6 +59,6 @@
         {/if}
     </span>
     {#if !hiddenName && !reverse}
-        <span>{name}<slot /></span>
+        <span>{name}{@render children?.()}</span>
     {/if}
 </label>

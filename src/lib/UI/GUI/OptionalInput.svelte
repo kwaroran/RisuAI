@@ -2,10 +2,19 @@
     import CheckInput from "./CheckInput.svelte";
     import NumberInput from "./NumberInput.svelte";
     import TextInput from "./TextInput.svelte";
-    export let value:string|number|boolean
-    export let numberMode = false
-    export let boolMode = false
-    export let marginBottom = false
+    interface Props {
+        value: string|number|boolean;
+        numberMode?: boolean;
+        boolMode?: boolean;
+        marginBottom?: boolean;
+    }
+
+    let {
+        value = $bindable(),
+        numberMode = false,
+        boolMode = false,
+        marginBottom = false
+    }: Props = $props();
     const valToggle = () => {
             value = !value
     }
@@ -38,8 +47,8 @@
     {:else if typeof(value) === 'number'}
         <NumberInput bind:value={value}  className="flex-1"/>
     {:else if typeof(value) === 'boolean'}
-        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={!value} on:click={valToggle}>True</button>
-        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={value} on:click={valToggle}>False</button>
+        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={!value} onclick={valToggle}>True</button>
+        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={value} onclick={valToggle}>False</button>
     {:else}
         <TextInput value={"Using default"}  className="flex-1" disabled/>
     {/if}

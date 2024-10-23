@@ -1,12 +1,24 @@
 <script lang="ts">
     import ColorPicker from 'svelte-awesome-color-picker';
-    export let value = '#000000';
-    export let nullable = false;
+    interface Props {
+        value?: string;
+        nullable?: boolean;
+        oninput?: () => void;
+    }
+
+    let { value = $bindable('#000000'), nullable = false, oninput }: Props = $props();
+
+    $effect(() => {
+        //this is for updating
+        value
+
+        oninput?.()
+    });
 </script>
 
 <div class="cl rounded-full bg-white">
     <ColorPicker
-        label="" bind:hex={value} on:input
+        label="" bind:hex={value}
         nullable={nullable}
     />
 </div>

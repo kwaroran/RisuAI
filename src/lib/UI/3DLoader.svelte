@@ -1,10 +1,10 @@
 <script>
     import { onDestroy, onMount } from 'svelte';
 
-    export let width = 800;
-    export let height = 600;
+    /** @type {{width?: number, height?: number}} */
+    let { width = 800, height = 600 } = $props();
 
-    let canvas;
+    let canvas = $state();
     let animationFrameId;
 
     onMount(async () => {

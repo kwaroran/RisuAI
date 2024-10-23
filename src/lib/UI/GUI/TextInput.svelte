@@ -29,7 +29,8 @@
         type="password"
         bind:value
         disabled={disabled}
-        on:input={onInput}
+        oninput={oninput}
+        onchange={onchange}
     />
 {:else}
 
@@ -60,29 +61,52 @@
         type="text"
         bind:value
         disabled={disabled}
-        on:input={(e) => {
-            onInput(e)
-        }}
+        oninput={oninput}
+        onchange={onchange}
     />
 {/if}
 
 <script lang="ts">
-    export let size: 'sm'|'md'|'lg'|'xl' = 'md'
-    export let autocomplete: 'on'|'off' = 'off'
-    export let placeholder: string = ''
-    export let value:string
-    export let id:string = undefined
-    export let padding = true
-    export let marginBottom = false
-    export let marginTop = false
-    export let onInput = (e:Event & {
-        currentTarget: EventTarget & HTMLInputElement;
-    }) => {}
-    export let fullwidth = false
-    export let fullh = false
-    export let className = ''
-    export let disabled = false
-    export let hideText = false
+    type FormEventHandler<T extends EventTarget> = (event: Event & {
+        currentTarget: EventTarget & T;
+    }) => any
+
+    interface Props {
+        size?: 'sm'|'md'|'lg'|'xl';
+        autocomplete?: 'on'|'off';
+        placeholder?: string;
+        value: string;
+        id?: string;
+        padding?: boolean;
+        marginBottom?: boolean;
+        marginTop?: boolean;
+        oninput?: FormEventHandler<HTMLInputElement>
+        onchange?: FormEventHandler<HTMLInputElement>;
+        fullwidth?: boolean;
+        fullh?: boolean;
+        className?: string;
+        disabled?: boolean;
+        hideText?: boolean;
+    }
+
+    let {
+        size = 'md',
+        autocomplete = 'off',
+        placeholder = '',
+        value = $bindable(),
+        id = undefined,
+        padding = true,
+        marginBottom = false,
+        marginTop = false,
+        oninput,
+        onchange,
+        fullwidth = false,
+        fullh = false,
+        className = '',
+        disabled = false,
+        hideText = false,
+        
+    }: Props = $props();
 </script>
 
 <style>

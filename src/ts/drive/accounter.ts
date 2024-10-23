@@ -1,6 +1,5 @@
-import { get } from "svelte/store"
 import { hubURL } from "../characterCards"
-import { DataBase } from "../storage/database"
+import { getDatabase } from "../storage/database.svelte"
 import { alertError, alertSelect } from "../alert"
 
 export async function risuLogin() {
@@ -14,7 +13,7 @@ export async function risuLogin() {
 }
 
 export async function saveRisuAccountData() {
-    const db = get(DataBase)
+    const db = getDatabase()
     if(!db.account){
         alertError("Not logged in error")
         return
@@ -33,7 +32,7 @@ export async function saveRisuAccountData() {
 }
 
 export async function loadRisuAccountData() {
-    const db = get(DataBase)
+    const db = getDatabase()
     if(!db.account){
         alertError("Not logged in error")
         return
@@ -52,7 +51,7 @@ export async function loadRisuAccountData() {
 }
 
 export async function loadRisuAccountBackup() {
-    const db = get(DataBase)
+    const db = getDatabase()
     if(!db.account){
         alertError("Not logged in error")
         return
