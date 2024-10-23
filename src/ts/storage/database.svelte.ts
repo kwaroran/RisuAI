@@ -28,6 +28,13 @@ DataBase.subscribe(data => {
     }
 })
 
+$effect(() => {
+    //same as above, but for the other way around
+    if(DBState.db !== get(DataBase)){
+        DataBase.set(DBState.db)
+    }
+})
+
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
         data.characters = []
