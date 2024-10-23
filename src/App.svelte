@@ -1,7 +1,7 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore } from './ts/stores';
-    import { DataBase, loadedStore } from './ts/storage/database.svelte';
+    import { DBState, loadedStore } from './ts/storage/database.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';
@@ -21,14 +21,8 @@
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
 
   
-    let didFirstSetup: boolean  = $state(false)
+    let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
     let gridOpen = $state(false)
-
-    DataBase.subscribe(db => {
-        if(db.didFirstSetup !== didFirstSetup){
-            didFirstSetup = db.didFirstSetup || false
-        }
-    })
 
 </script>
 

@@ -1,7 +1,6 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-import { DataBase, type groupChat, type character, type Chat, getCurrentCharacter } from "./storage/database.svelte";
-import { get } from "svelte/store";
+import { type groupChat, type character, type Chat, getCurrentCharacter, getDatabase } from "./storage/database.svelte";
 import type { MultiModal, OpenAIChat } from "./process";
 import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser";
@@ -22,7 +21,7 @@ export const tokenizerList = [
 ] as const
 
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
-    let db = get(DataBase)
+    let db = getDatabase()
     if(db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
         switch(db.customTokenizer){
             case 'mistral':
@@ -130,7 +129,7 @@ async function tikJS(text:string, model='cl100k_base') {
 }
 
 async function geminiTokenizer(text:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     const fetchResult = await globalFetch(`https://generativelanguage.googleapis.com/v1beta/${db.aiModel}:countTextTokens`, {
         "headers": {
             "content-type": "application/json",
@@ -249,7 +248,7 @@ export class ChatTokenizer {
     }
 
     async tokenizeMultiModal(data:MultiModal){
-        const db = get(DataBase)
+        const db = getDatabase()
         if(!supportsInlayImage()){
             return this.chatAdditonalTokens
         }

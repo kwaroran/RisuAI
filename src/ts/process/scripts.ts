@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, setDatabase, type character, type customscript, type groupChat, type Database } from "../storage/database.svelte";
+import { type character, type customscript, type groupChat, type Database, getDatabase } from "../storage/database.svelte";
 import { downloadFile } from "../storage/globalApi";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
@@ -27,7 +27,7 @@ export async function processScript(char:character|groupChat, data:string, mode:
 }
 
 export function exportRegex(s?:customscript[]){
-    let db = get(DataBase)
+    let db = getDatabase()
     const script = s ?? db.globalscript
     const data = Buffer.from(JSON.stringify({
         type: 'regex',
@@ -43,7 +43,7 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
     if(!filedata){
         return o
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     try {
         const imported= JSON.parse(Buffer.from(filedata).toString('utf-8'))
         if(imported.type === 'regex' && imported.data){
@@ -67,7 +67,7 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 let bestMatchCache = new Map<string, string>()
 
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
-    let db = get(DataBase)
+    let db = getDatabase()
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runCharacterJS({

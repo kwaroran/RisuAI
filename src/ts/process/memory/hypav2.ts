@@ -1,12 +1,10 @@
-import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database.svelte";
+import { getDatabase, type Chat, type character, type groupChat } from "src/ts/storage/database.svelte";
 import type { OpenAIChat } from "..";
 import type { ChatTokenizer } from "src/ts/tokenizer";
-import { get } from "svelte/store";
 import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { globalFetch } from "src/ts/storage/globalApi";
 import { runSummarizer } from "../transformers";
-import { last, remove } from "lodash";
 
 export interface HypaV2Data {
     chunks: {
@@ -20,7 +18,7 @@ export interface HypaV2Data {
 }
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
-    const db = get(DataBase);
+    const db = getDatabase();
     console.log("Summarizing");
 
     if (db.supaModelType === 'distilbart') {
@@ -123,7 +121,7 @@ export async function hypaMemoryV2(
     arg: { asHyper?: boolean, summaryModel?: string, summaryPrompt?: string, hypaModel?: string } = {}
 ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?: string; memory?: HypaV2Data; }> {
 
-    const db = get(DataBase);
+    const db = getDatabase();
     const data: HypaV2Data = room.hypaV2Data ?? { chunks: [], mainChunks: [] };
 
     let allocatedTokens = db.hypaAllocatedTokens;

@@ -1,6 +1,5 @@
-import { get } from "svelte/store";
 import type { OpenAIChat } from ".";
-import { DataBase } from "../storage/database.svelte";
+import { getDatabase } from "../storage/database.svelte";
 import { getUserName } from "../util";
 
 export function multiChatReplacer(){
@@ -41,7 +40,7 @@ function appendWhitespace(prefix:string, seperator:string=" ") {
     return prefix
 }
 export function stringlizeChatOba(formated:OpenAIChat[], characterName:string, suggesting:boolean, continued:boolean){
-    const db = get(DataBase)
+    const db = getDatabase()
     let resultString:string[] = []
     let { systemPrefix, userPrefix, assistantPrefix, seperator } = db.ooba.formating;
     systemPrefix = systemPrefix ?? ""
@@ -103,7 +102,7 @@ function toTitleCase(s:string){
     return s[0].toUpperCase() + s.slice(1).toLowerCase()
 }
 export function getStopStrings(suggesting:boolean=false){
-    const db = get(DataBase)
+    const db = getDatabase()
     let { userPrefix, seperator } = db.ooba.formating;
     if(!seperator){
         seperator = "\n"
@@ -160,7 +159,7 @@ export function unstringlizeChat(text:string, formated:OpenAIChat[], char:string
 export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:'ain'|'normal' = 'normal'){
     let chunks:string[] = ["system note:", "system:","system note：", "system："]
     let charNames:string[] = []
-    const db = get(DataBase)
+    const db = getDatabase()
     if(char){
         charNames.push(char)
         if(mode === 'ain'){
@@ -212,7 +211,7 @@ export function getUnstringlizerChunks(formated:OpenAIChat[], char:string, mode:
 
 export function stringlizeAINChat(formated:OpenAIChat[], char:string, continued: boolean){
     let resultString:string[] = []
-    const db = get(DataBase)
+    const db = getDatabase()
 
     for(const form of formated){
         console.log(form)
@@ -292,7 +291,7 @@ function extractAINOutputStrings(inputString:string, characters:string[]) {
 
 export function unstringlizeAIN(data:string,formated:OpenAIChat[], char:string = ''){
 
-    const db = get(DataBase)
+    const db = getDatabase()
     const chunksResult = getUnstringlizerChunks(formated, char ,'ain')
     const chunks = chunksResult.chunks
     let result:['char'|'user',string][] = []

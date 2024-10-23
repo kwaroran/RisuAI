@@ -1,42 +1,10 @@
 <script lang="ts">
     import { ParseMarkdown, risuChatParser } from "src/ts/parser";
-    import { DataBase, type Database, type character, type groupChat } from "src/ts/storage/database.svelte";
+    import { DBState, type character, type groupChat } from "src/ts/storage/database.svelte";
     import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
-    import { onDestroy } from "svelte";
 
-    let backgroundHTML = $state('')
-    let lastdb:Database
+    let backgroundHTML = $derived(DBState.db?.characters?.[$selectedCharID]?.backgroundHTML)
     let currentChar:character|groupChat = $state()
-    let selectedId = 0
-
-    function checkUpdate(){
-        if(selectedId > 0 && lastdb){
-            if(lastdb.characters[selectedId] && lastdb.characters[selectedId].backgroundHTML !== backgroundHTML){
-                backgroundHTML = lastdb.characters[selectedId].backgroundHTML
-                currentChar = lastdb.characters[selectedId]
-            }
-        }
-        else{
-            if(backgroundHTML !== ''){
-                backgroundHTML = ''
-            }
-        }
-    }
-
-    const unsubDatabase = DataBase.subscribe(v => {
-        lastdb = v
-        checkUpdate()
-    })
-
-    const unsubID = selectedCharID.subscribe(v => {
-        selectedId = v
-        checkUpdate()
-    })
-
-    onDestroy(() => {
-        unsubDatabase()
-        unsubID()
-    })
 
 </script>
 

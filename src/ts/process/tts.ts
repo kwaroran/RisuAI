@@ -1,11 +1,10 @@
-import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, getCurrentCharacter, type character } from "../storage/database.svelte";
+import { getCurrentCharacter, getDatabase, type character } from "../storage/database.svelte";
 import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch, loadAsset } from "../storage/globalApi";
 import { language } from "src/lang";
 import { sleep } from "../util";
-import { registerOnnxModel, runVITS } from "./transformers";
+import { runVITS } from "./transformers";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -23,7 +22,7 @@ export async function sayTTS(character:character,text:string) {
             return
         }
     
-        let db = get(DataBase)
+        let db = getDatabase()
         text = text.replace(/\*/g,'')
     
         if(character.ttsReadOnlyQuoted){
@@ -383,7 +382,7 @@ export function getWebSpeechTTSVoices() {
 }
 
 export async function getElevenTTSVoices() {
-    let db = get(DataBase)
+    let db = getDatabase()
 
     const data = await fetch('https://api.elevenlabs.io/v1/voices', {
         headers: {
@@ -397,7 +396,7 @@ export async function getElevenTTSVoices() {
 }
 
 export async function getVOICEVOXVoices() {
-    const db = get(DataBase);
+    const db = getDatabase();
     const speakerData = await fetch(`${db.voicevoxUrl}/speakers`)
     const speakerList = await speakerData.json()
     const speakersInfo = speakerList.map((speaker) => {

@@ -1,12 +1,11 @@
-import { DataBase, setDatabase } from "src/ts/storage/database.svelte"
+import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
 import type { OpenAIChat } from ".."
-import { get } from "svelte/store"
 import { globalFetch } from "src/ts/storage/globalApi"
 import { alertError, alertInput, alertNormal, alertWait } from "src/ts/alert"
 import { getUserName, sleep } from "src/ts/util"
 
 export function stringlizeNAIChat(formated:OpenAIChat[], char:string, continued: boolean){
-    const db = get(DataBase)
+    const db = getDatabase()
     let seperator = db.NAIsettings.seperator.replaceAll("\\n","\n") || '\n'
     let starter = db.NAIsettings.starter.replaceAll("\\n","\n") || '⁂'
     let resultString:string[] = []
@@ -109,7 +108,7 @@ export const novelLogin = async () => {
 
                 const data = r.data?.accessToken
 
-                const db = get(DataBase)
+                const db = getDatabase()
                 db.novelai.token = data
 
                 alertNormal('Logged in to NovelAI')

@@ -107,7 +107,7 @@
                     const option = await alertChatOptions()
                     switch(option){
                         case 0:{
-                            const newChat = structuredClone(chara.chats[i])
+                            const newChat = structuredClone($state.snapshot(chara.chats[i]))
                             newChat.name = `Copy of ${newChat.name}`
                             chara.chats.unshift(newChat)
                             chara.chatPage = 0

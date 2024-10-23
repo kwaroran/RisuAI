@@ -3,8 +3,7 @@ import type { OpenAIChat } from "..";
 import { HypaProcesser } from "./hypamemory";
 import { language } from "src/lang";
 import type { ChatTokenizer } from "src/ts/tokenizer";
-import { get } from "svelte/store";
-import { DataBase } from "src/ts/storage/database.svelte";
+import { getDatabase } from "src/ts/storage/database.svelte";
 
 const maxRecentChatQuery = 4;
 export async function hanuraiMemory(chats:OpenAIChat[],arg:{
@@ -12,7 +11,7 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
     maxContextTokens:number,
     tokenizer:ChatTokenizer
 }){
-    const db = get(DataBase)
+    const db = getDatabase()
     const tokenizer = arg.tokenizer
     const processer = new HypaProcesser('MiniLM')
     let addTexts:string[] = []

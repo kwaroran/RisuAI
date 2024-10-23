@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from "svelte/store"
 import type { Database, Message } from "./storage/database.svelte"
-import { DataBase } from "./storage/database.svelte"
+import { getDatabase } from "./storage/database.svelte"
 import { selectedCharID } from "./stores"
 import {open} from '@tauri-apps/plugin-dialog'
 import { readFile } from "@tauri-apps/plugin-fs"
@@ -17,7 +17,7 @@ export interface Messagec extends Message{
 }
 
 export function messageForm(arg:Message[], loadPages:number){
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedChar = get(selectedCharID)
     function reformatContent(data:string){
         return data.trim()
@@ -100,7 +100,7 @@ export async function selectMultipleFile(ext:string[]){
 }
 
 export const replacePlaceholders = (msg:string, name:string) => {
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedChar = get(selectedCharID)
     let currentChar = db.characters[selectedChar]
     return msg  .replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
@@ -110,7 +110,7 @@ export const replacePlaceholders = (msg:string, name:string) => {
 
 function checkPersonaBinded(){
     try {
-        let db = get(DataBase)
+        let db = getDatabase()
         const selectedChar = get(selectedCharID)
         const character = db.characters[selectedChar]
         const chat = character.chats[character.chatPage]
@@ -129,7 +129,7 @@ export function getUserName(){
     if(bindedPersona){
         return bindedPersona.name
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.username ?? 'User'
 }
 
@@ -138,7 +138,7 @@ export function getUserIcon(){
     if(bindedPersona){
         return bindedPersona.icon
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.userIcon ?? ''
 }
 
@@ -147,7 +147,7 @@ export function getPersonaPrompt(){
     if(bindedPersona){
         return bindedPersona.personaPrompt
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.personaPrompt ?? ''
 }
 
@@ -157,7 +157,7 @@ export function getUserIconProtrait(){
         if(bindedPersona){
             return bindedPersona.largePortrait
         }
-        const db = get(DataBase)
+        const db = getDatabase()
         return db.personas[db.selectedPersona].largePortrait       
     } catch (error) {
         return false
@@ -172,7 +172,7 @@ export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.multiple = multiple === 'multiple';
-        const acceptAll = (get(DataBase).allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
+        const acceptAll = (getDatabase().allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
         if(!acceptAll){
             if (allowedExtensions && allowedExtensions.length) {
                 fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
@@ -223,7 +223,7 @@ function readFileAsUint8Array(file) {
 }
 
 export async function changeFullscreen(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const isFull = await appWindow.isFullscreen()
     if(db.fullScreen && (!isFull)){
         await appWindow.setFullscreen(true)
@@ -244,7 +244,7 @@ export async function getCustomBackground(db:string){
 }
 
 export function findCharacterbyId(id:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     for(const char of db.characters){
         if(char.type !== 'group'){
             if(char.chaId === id){
@@ -258,7 +258,7 @@ export function findCharacterbyId(id:string) {
 }
 
 export function findCharacterIndexbyId(id:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     let i=0;
     for(const char of db.characters){
         if(char.chaId === id){
@@ -270,7 +270,7 @@ export function findCharacterIndexbyId(id:string) {
 }
 
 export function getCharacterIndexObject() {
-    const db = get(DataBase)
+    const db = getDatabase()
     let i=0;
     let result:{[key:string]:number} = {}
     for(const char of db.characters){
@@ -364,7 +364,7 @@ export async function getEmotion(db:Database,chaEmotion:{[key:string]: [string, 
 }
 
 export function getAuthorNoteDefaultText(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const template = db.promptTemplate
     if(!template){
         return ''

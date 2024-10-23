@@ -85,7 +85,7 @@
             if(!latin1.test(enNotes)){
                 alertError("English version of creator notes must contain only Latin-1 characters")
             }
-            shareRisuHub2(char, {
+            shareRisuHub2($state.snapshot(char) as character, {
                 anon: privateMode,
                 nsfw: nsfwMode,
                 tag: tags,

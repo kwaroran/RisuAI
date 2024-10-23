@@ -2,9 +2,7 @@ import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-
 import { alertError, alertNormal, alertStore, alertWait } from "../alert";
 import { LocalWriter, forageStorage, isTauri } from "../storage/globalApi";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
-import { get } from "svelte/store";
-import { DataBase } from "../storage/database.svelte";
-import { save } from "@tauri-apps/plugin-dialog";
+import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
@@ -32,7 +30,7 @@ export async function SaveLocalBackup(){
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(get(DataBase)),
+        body: JSON.stringify(getDatabase()),
     })
     if(corrupted.status === 400){
         alertError('Failed, Backup data is corrupted')
@@ -70,7 +68,7 @@ export async function SaveLocalBackup(){
         }
     }
 
-    const dbData = encodeRisuSave(get(DataBase), 'compression')
+    const dbData = encodeRisuSave(getDatabase(), 'compression')
 
     alertWait(`Saving local Backup... (Saving database)`)
 
@@ -113,7 +111,7 @@ export async function LoadLocalBackup(){
                     if(name === 'database.risudat'){
                         const db = new Uint8Array(data)
                         const dbData = await decodeRisuSave(db)
-                        DataBase.set(dbData)
+                        setDatabaseLite(dbData)
                         if(isTauri){
                             await writeFile('database/database.bin', db, {baseDir: BaseDirectory.AppData})
                             relaunch()

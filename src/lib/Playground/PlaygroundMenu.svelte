@@ -8,27 +8,25 @@
     import PlaygroundSyntax from "./PlaygroundSyntax.svelte";
     import { findCharacterIndexbyId } from "src/ts/util";
     import { characterFormatUpdate, createBlankChar } from "src/ts/characters";
-    import { get } from "svelte/store";
-    import { DataBase, setDatabase, type character } from "src/ts/storage/database.svelte";
+    import { DBState, type character } from "src/ts/storage/database.svelte";
     import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
     import PlaygroundParser from "./PlaygroundParser.svelte";
     import ToolConvertion from "./ToolConvertion.svelte";
-  import { joinMultiuserRoom } from "src/ts/sync/multiuser";
+    import { joinMultiuserRoom } from "src/ts/sync/multiuser";
 
     let easterEggTouch = $state(0)
 
     const playgroundChat = () => {
-        let db = get(DataBase)
         const charIndex = findCharacterIndexbyId('§playground')
         PlaygroundStore.set(2)
 
         if (charIndex !== -1) {
 
-            const char = db.characters[charIndex] as character
+            const char = DBState.db.characters[charIndex] as character
             char.utilityBot = true
             char.name = 'assistant'
             char.firstMessage = '{{none}}'
-            db.characters[charIndex] = char
+            DBState.db.characters[charIndex] = char
             characterFormatUpdate(charIndex)
 
             selectedCharID.set(charIndex)
@@ -38,8 +36,7 @@
         const character = createBlankChar()
         character.chaId = '§playground'
 
-        db.characters.push(character)
-        setDatabase(db)
+        DBState.db.characters.push(character)
 
         playgroundChat()
 

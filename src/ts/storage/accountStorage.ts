@@ -1,9 +1,9 @@
-import { get, writable } from "svelte/store"
-import { DataBase } from "./database.svelte"
+import { writable } from "svelte/store"
+import { getDatabase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertError, alertLogin, alertStore, alertWait } from "../alert"
-import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
+import { alertLogin, alertStore, alertWait } from "../alert"
+import { forageStorage, getUnpargeables } from "./globalApi"
 import { encodeRisuSave } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
@@ -99,7 +99,7 @@ export class AccountStorage{
         return Buffer.from(ab)
     }
     async keys():Promise<string[]>{
-        let db = get(DataBase)
+        let db = getDatabase()
         return getUnpargeables(db, 'pure')
     }
     async removeItem(key:string){
@@ -107,7 +107,7 @@ export class AccountStorage{
     }
 
     private checkAuth(){
-        const db = get(DataBase)
+        const db = getDatabase()
         this.auth = db?.account?.token
         if(!this.auth){
             db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
@@ -122,7 +122,7 @@ export class AccountStorage{
 
 export async function unMigrationAccount() {
     const keys = await forageStorage.keys()
-    let db = get(DataBase)
+    let db = getDatabase()
     let i = 0;
     const MigrationStorage = localforage.createInstance({name: "risuai"})
     

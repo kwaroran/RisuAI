@@ -1,8 +1,7 @@
-import { get, writable, type Writable } from "svelte/store";
-import { DataBase, getCurrentCharacter, type Chat, type character, type groupChat } from "./storage/database.svelte";
-import { isEqual } from "lodash";
+import { writable, type Writable } from "svelte/store";
+import { getDatabase, type Chat, type character, type groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser";
-import { getUserIcon, getUserIconProtrait, getUserName, sleep } from "./util";
+import { sleep } from "./util";
 import { getModules } from "./process/modules";
 
 function updateSize(){
@@ -75,7 +74,7 @@ export function createSimpleCharacter(char:character|groupChat){
 
     const simpleChar:simpleCharacterArgument = {
         type: "simple",
-        customscript: structuredClone(char.customscript),
+        customscript: char.customscript,
         chaId: char.chaId,
         additionalAssets: char.additionalAssets,
         virtualscript: char.virtualscript,
@@ -89,7 +88,7 @@ export function createSimpleCharacter(char:character|groupChat){
 
 function trySync(){
     try {
-        let db = get(DataBase)
+        let db = getDatabase()
         CurrentShowMemoryLimit.set(db.showMemoryLimit)
     } catch (error) {}
 }

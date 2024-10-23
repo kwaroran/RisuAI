@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database.svelte";
+import { getDatabase, setDatabase } from "../storage/database.svelte";
 import { downloadFile } from "../storage/globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
@@ -115,7 +115,7 @@ export const ColorSchemeTypeStore = writable('dark' as 'dark'|'light')
 export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorShemes)[]
 
 export function changeColorScheme(colorScheme: string){
-    let db = get(DataBase)
+    let db = getDatabase()
     if(colorScheme !== 'custom'){
         db.colorScheme = structuredClone(colorShemes[colorScheme])
     }
@@ -125,7 +125,7 @@ export function changeColorScheme(colorScheme: string){
 }
 
 export function updateColorScheme(){
-    let db = get(DataBase)
+    let db = getDatabase()
 
     let colorScheme = db.colorScheme
 
@@ -151,7 +151,7 @@ export function updateColorScheme(){
 }
 
 export function exportColorScheme(){
-    let db = get(DataBase)
+    let db = getDatabase()
     let json = JSON.stringify(db.colorScheme)
     downloadFile('colorScheme.json', json)
 }
@@ -181,7 +181,7 @@ export async function importColorScheme(){
             return
         }
         changeColorScheme('custom')
-        let db = get(DataBase)
+        let db = getDatabase()
         db.colorScheme = colorScheme
         setDatabase(db)
         updateColorScheme()
@@ -194,7 +194,7 @@ export async function importColorScheme(){
 }
 
 export function updateTextThemeAndCSS(){
-    let db = get(DataBase)
+    let db = getDatabase()
     const root = document.querySelector(':root') as HTMLElement;
     if(!root){
         return

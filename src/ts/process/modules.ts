@@ -1,8 +1,7 @@
 import { language } from "src/lang"
 import { alertConfirm, alertError, alertModuleSelect, alertNormal, alertStore } from "../alert"
-import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentCharacter, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database.svelte"
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database.svelte"
 import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../storage/globalApi"
-import { get } from "svelte/store"
 import { selectSingleFile, sleep } from "../util"
 import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook"
@@ -171,7 +170,7 @@ export async function importModule(){
         return
     }
     let fileData = f.data
-    const db = get(DataBase)
+    const db = getDatabase()
     if(f.name.endsWith('.risum')){
         try {
             const buf = Buffer.from(fileData)
@@ -248,7 +247,7 @@ export async function importModule(){
 }
 
 function getModuleById(id:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     for(let i=0;i<db.modules.length;i++){
         if(db.modules[i].id === id){
             return db.modules[i]
@@ -259,7 +258,7 @@ function getModuleById(id:string){
 
 function getModuleByIds(ids:string[]){
     let modules:RisuModule[] = []
-    const db = get(DataBase)
+    const db = getDatabase()
     for(let i=0;i<ids.length;i++){
         const module = db.modules.find((m) => m.id === ids[i] || (m.namespace === ids[i] && m.namespace))
         if(module){
@@ -273,7 +272,7 @@ let lastModules = ''
 let lastModuleData:RisuModule[] = []
 export function getModules(){
     const currentChat = getCurrentChat()
-    const db = get(DataBase)
+    const db = getDatabase()
     let ids = db.enabledModules ?? []
     if (currentChat){
         ids = ids.concat(currentChat.modules ?? [])

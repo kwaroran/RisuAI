@@ -1,7 +1,7 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
     import { EditIcon, LanguagesIcon } from "lucide-svelte";
-    import { DataBase, DBState } from "../../ts/storage/database.svelte";
+    import { DBState } from "../../ts/storage/database.svelte";
     import CodeMirror from 'codemirror';
     import 'codemirror/lib/codemirror.css';
 

@@ -1,6 +1,6 @@
-import { getChatVar, hasher, risuChatParser, setChatVar, type simpleCharacterArgument } from "../parser";
+import { getChatVar, hasher, setChatVar, type simpleCharacterArgument } from "../parser";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores";
 import { alertError, alertInput, alertNormal } from "../alert";
@@ -332,7 +332,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.name
@@ -342,7 +342,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 if(typeof name !== 'string'){
                     throw('Invalid data type')
@@ -355,7 +355,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char =db.characters[selectedChar]
                 if(typeof data !== 'string'){
@@ -373,7 +373,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 if(typeof data !== 'string'){
@@ -389,7 +389,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.firstMessage
@@ -399,7 +399,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.backgroundHTML
@@ -409,7 +409,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 if(typeof data !== 'string'){
                     return false

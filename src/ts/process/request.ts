@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
-import { DataBase, type character } from "../storage/database.svelte";
+import { getDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
@@ -88,7 +88,7 @@ type ParameterMap = {
 };
 
 function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap = {}) {
-    const db = get(DataBase)
+    const db = getDatabase()
     for(const parameter of parameters){
         let value = 0
         switch(parameter){
@@ -136,7 +136,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 }
 
 export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
-    const db = get(DataBase)
+    const db = getDatabase()
     let trys = 0
     while(true){
         const da = await requestChatDataMain(arg, model, abortSignal)
@@ -178,7 +178,7 @@ export interface OpenAIChatExtra {
 
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
-    const db = get(DataBase)
+    const db = getDatabase()
     let formated = structuredClone(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)

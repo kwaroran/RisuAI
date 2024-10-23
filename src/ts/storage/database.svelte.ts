@@ -12,28 +12,13 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export const DataBase = writable({} as any as Database)
 export const DBState = $state({
-    db: get(DataBase)
+    db: {} as any as Database
 })
 export const loadedStore = writable(false)
 export let appVer = "137.1.0"
 export let webAppSubVer = '-svelte5-exp'
 
-DataBase.subscribe(data => {
-    //check it is pointing to the right object
-    if(DBState.db !== data){
-        //if not, update it
-        DBState.db = data
-    }
-})
-
-$effect(() => {
-    //same as above, but for the other way around
-    if(DBState.db !== get(DataBase)){
-        DataBase.set(DBState.db)
-    }
-})
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -464,21 +449,36 @@ export function setDatabase(data:Database){
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
     changeLanguage(data.language)
-    DataBase.set(data)
+    setDatabaseLite(data)
 }
 
-export function getCurrentCharacter(){
-    const db = get(DataBase)
+export function setDatabaseLite(data:Database){
+    DBState.db = data
+}
+
+interface getDatabaseOptions{
+    snapshot?:boolean
+}
+
+export function getDatabase(options:getDatabaseOptions = {}):Database{
+    if(options.snapshot){
+        return $state.snapshot(DBState.db) as Database
+    }
+    return DBState.db as Database
+}
+
+export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
+    const db = getDatabase(options)
     db.characters ??= []
     const char = db.characters?.[get(selectedCharID)]
     return char
 }
 
 export function setCurrentCharacter(char:character|groupChat){
-    const db = get(DataBase)
+    const db = getDatabase()
     db.characters ??= []
     db.characters[get(selectedCharID)] = char
-    DataBase.set(db)
+    setDatabaseLite(db)
 }
 
 export function getCurrentChat(){
@@ -1328,7 +1328,7 @@ export const defaultSdDataFunc = () =>{
 }
 
 export function saveCurrentPreset(){
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     pres[db.botPresetsId] = {
         name: pres[db.botPresetsId].name,
@@ -1392,7 +1392,7 @@ export function saveCurrentPreset(){
 
 export function copyPreset(id:number){
     saveCurrentPreset()
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     const newPres = structuredClone(pres[id])
     newPres.name += " Copy"
@@ -1404,7 +1404,7 @@ export function changeToPreset(id =0, savecurrent = true){
     if(savecurrent){
         saveCurrentPreset()
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = db.botPresets
     const newPres = pres[id]
     db.botPresetsId = id
@@ -1492,7 +1492,7 @@ import { selectedCharID } from '../stores';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
-    let db = get(DataBase)
+    let db = getDatabase()
     let pres = structuredClone(db.botPresets[id])
     console.log(pres)
     pres.openAIKey = ''
@@ -1563,7 +1563,7 @@ export async function importPreset(f:{
         pre = {...presetTemplate,...(JSON.parse(Buffer.from(f.data).toString('utf-8')))}
         console.log(pre)
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     if(pre.presetVersion && pre.presetVersion >= 3){
         //NAI preset
         const pr = structuredClone(prebuiltPresets.NAI2)

@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertSelect, alertToast, doingAlert } from "./alert"
-import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database.svelte"
+import { changeToPreset as changeToPreset2, getDatabase  } from "./storage/database.svelte"
 import { MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"
@@ -197,7 +197,7 @@ export function initMobileGesture(){
 
 function changeToPreset(num:number){
     if(!doingAlert()){
-        let db = get(DataBase)
+        let db = getDatabase()
         let pres = db.botPresets
         if(pres.length > num){
             alertToast(`Changed to Preset: ${pres[num].name}`)

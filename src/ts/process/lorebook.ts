@@ -1,18 +1,17 @@
 import { get } from "svelte/store";
 import {selectedCharID} from '../stores'
-import { DataBase, setDatabase, type Message, type loreBook } from "../storage/database.svelte";
+import { getDatabase, setDatabase, type Message, type loreBook } from "../storage/database.svelte";
 import { tokenize } from "../tokenizer";
 import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../storage/globalApi";
-import { HypaProcesser } from "./memory/hypamemory";
 import { getModuleLorebooks } from "./modules";
 import { CCardLib } from "@risuai/ccardlib";
 
 export function addLorebook(type:number) {
     let selectedID = get(selectedCharID)
-    let db = get(DataBase)
+    let db = getDatabase()
     if(type === 0){
         db.characters[selectedID].globalLore.push({
             key: '',
@@ -54,7 +53,7 @@ const rmRegex = / |\n/g
 export async function loadLoreBookPrompt(){
     
     const selectedID = get(selectedCharID)
-    const db = get(DataBase)
+    const db = getDatabase()
     const char = db.characters[selectedID]
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
@@ -209,7 +208,7 @@ export async function loadLoreBookPrompt(){
 
 export async function loadLoreBookV3Prompt(){
     const selectedID = get(selectedCharID)
-    const db = get(DataBase)
+    const db = getDatabase()
     const char = db.characters[selectedID]
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
@@ -531,7 +530,7 @@ export async function loadLoreBookV3Prompt(){
 
 export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const selectedID = get(selectedCharID)
-    let db = get(DataBase)
+    let db = getDatabase()
     const page = mode === 'sglobal' ? -1 : db.characters[selectedID].chatPage
     let lore = 
         mode === 'global' ? db.characters[selectedID].globalLore : 
@@ -613,7 +612,7 @@ export function convertExternalLorebook(entries:{[key:string]:CCLorebook}){
 export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
     try {
         const selectedID = get(selectedCharID)
-        const db = get(DataBase)
+        const db = getDatabase()
         const page = mode === 'sglobal' ? -1 :  db.characters[selectedID].chatPage
         const lore = 
             mode === 'global' ? db.characters[selectedID].globalLore : 

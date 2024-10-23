@@ -1,10 +1,10 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase, type character, type MessageGenerationInfo, type Chat } from "../storage/database.svelte";
+import { setDatabase, type character, type MessageGenerationInfo, type Chat, getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { CharEmotion, selectedCharID } from "../stores";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { loadLoreBookPrompt, loadLoreBookV3Prompt } from "./lorebook";
+import { loadLoreBookV3Prompt } from "./lorebook";
 import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
@@ -120,7 +120,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         chatProcessStage.set(0)
     }
 
-    let db = get(DataBase)
+    let db = getDatabase()
     db.statics.messages += 1
     let selectedChar = get(selectedCharID)
     const nowChatroom = db.characters[selectedChar]
@@ -783,7 +783,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             currentChat.hypaV2Data = sp.memory ?? currentChat.hypaV2Data
             db.characters[selectedChar].chats[selectedChat].hypaV2Data = currentChat.hypaV2Data
             console.log(currentChat.hypaV2Data)
-            DataBase.set(db)
+            setDatabaseLite(db)
         }
         else{
             const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
@@ -798,7 +798,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             currentChat.supaMemoryData = sp.memory ?? currentChat.supaMemoryData
             db.characters[selectedChar].chats[selectedChat].supaMemoryData = currentChat.supaMemoryData
             console.log(currentChat.supaMemoryData)
-            DataBase.set(db)
+            setDatabaseLite(db)
             currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory;
         }
         chatProcessStage.set(1)

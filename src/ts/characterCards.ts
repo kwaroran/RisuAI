@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter } from "./storage/database.svelte"
+import { defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter, getDatabase, setDatabaseLite } from "./storage/database.svelte"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -52,13 +52,13 @@ async function importCharacterProcess(f:{
         const data = f.data instanceof Uint8Array ? f.data : new Uint8Array(await f.data.arrayBuffer())
         const da = JSON.parse(Buffer.from(data).toString('utf-8'))
         if(await importCharacterCardSpec(da)){
-            let db = get(DataBase)
+            let db = getDatabase()
             return db.characters.length - 1
         }
         if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
-            let db = get(DataBase)
+            let db = getDatabase()
             db.characters.push(convertOffSpecCards(da))
-            DataBase.set(db)
+            setDatabaseLite(db)
             alertNormal(language.importedCharacter)
             return
         }
@@ -68,7 +68,7 @@ async function importCharacterProcess(f:{
         }
     }
 
-    let db = get(DataBase)
+    let db = getDatabase()
     db.statics.imports += 1
 
     if(f.name.endsWith('charx')){
@@ -99,7 +99,7 @@ async function importCharacterProcess(f:{
             card.data.extensions.risuai.customScripts = md.regex ?? []
         }
         await importCharacterCardSpec(card, undefined, 'normal', reader.assets)
-        let db = get(DataBase)
+        let db = getDatabase()
         return db.characters.length - 1
     }
 
@@ -193,7 +193,7 @@ async function importCharacterProcess(f:{
                         const decrypted = await decryptBuffer(encrypted, password)         
                         const charaData:CharacterCardV2Risu = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
                         if(await importCharacterCardSpec(charaData, img, "normal", assets)){
-                            let db = get(DataBase)
+                            let db = getDatabase()
                             return db.characters.length - 1
                         }
                         else{
@@ -210,7 +210,7 @@ async function importCharacterProcess(f:{
                 try {
                     const charaData:CharacterCardV2Risu = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
                     if(await importCharacterCardSpec(charaData, img, "normal", assets)){
-                        let db = get(DataBase)
+                        let db = getDatabase()
                         return db.characters.length - 1
                     }   
                 } catch (error) {
@@ -232,13 +232,13 @@ async function importCharacterProcess(f:{
         console.log(charaData)
         const imgp = await saveAsset(await reencodeImage(img))
         db.characters.push(convertOffSpecCards(charaData, imgp))
-        DataBase.set(db)
+        setDatabaseLite(db)
         alertNormal(language.importedCharacter)
         return db.characters.length - 1
     }
     await importCharacterCardSpec(parsed, img, "normal", assets)
     
-    db = get(DataBase)
+    db = getDatabase()
     return db.characters.length - 1
     
 }
@@ -319,7 +319,7 @@ export async function characterURLImport() {
         const importData = JSON.parse(Buffer.from(decodeURIComponent(data), 'base64').toString('utf-8'))
         importData.id = v4()
 
-        const db = get(DataBase)
+        const db = getDatabase()
         if(importData.lowLevelAccess){
             const conf = await alertConfirm(language.lowLevelAccessConfirm)
             if(!conf){
@@ -363,7 +363,7 @@ export async function characterURLImport() {
         const module = new Uint8Array(await data.arrayBuffer())
         const md = await readModule(Buffer.from(module))
         md.id = v4()
-        const db = get(DataBase)
+        const db = getDatabase()
         db.modules.push(md)
         setDatabase(db)
         alertNormal(language.successImport)
@@ -447,7 +447,7 @@ export async function characterURLImport() {
         if(name.endsWith('risum')){
             const md = await readModule(Buffer.from(data))
             md.id = v4()
-            const db = get(DataBase)
+            const db = getDatabase()
             db.modules.push(md)
             setDatabase(db)
             alertNormal(language.successImport)
@@ -568,7 +568,7 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
 }
 
 export async function exportChar(charaID:number):Promise<string> {
-    const db = get(DataBase)
+    const db = getDatabase({snapshot: true})
     let char = structuredClone(db.characters[charaID])
 
     if(char.type === 'group'){
@@ -605,7 +605,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     const data = card.data
     console.log(card)
     let im = img ? await saveAsset(await reencodeImage(img)) : undefined
-    let db = get(DataBase)
+    let db = getDatabase()
 
     const risuext = structuredClone(data.extensions.risuai)
     let emotions:[string, string][] = []
@@ -1434,8 +1434,8 @@ export async function shareRisuHub2(char:character, arg:{
             headers: {
                 "Content-Type": 'image/png',
                 "x-risu-api-version": "4",
-                "x-risu-token": get(DataBase)?.account?.token,
-                'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
+                "x-risu-token": getDatabase()?.account?.token,
+                'x-risu-username': arg.anon ? '' : (getDatabase()?.account?.id),
                 'x-risu-debug': 'true',
                 'x-risu-update-id': arg.update ? (char.realmId ?? 'null') : 'null'
             }
@@ -1540,7 +1540,7 @@ export async function downloadRisuHub(id:string, arg:{
                 data: res.body
             })
             checkCharOrder()
-            let db = get(DataBase)
+            let db = getDatabase()
             if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
                 const index = db.characters.length-1
                 characterFormatUpdate(index);
@@ -1557,7 +1557,7 @@ export async function downloadRisuHub(id:string, arg:{
     
         await importCharacterCardSpec(data, await getHubResources(img), 'hub')
         checkCharOrder()
-        let db = get(DataBase)
+        let db = getDatabase()
         if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
             const index = db.characters.length-1
             characterFormatUpdate(index);

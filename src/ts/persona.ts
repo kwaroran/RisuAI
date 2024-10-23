@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { DataBase, saveImage, setDatabase } from "./storage/database.svelte"
+import { getDatabase, saveImage, setDatabase } from "./storage/database.svelte"
 import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"
@@ -14,7 +14,7 @@ export async function selectUserImg() {
         return
     }
     const img = selected.data
-    let db = get(DataBase)
+    let db = getDatabase()
     const imgp = await saveImage(img)
     db.userIcon = imgp
     db.personas[db.selectedPersona] = {
@@ -27,7 +27,7 @@ export async function selectUserImg() {
 }
 
 export function saveUserPersona() {
-    let db = get(DataBase)
+    let db = getDatabase()
     db.personas[db.selectedPersona].name=db.username
     db.personas[db.selectedPersona].icon=db.userIcon,
     db.personas[db.selectedPersona].personaPrompt=db.personaPrompt,
@@ -39,7 +39,7 @@ export function changeUserPersona(id:number, save:'save'|'noSave' = 'save') {
     if(save === 'save'){
         saveUserPersona()
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     const pr = db.personas[id]
     db.personaPrompt = pr.personaPrompt
     db.username = pr.name,
@@ -56,7 +56,7 @@ interface PersonaCard {
 }
 
 export async function exportUserPersona(){
-    let db = get(DataBase)
+    let db = getDatabase({snapshot: true})
     if(!db.userIcon){
         alertError(language.errors.noUserIcon)
         return
@@ -107,7 +107,7 @@ export async function importUserPersona(){
         }
         const data:PersonaCard = JSON.parse(Buffer.from(decoded, 'base64').toString('utf-8'))
         if(data.name && data.personaPrompt){
-            let db = get(DataBase)
+            let db = getDatabase()
             db.personas.push({
                 name: data.name,
                 icon: await saveImage(await reencodeImage(v.data)),

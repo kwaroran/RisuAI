@@ -1,6 +1,5 @@
-import { get } from "svelte/store";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
-import { DataBase, type Database } from "../storage/database.svelte";
+import { getDatabase, type Database } from "../storage/database.svelte";
 import { forageStorage, getUnpargeables, isTauri, openURL } from "../storage/globalApi";
 import { BaseDirectory, exists, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { language } from "../../lang";
@@ -109,7 +108,7 @@ let BackupDb:Database = null
 
 
 export async function syncDrive() {
-    BackupDb = structuredClone(get(DataBase))
+    BackupDb = structuredClone(getDatabase())
     return
 }
 
@@ -126,7 +125,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(get(DataBase)),
+        body: JSON.stringify(getDatabase()),
     })
     if(corrupted.status === 400){
         alertError('Failed, Backup data is corrupted')
@@ -177,7 +176,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         }
     }
 
-    const dbData = encodeRisuSave(get(DataBase), 'compression')
+    const dbData = encodeRisuSave(getDatabase(), 'compression')
 
     alertStore.set({
         type: "wait",
@@ -206,7 +205,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
     const files:DriveFile[] = await getFilesInFolder(ACCESS_TOKEN)
     let foragekeys:string[] = []
     let loadedForageKeys = false
-    let db = get(DataBase)
+    let db = getDatabase()
 
     async function checkImageExists(images:string) {
         if(db?.account?.useSync){

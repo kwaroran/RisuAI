@@ -3,7 +3,7 @@ import { sleep } from "./util"
 import { language } from "../lang"
 import { isNodeServer, isTauri } from "./storage/globalApi"
 import { Capacitor } from "@capacitor/core"
-import { DataBase, type MessageGenerationInfo } from "./storage/database.svelte"
+import { getDatabase, type MessageGenerationInfo } from "./storage/database.svelte"
 
 interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
@@ -27,7 +27,7 @@ export const alertGenerationInfoStore = writable<AlertGenerationInfoStoreData>(n
 
 export function alertError(msg:string){
     console.error(msg)
-    const db = get(DataBase)
+    const db = getDatabase()
 
     if(typeof(msg) !== 'string'){
         try{

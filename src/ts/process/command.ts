@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase } from "../storage/database.svelte";
 import { selectedCharID } from "../stores";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
@@ -40,7 +40,7 @@ export async function processMultiCommand(command:string) {
 
 
 async function processCommand(command:string, pipe:string):Promise<false | string>{
-    const db = get(DataBase)
+    const db = getDatabase()
     const currentChar = db.characters[get(selectedCharID)]
     const currentChat = currentChar.chats[currentChar.chatPage]
     let {commandName, arg, namedArg} = commandParser(command, pipe)
@@ -180,7 +180,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
         }
         case 'setvar':{
             console.log(namedArg, arg)
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
@@ -194,7 +194,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return ''
         }
         case 'addvar':{
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
@@ -207,7 +207,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return ''
         }
         case 'getvar':{
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]

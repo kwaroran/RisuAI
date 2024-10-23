@@ -4,8 +4,7 @@ import { sleep } from "src/ts/util";
 import * as path from "@tauri-apps/api/path";
 import { exists, readTextFile } from "@tauri-apps/plugin-fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
-import { get } from "svelte/store";
-import { DataBase } from "src/ts/storage/database.svelte";
+import { getDatabase } from "src/ts/storage/database.svelte";
 let serverRunning = false;
 
 export function checkLocalModel():Promise<string>{
@@ -130,7 +129,7 @@ export async function loadExllamaFull(){
 
 
 async function runLocalModelOld(prompt:string){
-    const db = get(DataBase)
+    const db = getDatabase()
 
     if(!serverRunning){
         await loadExllamaFull()
@@ -273,7 +272,7 @@ export async function runGGUFModel(arg:{
 
 export async function tokenizeGGUFModel(prompt:string):Promise<number[]> {
     const key = await getLocalKey()
-    const db = get(DataBase)
+    const db = getDatabase()
     const modelPath = db.aiModel.replace('local_', '')
     const b = await fetch("http://localhost:10026/llamacpp/tokenize", {
         method: "POST",

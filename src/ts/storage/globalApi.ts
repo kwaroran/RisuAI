@@ -13,7 +13,7 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database.svelte";
+import { loadedStore, setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "../update";
 import { MobileGUI, botMakerMode, selectedCharID } from "../stores";
@@ -310,12 +310,9 @@ let lastSave = ''
  * @returns {Promise<void>} - A promise that resolves when the database has been saved.
  */
 export async function saveDb(){
-    lastSave = JSON.stringify(get(DataBase))
-    let changed = false
+    lastSave = JSON.stringify(getDatabase())
+    let changed = true
     syncDrive()
-    DataBase.subscribe(() => {
-        changed = true
-    })
     let gotChannel = false
     const sessionID = v4()
     let channel:BroadcastChannel
@@ -346,8 +343,11 @@ export async function saveDb(){
                 if(channel){
                     channel.postMessage(sessionID)
                 }
-                changed = false
-                let db = get(DataBase)
+                let db = getDatabase()
+                if(!db.characters){
+                    await sleep(1000)
+                    continue
+                }
                 db.saveTime = Math.floor(Date.now() / 1000)
                 if(isTauri){
                     const dbData = encodeRisuSave(db)
@@ -393,7 +393,7 @@ export async function saveDb(){
  * @returns {Promise<number[]>} - A promise that resolves to an array of backup timestamps.
  */
 async function getDbBackups() {
-    let db = get(DataBase)
+    let db = getDatabase()
     if(db?.account?.useSync){
         return []
     }
@@ -547,7 +547,7 @@ export async function loadData() {
                 else{
                     usingSw = false
                 }
-                if(get(DataBase).didFirstSetup){
+                if(getDatabase().didFirstSetup){
                     characterURLImport()
                 }
             }
@@ -557,7 +557,7 @@ export async function loadData() {
             try {
                 await loadPlugins()            
             } catch (error) {}
-            if(get(DataBase).account){
+            if(getDatabase().account){
                 try {
                     await loadRisuAccountData()                    
                 } catch (error) {}
@@ -572,7 +572,7 @@ export async function loadData() {
                 
             }
             await checkNewFormat()
-            const db = get(DataBase);
+            const db = getDatabase();
             updateColorScheme()
             updateTextThemeAndCSS()
             updateAnimationSpeed()
@@ -720,7 +720,7 @@ export function addFetchLog(arg: {
  */
 export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promise<GlobalFetchResult> {
   try {
-    const db = get(DataBase);
+    const db = getDatabase();
     const method = arg.method ?? "POST";
     db.requestmet = "normal";
 
@@ -1056,7 +1056,7 @@ export function replaceDbResources(db: Database, replacer: { [key: string]: stri
  * @returns {Promise<void>} - A promise that resolves when the database format check and update is complete.
  */
 async function checkNewFormat(): Promise<void> {
-    let db = get(DataBase);
+    let db = getDatabase();
 
     // Check data integrity
     db.characters = db.characters.map((v) => {
@@ -1147,40 +1147,7 @@ async function checkNewFormat(): Promise<void> {
         db.formatversion = 3;
     }
     if (db.formatversion < 4) {
-        db.modules ??= [];
-        db.enabledModules ??= [];
-        // Convert global lore and global regex to modules
-        if (db.globalscript && db.globalscript.length > 0) {
-            const id = v4();
-            let regexModule: RisuModule = {
-                name: "Global Regex",
-                description: "Converted from legacy global regex",
-                id: id,
-                regex: structuredClone(db.globalscript)
-            };
-            db.modules.push(regexModule);
-            db.enabledModules.push(id);
-            db.globalscript = [];
-        }
-        if (db.loreBook && db.loreBook.length > 0) {
-            const selIndex = db.loreBookPage;
-            for (let i = 0; i < db.loreBook.length; i++) {
-                const id = v4();
-                let lbModule: RisuModule = {
-                    name: db.loreBook[i].name || "Unnamed Global Lorebook",
-                    description: "Converted from legacy global lorebook",
-                    id: id,
-                    lorebook: structuredClone(db.loreBook[i].data)
-                };
-                db.modules.push(lbModule);
-                if (i === selIndex) {
-                    db.enabledModules.push(id);
-                }
-                db.globalscript = [];
-            }
-            db.loreBook = [];
-        }
-
+        //migration removed due to issues
         db.formatversion = 4;
     }
     if (!db.characterOrder) {
@@ -1209,15 +1176,18 @@ async function checkNewFormat(): Promise<void> {
  * Ensures that all characters are properly ordered and removes any invalid entries.
  */
 export function checkCharOrder() {
-    let db = get(DataBase)
+    let db = getDatabase()
     db.characterOrder = db.characterOrder ?? []
-    let ordered = structuredClone(db.characterOrder ?? [])
+    let ordered = []
     for(let i=0;i<db.characterOrder.length;i++){
         const folder =db.characterOrder[i]
         if(typeof(folder) !== 'string' && folder){
             for(const f of folder.data){
                 ordered.push(f)
             }
+        }
+        if(typeof(folder) === 'string'){
+            ordered.push(folder)
         }
     }
 
@@ -1276,7 +1246,7 @@ export function checkCharOrder() {
  * Removes files from the assets directory that are not in the list of unpargeable items.
  */
 async function pargeChunks(){
-    const db = get(DataBase)
+    const db = getDatabase()
     if(db.account?.useSync){
         return
     }
@@ -1797,7 +1767,7 @@ export async function fetchNative(url:string, arg:{
     chatId?:string
 }):Promise<{ body: ReadableStream<Uint8Array>; headers: Headers; status: number }> {
     let headers = arg.headers ?? {}
-    const db = get(DataBase)
+    const db = getDatabase()
     let throughProxy = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
     let fetchLogIndex = addFetchLog({
         body: arg.body,
@@ -1977,7 +1947,7 @@ export function trimNonLatin(data:string){
  * The corresponding CSS variable '--risu-height-size' is set accordingly.
  */
 export function updateHeightMode(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const root = document.querySelector(':root') as HTMLElement;
     switch(db.heightMode){
         case 'auto':

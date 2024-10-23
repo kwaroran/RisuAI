@@ -140,15 +140,13 @@
         }
         if(rerollid < rerolls.length - 1){
             if(Array.isArray(rerolls[rerollid + 1])){
-                let db = DBState.db
                 rerollid += 1
                 let rerollData = structuredClone(rerolls[rerollid])
-                let msgs = db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+                let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
                 for(let i = 0; i < rerollData.length; i++){
                     msgs[msgs.length - rerollData.length + i] = rerollData[i]
                 }
-                db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
-                DBState.db = db
+                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
             }
             return
         }
@@ -199,15 +197,13 @@
             return
         }
         if(Array.isArray(rerolls[rerollid - 1])){
-            let db = DBState.db
             rerollid -= 1
             let rerollData = structuredClone(rerolls[rerollid])
-            let msgs = db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+            let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
             for(let i = 0; i < rerollData.length; i++){
                 msgs[msgs.length - rerollData.length + i] = rerollData[i]
             }
-            db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
-            DBState.db = db
+            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
         }
     }
 

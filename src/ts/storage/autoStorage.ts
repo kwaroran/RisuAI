@@ -3,8 +3,7 @@ import { isNodeServer, replaceDbResources } from "./globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"
-import { get } from "svelte/store"
-import { DataBase, type Database } from "./database.svelte"
+import { getDatabase, type Database } from "./database.svelte"
 import { AccountStorage } from "./accountStorage"
 import { decodeRisuSave, encodeRisuSave } from "./risuSave";
 import { language } from "src/lang"
@@ -40,7 +39,7 @@ export class AutoStorage{
     }
 
     async checkAccountSync(){
-        let db = get(DataBase)
+        let db = getDatabase()
         if(this.isAccount){
             return true
         }

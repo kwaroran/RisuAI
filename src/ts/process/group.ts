@@ -3,11 +3,11 @@ import { findCharacterbyId } from "../util";
 import { alertConfirm, alertError, alertSelectChar } from "../alert";
 import { language } from "src/lang";
 import { get } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database.svelte";
+import { getDatabase, setDatabase } from "../storage/database.svelte";
 import { selectedCharID } from "../stores";
 
 export async function addGroupChar(){
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedId = get(selectedCharID)
     let group = db.characters[selectedId]
     if(group.type === 'group'){
@@ -36,7 +36,7 @@ export async function addGroupChar(){
 
 
 export function rmCharFromGroup(index:number){
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedId = get(selectedCharID)
     let group = db.characters[selectedId]
     if(group.type === 'group'){

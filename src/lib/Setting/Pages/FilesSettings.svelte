@@ -2,9 +2,7 @@
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
     import { checkDriver } from "src/ts/drive/drive";
-    import { DataBase } from "src/ts/storage/database.svelte";
     import { isNodeServer, isTauri } from "src/ts/storage/globalApi";
-    import { persistantStorageRecommended } from "src/ts/storage/persistant";
 
 </script>
 
