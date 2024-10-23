@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ParseMarkdown, risuChatParser } from "src/ts/parser";
-    import { DataBase, type Database, type character, type groupChat } from "src/ts/storage/database";
+    import { DataBase, type Database, type character, type groupChat } from "src/ts/storage/database.svelte";
     import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
     import { onDestroy } from "svelte";
 

@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { hubURL } from "../characterCards";
-import { DataBase } from "../storage/database";
+import { DataBase } from "../storage/database.svelte";
 
 export function keiServerURL(){
     const db = get(DataBase)

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
     import { FileAudioIcon, PlusIcon } from "lucide-svelte";
-    import { DataBase, setDatabase, type character, type groupChat } from "src/ts/storage/database";
+    import { DataBase, setDatabase, type character, type groupChat } from "src/ts/storage/database.svelte";
     import { getFileSrc, saveAsset } from "src/ts/storage/globalApi";
     import { selectMultipleFile } from "src/ts/util";
     interface Props {

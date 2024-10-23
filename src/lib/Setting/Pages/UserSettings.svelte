@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm} from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/storage/globalApi";
@@ -21,15 +21,15 @@
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1")){
         if(e.data.msg.type === 'drive'){
             await loadRisuAccountData()
-            $DataBase.account.data.refresh_token = e.data.msg.data.refresh_token
-            $DataBase.account.data.access_token = e.data.msg.data.access_token
-            $DataBase.account.data.expires_in = (e.data.msg.data.expires_in * 700) + Date.now()
+            DBState.db.account.data.refresh_token = e.data.msg.data.refresh_token
+            DBState.db.account.data.access_token = e.data.msg.data.access_token
+            DBState.db.account.data.expires_in = (e.data.msg.data.expires_in * 700) + Date.now()
             await saveRisuAccountData()
             popup.close()
         }
         else if(e.data.msg.data.vaild){
             openIframe = false
-            $DataBase.account = {
+            DBState.db.account = {
                 id: e.data.msg.id,
                 token: e.data.msg.token,
                 data: e.data.msg.data
@@ -59,7 +59,7 @@
     {language.loadBackupLocal}
 </Button>
 
-{#if !$DataBase.account}
+{#if !DBState.db.account}
     <Button
         onclick={async () => {
             if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
@@ -107,21 +107,21 @@
 </Button>
 <div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
-        <h1 class="text-3xl font-black min-w-0">Risu Account{#if $DataBase.account}
+        <h1 class="text-3xl font-black min-w-0">Risu Account{#if DBState.db.account}
             <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" onclick={async () => {
-                if($DataBase.account.useSync || forageStorage.isAccount){
+                if(DBState.db.account.useSync || forageStorage.isAccount){
                     unMigrationAccount()
                 }
                 
-                $DataBase.account = undefined
+                DBState.db.account = undefined
             }}>{language.logout}</button>
         {/if}</h1>
     </div>
-    {#if $DataBase.account}
-        <span class="mb-4 text-textcolor2">ID: {$DataBase.account.id}</span>
+    {#if DBState.db.account}
+        <span class="mb-4 text-textcolor2">ID: {DBState.db.account.id}</span>
         {#if !isTauri && (!Capacitor.isNativePlatform())}
             <div class="flex items-center mt-2">
-                {#if $DataBase.account.useSync || forageStorage.isAccount}
+                {#if DBState.db.account.useSync || forageStorage.isAccount}
                     <Check check={true} name={language.SaveDataInAccount} onChange={(v) => {
                         if(v){
                             unMigrationAccount()

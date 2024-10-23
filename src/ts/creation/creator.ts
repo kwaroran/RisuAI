@@ -4,7 +4,7 @@ import { requestChatData } from "../process/request";
 import { checkCharOrder, globalFetch, isNodeServer, isTauri, saveAsset } from "../storage/globalApi";
 import { tokenize } from "../tokenizer";
 import { createBlankChar } from "../characters";
-import { DataBase, setDatabase, type character } from "../storage/database";
+import { DataBase, setDatabase, type character } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { sleep } from "../util";
 import { Capacitor } from "@capacitor/core";

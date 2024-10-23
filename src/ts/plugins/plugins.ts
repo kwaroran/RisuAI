@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { DataBase } from "../storage/database";
+import { DataBase } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process";
 import { globalFetch } from "../storage/globalApi";

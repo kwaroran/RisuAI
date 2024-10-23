@@ -1,4 +1,4 @@
-import { DataBase, setDatabase } from "src/ts/storage/database"
+import { DataBase, setDatabase } from "src/ts/storage/database.svelte"
 import type { OpenAIChat } from ".."
 import { get } from "svelte/store"
 import { globalFetch } from "src/ts/storage/globalApi"

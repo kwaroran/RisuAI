@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
-import { DataBase, type character } from "../storage/database";
+import { DataBase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";

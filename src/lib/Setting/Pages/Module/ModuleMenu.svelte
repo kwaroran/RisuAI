@@ -4,18 +4,15 @@
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
     import type { RisuModule } from "src/ts/process/modules";
     import { DownloadIcon, FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
-    import { alertConfirm } from "src/ts/alert";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-    import Button from "src/lib/UI/GUI/Button.svelte";
     import { getFileSrc, openURL, saveAsset } from "src/ts/storage/globalApi";
-    import { hubURL } from "src/ts/characterCards";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import { selectMultipleFile } from "src/ts/util";
-    import { DataBase } from 'src/ts/storage/database';
+    import { DBState } from 'src/ts/storage/database.svelte';
 
     let submenu = $state(0)
     interface Props {
@@ -27,7 +24,7 @@
     let assetFilePath:string[] = $state([])
 
     $effect.pre(() => {
-        if($DataBase.useAdditionalAssetsPreview){
+        if(DBState.db.useAdditionalAssetsPreview){
             if(currentModule?.assets){
                 for(let i = 0; i < currentModule.assets.length; i++){
                     if(currentModule.assets[i].length > 2 && currentModule.assets[i][2]) {
@@ -202,7 +199,7 @@
                 {#each currentModule.assets as assets, i}
                     <tr>
                         <td class="font-medium truncate">
-                            {#if assetFilePath[i] && $DataBase.useAdditionalAssetsPreview}
+                            {#if assetFilePath[i] && DBState.db.useAdditionalAssetsPreview}
                                 {#if assetFileExtensions[i] === 'mp4'}
                                 <!-- svelte-ignore a11y_media_has_caption -->
                                     <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>

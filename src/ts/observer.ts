@@ -1,7 +1,7 @@
 import { runTrigger } from "./process/triggers";
 import { runCharacterJS } from "./plugins/embedscript";
 import { sleep } from "./util";
-import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database";
+import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database.svelte";
 
 
 function nodeObserve(node:HTMLElement){

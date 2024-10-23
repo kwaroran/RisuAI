@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store"
-import { DataBase } from "./database"
+import { DataBase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
 import { alertError, alertLogin, alertStore, alertWait } from "../alert"

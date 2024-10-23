@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { alertMd, alertNormal } from "src/ts/alert";
-    import { DataBase } from "src/ts/storage/database";
+    import { alertMd } from "src/ts/alert";
+    import { DBState } from "src/ts/storage/database.svelte";
     import { openURL } from "src/ts/storage/globalApi";
     import { sideBarStore } from "src/ts/stores";
 
@@ -22,10 +22,10 @@
         specialDay = 'halloween'
     }
     if( (today.getMonth() === 8 && today.getDate() === 16)){
-        if($DataBase.language === 'ko'){
+        if(DBState.db.language === 'ko'){
             specialDay = 'chuseok'
         }
-        else if($DataBase.language === 'zh-Hant' || $DataBase.language === 'zh'){
+        else if(DBState.db.language === 'zh-Hant' || DBState.db.language === 'zh'){
             specialDay = 'midAutumn'
         }
     }
@@ -37,7 +37,7 @@
 
     const onClick = () => {
         if(specialDay === 'newYear'){
-            const db = $DataBase
+            const db = DBState.db
             let messages = 0
             let chats = 0
             if(db.statistics?.newYear2024){

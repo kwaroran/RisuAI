@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { DataBase } from "./database";
+import { DataBase } from "./database.svelte";
 import { downloadFile } from "./globalApi";
 import { alertNormal } from "../alert";
 import { language } from "src/lang";

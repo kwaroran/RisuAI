@@ -4,7 +4,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import type { RisuModule } from "src/ts/process/modules";
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import { selectedCharID } from "src/ts/stores";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores";
     interface Props {
@@ -16,7 +16,7 @@
     let moduleSearch = $state('')
 
     function sortModules(modules:RisuModule[], search:string){
-        const db = $DataBase
+        const db = DBState.db
         return modules.filter((v) => {
             if(search === '') return true
             return v.name.toLowerCase().includes(search.toLowerCase())
@@ -48,15 +48,15 @@
         <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
 
         <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md">
-            {#if $DataBase.modules.length === 0}
+            {#if DBState.db.modules.length === 0}
                 <div class="text-textcolor2 p-3">{language.noModules}</div>
             {:else}
-                {#each sortModules($DataBase.modules, moduleSearch) as rmodule, i}
+                {#each sortModules(DBState.db.modules, moduleSearch) as rmodule, i}
                     {#if i !== 0}
                         <div class="border-t-1 border-selected"></div>
                     {/if}
                     <div class="pl-3 py-3 text-left flex">
-                        {#if !alertMode && $DataBase.enabledModules.includes(rmodule.id)}
+                        {#if !alertMode && DBState.db.enabledModules.includes(rmodule.id)}
                             <span class="text-textcolor2">{rmodule.name}</span>
                         {:else}
                             <span class="">{rmodule.name}</span>
@@ -71,23 +71,23 @@
                                 }}>
                                     <CheckCircle2Icon size={18}/>
                                 </button>
-                            {:else if $DataBase.enabledModules.includes(rmodule.id)}
+                            {:else if DBState.db.enabledModules.includes(rmodule.id)}
                                 <button class="mr-2 text-textcolor2 cursor-not-allowed">
                                 </button>
                             {:else}
-                                <button class={(!$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?
+                                <button class={(!DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?
                                         "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" :
                                         "mr-2 cursor-pointer text-blue-500"
                                 } onclick={async (e) => {
                                     e.stopPropagation()
 
-                                    if($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)){
-                                        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.splice($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.indexOf(rmodule.id), 1)
+                                    if(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)){
+                                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.splice(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.indexOf(rmodule.id), 1)
                                     }
                                     else{
-                                        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules.push(rmodule.id)
+                                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.push(rmodule.id)
                                     }
-                                    $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].modules
+                                    DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules
                                 }}>
                                     <CheckCircle2Icon size={18}/>
                                 </button>

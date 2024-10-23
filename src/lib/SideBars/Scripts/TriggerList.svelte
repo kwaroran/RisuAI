@@ -1,7 +1,7 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-    import type { triggerscript } from "src/ts/storage/database";
+    import type { triggerscript } from "src/ts/storage/database.svelte";
     import TriggerData from "./TriggerData.svelte";
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";

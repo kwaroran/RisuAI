@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ArrowLeft, MenuIcon } from "lucide-svelte";
     import { language } from "src/lang";
-  import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import { MobileGUIStack, MobileSearch, selectedCharID, SettingsMenuIndex, MobileSideBar } from "src/ts/stores";
 
 </script>
@@ -19,7 +19,7 @@
         }}>
             <ArrowLeft />
         </button>
-        <span class="font-bold text-lg w-2/3 truncate">{$DataBase.characters[$selectedCharID].name}</span>
+        <span class="font-bold text-lg w-2/3 truncate">{DBState.db.characters[$selectedCharID].name}</span>
         <div class="flex-1 flex justify-end">
             <button onclick={() => {
                 MobileSideBar.set(1)

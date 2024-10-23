@@ -3,7 +3,7 @@ import { alertError, alertNormal, alertStore, alertWait } from "../alert";
 import { LocalWriter, forageStorage, isTauri } from "../storage/globalApi";
 import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
 import { get } from "svelte/store";
-import { DataBase } from "../storage/database";
+import { DataBase } from "../storage/database.svelte";
 import { save } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { sleep } from "../util";

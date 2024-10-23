@@ -1,8 +1,3 @@
-export const DataBase = writable({} as any as Database)
-export const loadedStore = writable(false)
-export let appVer = "137.1.0"
-export let webAppSubVer = ''
-
 import { get, writable } from 'svelte/store';
 import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
@@ -16,6 +11,18 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
+
+export const DataBase = writable({} as any as Database)
+export const DBState = $state({
+    db: get(DataBase)
+})
+export const loadedStore = writable(false)
+export let appVer = "137.1.0"
+export let webAppSubVer = ''
+
+DataBase.subscribe(data => {
+    DBState.db = data
+})
 
 export function setDatabase(data:Database){
     if(checkNullish(data.characters)){
@@ -954,7 +961,7 @@ export interface loreSettings{
 }
 
 
-export interface groupChat{
+export interface groupChat{ 
     type: 'group'
     image?:string
     firstMessage:string
@@ -992,6 +999,30 @@ export interface groupChat{
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
     lastInteraction?:number
+
+    //lazy hack for typechecking
+    voicevoxConfig?:any
+    ttsSpeech?:string
+    naittsConfig?:any
+    oaiVoice?:string
+    hfTTS?: any
+    vits?: OnnxModelFiles
+    gptSoVitsConfig?:any
+    fishSpeechConfig?:any
+    ttsReadOnlyQuoted?:boolean
+    exampleMessage?:string
+    systemPrompt?:string
+    replaceGlobalNote?:string
+    additionalText?:string
+    personality?:string
+    scenario?:string
+    translatorNote?:string
+    additionalData?: any
+    depth_prompt?: { depth: number, prompt: string }
+    additionalAssets?:[string, string, string][]
+    utilityBot?:boolean
+    license?:string
+    realmId:string
 }
 
 export interface botPreset{

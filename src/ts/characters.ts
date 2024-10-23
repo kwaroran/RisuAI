@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook } from "./storage/database";
+import { DataBase, saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook } from "./storage/database.svelte";
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";

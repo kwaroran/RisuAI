@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DataBase } from "../../../ts/storage/database";
+    import { DBState } from "../../../ts/storage/database.svelte";
     import { language } from "../../../lang";
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook";
@@ -22,7 +22,7 @@
         <button onclick={() => {
             submenu = 0
         }} class="p-2 flex-1" class:bg-selected={submenu === 0}>
-            <span>{$DataBase.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
+            <span>{DBState.db.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
         </button>
         <button onclick={() => {
             submenu = 1
@@ -38,34 +38,34 @@
 {/if}
 {#if submenu !== 2}
     {#if !globalMode}
-        <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? $DataBase.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
+        <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? DBState.db.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     {/if}
-    <LoreBookList globalMode={globalMode} submenu={submenu} lorePlus={(!globalMode) && $DataBase.characters[$selectedCharID]?.lorePlus} />
+    <LoreBookList globalMode={globalMode} submenu={submenu} lorePlus={(!globalMode) && DBState.db.characters[$selectedCharID]?.lorePlus} />
 {:else}
-    {#if $DataBase.characters[$selectedCharID].loreSettings}
+    {#if DBState.db.characters[$selectedCharID].loreSettings}
         <div class="flex items-center mt-4">
             <Check check={false} onChange={() => {
-                $DataBase.characters[$selectedCharID].loreSettings = undefined
+                DBState.db.characters[$selectedCharID].loreSettings = undefined
             }}
             name={language.useGlobalSettings}
             />
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
+            <Check bind:check={DBState.db.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.characters[$selectedCharID].loreSettings.fullWordMatching} name={language.fullWordMatching}/>
+            <Check bind:check={DBState.db.characters[$selectedCharID].loreSettings.fullWordMatching} name={language.fullWordMatching}/>
         </div>
         <span class="text-textcolor mt-4 mb-2">{language.loreBookDepth}</span>
-        <NumberInput size="sm" min={0} max={20} bind:value={$DataBase.characters[$selectedCharID].loreSettings.scanDepth} />
+        <NumberInput size="sm" min={0} max={20} bind:value={DBState.db.characters[$selectedCharID].loreSettings.scanDepth} />
         <span class="text-textcolor">{language.loreBookToken}</span>
-        <NumberInput size="sm" min={0} max={4096} bind:value={$DataBase.characters[$selectedCharID].loreSettings.tokenBudget} />
+        <NumberInput size="sm" min={0} max={4096} bind:value={DBState.db.characters[$selectedCharID].loreSettings.tokenBudget} />
     {:else}
         <div class="flex items-center mt-4">
             <Check check={true} onChange={() => {
-                $DataBase.characters[$selectedCharID].loreSettings = {
-                    tokenBudget: $DataBase.loreBookToken,
-                    scanDepth:$DataBase.loreBookDepth,
+                DBState.db.characters[$selectedCharID].loreSettings = {
+                    tokenBudget: DBState.db.loreBookToken,
+                    scanDepth:DBState.db.loreBookDepth,
                     recursiveScanning: false
                 }
             }}
@@ -74,8 +74,8 @@
         </div>
     {/if}
     <div class="flex items-center mt-4">
-        {#if $DataBase.useExperimental}
-            <Check bind:check={$DataBase.characters[$selectedCharID].lorePlus}
+        {#if DBState.db.useExperimental}
+            <Check bind:check={DBState.db.characters[$selectedCharID].lorePlus}
                 name={language.lorePlus}
             ><Help key="lorePlus"></Help><Help key="experimental"></Help></Check>
         {/if}

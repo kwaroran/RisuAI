@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
+    import { DBState, appVer, webAppSubVer } from "src/ts/storage/database.svelte";
     import Hub from "./Realm/RealmMain.svelte";
     import { OpenRealmStore } from "src/ts/stores";
     import { ArrowLeft } from "lucide-svelte";
@@ -25,7 +25,7 @@
       <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" onclick={() => {
         $OpenRealmStore = true
       }}>Get More</button></h1>
-          {#if !$DataBase.hideRealm}
+          {#if !DBState.db.hideRealm}
             {#await getRisuHub({
                   search: '',
                   page: 0,

@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { alertNormal, alertSelect } from "../alert"
 import { keiServerURL } from "./kei"
-import { DataBase, setDatabase } from "../storage/database"
+import { DataBase, setDatabase } from "../storage/database.svelte"
 
 export async function autoServerBackup(){
     const db = get(DataBase)

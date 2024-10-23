@@ -1,7 +1,7 @@
 <script lang="ts">
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore } from './ts/stores';
-    import { DataBase, loadedStore } from './ts/storage/database';
+    import { DataBase, loadedStore } from './ts/storage/database.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';

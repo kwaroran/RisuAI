@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, getCurrentCharacter, type character } from "../storage/database";
+import { DataBase, getCurrentCharacter, type character } from "../storage/database.svelte";
 import { runTranslator, translateVox } from "../translator/translator";
 import { globalFetch, loadAsset } from "../storage/globalApi";
 import { language } from "src/lang";

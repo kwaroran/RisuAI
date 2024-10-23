@@ -1,4 +1,4 @@
-import { DataBase, type Chat, type character } from "src/ts/storage/database";
+import { DataBase, type Chat, type character } from "src/ts/storage/database.svelte";
 import { HypaProcesser } from '../memory/hypamemory'
 import type { OpenAIChat } from "..";
 import { stringlizeChat } from "../stringlize";

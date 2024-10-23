@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import { getFileSrc } from "src/ts/storage/globalApi";
-  import { selectedCharID } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
@@ -41,8 +41,8 @@
     })
 </script>
 
-{#if $DataBase.characters[$selectedCharID].type === 'character' && $DataBase.characters[$selectedCharID].emotionImages[0]}
-    {#await getFileSrc($DataBase.characters[$selectedCharID].emotionImages[0][1]) then imglink}
+{#if DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].emotionImages[0]}
+    {#await getFileSrc(DBState.db.characters[$selectedCharID].emotionImages[0][1]) then imglink}
         <div class="w-full absolute top-0 h-full bottom-0 justify-center flex">
             <img src={imglink} alt="character">
         </div>
@@ -53,7 +53,7 @@
         <div class="w-3xl max-w-full flex flex-col">
 
             <div class="bg-slate-700 h-12 rounded-lg border-slate-500 border-1 w-40 mb-2 bg-opacity-90 text-center flex items-center justify-center">
-                <span class="font-bold p-2">{$DataBase.characters[$selectedCharID].name}</span>
+                <span class="font-bold p-2">{DBState.db.characters[$selectedCharID].name}</span>
             </div>
             <div class="bg-slate-700 h-40 rounded-lg border-slate-500 border-1 w-full bg-opacity-90 text-justify p-4">
                 Test
@@ -67,7 +67,7 @@
             <div class="bg-neutral-200 h-12 rounded-lg border-pink-900 border-1 w-48 mb-2 text-center relative top-6 left-4 text-lg">
                 <div class="border-pink-300 border-4 h-full rounded-lg">
                     <div class="border-pink-900 border-1 text-justify h-full rounded-lg flex items-center justify-center">
-                        <span class="font-bold p-2">{$DataBase.characters[$selectedCharID].name}</span>
+                        <span class="font-bold p-2">{DBState.db.characters[$selectedCharID].name}</span>
                     </div>
                 </div>
             </div>

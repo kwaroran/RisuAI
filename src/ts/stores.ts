@@ -1,5 +1,5 @@
 import { get, writable, type Writable } from "svelte/store";
-import { DataBase, getCurrentCharacter, type Chat, type character, type groupChat } from "./storage/database";
+import { DataBase, getCurrentCharacter, type Chat, type character, type groupChat } from "./storage/database.svelte";
 import { isEqual } from "lodash";
 import type { simpleCharacterArgument } from "./parser";
 import { getUserIcon, getUserIconProtrait, getUserName, sleep } from "./util";

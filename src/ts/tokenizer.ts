@@ -1,6 +1,6 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-import { DataBase, type groupChat, type character, type Chat, getCurrentCharacter } from "./storage/database";
+import { DataBase, type groupChat, type character, type Chat, getCurrentCharacter } from "./storage/database.svelte";
 import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat } from "./process";
 import { supportsInlayImage } from "./process/files/image";

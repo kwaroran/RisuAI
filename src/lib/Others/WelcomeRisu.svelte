@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { ArrowBigLeftIcon, Send } from "lucide-svelte";
+    import { Send } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
-    import { DataBase, setPreset } from "src/ts/storage/database";
+    import { DBState, setPreset } from "src/ts/storage/database.svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
@@ -16,7 +16,7 @@
         const usableLangs = ['de', 'en', 'ko', 'cn', 'vi', 'zh-Hant']
         if(usableLangs.includes(browserLangShort)){
             changeLanguage(browserLangShort)
-            $DataBase.language = browserLangShort
+            DBState.db.language = browserLangShort
             step = 1
         }
     }
@@ -26,7 +26,7 @@
         switch(step){
             case 1:{
                 if(input.length > 0){
-                    $DataBase.username = input
+                    DBState.db.username = input
                     step = 2
                     input = ''
                 }
@@ -43,14 +43,14 @@
             case 3:{
                 if(provider === 'openai'){
                     if(input.length > 0 && input.startsWith('sk-')){
-                        $DataBase.openAIKey = input
+                        DBState.db.openAIKey = input
                         step = 10
                         input = ''
                     }
                 }
                 if(provider === 'openrouter'){
                     if(input.length > 0 && input.startsWith('sk-')){
-                        $DataBase.openrouterKey = input
+                        DBState.db.openrouterKey = input
                         step = 10
                         input = ''
                     }
@@ -62,24 +62,24 @@
     $effect.pre(() => {
         if(step === 10){
             setTimeout(() => {
-                $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)
-                $DataBase.textTheme = 'highcontrast'
+                DBState.db = setPreset(DBState.db, prebuiltPresets.OAI2)
+                DBState.db.textTheme = 'highcontrast'
                 updateTextThemeAndCSS()
                 if(provider === 'openrouter'){
-                    $DataBase.aiModel = 'openrouter'
-                    $DataBase.subModel = 'openrouter'
-                    $DataBase.openrouterRequestModel = 'risu/free'
-                    $DataBase.maxContext = 6000
+                    DBState.db.aiModel = 'openrouter'
+                    DBState.db.subModel = 'openrouter'
+                    DBState.db.openrouterRequestModel = 'risu/free'
+                    DBState.db.maxContext = 6000
                 }
                 if(provider === 'horde'){
-                    $DataBase.aiModel = 'horde:::auto'
-                    $DataBase.subModel = 'horde:::auto'
+                    DBState.db.aiModel = 'horde:::auto'
+                    DBState.db.subModel = 'horde:::auto'
                 }
 
                 if(provider === 'openai'){
-                    $DataBase.maxContext = 4000
+                    DBState.db.maxContext = 4000
                 }
-                $DataBase.didFirstSetup = true
+                DBState.db.didFirstSetup = true
             }, 1000);
         }
 
@@ -101,32 +101,32 @@
                     <div class="flex flex-col items-start ml-2">
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('de')
-                            $DataBase.language='de'
+                            DBState.db.language='de'
                             step = 1
                         }}>• Deutsch</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('en')
-                            $DataBase.language='en'
+                            DBState.db.language='en'
                             step = 1
                         }}>• English</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('ko')
-                            $DataBase.language='ko'
+                            DBState.db.language='ko'
                             step = 1
                         }}>• 한국어</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('cn')
-                            $DataBase.language='cn'
+                            DBState.db.language='cn'
                             step = 1
                         }}>• 中文</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('zh-Hant')
-                            $DataBase.language='zh-Hant'
+                            DBState.db.language='zh-Hant'
                             step = 1
                         }}>• 中文(繁體)</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('vi')
-                            $DataBase.language='vi'
+                            DBState.db.language='vi'
                             step = 1
                         }}>• Tiếng Việt</button>
                     </div>
@@ -134,8 +134,8 @@
                 {:else}
                     <Chat name="Risu" message={language.setup.welcome} isLastMemory={false} />
                     {#if step >= 2}
-                        <Chat name={$DataBase.username} message={$DataBase.username} isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', $DataBase.username)} isLastMemory={false} />
+                        <Chat name={DBState.db.username} message={DBState.db.username} isLastMemory={false} />
+                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', DBState.db.username)} isLastMemory={false} />
                     {/if}
                     {#if step === 2}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -170,7 +170,7 @@
                         </div>
                     {/if}
                     {#if step >= 3}
-                        <Chat name={$DataBase.username} message={provider} isLastMemory={false} />
+                        <Chat name={DBState.db.username} message={provider} isLastMemory={false} />
                         {#if provider === 'openai'}
                             <Chat name="Risu" message={language.setup.setupOpenAI} isLastMemory={false} />
                         {/if}

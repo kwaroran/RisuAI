@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
-    import { DataBase } from "../../ts/storage/database";
+    import { DBState } from "../../ts/storage/database.svelte";
     import { CharEmotion, ShowVN, selectedCharID } from "../../ts/stores";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
@@ -16,17 +16,17 @@
 
     const wallPaper = `background: url(${defaultWallpaper})`
     const externalStyles = 
-            ("background: " + ($DataBase.textScreenColor ? ($DataBase.textScreenColor + '80') : "rgba(0,0,0,0.8)") + ';\n')
-        +   ($DataBase.textBorder ? "text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" : '')
-        +   ($DataBase.textScreenRounded ? "border-radius: 2rem; padding: 1rem;" : '')
-        +   ($DataBase.textScreenBorder ? `border: 0.3rem solid ${$DataBase.textScreenBorder};` : '')
+            ("background: " + (DBState.db.textScreenColor ? (DBState.db.textScreenColor + '80') : "rgba(0,0,0,0.8)") + ';\n')
+        +   (DBState.db.textBorder ? "text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" : '')
+        +   (DBState.db.textScreenRounded ? "border-radius: 2rem; padding: 1rem;" : '')
+        +   (DBState.db.textScreenBorder ? `border: 0.3rem solid ${DBState.db.textScreenBorder};` : '')
     let bgImg= $state('')
     let lastBg = $state('')
     $effect.pre(() => {
         (async () =>{
-            if($DataBase.customBackground !== lastBg){
-                lastBg = $DataBase.customBackground
-                bgImg = await getCustomBackground($DataBase.customBackground)
+            if(DBState.db.customBackground !== lastBg){
+                lastBg = DBState.db.customBackground
+                bgImg = await getCustomBackground(DBState.db.customBackground)
             }
         })()
     });
@@ -34,48 +34,48 @@
 
 {#if $ShowVN}
     <VisualNovelMain />
-{:else if $DataBase.theme === ''}
+{:else if DBState.db.theme === ''}
     <div class="flex-grow h-full min-w-0 relative justify-center flex">
         <SideBarArrow />
         <BackgroundDom />
-        <div style={bgImg} class="h-full w-full" class:max-w-6xl={$DataBase.classicMaxWidth}>
+        <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>
             {#if $selectedCharID >= 0}
-                {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none' && ($DataBase.characters[$selectedCharID].type === 'group' || (!$DataBase.characters[$selectedCharID].inlayViewScreen))}
+                {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none' && (DBState.db.characters[$selectedCharID].type === 'group' || (!DBState.db.characters[$selectedCharID].inlayViewScreen))}
                     <ResizeBox />
                 {/if}
             {/if}
             <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList bind:openModuleList/>
         </div>
     </div>
-{:else if $DataBase.theme === 'waifu'}
+{:else if DBState.db.theme === 'waifu'}
     <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
         <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
-                <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * ($DataBase.waifuWidth2 / 100)}rem">
-                    <TransitionImage classType="waifu" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
+            {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
+                <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * (DBState.db.waifuWidth2 / 100)}rem">
+                    <TransitionImage classType="waifu" src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
                 </div>
             {/if}
         {/if}
-        <div class="h-full w-2xl" style:width="{42 * ($DataBase.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}>
+        <div class="h-full w-2xl" style:width="{42 * (DBState.db.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}>
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
     </div>
-{:else if $DataBase.theme === 'waifuMobile'}
+{:else if DBState.db.theme === 'waifuMobile'}
     <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
         <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
-            class:per33={$selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
-            class:h-full={!($selectedCharID >= 0 && $DataBase.characters[$selectedCharID].viewScreen !== 'none')}
+            class:per33={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
+            class:h-full={!($selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none')}
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
         {#if $selectedCharID >= 0}
-            {#if $DataBase.characters[$selectedCharID].viewScreen !== 'none'}
+            {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
                 <div class="h-full w-full absolute bottom-0 left-0 max-w-full">
-                    <TransitionImage classType="mobile" src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
+                    <TransitionImage classType="mobile" src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
                 </div>
             {/if}
         {/if}

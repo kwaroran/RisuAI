@@ -3,7 +3,7 @@
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
     import { tooltip } from "src/ts/gui/tooltip";
@@ -86,7 +86,7 @@
             })}>
                 <FlagIcon />
             </button>
-            {#if ($DataBase.account?.token?.split('-') ?? [])[1] === openedData.creator}
+            {#if (DBState.db.account?.token?.split('-') ?? [])[1] === openedData.creator}
                 <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {
                     e.stopPropagation()
                     const conf = await alertConfirm('Do you want to remove this character from Realm?')
@@ -95,7 +95,7 @@
                             method: "POST",
                             body: JSON.stringify({
                                 id: openedData.id,
-                                token: $DataBase.account?.token
+                                token: DBState.db.account?.token
                             })
                         })
                         alertNormal(await da.text())

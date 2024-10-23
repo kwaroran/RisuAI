@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { hubURL } from "../characterCards"
-import { DataBase } from "../storage/database"
+import { DataBase } from "../storage/database.svelte"
 import { alertError, alertSelect } from "../alert"
 
 export async function risuLogin() {

@@ -8,7 +8,7 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     interface Props {
         promptItem: PromptItem;
         onRemove?: () => void;
@@ -64,7 +64,7 @@
         <OptionInput value="lorebook">{language.formating.lorebook}</OptionInput>
         <OptionInput value="memory">{language.formating.memory}</OptionInput>
         <OptionInput value="postEverything">{language.formating.postEverything}</OptionInput>
-        {#if $DataBase.promptSettings.customChainOfThought}
+        {#if DBState.db.promptSettings.customChainOfThought}
             <OptionInput value="cot">{language.cot}</OptionInput>
         {/if}
     </SelectInput>
@@ -105,7 +105,7 @@
                     }
                 }} />
             {/if}
-            {#if $DataBase.promptSettings.sendChatAsSystem}
+            {#if DBState.db.promptSettings.sendChatAsSystem}
                 <CheckInput name={language.chatAsOriginalOnSystem} bind:check={promptItem.chatAsOriginalOnSystem}/>
             {/if}
         {/if}

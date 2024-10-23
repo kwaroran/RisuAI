@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
-import { DataBase, type character, type customscript, type groupChat } from "../storage/database"
+import { DataBase, type character, type customscript, type groupChat } from "../storage/database.svelte"
 import { globalFetch, isTauri } from "../storage/globalApi"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"

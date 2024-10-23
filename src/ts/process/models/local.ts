@@ -5,7 +5,7 @@ import * as path from "@tauri-apps/api/path";
 import { exists, readTextFile } from "@tauri-apps/plugin-fs";
 import { alertClear, alertError, alertMd, alertWait } from "src/ts/alert";
 import { get } from "svelte/store";
-import { DataBase } from "src/ts/storage/database";
+import { DataBase } from "src/ts/storage/database.svelte";
 let serverRunning = false;
 
 export function checkLocalModel():Promise<string>{

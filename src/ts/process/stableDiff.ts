@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { DataBase, type character } from "../storage/database"
+import { DataBase, type character } from "../storage/database.svelte"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
 import { globalFetch, readImage } from "../storage/globalApi"

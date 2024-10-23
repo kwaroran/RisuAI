@@ -2,9 +2,9 @@ import { get } from 'svelte/store'
 import type { ScriptMode } from '../process/scripts'
 //@ts-ignore
 import WorkerUrl from './embedworker?worker&url'
-import { DataBase, type Message } from '../storage/database'
+import { DataBase, type Message } from '../storage/database.svelte'
 import { selectedCharID } from '../stores'
-import { setDatabase } from '../storage/database'
+import { setDatabase } from '../storage/database.svelte'
 
 let worker = new Worker(WorkerUrl, {type: 'module'})
 

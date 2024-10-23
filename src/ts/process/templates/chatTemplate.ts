@@ -1,7 +1,7 @@
 import { Template } from '@huggingface/jinja';
 import type { OpenAIChat } from '..';
 import { get } from 'svelte/store';
-import { DataBase, getCurrentCharacter } from 'src/ts/storage/database';
+import { DataBase, getCurrentCharacter } from 'src/ts/storage/database.svelte';
 import { getUserName } from 'src/ts/util';
 
 export const chatTemplates = {

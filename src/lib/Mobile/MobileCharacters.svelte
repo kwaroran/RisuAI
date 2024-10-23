@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type character, DataBase, type groupChat } from "src/ts/storage/database";
+    import { type character, DBState, type groupChat } from "src/ts/storage/database.svelte";
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { addCharacter, changeChar, getCharImage } from "src/ts/characters";
     import { MobileSearch } from "src/ts/stores";
@@ -55,7 +55,7 @@
     }
 </script>
 <div class="flex flex-col items-center w-full overflow-y-auto h-full">
-    {#each sortChar($DataBase.characters) as char, i}
+    {#each sortChar(DBState.db.characters) as char, i}
         {#if char.name.toLocaleLowerCase().includes($MobileSearch.toLocaleLowerCase())}
             <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} onclick={() => {
                 changeChar(char.i)

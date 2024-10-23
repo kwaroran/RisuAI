@@ -1,7 +1,7 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/storage/database";
+    import { DBState } from "../../ts/storage/database.svelte";
     import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     let editMode = $state(false)
@@ -19,29 +19,29 @@
                 </button>
             </div>
         </div>
-        {#each $DataBase.loreBook as lore, ind}
+        {#each DBState.db.loreBook as lore, ind}
             <button onclick={() => {
                 if(!editMode){
-                    $DataBase.loreBookPage = ind
+                    DBState.db.loreBookPage = ind
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === $DataBase.loreBookPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === DBState.db.loreBookPage}>
                 {#if editMode}
-                    <TextInput bind:value={$DataBase.loreBook[ind].name} placeholder="string" padding={false}/>
+                    <TextInput bind:value={DBState.db.loreBook[ind].name} placeholder="string" padding={false}/>
                 {:else}
                     <span>{lore.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                         e.stopPropagation()
-                        if($DataBase.loreBook.length === 1){
+                        if(DBState.db.loreBook.length === 1){
                             return
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${lore.name}`)
                         if(d){
-                            $DataBase.loreBookPage = 0
-                            let loreBook = $DataBase.loreBook
+                            DBState.db.loreBookPage = 0
+                            let loreBook = DBState.db.loreBook
                             loreBook.splice(ind, 1)
-                            $DataBase.loreBook = loreBook
+                            DBState.db.loreBook = loreBook
                         }
                     }}>
                         <TrashIcon size={18}/>
@@ -51,14 +51,14 @@
         {/each}
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
-                let loreBooks = $DataBase.loreBook
+                let loreBooks = DBState.db.loreBook
                 let newLoreBook = {
                     name: `New LoreBook`,
                     data: []
                 }
                 loreBooks.push(newLoreBook)
 
-                $DataBase.loreBook = loreBooks
+                DBState.db.loreBook = loreBooks
             }}>
                 <PlusIcon/>
             </button>

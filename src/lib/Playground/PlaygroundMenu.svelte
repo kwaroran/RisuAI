@@ -9,7 +9,7 @@
     import { findCharacterIndexbyId } from "src/ts/util";
     import { characterFormatUpdate, createBlankChar } from "src/ts/characters";
     import { get } from "svelte/store";
-    import { DataBase, setDatabase, type character } from "src/ts/storage/database";
+    import { DataBase, setDatabase, type character } from "src/ts/storage/database.svelte";
     import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
     import PlaygroundParser from "./PlaygroundParser.svelte";
     import ToolConvertion from "./ToolConvertion.svelte";

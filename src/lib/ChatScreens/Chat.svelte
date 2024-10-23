@@ -4,7 +4,7 @@
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase, type MessageGenerationInfo } from "../../ts/storage/database";
+    import { DBState, type MessageGenerationInfo } from "../../ts/storage/database.svelte";
     import { HideIconStore, ReloadGUIPointer, selectedCharID } from "../../ts/stores";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
@@ -19,7 +19,7 @@
     import { onDestroy, onMount } from "svelte";
     let translating = $state(false)
     try {
-        translating = get(DataBase).autoTranslate                
+        translating = DBState.db.autoTranslate                
     } catch (error) {}
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -56,46 +56,46 @@
     }: Props = $props();
 
     let msgDisplay = $state('')
-    let translated = $state(get(DataBase).autoTranslate)
+    let translated = $state(DBState.db.autoTranslate)
     async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){
-            let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+            let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
             msg = msg.slice(0, idx)
-            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
             return
         }
 
-        const rm = $DataBase.askRemoval ? await alertConfirm(language.removeChat) : true
+        const rm = DBState.db.askRemoval ? await alertConfirm(language.removeChat) : true
         if(rm){
-            if($DataBase.instantRemove || rec){
+            if(DBState.db.instantRemove || rec){
                 const r = await alertConfirm(language.instantRemoveConfirm)
-                let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+                let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
                 if(!r){
                     msg = msg.slice(0, idx)
                 }
                 else{
                     msg.splice(idx, 1)
                 }
-                $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
             }
             else{
-                let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+                let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
                 msg.splice(idx, 1)
-                $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
             }
         }
     }
 
     async function edit(){
-        let msg = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message
+        let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
         msg[idx].data = message
-        $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message = msg
+        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
     }
 
     function getCbsCondition(){
         const cbsConditions:CbsConditions = {
             firstmsg: firstMessage ?? false,
-            chatRole: $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage]?.message?.[idx]?.role ?? null,
+            chatRole: DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]?.message?.[idx]?.role ?? null,
         }
         return cbsConditions
     }
@@ -130,14 +130,14 @@
                 lastChatId = chatID
                 translateText = false
                 try {
-                    translated = get(DataBase).autoTranslate
+                    translated = DBState.db.autoTranslate
                     if(translated){
                         translateText = true
                     }
                 } catch (error) {}
             }
             if(translateText){
-                if(!$DataBase.legacyTranslation){
+                if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
                     const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
@@ -192,12 +192,12 @@
         unsubscribers.forEach(u => u())
     })
 </script>
-<div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${$DataBase.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
+<div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#if !blankMessage && !$HideIconStore}
-            {#if $DataBase.characters[$selectedCharID]?.chaId === "§playground"}
-                <div class="shadow-lg border-textcolor2 border mt-2 flex justify-center items-center text-textcolor2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}>
+            {#if DBState.db.characters[$selectedCharID]?.chaId === "§playground"}
+                <div class="shadow-lg border-textcolor2 border mt-2 flex justify-center items-center text-textcolor2" style={`height:${DBState.db.iconsize * 3.5 / 100}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
+                class:rounded-md={!DBState.db.roundIcons} class:rounded-full={DBState.db.roundIcons}>
                     {#if name === 'assistant'}
                         <BotIcon />
                     {:else}
@@ -206,27 +206,27 @@
                 </div>
             {:else}
                 {#await img}
-                    <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                    class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}></div>
+                    <div class="shadow-lg bg-textcolor2 mt-2" style={`height:${DBState.db.iconsize * 3.5 / 100}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
+                    class:rounded-md={!DBState.db.roundIcons} class:rounded-full={DBState.db.roundIcons}></div>
                 {:then m}
-                    {#if largePortrait && (!$DataBase.roundIcons)}
-                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100 / 0.75}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}></div>
+                    {#if largePortrait && (!DBState.db.roundIcons)}
+                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${DBState.db.iconsize * 3.5 / 100 / 0.75}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
+                        class:rounded-md={!DBState.db.roundIcons} class:rounded-full={DBState.db.roundIcons}></div>
                     {:else}
-                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${$DataBase.iconsize * 3.5 / 100}rem;width:${$DataBase.iconsize * 3.5 / 100}rem;min-width:${$DataBase.iconsize * 3.5 / 100}rem`}
-                        class:rounded-md={!$DataBase.roundIcons} class:rounded-full={$DataBase.roundIcons}></div>
+                        <div class="shadow-lg bg-textcolor2 mt-2" style={m + `height:${DBState.db.iconsize * 3.5 / 100}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
+                        class:rounded-md={!DBState.db.roundIcons} class:rounded-full={DBState.db.roundIcons}></div>
                     {/if}
                 {/await}
             {/if}
         {/if}
         <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
             <div class="flexium items-center chat">
-                {#if $DataBase.characters[$selectedCharID]?.chaId === "§playground" && !blankMessage}
+                {#if DBState.db.characters[$selectedCharID]?.chaId === "§playground" && !blankMessage}
                     <span class="chat text-xl border-darkborderc flex items-center">
                         <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
                         <button class="ml-2 text-textcolor2 hover:text-textcolor" onclick={() => {
-                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[idx].role = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[idx].role === 'char' ? 'user' : 'char'
-                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage] = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage]
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role === 'char' ? 'user' : 'char'
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
                         }}><ArrowLeftRightIcon size="18" /></button>
                     </span>
                 {:else if !blankMessage && !$HideIconStore}
@@ -234,7 +234,7 @@
                 {/if}
                 <div class="flex-grow flex items-center justify-end text-textcolor2">
                     <span class="text-xs">{statusMessage}</span>
-                    {#if $DataBase.useChatCopy && !blankMessage}
+                    {#if DBState.db.useChatCopy && !blankMessage}
                         <button class="ml-2 hover:text-green-500 transition-colors" onclick={()=>{
                             window.navigator.clipboard.writeText(msgDisplay).then(() => {
                                 setStatusMessage(language.copied)
@@ -244,7 +244,7 @@
                         </button>    
                     {/if}
                     {#if idx > -1}
-                        {#if $DataBase.characters[$selectedCharID].type !== 'group' && $DataBase.characters[$selectedCharID].ttsMode !== 'none' && ($DataBase.characters[$selectedCharID].ttsMode)}
+                        {#if DBState.db.characters[$selectedCharID].type !== 'group' && DBState.db.characters[$selectedCharID].ttsMode !== 'none' && (DBState.db.characters[$selectedCharID].ttsMode)}
                             <button class="ml-2 hover:text-green-500 transition-colors" onclick={()=>{
                                 return sayTTS(null, message)
                             }}>
@@ -269,7 +269,7 @@
                             </button>
                         {/if}
                     {/if}
-                    {#if $DataBase.translator !== '' && !blankMessage}
+                    {#if DBState.db.translator !== '' && !blankMessage}
                         <button class={"ml-2 cursor-pointer hover:text-green-500 transition-colors " + (translated ? 'text-green-400':'')} class:translating={translating} onclick={async () => {
                             translated = !translated
                         }}>
@@ -277,7 +277,7 @@
                         </button>
                     {/if}
                     {#if rerollIcon || altGreeting}
-                        {#if $DataBase.swipe || altGreeting}
+                        {#if DBState.db.swipe || altGreeting}
                             <button class="ml-2 hover:text-green-500 transition-colors" onclick={unReroll}>
                                 <ArrowLeft size={22}/>
                             </button>
@@ -292,7 +292,7 @@
                     {/if}
                 </div>
             </div>
-            {#if messageGenerationInfo && $DataBase.requestInfoInsideChat}
+            {#if messageGenerationInfo && DBState.db.requestInfoInsideChat}
                 <div>
                     <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
                                     hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
@@ -321,12 +321,12 @@
             {:else}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <span class="text chat chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
-                    if($DataBase.clickToEdit && idx > -1){
+                    if(DBState.db.clickToEdit && idx > -1){
                         editMode = true
                     }
                 }}
-                    style:font-size="{0.875 * ($DataBase.zoomsize / 100)}rem"
-                    style:line-height="{($DataBase.lineHeight ?? 1.25) * ($DataBase.zoomsize / 100)}rem"
+                    style:font-size="{0.875 * (DBState.db.zoomsize / 100)}rem"
+                    style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
                 >
                     {#key $ReloadGUIPointer}
                         {#await markParsing(msgDisplay, character, 'normal', idx, translated)}

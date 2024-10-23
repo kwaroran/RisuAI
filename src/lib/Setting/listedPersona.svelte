@@ -1,7 +1,7 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/storage/database";
+    import { DBState } from "../../ts/storage/database.svelte";
     import { changeUserPersona } from "src/ts/persona";
 
 
@@ -23,11 +23,11 @@
                 </button>
             </div>
         </div>
-        {#each $DataBase.personas as persona, i}
+        {#each DBState.db.personas as persona, i}
             <button onclick={() => {
                 changeUserPersona(i)
                 close()
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === $DataBase.selectedPersona}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.selectedPersona}>
                 <span>{persona.name}</span>
             </button>
         {/each}

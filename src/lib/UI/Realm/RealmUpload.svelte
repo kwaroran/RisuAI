@@ -5,7 +5,7 @@
         onclick?.(e)
     }}>
         
-        {#if !$DataBase.account}
+        {#if !DBState.db.account}
             <span class="font-bold text-2xl w-full">You must login to Risu Account upload to RisuRealm</span>
             <span class="text-textcolor2">You can login in app settings 🡲 account</span>
             <button onclick={async () => {
@@ -111,7 +111,7 @@
     import { language } from "src/lang";
     import { alertError } from "src/ts/alert";
     import { shareRisuHub2 } from "src/ts/characterCards";
-    import { DataBase, type character } from "src/ts/storage/database";
+    import { DBState, type character } from "src/ts/storage/database.svelte";
     import TextInput from "../GUI/TextInput.svelte";
     import Button from "../GUI/Button.svelte";
     import SelectInput from "../GUI/SelectInput.svelte";

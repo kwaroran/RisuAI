@@ -4,7 +4,7 @@
     import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
     import { tokenizePreset, type PromptItem } from "src/ts/process/prompt";
     import { templateCheck } from "src/ts/process/templates/templateCheck";
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
@@ -18,7 +18,7 @@
     let warns: string[] = $state([])
     let tokens = $state(0)
     let extokens = $state(0)
-    executeTokenize($DataBase.promptTemplate)
+    executeTokenize(DBState.db.promptTemplate)
   interface Props {
     onGoBack?: () => void;
     mode?: 'independent'|'inline';
@@ -33,10 +33,10 @@
     }
 
     $effect.pre(() => {
-    warns = templateCheck($DataBase)
+    warns = templateCheck(DBState.db)
   });
   $effect.pre(() => {
-    executeTokenize($DataBase.promptTemplate)
+    executeTokenize(DBState.db.promptTemplate)
   });
 </script>
 {#if mode === 'independent'}
@@ -72,84 +72,84 @@
 
 {#if subMenu === 0}
     <div class="contain w-full max-w-full mt-4 flex flex-col p-3 rounded-md">
-        {#if $DataBase.promptTemplate.length === 0}
+        {#if DBState.db.promptTemplate.length === 0}
                 <div class="text-textcolor2">No Format</div>
         {/if}
         {#key sorted}
-            {#each $DataBase.promptTemplate as prompt, i}
-                <PromptDataItem bind:promptItem={$DataBase.promptTemplate[i]} onRemove={() => {
-                    let templates = $DataBase.promptTemplate
+            {#each DBState.db.promptTemplate as prompt, i}
+                <PromptDataItem bind:promptItem={DBState.db.promptTemplate[i]} onRemove={() => {
+                    let templates = DBState.db.promptTemplate
                     templates.splice(i, 1)
-                    $DataBase.promptTemplate = templates
+                    DBState.db.promptTemplate = templates
                 }} moveDown={() => {
-                    if(i === $DataBase.promptTemplate.length - 1){
+                    if(i === DBState.db.promptTemplate.length - 1){
                         return
                     }
-                    let templates = $DataBase.promptTemplate
+                    let templates = DBState.db.promptTemplate
                     let temp = templates[i]
                     templates[i] = templates[i + 1]
                     templates[i + 1] = temp
-                    $DataBase.promptTemplate = templates
+                    DBState.db.promptTemplate = templates
                 }} moveUp={() => {
                     if(i === 0){
                         return
                     }
-                    let templates = $DataBase.promptTemplate
+                    let templates = DBState.db.promptTemplate
                     let temp = templates[i]
                     templates[i] = templates[i - 1]
                     templates[i - 1] = temp
-                    $DataBase.promptTemplate = templates
+                    DBState.db.promptTemplate = templates
                 }} />
             {/each}
         {/key}
     </div>
 
     <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
-        let value = $DataBase.promptTemplate ?? []
+        let value = DBState.db.promptTemplate ?? []
         value.push({
             type: "plain",
             text: "",
             role: "system",
             type2: 'normal'
         })
-        $DataBase.promptTemplate = value
+        DBState.db.promptTemplate = value
     }}><PlusIcon /></button>
 
     <span class="text-textcolor2 text-sm mt-2">{tokens} {language.fixedTokens}</span>
     <span class="text-textcolor2 mb-6 text-sm mt-2">{extokens} {language.exactTokens}</span>
 {:else}
     <span class="text-textcolor mt-4">{language.postEndInnerFormat}</span>
-    <TextInput bind:value={$DataBase.promptSettings.postEndInnerFormat}/>
+    <TextInput bind:value={DBState.db.promptSettings.postEndInnerFormat}/>
 
-    <Check bind:check={$DataBase.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
-    <Check bind:check={$DataBase.promptSettings.sendName} name={language.formatGroupInSingle} className="mt-4"/>
-    <Check bind:check={$DataBase.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
-    <Check bind:check={$DataBase.jsonSchemaEnabled} name={language.enableJsonSchema} className="mt-4"/>
-    <Check bind:check={$DataBase.strictJsonSchema} name={language.strictJsonSchema} className="mt-4"/>
+    <Check bind:check={DBState.db.promptSettings.sendChatAsSystem} name={language.sendChatAsSystem} className="mt-4"/>
+    <Check bind:check={DBState.db.promptSettings.sendName} name={language.formatGroupInSingle} className="mt-4"/>
+    <Check bind:check={DBState.db.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
+    <Check bind:check={DBState.db.jsonSchemaEnabled} name={language.enableJsonSchema} className="mt-4"/>
+    <Check bind:check={DBState.db.strictJsonSchema} name={language.strictJsonSchema} className="mt-4"/>
 
-    {#if $DataBase.showUnrecommended}
-        <Check bind:check={$DataBase.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4">
+    {#if DBState.db.showUnrecommended}
+        <Check bind:check={DBState.db.promptSettings.customChainOfThought} name={language.customChainOfThought} className="mt-4">
             <Help unrecommended key='customChainOfThought' />
         </Check>
     {/if}
     <span class="text-textcolor mt-4">{language.maxThoughtTagDepth}</span>
-    <NumberInput bind:value={$DataBase.promptSettings.maxThoughtTagDepth}/>
+    <NumberInput bind:value={DBState.db.promptSettings.maxThoughtTagDepth}/>
     <span class="text-textcolor mt-4">{language.groupOtherBotRole} <Help key="groupOtherBotRole"/></span>
-    <SelectInput bind:value={$DataBase.groupOtherBotRole}>
+    <SelectInput bind:value={DBState.db.groupOtherBotRole}>
         <OptionInput value="user">User</OptionInput>
         <OptionInput value="system">System</OptionInput>
         <OptionInput value="assistant">assistant</OptionInput>
     </SelectInput>
     <span class="text-textcolor mt-4">{language.customPromptTemplateToggle} <Help key='customPromptTemplateToggle' /></span>
-    <TextAreaInput bind:value={$DataBase.customPromptTemplateToggle}/>
+    <TextAreaInput bind:value={DBState.db.customPromptTemplateToggle}/>
     <span class="text-textcolor mt-4">{language.defaultVariables} <Help key='defaultVariables' /></span>
-    <TextAreaInput bind:value={$DataBase.templateDefaultVariables}/>
+    <TextAreaInput bind:value={DBState.db.templateDefaultVariables}/>
     <span class="text-textcolor mt-4">{language.groupInnerFormat} <Help key='groupInnerFormat' /></span>
-    <TextAreaInput placeholder={`<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`} bind:value={$DataBase.groupTemplate}/>
-    {#if $DataBase.jsonSchemaEnabled}
+    <TextAreaInput placeholder={`<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`} bind:value={DBState.db.groupTemplate}/>
+    {#if DBState.db.jsonSchemaEnabled}
         <span class="text-textcolor mt-4">{language.jsonSchema} <Help key='jsonSchema' /></span>
-        <TextAreaInput bind:value={$DataBase.jsonSchema}/>
+        <TextAreaInput bind:value={DBState.db.jsonSchema}/>
         <span class="text-textcolor mt-4">{language.extractJson} <Help key='extractJson' /></span>
-        <TextInput bind:value={$DataBase.extractJson}/>
+        <TextInput bind:value={DBState.db.extractJson}/>
     {/if}
 {/if}

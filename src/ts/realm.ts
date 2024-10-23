@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { exportCharacterCard } from "./characterCards";
 import { VirtualWriter, isTauri, openURL } from "./storage/globalApi";
-import { DataBase, getCurrentCharacter, type character } from "./storage/database";
+import { DataBase, getCurrentCharacter, type character } from "./storage/database.svelte";
 import { alertStore } from "./alert";
 
 let pong = false;

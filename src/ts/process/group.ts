@@ -3,7 +3,7 @@ import { findCharacterbyId } from "../util";
 import { alertConfirm, alertError, alertSelectChar } from "../alert";
 import { language } from "src/lang";
 import { get } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database";
+import { DataBase, setDatabase } from "../storage/database.svelte";
 import { selectedCharID } from "../stores";
 
 export async function addGroupChar(){

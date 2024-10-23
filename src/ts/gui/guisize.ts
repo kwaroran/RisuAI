@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { DataBase } from "../storage/database";
+import { DataBase } from "../storage/database.svelte";
 
 export let textAreaSize = writable(0)
 export let sideBarSize = writable(0)

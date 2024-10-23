@@ -1,7 +1,7 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
     import { EditIcon, LanguagesIcon } from "lucide-svelte";
-    import { DataBase } from "../../ts/storage/database";
+    import { DataBase, DBState } from "../../ts/storage/database.svelte";
     import CodeMirror from 'codemirror';
     import 'codemirror/lib/codemirror.css';
 
@@ -9,7 +9,7 @@
     let { value = $bindable(), translate = $bindable() } = $props();
 
     const dispatch = createEventDispatcher();
-    let toggleTranslate = $state(!$DataBase.useAutoTranslateInput);
+    let toggleTranslate = $state(!DBState.db.useAutoTranslateInput);
     let velement = $state(), veditor = $state();
     let telement = $state(), teditor = $state();
     let _value = $state(value);
@@ -111,7 +111,7 @@
 </script>
 
 <div class="flex flex-1 items-end ml-2 mr-2">
-    {#if $DataBase.useAutoTranslateInput}
+    {#if DBState.db.useAutoTranslateInput}
         <button 
             onclick={toggleTranslateText}
             class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors">

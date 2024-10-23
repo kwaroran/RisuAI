@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { alertSelect, alertToast, doingAlert } from "./alert"
-import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
+import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database.svelte"
 import { MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"

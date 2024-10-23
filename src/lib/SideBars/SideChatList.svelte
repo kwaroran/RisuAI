@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Chat, character, groupChat } from "src/ts/storage/database";
-    import { DataBase, setDatabase } from "src/ts/storage/database";
+    import type { Chat, character, groupChat } from "src/ts/storage/database.svelte";
+    import { DBState } from "src/ts/storage/database.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
     import { exportChat, importChat } from "src/ts/characters";
@@ -14,7 +14,6 @@
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
-    import { reverse } from "lodash";
 
   interface Props {
     chara: character|groupChat;
@@ -127,11 +126,11 @@
                             else{
                                 const confirm = await alertConfirm(language.doYouWantToBindCurrentPersona)
                                 if(confirm){
-                                    if(!$DataBase.personas[$DataBase.selectedPersona].id){
-                                        $DataBase.personas[$DataBase.selectedPersona].id = v4()
+                                    if(!DBState.db.personas[DBState.db.selectedPersona].id){
+                                        DBState.db.personas[DBState.db.selectedPersona].id = v4()
                                     }
-                                    chat.bindedPersona = $DataBase.personas[$DataBase.selectedPersona].id
-                                    console.log($DataBase.personas[$DataBase.selectedPersona])
+                                    chat.bindedPersona = DBState.db.personas[DBState.db.selectedPersona].id
+                                    console.log(DBState.db.personas[DBState.db.selectedPersona])
                                     alertNormal(language.personaBindedSuccess)
                                 }
                             }
@@ -193,50 +192,50 @@
             </button>
         </div>
 
-        {#if $DataBase.characters[$selectedCharID]?.chaId !== '§playground'}
+        {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
 
             
-            {#if parseKeyValue($DataBase.customPromptTemplateToggle).length > 4}
+            {#if parseKeyValue(DBState.db.customPromptTemplateToggle).length > 4}
                 <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
                     <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
-                        <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle} reverse />
+                        <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
                     </div>
-                    {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
+                    {#each parseKeyValue(DBState.db.customPromptTemplateToggle) as toggle}
                         <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
-                            <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
-                                $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                            <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
+                                DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
                             }} />
                         </div>
                     {/each}
-                    {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                    {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable}
                         <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
-                            <CheckInput bind:check={chara.supaMemory} reverse name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                            <CheckInput bind:check={chara.supaMemory} reverse name={DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
                         </div>
                     {/if}
                 </div>
-            {:else if parseKeyValue($DataBase.customPromptTemplateToggle).length > 0}
+            {:else if parseKeyValue(DBState.db.customPromptTemplateToggle).length > 0}
                 <div class="flex mt-2 items-center">
-                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle} reverse/>
+                    <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse/>
                 </div>
-                {#each parseKeyValue($DataBase.customPromptTemplateToggle) as toggle}
+                {#each parseKeyValue(DBState.db.customPromptTemplateToggle) as toggle}
                     <div class="flex mt-2 items-center">
-                        <CheckInput check={$DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
-                            $DataBase.globalChatVariables[`toggle_${toggle[0]}`] = $DataBase.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
+                        <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
+                            DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
                         }} />
                     </div>
                 {/each}
-                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} reverse name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                        <CheckInput bind:check={chara.supaMemory} reverse name={DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
                     </div>
                 {/if}
             {:else}
                 <div class="flex mt-2 items-center">
-                    <CheckInput bind:check={$DataBase.jailbreakToggle} name={language.jailbreakToggle}/>
+                    <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
                 </div>
-                {#if $DataBase.supaModelType !== 'none' || $DataBase.hanuraiEnable}
+                {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable}
                     <div class="flex mt-2 items-center">
-                        <CheckInput bind:check={chara.supaMemory} name={$DataBase.hanuraiEnable ? language.hanuraiMemory : $DataBase.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+                        <CheckInput bind:check={chara.supaMemory} name={DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
                     </div>
                 {/if}
             {/if}

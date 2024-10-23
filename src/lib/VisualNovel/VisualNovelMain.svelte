@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
-    import { DataBase } from "../../ts/storage/database";
+    import { DBState } from "../../ts/storage/database.svelte";
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import defaultWallpaper from './test.png'
@@ -12,9 +12,9 @@
     let lastBg = $state('')
     $effect.pre(() => {
         (async () =>{
-            if($DataBase.customBackground !== lastBg){
-                lastBg = $DataBase.customBackground
-                bgImg = await getCustomBackground($DataBase.customBackground)
+            if(DBState.db.customBackground !== lastBg){
+                lastBg = DBState.db.customBackground
+                bgImg = await getCustomBackground(DBState.db.customBackground)
             }
         })()
     });

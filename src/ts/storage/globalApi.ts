@@ -13,7 +13,7 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database";
+import { DataBase, loadedStore, setDatabase, type Database, defaultSdDataFunc } from "./database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "../update";
 import { MobileGUI, botMakerMode, selectedCharID } from "../stores";

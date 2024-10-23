@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
-import { DataBase, type Database } from "../storage/database";
+import { DataBase, type Database } from "../storage/database.svelte";
 import { forageStorage, getUnpargeables, isTauri, openURL } from "../storage/globalApi";
 import { BaseDirectory, exists, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { language } from "../../lang";

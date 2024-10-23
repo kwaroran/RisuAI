@@ -1,4 +1,4 @@
-import { DataBase, setDatabase } from 'src/ts/storage/database';
+import { DataBase, setDatabase } from 'src/ts/storage/database.svelte';
 import { selectedCharID } from 'src/ts/stores';
 import { get } from 'svelte/store';
 import { doingChat, sendChat } from '..';

@@ -1,7 +1,7 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/storage/database";
+    import { DBState } from "../../ts/storage/database.svelte";
     import { ReloadGUIPointer, selectedCharID } from "../../ts/stores";
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
@@ -23,15 +23,15 @@
                 </button>
             </div>
         </div>
-        {#each $DataBase.characters[$selectedCharID].chats as chat, i}
+        {#each DBState.db.characters[$selectedCharID].chats as chat, i}
             <button onclick={() => {
                 if(!editMode){
-                    $DataBase.characters[$selectedCharID].chatPage = i
+                    DBState.db.characters[$selectedCharID].chatPage = i
                      close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === $DataBase.characters[$selectedCharID].chatPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.characters[$selectedCharID].chatPage}>
                 {#if editMode}
-                    <TextInput bind:value={$DataBase.characters[$selectedCharID].chats[i].name} padding={false}/>
+                    <TextInput bind:value={DBState.db.characters[$selectedCharID].chats[i].name} padding={false}/>
                 {:else}
                     <span>{chat.name}</span>
                 {/if}
@@ -44,16 +44,16 @@
                     </div>
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                         e.stopPropagation()
-                        if($DataBase.characters[$selectedCharID].chats.length === 1){
+                        if(DBState.db.characters[$selectedCharID].chats.length === 1){
                             alertError(language.errors.onlyOneChat)
                             return
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
-                            $DataBase.characters[$selectedCharID].chatPage = 0
-                            let chats = $DataBase.characters[$selectedCharID].chats
+                            DBState.db.characters[$selectedCharID].chatPage = 0
+                            let chats = DBState.db.characters[$selectedCharID].chats
                             chats.splice(i, 1)
-                            $DataBase.characters[$selectedCharID].chats = chats
+                            DBState.db.characters[$selectedCharID].chats = chats
                         }
                     }}>
                         <TrashIcon size={18}/>
@@ -63,9 +63,9 @@
         {/each}
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
-                const cha = $DataBase.characters[$selectedCharID]
-                const len = $DataBase.characters[$selectedCharID].chats.length
-                let chats = $DataBase.characters[$selectedCharID].chats
+                const cha = DBState.db.characters[$selectedCharID]
+                const len = DBState.db.characters[$selectedCharID].chats.length
+                let chats = DBState.db.characters[$selectedCharID].chats
                 chats.unshift({
                     message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1
                 })
@@ -78,9 +78,9 @@
                         })
                     })
                 }
-                $DataBase.characters[$selectedCharID].chats = chats
+                DBState.db.characters[$selectedCharID].chats = chats
                 $ReloadGUIPointer += 1
-                $DataBase.characters[$selectedCharID].chatPage = len
+                DBState.db.characters[$selectedCharID].chatPage = len
                 close()
             }}>
                 <PlusIcon/>

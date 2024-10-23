@@ -1,7 +1,7 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
     import { language } from "../../../lang";
-    import type { loreBook } from "../../../ts/storage/database";
+    import type { loreBook } from "../../../ts/storage/database.svelte";
     import { alertConfirm } from "../../../ts/alert";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DataBase } from "src/ts/storage/database";
+    import { DBState } from "src/ts/storage/database.svelte";
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";
@@ -89,7 +89,7 @@
                 {/if}
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel('reverse_proxy')}}>Custom (OpenAI-compatible)</button>
-            {#if $DataBase.tpo && isTauri}
+            {#if DBState.db.tpo && isTauri}
                 <button class="hover:bg-selected px-6 py-2 text-lg" onclick={async () => {
                     const selected = await open({
                         filters: [{
@@ -178,7 +178,7 @@
             </Arcodion>
             <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel('risullm-proto')}}>RisuAI LLM (Prototype)</button>
             {/if}
-            {#if $DataBase.plugins.length > 0}
+            {#if DBState.db.plugins.length > 0}
                 <button onclick={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
             {/if}
             <div class="text-textcolor2 text-xs">

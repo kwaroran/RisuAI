@@ -1,7 +1,7 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
     import { shareRealmCardData } from "src/ts/realm";
-    import { DataBase, downloadPreset } from "src/ts/storage/database";
+    import { DBState, downloadPreset } from "src/ts/storage/database.svelte";
     import { selectedCharID, ShowRealmFrameStore } from "src/ts/stores";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
@@ -10,8 +10,8 @@
         $ShowRealmFrameStore = ''
     }
     let iframe: HTMLIFrameElement = $state(null)
-    const tk = $DataBase?.account?.token;
-    const id = $DataBase?.account?.id
+    const tk = DBState.db?.account?.token;
+    const id = DBState.db?.account?.id
     let loadingStage = $state(0)
     let pongGot = false
 
@@ -30,9 +30,9 @@
             if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
                 //TODO, add preset edit
             }
-            else if($DataBase.characters[$selectedCharID].type === 'character'){
+            else if(DBState.db.characters[$selectedCharID].type === 'character'){
                 loadingStage = 0
-                $DataBase.characters[$selectedCharID].realmId = e.data.id
+                DBState.db.characters[$selectedCharID].realmId = e.data.id
             }
             close()
         }
@@ -67,7 +67,7 @@
             }
         }
         else if($ShowRealmFrameStore.startsWith('module')){
-            const predata = $DataBase.modules[Number($ShowRealmFrameStore.split(':')[1])]
+            const predata = DBState.db.modules[Number($ShowRealmFrameStore.split(':')[1])]
             //@ts-ignore
             predata.type = 'risuModule'
             const encodedPredata = new TextEncoder().encode(JSON.stringify(predata))
@@ -96,8 +96,8 @@
         if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
             //TODO, add preset edit
         }
-        else if($DataBase.characters[$selectedCharID].type === 'character' && $DataBase.characters[$selectedCharID].realmId){
-            url += `&edit=${$DataBase.characters[$selectedCharID].realmId}&edit-type=normal`
+        else if(DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].realmId){
+            url += `&edit=${DBState.db.characters[$selectedCharID].realmId}&edit-type=normal`
         }
         url += '#noLayout'
         return url

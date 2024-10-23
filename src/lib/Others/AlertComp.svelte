@@ -1,6 +1,6 @@
 <script lang="ts">
     import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
-    import { DataBase } from '../../ts/storage/database';
+    import { DBState } from '../../ts/storage/database.svelte';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser';
     import BarIcon from '../SideBars/BarIcon.svelte';
@@ -160,10 +160,10 @@
                 </div>
             {:else if $alertStore.type === 'selectChar'}
                 <div class="flex w-full items-start flex-wrap gap-2 justify-start">
-                    {#each $DataBase.characters as char, i}
+                    {#each DBState.db.characters as char, i}
                         {#if char.type !== 'group'}
                             {#if char.image}
-                                {#await getCharImage($DataBase.characters[i].image, 'css')}
+                                {#await getCharImage(DBState.db.characters[i].image, 'css')}
                                     <BarIcon onClick={() => {
                                         //@ts-ignore
                                         alertStore.set({type: 'none',msg: char.chaId})
@@ -237,17 +237,17 @@
                     <span class="text-amber-500">Model</span>
                     <span class="text-amber-500 justify-self-end">{$alertGenerationInfoStore.genInfo.model}</span>
                     <span class="text-green-500">ID</span>
-                    <span class="text-green-500 justify-self-end">{$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].chatId ?? "None"}</span>
+                    <span class="text-green-500 justify-self-end">{DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].chatId ?? "None"}</span>
                     <span class="text-red-500">GenID</span>
                     <span class="text-red-500 justify-self-end">{$alertGenerationInfoStore.genInfo.generationId}</span>
                     <span class="text-cyan-500">Saying</span>
-                    <span class="text-cyan-500 justify-self-end">{$DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].saying}</span>
+                    <span class="text-cyan-500 justify-self-end">{DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].saying}</span>
                     <span class="text-purple-500">Size</span>
-                    <span class="text-purple-500 justify-self-end">{JSON.stringify($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]).length} Bytes</span>
+                    <span class="text-purple-500 justify-self-end">{JSON.stringify(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]).length} Bytes</span>
                     <span class="text-yellow-500">Time</span>
-                    <span class="text-yellow-500 justify-self-end">{(new Date($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
+                    <span class="text-yellow-500 justify-self-end">{(new Date(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
                     <span class="text-green-500">Tokens</span>
-                    {#await tokenize($DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].data)}
+                    {#await tokenize(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].data)}
                         <span class="text-green-500 justify-self-end">Loading</span>
                     {:then tokens} 
                         <span class="text-green-500 justify-self-end">{tokens}</span>
@@ -286,20 +286,20 @@
                 </div>
                 {#if generationInfoMenuIndex === 0}
                     <div class="flex flex-col gap-2 w-full">
-                        {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk}
+                        {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk}
                             <TextAreaInput bind:value={chunk.text} />
                         {/each}
 
                         <Button onclick={() => {
-                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks.push({
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks.push({
                                 text: '',
                                 targetId: 'all'
                             })
-                            $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks = $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks
                         }}>+</Button>
                     </div>
                 {:else}
-                    {#each $DataBase.characters[$selectedCharID].chats[$DataBase.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk, i}
+                    {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk, i}
                         <div class="flex flex-col p-2 rounded-md border-darkborderc border">
                             {#if i === 0}
                                 <span class="text-green-500">Active</span>
@@ -418,7 +418,7 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    {#if $DataBase.useExperimental}
+                    {#if DBState.db.useExperimental}
                         <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
                             alertStore.set({
                                 type: 'none',
@@ -478,7 +478,7 @@
                     <span class="text-textcolor2 text-sm">{language.risupresetDesc}</span>
                 {:else}
                     <span class="text-textcolor2 text-sm">{language.ccv3Desc}</span>
-                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets($DataBase.characters[$selectedCharID])}
+                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets(DBState.db.characters[$selectedCharID])}
                         <span class="text-red-500 text-sm">{language.notCharxWarn}</span>
                     {/if}
                 {/if}
@@ -501,7 +501,7 @@
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {
                         cardExportType = ''
-                        cardExportType2 = isCharacterHasAssets($DataBase.characters[$selectedCharID]) ? 'charx' : ''
+                        cardExportType2 = isCharacterHasAssets(DBState.db.characters[$selectedCharID]) ? 'charx' : ''
                     }}>Character Card V3</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} onclick={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}

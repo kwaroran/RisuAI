@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import { selectSingleFile } from "../../util";
 import { v4 } from "uuid";
-import { DataBase } from "../../storage/database";
+import { DataBase } from "../../storage/database.svelte";
 import { get } from "svelte/store";
 import { checkImageType } from "../../parser";
 

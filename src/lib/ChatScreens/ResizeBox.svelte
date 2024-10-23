@@ -4,7 +4,7 @@
     import EmotionBox from './EmotionBox.svelte';
     import TransitionImage from './TransitionImage.svelte';
     import { getEmotion } from '../../ts/util';
-    import { DataBase } from '../../ts/storage/database';
+    import { DBState } from '../../ts/storage/database.svelte';
 
     let box = $state();
     let isResizing = false;
@@ -85,7 +85,7 @@
 
 <div class="box bg-darkbg bg-opacity-70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;">
     <!-- Your content here -->
-    <TransitionImage classType='risu' src={getEmotion($DataBase, $CharEmotion, 'plain')}/>
+    <TransitionImage classType='risu' src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
     <div
       class="resize-handle"
       onmousedown={handleStart}

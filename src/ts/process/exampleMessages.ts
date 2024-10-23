@@ -1,5 +1,5 @@
 import type { OpenAIChat } from ".";
-import type { character } from "../storage/database";
+import type { character } from "../storage/database.svelte";
 import { risuChatParser } from "./scripts";
 
 export function exampleMessage(char:character, userName:string):OpenAIChat[]{

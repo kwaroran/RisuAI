@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { DataBase, saveImage, setDatabase } from "./storage/database"
+import { DataBase, saveImage, setDatabase } from "./storage/database.svelte"
 import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./storage/globalApi"

@@ -10,7 +10,7 @@
     OpenRealmStore,
     PlaygroundStore
   } from "../../ts/stores";
-    import { DataBase, setDatabase, type folder } from "../../ts/storage/database";
+    import { DBState, setDatabase, type folder } from "../../ts/storage/database.svelte";
     import BarIcon from "./BarIcon.svelte";
     import SidebarIndicator from "./SidebarIndicator.svelte";
     import {
@@ -28,10 +28,8 @@
     changeChar,
     getCharImage,
   } from "../../ts/characters";
-    import { importCharacter } from "src/ts/characterCards";
     import CharConfig from "./CharConfig.svelte";
     import { language } from "../../lang";
-    import Botpreset from "../Setting/botpreset.svelte";
     import { onDestroy } from "svelte";
     import { isEqual } from "lodash";
     import SidebarAvatar from "./SidebarAvatar.svelte";
@@ -40,12 +38,9 @@
     import { getCharacterIndexObject } from "src/ts/util";
     import { v4 } from "uuid";
     import { checkCharOrder } from "src/ts/storage/globalApi";
-    import { doingChat } from "src/ts/process";
-    import { BotCreator } from "src/ts/creation/creator";
-    import Button from "../UI/GUI/Button.svelte";
-    import { alertAddCharacter, alertInput, alertSelect } from "src/ts/alert";
+    import { alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
-    import { ConnectionIsHost, ConnectionOpenStore, joinMultiuserRoom, RoomIdStore } from "src/ts/sync/multiuser";
+    import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
   let sideBarMode = $state(0);
@@ -76,15 +71,14 @@
 
   sideBarClosing.set(false)
 
-
-  const unsub = DataBase.subscribe((db) => {
+  $effect(() => {
     let newCharImages: sortType[] = [];
     const idObject = getCharacterIndexObject()
-    for (const id of db.characterOrder) {
+    for (const id of DBState.db.characterOrder) {
       if(typeof(id) === 'string'){
         const index = idObject[id] ?? -1
         if(index !== -1){
-          const cha = db.characters[index]
+          const cha = DBState.db.characters[index]
           newCharImages.push({
             img:cha.image ?? "",
             index:index,
@@ -99,7 +93,7 @@
         for(const id of folder.data){
           const index = idObject[id] ?? -1
           if(index !== -1){
-            const cha = db.characters[index]
+            const cha = DBState.db.characters[index]
             folderCharImages.push({
               img:cha.image ?? "",
               index:index,
@@ -120,16 +114,17 @@
     if (!isEqual(charImages, newCharImages)) {
       charImages = newCharImages;
     }
-    if(IconRounded !== db.roundIcons){
-      IconRounded = db.roundIcons
+    if(IconRounded !== DBState.db.roundIcons){
+      IconRounded = DBState.db.roundIcons
     }
-  });
+  })
+
 
   const inserter = (mainIndex:DragData, targetIndex:DragData) => {
     if(mainIndex.index === targetIndex.index && mainIndex.folder === targetIndex.folder){
       return
     }
-    let db = get(DataBase)
+    let db = DBState.db
     let mainFolderIndex = mainIndex.folder ? getFolderIndex(mainIndex.folder) : null
     let targetFolderIndex = targetIndex.folder ? getFolderIndex(targetIndex.folder) : null
     let mainFolderId = mainIndex.folder ? (db.characterOrder[mainFolderIndex] as folder).id : ''
@@ -202,14 +197,13 @@
       }
     }
 
-    setDatabase(db)
+    DBState.db.characterOrder = db.characterOrder
     checkCharOrder()
   }
 
   function getFolderIndex(id:string){
-    let db = get(DataBase)
-    for(let i=0;i<db.characterOrder.length;i++){
-      const data = db.characterOrder[i]
+    for(let i=0;i<DBState.db.characterOrder.length;i++){
+      const data = DBState.db.characterOrder[i]
       if(typeof(data) !== 'string' && data.id === id){
         return i
       }
@@ -221,7 +215,7 @@
     if(mainIndex.index === targetIndex.index && mainIndex.folder === targetIndex.folder){
       return
     }
-    let db = get(DataBase)
+    let db = DBState.db
     let mainFolderIndex = mainIndex.folder ? getFolderIndex(mainIndex.folder) : null
     let mainFolder = db.characterOrder[mainFolderIndex] as folder
     if(targetIndex.folder){
@@ -296,8 +290,6 @@
     e.stopPropagation()
     return false
   }
-
-  onDestroy(unsub);
 </script>
 
 <div
@@ -411,7 +403,7 @@
                 const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.cancel]))
                 if(sel === 0){
                   const v = await alertInput(language.changeFolderName)
-                  const db = get(DataBase)
+                  const db = DBState.db
                   if(v){
                     const oder = db.characterOrder[ind]
                     if(typeof(oder) === 'string'){
@@ -425,7 +417,7 @@
                 else if(sel === 1){
                   const colors = ["red","green","blue","yellow","indigo","purple","pink","default"]
                   const sel = parseInt(await alertSelect(colors))
-                  const db = get(DataBase)
+                  const db = DBState.db
                   const oder = db.characterOrder[ind]
                   if(typeof(oder) === 'string'){
                     return
@@ -607,8 +599,8 @@
         <h1 class="text-xl">Welcome to RisuAI!</h1>
         <span class="text-xs text-textcolor2">Select a bot to start chating</span>
       </div>
-    {:else if $DataBase.characters[$selectedCharID]?.chaId === '§playground'}
-      <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
+    {:else if DBState.db.characters[$selectedCharID]?.chaId === '§playground'}
+      <SideChatList bind:chara={ DBState.db.characters[$selectedCharID]} />
     {:else if $ConnectionOpenStore}
       <div class="flex flex-col">
         <h1 class="text-xl">{language.connectionOpen}</h1>
@@ -635,7 +627,7 @@
           devTool = false
           botMakerMode.set(true)
         }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
-        {#if $DataBase.enableDevTools}
+        {#if DBState.db.enableDevTools}
           <button onclick={() => {
             devTool = true
           }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool}>
@@ -648,7 +640,7 @@
       {:else if $botMakerMode}
         <CharConfig />
       {:else}
-        <SideChatList bind:chara={ $DataBase.characters[$selectedCharID]} />
+        <SideChatList bind:chara={ DBState.db.characters[$selectedCharID]} />
       {/if}
     {/if}
   {/if}

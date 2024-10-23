@@ -3,7 +3,7 @@ import { sleep } from "./util"
 import { language } from "../lang"
 import { isNodeServer, isTauri } from "./storage/globalApi"
 import { Capacitor } from "@capacitor/core"
-import { DataBase, type MessageGenerationInfo } from "./storage/database"
+import { DataBase, type MessageGenerationInfo } from "./storage/database.svelte"
 
 interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'

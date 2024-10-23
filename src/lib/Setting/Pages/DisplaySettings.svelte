@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import { DataBase, saveImage } from "src/ts/storage/database";
+    import { DBState, saveImage } from "src/ts/storage/database.svelte";
     import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
@@ -22,7 +22,7 @@
         changeColorScheme((e.target as HTMLInputElement).value)
     }
 
-    let submenu = $state($DataBase.useLegacyGUI ? -1 : 0)
+    let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.display}</h2>
@@ -49,78 +49,78 @@
 
 {#if submenu === 0 || submenu === -1}
     <span class="text-textcolor mt-4">{language.theme}</span>
-    <SelectInput className="mt-2" bind:value={$DataBase.theme}>
+    <SelectInput className="mt-2" bind:value={DBState.db.theme}>
         <OptionInput value="" >Standard Risu</OptionInput>
         <OptionInput value="waifu" >Waifulike</OptionInput>
         <OptionInput value="waifuMobile" >WaifuCut</OptionInput>
         <!-- <OptionInput value="custom" >Custom GUI</OptionInput> -->
     </SelectInput>
 
-    {#if $DataBase.theme === "custom"}
+    {#if DBState.db.theme === "custom"}
         <Button className="mt-2" onclick={() => {
             CustomGUISettingMenuStore.set(true)
         }}>{language.defineCustomGUI}</Button>
     {/if}
 
 
-    {#if $DataBase.theme === "waifu"}
+    {#if DBState.db.theme === "waifu"}
         <span class="text-textcolor mt-4">{language.waifuWidth}</span>
-        <SliderInput min={50} max={200} bind:value={$DataBase.waifuWidth} />
-        <span class="text-textcolor2 text-sm">{($DataBase.waifuWidth)}%</span>
+        <SliderInput min={50} max={200} bind:value={DBState.db.waifuWidth} />
+        <span class="text-textcolor2 text-sm">{(DBState.db.waifuWidth)}%</span>
 
         <span class="text-textcolor mt-4">{language.waifuWidth2}</span>
-        <SliderInput min={20} max={150} bind:value={$DataBase.waifuWidth2} />
-        <span class="text-textcolor2 text-sm">{($DataBase.waifuWidth2)}%</span>
+        <SliderInput min={20} max={150} bind:value={DBState.db.waifuWidth2} />
+        <span class="text-textcolor2 text-sm">{(DBState.db.waifuWidth2)}%</span>
     {/if}
 
     <span class="text-textcolor mt-4">{language.colorScheme}</span>
-    <SelectInput className="mt-2" value={$DataBase.colorSchemeName} onchange={onSchemeInputChange}>
+    <SelectInput className="mt-2" value={DBState.db.colorSchemeName} onchange={onSchemeInputChange}>
         {#each colorSchemeList as scheme}
             <OptionInput value={scheme} >{scheme}</OptionInput>
         {/each}
         <OptionInput value="custom" >Custom</OptionInput>
     </SelectInput>
 
-    {#if $DataBase.colorSchemeName === "custom"}
+    {#if DBState.db.colorSchemeName === "custom"}
     <div class="border border-darkborderc p-2 m-2 rounded-md">
-        <SelectInput className="mt-2" value={$DataBase.colorScheme.type} onchange={updateColorScheme}>
+        <SelectInput className="mt-2" value={DBState.db.colorScheme.type} onchange={updateColorScheme}>
             <OptionInput value="light">Light</OptionInput>
             <OptionInput value="dark">Dark</OptionInput>
         </SelectInput>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.bgcolor} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.bgcolor} oninput={updateColorScheme} />
             <span class="ml-2">Background</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.darkbg} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.darkbg} oninput={updateColorScheme} />
             <span class="ml-2">Dark Background</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.borderc} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.borderc} oninput={updateColorScheme} />
             <span class="ml-2">Color 1</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.selected} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.selected} oninput={updateColorScheme} />
             <span class="ml-2">Color 2</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.draculared} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.draculared} oninput={updateColorScheme} />
             <span class="ml-2">Color 3</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.darkBorderc} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.darkBorderc} oninput={updateColorScheme} />
             <span class="ml-2">Color 4</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.darkbutton} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.darkbutton} oninput={updateColorScheme} />
             <span class="ml-2">Color 5</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.textcolor} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.textcolor} oninput={updateColorScheme} />
             <span class="ml-2">Text Color</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.colorScheme.textcolor2} oninput={updateColorScheme} />
+            <ColorInput bind:value={DBState.db.colorScheme.textcolor2} oninput={updateColorScheme} />
             <span class="ml-2">Text Color 2</span>
         </div>
         <div class="flex-grow flex justify-end">
@@ -139,48 +139,48 @@
     {/if}
 
     <span class="text-textcolor mt-4">{language.textColor}</span>
-    <SelectInput className="mt-2" bind:value={$DataBase.textTheme} onchange={updateTextThemeAndCSS}>
+    <SelectInput className="mt-2" bind:value={DBState.db.textTheme} onchange={updateTextThemeAndCSS}>
         <OptionInput value="standard" >{language.classicRisu}</OptionInput>
         <OptionInput value="highcontrast" >{language.highcontrast}</OptionInput>
         <OptionInput value="custom" >Custom</OptionInput>
     </SelectInput>
 
-    {#if $DataBase.textTheme === "custom"}
+    {#if DBState.db.textTheme === "custom"}
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorStandard} oninput={updateTextThemeAndCSS} />
+            <ColorInput bind:value={DBState.db.customTextTheme.FontColorStandard} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Normal Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalic} oninput={updateTextThemeAndCSS} />
+            <ColorInput bind:value={DBState.db.customTextTheme.FontColorItalic} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Italic Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorBold} oninput={updateTextThemeAndCSS} />
+            <ColorInput bind:value={DBState.db.customTextTheme.FontColorBold} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Bold Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput bind:value={$DataBase.customTextTheme.FontColorItalicBold} oninput={updateTextThemeAndCSS} />
+            <ColorInput bind:value={DBState.db.customTextTheme.FontColorItalicBold} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Italic Bold Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote1} oninput={updateTextThemeAndCSS} />
+            <ColorInput nullable bind:value={DBState.db.customTextTheme.FontColorQuote1} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Single Quote Text</span>
         </div>
         <div class="flex items-center mt-2">
-            <ColorInput nullable bind:value={$DataBase.customTextTheme.FontColorQuote2} oninput={updateTextThemeAndCSS} />
+            <ColorInput nullable bind:value={DBState.db.customTextTheme.FontColorQuote2} oninput={updateTextThemeAndCSS} />
             <span class="ml-2">Double Quote Text</span>
         </div>
     {/if}
 
     <span class="text-textcolor mt-4">{language.font}</span>
-    <SelectInput className="mt-2" bind:value={$DataBase.font} onchange={updateTextThemeAndCSS}>
+    <SelectInput className="mt-2" bind:value={DBState.db.font} onchange={updateTextThemeAndCSS}>
         <OptionInput value="default" >Default</OptionInput>
         <OptionInput value="timesnewroman" >Times New Roman</OptionInput>
         <OptionInput value="custom" >Custom</OptionInput>
     </SelectInput>
 
-    {#if $DataBase.font === "custom"}
-        <TextInput bind:value={$DataBase.customFont} onchange={updateTextThemeAndCSS} />
+    {#if DBState.db.font === "custom"}
+        <TextInput bind:value={DBState.db.customFont} onchange={updateTextThemeAndCSS} />
     {/if}
 
 {/if}
@@ -188,35 +188,35 @@
 {#if submenu === 1 || submenu === -1}
 
     <span class="text-textcolor mt-4">{language.UISize}</span>
-    <SliderInput  min={50} max={200} bind:value={$DataBase.zoomsize} marginBottom/>
+    <SliderInput  min={50} max={200} bind:value={DBState.db.zoomsize} marginBottom/>
 
     <span class="text-textcolor">{language.lineHeight}</span>
-    <SliderInput  min={0.5} max={3} step={0.05} bind:value={$DataBase.lineHeight} marginBottom/>
+    <SliderInput  min={0.5} max={3} step={0.05} bind:value={DBState.db.lineHeight} marginBottom/>
 
     <span class="text-textcolor">{language.iconSize}</span>
-    <SliderInput min={50} max={200} bind:value={$DataBase.iconsize} marginBottom/>
+    <SliderInput min={50} max={200} bind:value={DBState.db.iconsize} marginBottom/>
 
     <span class="text-textcolor">{language.textAreaSize}</span>
-    <SliderInput min={-5} max={5} bind:value={$DataBase.textAreaSize} onchange={updateGuisize} customText={guiSizeText($DataBase.textAreaSize)} marginBottom/>
+    <SliderInput min={-5} max={5} bind:value={DBState.db.textAreaSize} onchange={updateGuisize} customText={guiSizeText(DBState.db.textAreaSize)} marginBottom/>
 
     <span class="text-textcolor">{language.textAreaTextSize}</span>
-    <SliderInput min={0} max={3} bind:value={$DataBase.textAreaTextSize} onchange={updateGuisize} customText={guiSizeText($DataBase.textAreaTextSize)} marginBottom/>
+    <SliderInput min={0} max={3} bind:value={DBState.db.textAreaTextSize} onchange={updateGuisize} customText={guiSizeText(DBState.db.textAreaTextSize)} marginBottom/>
 
     <span class="text-textcolor">{language.sideBarSize}</span>
-    <SliderInput min={0} max={3} bind:value={$DataBase.sideBarSize} onchange={updateGuisize} customText={guiSizeText($DataBase.sideBarSize)} marginBottom/>
+    <SliderInput min={0} max={3} bind:value={DBState.db.sideBarSize} onchange={updateGuisize} customText={guiSizeText(DBState.db.sideBarSize)} marginBottom/>
 
     <span class="text-textcolor">{language.assetWidth}</span>
-    <SliderInput min={-1} max={40} step={1} bind:value={$DataBase.assetWidth} customText={
-        ($DataBase.assetWidth === -1) ? "Unlimited" : 
-        ($DataBase.assetWidth === 0) ? "Hidden" : (`${($DataBase.assetWidth).toFixed(1)} rem`)
+    <SliderInput min={-1} max={40} step={1} bind:value={DBState.db.assetWidth} customText={
+        (DBState.db.assetWidth === -1) ? "Unlimited" : 
+        (DBState.db.assetWidth === 0) ? "Hidden" : (`${(DBState.db.assetWidth).toFixed(1)} rem`)
     } marginBottom />
 
     <span class="text-textcolor">{language.animationSpeed}</span>
-    <SliderInput min={0} max={1} step={0.05} fixed={2} bind:value={$DataBase.animationSpeed} onchange={updateAnimationSpeed} marginBottom />
+    <SliderInput min={0} max={1} step={0.05} fixed={2} bind:value={DBState.db.animationSpeed} onchange={updateAnimationSpeed} marginBottom />
 
-    {#if $DataBase.showMemoryLimit}
+    {#if DBState.db.showMemoryLimit}
         <span class="text-textcolor">{language.memoryLimitThickness}</span>
-        <SliderInput min={1} max={500} step={1} bind:value={$DataBase.memoryLimitThickness} marginBottom />
+        <SliderInput min={1} max={500} step={1} bind:value={DBState.db.memoryLimitThickness} marginBottom />
     {/if}
 
 {/if}
@@ -224,56 +224,56 @@
 {#if submenu === 2 || submenu === -1}
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
+        <Check bind:check={DBState.db.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.showMemoryLimit} name={language.showMemoryLimit}/>
+        <Check bind:check={DBState.db.showMemoryLimit} name={language.showMemoryLimit}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.hideRealm} name={language.hideRealm}/>
+        <Check bind:check={DBState.db.hideRealm} name={language.hideRealm}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check check={$DataBase.customBackground !== ''} onChange={async (check) => {
+        <Check check={DBState.db.customBackground !== ''} onChange={async (check) => {
             if(check){
-                $DataBase.customBackground = '-'
+                DBState.db.customBackground = '-'
                 const d = await selectSingleFile(['png', 'webp', 'gif'])
                 if(!d){
-                    $DataBase.customBackground = ''
+                    DBState.db.customBackground = ''
                     return
                 }
                 const img = await saveImage(d.data)
-                $DataBase.customBackground = img
+                DBState.db.customBackground = img
             }
             else{
-                $DataBase.customBackground = ''
+                DBState.db.customBackground = ''
             }
         }} name={language.useCustomBackground}></Check>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.playMessage} name={language.playMessage}/>
+        <Check bind:check={DBState.db.playMessage} name={language.playMessage}/>
         <span> <Help key="msgSound" name={language.playMessage}/></span>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.roundIcons} name={language.roundIcons}/>
+        <Check bind:check={DBState.db.roundIcons} name={language.roundIcons}/>
     </div>
 
-    {#if $DataBase.textScreenColor}
+    {#if DBState.db.textScreenColor}
         <div class="flex items-center mt-2">
             <Check check={true} onChange={() => {
-                $DataBase.textScreenColor = null
+                DBState.db.textScreenColor = null
             }} name={language.textBackgrounds} hiddenName/>
-            <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenColor} >
+            <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenColor} >
             <span>{language.textBackgrounds}</span>
         </div>
     {:else}
         <div class="flex items-center mt-2">
             <Check check={false} onChange={() => {
-                $DataBase.textScreenColor = "#121212"
+                DBState.db.textScreenColor = "#121212"
             }} name={language.textBackgrounds}/>
         </div>
 
@@ -281,87 +281,87 @@
     {/if}
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.textBorder} name={language.textBorder}/>
+        <Check bind:check={DBState.db.textBorder} name={language.textBorder}/>
     </div>
 
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.textScreenRounded} name={language.textScreenRound}/>
+        <Check bind:check={DBState.db.textScreenRounded} name={language.textScreenRound}/>
     </div>
 
-    {#if $DataBase.textScreenBorder}
+    {#if DBState.db.textScreenBorder}
         <div class="flex items-center mt-2">
             <Check check={true} onChange={() => {
-                $DataBase.textScreenBorder = null
+                DBState.db.textScreenBorder = null
             }} name={language.textScreenBorder} hiddenName/>
-            <input type="color" class="style2 text-sm mr-2" bind:value={$DataBase.textScreenBorder} >
+            <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenBorder} >
             <span>{language.textScreenBorder}</span>
         </div>
     {:else}
         <div class="flex items-center mt-2">
             <Check check={false} onChange={() => {
-                $DataBase.textScreenBorder = "#121212"
+                DBState.db.textScreenBorder = "#121212"
             }} name={language.textScreenBorder}/>
         </div>
     {/if}
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.useChatCopy} name={language.useChatCopy}/>
+        <Check bind:check={DBState.db.useChatCopy} name={language.useChatCopy}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
+        <Check bind:check={DBState.db.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.useLegacyGUI} name={language.useLegacyGUI}/>
+        <Check bind:check={DBState.db.useLegacyGUI} name={language.useLegacyGUI}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.hideApiKey} name={language.hideApiKeys}/>
+        <Check bind:check={DBState.db.hideApiKey} name={language.hideApiKeys}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.unformatQuotes} name={language.unformatQuotes}/>
+        <Check bind:check={DBState.db.unformatQuotes} name={language.unformatQuotes}/>
     </div>
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.customQuotes} name={language.customQuotes}/>
+        <Check bind:check={DBState.db.customQuotes} name={language.customQuotes}/>
     </div>
 
-    {#if $DataBase.customQuotes}
+    {#if DBState.db.customQuotes}
         <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
-        <TextInput bind:value={$DataBase.customQuotesData[0]} />
+        <TextInput bind:value={DBState.db.customQuotesData[0]} />
 
         <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
-        <TextInput bind:value={$DataBase.customQuotesData[1]} />
+        <TextInput bind:value={DBState.db.customQuotesData[1]} />
 
         <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
-        <TextInput bind:value={$DataBase.customQuotesData[2]} />
+        <TextInput bind:value={DBState.db.customQuotesData[2]} />
 
         <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
-        <TextInput bind:value={$DataBase.customQuotesData[3]} />
+        <TextInput bind:value={DBState.db.customQuotesData[3]} />
     {/if}
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.betaMobileGUI} name={language.betaMobileGUI}/>
+        <Check bind:check={DBState.db.betaMobileGUI} name={language.betaMobileGUI}/>
         <Help key="betaMobileGUI"/>
     </div>
 
-    {#if $DataBase.showUnrecommended}
+    {#if DBState.db.showUnrecommended}
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.useChatSticker} name={language.useChatSticker}/>
+            <Check bind:check={DBState.db.useChatSticker} name={language.useChatSticker}/>
             <Help key="unrecommended" name={language.useChatSticker} unrecommended/>
         </div>
 
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.useAdvancedEditor} name={language.useAdvancedEditor}/>
+            <Check bind:check={DBState.db.useAdvancedEditor} name={language.useAdvancedEditor}/>
             <Help key="unrecommended" unrecommended/>
         </div>    
     {/if}
 
     <span class="text-textcolor mt-4">{language.customCSS}<Help key="customCSS" /></span>
-    <TextAreaInput bind:value={$DataBase.customCSS} onInput={() => {
+    <TextAreaInput bind:value={DBState.db.customCSS} onInput={() => {
         updateTextThemeAndCSS()
     }} />
 

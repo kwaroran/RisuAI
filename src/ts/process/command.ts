@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase } from "../storage/database";
+import { DataBase, getCurrentCharacter, getCurrentChat, setCurrentChat, setDatabase } from "../storage/database.svelte";
 import { selectedCharID } from "../stores";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";

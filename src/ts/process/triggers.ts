@@ -1,5 +1,5 @@
 import { parseChatML, risuChatParser } from "../parser";
-import { DataBase, getCurrentCharacter, getCurrentChat, type Chat, type character } from "../storage/database";
+import { DataBase, getCurrentCharacter, getCurrentChat, type Chat, type character } from "../storage/database.svelte";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";

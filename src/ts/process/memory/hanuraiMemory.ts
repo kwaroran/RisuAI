@@ -4,7 +4,7 @@ import { HypaProcesser } from "./hypamemory";
 import { language } from "src/lang";
 import type { ChatTokenizer } from "src/ts/tokenizer";
 import { get } from "svelte/store";
-import { DataBase } from "src/ts/storage/database";
+import { DataBase } from "src/ts/storage/database.svelte";
 
 const maxRecentChatQuery = 4;
 export async function hanuraiMemory(chats:OpenAIChat[],arg:{
