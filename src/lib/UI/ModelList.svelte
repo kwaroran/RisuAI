@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { stopPropagation } from 'svelte/legacy';
     import { DataBase } from "src/ts/storage/database";
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";

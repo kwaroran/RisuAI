@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
     import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
@@ -114,11 +112,13 @@
         }, timeout)
     }
 
-    let lastParsed = $state('')
+    // Since in svelte 5, @html isn
+    // svelte-ignore non_reactive_update
+    let lastParsed = ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
     let blankMessage = $state((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
-    run(() => {
+    $effect.pre(() => {
         blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     });
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
@@ -172,13 +172,11 @@
             return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
         }
         finally{
-            setTimeout(() => {
-                lastParsed = lastParsedQueue
-            }, 1)
+            lastParsed = lastParsedQueue
         }
     }
 
-    run(() => {
+    $effect.pre(() => {
         displaya(message)
     });
 

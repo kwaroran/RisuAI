@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
     import { CharEmotion, ShowVN, selectedCharID } from "../../ts/stores";
@@ -24,7 +22,7 @@
         +   ($DataBase.textScreenBorder ? `border: 0.3rem solid ${$DataBase.textScreenBorder};` : '')
     let bgImg= $state('')
     let lastBg = $state('')
-    run(() => {
+    $effect.pre(() => {
         (async () =>{
             if($DataBase.customBackground !== lastBg){
                 lastBg = $DataBase.customBackground

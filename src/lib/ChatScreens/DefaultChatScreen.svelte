@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
 
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
@@ -27,7 +26,7 @@
     import { postChatFile } from 'src/ts/process/files/multisend';
     import { getInlayImage } from 'src/ts/process/files/image';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
-  import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
+    import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -293,9 +292,9 @@
         }
     }
 
-    run(() => {
-    updateInputSizeAll()
-  });
+    $effect.pre(() => {
+        updateInputSizeAll()
+    });
 
     async function updateInputTransateMessage(reverse: boolean) {
         if(isExpTranslator()){
@@ -396,7 +395,7 @@
         }
     }
 
-    run(() => {
+    $effect.pre(() => {
         currentCharacter = $DataBase.characters[$selectedCharID]
     });
 </script>

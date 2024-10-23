@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import { ArrowLeft, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
@@ -10,10 +8,10 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import Help from "src/lib/Others/Help.svelte";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-  import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import Help from "src/lib/Others/Help.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
+    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
 
     let sorted = 0
     let opened = 0
@@ -34,10 +32,10 @@
         extokens = await tokenizePreset(prest, false)
     }
 
-    run(() => {
+    $effect.pre(() => {
     warns = templateCheck($DataBase)
   });
-    run(() => {
+  $effect.pre(() => {
     executeTokenize($DataBase.promptTemplate)
   });
 </script>

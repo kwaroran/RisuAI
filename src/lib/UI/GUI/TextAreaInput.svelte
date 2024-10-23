@@ -114,8 +114,6 @@
     </div>
 </div>
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
     import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
     import { isMobile } from 'src/ts/storage/globalApi';
@@ -311,10 +309,10 @@
         } catch (error) {}
     }
         
-    run(() => {
+    $effect.pre(() => {
         optiValue = value
     });
-    run(() => {
+    $effect.pre(() => {
         highlightChange(value, highlightId)
     });
 

@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
 	import { requestChatData } from "src/ts/process/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index";
     import { DataBase, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database";
@@ -11,7 +9,6 @@
     import { language } from "src/lang";
     import { getUserName, replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
-    import { processScript } from "src/ts/process/scripts";
     import { get } from "svelte/store";
     import { ParseMarkdown } from "src/ts/parser";
 
@@ -112,13 +109,13 @@
 
     onDestroy(unsub)
 
-    run(() => {
+    $effect.pre(() => {
         $selectedCharID
         //FIXME add selectedChatPage for optimize render
         chatPage = $DataBase.characters[$selectedCharID].chatPage
         updateSuggestions()
     });
-    run(() => {translateSuggest(toggleTranslate, suggestMessages)});
+    $effect.pre(() => {translateSuggest(toggleTranslate, suggestMessages)});
 </script>
 
 <div class="ml-4 flex flex-wrap">

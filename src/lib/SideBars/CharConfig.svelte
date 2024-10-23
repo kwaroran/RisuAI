@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
     import { DataBase, saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database";
@@ -126,7 +124,7 @@
     let assetFilePath:string[] = $state([])
     let licensed = $state((currentChar.type === 'character') ? currentChar.data.license : '')
 
-    run(() => {
+    $effect.pre(() => {
         if(database.characters[$selectedCharID].chaId === currentChar.data.chaId){
             database.characters[$selectedCharID] = currentChar.data
         }
@@ -156,10 +154,10 @@
     onDestroy(unsub);
 
 
-    run(() => {
+    $effect.pre(() => {
         licensed = (currentChar.type === 'character') ? currentChar.data.license : ''
     });
-    run(() => {
+    $effect.pre(() => {
         if (currentChar.data.ttsMode === 'novelai' && (currentChar.data as character).naittsConfig === undefined) {
             (currentChar.data as character).naittsConfig = {
                 customvoice: false,
@@ -168,7 +166,7 @@
             };
         }
     });
-    run(() => {
+    $effect.pre(() => {
         if (currentChar.data.ttsMode === 'gptsovits' && (currentChar.data as character).gptSoVitsConfig === undefined) {
             (currentChar.data as character).gptSoVitsConfig = {
                 url: '',
@@ -199,7 +197,7 @@
         description:string
     }[] = $state([])
 
-    run(() => {
+    $effect.pre(() => {
         if (currentChar.data.ttsMode === 'fishspeech' && (currentChar.data as character).fishSpeechConfig === undefined) {
             (currentChar.data as character).fishSpeechConfig = {
                 model: {
@@ -213,7 +211,7 @@
         }
     });
 
-    run(() => {
+    $effect.pre(() => {
         if(currentChar.type === 'group' && ($CharConfigSubMenu === 4 || $CharConfigSubMenu === 5)){
             $CharConfigSubMenu = 0
         }

@@ -1,7 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
-
     import { ArrowBigLeftIcon, Send } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
     import { DataBase, setPreset } from "src/ts/storage/database";
@@ -62,7 +59,7 @@
         }
     }
 
-    run(() => {
+    $effect.pre(() => {
         if(step === 10){
             setTimeout(() => {
                 $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
@@ -15,8 +13,8 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
-    run(() => {
+    import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+    $effect.pre(() => {
         $DataBase.NAIImgConfig ??= {
             width: 512,
             height: 512,

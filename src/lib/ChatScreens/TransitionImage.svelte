@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     let currentSrc:string[] = $state([])
     let oldSrc:string[] = $state([]);
     let showOldImage = $state(false);
@@ -44,7 +42,7 @@
         }
     }
 
-    run(() => {
+    $effect.pre(() => {
         processSrc(src)
     });
 

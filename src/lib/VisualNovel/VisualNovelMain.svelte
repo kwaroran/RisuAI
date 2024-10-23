@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { getCustomBackground, getEmotion } from "../../ts/util";
     import { DataBase } from "../../ts/storage/database";
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
@@ -12,7 +10,7 @@
     let forceRender:() => void = $state()
     let bgImg= $state('')
     let lastBg = $state('')
-    run(() => {
+    $effect.pre(() => {
         (async () =>{
             if($DataBase.customBackground !== lastBg){
                 lastBg = $DataBase.customBackground

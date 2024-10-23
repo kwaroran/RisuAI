@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
 
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
@@ -26,8 +25,7 @@
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import PromptSettings from "./PromptSettings.svelte";
     import { openPresetList } from "src/ts/stores";
-  import { selectSingleFile } from "src/ts/util";
-  import { isArray } from "lodash";
+    import { selectSingleFile } from "src/ts/util";
 
     let tokens = $state({
         mainPrompt: 0,
@@ -35,11 +33,11 @@
         globalNote: 0,
     })
 
-  interface Props {
-    goPromptTemplate?: any;
-  }
+    interface Props {
+        goPromptTemplate?: any;
+    }
 
-  let { goPromptTemplate = () => {} }: Props = $props();
+    let { goPromptTemplate = () => {} }: Props = $props();
 
     async function loadTokenize(){
         tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt, true)
@@ -47,11 +45,11 @@
         tokens.globalNote = await tokenizeAccurate($DataBase.globalNote, true)
     }
 
-    run(() => {
-    if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
-          $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
-      }
-  });
+    $effect.pre(() => {
+        if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
+            $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
+        }
+    });
 
     let submenu = $state($DataBase.useLegacyGUI ? -1 : 0)
 </script>

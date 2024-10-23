@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run, stopPropagation } from 'svelte/legacy';
-
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import { ParseMarkdown } from "src/ts/parser";
     import { parseMultilangString, toLangName } from "src/ts/util";
@@ -16,7 +14,7 @@
     if(valueObject["en"] === undefined){
         selectedLang = "xx"
     }
-    run(() => {
+    $effect.pre(() => {
         valueObject = parseMultilangString(value)
     });
 </script>
@@ -25,7 +23,8 @@
     <div class="flex flex-wrap max-w-fit p-1 gap-2">
         {#each Object.keys(valueObject) as lang}
             {#if lang !== 'xx' || Object.keys(valueObject).length === 1}
-                <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={selectedLang === lang} onclick={stopPropagation(() => {
+                <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={selectedLang === lang} onclick={((e) => {
+                    e.stopPropagation()
                     selectedLang = lang
                 })}>{toLangName(lang)}</button>
             {/if}

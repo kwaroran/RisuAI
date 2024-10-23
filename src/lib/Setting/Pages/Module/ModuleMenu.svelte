@@ -1,6 +1,4 @@
-<script type="ts" lang="ts">
-    import { run } from 'svelte/legacy';
-
+<script lang="ts">
     import { language } from "src/lang";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
@@ -28,7 +26,7 @@
     let assetFileExtensions:string[] = $state([])
     let assetFilePath:string[] = $state([])
 
-    run(() => {
+    $effect.pre(() => {
         if($DataBase.useAdditionalAssetsPreview){
             if(currentModule?.assets){
                 for(let i = 0; i < currentModule.assets.length; i++){

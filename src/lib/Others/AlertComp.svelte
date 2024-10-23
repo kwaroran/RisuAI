@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run, preventDefault, stopPropagation } from 'svelte/legacy';
-
     import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
     import { DataBase } from '../../ts/storage/database';
     import { getCharImage } from '../../ts/characters';
@@ -28,7 +26,7 @@
     let cardExportType2 = $state('')
     let cardLicense = $state('')
     let generationInfoMenuIndex = $state(0)
-    run(() => {
+    $effect.pre(() => {
         if(btn){
             btn.focus()
         }
@@ -315,12 +313,14 @@
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
-                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" onclick={stopPropagation(preventDefault((e) => {
+                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" onclick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
                         alertStore.set({
                             type: 'none',
                             msg: 'importFromRealm'
                         })
-                    }))}>
+                    }}>
                         <div class="flex flex-col justify-start items-start">
                             <span class="text-2xl font-bold">{language.importFromRealm}</span>
                             <span class="text-textcolor2">{language.importFromRealmDesc}</span>
@@ -329,12 +329,14 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={((e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
                         alertStore.set({
                             type: 'none',
                             msg: 'importCharacter'
                         })
-                    }))}>
+                    })}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.importCharacter}</span>
                         </div>
@@ -342,12 +344,14 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
                         alertStore.set({
                             type: 'none',
                             msg: 'createfromScratch'
                         })
-                    }))}>
+                    }}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createfromScratch}</span>
                         </div>
@@ -355,12 +359,14 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
                         alertStore.set({
                             type: 'none',
                             msg: 'createGroup'
                         })
-                    }))}>
+                    }}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createGroup}</span>
                         </div>
@@ -368,12 +374,14 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={stopPropagation(preventDefault(() => {
+                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
                         alertStore.set({
                             type: 'none',
                             msg: 'cancel'
                         })
-                    }))}>
+                    }}>
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
                         </div>
@@ -442,7 +450,10 @@
 
 {:else if $alertStore.type === 'cardexport'}
     <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" onclick={close}>
-        <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" onclick={stopPropagation(onclick)}>
+        <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" onclick={(e) => {
+            e.stopPropagation()
+            onclick(e)
+        }}>
             <h1 class="font-bold text-2xl w-full">
                 <span>
                     {language.shareExport}

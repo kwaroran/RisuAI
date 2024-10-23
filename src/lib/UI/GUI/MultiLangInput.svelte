@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { encodeMultilangString, languageCodes, parseMultilangString, toLangName } from "src/ts/util";
     import TextAreaInput from "./TextAreaInput.svelte";
     let addingLang = $state(false)
@@ -33,7 +31,7 @@
         delete valueObject["xx"]
         updateValue()
     }
-    run(() => {
+    $effect.pre(() => {
         valueObject = parseMultilangString(value)
     });
 </script>

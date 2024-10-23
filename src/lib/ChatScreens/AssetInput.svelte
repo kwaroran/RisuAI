@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
 	import { get } from 'svelte/store';
     import { FileAudioIcon, PlusIcon } from "lucide-svelte";
     import { DataBase, setDatabase, type character, type groupChat } from "src/ts/storage/database";
@@ -15,7 +13,7 @@
     let assetFileExtensions:string[] = $state([])
     let assetFilePath:string[] = $state([])
 
-    run(() => {
+    $effect.pre(() => {
         if(currentCharacter.type ==='character'){
             if(currentCharacter.additionalAssets){
                 for(let i = 0; i < currentCharacter.additionalAssets.length; i++){

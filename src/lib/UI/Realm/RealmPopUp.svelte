@@ -1,11 +1,8 @@
 <script lang="ts">
-    import { stopPropagation } from 'svelte/legacy';
-
     import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
-    import { parseMarkdownSafe } from "src/ts/parser";
     import { DataBase } from "src/ts/storage/database";
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
@@ -54,19 +51,26 @@
                 </span>
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
                 {#if openedData.hasEmotion}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes emotion images")})}><SmileIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
+                        alertNormal("This character includes emotion images")
+                    })}><SmileIcon /></button>
                 {/if}
                 {#if openedData.hasAsset}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes additional Assets")})}><ImageIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
+                        alertNormal("This character includes additional Assets")
+                    })}><ImageIcon /></button>
                 {/if}
                 {#if openedData.hasLore}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={stopPropagation(() => {alertNormal("This character includes lorebook")})}><BookIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
+                        alertNormal("This character includes lorebook")
+                    })}><BookIcon /></button>
                 {/if}
             </div>
 
         </div>
         <div class="flex flex-row-reverse gap-2">
-            <button class="text-textcolor2 hover:text-red-500" onclick={stopPropagation(async () => {
+            <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {
+                e.stopPropagation()
                 const conf = await alertConfirm('Report this character?')
                 if(conf){
                     const report = await alertInput('Write a report text that would be sent to the admin (for copywrite issues, use email)')
@@ -83,7 +87,8 @@
                 <FlagIcon />
             </button>
             {#if ($DataBase.account?.token?.split('-') ?? [])[1] === openedData.creator}
-                <button class="text-textcolor2 hover:text-red-500" onclick={stopPropagation(async () => {
+                <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {
+                    e.stopPropagation()
                     const conf = await alertConfirm('Do you want to remove this character from Realm?')
                     if(conf){
                         const da = await fetch(hubURL + '/hub/remove', {
@@ -99,7 +104,8 @@
                     <TrashIcon />
                 </button>
             {/if}
-            <button class="text-textcolor2 hover:text-green-500" onclick={stopPropagation(async () => {
+            <button class="text-textcolor2 hover:text-green-500" onclick={(async (e) => {
+                e.stopPropagation()
                 await navigator.clipboard.writeText(`https://realm.risuai.net/character/${openedData.id}`)
                 alertNormal(language.clipboardSuccess)
             })}>

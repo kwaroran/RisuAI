@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { stopPropagation } from 'svelte/legacy';
-
     import { downloadRisuHub, getRisuHub, hubAdditionalHTML, type hubType } from "src/ts/characterCards";
     import { ArrowLeft, ArrowRight, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
     import { alertInput } from "src/ts/alert";
@@ -9,9 +7,9 @@
     import TextInput from "../GUI/TextInput.svelte";
     import { MobileGUI, SizeStore } from "src/ts/stores";
     import { Capacitor } from "@capacitor/core";
-  import RealmPopUp from "./RealmPopUp.svelte";
-  import { googleBuild } from "src/ts/storage/globalApi";
-  import { split } from "lodash";
+    import RealmPopUp from "./RealmPopUp.svelte";
+    import { googleBuild } from "src/ts/storage/globalApi";
+    import { split } from "lodash";
 
     let openedData:null|hubType = $state(null)
 
@@ -182,7 +180,8 @@
                 </button>
             </h1>
             <div class=" mt-2 w-full border-t-2 border-t-bgcolor"></div>
-            <button class="w-full hover:bg-selected p-4" onclick={stopPropagation(async () => {
+            <button class="w-full hover:bg-selected p-4" onclick={(async (e) => {
+                e.stopPropagation()
                 menuOpen = false
                 const input = await alertInput('Input URL or ID')
                 if(input.startsWith("http")){
