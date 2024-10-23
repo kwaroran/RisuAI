@@ -2054,13 +2054,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                       "anthropic.claude-v2:1",
                       "anthropic.claude-3-haiku-20240307-v1:0",
                       "anthropic.claude-3-sonnet-20240229-v1:0",
+                      "anthropic.claude-3-opus-20240229-v1:0",
                       "anthropic.claude-3-5-sonnet-20240620-v1:0",
-                      "anthropic.claude-3-opus-20240229-v1:0"
+                      "anthropic.claude-3-5-sonnet-20241022-v2:0"
                     ];
                     
                     const awsModel = 
-                        raiModel.includes("3-opus") ? modelIDs[5] :
-                        raiModel.includes("3-5-sonnet") ? modelIDs[4] :
+                        raiModel.includes("3-5-sonnet-20241022") ? modelIDs[6] :
+                        raiModel.includes("3-5-sonnet-20240620") ? modelIDs[5] :
+                        raiModel.includes("3-opus") ? modelIDs[4] :
                         raiModel.includes("3-sonnet") ? modelIDs[3] : 
                         modelIDs[2];
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
