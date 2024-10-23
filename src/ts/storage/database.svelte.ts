@@ -18,10 +18,14 @@ export const DBState = $state({
 })
 export const loadedStore = writable(false)
 export let appVer = "137.1.0"
-export let webAppSubVer = ''
+export let webAppSubVer = '-svelte5-exp'
 
 DataBase.subscribe(data => {
-    DBState.db = data
+    //check it is pointing to the right object
+    if(DBState.db !== data){
+        //if not, update it
+        DBState.db = data
+    }
 })
 
 export function setDatabase(data:Database){
