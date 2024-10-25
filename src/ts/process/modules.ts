@@ -4,7 +4,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, 
 import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../storage/globalApi"
 import { selectSingleFile, sleep } from "../util"
 import { v4 } from "uuid"
-import { convertExternalLorebook } from "./lorebook"
+import { convertExternalLorebook } from "./lorebook.svelte"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
 import { convertImage } from "../parser"
 import { Capacitor } from "@capacitor/core"

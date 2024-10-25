@@ -2,7 +2,7 @@
     import { DBState } from "../../../ts/storage/database.svelte";
     import { language } from "../../../lang";
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
-    import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook";
+    import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";

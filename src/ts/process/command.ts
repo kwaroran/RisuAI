@@ -5,7 +5,7 @@ import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../al
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser";
 import { sendChat } from ".";
-import { loadLoreBookV3Prompt } from "./lorebook";
+import { loadLoreBookV3Prompt } from "./lorebook.svelte";
 import { runTrigger } from "./triggers";
 
 export async function processMultiCommand(command:string) {
