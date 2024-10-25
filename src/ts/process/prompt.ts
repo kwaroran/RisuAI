@@ -256,7 +256,7 @@ export const OobaParams = [
 ]
 
 export function promptConvertion(files:{ name: string, content: string, type:string }[]){
-    let preset = structuredClone(presetTemplate)
+    let preset = safeStructuredClone(presetTemplate)
     let instData = {
         "system_prompt": "",
         "input_sequence": "",

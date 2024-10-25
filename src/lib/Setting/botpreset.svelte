@@ -85,7 +85,7 @@
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
                 let botPresets = DBState.db.botPresets
-                let newPreset = structuredClone(prebuiltPresets.OAI2)
+                let newPreset = safeStructuredClone(prebuiltPresets.OAI2)
                 newPreset.name = `New Preset`
                 botPresets.push(newPreset)
 

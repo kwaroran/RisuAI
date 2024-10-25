@@ -69,7 +69,7 @@ export async function exportUserPersona(){
 
     let img = await readImage(db.userIcon)
 
-    let card:PersonaCard = structuredClone({
+    let card:PersonaCard = safeStructuredClone({
         name: db.username,
         personaPrompt: db.personaPrompt,
     })

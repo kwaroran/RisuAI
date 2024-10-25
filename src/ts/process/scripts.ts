@@ -231,7 +231,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     for (const script of scripts){
         if(script.ableFlag && script.flag?.includes('<')){
             const rregex = /<(.+?)>/g
-            const scriptData = structuredClone(script)
+            const scriptData = safeStructuredClone(script)
             let order = 0
             const actions:string[] = []
             scriptData.flag = scriptData.flag?.replace(rregex, (v:string, p1:string) => {

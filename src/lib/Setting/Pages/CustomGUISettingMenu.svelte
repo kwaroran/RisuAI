@@ -253,14 +253,14 @@
     {#if subMenu === 0}
         {#each builtComponentTrees as component, i}
             <button class="p-2 border border-black rounded" onclick={() => {
-                addContainerToTree(structuredClone(component), selectedContatiner)
+                addContainerToTree(safeStructuredClone(component), selectedContatiner)
                 renderMainTree(tree)
             }}>{component.type}</button>
         {/each}
     {:else if subMenu === 1}
         {#each builtContainerTrees as container, i}
             <button class="p-2 border border-black rounded" onclick={() => {
-                addContainerToTree(structuredClone(container), selectedContatiner)
+                addContainerToTree(safeStructuredClone(container), selectedContatiner)
                 renderMainTree(tree)
             }}>{container.type}</button>
         {/each}

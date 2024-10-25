@@ -3,3 +3,4 @@
 
 
 declare var Buffer: BufferConstructor
+declare var safeStructuredClone: <T>(data: T) => T

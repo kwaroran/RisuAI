@@ -83,7 +83,7 @@ export async function createMultiuserRoom(){
                 snapshot: true
             })
             const selectedCharId = get(selectedCharID)
-            const char = structuredClone(db.characters[selectedCharId])
+            const char = safeStructuredClone(db.characters[selectedCharId])
             if(char.type === 'group'){
                 return
             }
@@ -133,7 +133,7 @@ export async function createMultiuserRoom(){
                     snapshot: true
                 })
                 const selectedCharId = get(selectedCharID)
-                const char = structuredClone(db.characters[selectedCharId])
+                const char = safeStructuredClone(db.characters[selectedCharId])
                 const recivedChar = data.data
                 if(char.type === 'group'){
                     return
@@ -317,7 +317,7 @@ export async function joinMultiuserRoom(){
                         snapshot: true
                     })
                     const selectedCharId = get(selectedCharID)
-                    const char = structuredClone(db.characters[selectedCharId])
+                    const char = safeStructuredClone(db.characters[selectedCharId])
                     char.chats[char.chatPage] = data.data
                     db.characters[selectedCharId] = char
                     latestSyncChat = data.data

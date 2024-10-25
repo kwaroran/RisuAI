@@ -38,7 +38,7 @@
             "system": "⚙️ System",
             "assistant": "✨ Assistant",
         }
-        let formated = structuredClone(previewFormated)
+        let formated = safeStructuredClone(previewFormated)
 
         if(previewJoin === 'yes'){
             let newFormated = []

@@ -179,7 +179,7 @@ export interface OpenAIChatExtra {
 
 export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
-    let formated = structuredClone(arg.formated)
+    let formated = safeStructuredClone(arg.formated)
     let maxTokens = arg.maxTokens ??db.maxResponse
     let temperature = arg.temperature ?? (db.temperature / 100)
     let bias = arg.bias
@@ -245,7 +245,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
             for(let i=0;i<formated.length;i++){
                 const m = formated[i]
                 if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
-                    let v:OpenAIChatExtra = structuredClone(m)
+                    let v:OpenAIChatExtra = safeStructuredClone(m)
                     let contents:OpenAIContents[] = []
                     for(let j=0;j<m.multimodals.length;j++){
                         contents.push({

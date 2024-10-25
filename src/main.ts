@@ -1,10 +1,10 @@
 import "./styles.css";
+import "./ts/polyfill";
 import "core-js/actual"
 import "./ts/storage/database.svelte"
 import App from "./App.svelte";
 import { loadData } from "./ts/storage/globalApi";
 import { initHotkey } from "./ts/hotkey";
-import { polyfill } from "./ts/polyfill";
 import { preLoadCheck } from "./preload";
 import { mount } from "svelte";
 
@@ -25,12 +25,10 @@ export const removeDefaultHandler = () => {
     window.removeEventListener('unhandledrejection', rejectHandler)
 }
 
-let app: App;
+let app: any;
 
 if(preLoadCheck()){
-    try {
-        polyfill()
-    
+    try {    
         app = mount(App, {
                   target: document.getElementById("app"),
                 });

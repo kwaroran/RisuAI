@@ -569,7 +569,7 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
 
 export async function exportChar(charaID:number):Promise<string> {
     const db = getDatabase({snapshot: true})
-    let char = structuredClone(db.characters[charaID])
+    let char = safeStructuredClone(db.characters[charaID])
 
     if(char.type === 'group'){
         return ''
@@ -607,7 +607,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     let im = img ? await saveAsset(await reencodeImage(img)) : undefined
     let db = getDatabase()
 
-    const risuext = structuredClone(data.extensions.risuai)
+    const risuext = safeStructuredClone(data.extensions.risuai)
     let emotions:[string, string][] = []
     let bias:[string, number][] = []
     let viewScreen: "none" | "emotion" | "imggen" = 'none'
@@ -827,7 +827,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
 
     }
 
-    let ext = structuredClone(data?.extensions ?? {})
+    let ext = safeStructuredClone(data?.extensions ?? {})
 
     for(const key in ext){
         if(key === 'risuai'){
@@ -931,7 +931,7 @@ async function createBaseV2(char:character) {
                 key:string
                 data:string[]
             }
-        } = structuredClone(lore.extentions ?? {})
+        } = safeStructuredClone(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
@@ -1261,7 +1261,7 @@ export function createBaseV3(char:character){
         uri: string
         name: string
         ext: string
-    }> = structuredClone(char.ccAssets ?? [])
+    }> = safeStructuredClone(char.ccAssets ?? [])
 
     if(char.additionalAssets){
         for(const asset of char.additionalAssets){
@@ -1300,7 +1300,7 @@ export function createBaseV3(char:character){
                 key:string
                 data:string[]
             }
-        } = structuredClone(lore.extentions ?? {})
+        } = safeStructuredClone(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
@@ -1400,7 +1400,7 @@ export async function shareRisuHub2(char:character, arg:{
     update: boolean
 }) {
     try {
-        char = structuredClone(char)
+        char = safeStructuredClone(char)
         char.license = arg.license
         let tagList = arg.tag.split(',')
         

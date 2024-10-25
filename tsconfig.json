@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "useDefineForClassFields": true,
     "module": "ES2022",
     "moduleResolution": "node",

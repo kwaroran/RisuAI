@@ -73,7 +73,7 @@ export async function supaMemory(
                     for(let j=0;j<HypaData.length;j++){
                         let i =0;
                         let countTokens  = currentTokens
-                        let countChats = structuredClone(chats)
+                        let countChats = safeStructuredClone(chats)
                         while(true){
                             if(countChats.length === 0){
                                 break

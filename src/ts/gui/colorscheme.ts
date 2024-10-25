@@ -117,7 +117,7 @@ export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorSh
 export function changeColorScheme(colorScheme: string){
     let db = getDatabase()
     if(colorScheme !== 'custom'){
-        db.colorScheme = structuredClone(colorShemes[colorScheme])
+        db.colorScheme = safeStructuredClone(colorShemes[colorScheme])
     }
     db.colorSchemeName = colorScheme
     setDatabase(db)
@@ -130,11 +130,11 @@ export function updateColorScheme(){
     let colorScheme = db.colorScheme
 
     if(colorScheme == null){
-        colorScheme = structuredClone(defaultColorScheme)
+        colorScheme = safeStructuredClone(defaultColorScheme)
     }
 
     if(get(isLite)){
-        colorScheme = structuredClone(colorShemes.lite)
+        colorScheme = safeStructuredClone(colorShemes.lite)
     }
 
     //set css variables

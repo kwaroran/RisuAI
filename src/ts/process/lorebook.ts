@@ -214,7 +214,7 @@ export async function loadLoreBookV3Prompt(){
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
     const moduleLorebook = getModuleLorebooks()
-    const fullLore = structuredClone(characterLore.concat(chatLore).concat(moduleLorebook))
+    const fullLore = safeStructuredClone(characterLore.concat(chatLore).concat(moduleLorebook))
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken

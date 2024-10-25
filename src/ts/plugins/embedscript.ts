@@ -82,7 +82,7 @@ addWorkerFunction('getChat', async () => {
     })
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
-    return structuredClone(char.chats[char.chatPage].message)
+    return safeStructuredClone(char.chats[char.chatPage].message)
 })
 
 addWorkerFunction('setChat', async (data:Message[]) => {

@@ -108,7 +108,7 @@ let BackupDb:Database = null
 
 
 export async function syncDrive() {
-    BackupDb = structuredClone(getDatabase())
+    BackupDb = safeStructuredClone(getDatabase())
     return
 }
 

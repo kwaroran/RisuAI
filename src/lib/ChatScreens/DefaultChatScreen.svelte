@@ -141,7 +141,7 @@
         if(rerollid < rerolls.length - 1){
             if(Array.isArray(rerolls[rerollid + 1])){
                 rerollid += 1
-                let rerollData = structuredClone(rerolls[rerollid])
+                let rerollData = safeStructuredClone(rerolls[rerollid])
                 let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
                 for(let i = 0; i < rerollData.length; i++){
                     msgs[msgs.length - rerollData.length + i] = rerollData[i]
@@ -151,10 +151,10 @@
             return
         }
         if(rerolls.length === 0){
-            rerolls.push(structuredClone([DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)]))
+            rerolls.push(safeStructuredClone([DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)]))
             rerollid = rerolls.length - 1
         }
-        let cha = structuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message)
+        let cha = safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message)
         if(cha.length === 0 ){
             return
         }
@@ -198,7 +198,7 @@
         }
         if(Array.isArray(rerolls[rerollid - 1])){
             rerollid -= 1
-            let rerollData = structuredClone(rerolls[rerollid])
+            let rerollData = safeStructuredClone(rerolls[rerollid])
             let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
             for(let i = 0; i < rerollData.length; i++){
                 msgs[msgs.length - rerollData.length + i] = rerollData[i]
@@ -220,7 +220,7 @@
                 continue:continued
             })
             if(previousLength < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
-                rerolls.push(structuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message).slice(previousLength))
+                rerolls.push(safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message).slice(previousLength))
                 rerollid = rerolls.length - 1
             }
         } catch (error) {

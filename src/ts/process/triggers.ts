@@ -152,7 +152,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     manualName?: string
 }){
     arg.recursiveCount ??= 0
-    char = structuredClone(char)
+    char = safeStructuredClone(char)
     let varChanged = false
     let stopSending = arg.stopSending ?? false
     const CharacterlowLevelAccess = char.lowLevelAccess ?? false
@@ -169,7 +169,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }).concat(getModuleTriggers())
     const db = getDatabase()
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
-    let chat = structuredClone(arg.chat ?? char.chats[char.chatPage])
+    let chat = safeStructuredClone(arg.chat ?? char.chats[char.chatPage])
     if((!triggers) || (triggers.length === 0)){
         return null
     }

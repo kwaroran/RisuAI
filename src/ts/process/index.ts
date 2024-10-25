@@ -229,7 +229,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         'personaPrompt':([] as OpenAIChat[])
     }
 
-    let promptTemplate = structuredClone(db.promptTemplate)
+    let promptTemplate = safeStructuredClone(db.promptTemplate)
     const usingPromptTemplate = !!promptTemplate
     if(promptTemplate){
         let hasPostEverything = false
@@ -466,7 +466,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         for(const card of template){
             switch(card.type){
                 case 'persona':{
-                    let pmt = structuredClone(unformated.personaPrompt)
+                    let pmt = safeStructuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
@@ -477,7 +477,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'description':{
-                    let pmt = structuredClone(unformated.description)
+                    let pmt = safeStructuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
@@ -488,7 +488,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'authornote':{
-                    let pmt = structuredClone(unformated.authorNote)
+                    let pmt = safeStructuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
@@ -883,7 +883,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     //make into one
 
     let formated:OpenAIChat[] = []
-    const formatOrder = structuredClone(db.formatingOrder)
+    const formatOrder = safeStructuredClone(db.formatingOrder)
     if(formatOrder){
         formatOrder.push('postEverything')
     }
@@ -927,7 +927,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         for(const card of template){
             switch(card.type){
                 case 'persona':{
-                    let pmt = structuredClone(unformated.personaPrompt)
+                    let pmt = safeStructuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
@@ -938,7 +938,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'description':{
-                    let pmt = structuredClone(unformated.description)
+                    let pmt = safeStructuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
@@ -949,7 +949,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'authornote':{
-                    let pmt = structuredClone(unformated.authorNote)
+                    let pmt = safeStructuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
@@ -1041,7 +1041,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'memory':{
-                    let pmt = structuredClone(memories)
+                    let pmt = safeStructuredClone(memories)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)

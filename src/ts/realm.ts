@@ -15,7 +15,7 @@ window.addEventListener("message", (event) => {
 });
 
 export async function shareRealmCardData():Promise<{ name: ArrayBuffer; data: ArrayBuffer; }> {
-    const char = structuredClone(getCurrentCharacter({snapshot:true})) as character
+    const char = safeStructuredClone(getCurrentCharacter({snapshot:true})) as character
     const trimedName = char.name.replace(/[^a-zA-Z0-9]/g, '') || 'character';
     const writer = new VirtualWriter()
     const namebuf = new TextEncoder().encode(trimedName + '.png')
