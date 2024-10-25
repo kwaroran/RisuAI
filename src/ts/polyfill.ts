@@ -3,6 +3,10 @@ import { Buffer as BufferPolyfill } from 'buffer'
 import { polyfill as dragPolyfill} from "mobile-drag-drop"
 import {scrollBehaviourDragImageTranslateOverride} from 'mobile-drag-drop/scroll-behaviour'
 
+/**
+ * Safe variant of structuredClone for svelte 5 states
+ * if structuredClone is not available, it will use JSON.parse(JSON.stringify(data)) instead
+*/
 function safeStructuredClone<T>(data:T):T{
   try {
       return structuredClone(data)
