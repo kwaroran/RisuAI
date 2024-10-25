@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook, getDatabase } from "./storage/database.svelte";
+import { saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook, getDatabase, getCharacterByIndex, setCharacterByIndex } from "./storage/database.svelte";
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { decode as decodeMsgpack } from "msgpackr";
@@ -417,11 +417,10 @@ function formatTavernChat(chat:string, charName:string){
     return chat.replace(/<([Uu]ser)>|\{\{([Uu]ser)\}\}/g, getUserName()).replace(/((\{\{)|<)([Cc]har)(=.+)?((\}\})|>)/g, charName)
 }
 
-export function characterFormatUpdate(index:number|character, arg:{
+export function characterFormatUpdate(indexOrCharacter:number|character, arg:{
     updateInteraction?:boolean,
 } = {}){
-    let db = getDatabase()
-    let cha = typeof(index) === 'number' ? db.characters[index] : index
+    let cha = typeof(indexOrCharacter) === 'number' ? getCharacterByIndex(indexOrCharacter) : indexOrCharacter
     if(cha.chats.length === 0){
         cha.chats = [{
             message: [],
@@ -512,9 +511,8 @@ export function characterFormatUpdate(index:number|character, arg:{
         cha.customscript = []
     }
     cha.lastInteraction = Date.now()
-    if(typeof(index) === 'number'){
-        db.characters[index] = cha
-        setDatabase(db)
+    if(typeof(indexOrCharacter) === 'number'){
+        setCharacterByIndex(indexOrCharacter, cha)
     }
     cha.chats = cha.chats.map((v) => {
         v.fmIndex ??= cha.firstMsgIndex ?? -1

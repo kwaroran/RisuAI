@@ -453,6 +453,7 @@ export function setDatabase(data:Database){
 }
 
 export function setDatabaseLite(data:Database){
+    console.trace('setDatabaseLite executed')
     DBState.db = data
 }
 
@@ -469,16 +470,34 @@ export function getDatabase(options:getDatabaseOptions = {}):Database{
 
 export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
     const db = getDatabase(options)
-    db.characters ??= []
+    if(!db.characters){
+        db.characters = []
+    }
     const char = db.characters?.[get(selectedCharID)]
     return char
 }
 
 export function setCurrentCharacter(char:character|groupChat){
-    const db = getDatabase()
-    db.characters ??= []
-    db.characters[get(selectedCharID)] = char
-    setDatabaseLite(db)
+    if(!DBState.db.characters){
+        DBState.db.characters = []
+    }
+    DBState.db.characters[get(selectedCharID)] = char
+}
+
+export function getCharacterByIndex(index:number,options:getDatabaseOptions = {}):character|groupChat{
+    const db = getDatabase(options)
+    if(!db.characters){
+        db.characters = []
+    }
+    const char = db.characters?.[index]
+    return char
+}
+
+export function setCharacterByIndex(index:number,char:character|groupChat){
+    if(!DBState.db.characters){
+        DBState.db.characters = []
+    }
+    DBState.db.characters[index] = char
 }
 
 export function getCurrentChat(){
