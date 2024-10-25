@@ -1,4 +1,4 @@
-import type { OpenAIChat } from ".";
+import type { OpenAIChat } from "./index.svelte";
 import type { character } from "../storage/database.svelte";
 import { risuChatParser } from "./scripts";
 

@@ -1,4 +1,4 @@
-import type { OpenAIChat } from ".";
+import type { OpenAIChat } from "./index.svelte";
 import { getDatabase } from "../storage/database.svelte";
 import { getUserName } from "../util";
 

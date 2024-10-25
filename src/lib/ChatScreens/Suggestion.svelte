@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { requestChatData } from "src/ts/process/request";
-    import { doingChat, type OpenAIChat } from "../../ts/process/index";
+    import { doingChat, type OpenAIChat } from "../../ts/process/index.svelte";
     import { DBState, setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database.svelte";
     import { selectedCharID } from "../../ts/stores";
     import { translate } from "src/ts/translator/translator";
@@ -10,7 +10,7 @@
     import { getUserName, replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
     import { get } from "svelte/store";
-    import { ParseMarkdown } from "src/ts/parser";
+    import { ParseMarkdown } from "src/ts/parser.svelte";
 
     interface Props {
         send: () => any;

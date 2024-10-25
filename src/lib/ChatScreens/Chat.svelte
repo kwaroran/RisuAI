@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
-    import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser";
+    import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser.svelte";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";

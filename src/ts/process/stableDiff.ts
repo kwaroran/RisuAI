@@ -4,7 +4,7 @@ import { requestChatData } from "./request"
 import { alertError } from "../alert"
 import { globalFetch, readImage } from "../storage/globalApi"
 import { CharEmotion } from "../stores"
-import type { OpenAIChat } from "."
+import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
 import { keiServerURL } from "../kei/kei"
 export async function stableDiff(currentChar:character,prompt:string){

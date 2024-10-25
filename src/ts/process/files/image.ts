@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import { v4 } from "uuid";
 import { getDatabase } from "../../storage/database.svelte";
-import { checkImageType } from "../../parser";
+import { checkImageType } from "../../parser.svelte";
 
 const inlayStorage = localforage.createInstance({
     name: 'inlay',

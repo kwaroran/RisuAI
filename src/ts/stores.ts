@@ -1,6 +1,6 @@
 import { writable, type Writable } from "svelte/store";
 import { getDatabase, type Chat, type character, type groupChat } from "./storage/database.svelte";
-import type { simpleCharacterArgument } from "./parser";
+import type { simpleCharacterArgument } from "./parser.svelte";
 import { sleep } from "./util";
 import { getModules } from "./process/modules";
 

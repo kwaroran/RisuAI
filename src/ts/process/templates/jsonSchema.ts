@@ -1,4 +1,4 @@
-import { risuChatParser } from "src/ts/parser"
+import { risuChatParser } from "src/ts/parser.svelte"
 import { getDatabase } from "src/ts/storage/database.svelte"
 
 export function convertInterfaceToSchema(int:string){

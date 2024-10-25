@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ParseMarkdown, risuChatParser } from "src/ts/parser";
+    import { ParseMarkdown, risuChatParser } from "src/ts/parser.svelte";
     import { DBState, type character, type groupChat } from "src/ts/storage/database.svelte";
     import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
 

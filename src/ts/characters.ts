@@ -10,9 +10,9 @@ import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
 import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { PngChunk } from "./pngChunk";
-import { parseMarkdownSafe } from "./parser";
+import { parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
-import { doingChat } from "./process";
+import { doingChat } from "./process/index.svelte";
 import { importCharacter } from "./characterCards";
 
 export function createNewCharacter() {

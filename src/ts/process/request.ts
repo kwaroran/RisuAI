@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import type { MultiModal, OpenAIChat, OpenAIChatFull } from ".";
+import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
 import { getDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
@@ -9,7 +9,7 @@ import { sleep } from "../util";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
 import { runGGUFModel } from "./models/local";
-import { risuChatParser } from "../parser";
+import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";

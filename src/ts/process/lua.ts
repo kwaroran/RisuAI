@@ -1,4 +1,4 @@
-import { getChatVar, hasher, setChatVar, type simpleCharacterArgument } from "../parser";
+import { getChatVar, hasher, setChatVar, type simpleCharacterArgument } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
 import { get } from "svelte/store";
@@ -7,7 +7,7 @@ import { alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/image";
-import type { OpenAIChat } from ".";
+import type { OpenAIChat } from "./index.svelte";
 import { requestChatData } from "./request";
 import { v4 } from "uuid";
 import { getModuleTriggers } from "./modules";

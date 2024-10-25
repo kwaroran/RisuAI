@@ -20,7 +20,7 @@ import { MobileGUI, botMakerMode, selectedCharID } from "../stores";
 import { loadPlugins } from "../plugins/plugins";
 import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";
-import { hasher } from "../parser";
+import { hasher } from "../parser.svelte";
 import { characterURLImport, hubURL } from "../characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
 import { loadRisuAccountData } from "../drive/accounter";

@@ -3,7 +3,7 @@ import { language } from "../../lang";
 import { alertError } from "../alert";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
-import type { OpenAIChat } from "../process";
+import type { OpenAIChat } from "../process/index.svelte";
 import { globalFetch } from "../storage/globalApi";
 import { selectedCharID } from "../stores";
 import { addAdditionalCharaJS } from "./embedscript";

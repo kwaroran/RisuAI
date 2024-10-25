@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Template } from '@huggingface/jinja';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-    import { risuChatParser } from 'src/ts/parser';
+    import { risuChatParser } from 'src/ts/parser.svelte';
     import { language } from 'src/lang';
     import { sleep } from 'src/ts/util';
     let input = $state("");

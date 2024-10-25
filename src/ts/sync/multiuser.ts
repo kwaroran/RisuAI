@@ -6,7 +6,7 @@ import { selectedCharID } from '../stores';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
 import { readImage } from '../storage/globalApi';
-import { doingChat } from '../process';
+import { doingChat } from '../process/index.svelte';
 
 async function importPeerJS(){
     return await import('peerjs');

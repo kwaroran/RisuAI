@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ParseMarkdown } from "src/ts/parser";
+    import { ParseMarkdown } from "src/ts/parser.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     let input = $state("");
     let output = $state("");
