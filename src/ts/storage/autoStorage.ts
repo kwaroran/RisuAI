@@ -5,7 +5,7 @@ import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"
 import { getDatabase, type Database } from "./database.svelte"
 import { AccountStorage } from "./accountStorage"
-import { decodeRisuSave, encodeRisuSave } from "./risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy } from "./risuSave";
 import { language } from "src/lang"
 import { MobileStorage } from "./mobileStorage"
 import { Capacitor } from "@capacitor/core"
@@ -88,7 +88,7 @@ export class AutoStorage{
             }
 
             const dba = replaceDbResources(db, replaced)
-            const comp = encodeRisuSave(dba, 'compression')
+            const comp = encodeRisuSaveLegacy(dba, 'compression')
             //try decoding
             try {
                 const z:Database = decodeRisuSave(comp)

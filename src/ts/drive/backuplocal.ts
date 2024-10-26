@@ -1,7 +1,7 @@
 import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { alertError, alertNormal, alertStore, alertWait } from "../alert";
 import { LocalWriter, forageStorage, isTauri } from "../globalApi";
-import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { sleep } from "../util";
@@ -68,7 +68,7 @@ export async function SaveLocalBackup(){
         }
     }
 
-    const dbData = encodeRisuSave(getDatabase(), 'compression')
+    const dbData = encodeRisuSaveLegacy(getDatabase(), 'compression')
 
     alertWait(`Saving local Backup... (Saving database)`)
 

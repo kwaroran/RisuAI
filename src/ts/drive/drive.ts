@@ -6,7 +6,7 @@ import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/plugin-process';
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
-import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
@@ -176,7 +176,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         }
     }
 
-    const dbData = encodeRisuSave(getDatabase(), 'compression')
+    const dbData = encodeRisuSaveLegacy(getDatabase(), 'compression')
 
     alertStore.set({
         type: "wait",
@@ -345,7 +345,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
         }
         db.didFirstSetup = true
-        const dbData = encodeRisuSave(db, 'compression')
+        const dbData = encodeRisuSaveLegacy(db, 'compression')
 
         if(isTauri){
             await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData})

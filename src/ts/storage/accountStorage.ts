@@ -4,7 +4,7 @@ import { hubURL } from "../characterCards"
 import localforage from "localforage"
 import { alertLogin, alertStore, alertWait } from "../alert"
 import { forageStorage, getUnpargeables } from "../globalApi"
-import { encodeRisuSave } from "./risuSave"
+import { encodeRisuSaveLegacy } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
 
@@ -136,7 +136,7 @@ export async function unMigrationAccount() {
     }
 
     db.account = null
-    await MigrationStorage.setItem('database/database.bin', encodeRisuSave(db))
+    await MigrationStorage.setItem('database/database.bin', encodeRisuSaveLegacy(db))
 
     alertStore.set({
         type: "none",

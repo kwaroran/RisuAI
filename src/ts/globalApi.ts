@@ -24,7 +24,7 @@ import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSave } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -350,18 +350,18 @@ export async function saveDb(){
                 }
                 db.saveTime = Math.floor(Date.now() / 1000)
                 if(isTauri){
-                    const dbData = encodeRisuSave(db)
+                    const dbData = encodeRisuSaveLegacy(db)
                     await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
                     await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
                 }
                 else{
                     if(!forageStorage.isAccount){
-                        const dbData = encodeRisuSave(db)
+                        const dbData = encodeRisuSaveLegacy(db)
                         await forageStorage.setItem('database/database.bin', dbData)
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                     }
                     if(forageStorage.isAccount){
-                        const dbData = encodeRisuSave(db, 'compression')
+                        const dbData = encodeRisuSaveLegacy(db, 'compression')
                         const z:Database = decodeRisuSave(dbData)
                         if(z.formatversion){
                             await forageStorage.setItem('database/database.bin', dbData)
@@ -455,7 +455,7 @@ export async function loadData() {
                     await mkdir('assets', {baseDir: BaseDirectory.AppData})
                 }
                 if(!await exists('database/database.bin', {baseDir: BaseDirectory.AppData})){
-                    await writeFile('database/database.bin', encodeRisuSave({}), {baseDir: BaseDirectory.AppData});
+                    await writeFile('database/database.bin', encodeRisuSaveLegacy({}), {baseDir: BaseDirectory.AppData});
                 }
                 try {
                     const decoded = decodeRisuSave(await readFile('database/database.bin',{baseDir: BaseDirectory.AppData}))
@@ -485,7 +485,7 @@ export async function loadData() {
             else{
                 let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin') as unknown as Uint8Array
                 if(checkNullish(gotStorage)){
-                    gotStorage = encodeRisuSave({})
+                    gotStorage = encodeRisuSaveLegacy({})
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
@@ -512,7 +512,7 @@ export async function loadData() {
                 if(await forageStorage.checkAccountSync()){
                     let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin') as unknown as Uint8Array
                     if(checkNullish(gotStorage)){
-                        gotStorage = encodeRisuSave({})
+                        gotStorage = encodeRisuSaveLegacy({})
                         await forageStorage.setItem('database/database.bin', gotStorage)
                     }
                     try {
