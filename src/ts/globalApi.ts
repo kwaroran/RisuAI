@@ -41,6 +41,7 @@ import { encodeCapKeySafe } from "./storage/mobileStorage";
 import { updateLorebooks } from "./characters";
 import { initMobileGesture } from "./hotkey";
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
+import { moduleUpdate } from "./process/modules";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI_INTERNALS__
@@ -589,6 +590,7 @@ export async function loadData() {
             selectedCharID.set(-1)
             startObserveDom()
             saveDb()
+            moduleUpdate()
             if(import.meta.env.VITE_RISU_TOS === 'TRUE'){
                 alertTOS().then((a) => {
                     if(a === false){

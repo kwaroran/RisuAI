@@ -399,7 +399,7 @@ let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
 let characterHideIcon = false
 
-function onModuleUpdate(){
+export function moduleUpdate(){
     if(!Array.isArray(lastGlobalEnabledModules)){
         lastGlobalEnabledModules = []
     }
