@@ -13,10 +13,10 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { loadedStore, setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "../update";
-import { MobileGUI, botMakerMode, selectedCharID } from "../stores";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "../stores";
 import { loadPlugins } from "../plugins/plugins";
 import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "../alert";
 import { checkDriverInit, syncDrive } from "../drive/drive";

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { alertStore, alertGenerationInfoStore } from "../../ts/alert";
+    import { alertGenerationInfoStore } from "../../ts/alert";
     import { DBState } from '../../ts/storage/database.svelte';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser.svelte';
@@ -14,7 +14,7 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
     import { getFetchData } from 'src/ts/storage/globalApi';
-    import { selectedCharID } from "src/ts/stores";
+    import { alertStore, selectedCharID } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";

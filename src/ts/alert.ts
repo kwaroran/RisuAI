@@ -4,8 +4,9 @@ import { language } from "../lang"
 import { isNodeServer, isTauri } from "./storage/globalApi"
 import { Capacitor } from "@capacitor/core"
 import { getDatabase, type MessageGenerationInfo } from "./storage/database.svelte"
+import { alertStore as alertStoreImported } from "./stores"
 
-interface alertData{
+export interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
             |'input'|'toast'|'wait2'|'markdown'|'select'|'login'
             |'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule'
@@ -14,16 +15,16 @@ interface alertData{
     submsg?: string
 }
 
-
-export const alertStore = writable({
-    type: 'none',
-    msg: 'n',
-} as alertData)
 type AlertGenerationInfoStoreData = {
     genInfo: MessageGenerationInfo,
     idx: number
 }
 export const alertGenerationInfoStore = writable<AlertGenerationInfoStoreData>(null)
+export const alertStore = {
+    set: (d:alertData) => {
+        alertStoreImported.set(d)
+    }
+}
 
 export function alertError(msg:string){
     console.error(msg)
@@ -55,7 +56,7 @@ export function alertError(msg:string){
                     (!isTauri && !isNodeServer && !Capacitor.isNativePlatform()) ? language.errors.networkFetchWeb : language.errors.networkFetch
     }
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'error',
         'msg': msg,
         'submsg': submsg
@@ -63,19 +64,19 @@ export function alertError(msg:string){
 }
 
 export function alertNormal(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'normal',
         'msg': msg
     })
 }
 
 export async function alertNormalWait(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'normal',
         'msg': msg
     })
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
@@ -83,73 +84,73 @@ export async function alertNormalWait(msg:string){
 }
 
 export async function alertAddCharacter() {
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'addchar',
         'msg': language.addCharacter
     })
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export async function alertChatOptions() {
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'chatOptions',
         'msg': language.chatOptions
     })
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return parseInt(get(alertStore).msg)
+    return parseInt(get(alertStoreImported).msg)
 }
 
 export async function alertLogin(){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'login',
         'msg': 'login'
     })
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export async function alertSelect(msg:string[]){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'select',
         'msg': msg.join('||')
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export async function alertErrorWait(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'wait2',
         'msg': msg
     })
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
@@ -157,25 +158,25 @@ export async function alertErrorWait(msg:string){
 }
 
 export function alertMd(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'markdown',
         'msg': msg
     })
 }
 
 export function doingAlert(){
-    return get(alertStore).type !== 'none' && get(alertStore).type !== 'toast'
+    return get(alertStoreImported).type !== 'none' && get(alertStoreImported).type !== 'toast'
 }
 
 export function alertToast(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'toast',
         'msg': msg
     })
 }
 
 export function alertWait(msg:string){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'wait',
         'msg': msg
     })
@@ -184,61 +185,61 @@ export function alertWait(msg:string){
 
 
 export function alertClear(){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'none',
         'msg': ''
     })
 }
 
 export async function alertSelectChar(){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'selectChar',
         'msg': ''
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export async function alertConfirm(msg:string){
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'ask',
         'msg': msg
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg === 'yes'
+    return get(alertStoreImported).msg === 'yes'
 }
 
 export async function alertCardExport(type:string = ''){
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'cardexport',
         'msg': '',
         'submsg': type
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return JSON.parse(get(alertStore).msg) as {
+    return JSON.parse(get(alertStoreImported).msg) as {
         type: string,
         type2: string,
     }
@@ -250,19 +251,19 @@ export async function alertTOS(){
         return true
     }
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'tos',
         'msg': 'tos'
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    if(get(alertStore).msg === 'yes'){
+    if(get(alertStoreImported).msg === 'yes'){
         localStorage.setItem('tos2', 'true')
         return true
     }
@@ -272,48 +273,48 @@ export async function alertTOS(){
 
 export async function alertInput(msg:string){
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'input',
         'msg': msg
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
         await sleep(10)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export async function alertModuleSelect(){
 
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'selectModule',
         'msg': ''
     })
 
     while(true){
-        if (get(alertStore).type === 'none'){
+        if (get(alertStoreImported).type === 'none'){
             break
         }
-        await sleep(10)
+        await sleep(20)
     }
 
-    return get(alertStore).msg
+    return get(alertStoreImported).msg
 }
 
 export function alertRequestData(info:AlertGenerationInfoStoreData){
     alertGenerationInfoStore.set(info)
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'requestdata',
         'msg': info.genInfo.generationId ?? 'none'
     })
 }
 
 export function showHypaV2Alert(){
-    alertStore.set({
+    alertStoreImported.set({
         'type': 'hypaV2',
         'msg': ""
     })

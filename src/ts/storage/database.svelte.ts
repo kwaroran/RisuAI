@@ -15,7 +15,6 @@ import type { OobaChatCompletionRequestParams } from '../model/ooba';
 export const DBState = $state({
     db: {} as any as Database
 })
-export const loadedStore = writable(false)
 export let appVer = "137.1.0"
 export let webAppSubVer = '-svelte5-exp'
 

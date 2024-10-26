@@ -1,11 +1,10 @@
 <script lang="ts">
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore } from './ts/stores';
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore } from './ts/stores';
-    import { DBState, loadedStore } from './ts/storage/database.svelte';
+    import { DBState } from './ts/storage/database.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';
-    import { alertStore } from './ts/alert';
     import GridChars from './lib/Others/GridCatalog.svelte';
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
     import Settings from './lib/Setting/Settings.svelte';

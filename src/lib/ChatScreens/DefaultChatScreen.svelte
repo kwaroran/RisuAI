@@ -3,7 +3,7 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { selectedCharID, CurrentShowMemoryLimit, PlaygroundStore, UserIconProtrait, createSimpleCharacter } from "../../ts/stores";
+    import { selectedCharID, PlaygroundStore, UserIconProtrait, createSimpleCharacter } from "../../ts/stores";
     import Chat from "./Chat.svelte";
     import { DBState, type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { getCharImage } from "../../ts/characters";
@@ -565,7 +565,7 @@
                             rerollIcon={i === 0}
                             onReroll={reroll}
                             unReroll={unReroll}
-                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                             character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
                             largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
                             messageGenerationInfo={chat.generationInfo}
@@ -579,7 +579,7 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                             character={chat.saying}
                             largePortrait={findCharacterbyId(chat.saying).largePortrait}
                             messageGenerationInfo={chat.generationInfo}
@@ -592,7 +592,7 @@
                         name={chat.name ?? DBState.db.username} 
                         message={chat.data}
                         img={$ConnectionOpenStore ? '' : getCharImage(DBState.db.userIcon, 'css')}
-                        isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && $CurrentShowMemoryLimit}
+                        isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                         largePortrait={$UserIconProtrait}
                         messageGenerationInfo={chat.generationInfo}
                     />

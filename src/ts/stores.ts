@@ -1,8 +1,7 @@
 import { writable, type Writable } from "svelte/store";
-import { getDatabase, type Chat, type character, type groupChat } from "./storage/database.svelte";
+import type { character, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
-import { sleep } from "./util";
-import { getModules } from "./process/modules";
+import type { alertData } from "./alert";
 
 function updateSize(){
     SizeStore.set({
@@ -16,6 +15,9 @@ export const SizeStore = writable({
     w: 0,
     h: 0
 })
+
+const t = 'https://raw.githubusercontent.com/ProjectAliceDev/ProjectAliceDev.github.io/master/'
+export const loadedStore = writable(false)
 export const DynamicGUI = writable(false)
 export const sideBarClosing = writable(false)
 export const sideBarStore = writable(window.innerWidth > 1024)
@@ -30,9 +32,6 @@ export const openPersonaList = writable(false)
 export const MobileGUI = writable(false)
 export const MobileGUIStack = writable(0)
 export const MobileSideBar = writable(0)
-//optimization
-export const CurrentShowMemoryLimit = writable(false) as Writable<boolean>
-
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
 export const ReloadGUIPointer = writable(0)
@@ -46,12 +45,10 @@ export const SafeModeStore = writable(false)
 export const MobileSearch = writable('')
 export const CharConfigSubMenu = writable(0)
 export const CustomGUISettingMenuStore = writable(false)
-
-let lastGlobalEnabledModules: string[] = []
-let lastChatEnabledModules: string[] = []
-let moduleHideIcon = false
-let characterHideIcon = false
-
+export const alertStore = writable({
+    type: 'none',
+    msg: 'n',
+} as alertData)
 
 CustomCSSStore.subscribe((css) => {
     console.log(css)
@@ -86,50 +83,5 @@ export function createSimpleCharacter(char:character|groupChat){
 
 }
 
-function trySync(){
-    try {
-        let db = getDatabase()
-        CurrentShowMemoryLimit.set(db.showMemoryLimit)
-    } catch (error) {}
-}
-
-trySync()
-
-async function preInit(){
-    await sleep(1)
-}
-
-function onModuleUpdate(){
-    if(!Array.isArray(lastGlobalEnabledModules)){
-        lastGlobalEnabledModules = []
-    }
-    if(!Array.isArray(lastChatEnabledModules)){
-        lastChatEnabledModules = []
-    }
-
-    const m = getModules()
-    
-    let moduleHideIcon = false
-    let backgroundEmbedding = ''
-    m.forEach((module) => {
-        if(!module){
-            return
-        }
-
-        if(module.hideIcon){
-            moduleHideIcon = true
-        }
-        if(module.backgroundEmbedding){
-            backgroundEmbedding += '\n' + module.backgroundEmbedding + '\n'
-        }
-    })
-
-    if(backgroundEmbedding){
-        moduleBackgroundEmbedding.set(backgroundEmbedding)
-    }
-    HideIconStore.set(characterHideIcon || moduleHideIcon)
-}
-
 updateSize()
 window.addEventListener("resize", updateSize);
-preInit()
