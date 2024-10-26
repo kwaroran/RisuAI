@@ -10,6 +10,7 @@ import { language } from "src/lang"
 
 export const AccountWarning = writable('')
 const risuSession = Date.now().toFixed(0)
+const cachedForage = localforage.createInstance({name: "risuaiAccountCached"})
 
 let seenWarnings:string[] = []
 
@@ -21,6 +22,7 @@ export class AccountStorage{
         this.checkAuth()
         let da:Response
         while((!da) || da.status === 403){
+            const saveDate = Date.now().toFixed(0)
             da = await fetch(hubURL + '/api/account/write', {
                 method: "POST",
                 body: value,
@@ -29,9 +31,16 @@ export class AccountStorage{
                     'x-risu-key': key,
                     'x-risu-auth': this.auth,
                     'X-Format': 'nocheck',
-                    'x-risu-session': risuSession
+                    'x-risu-session': risuSession,
+                    'x-risu-save-date': saveDate
                 }
             })
+            if(key === 'database/database.bin'){
+                cachedForage.setItem(key, value).then(() => {
+                    cachedForage.setItem(key + '__date', saveDate)
+                })
+            }
+
             if(da.headers.get('Content-Type') === 'application/json'){
                 const json = (await da.json())
                 if(json?.warning){
@@ -72,13 +81,16 @@ export class AccountStorage{
             }
         }
         let da:Response
+        const saveDate = await cachedForage.getItem(key + '__date') as number|undefined
+        const perf = performance.now()
         while((!da) || da.status === 403){
             da = await fetch(hubURL + '/api/account/read/' + Buffer.from(key ,'utf-8').toString('hex') + 
                 (key.includes('database') ? ('|' + v4()) : ''), {
                 method: "GET",
                 headers: {
                     'x-risu-key': key,
-                    'x-risu-auth': this.auth
+                    'x-risu-auth': this.auth,
+                    'x-risu-save-date': (saveDate || 0).toString()
                 }
             })
             if(da.status === 403){
@@ -86,6 +98,15 @@ export class AccountStorage{
                 this.checkAuth()
             }
         }
+        if(da.status === 303){
+            console.log(performance.now() - perf)
+            const data = await da.json()
+            if(data.match){
+                const c = Buffer.from(await cachedForage.getItem(key))
+                return c
+            }
+        }
+
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
         }
