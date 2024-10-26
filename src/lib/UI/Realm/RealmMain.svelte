@@ -4,12 +4,8 @@
     import { alertInput } from "src/ts/alert";
     import { language } from "src/lang";
     import RisuHubIcon from "./RealmHubIcon.svelte";
-    import TextInput from "../GUI/TextInput.svelte";
-    import { MobileGUI, SizeStore } from "src/ts/stores.svelte";
-    import { Capacitor } from "@capacitor/core";
+    import { MobileGUI } from "src/ts/stores.svelte";
     import RealmPopUp from "./RealmPopUp.svelte";
-    import { googleBuild } from "src/ts/globalApi";
-    import { split } from "lodash";
 
     let openedData:null|hubType = $state(null)
 
