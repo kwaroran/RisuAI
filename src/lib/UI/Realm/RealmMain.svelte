@@ -8,7 +8,7 @@
     import { MobileGUI, SizeStore } from "src/ts/stores";
     import { Capacitor } from "@capacitor/core";
     import RealmPopUp from "./RealmPopUp.svelte";
-    import { googleBuild } from "src/ts/storage/globalApi";
+    import { googleBuild } from "src/ts/globalApi";
     import { split } from "lodash";
 
     let openedData:null|hubType = $state(null)

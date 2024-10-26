@@ -116,7 +116,7 @@
 <script lang="ts">
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
     import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
-    import { isMobile } from 'src/ts/storage/globalApi';
+    import { isMobile } from 'src/ts/globalApi';
     import { isFirefox, sleep } from 'src/ts/util';
     import { onDestroy, onMount } from 'svelte';
     interface Props {

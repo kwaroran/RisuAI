@@ -1,5 +1,5 @@
 import localforage from "localforage"
-import { isNodeServer, replaceDbResources } from "./globalApi"
+import { isNodeServer, replaceDbResources } from "../globalApi"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"

@@ -15,7 +15,7 @@
     import Help from "../Others/Help.svelte";
     import { exportChar, hubURL } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
-    import { checkCharOrder, getFileSrc, openURL } from "src/ts/storage/globalApi";
+    import { checkCharOrder, getFileSrc, openURL } from "src/ts/globalApi";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";

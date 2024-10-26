@@ -1,7 +1,7 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
     import { DBState } from "src/ts/storage/database.svelte";
-    import { openURL } from "src/ts/storage/globalApi";
+    import { openURL } from "src/ts/globalApi";
     import { sideBarStore } from "src/ts/stores";
 
     let specialDay = $state('')

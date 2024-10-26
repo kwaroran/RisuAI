@@ -5,7 +5,7 @@
     import Help from "src/lib/Others/Help.svelte";
     import { DBState } from "src/ts/storage/database.svelte";
     import { customProviderStore } from "src/ts/plugins/plugins";
-    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
+    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/globalApi";
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";

@@ -7,41 +7,41 @@ import {
     readDir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "../util"
+import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "./util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/core"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { checkRisuUpdate } from "../update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "../stores";
-import { loadPlugins } from "../plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "../alert";
-import { checkDriverInit, syncDrive } from "../drive/drive";
-import { hasher } from "../parser.svelte";
-import { characterURLImport, hubURL } from "../characterCards";
-import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./defaultPrompts";
-import { loadRisuAccountData } from "../drive/accounter";
-import { decodeRisuSave, encodeRisuSave } from "./risuSave";
-import { AutoStorage } from "./autoStorage";
-import { updateAnimationSpeed } from "../gui/animation";
-import { updateColorScheme, updateTextThemeAndCSS } from "../gui/colorscheme";
-import { saveDbKei } from "../kei/backup";
+import { checkRisuUpdate } from "./update";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "./stores";
+import { loadPlugins } from "./plugins/plugins";
+import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
+import { checkDriverInit, syncDrive } from "./drive/drive";
+import { hasher } from "./parser.svelte";
+import { characterURLImport, hubURL } from "./characterCards";
+import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
+import { loadRisuAccountData } from "./drive/accounter";
+import { decodeRisuSave, encodeRisuSave } from "./storage/risuSave";
+import { AutoStorage } from "./storage/autoStorage";
+import { updateAnimationSpeed } from "./gui/animation";
+import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
+import { saveDbKei } from "./kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
 import { save } from "@tauri-apps/plugin-dialog";
-import type { RisuModule } from "../process/modules";
+import type { RisuModule } from "./process/modules";
 import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
-import { startObserveDom } from "../observer";
+import { startObserveDom } from "./observer";
 import { removeDefaultHandler } from "src/main";
-import { updateGuisize } from "../gui/guisize";
-import { encodeCapKeySafe } from "./mobileStorage";
-import { updateLorebooks } from "../characters";
-import { initMobileGesture } from "../hotkey";
+import { updateGuisize } from "./gui/guisize";
+import { encodeCapKeySafe } from "./storage/mobileStorage";
+import { updateLorebooks } from "./characters";
+import { initMobileGesture } from "./hotkey";
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
 
 //@ts-ignore

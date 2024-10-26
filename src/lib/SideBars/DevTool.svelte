@@ -3,7 +3,7 @@
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
-    import { getRequestLog } from "src/ts/storage/globalApi";
+    import { getRequestLog } from "src/ts/globalApi";
     import { alertMd, alertWait } from "src/ts/alert";
     import Arcodion from "../UI/Arcodion.svelte";
     import { getCharToken, getChatToken } from "src/ts/tokenizer";

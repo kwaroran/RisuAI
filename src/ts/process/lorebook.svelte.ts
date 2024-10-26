@@ -5,7 +5,7 @@ import { tokenize } from "../tokenizer";
 import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
-import { downloadFile } from "../storage/globalApi";
+import { downloadFile } from "../globalApi";
 import { getModuleLorebooks } from "./modules";
 import { CCardLib } from "@risuai/ccardlib";
 

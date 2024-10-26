@@ -7,13 +7,13 @@
     import { ChevronRightIcon, User } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { openURL } from 'src/ts/storage/globalApi';
+    import { openURL } from 'src/ts/globalApi';
     import Button from '../UI/GUI/Button.svelte';
     import { XIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
-    import { getFetchData } from 'src/ts/storage/globalApi';
+    import { getFetchData } from 'src/ts/globalApi';
     import { alertStore, selectedCharID } from "src/ts/stores";
     import { tokenize } from "src/ts/tokenizer";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";

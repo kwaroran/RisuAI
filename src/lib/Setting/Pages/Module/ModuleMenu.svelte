@@ -9,7 +9,7 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-    import { getFileSrc, openURL, saveAsset } from "src/ts/storage/globalApi";
+    import { getFileSrc, openURL, saveAsset } from "src/ts/globalApi";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import { selectMultipleFile } from "src/ts/util";
     import { DBState } from 'src/ts/storage/database.svelte';

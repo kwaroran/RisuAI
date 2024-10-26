@@ -6,7 +6,7 @@ import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores";
-import { checkCharOrder, downloadFile, getFileSrc } from "./storage/globalApi";
+import { checkCharOrder, downloadFile, getFileSrc } from "./globalApi";
 import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { PngChunk } from "./pngChunk";

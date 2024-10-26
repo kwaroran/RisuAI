@@ -7,7 +7,7 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import { alertNormal, alertSelect, alertConfirm } from "src/ts/alert";
-    import { downloadFile, isTauri } from "src/ts/storage/globalApi";
+    import { downloadFile, isTauri } from "src/ts/globalApi";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";

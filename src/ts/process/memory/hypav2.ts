@@ -3,7 +3,7 @@ import type { OpenAIChat } from "../index.svelte";
 import type { ChatTokenizer } from "src/ts/tokenizer";
 import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
-import { globalFetch } from "src/ts/storage/globalApi";
+import { globalFetch } from "src/ts/globalApi";
 import { runSummarizer } from "../transformers";
 
 export interface HypaV2Data {

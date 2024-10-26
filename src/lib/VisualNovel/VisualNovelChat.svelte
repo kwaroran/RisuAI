@@ -1,6 +1,6 @@
 <script lang="ts">
     import { DBState } from "src/ts/storage/database.svelte";
-    import { getFileSrc } from "src/ts/storage/globalApi";
+    import { getFileSrc } from "src/ts/globalApi";
     import { selectedCharID } from "src/ts/stores";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";

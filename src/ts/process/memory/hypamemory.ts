@@ -1,5 +1,5 @@
 import localforage from "localforage";
-import { globalFetch } from "src/ts/storage/globalApi";
+import { globalFetch } from "src/ts/globalApi";
 import { runEmbedding } from "../transformers";
 import { alertError } from "src/ts/alert";
 import { appendLastPath } from "src/ts/util";

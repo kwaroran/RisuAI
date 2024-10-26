@@ -5,7 +5,7 @@
     import { DBState } from "src/ts/storage/database.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm} from "src/ts/alert";
-    import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/storage/globalApi";
+    import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/globalApi";
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
     import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";

@@ -1,6 +1,6 @@
 import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
-import { isTauri } from "./globalApi";
+import { isTauri } from "../globalApi";
 
 const packr = new Packr({
     useRecords:false

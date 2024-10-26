@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { getDatabase, setDatabase } from "../storage/database.svelte";
-import { downloadFile } from "../storage/globalApi";
+import { downloadFile } from "../globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
 import { isLite } from "../lite";
