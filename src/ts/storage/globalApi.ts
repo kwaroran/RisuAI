@@ -2053,3 +2053,57 @@ export async function loadInternalBackup(){
     
 
 }
+
+/**
+ * A debugging class for performance measurement.
+*/
+
+export class PerformanceDebugger{
+    kv:{[key:string]:number[]} = {}
+    start:number
+    end:number
+
+    /**
+     * Starts the timing measurement.
+    */
+    startTiming(){
+        this.start = performance.now()
+    }
+
+    /**
+     * Ends the timing measurement and records the time difference.
+     * 
+     * @param {string} key - The key to associate with the recorded time.
+    */
+    endAndRecord(key:string){
+        this.end = performance.now()
+        if(!this.kv[key]){
+            this.kv[key] = []
+        }
+        this.kv[key].push(this.end - this.start)
+    }
+
+    /**
+     * Ends the timing measurement, records the time difference, and starts a new timing measurement.
+     * 
+     * @param {string} key - The key to associate with the recorded time.
+    */
+    endAndRecordAndStart(key:string){
+        this.endAndRecord(key)
+        this.startTiming()
+    }
+
+    /**
+     * Logs the average time for each key to the console.
+    */
+    log(){
+        let table:{[key:string]:number} = {}
+
+        for(const key in this.kv){
+            table[key] = this.kv[key].reduce((a,b) => a + b, 0) / this.kv[key].length
+        }
+
+
+        console.table(table)
+    }
+}
