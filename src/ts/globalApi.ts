@@ -332,6 +332,7 @@ export async function saveDb(){
         }
     }
     let savetrys = 0
+    await sleep(1000)
     while(true){
         try {
             if(changed){
