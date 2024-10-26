@@ -2060,14 +2060,14 @@ export async function loadInternalBackup(){
 
 export class PerformanceDebugger{
     kv:{[key:string]:number[]} = {}
-    start:number
-    end:number
+    startTime:number
+    endTime:number
 
     /**
      * Starts the timing measurement.
     */
-    startTiming(){
-        this.start = performance.now()
+    start(){
+        this.startTime = performance.now()
     }
 
     /**
@@ -2076,11 +2076,11 @@ export class PerformanceDebugger{
      * @param {string} key - The key to associate with the recorded time.
     */
     endAndRecord(key:string){
-        this.end = performance.now()
+        this.endTime = performance.now()
         if(!this.kv[key]){
             this.kv[key] = []
         }
-        this.kv[key].push(this.end - this.start)
+        this.kv[key].push(this.endTime - this.startTime)
     }
 
     /**
@@ -2090,7 +2090,7 @@ export class PerformanceDebugger{
     */
     endAndRecordAndStart(key:string){
         this.endAndRecord(key)
-        this.startTiming()
+        this.start()
     }
 
     /**
@@ -2105,5 +2105,14 @@ export class PerformanceDebugger{
 
 
         console.table(table)
+    }
+
+    combine(other:PerformanceDebugger){
+        for(const key in other.kv){
+            if(!this.kv[key]){
+                this.kv[key] = []
+            }
+            this.kv[key].push(...other.kv[key])
+        }
     }
 }
