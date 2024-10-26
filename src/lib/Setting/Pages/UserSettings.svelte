@@ -2,7 +2,8 @@
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
     import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm} from "src/ts/alert";
     import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/globalApi";

@@ -1,7 +1,8 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { alertMd } from "src/ts/alert";
     import { getRequestLog, isTauri } from "src/ts/globalApi";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";

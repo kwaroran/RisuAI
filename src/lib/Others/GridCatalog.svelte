@@ -1,9 +1,10 @@
 <script lang="ts">
     import { characterFormatUpdate, getCharImage, removeChar } from "../../ts/characters";
-    import { DBState, type Database } from "../../ts/storage/database.svelte";
+    import { type Database } from "../../ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { ArrowLeft, User, Users, Inspect, TrashIcon, Undo2Icon } from "lucide-svelte";
-    import { selectedCharID } from "../../ts/stores";
+    import { selectedCharID } from "../../ts/stores.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import { language } from "src/lang";

@@ -1,14 +1,15 @@
 <script lang="ts">
     import { ArrowLeft } from "lucide-svelte";
     import { language } from "src/lang";
-    import { PlaygroundStore, SizeStore, selectedCharID } from "src/ts/stores";
+    import { PlaygroundStore, SizeStore, selectedCharID } from "src/ts/stores.svelte";
     import PlaygroundEmbedding from "./PlaygroundEmbedding.svelte";
     import PlaygroundTokenizer from "./PlaygroundTokenizer.svelte";
     import PlaygroundJinja from "./PlaygroundJinja.svelte";
     import PlaygroundSyntax from "./PlaygroundSyntax.svelte";
     import { findCharacterIndexbyId } from "src/ts/util";
     import { characterFormatUpdate, createBlankChar } from "src/ts/characters";
-    import { DBState, type character } from "src/ts/storage/database.svelte";
+    import { type character } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
     import PlaygroundParser from "./PlaygroundParser.svelte";
     import ToolConvertion from "./ToolConvertion.svelte";

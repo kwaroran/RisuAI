@@ -12,7 +12,8 @@
     import { getFileSrc, openURL, saveAsset } from "src/ts/globalApi";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import { selectMultipleFile } from "src/ts/util";
-    import { DBState } from 'src/ts/storage/database.svelte';
+    
+    import { DBState } from 'src/ts/stores.svelte';
 
     let submenu = $state(0)
     interface Props {

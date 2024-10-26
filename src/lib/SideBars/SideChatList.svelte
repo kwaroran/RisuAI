@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Chat, character, groupChat } from "src/ts/storage/database.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
     import { exportChat, importChat } from "src/ts/characters";
@@ -10,7 +11,7 @@
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { MobileGUI, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
+    import { MobileGUI, ReloadGUIPointer, selectedCharID } from "src/ts/stores.svelte";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";

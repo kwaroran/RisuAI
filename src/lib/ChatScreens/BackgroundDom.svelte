@@ -1,7 +1,8 @@
 <script lang="ts">
     import { ParseMarkdown, risuChatParser } from "src/ts/parser.svelte";
-    import { DBState, type character, type groupChat } from "src/ts/storage/database.svelte";
-    import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores";
+    import { type character, type groupChat } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
+    import { moduleBackgroundEmbedding, ReloadGUIPointer, selectedCharID } from "src/ts/stores.svelte";
 
     let backgroundHTML = $derived(DBState.db?.characters?.[$selectedCharID]?.backgroundHTML)
     let currentChar:character|groupChat = $state()

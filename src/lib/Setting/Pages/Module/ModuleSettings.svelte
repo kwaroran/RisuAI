@@ -1,6 +1,7 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, type RisuModule } from "src/ts/process/modules";
@@ -9,7 +10,7 @@
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { ShowRealmFrameStore } from "src/ts/stores";
+    import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     let tempModule:RisuModule = $state({
         name: '',
         description: '',

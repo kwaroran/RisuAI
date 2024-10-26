@@ -1,8 +1,9 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DBState } from "../../ts/storage/database.svelte";
-    import { ReloadGUIPointer, selectedCharID } from "../../ts/stores";
+    
+    import { DBState } from 'src/ts/stores.svelte';
+    import { ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
     import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";

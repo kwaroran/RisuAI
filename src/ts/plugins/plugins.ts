@@ -5,7 +5,7 @@ import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { globalFetch } from "../globalApi";
-import { selectedCharID } from "../stores";
+import { selectedCharID } from "../stores.svelte";
 import { addAdditionalCharaJS } from "./embedscript";
 
 export const customProviderStore = writable([] as string[])

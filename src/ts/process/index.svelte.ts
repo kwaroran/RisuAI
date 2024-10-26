@@ -1,6 +1,7 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, DBState } from "../storage/database.svelte";
-import { CharEmotion, selectedCharID } from "../stores";
+import { type character, type MessageGenerationInfo, type Chat } from "../storage/database.svelte";
+import { DBState } from '../stores.svelte';
+import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError } from "../alert";

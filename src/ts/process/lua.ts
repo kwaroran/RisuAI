@@ -2,7 +2,7 @@ import { getChatVar, hasher, setChatVar, type simpleCharacterArgument } from "..
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
 import { get } from "svelte/store";
-import { ReloadGUIPointer, selectedCharID } from "../stores";
+import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";

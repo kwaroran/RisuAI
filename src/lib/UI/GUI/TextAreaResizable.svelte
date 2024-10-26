@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { DBState } from "../../../ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { longpress } from 'src/ts/gui/longtouch';
 
     let textarea:HTMLElement = $state();

@@ -4,7 +4,7 @@ import { downloadFile } from "../globalApi";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
 import { isLite } from "../lite";
-import { CustomCSSStore, SafeModeStore } from "../stores";
+import { CustomCSSStore, SafeModeStore } from "../stores.svelte";
 
 export interface ColorScheme{
     bgcolor: string;

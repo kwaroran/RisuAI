@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { type character, DBState, type groupChat } from "src/ts/storage/database.svelte";
+    import { type character, type groupChat } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { addCharacter, changeChar, getCharImage } from "src/ts/characters";
-    import { MobileSearch } from "src/ts/stores";
+    import { MobileSearch } from "src/ts/stores.svelte";
     import { MessageSquareIcon, PlusIcon } from "lucide-svelte";
 
     const agoFormatter = new Intl.RelativeTimeFormat(navigator.languages, { style: 'short' });

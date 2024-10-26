@@ -1,11 +1,12 @@
 <script lang="ts">
     import { alertCardExport, alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DBState, changeToPreset, copyPreset, downloadPreset, importPreset } from "../../ts/storage/database.svelte";
+    import { changeToPreset, copyPreset, downloadPreset, importPreset } from "../../ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import { CopyIcon, Share2Icon, PencilIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
-    import { ShowRealmFrameStore } from "src/ts/stores";
+    import { ShowRealmFrameStore } from "src/ts/stores.svelte";
 
     let editMode = $state(false)
     interface Props {

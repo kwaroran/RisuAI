@@ -8,7 +8,8 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     interface Props {
         promptItem: PromptItem;
         onRemove?: () => void;

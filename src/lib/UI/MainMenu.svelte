@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { DBState, appVer, webAppSubVer } from "src/ts/storage/database.svelte";
+    import { appVer, webAppSubVer } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore } from "src/ts/stores";
+    import { OpenRealmStore } from "src/ts/stores.svelte";
     import { ArrowLeft } from "lucide-svelte";
     import { isNodeServer, isTauri, openURL } from "src/ts/globalApi";
     import { language } from "src/lang";

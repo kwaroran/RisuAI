@@ -1,7 +1,8 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { changeLanguage, language } from "src/lang";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { sleep } from "src/ts/util";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";

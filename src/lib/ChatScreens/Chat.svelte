@@ -4,8 +4,9 @@
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DBState, type MessageGenerationInfo } from "../../ts/storage/database.svelte";
-    import { HideIconStore, ReloadGUIPointer, selectedCharID } from "../../ts/stores";
+    import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
+    import { HideIconStore, ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get, type Unsubscriber } from "svelte/store";

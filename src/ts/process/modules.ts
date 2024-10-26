@@ -8,7 +8,7 @@ import { convertExternalLorebook } from "./lorebook.svelte"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
 import { convertImage } from "../parser.svelte"
 import { Capacitor } from "@capacitor/core"
-import { HideIconStore, moduleBackgroundEmbedding } from "../stores"
+import { HideIconStore, moduleBackgroundEmbedding } from "../stores.svelte"
 
 export interface RisuModule{
     name: string

@@ -4,7 +4,7 @@ import { language } from "../lang"
 import { isNodeServer, isTauri } from "./globalApi"
 import { Capacitor } from "@capacitor/core"
 import { getDatabase, type MessageGenerationInfo } from "./storage/database.svelte"
-import { alertStore as alertStoreImported } from "./stores"
+import { alertStore as alertStoreImported } from "./stores.svelte"
 
 export interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'

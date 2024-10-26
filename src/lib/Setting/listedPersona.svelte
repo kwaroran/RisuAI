@@ -1,7 +1,8 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
     import { language } from "../../lang";
-    import { DBState } from "../../ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { changeUserPersona } from "src/ts/persona";
 
 

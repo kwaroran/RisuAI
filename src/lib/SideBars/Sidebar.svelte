@@ -9,8 +9,9 @@
     sideBarStore,
     OpenRealmStore,
     PlaygroundStore
-  } from "../../ts/stores";
-    import { DBState, setDatabase, type folder } from "../../ts/storage/database.svelte";
+  } from "../../ts/stores.svelte";
+    import { setDatabase, type folder } from "../../ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import BarIcon from "./BarIcon.svelte";
     import SidebarIndicator from "./SidebarIndicator.svelte";
     import {

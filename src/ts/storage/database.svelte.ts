@@ -12,9 +12,6 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export const DBState = $state({
-    db: {} as any as Database
-})
 export let appVer = "137.1.0"
 export let webAppSubVer = '-svelte5-exp'
 
@@ -1508,7 +1505,7 @@ import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
-import { selectedCharID } from '../stores';
+import { DBState, selectedCharID } from '../stores.svelte';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

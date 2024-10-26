@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores";
+    import { MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores.svelte";
     import Settings from "../Setting/Settings.svelte";
     import RealmMain from "../UI/Realm/RealmMain.svelte";
     import MobileCharacters from "./MobileCharacters.svelte";
@@ -10,7 +10,8 @@
     import SideChatList from "../SideBars/SideChatList.svelte";
     import DevTool from "../SideBars/DevTool.svelte";
     import { isLite } from "src/ts/lite";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
 </script>
 
 {#if $MobileSideBar > 0 && !$isLite}

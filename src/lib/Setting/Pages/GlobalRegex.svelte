@@ -2,7 +2,8 @@
     import { DownloadIcon, FolderUpIcon, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
 </script>

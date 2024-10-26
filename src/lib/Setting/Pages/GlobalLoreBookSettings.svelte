@@ -2,7 +2,8 @@
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import LoreBookSetting from "src/lib/SideBars/LoreBook/LoreBookSetting.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     interface Props {
       openLoreList?: boolean;
     }

@@ -3,7 +3,8 @@
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
     import { tooltip } from "src/ts/gui/tooltip";

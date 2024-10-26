@@ -1,8 +1,9 @@
 <script lang="ts">
     import { ArrowLeft, MenuIcon } from "lucide-svelte";
     import { language } from "src/lang";
-    import { DBState } from "src/ts/storage/database.svelte";
-    import { MobileGUIStack, MobileSearch, selectedCharID, SettingsMenuIndex, MobileSideBar } from "src/ts/stores";
+    
+    import { DBState } from 'src/ts/stores.svelte';
+    import { MobileGUIStack, MobileSearch, selectedCharID, SettingsMenuIndex, MobileSideBar } from "src/ts/stores.svelte";
 
 </script>
 <div class="w-full px-4 h-16 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">

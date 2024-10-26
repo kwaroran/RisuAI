@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { getHordeModels } from "src/ts/horde/getModels";
     import Arcodion from "./Arcodion.svelte";
     import { language } from "src/lang";

@@ -2,7 +2,8 @@
     import { PlusIcon, TrashIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { importPlugin } from "src/ts/plugins/plugins";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";

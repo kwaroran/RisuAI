@@ -3,7 +3,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, type Chat, type chara
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { ReloadGUIPointer, selectedCharID } from "../stores";
+import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { processMultiCommand } from "./command";
 import { parseKeyValue } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";

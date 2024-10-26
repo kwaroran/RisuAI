@@ -8,7 +8,7 @@
     import PluginSettings from "./Pages/PluginSettings.svelte";
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
-    import { MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores";
+    import { MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores.svelte";
     import Botpreset from "./botpreset.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";

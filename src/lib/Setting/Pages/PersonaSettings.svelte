@@ -8,7 +8,8 @@
     import { alertConfirm, alertSelect } from "src/ts/alert";
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
-    import { DBState, setDatabase } from "src/ts/storage/database.svelte";
+    import { setDatabase } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import { get } from "svelte/store";
 
 </script>

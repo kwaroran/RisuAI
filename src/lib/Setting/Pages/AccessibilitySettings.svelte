@@ -1,7 +1,8 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
 
 </script>
 

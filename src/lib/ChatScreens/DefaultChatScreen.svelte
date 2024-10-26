@@ -3,9 +3,10 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { selectedCharID, PlaygroundStore, UserIconProtrait, createSimpleCharacter } from "../../ts/stores";
+    import { selectedCharID, PlaygroundStore, UserIconProtrait, createSimpleCharacter } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
-    import { DBState, type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
+    import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
+	import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
     import { findCharacterbyId, messageForm, sleep } from "../../ts/util";

@@ -1,8 +1,9 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { openURL } from "src/ts/globalApi";
-    import { sideBarStore } from "src/ts/stores";
+    import { sideBarStore } from "src/ts/stores.svelte";
 
     let specialDay = $state('')
     const today = new Date()

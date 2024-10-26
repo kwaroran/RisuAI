@@ -1,5 +1,5 @@
 import { writable, type Writable } from "svelte/store";
-import type { character, groupChat } from "./storage/database.svelte";
+import type { character, Database, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
 
@@ -85,3 +85,6 @@ export function createSimpleCharacter(char:character|groupChat){
 
 updateSize()
 window.addEventListener("resize", updateSize);
+export const DBState = $state({
+    db: {} as any as Database
+});

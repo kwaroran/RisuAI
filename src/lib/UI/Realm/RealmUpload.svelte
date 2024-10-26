@@ -111,7 +111,8 @@
     import { language } from "src/lang";
     import { alertError } from "src/ts/alert";
     import { shareRisuHub2 } from "src/ts/characterCards";
-    import { DBState, type character } from "src/ts/storage/database.svelte";
+    import { type character } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import TextInput from "../GUI/TextInput.svelte";
     import Button from "../GUI/Button.svelte";
     import SelectInput from "../GUI/SelectInput.svelte";

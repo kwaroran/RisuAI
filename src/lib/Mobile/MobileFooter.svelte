@@ -2,7 +2,7 @@
 
   import { SettingsIcon, GlobeIcon, HomeIcon, MessageSquare, Volume2Icon, CurlyBraces, ActivityIcon, BookIcon, SmileIcon, UserIcon } from "lucide-svelte";
   import { language } from "src/lang";
-  import { CharConfigSubMenu, MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores";
+  import { CharConfigSubMenu, MobileGUIStack, MobileSideBar, selectedCharID } from "src/ts/stores.svelte";
 
 </script>
 {#if $selectedCharID === -1}

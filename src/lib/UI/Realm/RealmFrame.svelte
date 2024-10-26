@@ -1,8 +1,9 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
     import { shareRealmCardData } from "src/ts/realm";
-    import { DBState, downloadPreset } from "src/ts/storage/database.svelte";
-    import { selectedCharID, ShowRealmFrameStore } from "src/ts/stores";
+    import { downloadPreset } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
+    import { selectedCharID, ShowRealmFrameStore } from "src/ts/stores.svelte";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 

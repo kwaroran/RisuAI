@@ -1,6 +1,7 @@
 <script lang="ts">
     import { getCustomBackground, getEmotion } from "../../ts/util";
-    import { DBState } from "../../ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import defaultWallpaper from './test.png'

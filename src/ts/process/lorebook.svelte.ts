@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
-import {selectedCharID} from '../stores'
-import { DBState, type Message, type loreBook } from "../storage/database.svelte";
+import {selectedCharID} from '../stores.svelte'
+import { type Message, type loreBook } from "../storage/database.svelte";
+import { DBState } from '../stores.svelte';
 import { tokenize } from "../tokenizer";
 import { checkNullish, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";

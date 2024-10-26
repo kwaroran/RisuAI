@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { selectedCharID } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
@@ -8,7 +8,8 @@
     import Arcodion from "../UI/Arcodion.svelte";
     import { getCharToken, getChatToken } from "src/ts/tokenizer";
     import { tokenizePreset } from "src/ts/process/prompt";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import { selectSingleFile } from "src/ts/util";

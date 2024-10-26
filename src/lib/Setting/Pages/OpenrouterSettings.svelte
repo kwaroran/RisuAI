@@ -2,7 +2,8 @@
     import { language } from "src/lang";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";

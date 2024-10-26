@@ -16,7 +16,7 @@ import {open} from '@tauri-apps/plugin-shell'
 import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "./stores";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
 import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
@@ -32,12 +32,10 @@ import { saveDbKei } from "./kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
 import { save } from "@tauri-apps/plugin-dialog";
-import type { RisuModule } from "./process/modules";
 import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
 import { startObserveDom } from "./observer";
-import { removeDefaultHandler } from "src/main";
 import { updateGuisize } from "./gui/guisize";
 import { encodeCapKeySafe } from "./storage/mobileStorage";
 import { updateLorebooks } from "./characters";
@@ -623,7 +621,6 @@ export async function getFetchData(id: string) {
  * Updates the error handling by removing the default handler and adding custom handlers for errors and unhandled promise rejections.
  */
 function updateErrorHandling() {
-  removeDefaultHandler();
   const errorHandler = (event: ErrorEvent) => {
     console.error(event.error);
     alertError(event.error);

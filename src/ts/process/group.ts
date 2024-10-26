@@ -4,7 +4,7 @@ import { alertConfirm, alertError, alertSelectChar } from "../alert";
 import { language } from "src/lang";
 import { get } from "svelte/store";
 import { getDatabase, setDatabase } from "../storage/database.svelte";
-import { selectedCharID } from "../stores";
+import { selectedCharID } from "../stores.svelte";
 
 export async function addGroupChar(){
     let db = getDatabase()

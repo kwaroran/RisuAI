@@ -3,7 +3,8 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
-    import { DBState } from "src/ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { customProviderStore } from "src/ts/plugins/plugins";
     import { downloadFile, getModelMaxContext, isTauri } from "src/ts/globalApi";
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
@@ -24,7 +25,7 @@
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import PromptSettings from "./PromptSettings.svelte";
-    import { openPresetList } from "src/ts/stores";
+    import { openPresetList } from "src/ts/stores.svelte";
     import { selectSingleFile } from "src/ts/util";
 
     let tokens = $state({

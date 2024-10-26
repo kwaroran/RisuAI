@@ -1,11 +1,12 @@
 import DOMPurify from 'isomorphic-dompurify';
 import markdownit from 'markdown-it'
-import { getCurrentCharacter, DBState, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
+import { getCurrentCharacter, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
+import { DBState } from './stores.svelte';
 import { getFileSrc } from './globalApi';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { SizeStore, selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';

@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { DBState } from "../../../ts/storage/database.svelte";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { language } from "../../../lang";
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
@@ -7,7 +8,7 @@
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
     import Help from "src/lib/Others/Help.svelte";
-  import { selectedCharID } from "src/ts/stores";
+  import { selectedCharID } from "src/ts/stores.svelte";
 
     let submenu = $state(0)
     interface Props {

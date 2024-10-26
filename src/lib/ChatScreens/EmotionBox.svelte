@@ -1,6 +1,7 @@
 <script>
-    import { DBState } from '../../ts/storage/database.svelte';
-    import { CharEmotion } from '../../ts/stores';
+    
+    import { DBState } from 'src/ts/stores.svelte';
+    import { CharEmotion } from '../../ts/stores.svelte';
     import { getEmotion } from '../../ts/util';
 </script>
 
