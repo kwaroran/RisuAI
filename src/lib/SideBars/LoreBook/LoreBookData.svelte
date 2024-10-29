@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon, LinkIcon, SunIcon } from "lucide-svelte";
     import { language } from "../../../lang";
     import type { loreBook } from "../../../ts/storage/database.svelte";
     import { alertConfirm } from "../../../ts/alert";
@@ -50,6 +50,20 @@
         }}>
             <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
+        <button
+            class="mr-1"
+            class:text-textcolor2={!value.alwaysActive}
+            class:text-textcolor={value.alwaysActive}
+            onclick={async () => {
+                value.alwaysActive = !value.alwaysActive
+            }}
+        >
+            {#if value.alwaysActive}
+                <SunIcon size={20} />
+            {:else}
+                <LinkIcon size={20} />
+            {/if}
+        </button>
         <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
@@ -59,7 +73,7 @@
                 onRemove()
             }
         }}>
-            <XIcon />
+            <XIcon size={20} />
         </button>
     </div>
     {#if open}
