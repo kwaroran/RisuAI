@@ -486,6 +486,13 @@ export async function loadLoreBookV3Prompt(){
                     keys: fullLore[i].key.split(','),
                     negative: false
                 })
+
+                if(fullLore[i].secondkey && fullLore[i].selective){
+                    searchQueries.push({
+                        keys: fullLore[i].secondkey.split(','),
+                        negative: false
+                    })
+                }
     
                 for(const query of searchQueries){
                     const result = searchMatch(currentChat, {
