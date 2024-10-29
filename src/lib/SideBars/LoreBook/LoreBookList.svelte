@@ -83,9 +83,8 @@
     })
 </script>
 
-
-<div class="border-solid border-selected p-2 flex flex-col border-1 rounded-md" bind:this={ele}>
-    {#key sorted}
+{#key sorted}
+    <div class="border-solid border-selected p-2 flex flex-col border-1 rounded-md" bind:this={ele}>
         {#if globalMode}
             {#if DBState.db.loreBook[DBState.db.loreBookPage].data.length === 0}
                 <span class="text-textcolor2">No Lorebook</span>
@@ -123,5 +122,5 @@
                 {/each}
             {/if}
         {/if}
-    {/key}
-</div>
+    </div>
+{/key}

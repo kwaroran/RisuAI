@@ -119,27 +119,27 @@
         openURL(hubURL + '/redirect/docs/lua')
     }}>{language.helpBlock}</Button>
 {:else}
-    <div class="contain w-full max-w-full mt-2 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
-        {#if value.length === 0}
-                <div class="text-textcolor2">No Scripts</div>
-        {/if}
-        {#key sorted}
-            {#each value as triggerscript, i}
-                <TriggerData idx={i} bind:value={value[i]} lowLevelAble={lowLevelAble} onOpen={onOpen} onClose={onClose} onRemove={() => {
-                    let triggerscript = value
-                    triggerscript.splice(i, 1)
-                    value = triggerscript
-                }}/>
-            {/each}
-        {/key}
-    </div>
-    <button class="font-medium cursor-pointer hover:text-textcolor mb-2 text-textcolor2" onclick={() => {
-        value.push({
-            comment: "",
-            type: "start",
-            conditions: [],
-            effect: []
-        })
-        value = value
-    }}><PlusIcon /></button>
+    {#key sorted}
+        <div class="contain w-full max-w-full mt-2 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
+            {#if value.length === 0}
+                    <div class="text-textcolor2">No Scripts</div>
+            {/if}
+                {#each value as triggerscript, i}
+                    <TriggerData idx={i} bind:value={value[i]} lowLevelAble={lowLevelAble} onOpen={onOpen} onClose={onClose} onRemove={() => {
+                        let triggerscript = value
+                        triggerscript.splice(i, 1)
+                        value = triggerscript
+                    }}/>
+                {/each}
+        </div>
+        <button class="font-medium cursor-pointer hover:text-textcolor mb-2 text-textcolor2" onclick={() => {
+            value.push({
+                comment: "",
+                type: "start",
+                conditions: [],
+                effect: []
+            })
+            value = value
+        }}><PlusIcon /></button>
+    {/key}
 {/if}
