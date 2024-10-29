@@ -215,7 +215,7 @@ export async function loadLoreBookV3Prompt(){
     const currentChat = char.chats[page].message
     const loreDepth = char.loreSettings?.scanDepth ?? DBState.db.loreBookDepth
     const loreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken
-    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
+    const fullWordMatchingSetting = char.loreSettings?.fullWordMatching ?? false
     const chatLength = currentChat.length + 1 //includes first message
     const recursiveScanning = char.loreSettings?.recursiveScanning ?? false
     let recursiveAdditionalPrompt = ''
@@ -225,7 +225,8 @@ export async function loadLoreBookV3Prompt(){
         searchDepth:number,
         regex:boolean
         fullWordMatching:boolean
-        recursiveAdditionalPrompt:string
+        recursiveAdditionalPrompt:string,
+        all?:boolean
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
@@ -257,11 +258,19 @@ export async function loadLoreBookV3Prompt(){
         mText = mText.toLocaleLowerCase()
         mText = mText.replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
 
+        let allMode = arg.all ?? false
+        let allModeMatched = true
+
         if(arg.fullWordMatching){
             const splited = mText.split(' ')
             for(const key of arg.keys){
                 if(splited.includes(key.toLocaleLowerCase())){
-                    return true
+                    if(!allMode){
+                        return true
+                    }
+                }
+                else if(allMode){
+                    allModeMatched = false
                 }
             }
         }
@@ -270,9 +279,17 @@ export async function loadLoreBookV3Prompt(){
             for(const key of arg.keys){
                 const realKey = key.toLocaleLowerCase().replace(/ /g,'')
                 if(mText.includes(realKey)){
-                    return true
+                    if(!allMode){
+                        return true
+                    }
+                }
+                else if(allMode){
+                    allModeMatched = false
                 }
             }
+        }
+        if(allMode && allModeMatched){
+            return true
         }
         return false
     
@@ -310,8 +327,10 @@ export async function loadLoreBookV3Prompt(){
             let role:'system'|'user'|'assistant' = 'system'
             let searchQueries:{
                 keys:string[],
-                negative:boolean
+                negative:boolean,
+                all?:boolean
             }[] = []
+            let fullWordMatching = fullWordMatchingSetting
             const content = CCardLib.decorator.parse(fullLore[i].content, (name, arg) => {
                 switch(name){
                     case 'end':{
@@ -408,6 +427,22 @@ export async function loadLoreBookV3Prompt(){
                         })
                         return
                     }
+                    case 'exclude_keys_all':{
+                        searchQueries.push({
+                            keys: arg,
+                            negative: true,
+                            all: true
+                        })
+                        return
+                    }
+                    case 'match_full_word':{
+                        fullWordMatching = true
+                        return
+                    }
+                    case 'match_partial_word':{
+                        fullWordMatching = false
+                        return
+                    }
                     case 'is_user_icon':{
                         //TODO
                         return false
@@ -458,7 +493,8 @@ export async function loadLoreBookV3Prompt(){
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
                         fullWordMatching: fullWordMatching,
-                        recursiveAdditionalPrompt: recursiveAdditionalPrompt
+                        recursiveAdditionalPrompt: recursiveAdditionalPrompt,
+                        all: query.all
                     })
                     if(query.negative){
                         if(result){

@@ -808,16 +808,76 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         loreExt = charbook.extensions
 
         for(const book of charbook.entries){
+            let content = book.content
+
+            if(book.use_regex && !book.keys?.[0]?.startsWith('/')){
+                book.use_regex = false
+            }
+
+            //extention migration
+            const extensions = book.extensions ?? {}
+
+            if(extensions.useProbability && extensions.probability !== undefined && extensions.probability !== 100){
+                content = `@@probability ${extensions.probability}\n` + content
+                delete extensions.useProbability
+                delete extensions.probability
+            }
+            if(extensions.position === 4 && typeof extensions.depth === 'number' && typeof(extensions.role) === 'number'){
+                content = `@@depth ${extensions.depth}\n@@role ${['system','user','assistant'][extensions.role]}\n` + content
+                delete extensions.position
+                delete extensions.depth
+                delete extensions.role
+            }
+            if(typeof(extensions.selectiveLogic) === 'number' && book.secondary_keys && book.secondary_keys.length > 0){
+                switch(extensions.selectiveLogic){
+                    case 0:{
+                        //same as default, pass
+                        break
+                    }
+                    case 1:{
+                        book.selective = false
+                        content = `@@exclude_keys_all ${book.secondary_keys.join(',')}\n` + content
+                        break
+                    }
+                    case 2:{
+                        book.selective = false
+                        for(const secKey of book.secondary_keys){
+                            content = `@@exclude_keys ${secKey}\n` + content
+                        }
+                        break
+                    }
+                    case 3:{
+                        book.selective = false
+                        for(const secKey of book.secondary_keys){
+                            content = `@@additional_keys ${secKey}\n` + content
+                        }
+                        break
+                    }
+                }
+            }
+            if(typeof extensions.delay === 'number' && extensions.delay > 0){
+                content = `@@activate_only_after ${extensions.delay}\n` + content
+                delete extensions.delay
+            }
+            if(extensions.match_whole_words === true){
+                content = `@@match_full_word\n` + content
+                delete extensions.match_whole_words
+            }
+            if(extensions.match_whole_words === false){
+                content = `@@match_partial_word\n` + content
+                delete extensions.match_whole_words
+            }
+
             lorebook.push({
                 key: book.keys.join(', '),
                 secondkey: book.secondary_keys?.join(', ') ?? '',
                 insertorder: book.insertion_order,
                 comment: book.name ?? book.comment ?? "",
-                content: book.content,
+                content: content,
                 mode: "normal",
                 alwaysActive: book.constant ?? false,
                 selective: book.selective ?? false,
-                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
+                extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
                 activationPercent: book.extensions?.risu_activationPercent,
                 loreCache: book.extensions?.risu_loreCache ?? null,
                 //@ts-ignore
@@ -1694,6 +1754,7 @@ interface charBookEntry{
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
+    use_regex?:boolean
 }
 
 interface RccCardMetaData{
