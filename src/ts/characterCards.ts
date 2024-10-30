@@ -831,7 +831,9 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
             if(typeof(extensions.selectiveLogic) === 'number' && book.secondary_keys && book.secondary_keys.length > 0){
                 switch(extensions.selectiveLogic){
                     case 0:{
-                        //same as default, pass
+                        if(!book.secondary_keys || book.secondary_keys.length === 0){
+                            book.selective = false
+                        }
                         break
                     }
                     case 1:{
