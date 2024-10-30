@@ -41,7 +41,7 @@ export async function importCharacter() {
     }
 }
 
-async function importCharacterProcess(f:{
+export async function importCharacterProcess(f:{
     name: string;
     data: Uint8Array|File|ReadableStream<Uint8Array>
 }) {
