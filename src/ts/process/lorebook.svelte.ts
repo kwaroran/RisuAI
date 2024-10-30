@@ -217,7 +217,7 @@ export async function loadLoreBookV3Prompt(){
     const loreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken
     const fullWordMatchingSetting = char.loreSettings?.fullWordMatching ?? false
     const chatLength = currentChat.length + 1 //includes first message
-    const recursiveScanning = char.loreSettings?.recursiveScanning ?? false
+    const recursiveScanning = char.loreSettings?.recursiveScanning ?? true
     let recursiveAdditionalPrompt = ''
 
     const searchMatch = (messages:Message[],arg:{
