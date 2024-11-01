@@ -53,7 +53,10 @@
     <SelectInput className="mt-2" bind:value={DBState.db.theme}>
         <OptionInput value="" >Standard Risu</OptionInput>
         <OptionInput value="waifu" >Waifulike</OptionInput>
-        <OptionInput value="waifuMobile" >WaifuCut</OptionInput>
+        <!-- <OptionInput value="waifuMobile" >WaifuCut</OptionInput> -->
+        <OptionInput value="mobilechat" >Mobile Chat</OptionInput>
+        <OptionInput value="cardboard" >CardBoard</OptionInput>
+
         <!-- <OptionInput value="custom" >Custom GUI</OptionInput> -->
     </SelectInput>
 

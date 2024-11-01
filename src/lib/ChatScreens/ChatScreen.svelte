@@ -35,19 +35,6 @@
 
 {#if $ShowVN}
     <VisualNovelMain />
-{:else if DBState.db.theme === ''}
-    <div class="flex-grow h-full min-w-0 relative justify-center flex">
-        <SideBarArrow />
-        <BackgroundDom />
-        <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>
-            {#if $selectedCharID >= 0}
-                {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none' && (DBState.db.characters[$selectedCharID].type === 'group' || (!DBState.db.characters[$selectedCharID].inlayViewScreen))}
-                    <ResizeBox />
-                {/if}
-            {/if}
-            <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList bind:openModuleList/>
-        </div>
-    </div>
 {:else if DBState.db.theme === 'waifu'}
     <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
         <SideBarArrow />
@@ -80,6 +67,19 @@
                 </div>
             {/if}
         {/if}
+    </div>
+{:else}
+    <div class="flex-grow h-full min-w-0 relative justify-center flex">
+        <SideBarArrow />
+        <BackgroundDom />
+        <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>
+            {#if $selectedCharID >= 0}
+                {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none' && (DBState.db.characters[$selectedCharID].type === 'group' || (!DBState.db.characters[$selectedCharID].inlayViewScreen))}
+                    <ResizeBox />
+                {/if}
+            {/if}
+            <DefaultChatScreen customStyle={bgImg.length > 2 ? `${externalStyles}`: ''} bind:openChatList bind:openModuleList/>
+        </div>
     </div>
 {/if}
 {#if openChatList}
