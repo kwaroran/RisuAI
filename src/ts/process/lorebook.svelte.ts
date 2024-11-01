@@ -72,7 +72,7 @@ export async function loadLoreBookV3Prompt(){
             else{
                 return `{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data
             }
-        }).join('\x01||')
+        }).join('\x01')
         if(arg.recursiveAdditionalPrompt){
             mText += arg.recursiveAdditionalPrompt
         }
