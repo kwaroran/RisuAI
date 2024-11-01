@@ -3,7 +3,7 @@ import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '..
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
 import type {triggerscript as triggerscriptMain} from '../process/triggers';
-import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi';
+import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi.svelte';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';

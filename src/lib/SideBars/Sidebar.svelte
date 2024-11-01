@@ -38,7 +38,7 @@
     import { get } from "svelte/store";
     import { getCharacterIndexObject } from "src/ts/util";
     import { v4 } from "uuid";
-    import { checkCharOrder } from "src/ts/globalApi";
+    import { checkCharOrder } from "src/ts/globalApi.svelte";
     import { alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";

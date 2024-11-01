@@ -7,7 +7,7 @@ import { readFile } from "@tauri-apps/plugin-fs"
 import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { isTauri } from "./globalApi"
+import { isTauri } from "./globalApi.svelte"
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1

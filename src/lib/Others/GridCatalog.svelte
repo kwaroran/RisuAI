@@ -9,7 +9,7 @@
     import Button from "../UI/GUI/Button.svelte";
     import { language } from "src/lang";
     import { parseMultilangString } from "src/ts/util";
-    import { checkCharOrder } from "src/ts/globalApi";
+    import { checkCharOrder } from "src/ts/globalApi.svelte";
     interface Props {
         endGrid?: any;
     }

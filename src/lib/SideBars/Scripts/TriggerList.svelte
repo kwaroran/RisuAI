@@ -10,7 +10,7 @@
   import { alertConfirm } from "src/ts/alert";
   import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
   import Button from "src/lib/UI/GUI/Button.svelte";
-  import { openURL } from "src/ts/globalApi";
+  import { openURL } from "src/ts/globalApi.svelte";
   import { hubURL } from "src/ts/characterCards";
   import { PlusIcon } from "lucide-svelte";
   interface Props {

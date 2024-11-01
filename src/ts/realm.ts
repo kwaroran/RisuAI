@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { exportCharacterCard } from "./characterCards";
-import { VirtualWriter, isTauri, openURL } from "./globalApi";
+import { VirtualWriter, isTauri, openURL } from "./globalApi.svelte";
 import { getCurrentCharacter, getDatabase, type character } from "./storage/database.svelte";
 import { alertStore } from "./alert";
 

@@ -6,7 +6,7 @@ import { languageKorean } from "./ko";
 import { LanguageVietnamese } from "./vi";
 import { languageChineseTraditional } from "./zh-Hant";
 import { languageSpanish } from "./es";
-import { googleBuild } from "src/ts/globalApi";
+import { googleBuild } from "src/ts/globalApi.svelte";
 
 export let language:typeof languageEnglish = languageEnglish
 

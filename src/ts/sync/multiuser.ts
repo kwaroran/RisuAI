@@ -5,7 +5,7 @@ import { setDatabase, type character, saveImage, type Chat, getCurrentChat, setC
 import { selectedCharID } from '../stores.svelte';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
-import { readImage } from '../globalApi';
+import { readImage } from '../globalApi.svelte';
 import { doingChat } from '../process/index.svelte';
 
 async function importPeerJS(){

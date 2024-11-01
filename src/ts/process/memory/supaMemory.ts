@@ -4,7 +4,7 @@ import { tokenize, type ChatTokenizer } from "../../tokenizer";
 import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
-import { globalFetch } from "src/ts/globalApi";
+import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";
 import { getUserName } from "src/ts/util";
 

@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import markdownit from 'markdown-it'
 import { getCurrentCharacter, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { getFileSrc } from './globalApi';
+import { getFileSrc } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'

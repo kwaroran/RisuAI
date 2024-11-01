@@ -1,6 +1,6 @@
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { getDatabase, type Database } from "../storage/database.svelte";
-import { forageStorage, getUnpargeables, isTauri, openURL } from "../globalApi";
+import { forageStorage, getUnpargeables, isTauri, openURL } from "../globalApi.svelte";
 import { BaseDirectory, exists, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -287,7 +287,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
             const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
             const selectedDb = dbs[selectedIndex][0]
-            const decompressedDb:Database = decodeRisuSave(await getFileData(ACCESS_TOKEN, selectedDb.id))
+            const decompressedDb:Database = await decodeRisuSave(await getFileData(ACCESS_TOKEN, selectedDb.id))
             return decompressedDb
         }
     

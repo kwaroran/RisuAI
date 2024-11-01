@@ -16,7 +16,7 @@ import {open} from '@tauri-apps/plugin-shell'
 import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore } from "./stores.svelte";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
 import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
@@ -24,7 +24,7 @@ import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveLegacy } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSave, encodeRisuSaveLegacy } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -309,7 +309,6 @@ let lastSave = ''
  * @returns {Promise<void>} - A promise that resolves when the database has been saved.
  */
 export async function saveDb(){
-    lastSave = JSON.stringify(getDatabase())
     let changed = true
     syncDrive()
     let gotChannel = false
@@ -330,58 +329,75 @@ export async function saveDb(){
             }
         }
     }
+
     let savetrys = 0
+    let lastDbData = new Uint8Array(0)
     await sleep(1000)
     while(true){
         try {
-            if(changed){
-                if(gotChannel){
-                    //Data is saved in other tab
-                    await sleep(1000)
-                    continue
-                }
-                if(channel){
-                    channel.postMessage(sessionID)
-                }
-                let db = getDatabase()
-                if(!db.characters){
-                    await sleep(1000)
-                    continue
-                }
-                db.saveTime = Math.floor(Date.now() / 1000)
-                if(isTauri){
-                    const dbData = encodeRisuSaveLegacy(db)
-                    await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
-                    await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
-                }
-                else{
-                    if(!forageStorage.isAccount){
-                        const dbData = encodeRisuSaveLegacy(db)
-                        await forageStorage.setItem('database/database.bin', dbData)
-                        await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
-                    }
-                    if(forageStorage.isAccount){
-                        const dbData = encodeRisuSaveLegacy(db, 'compression')
-                        const z:Database = decodeRisuSave(dbData)
-                        if(z.formatversion){
-                            await forageStorage.setItem('database/database.bin', dbData)
-                        }
-                        await sleep(5000);
-                    }
-                }
-                if(!forageStorage.isAccount){
-                    await getDbBackups()
-                }
-                savetrys = 0
+            if(gotChannel){
+                //Data is saved in other tab
+                await sleep(1000)
+                continue
             }
+            if(channel){
+                channel.postMessage(sessionID)
+            }
+            let db = getDatabase()
+            if(!db.characters){
+                await sleep(1000)
+                continue
+            }
+            if(isTauri){
+                const dbData = encodeRisuSaveLegacy(db)
+                await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
+                await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
+            }
+            else{
+                if(!forageStorage.isAccount){
+                    const dbData = encodeRisuSaveLegacy(db)
+                    await forageStorage.setItem('database/database.bin', dbData)
+                    await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                }
+                if(forageStorage.isAccount){
+                    const dbData = await encodeRisuSave(db)
+                    
+                    if(lastDbData.length === dbData.length){
+                        let same = true
+                        for(let i = 20; i < dbData.length; i++){
+                            if(dbData[i] !== lastDbData[i]){
+                                same = false
+                                break
+                            }
+                        }   
+
+                        if(same){
+                            await sleep(500)
+                            continue
+                        }
+                    }
+
+                    lastDbData = dbData
+                    const z:Database = await decodeRisuSave(dbData)
+                    if(z.formatversion){
+                        await forageStorage.setItem('database/database.bin', dbData)
+                    }
+                }
+            }
+            if(!forageStorage.isAccount){
+                await getDbBackups()
+            }
+            savetrys = 0
+            
             await saveDbKei()
             await sleep(500)
         } catch (error) {
+            savetrys += 1
             if(savetrys > 4){
                 await alertConfirm(`DBSaveError: ${error.message ?? error}. report to the developer.`)
             }
             else{
-                
+                console.error(error)
             }
         }
     }
@@ -458,7 +474,7 @@ export async function loadData() {
                     await writeFile('database/database.bin', encodeRisuSaveLegacy({}), {baseDir: BaseDirectory.AppData});
                 }
                 try {
-                    const decoded = decodeRisuSave(await readFile('database/database.bin',{baseDir: BaseDirectory.AppData}))
+                    const decoded = await decodeRisuSave(await readFile('database/database.bin',{baseDir: BaseDirectory.AppData}))
                     setDatabase(decoded)
                 } catch (error) {
                     const backups = await getDbBackups()
@@ -467,7 +483,7 @@ export async function loadData() {
                         try {
                             const backupData = await readFile(`database/dbbackup-${backup}.bin`,{baseDir: BaseDirectory.AppData})
                             setDatabase(
-                                decodeRisuSave(backupData)
+                                await decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {
@@ -489,7 +505,7 @@ export async function loadData() {
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
-                    const decoded = decodeRisuSave(gotStorage)
+                    const decoded = await decodeRisuSave(gotStorage)
                     console.log(decoded)
                     setDatabase(decoded)
                 } catch (error) {
@@ -500,7 +516,7 @@ export async function loadData() {
                         try {
                             const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
                             setDatabase(
-                                decodeRisuSave(backupData)
+                                await decodeRisuSave(backupData)
                             )
                             backupLoaded = true
                         } catch (error) {}
@@ -517,7 +533,7 @@ export async function loadData() {
                     }
                     try {
                         setDatabase(
-                            decodeRisuSave(gotStorage)
+                            await decodeRisuSave(gotStorage)
                         )
                     } catch (error) {
                         const backups = await getDbBackups()
@@ -526,7 +542,7 @@ export async function loadData() {
                             try {
                                 const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
                                 setDatabase(
-                                    decodeRisuSave(backupData)
+                                    await decodeRisuSave(backupData)
                                 )
                                 backupLoaded = true
                             } catch (error) {}
@@ -2045,7 +2061,7 @@ export async function loadInternalBackup(){
     ) : (await forageStorage.getItem(selectedBackup))
 
     setDatabase(
-        decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
+        await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
     )
 
     await alertNormal('Loaded backup')

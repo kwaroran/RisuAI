@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { getDatabase } from "./database.svelte";
-import { downloadFile } from "../globalApi";
+import { downloadFile } from "../globalApi.svelte";
 import { alertNormal } from "../alert";
 import { language } from "src/lang";
 

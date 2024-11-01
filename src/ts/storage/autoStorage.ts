@@ -1,5 +1,5 @@
 import localforage from "localforage"
-import { isNodeServer, replaceDbResources } from "../globalApi"
+import { isNodeServer, replaceDbResources } from "../globalApi.svelte"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"
@@ -91,7 +91,7 @@ export class AutoStorage{
             const comp = encodeRisuSaveLegacy(dba, 'compression')
             //try decoding
             try {
-                const z:Database = decodeRisuSave(comp)
+                const z:Database = await decodeRisuSave(comp)
                 if(z.formatversion){
                     await accountStorage.setItem('database/database.bin', comp)
                 }

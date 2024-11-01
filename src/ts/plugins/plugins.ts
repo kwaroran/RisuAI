@@ -4,7 +4,7 @@ import { alertError } from "../alert";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
-import { globalFetch } from "../globalApi";
+import { globalFetch } from "../globalApi.svelte";
 import { selectedCharID } from "../stores.svelte";
 import { addAdditionalCharaJS } from "./embedscript";
 

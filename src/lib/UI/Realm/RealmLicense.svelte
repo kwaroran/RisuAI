@@ -1,7 +1,7 @@
 <script lang="ts">
     import { CCLicenseData } from "src/ts/creation/license";
     import { tooltip } from "src/ts/gui/tooltip";
-    import { openURL } from "src/ts/globalApi";
+    import { openURL } from "src/ts/globalApi.svelte";
 
     interface Props {
         license?: string;

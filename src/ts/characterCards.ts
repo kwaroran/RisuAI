@@ -5,7 +5,7 @@ import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi"
+import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
 import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { convertImage, hasher } from "./parser.svelte"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'

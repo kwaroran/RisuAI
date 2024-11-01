@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store"
 import { sleep } from "./util"
 import { language } from "../lang"
-import { isNodeServer, isTauri } from "./globalApi"
+import { isNodeServer, isTauri } from "./globalApi.svelte"
 import { Capacitor } from "@capacitor/core"
 import { getDatabase, type MessageGenerationInfo } from "./storage/database.svelte"
 import { alertStore as alertStoreImported } from "./stores.svelte"

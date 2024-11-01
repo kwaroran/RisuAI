@@ -18,7 +18,7 @@
     import MobileBody from './lib/Mobile/MobileBody.svelte';
     import MobileFooter from './lib/Mobile/MobileFooter.svelte';
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
-  import { checkCharOrder } from './ts/globalApi';
+  import { checkCharOrder } from './ts/globalApi.svelte';
 
   
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)

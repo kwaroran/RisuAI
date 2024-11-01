@@ -2,7 +2,7 @@ import { getDatabase, setDatabase } from 'src/ts/storage/database.svelte';
 import { selectedCharID } from 'src/ts/stores.svelte';
 import { get } from 'svelte/store';
 import { doingChat, sendChat } from '../index.svelte';
-import { downloadFile, isTauri } from 'src/ts/globalApi';
+import { downloadFile, isTauri } from 'src/ts/globalApi.svelte';
 import { HypaProcesser } from '../memory/hypamemory';
 import { BufferToText as BufferToText, selectSingleFile, sleep } from 'src/ts/util';
 import { postInlayImage } from './image';

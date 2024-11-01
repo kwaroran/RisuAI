@@ -4,7 +4,7 @@ import { getDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
-import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../globalApi";
+import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../globalApi.svelte";
 import { sleep } from "../util";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";

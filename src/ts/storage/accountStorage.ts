@@ -3,7 +3,7 @@ import { getDatabase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
 import { alertLogin, alertStore, alertWait } from "../alert"
-import { forageStorage, getUnpargeables } from "../globalApi"
+import { forageStorage, getUnpargeables } from "../globalApi.svelte"
 import { encodeRisuSaveLegacy } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
@@ -13,6 +13,7 @@ const risuSession = Date.now().toFixed(0)
 const cachedForage = localforage.createInstance({name: "risuaiAccountCached"})
 
 let seenWarnings:string[] = []
+let lastDbSave = 0
 
 export class AccountStorage{
     auth:string
@@ -22,7 +23,19 @@ export class AccountStorage{
         this.checkAuth()
         let da:Response
         while((!da) || da.status === 403){
+
             const saveDate = Date.now().toFixed(0)
+
+            if(key === 'database/database.bin' && Date.now() - lastDbSave < 10000){
+                console.log('saving in cache')
+                //only save in cache if it's database and last save is less than 10 seconds
+                await cachedForage.setItem(key, value).then(() => {
+                    cachedForage.setItem(key + '__date', saveDate)
+                })
+                return key
+            }
+            lastDbSave = Date.now()
+
             da = await fetch(hubURL + '/api/account/write', {
                 method: "POST",
                 body: value,
