@@ -378,9 +378,9 @@
 
                         </div>
                         {#if editMode}
-                            <textarea class="flex-grow h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none" bind:value={message}></textarea>
+                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none" bind:value={message}></textarea>
                         {:else}
-                            <div class="flex-grow h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
+                            <div class="flex-grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
                                 {@render textBox()}
                             </div>
                         {/if}
