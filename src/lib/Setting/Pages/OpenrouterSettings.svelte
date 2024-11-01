@@ -29,8 +29,9 @@
         "Cohere",
         "Lepton",
         "OctoAI",
-        "Novita"
-    ]
+        "Novita",
+        "Lambda"
+    ].sort((a, b) => a.localeCompare(b));
 </script>
 
 <Arcodion name="Openrouter Settings" styled>
