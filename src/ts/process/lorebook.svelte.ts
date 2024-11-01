@@ -3,7 +3,7 @@ import {selectedCharID} from '../stores.svelte'
 import { type Message, type loreBook } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { tokenize } from "../tokenizer";
-import { checkNullish, selectSingleFile } from "../util";
+import { checkNullish, findCharacterbyId, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../globalApi.svelte";
@@ -65,9 +65,14 @@ export async function loadLoreBookV3Prompt(){
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
-        let mText = sliced.map((msg) => {
-            return msg.data
-        }).join('||')
+        let mText = '\x01' +  sliced.map((msg) => {
+            if(msg.role === 'user'){
+                return `{{${DBState.db.username}}}:` + msg.data
+            }
+            else{
+                return `{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data
+            }
+        }).join('\x01||')
         if(arg.recursiveAdditionalPrompt){
             mText += arg.recursiveAdditionalPrompt
         }
