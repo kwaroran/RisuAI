@@ -88,6 +88,8 @@
             }}
             bind:this={inputDom}
             translate="no"
+            role="textbox"
+            tabindex="0"
         >{value ?? ''}</div>
     {:else}
         <div
@@ -103,6 +105,8 @@
             }}
             bind:this={inputDom}
             translate="no"
+            role="textbox"
+            tabindex="0"
         >{value ?? ''}</div>
     {/if}
     <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>

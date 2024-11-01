@@ -76,6 +76,7 @@ You've had:
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <h2 class="text-4xl text-textcolor mb-0 mt-6 font-black relative" class:text-bordered={specialDay === 'newYear'} onclick={onClick}>
     {#if specialDay === 'midAutumn'}
         <span class="text-amber-400">🐉RisuAI🐉</span>
@@ -128,7 +129,8 @@ You've had:
 
 {#if specialDay === 'anniversary'}
     <h1>
-        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" onclick={() => {
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" role="button" tabindex="-1" onclick={() => {
             openURL('https://risuai.net')
         }}>Happy 1st Anniversary!</span>
     </h1>
@@ -138,6 +140,7 @@ You've had:
         <span class="font-semibold text-lg">Score: {score}</span><br>
         <span class="font-semibold text-lg">Time: {time.toFixed(0)}</span>
         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <img src="./santa.png" alt="santa"
             style:margin-left={iconAnimation + 'px'}
             class:grayscale={!miniGameStart}
