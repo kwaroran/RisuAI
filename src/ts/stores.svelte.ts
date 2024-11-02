@@ -1,7 +1,8 @@
-import { writable, type Writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 import type { character, Database, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
+import { getModules, moduleUpdate } from "./process/modules";
 
 function updateSize(){
     SizeStore.set({
@@ -87,3 +88,22 @@ window.addEventListener("resize", updateSize);
 export const DBState = $state({
     db: {} as any as Database
 });
+
+let selIdState = $state(0)
+
+selectedCharID.subscribe((v) => {
+    selIdState = v
+})
+
+$effect.root(() => {
+    $effect(() => {
+        $state.snapshot(DBState.db.modules)
+        DBState?.db?.enabledModules
+        DBState?.db?.enabledModules?.length
+        DBState?.db?.characters?.[selIdState]?.chats?.[DBState?.db?.characters?.[selIdState]?.chatPage]?.modules?.length
+        DBState?.db?.moduleIntergration
+        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+        moduleUpdate()
+
+    })
+})
