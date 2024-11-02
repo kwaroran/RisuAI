@@ -19,9 +19,6 @@
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     import { onDestroy, onMount } from "svelte";
     let translating = $state(false)
-    try {
-        translating = DBState.db.autoTranslate                
-    } catch (error) {}
     let editMode = $state(false)
     let statusMessage:string = $state('')
     interface Props {
@@ -138,12 +135,19 @@
                 lastChatId = chatID
                 translateText = false
                 try {
-                    translated = DBState.db.autoTranslate
-                    if(translated){
+                    console.log('Checking autoTranslate')
+                    if(DBState.db.autoTranslate){
                         translateText = true
                     }
-                } catch (error) {}
+
+                    setTimeout(() => {
+                            translated = translateText
+                    }, 10)
+                } catch (error) {
+                    console.error(error)
+                }
             }
+            console.log(`Translattext: ${translateText}, autoTranslate: ${DBState.db.autoTranslate}`)
             if(translateText){
                 if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
