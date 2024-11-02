@@ -67,44 +67,29 @@
                 }
             }}
 ></textarea>
-    {:else if isFirefox}
-        <div
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
-            contenteditable="true"
-            bind:textContent={value}
-            onkeydown={(e) => {
-                handleKeyDown(e)
-                onInput()
-            }}
-            oninput={(e) => {
-                autoComplete()
-            }}
-            onpaste={(e) => {
-                e.preventDefault()
-                const text = e.clipboardData.getData('text/plain')
-                if(text){
-                    insertTextAtSelection(text)
-                }
-            }}
-            bind:this={inputDom}
-            translate="no"
-        >{value ?? ''}</div>
-    {:else}
-        <div
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
-            contenteditable="plaintext-only"
-            bind:innerText={value}
-            onkeydown={(e) => {
-                handleKeyDown(e)
-                onInput()
-            }}
-            oninput={(e) => {
-                autoComplete()
-            }}
-            bind:this={inputDom}
-            translate="no"
-        >{value ?? ''}</div>
-    {/if}
+{:else}
+    <div
+        class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+        contenteditable="true"
+        bind:textContent={value}
+        onkeydown={(e) => {
+            handleKeyDown(e)
+            onInput()
+        }}
+        oninput={(e) => {
+            autoComplete()
+        }}
+        onpaste={(e) => {
+            e.preventDefault()
+            const text = e.clipboardData.getData('text/plain')
+            if(text){
+                insertTextAtSelection(text)
+            }
+        }}
+        bind:this={inputDom}
+        translate="no"
+    >{value ?? ''}</div>
+{/if}
     <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>
         {#each autocompleteContents as content, i}
             <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} onclick={() => {
