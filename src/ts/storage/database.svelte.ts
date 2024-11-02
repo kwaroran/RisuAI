@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
 export let appVer = "138.0.0"
-export let webAppSubVer = '-svelte5-exp'
+export let webAppSubVer = ''
 
 
 export function setDatabase(data:Database){
