@@ -13,7 +13,7 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState } from "./stores.svelte";
@@ -309,7 +309,7 @@ let lastSave = ''
  * @returns {Promise<void>} - A promise that resolves when the database has been saved.
  */
 export async function saveDb(){
-    let changed = true
+    let changed = false
     syncDrive()
     let gotChannel = false
     const sessionID = v4()
@@ -330,10 +330,37 @@ export async function saveDb(){
         }
     }
 
+
+    $effect.root(() => {
+
+        let selIdState = $state(0)
+
+        selectedCharID.subscribe((v) => {
+            selIdState = v
+        })
+
+        $effect(() => {
+            $state.snapshot(DBState?.db?.characters?.[selIdState])
+            for(const key in DBState.db){
+                if(key !== 'characters'){
+                    $state.snapshot(DBState.db[key])
+                }
+            }
+            changed = true
+        })
+    })
+
     let savetrys = 0
     let lastDbData = new Uint8Array(0)
     await sleep(1000)
     while(true){
+        if(!changed){
+            await sleep(1000)
+            continue
+        }
+
+        changed = false
+
         try {
             if(gotChannel){
                 //Data is saved in other tab
@@ -382,6 +409,8 @@ export async function saveDb(){
                     if(z.formatversion){
                         await forageStorage.setItem('database/database.bin', dbData)
                     }
+
+                    await sleep(3000)
                 }
             }
             if(!forageStorage.isAccount){
