@@ -88,8 +88,6 @@
             }}
             bind:this={inputDom}
             translate="no"
-            role="textbox"
-            tabindex="0"
         >{value ?? ''}</div>
     {:else}
         <div
@@ -105,8 +103,6 @@
             }}
             bind:this={inputDom}
             translate="no"
-            role="textbox"
-            tabindex="0"
         >{value ?? ''}</div>
     {/if}
     <div class="hidden absolute z-100 bg-bgcolor border border-darkborderc p-2 flex-col" bind:this={autoCompleteDom}>
@@ -119,7 +115,7 @@
 </div>
 <script lang="ts">
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
-    import { highlighter, getNewHighlightId, removeHighlight, AllCBS, decorators } from 'src/ts/gui/highlight'
+    import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
     import { isMobile } from 'src/ts/globalApi.svelte';
     import { isFirefox, sleep } from 'src/ts/util';
     import { onDestroy, onMount } from 'svelte';
@@ -163,7 +159,7 @@
     let autocompleteContents:string[] = $state([])
     let inputDom: HTMLDivElement = $state()
 
-    const autoComplete = (type:'cbs'|'decorator'|'both' = 'both') => {
+    const autoComplete = () => {
         if(isMobile){
             return
         }
@@ -178,24 +174,14 @@
 
         if(range){
             const qValue = (range.startContainer).textContent
-            const splited = qValue.substring(0, range.startOffset).split(type === 'decorator' ? '@@' : '{{')
+            const splited = qValue.substring(0, range.startOffset).split('{{')
             if(splited.length === 1){
-                if(type === 'both'){
-                    return autoComplete('decorator')
-                }
                 hideAutoComplete()
                 return
             }
             const qText = splited.pop()
-            let filtered = (type === 'decorator' ? decorators : AllCBS).filter((cb) => cb.startsWith(qText))
-            if(type === 'decorator'){
-                filtered = filtered.map((cb) => '@' + cb)
-            }
-
+            let filtered = AllCBS.filter((cb) => cb.startsWith(qText))
             if(filtered.length === 0){
-                if(type === 'both'){
-                    return autoComplete('decorator')
-                }
                 hideAutoComplete()
                 return
             }
@@ -225,11 +211,8 @@
             let contentStart = content.substring(0, range.startOffset)
             let contentEnd = content.substring(range.startOffset)
             if(type === 'autoComplete'){
-                contentStart = contentStart.substring(0, contentStart.lastIndexOf(insertContent.startsWith('@') ? '@@' : '{{'))
-                if(insertContent.startsWith('@')){
-                    insertContent = `@${insertContent}`
-                }
-                else if(insertContent.endsWith(':')){
+                contentStart = contentStart.substring(0, contentStart.lastIndexOf('{{'))
+                if(insertContent.endsWith(':')){
                     insertContent = `{{${insertContent}:`
                 }
                 else if(insertContent.startsWith('#')){
