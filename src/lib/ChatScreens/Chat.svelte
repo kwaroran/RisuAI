@@ -93,11 +93,19 @@
     }
 
     function getCbsCondition(){
-        const cbsConditions:CbsConditions = {
-            firstmsg: firstMessage ?? false,
-            chatRole: DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]?.message?.[idx]?.role ?? null,
+        try{
+            const cbsConditions:CbsConditions = {
+                firstmsg: firstMessage ?? false,
+                chatRole: DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]?.message?.[idx]?.role ?? null,
+            }
+            return cbsConditions
         }
-        return cbsConditions
+        catch(e){
+            return {
+                firstmsg: firstMessage ?? false,
+                chatRole: null,
+            }
+        }
     }
 
     function displaya(message:string){
