@@ -191,6 +191,19 @@
     onDestroy(()=>{
         unsubscribers.forEach(u => u())
     })
+
+    function RenderGUIHtml(html:string){
+        try {
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(risuChatParser(html ?? ''), 'text/html')
+            console.log(doc.body)
+            return doc.body   
+        } catch (error) {
+            const placeholder = document.createElement('div')
+            return placeholder
+        }
+    }
+
 </script>
 
 
@@ -227,7 +240,7 @@
     {:else}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <span class="text chat chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
+        <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
             if(DBState.db.clickToEdit && idx > -1){
                 editMode = true
             }
@@ -336,6 +349,148 @@
     {/if}
 {/snippet}
 
+{#snippet renderGuiHtmlPart(dom:HTMLElement)}
+    {#if dom.tagName === 'IMG'}
+        <img class={dom.getAttribute('class') ?? ''} alt="" style={dom.getAttribute('style') ?? ''} />
+    {:else if dom.tagName === 'A'}
+        <a target="_blank" rel="noreferrer" href={
+            (dom.getAttribute('href') && dom.getAttribute('href').startsWith('https')) ? dom.getAttribute('href') : ''
+        } class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </a>
+    {:else if dom.tagName === 'SPAN'}
+        <span class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </span>
+    {:else if dom.tagName === 'DIV'}
+        <div class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </div>
+    {:else if dom.tagName === 'P'}
+        <p class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </p>
+    {:else if dom.tagName === 'H1'}
+        <h1 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h1>
+    {:else if dom.tagName === 'H2'}
+        <h2 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h2>
+    {:else if dom.tagName === 'H3'}
+        <h3 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h3>
+    {:else if dom.tagName === 'H4'}
+        <h4 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h4>
+    {:else if dom.tagName === 'H5'}
+        <h5 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h5>
+    {:else if dom.tagName === 'H6'}
+        <h6 class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </h6>
+    {:else if dom.tagName === 'UL'}
+        <ul class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </ul>
+    {:else if dom.tagName === 'OL'}
+        <ol class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </ol>
+    {:else if dom.tagName === 'LI'}
+        <li class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </li>
+    {:else if dom.tagName === 'TABLE'}
+        <table class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </table>
+    {:else if dom.tagName === 'TR'}
+        <tr class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </tr>
+    {:else if dom.tagName === 'TD'}
+        <td class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </td>
+    {:else if dom.tagName === 'TH'}
+        <th class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </th>
+    {:else if dom.tagName === 'HR'}
+        <hr class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''} />
+    {:else if dom.tagName === 'BR'}
+        <br class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''} />
+    {:else if dom.tagName === 'CODE'}
+        <code class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </code>
+    {:else if dom.tagName === 'PRE'}
+        <pre class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </pre>
+    {:else if dom.tagName === 'BLOCKQUOTE'}
+        <blockquote class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </blockquote>
+    {:else if dom.tagName === 'EM'}
+        <em class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </em>
+    {:else if dom.tagName === 'STRONG'}
+        <strong class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </strong>
+    {:else if dom.tagName === 'U'}
+        <u class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </u>
+    {:else if dom.tagName === 'DEL'}
+        <del class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </del>
+    {:else if dom.tagName === 'BUTTON'}
+        <button class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </button>
+    {:else if dom.tagName === 'STYLE'}
+        <!-- <div>
+            <style>
+                {dom.innerHTML}
+            </style>
+        </div> -->
+    {:else if dom.tagName === 'RISUTEXTBOX'}
+        {@render textBox()}
+    {:else if dom.tagName === 'RISUICON'}
+        {@render icon()}
+    {:else if dom.tagName === 'RISUBUTTONS'}
+        {@render icons()}
+    {:else if dom.tagName === 'RISUGENINFO'}
+        {@render genInfo()}
+    {:else if dom.tagName === 'STYLE'}
+        <svelte:element this={'style'}>
+            {dom.innerHTML}
+        </svelte:element>
+    {:else}
+        <div class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
+            {@render renderChilds(dom)}
+        </div>
+    {/if}
+
+    
+{/snippet}
+
+{#snippet renderChilds(dom:HTMLElement)}
+    {#each dom.children as node}
+        {@render renderGuiHtmlPart((node as HTMLElement))}
+    {/each}
+{/snippet}
+
 <div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
@@ -390,12 +545,14 @@
                     {@render icons({applyTextColors: false})}
                 </div>
             </div>
+        {:else if DBState.db.theme === 'customHTML' && !blankMessage}
+            {@render renderGuiHtmlPart(RenderGUIHtml(DBState.db.guiHTML))}
         {:else}
             {@render icon({rounded: DBState.db.roundIcons})}
             <span class="flex flex-col ml-4 w-full max-w-full min-w-0 text-black">
-                <div class="flexium items-center chat">
+                <div class="flexium items-center chat-width">
                     {#if DBState.db.characters[$selectedCharID]?.chaId === "§playground" && !blankMessage}
-                        <span class="chat text-xl border-darkborderc flex items-center">
+                        <span class="chat-width text-xl border-darkborderc flex items-center">
                             <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
                             <button class="ml-2 text-textcolor2 hover:text-textcolor" onclick={() => {
                                 DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role === 'char' ? 'user' : 'char'
@@ -403,7 +560,7 @@
                             }}><ArrowLeftRightIcon size="18" /></button>
                         </span>
                     {:else if !blankMessage && !$HideIconStore}
-                        <span class="chat text-xl unmargin text-textcolor">{name}</span>
+                        <span class="chat-width text-xl unmargin text-textcolor">{name}</span>
                     {/if}
                     {@render icons()}
                 </div>
@@ -413,20 +570,3 @@
         {/if}
     </div>
 </div>
-
-
-<style>
-    .flexium{
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-    }
-    .chat{
-        max-width: calc(100% - 0.5rem);
-        word-break: normal;
-        overflow-wrap: anywhere;
-    }
-    .translating{
-        color: rgba(16, 185, 129, 1);
-    }
-</style>

@@ -57,13 +57,19 @@
         <OptionInput value="mobilechat" >Mobile Chat</OptionInput>
         <OptionInput value="cardboard" >CardBoard</OptionInput>
 
-        <!-- <OptionInput value="custom" >Custom GUI</OptionInput> -->
+        <OptionInput value="customHTML" >Custom HTML</OptionInput>
     </SelectInput>
 
     {#if DBState.db.theme === "custom"}
         <Button className="mt-2" onclick={() => {
             CustomGUISettingMenuStore.set(true)
         }}>{language.defineCustomGUI}</Button>
+    {/if}
+
+
+    {#if DBState.db.theme === 'customHTML'}
+        <span class="text-textcolor mt-4">{language.chatHTML} <Help key="chatHTML"/></span>
+        <TextAreaInput bind:value={DBState.db.guiHTML} />
     {/if}
 
 

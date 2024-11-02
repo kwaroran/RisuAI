@@ -813,6 +813,7 @@ export interface Database{
     groupTemplate?:string
     groupOtherBotRole?:string
     customGUI:string
+    guiHTML:string
 }
 
 export interface customscript{
