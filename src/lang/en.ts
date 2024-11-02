@@ -164,7 +164,7 @@ export const languageEnglish = {
         translatorNote: "Here, you can add a unique translation prompt for each character. This option only applies when using the Ax. model for translation. To apply it, include `{{slot::tnote}}` in the language settings. It doesn't work in group chats.",
         groupInnerFormat: "This defines a format that is used in group chat for characters that isn't speaker. if it is not blank, it will use this format instead of the default format. if `Group Other Bot Role` is `assistant`, it will also be applied to the speaker.",
         groupOtherBotRole: "This defines a role that is used in group chat for characters that isn't speaker.",
-        chatHTML: "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutext>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button."
+        chatHTML: "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
