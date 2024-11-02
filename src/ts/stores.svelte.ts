@@ -89,6 +89,8 @@ export const DBState = $state({
     db: {} as any as Database
 });
 
+export const disableHighlight = writable(true)
+
 let selIdState = $state(0)
 
 selectedCharID.subscribe((v) => {
