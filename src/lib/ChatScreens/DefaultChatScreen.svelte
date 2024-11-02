@@ -3,13 +3,13 @@
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
-    import { selectedCharID, PlaygroundStore, UserIconProtrait, createSimpleCharacter } from "../../ts/stores.svelte";
+    import { selectedCharID, PlaygroundStore, createSimpleCharacter } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
 	import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
-    import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
+    import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
     import { alertError, alertNormal, alertWait } from "../../ts/alert";
@@ -262,6 +262,29 @@
     openChatList?: boolean;
     customStyle?: string;
   }
+  
+  let userIconProtrait = $state(false)
+  let currentUsername = $state(DBState.db.username)
+  let userIcon = $state(DBState.db.userIcon)
+
+
+    $effect.pre(() =>{
+        const bindedPersona = DBState?.db?.characters?.[$selectedCharID]?.chats?.[DBState?.db?.characters?.[$selectedCharID]?.chatPage]?.bindedPersona
+
+        if(bindedPersona){
+            const persona = DBState.db.personas.find((p) => p.id === bindedPersona)
+            if(persona){
+                currentUsername = persona.name
+                userIconProtrait = persona.largePortrait
+                userIcon = persona.icon
+                return
+            }
+        }
+
+        currentUsername = DBState.db.username
+        userIconProtrait = DBState.db.personas[DBState.db.selectedPersona].largePortrait
+        userIcon = DBState.db.personas[DBState.db.selectedPersona].icon
+    })
 
   let { openModuleList = $bindable(false), openChatList = $bindable(false), customStyle = '' }: Props = $props();
     let inputHeight = $state("44px")
@@ -590,11 +613,11 @@
                     <Chat
                         character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
                         idx={chat.index}
-                        name={chat.name ?? DBState.db.username} 
+                        name={chat.name ?? currentUsername} 
                         message={chat.data}
-                        img={$ConnectionOpenStore ? '' : getCharImage(DBState.db.userIcon, 'css')}
+                        img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
                         isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                        largePortrait={$UserIconProtrait}
+                        largePortrait={userIconProtrait}
                         messageGenerationInfo={chat.generationInfo}
                     />
                 {/if}
