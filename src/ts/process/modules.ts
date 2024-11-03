@@ -425,10 +425,7 @@ export function moduleUpdate(){
     })
 
     if(backgroundEmbedding){
-        console.log('Background Embedding:', backgroundEmbedding)
         moduleBackgroundEmbedding.set(backgroundEmbedding)
     }
-    console.log('Module Hide Icon:', moduleHideIcon)
-    console.log(Date.now())
     HideIconStore.set(getCurrentCharacter()?.hideChatIcon || moduleHideIcon)
 }
