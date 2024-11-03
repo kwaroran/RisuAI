@@ -404,10 +404,6 @@ export function moduleUpdate(){
     const m = getModules()
 
     const ids = m.map((m) => m.id).join('-')
-    if(lastModuleIds !== ids){
-        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
-        lastModuleIds = ids
-    }
     
     let moduleHideIcon = false
     let backgroundEmbedding = ''
@@ -428,4 +424,9 @@ export function moduleUpdate(){
         moduleBackgroundEmbedding.set(backgroundEmbedding)
     }
     HideIconStore.set(getCurrentCharacter()?.hideChatIcon || moduleHideIcon)
+
+    if(lastModuleIds !== ids){
+        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+        lastModuleIds = ids
+    }
 }
