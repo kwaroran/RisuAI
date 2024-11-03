@@ -8,7 +8,7 @@ import { convertExternalLorebook } from "./lorebook.svelte"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
 import { convertImage } from "../parser.svelte"
 import { Capacitor } from "@capacitor/core"
-import { HideIconStore, moduleBackgroundEmbedding } from "../stores.svelte"
+import { DBState, HideIconStore, moduleBackgroundEmbedding } from "../stores.svelte"
 
 export interface RisuModule{
     name: string
@@ -397,7 +397,6 @@ export async function applyModule() {
 
 let lastGlobalEnabledModules: string[] = []
 let lastChatEnabledModules: string[] = []
-let characterHideIcon = false
 
 export function moduleUpdate(){
     if(!Array.isArray(lastGlobalEnabledModules)){
@@ -425,7 +424,10 @@ export function moduleUpdate(){
     })
 
     if(backgroundEmbedding){
+        console.log('Background Embedding:', backgroundEmbedding)
         moduleBackgroundEmbedding.set(backgroundEmbedding)
     }
-    HideIconStore.set(characterHideIcon || moduleHideIcon)
+    console.log('Module Hide Icon:', moduleHideIcon)
+    console.log(Date.now())
+    HideIconStore.set(getCurrentCharacter()?.hideChatIcon || moduleHideIcon)
 }

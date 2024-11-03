@@ -49,6 +49,10 @@ export const alertStore = writable({
     type: 'none',
     msg: 'n',
 } as alertData)
+export const selIdState = $state({
+    selId: -1
+})
+
 
 CustomCSSStore.subscribe((css) => {
     console.log(css)
@@ -91,18 +95,16 @@ export const DBState = $state({
 
 export const disableHighlight = writable(true)
 
-let selIdState = $state(0)
-
-selectedCharID.subscribe((v) => {
-    selIdState = v
-})
-
 $effect.root(() => {
+    selectedCharID.subscribe((v) => {
+        selIdState.selId = v
+    })
     $effect(() => {
         $state.snapshot(DBState.db.modules)
         DBState?.db?.enabledModules
         DBState?.db?.enabledModules?.length
-        DBState?.db?.characters?.[selIdState]?.chats?.[DBState?.db?.characters?.[selIdState]?.chatPage]?.modules?.length
+        DBState?.db?.characters?.[selIdState.selId]?.chats?.[DBState?.db?.characters?.[selIdState.selId]?.chatPage]?.modules?.length
+        DBState?.db?.characters?.[selIdState.selId]?.hideChatIcon
         DBState?.db?.moduleIntergration
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
         moduleUpdate()
