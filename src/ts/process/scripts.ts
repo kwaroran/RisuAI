@@ -65,9 +65,38 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 }
 
 let bestMatchCache = new Map<string, string>()
+let processScriptCache = new Map<string, string>()
+
+function cacheScript(scripts:customscript[], data:string, result:string){
+    let hash = data + '|||'
+    for(const script of scripts){
+        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+    }
+
+    processScriptCache.set(hash, result)
+
+}
+
+function getScriptCache(scripts:customscript[], data:string){
+    let hash = data + '|||'
+    for(const script of scripts){
+        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+    }
+
+    return processScriptCache.get(hash)
+}
+
+export function resetScriptCache(){
+    processScriptCache = new Map()
+}
 
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
+    const originalData = data
+    const cached = getScriptCache((db.globalscript ?? []).concat(char.customscript), originalData)
+    if(cached){
+        return {data: cached, emoChanged: false}
+    }
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runCharacterJS({
@@ -77,6 +106,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     })
     data = await runLuaEditTrigger(char, mode, data)
     if(scripts.length === 0){
+        cacheScript(scripts, originalData, data)
         return {data, emoChanged}
     }
     function executeScript(pscript:pScript){
@@ -310,6 +340,8 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    cacheScript(scripts, originalData, data)
 
     return {data, emoChanged}
 }

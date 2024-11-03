@@ -3,6 +3,7 @@ import type { character, Database, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
 import { getModules, moduleUpdate } from "./process/modules";
+import { resetScriptCache } from "./process/scripts";
 
 function updateSize(){
     SizeStore.set({
@@ -95,6 +96,10 @@ export const DBState = $state({
 
 export const disableHighlight = writable(true)
 
+ReloadGUIPointer.subscribe(() => {
+    resetScriptCache()
+})
+
 $effect.root(() => {
     selectedCharID.subscribe((v) => {
         selIdState.selId = v
@@ -106,8 +111,6 @@ $effect.root(() => {
         DBState?.db?.characters?.[selIdState.selId]?.chats?.[DBState?.db?.characters?.[selIdState.selId]?.chatPage]?.modules?.length
         DBState?.db?.characters?.[selIdState.selId]?.hideChatIcon
         DBState?.db?.moduleIntergration
-        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
         moduleUpdate()
-
     })
 })

@@ -6,7 +6,7 @@
     import { language } from "../../lang";
     import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { HideIconStore, ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
+    import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { get, type Unsubscriber } from "svelte/store";
@@ -18,6 +18,7 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     import { onDestroy, onMount } from "svelte";
+  import { PerformanceDebugger } from "src/ts/globalApi.svelte";
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -55,12 +56,12 @@
 
     let msgDisplay = $state('')
     let translated = $state(DBState.db.autoTranslate)
-    let role = $derived(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx]?.role)
+    let role = $derived(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.role)
     async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){
-            let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+            let msg = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message
             msg = msg.slice(0, idx)
-            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
+            DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message = msg
             return
         }
 
@@ -68,32 +69,32 @@
         if(rm){
             if(DBState.db.instantRemove || rec){
                 const r = await alertConfirm(language.instantRemoveConfirm)
-                let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+                let msg = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message
                 if(!r){
                     msg = msg.slice(0, idx)
                 }
                 else{
                     msg.splice(idx, 1)
                 }
-                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
+                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message = msg
             }
             else{
-                let msg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+                let msg = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message
                 msg.splice(idx, 1)
-                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msg
+                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message = msg
             }
         }
     }
 
     async function edit(){
-        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].data = message
+        DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].data = message
     }
 
     function getCbsCondition(){
         try{
             const cbsConditions:CbsConditions = {
                 firstmsg: firstMessage ?? false,
-                chatRole: DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]?.message?.[idx]?.role ?? null,
+                chatRole: DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]?.message?.[idx]?.role ?? null,
             }
             return cbsConditions
         }
@@ -106,6 +107,7 @@
     }
 
     function displaya(message:string){
+        const perf = performance.now()
         msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true, cbsConditions: getCbsCondition()})
     }
 
@@ -135,7 +137,6 @@
                 lastChatId = chatID
                 translateText = false
                 try {
-                    console.log('Checking autoTranslate')
                     if(DBState.db.autoTranslate){
                         translateText = true
                     }
@@ -147,7 +148,6 @@
                     console.error(error)
                 }
             }
-            console.log(`Translattext: ${translateText}, autoTranslate: ${DBState.db.autoTranslate}`)
             if(translateText){
                 if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
@@ -284,7 +284,7 @@
             </button>    
         {/if}
         {#if idx > -1}
-            {#if DBState.db.characters[$selectedCharID].type !== 'group' && DBState.db.characters[$selectedCharID].ttsMode !== 'none' && (DBState.db.characters[$selectedCharID].ttsMode)}
+            {#if DBState.db.characters[selIdState.selId].type !== 'group' && DBState.db.characters[selIdState.selId].ttsMode !== 'none' && (DBState.db.characters[selIdState.selId].ttsMode)}
                 <button class="ml-2 hover:text-blue-500 transition-colors" onclick={()=>{
                     return sayTTS(null, message)
                 }}>
@@ -335,7 +335,7 @@
 
 {#snippet icon(options:{rounded?:boolean,styleFix?:string} = {})}
     {#if !blankMessage && !$HideIconStore}
-        {#if DBState.db.characters[$selectedCharID]?.chaId === "§playground"}
+        {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground"}
         <div class="shadow-lg border-textcolor2 border flex justify-center items-center text-textcolor2" style={options?.styleFix ?? `height:${DBState.db.iconsize * 3.5 / 100}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
             class:rounded-md={options?.rounded} class:rounded-full={options?.rounded}>
                 {#if name === 'assistant'}
@@ -516,7 +516,7 @@
                     class:rounded-tr-none={role === 'user'}
                 >
                     <p class="text-gray-800">{@render textBox()}</p>
-                    {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx]?.time}
+                    {#if DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.time}
                         <span class="text-xs text-textcolor2 mt-1 block">
                             {new Intl.DateTimeFormat(undefined, {
                                 hour: '2-digit',
@@ -525,7 +525,7 @@
                                 month: '2-digit',
                                 day: '2-digit',
                                 hour12: false
-                            }).format(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].time)}
+                            }).format(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].time)}
                         </span>
                     {/if}
                 </div>
@@ -563,12 +563,12 @@
             {@render icon({rounded: DBState.db.roundIcons})}
             <span class="flex flex-col ml-4 w-full max-w-full min-w-0 text-black">
                 <div class="flexium items-center chat-width">
-                    {#if DBState.db.characters[$selectedCharID]?.chaId === "§playground" && !blankMessage}
+                    {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground" && !blankMessage}
                         <span class="chat-width text-xl border-darkborderc flex items-center">
                             <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
                             <button class="ml-2 text-textcolor2 hover:text-textcolor" onclick={() => {
-                                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].role === 'char' ? 'user' : 'char'
-                                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
+                                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role === 'char' ? 'user' : 'char'
+                                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage] = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]
                             }}><ArrowLeftRightIcon size="18" /></button>
                         </span>
                     {:else if !blankMessage && !$HideIconStore}

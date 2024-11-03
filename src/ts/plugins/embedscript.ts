@@ -245,12 +245,9 @@ export async function runCharacterJS(arg:{
     mode: ScriptMode|'onButtonClick'|'modifyRequestChat'
     data: any
 }):Promise<any>{
+    const perf = performance.now()
     try {
-        if(arg.code === null){
-            const db = getDatabase()
-            const selectedChar = get(selectedCharID)
-            arg.code = db.characters[selectedChar].virtualscript
-        }
+        arg.code = arg.code ?? ''
         const codes = {
             "editinput": 'editInput',
             "editoutput": 'editOutput',
@@ -319,6 +316,9 @@ export async function runCharacterJS(arg:{
             return `Error: ${error}`
         }
         return arg.data
+    }
+    finally{
+        console.log('runCharacterJS',performance.now() - perf)
     }
 
 }
