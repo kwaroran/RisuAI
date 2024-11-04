@@ -17,6 +17,7 @@
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
+  import { loadLoreBookV3Prompt } from "src/ts/process/lorebook.svelte";
 
     let previewMode = $state('chat')
     let previewJoin = $state('yes')
@@ -244,6 +245,40 @@
         <OptionInput value="no">Without Join</OptionInput>
     </SelectInput>
     <Button className="mt-2" onclick={() => {preview()}}>Run</Button>
+</Arcodion>
+
+<Arcodion styled name={"Preview Lorebook"}>
+    <Button className="mt-2" onclick={async () => {
+        const lorebookResult = await loadLoreBookV3Prompt()
+        const html = `
+        ${lorebookResult.actives.map((v) => {
+            return `## ${v.source}\n\n\`\`\`\n${v.prompt}\n\`\`\`\n`
+        }).join('\n')}
+        `.trim()
+        alertMd(html)
+    }}>Test Lore</Button>
+    <Button className="mt-2" onclick={async () => {
+        const lorebookResult = await loadLoreBookV3Prompt()
+        const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${lorebookResult.matchLog.map((v) => {
+                    return `<tr>
+                        <td><pre>${v.activated.trim()}</pre></td>
+                        <td><pre>${v.source.trim()}</pre></td>
+                    </tr>`
+                }).join('\n')}
+            </tbody>
+        </table>
+        `.trim()
+        alertMd(html)
+    }}>Match Sources</Button>
 </Arcodion>
 
 <Button className="mt-2" onclick={() => {

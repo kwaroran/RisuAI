@@ -53,78 +53,124 @@ export async function loadLoreBookV3Prompt(){
     const fullWordMatchingSetting = char.loreSettings?.fullWordMatching ?? false
     const chatLength = currentChat.length + 1 //includes first message
     const recursiveScanning = char.loreSettings?.recursiveScanning ?? true
-    let recursiveAdditionalPrompt = ''
+    let recursivePrompt:{
+        prompt: string,
+        source: string
+    }[] = []
+    let matchLog:{
+        prompt: string,
+        source: string
+        activated: string
+    }[] = []
 
     const searchMatch = (messages:Message[],arg:{
         keys:string[],
         searchDepth:number,
         regex:boolean
         fullWordMatching:boolean
-        recursiveAdditionalPrompt:string,
         all?:boolean
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
-        let mText = '\x01' +  sliced.map((msg) => {
+        let mList:{
+            source:string
+            prompt:string
+        }[] = sliced.map((msg, i) => {
             if(msg.role === 'user'){
-                return `{{${DBState.db.username}}}:` + msg.data
+                return {
+                    source: `message ${i} by user`,
+                    prompt: `\x01{{${DBState.db.username}}}:` + msg.data + '\x01'
+                }
             }
             else{
-                return `{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data
-            }
-        }).join('\x01')
-        if(arg.recursiveAdditionalPrompt){
-            mText += arg.recursiveAdditionalPrompt
-        }
-        if(arg.regex){
-            for(const regexString of arg.keys){
-                if(!regexString.startsWith('/')){
-                    return false
+                return {
+                    source: `message ${i} by char`,
+                    prompt: `\x01{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data + '\x01'
                 }
-                const regexFlag = regexString.split('/').pop()
-                if(regexFlag){
-                    arg.keys[0] = regexString.replace('/'+regexFlag,'')
-                    try {
-                        const regex = new RegExp(arg.keys[0],regexFlag)
-                        return regex.test(mText)
-                    } catch (error) {
+            }
+        }).concat(recursivePrompt.map((msg) => {
+            return {
+                source: 'lorebook ' + msg.source,
+                prompt: msg.prompt
+            }
+        }))
+
+        if(arg.regex){
+            for(const mText of mList){
+                for(const regexString of arg.keys){
+                    if(!regexString.startsWith('/')){
                         return false
                     }
+                    const regexFlag = regexString.split('/').pop()
+                    if(regexFlag){
+                        arg.keys[0] = regexString.replace('/'+regexFlag,'')
+                        try {
+                            const regex = new RegExp(arg.keys[0],regexFlag)
+                            const d = regex.test(mText.prompt)
+                            if(d){
+                                matchLog.push({
+                                    prompt: mText.prompt,
+                                    source: mText.source,
+                                    activated: regexString
+                                })
+                                return true
+                            }
+                        } catch (error) {
+                            return false
+                        }
+                    }
                 }
-                return false
             }
+            return false
         }
 
-        mText = mText.toLocaleLowerCase()
-        mText = mText.replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
+        mList = mList.map((m) => {
+            return {
+                source: m.source,
+                prompt: m.prompt.toLocaleLowerCase().replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
+            }
+        })
 
         let allMode = arg.all ?? false
         let allModeMatched = true
 
-        if(arg.fullWordMatching){
-            const splited = mText.split(' ')
-            for(const key of arg.keys){
-                if(splited.includes(key.toLocaleLowerCase())){
-                    if(!allMode){
-                        return true
+        for(const m of mList){
+            let mText = m.prompt
+            if(arg.fullWordMatching){
+                const splited = mText.split(' ')
+                for(const key of arg.keys){
+                    if(splited.includes(key.toLocaleLowerCase())){
+                        matchLog.push({
+                            prompt: m.prompt,
+                            source: m.source,
+                            activated: key
+                        })
+                        if(!allMode){
+                            return true
+                        }
                     }
-                }
-                else if(allMode){
-                    allModeMatched = false
+                    else if(allMode){
+                        allModeMatched = false
+                    }
                 }
             }
-        }
-        else{
-            mText = mText.replace(/ /g,'')
-            for(const key of arg.keys){
-                const realKey = key.toLocaleLowerCase().replace(/ /g,'')
-                if(mText.includes(realKey)){
-                    if(!allMode){
-                        return true
+            else{
+                mText = mText.replace(/ /g,'')
+                for(const key of arg.keys){
+                    const realKey = key.toLocaleLowerCase().replace(/ /g,'')
+                    if(mText.includes(realKey)){
+                        matchLog.push({
+                            prompt: m.prompt,
+                            source: m.source,
+                            activated: key
+                        })
+                        if(!allMode){
+                            return true
+                        }
                     }
-                }
-                else if(allMode){
-                    allModeMatched = false
+                    else if(allMode){
+                        allModeMatched = false
+                    }
                 }
             }
         }
@@ -144,6 +190,7 @@ export async function loadLoreBookV3Prompt(){
         order:number
         tokens:number
         priority:number
+        source:string
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
@@ -340,7 +387,6 @@ export async function loadLoreBookV3Prompt(){
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
                         fullWordMatching: fullWordMatching,
-                        recursiveAdditionalPrompt: recursiveAdditionalPrompt,
                         all: query.all
                     })
                     if(query.negative){
@@ -373,12 +419,16 @@ export async function loadLoreBookV3Prompt(){
                     role: role,
                     order: order,
                     tokens: await tokenize(content),
-                    priority: priority
+                    priority: priority,
+                    source: fullLore[i].comment || `lorebook ${i}`
                 })
                 activatedIndexes.push(i)
                 if(recursiveScanning){
                     matching = true
-                    recursiveAdditionalPrompt += content + '\n\n'
+                    recursivePrompt.push({
+                        prompt: content,
+                        source: fullLore[i].comment || `lorebook ${i}`
+                    })
                 }
             }
         }
@@ -403,7 +453,8 @@ export async function loadLoreBookV3Prompt(){
     })
 
     return {
-        actives: activesResorted.reverse()
+        actives: activesResorted.reverse(),
+        matchLog: matchLog,
     }
 
 }
