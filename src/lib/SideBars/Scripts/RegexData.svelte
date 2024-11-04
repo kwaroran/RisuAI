@@ -10,6 +10,7 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+  import { ReloadGUIPointer } from "src/ts/stores.svelte";
 
   interface Props {
     value: customscript;
@@ -108,9 +109,13 @@
     {#if open}
         <div class="seperator p-2">
             <span class="text-textcolor mt-6">{language.name}</span>
-            <TextInput size="sm" bind:value={value.comment} />
+            <TextInput size="sm" bind:value={value.comment} onchange={(e) => {
+                $ReloadGUIPointer += 1
+            }} />
             <span class="text-textcolor mt-4">Modification Type</span>
-            <SelectInput bind:value={value.type}>
+            <SelectInput bind:value={value.type} onchange={(e) => {
+                $ReloadGUIPointer += 1
+            }}>
                 <OptionInput value="editinput">{language.editInput}</OptionInput>
                 <OptionInput value="editoutput">{language.editOutput}</OptionInput>
                 <OptionInput value="editprocess">{language.editProcess}</OptionInput>
@@ -120,7 +125,9 @@
             <span class="text-textcolor mt-6">IN:</span>
             <TextInput size="sm" bind:value={value.in} />
             <span class="text-textcolor mt-6">OUT:</span>
-            <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} />
+            <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} onInput={(e) => {
+                $ReloadGUIPointer += 1
+            }} />
             {#if value.ableFlag}
                 <!-- <span class="text-textcolor mt-6">FLAG:</span>
                 <TextInput size="sm" bind:value={value.flag} /> -->

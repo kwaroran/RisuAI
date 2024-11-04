@@ -65,6 +65,7 @@
                     value = e.currentTarget.value
                     onInput()
                 }
+                onchange()
             }}
 ></textarea>
 {:else}
@@ -85,6 +86,9 @@
             if(text){
                 insertTextAtSelection(text)
             }
+        }}
+        onchange={(e) => {
+            onchange()
         }}
         bind:this={inputDom}
         translate="no"
@@ -119,6 +123,7 @@
         className?: string;
         optimaizedInput?: boolean;
         highlight?: boolean;
+        onchange?: () => void;
     }
 
     let {
@@ -134,7 +139,8 @@
         height = 'default',
         className = '',
         optimaizedInput = true,
-        highlight = false
+        highlight = false,
+        onchange = () => {}
     }: Props = $props();
     let selectingAutoComplete = $state(0)
     let highlightId = highlight ? getNewHighlightId() : 0
