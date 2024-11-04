@@ -15,6 +15,18 @@ const magicHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 7]);
 const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 8]);
 const magicStreamCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 9]);
 
+
+async function checkCompressionStreams(){
+    if(!CompressionStream){
+        const {makeCompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        globalThis.CompressionStream = makeCompressionStream(TransformStream);
+    }
+    if(!DecompressionStream){
+        const {makeDecompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        globalThis.DecompressionStream = makeDecompressionStream(TransformStream);
+    }
+}
+
 export function encodeRisuSaveLegacy(data:any, compression:'noCompression'|'compression' = 'noCompression'){
     let encoded:Uint8Array = packr.encode(data)
     if(compression === 'compression'){
@@ -33,6 +45,7 @@ export function encodeRisuSaveLegacy(data:any, compression:'noCompression'|'comp
 }
 
 export async function encodeRisuSave(data:any) {
+    await checkCompressionStreams()
     let encoded:Uint8Array = packr.encode(data)
     const cs = new CompressionStream('gzip');
     const writer = cs.writable.getWriter();
@@ -55,6 +68,7 @@ export async function decodeRisuSave(data:Uint8Array){
                 data = data.slice(magicHeader.length)
                 return unpackr.decode(data)
             case "stream":{
+                await checkCompressionStreams()
                 data = data.slice(magicStreamCompressedHeader.length)
                 const cs = new DecompressionStream('gzip');
                 const writer = cs.writable.getWriter();
