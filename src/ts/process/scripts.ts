@@ -75,6 +75,10 @@ function cacheScript(scripts:customscript[], data:string, result:string){
 
     processScriptCache.set(hash, result)
 
+    if(processScriptCache.size > 500){
+        processScriptCache.delete(processScriptCache.keys().next().value)
+    }
+
 }
 
 function getScriptCache(scripts:customscript[], data:string){
