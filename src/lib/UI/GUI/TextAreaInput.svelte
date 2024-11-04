@@ -38,7 +38,7 @@
         hideAutoComplete()
     }}
 >
-    {#if !highlight || disableHighlight}
+    {#if !highlight || $disableHighlight}
         <textarea
             class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto"
             class:px-4={padding}
