@@ -478,7 +478,9 @@ function decodeStyle(text:string){
 
     return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
         try {
-            const ast = css.parse(Buffer.from(txt, 'hex').toString('utf-8'))
+            let text = Buffer.from(txt, 'hex').toString('utf-8')
+            text = risuChatParser(text)
+            const ast = css.parse(text)
             const rules = ast?.stylesheet?.rules
             if(rules){
                 for(let i=0;i<rules.length;i++){
