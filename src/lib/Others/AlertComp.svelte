@@ -69,7 +69,7 @@
     }
 }}></svelte:window>
 
-{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'selectModule'}
+{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit'}
     <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
@@ -544,6 +544,17 @@
             msg: d
         })
     }} />
+{:else if $alertStore.type === 'pukmakkurit'}
+    <!-- Log Generator by dootaang, GPL3 -->
+    <!-- Svelte, Typescript version by Kwaroran -->
+    
+    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center">
+        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
+            <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">{language.preview}</h2>
+
+        </div>
+    </div>
+
 {/if}
 
 <style>

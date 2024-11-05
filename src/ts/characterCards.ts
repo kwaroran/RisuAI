@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter, getDatabase, setDatabaseLite } from "./storage/database.svelte"
+import { defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter, getDatabase, setDatabaseLite, appVer } from "./storage/database.svelte"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -1558,7 +1558,11 @@ export async function getRisuHub(arg:{
         arg.search += ' __shared'
         const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}&&web==${(!isNodeServer && !Capacitor.isNativePlatform() && !isTauri) ? 'web' : 'other'}`
 
-        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
+        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg), {
+            headers: {
+                "x-risuai-info": appVer + ';' + (isNodeServer ? 'node' : (Capacitor.isNativePlatform() ? 'capacitor' : isTauri ? 'tauri' : 'web'))
+            }
+        })
         if(da.status !== 200){
             return []
         }

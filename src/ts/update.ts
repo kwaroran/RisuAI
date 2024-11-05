@@ -23,7 +23,7 @@ export async function checkRisuUpdate(){
             }
         }
     } catch (error) {
-        
+        console.error(error)
     }
 }
 

@@ -319,6 +319,10 @@
         <Check bind:check={DBState.db.useChatCopy} name={language.useChatCopy}/>
     </div>
 
+    <!-- <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.logShare} name={language.logShare}/>
+    </div> -->
+
     <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
     </div>

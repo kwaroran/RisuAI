@@ -814,6 +814,7 @@ export interface Database{
     groupOtherBotRole?:string
     customGUI:string
     guiHTML:string
+    logShare:boolean
 }
 
 export interface customscript{

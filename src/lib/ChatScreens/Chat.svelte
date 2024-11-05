@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
+    import { ArrowLeft, Sparkles, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
     import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser.svelte";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
     import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
     import { language } from "../../lang";
     import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
-    import { DBState } from 'src/ts/stores.svelte';
+    import { alertStore, DBState } from 'src/ts/stores.svelte';
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
@@ -18,7 +18,6 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     import { onDestroy, onMount } from "svelte";
-  import { PerformanceDebugger } from "src/ts/globalApi.svelte";
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -274,6 +273,16 @@
 {#snippet icons(options:{applyTextColors?:boolean} = {})}
     <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
+        {#if DBState.db.logShare}
+            <button class="ml-2 hover:text-blue-500 transition-colors" onclick={() => {
+                alertStore.set({
+                    type: 'pukmakkurit',
+                    msg: lastParsed,
+                })
+            }}>
+                <Sparkles size={22}/>
+            </button>
+        {/if}
         {#if DBState.db.useChatCopy && !blankMessage}
             <button class="ml-2 hover:text-blue-500 transition-colors" onclick={()=>{
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {

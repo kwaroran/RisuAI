@@ -35,6 +35,7 @@
     "dialog:allow-message",
     "dialog:allow-ask",
     "dialog:allow-confirm",
+    "updater:default",
     {
       "identifier": "http:default",
       "allow": [

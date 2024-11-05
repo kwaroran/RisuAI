@@ -751,4 +751,6 @@ export const languageEnglish = {
     groupOtherBotRole: "Non-Speaker Role in Group",
     defineCustomGUI: "Define Custom GUI",
     chatHTML: "Chat HTML",
+    logShare: "Show Share Log Button",
+    preview: "Preview",
 }
