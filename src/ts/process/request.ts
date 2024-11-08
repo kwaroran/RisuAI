@@ -2059,12 +2059,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                       "anthropic.claude-3-5-sonnet-20241022-v2:0"
                     ];
                     
-                    const awsModel = 
+                    const awsModel = "us." + (
                         raiModel.includes("3-5-sonnet-20241022") ? modelIDs[6] :
                         raiModel.includes("3-5-sonnet-20240620") ? modelIDs[5] :
                         raiModel.includes("3-opus") ? modelIDs[4] :
                         raiModel.includes("3-sonnet") ? modelIDs[3] : 
-                        modelIDs[2];
+                        modelIDs[2]);
                     const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
                     const params = {
