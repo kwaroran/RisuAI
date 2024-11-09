@@ -206,7 +206,7 @@
     function RenderGUIHtml(html:string){
         try {
             const parser = new DOMParser()
-            const doc = parser.parseFromString(risuChatParser(html ?? ''), 'text/html')
+            const doc = parser.parseFromString(risuChatParser(html ?? '', {cbsConditions: getCbsCondition()}), 'text/html')
             console.log(doc.body)
             return doc.body   
         } catch (error) {
