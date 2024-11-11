@@ -2,11 +2,12 @@ import { writable } from "svelte/store"
 import { getDatabase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertLogin, alertStore, alertWait } from "../alert"
+import { alertLogin, alertNormalWait, alertStore, alertWait } from "../alert"
 import { forageStorage, getUnpargeables } from "../globalApi.svelte"
 import { encodeRisuSaveLegacy } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
+import { sleep } from "../util"
 
 export const AccountWarning = writable('')
 const risuSession = Date.now().toFixed(0)
@@ -52,8 +53,10 @@ export class AccountStorage{
                     }
                 }
                 if(json?.reloadSession){
-                    alertWait(language.reloadSession)
-                    location.reload()
+                    alertNormalWait(language.activeTabChange).then(() => {
+                        location.reload()
+                    })
+                    await sleep(100000000) // wait forever
                     return
                 }
             }

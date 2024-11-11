@@ -324,8 +324,9 @@ export async function saveDb(){
             }
             if(!gotChannel){
                 gotChannel = true
-                alertWait(language.activeTabChange)
-                location.reload()
+                alertNormalWait(language.activeTabChange).then(() => {
+                    location.reload()
+                })
             }
         }
     }
