@@ -67,8 +67,8 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 let bestMatchCache = new Map<string, string>()
 let processScriptCache = new Map<string, string>()
 
-function cacheScript(scripts:customscript[], data:string, result:string){
-    let hash = data + '|||'
+function cacheScript(scripts:customscript[], data:string, result:string, mode:ScriptMode){
+    let hash = data + '|||' + mode + '|||'
     for(const script of scripts){
         hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
     }
@@ -81,8 +81,8 @@ function cacheScript(scripts:customscript[], data:string, result:string){
 
 }
 
-function getScriptCache(scripts:customscript[], data:string){
-    let hash = data + '|||'
+function getScriptCache(scripts:customscript[], data:string, mode:ScriptMode){
+    let hash = data + '|||' + mode + '|||'
     for(const script of scripts){
         hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
     }
@@ -97,7 +97,7 @@ export function resetScriptCache(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
     const originalData = data
-    const cached = getScriptCache((db.globalscript ?? []).concat(char.customscript), originalData)
+    const cached = getScriptCache((db.globalscript ?? []).concat(char.customscript), originalData, mode)
     if(cached){
         return {data: cached, emoChanged: false}
     }
@@ -110,7 +110,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     })
     data = await runLuaEditTrigger(char, mode, data)
     if(scripts.length === 0){
-        cacheScript(scripts, originalData, data)
+        cacheScript(scripts, originalData, data, mode)
         return {data, emoChanged}
     }
     function executeScript(pscript:pScript){
@@ -345,7 +345,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         }
     }
 
-    cacheScript(scripts, originalData, data)
+    cacheScript(scripts, originalData, data, mode)
 
     return {data, emoChanged}
 }
