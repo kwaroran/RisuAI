@@ -58,6 +58,13 @@
                         input = ''
                     }
                 }
+                if(provider === 'claude'){
+                    if(input.length > 0 && input.startsWith('sk-')){
+                        DBState.db.claudeAPIKey = input
+                        step = 5
+                        input = ''
+                    }
+                }
             }
         }
     }
@@ -262,6 +269,9 @@
                         {/if}
                         {#if provider === 'openrouter'}
                             <Chat name="Risu" message={language.setup.setupOpenrouter} isLastMemory={false} />
+                        {/if}
+                        {#if provider === 'claude'}
+                            <Chat name="Risu" message={language.setup.setupClaude} isLastMemory={false} />
                         {/if}
                     {/if}
                     {#if step >= 5}

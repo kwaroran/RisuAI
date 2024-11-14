@@ -186,6 +186,7 @@ export const languageEnglish = {
         hordeProvider: "Horde is a free provider, but the response time is long and the quality is low.",
         setProviderLater: "There are other providers, but you can set it later in settings. select this if you want to set it later.",
         setupOpenAI: "To use OpenAI, you need to get an API key. \n1. go to https://beta.openai.com/ \n2. login with your account \n3. go to https://beta.openai.com/account/api-keys \n4. click 'Create New API Key' and name your key whatever you want. \n5. copy the key in the website.\n6. go back to RisuAI\n7. paste it, and click send button.",
+        setupClaude: "To use Claude, you need to get an API key. \n1. go to https://antropic.com/ \n2. click 'Get Started' \n3. sign up with your account \n4. go to https://antropic.com/keys \n5. click 'Create Key' and name your key whatever you want. \n6. copy the key in the website.\n7. go back to RisuAI\n8. paste it, and click send button.",
         setupOpenrouter: "To use Openrouter, you need to get an API key. \n1. go to https://openrouter.ai/keys\n2. click 'Create Key'\n3. set key name whatever you want.\n4. copy the key in the website\n5. go back to RisuAI\n6. paste it, and click send button.",
         allDone: "All Done! please wait a moment.",
         setupLaterMessage: "Welcome {username}! do you want me to guide you to setup or do it yourself?",
