@@ -464,7 +464,7 @@
                     }}
                     oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
                     style:height={inputHeight}
-></textarea>
+                ></textarea>
                 {:else}
                 <AdvancedChatEditor 
                     bind:value={messageInput}
@@ -749,6 +749,7 @@
                             updateInputSizeAll()
                         }
                     }}>
+
                         <ImagePlusIcon />
                         <span class="ml-2">{language.postFile}</span>
                     </div>
