@@ -2230,9 +2230,16 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                                                         break
                                                     }
                                                     text += "Error:" + JSON.parse(e.data).error?.message
-                                                    controller.enqueue({
-                                                        "0": text
-                                                    })
+                                                    if(db.extractJson && db.jsonSchemaEnabled){
+                                                        controller.enqueue({
+                                                            "0": extractJSON(text, db.jsonSchema)
+                                                        })
+                                                    }
+                                                    else{
+                                                        controller.enqueue({
+                                                            "0": text
+                                                        })
+                                                    }
                                                 }
                                                 break
                                             }
@@ -2300,6 +2307,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     return {
                         type: 'fail',
                         result: JSON.stringify(res.data)
+                    }
+                }
+                if(db.extractJson && db.jsonSchemaEnabled){
+                    return {
+                        type: 'success',
+                        result: extractJSON(resText, db.jsonSchema)
                     }
                 }
                 return {
