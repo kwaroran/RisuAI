@@ -74,6 +74,11 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     }
 })
 
+DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+    if (['IMG', 'SOURCE', 'STYLE'].includes(node.nodeName) && data.attrName === 'src' && data.attrValue.startsWith('asset://localhost/')) {
+        data.forceKeepAttr = true;
+    }
+});
 
 function renderMarkdown(md:markdownit, data:string){
     let quotes = ['“', '”', '‘', '’']
