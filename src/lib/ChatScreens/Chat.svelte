@@ -507,8 +507,12 @@
 {/snippet}
 
 {#snippet renderChilds(dom:HTMLElement)}
-    {#each dom.children as node}
-        {@render renderGuiHtmlPart((node as HTMLElement))}
+    {#each dom.childNodes as node}
+        {#if node.nodeType === Node.TEXT_NODE}
+            {node.textContent}
+        {:else if node.nodeType === Node.ELEMENT_NODE}
+            {@render renderGuiHtmlPart((node as HTMLElement))}
+        {/if}
     {/each}
 {/snippet}
 
