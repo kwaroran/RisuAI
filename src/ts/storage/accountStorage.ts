@@ -22,6 +22,16 @@ export class AccountStorage{
     async setItem(key:string, value:Uint8Array) {
         this.checkAuth()
         let da:Response
+
+        let daText:string|undefined = undefined
+        const getDaText = async () => {
+            if(daText === undefined){
+                daText = await da.text()
+            }
+            return daText
+        }
+
+
         while((!da) || da.status === 403){
 
             const saveDate = Date.now().toFixed(0)
@@ -45,7 +55,7 @@ export class AccountStorage{
             }
 
             if(da.headers.get('Content-Type') === 'application/json'){
-                const json = (await da.json())
+                const json = JSON.parse(await getDaText())
                 if(json?.warning){
                     if(!seenWarnings.includes(json.warning)){
                         seenWarnings.push(json.warning)
@@ -73,9 +83,9 @@ export class AccountStorage{
             }
         }
         if(da.status < 200 || da.status >= 300){
-            throw await da.text()
+            throw await getDaText()
         }
-        return await da.text()
+        return await getDaText()
     }
     async getItem(key:string):Promise<Buffer> {
         this.checkAuth()
