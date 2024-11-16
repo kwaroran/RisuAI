@@ -120,6 +120,9 @@ export class AccountStorage{
                 const c = Buffer.from(await cachedForage.getItem(key))
                 return c
             }
+            else{
+                return null
+            }
         }
 
         if(da.status < 200 || da.status >= 300){
