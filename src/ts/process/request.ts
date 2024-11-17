@@ -1286,6 +1286,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gemini-1.5-pro-latest':
         case 'gemini-1.5-pro-exp-0801':
         case 'gemini-1.5-pro-exp-0827':
+        case 'gemini-exp-1114':
         case 'gemini-1.5-flash':
         case 'gemini-1.5-pro-002':
         case 'gemini-ultra':

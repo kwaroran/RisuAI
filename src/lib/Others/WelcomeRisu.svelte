@@ -232,19 +232,19 @@
                     {/if}
                     {#if step === 3}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                provider = 'claude'
+                                step = 4
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">Claude <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.claudeDesc}</span>
+                            </button>
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openai'
                                 step = 4
                             }}>
                                 <h1 class="text-2xl font-bold text-start">OpenAI</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIDesc}</span>
-                            </button>
-                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
-                                provider = 'claude'
-                                step = 4
-                            }}>
-                                <h1 class="text-2xl font-bold text-start">Claude</h1>
-                                <span class="mt-2 text-textcolor2 text-start">{language.setup.claudeDesc}</span>
                             </button>
                             <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'horde'
@@ -271,7 +271,12 @@
                             <Chat name="Risu" message={language.setup.setupOpenrouter} isLastMemory={false} />
                         {/if}
                         {#if provider === 'claude'}
-                            <Chat name="Risu" message={language.setup.setupClaude} isLastMemory={false} />
+                            {#each language.setup.setupClaudeSteps as step, i}
+                                <Chat name="Risu" message={
+                                `![alt text](/welcome/claude/ant_${i}.webp)\n\n${i === 0 ? 'https://console.anthropic.com/login?returnTo=%2F%3F\n\n' : ''}` + step
+                            } isLastMemory={false} />
+                                
+                            {/each}
                         {/if}
                     {/if}
                     {#if step >= 5}
@@ -311,6 +316,13 @@
                     {/if}
                     {#if step === 6}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatMemorySelection = 2
+                                step = 10
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption3} <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption3Desc}</span>
+                            </button>
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 0
                                 step = 10
@@ -324,13 +336,6 @@
                             }}>
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption2}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption2Desc}</span>
-                            </button>
-                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
-                                chatMemorySelection = 2
-                                step = 10
-                            }}>
-                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption3}</h1>
-                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption3Desc}</span>
                             </button>
                             <button class="border-l-yellow-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 3
