@@ -795,4 +795,5 @@ export const languageEnglish = {
     logShare: "Show Share Log Button",
     preview: "Preview",
     recommended: "Recommended",
+    newChat: "New Chat",
 }

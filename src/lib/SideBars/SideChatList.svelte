@@ -87,7 +87,7 @@
         chara.chats = chats
         chara.chatPage = 0
         $ReloadGUIPointer += 1
-    }}>New Chat</Button>
+    }}>{language.newChat}</Button>
     <div class="flex flex-col w-full mt-2 overflow-y-auto flex-grow" bind:this={ele}>
         {#key sorted}
         {#each chara.chats as chat, i}
