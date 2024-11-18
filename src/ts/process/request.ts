@@ -316,6 +316,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
 
             for(let i=0;i<biasString.length;i++){
                 const bia = biasString[i]
+                if(bia[0].startsWith('[[') && bia[0].endsWith(']]')){
+                    const num = parseInt(bia[0].replace('[[', '').replace(']]', ''))
+                    bias[num] = bia[1]
+                    continue
+                }
+
                 if(bia[1] === -101){
                     bias = await strongBan(bia[0], bias)
                     continue
