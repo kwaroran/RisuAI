@@ -1136,16 +1136,20 @@ async function checkNewFormat(): Promise<void> {
     });
 
     db.modules = (db.modules ?? []).map((v) => {
-        if (v.lorebook) {
+        if (v?.lorebook) {
             v.lorebook = updateLorebooks(v.lorebook);
         }
         return v
-    })
+    }).filter((v) => {
+        return v !== null && v !== undefined;
+    });
 
     db.personas = (db.personas ?? []).map((v) => {
         v.id ??= uuidv4()
         return v
-    })
+    }).filter((v) => {
+        return v !== null && v !== undefined;
+    });
 
     if(!db.formatversion){
         function checkParge(data:string){

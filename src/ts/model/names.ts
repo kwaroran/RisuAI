@@ -103,6 +103,8 @@ export function getModelName(name:string){
             return 'GPT-4o (2024-05-13)'
         case 'gpt4o-2024-08-06':
             return 'GPT-4o (2024-08-06)'
+        case 'gpt4o-2024-11-20':
+            return 'GPT-4o (2024-11-20)'
         case 'gpt4o-chatgpt':
             return 'GPT-4o ChatGPT'
         case 'gpt4om':

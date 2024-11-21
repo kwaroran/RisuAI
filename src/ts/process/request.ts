@@ -235,6 +235,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gpt4om':
         case 'gpt4om-2024-07-18':
         case 'gpt4o-2024-08-06':
+        case 'gpt4o-2024-11-20':
         case 'gpt4o-chatgpt':
         case 'gpt4o1-preview':
         case 'gpt4o1-mini':
@@ -501,6 +502,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                     : requestModel === 'gpt4om' ? 'gpt-4o-mini'
                     : requestModel === 'gpt4om-2024-07-18' ? 'gpt-4o-mini-2024-07-18'
                     : requestModel === 'gpt4o-2024-08-06' ? 'gpt-4o-2024-08-06'
+                    : requestModel === 'gpt4o-2024-11-20' ? 'gpt-4o-2024-11-20'
                     : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
                     : requestModel === 'gpt4o1-preview' ? 'o1-preview'
                     : requestModel === 'gpt4o1-mini' ? 'o1-mini'
