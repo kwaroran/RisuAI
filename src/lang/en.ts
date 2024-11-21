@@ -796,4 +796,5 @@ export const languageEnglish = {
     preview: "Preview",
     recommended: "Recommended",
     newChat: "New Chat",
+    predictedOutput: "Predicted Output",
 }

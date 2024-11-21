@@ -301,6 +301,7 @@ export function setDatabase(data:Database){
     data.sendWithEnter ??= true
     data.autoSuggestPrompt ??= defaultAutoSuggestPrompt
     data.autoSuggestPrefix ??= ""
+    data.OAIPrediction ??= ''
     data.autoSuggestClean ??= true
     data.imageCompression ??= true
     if(!data.formatingOrder.includes('personaPrompt')){
@@ -815,6 +816,7 @@ export interface Database{
     customGUI:string
     guiHTML:string
     logShare:boolean
+    OAIPrediction:string
 }
 
 export interface customscript{

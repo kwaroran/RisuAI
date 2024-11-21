@@ -535,6 +535,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
                 }
             }
 
+            if(db.OAIPrediction){
+                body.prediction = {
+                    type: "content",
+                    content: db.OAIPrediction
+                }
+            }
+
             if(aiModel === 'openrouter'){
                 if(db.openrouterFallback){
                     body.route = "fallback"

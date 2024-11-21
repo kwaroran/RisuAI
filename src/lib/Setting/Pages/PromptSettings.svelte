@@ -145,6 +145,8 @@
     <TextAreaInput bind:value={DBState.db.customPromptTemplateToggle}/>
     <span class="text-textcolor mt-4">{language.defaultVariables} <Help key='defaultVariables' /></span>
     <TextAreaInput bind:value={DBState.db.templateDefaultVariables}/>
+    <span class="text-textcolor mt-4">{language.predictedOutput}</span>
+    <TextAreaInput bind:value={DBState.db.OAIPrediction}/>
     <span class="text-textcolor mt-4">{language.groupInnerFormat} <Help key='groupInnerFormat' /></span>
     <TextAreaInput placeholder={`<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`} bind:value={DBState.db.groupTemplate}/>
     {#if DBState.db.jsonSchemaEnabled}
