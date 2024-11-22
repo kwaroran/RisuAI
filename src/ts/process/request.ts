@@ -227,6 +227,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'mistral-small-latest':
         case 'mistral-medium-latest':
         case 'mistral-large-latest':
+        case 'mistral-large-2411':
         case 'open-mistral-nemo':
         case 'gpt4_turbo_20240409':
         case 'gpt4_turbo':
@@ -1302,8 +1303,10 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
         case 'gemini-1.5-pro-exp-0801':
         case 'gemini-1.5-pro-exp-0827':
         case 'gemini-exp-1114':
+        case 'gemini-exp-1121':
         case 'gemini-1.5-flash':
         case 'gemini-1.5-pro-002':
+        case 'gemini-1.5-flash-002':
         case 'gemini-ultra':
         case 'gemini-ultra-vision':{
             interface GeminiPart{
