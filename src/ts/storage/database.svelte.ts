@@ -721,6 +721,8 @@ export interface Database{
     google: {
         accessToken: string
         projectId: string
+        privateKey: string
+        clientEmail: string
     }
     mistralKey?:string
     chainOfThought?:boolean

@@ -9,15 +9,15 @@
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte";
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
-    import { get, type Unsubscriber } from "svelte/store";
+    import { type Unsubscriber } from "svelte/store";
     import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
-    import { getModelShortName } from "src/ts/model/names";
     import { capitalize } from "src/ts/util";
     import { longpress } from "src/ts/gui/longtouch";
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     import { onDestroy, onMount } from "svelte";
+    import { getModelInfo } from "src/ts/model/modellist";
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -232,7 +232,7 @@
             >
                 <BotIcon size={20} />
                 <span class="ml-1">
-                    {capitalize(getModelShortName(messageGenerationInfo.model))}
+                    {capitalize(getModelInfo(messageGenerationInfo.model).shortName)}
                 </span>
             </button>
         </div>
