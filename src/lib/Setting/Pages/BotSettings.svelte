@@ -27,6 +27,7 @@
     import PromptSettings from "./PromptSettings.svelte";
     import { openPresetList } from "src/ts/stores.svelte";
     import { selectSingleFile } from "src/ts/util";
+  import { LLMFormat } from "src/ts/model/modellist";
 
     let tokens = $state({
         mainPrompt: 0,
@@ -133,39 +134,27 @@
         <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={DBState.db.proxyKey} />
         <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
-        <SelectInput className="mt-2" bind:value={DBState.db.proxyRequestModel}>
-            <OptionInput value="">None</OptionInput>
-            <OptionInput value="gpt35">GPT 3.5</OptionInput>
-            <OptionInput value="gpt35_16k">GPT 3.5 16k</OptionInput>
-            <OptionInput value="gpt4">GPT-4</OptionInput>
-            <OptionInput value="gpt4o">GPT-4o</OptionInput>
-            <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
-            <OptionInput value="gpt4_turbo">GPT-4 Turbo</OptionInput>
-            <OptionInput value="gpt4_1106">GPT-4 Turbo 1106</OptionInput>
-            <OptionInput value="gptvi4_1106">GPT-4 Turbo 1106 Vision</OptionInput>
-            <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
-            <OptionInput value="gpt4_0301">GPT-4 0301</OptionInput>
-            <OptionInput value="gpt35_0613">GPT-3.5 0613</OptionInput>
-            <OptionInput value="gpt4_0613">GPT-4 0613</OptionInput>
-            <OptionInput value="claude-2.1">claude-2.1</OptionInput>
-            <OptionInput value="claude-2.0">claude-2.0</OptionInput>
-            <OptionInput value="claude-2">claude-2</OptionInput>
-            <OptionInput value="claude-v1.3">claude-v1.3</OptionInput>
-            <OptionInput value="claude-v1.3-100k">claude-v1.3-100k</OptionInput>
-            <OptionInput value="claude-v1.2">claude-v1.2</OptionInput>
-            <OptionInput value="claude-instant-v1.1">claude-instant-v1.1</OptionInput>
-            <OptionInput value="claude-instant-v1.1-100k">claude-instant-v1.1-100k</OptionInput>
-            <OptionInput value="claude-3-opus-20240229">claude-3-opus-20240229</OptionInput>
-            <OptionInput value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</OptionInput>
-            <OptionInput value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</OptionInput>
-            <OptionInput value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022</OptionInput>
-            <OptionInput value="custom">Custom</OptionInput>
+        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.customProxyRequestModel} placeholder="Name" />
+        <span class="text-textcolor mt-4"> {language.format}</span>
+        <SelectInput value={DBState.db.customAPIFormat.toString()} onchange={(e) => {
+            DBState.db.customAPIFormat = parseInt(e.currentTarget.value)
+        }}>
+            <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
+                OpenAI Compatible
+            </OptionInput>
+            <OptionInput value={LLMFormat.Anthropic.toString()}>
+                Anthropic Claude
+            </OptionInput>
+            <OptionInput value={LLMFormat.Mistral.toString()}>
+                Mistral
+            </OptionInput>
+            <OptionInput value={LLMFormat.GoogleCloud.toString()}>
+                Google Cloud
+            </OptionInput>
+            <OptionInput value={LLMFormat.Cohere.toString()}>
+                Cohere
+            </OptionInput>
         </SelectInput>
-        {#if DBState.db.proxyRequestModel === 'custom'}
-            <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.customProxyRequestModel} placeholder="Name" />
-        {:else}
-            <div class="mb-4"></div>
-        {/if}
     {/if}
     {#if DBState.db.aiModel.startsWith('risullm')}
         <span class="text-textcolor mt-4">Risu {language.apiKey}</span>

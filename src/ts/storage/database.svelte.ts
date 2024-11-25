@@ -445,6 +445,7 @@ export function setDatabase(data:Database){
     data.customQuotesData ??= ['“','”','‘','’']
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
+    data.customAPIFormat ??= LLMFormat.OpenAICompatible
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -819,6 +820,7 @@ export interface Database{
     guiHTML:string
     logShare:boolean
     OAIPrediction:string
+    customAPIFormat:LLMFormat
 }
 
 export interface customscript{
@@ -1512,6 +1514,7 @@ import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
+import { LLMFormat } from '../model/modellist';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

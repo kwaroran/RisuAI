@@ -1,19 +1,16 @@
-import { get } from "svelte/store";
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
 import { getCurrentCharacter, getDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
-import { stringlizeAINChat, stringlizeChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
+import { stringlizeAINChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../globalApi.svelte";
 import { sleep } from "../util";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
-import { runGGUFModel } from "./models/local";
 import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { v4 } from "uuid";
 import { supportsInlayImage } from "./files/image";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
@@ -47,9 +44,9 @@ interface requestDataArgument{
 interface RequestDataArgumentExtended extends requestDataArgument{
     aiModel?:string
     multiGen?:boolean
-    realAIModel?:string
     abortSignal?:AbortSignal
     modelInfo?:LLMModel
+    customURL?:string
 }
 
 type requestDataResponse = {
@@ -199,19 +196,12 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     targ.biasString = arg.biasString ?? []
     targ.aiModel = (model === 'model' ? db.aiModel : db.subModel)
     targ.multiGen = ((db.genTime > 1 && targ.aiModel.startsWith('gpt') && (!arg.continue)) && (!arg.noMultiGen))
-    targ.realAIModel = targ.aiModel
     targ.abortSignal = abortSignal
     targ.modelInfo = getModelInfo(targ.aiModel)
     if(targ.aiModel === 'reverse_proxy'){
-        if(db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('claude')){
-            targ.realAIModel = db.customProxyRequestModel
-        }
-        if(db.proxyRequestModel.startsWith('claude')){
-            targ.realAIModel = db.proxyRequestModel
-        }
-        if(db.forceProxyAsOpenAI){
-            targ.realAIModel = 'reverse_proxy'
-        }
+        targ.modelInfo.internalID = db.customProxyRequestModel
+        targ.modelInfo.format = db.customAPIFormat
+        targ.customURL = db.forceReplaceUrl
     }
 
     const format = targ.modelInfo.format
@@ -384,7 +374,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
     let requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
     let openrouterRequestModel = db.openrouterRequestModel
-    if(aiModel === 'reverse_proxy' && db.proxyRequestModel === 'custom'){
+    if(aiModel === 'reverse_proxy'){
         requestModel = db.customProxyRequestModel
     }
 
@@ -393,7 +383,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
     console.log(formatedChat)
-    if(aiModel.startsWith('mistral') || aiModel === 'open-mistral-nemo'){
+    if(arg.modelInfo.format === LLMFormat.Mistral){
         requestModel = aiModel
 
         let reformatedChat:OpenAIChatExtra[] = []
@@ -446,7 +436,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
         }
     
-        const res = await globalFetch("https://api.mistral.ai/v1/chat/completions", {
+        const res = await globalFetch(arg.customURL ?? "https://api.mistral.ai/v1/chat/completions", {
             body: {
                 model: requestModel,
                 messages: reformatedChat,
@@ -525,6 +515,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             : requestModel === 'gpt4o-chatgpt' ? 'chatgpt-4o-latest'
             : requestModel === 'gpt4o1-preview' ? 'o1-preview'
             : requestModel === 'gpt4o1-mini' ? 'o1-mini'
+            : arg.modelInfo.internalID ? arg.modelInfo.internalID
             : (!requestModel) ? 'gpt-3.5-turbo'
             : requestModel,
         messages: formatedChat,
@@ -608,7 +599,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
     let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
-        (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.openai.com/v1/chat/completions')
+        (aiModel === 'reverse_proxy') ? (arg.customURL) : ('https://api.openai.com/v1/chat/completions')
 
     let risuIdentify = false
     if(replacerURL.startsWith("risu::")){
@@ -768,7 +759,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
-    if(arg.realAIModel === 'reverse_proxy'){
+    if(aiModel === 'reverse_proxy'){
         const additionalParams = db.additionalParams
         for(let i=0;i<additionalParams.length;i++){
             let key = additionalParams[i][0]
@@ -924,7 +915,7 @@ async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtended):Prom
         //return `\n\n${author}: ${m.content.trim()}`;
     }).join("") + `\n## Response\n`;
 
-    const response = await globalFetch( "https://api.openai.com/v1/completions", {
+    const response = await globalFetch(arg.customURL ?? "https://api.openai.com/v1/completions", {
         body: {
             model: "gpt-3.5-turbo-instruct",
             prompt: prompt,
@@ -1481,9 +1472,9 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         headers['Authorization'] = "Bearer " + generateToken(db.google.clientEmail, db.google.privateKey)
     }
 
-    const url = arg.modelInfo.format === LLMFormat.VertexAIGemini ?
+    const url = arg.customURL ?? (arg.modelInfo.format === LLMFormat.VertexAIGemini ?
         `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
+        : `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`)
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
@@ -1624,7 +1615,7 @@ async function requestNovelList(arg:RequestDataArgumentExtended):Promise<request
         logit_bias: (logit_bias.length > 0) ? logit_bias.join("<<|>>") : undefined,
         logit_bias_values: (logit_bias_values.length > 0) ? logit_bias_values.join("|") : undefined,
     };
-    const response = await globalFetch(api_server_url + '/api', {
+    const response = await globalFetch(arg.customURL ?? api_server_url + '/api', {
         method: 'POST',
         headers: headers,
         body: send_body,
@@ -1771,7 +1762,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
 
     console.log(body)
 
-    const res = await globalFetch('https://api.cohere.com/v1/chat', {
+    const res = await globalFetch(arg.customURL ?? 'https://api.cohere.com/v1/chat', {
         method: "POST",
         headers: {
             "Authorization": "Bearer " + db.cohereAPIKey,
@@ -1807,7 +1798,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     const db = getDatabase()
     const aiModel = arg.aiModel
     const useStreaming = arg.useStreaming
-    let replacerURL = (aiModel === 'reverse_proxy') ? (db.forceReplaceUrl) : ('https://api.anthropic.com/v1/messages')
+    let replacerURL = (aiModel === 'reverse_proxy') ? (arg.customURL) : ('https://api.anthropic.com/v1/messages')
     let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
     const maxTokens = arg.maxTokens
     if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
