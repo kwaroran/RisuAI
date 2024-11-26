@@ -406,7 +406,7 @@
                             'text/html': new Blob([html], {type: 'text/html'})
                         })
                     ])
-                    // alertNormal(language.copied)
+                    alertNormal(language.copied)
                     return
                 }
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
