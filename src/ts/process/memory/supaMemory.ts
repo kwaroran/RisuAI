@@ -7,6 +7,7 @@ import { stringlizeChat } from "../stringlize";
 import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";
 import { getUserName } from "src/ts/util";
+import { parseChatML } from "src/ts/parser.svelte";
 
 export async function supaMemory(
         chats:OpenAIChat[],
@@ -252,7 +253,8 @@ export async function supaMemory(
                 }
             }
             else {
-                const promptbody:OpenAIChat[] = [
+                let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
+                const promptbody:OpenAIChat[] = parsedPrompt ?? [
                     {
                         role: "user",
                         content: stringlizedChat
@@ -267,7 +269,7 @@ export async function supaMemory(
                     bias: {},
                     useStreaming: false,
                     noMultiGen: true
-                }, 'submodel')
+                }, 'memory')
                 if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
                     return {
                         currentTokens: currentTokens,

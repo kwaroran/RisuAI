@@ -5,6 +5,7 @@ import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";
+import { parseChatML } from "src/ts/parser.svelte";
 
 export interface HypaV2Data {
     chunks: {
@@ -83,7 +84,10 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             };
         }
     } else {
-        const promptbody: OpenAIChat[] = [
+
+        let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
+
+        const promptbody: OpenAIChat[] = parsedPrompt ?? [
             {
                 role: "user",
                 content: stringlizedChat
@@ -99,7 +103,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             bias: {},
             useStreaming: false,
             noMultiGen: true
-        }, 'submodel');
+        }, 'memory');
         if (da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline') {
             return {
                 success: false,

@@ -148,7 +148,16 @@
                 }
             }
             if(translateText){
-                if(!DBState.db.legacyTranslation){
+                if(DBState.db.translator === 'llm' && DBState.db.translateBeforeHTMLFormatting){
+                    translating = true
+                    data = await translateHTML(data, false, charArg, chatID)
+                    translating = false
+                    const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
+                    lastParsedQueue = marked
+                    lastCharArg = charArg
+                    return marked
+                }
+                else if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
                     const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))

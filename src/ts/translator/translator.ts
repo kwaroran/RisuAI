@@ -10,11 +10,16 @@ import { selectedCharID } from "../stores.svelte"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
 import { processScriptFull } from "../process/scripts"
+import localforage from "localforage"
 
 let cache={
     origin: [''],
     trans: ['']
 }
+
+const LLMCacheStorage = localforage.createInstance({
+    name: "LLMTranslateCache"
+})
 
 let waitTrans = 0
 
@@ -442,10 +447,10 @@ function needSuperChunkedTranslate(){
     return getDatabase().translatorType === 'deeplX'
 }
 
-let llmCache = new Map<string, string>()
-async function translateLLM(text:string, arg:{to:string}){
-    if(llmCache.has(text)){
-        return llmCache.get(text)
+async function translateLLM(text:string, arg:{to:string}):Promise<string>{
+    const cacheMatch = await LLMCacheStorage.getItem(text)
+    if(cacheMatch){
+        return cacheMatch as string
     }
     const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
     let styleDecodes:string[] = []
@@ -489,7 +494,7 @@ async function translateLLM(text:string, arg:{to:string}){
         useStreaming: false,
         noMultiGen: true,
         maxTokens: db.translatorMaxResponse,
-    }, 'submodel')
+    }, 'translate')
 
     if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
         alertError(`${rq.result}`)
@@ -498,6 +503,6 @@ async function translateLLM(text:string, arg:{to:string}){
     const result = rq.result.replace(/<style-data style-index="(\d+)" ?\/?>/g, (match, p1) => {
         return styleDecodes[parseInt(p1)] ?? ''
     }).replace(/<\/style-data>/g, '')
-    llmCache.set(text, result)
+    await LLMCacheStorage.setItem(text, result)
     return result
 }

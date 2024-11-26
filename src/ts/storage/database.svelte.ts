@@ -448,6 +448,17 @@ export function setDatabase(data:Database){
     data.customAPIFormat ??= LLMFormat.OpenAICompatible
     data.systemContentReplacement ??= `system: {{slot}}`
     data.systemRoleReplacement ??= 'user'
+    data.vertexAccessToken ??= ''
+    data.vertexAccessTokenExpires ??= 0
+    data.vertexClientEmail ??= ''
+    data.vertexPrivateKey ??= ''
+    data.seperateParametersEnabled ??= false
+    data.seperateParameters = {
+        memory: {},
+        emotion: {},
+        translate: {},
+        otherAx: {}
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -724,8 +735,6 @@ export interface Database{
     google: {
         accessToken: string
         projectId: string
-        privateKey: string
-        clientEmail: string
     }
     mistralKey?:string
     chainOfThought?:boolean
@@ -825,6 +834,29 @@ export interface Database{
     customAPIFormat:LLMFormat
     systemContentReplacement:string
     systemRoleReplacement:'user'|'assistant'
+    vertexPrivateKey: string
+    vertexClientEmail: string
+    vertexAccessToken: string
+    vertexAccessTokenExpires: number
+    seperateParametersEnabled:boolean
+    seperateParameters:{
+        memory: SeparateParameters,
+        emotion: SeparateParameters,
+        translate: SeparateParameters,
+        otherAx: SeparateParameters
+    }
+    translateBeforeHTMLFormatting:boolean
+}
+
+interface SeparateParameters{
+    temperature?:number
+    top_k?:number
+    repetition_penalty?:number
+    min_p?:number
+    top_a?:number
+    top_p?:number
+    frequency_penalty?:number
+    presence_penalty?:number
 }
 
 export interface customscript{
@@ -1519,6 +1551,7 @@ import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFormat } from '../model/modellist';
+import type { Parameter } from '../process/request';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

@@ -27,7 +27,8 @@
     import PromptSettings from "./PromptSettings.svelte";
     import { openPresetList } from "src/ts/stores.svelte";
     import { selectSingleFile } from "src/ts/util";
-  import { LLMFormat } from "src/ts/model/modellist";
+  import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
 
     let tokens = $state({
         mainPrompt: 0,
@@ -54,6 +55,8 @@
     });
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
+    let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
+    let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
@@ -89,26 +92,21 @@
     <span class="text-textcolor mt-2">{language.submodel} <Help key="submodel"/></span>
     <ModelList bind:value={DBState.db.subModel}/>
 
-    {#if DBState.db.aiModel.startsWith('palm2') || DBState.db.subModel.startsWith('palm2') || DBState.db.aiModel.startsWith('gemini') || DBState.db.subModel.startsWith('gemini')}
-        <span class="text-textcolor">
-            {#if DBState.db.google.projectId === 'aigoogle'}
-                GoogleAI API Key
-            {:else}
-                Google Bearer Token
-            {/if}
-        </span>
+    {#if modelInfo.provider === LLMProvider.GoogleCloud || subModelInfo.provider === LLMProvider.GoogleCloud}
+        <span class="text-textcolor">GoogleAI API Key</span>
         <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
-
-        {#if DBState.db.google.projectId !== 'aigoogle'}
-            <span class="text-textcolor">Google Project ID</span>
-            <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.projectId}/>
-        {/if}
     {/if}
-    {#if DBState.db.aiModel.startsWith('jamba') || DBState.db.subModel.startsWith('jamba')}
+    {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
+        <span class="text-textcolor">Vertex Client Email</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexClientEmail}/>
+        <span class="text-textcolor">Vertex Private Key</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey}/>
+    {/if}
+    {#if modelInfo.provider === LLMProvider.AI21 || subModelInfo.provider === LLMProvider.AI21}
         <span class="text-textcolor">AI21 {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.ai21Key}/>
     {/if}
-    {#if DBState.db.aiModel.startsWith('novellist') || DBState.db.subModel.startsWith('novellist')}
+    {#if modelInfo.provider === LLMProvider.NovelList || subModelInfo.provider === LLMProvider.NovelList}
         <span class="text-textcolor">NovelList {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.novellistAPI}/>
     {/if}
@@ -116,15 +114,15 @@
         <span class="text-textcolor">Mancer {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mancerHeader}/>
     {/if}
-    {#if DBState.db.aiModel.startsWith('claude-') || DBState.db.subModel.startsWith('claude-')}
+    {#if modelInfo.provider === LLMProvider.Anthropic || subModelInfo.provider === LLMProvider.Anthropic}
         <span class="text-textcolor">Claude {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.claudeAPIKey}/>
     {/if}
-    {#if DBState.db.aiModel.startsWith('mistral') || DBState.db.subModel.startsWith('mistral')}
+    {#if modelInfo.provider === LLMProvider.Mistral || subModelInfo.provider === LLMProvider.Mistral}
         <span class="text-textcolor">Mistral {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mistralKey}/>
     {/if}
-    {#if DBState.db.aiModel.startsWith('novelai') || DBState.db.subModel.startsWith('novelai')}
+    {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
         <span class="text-textcolor">NovelAI Bearer Token</span>
         <TextInput bind:value={DBState.db.novelai.token}/>
     {/if}
@@ -156,11 +154,7 @@
             </OptionInput>
         </SelectInput>
     {/if}
-    {#if DBState.db.aiModel.startsWith('risullm')}
-        <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.proxyKey} />
-    {/if}
-    {#if DBState.db.aiModel.startsWith('cohere')}
+    {#if modelInfo.provider === LLMProvider.Cohere || subModelInfo.provider === LLMProvider.Cohere}
         <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.cohereAPIKey} />
     {/if}
@@ -211,32 +205,21 @@
             {/each}
         </SelectInput>
     {/if}
-    {#if DBState.db.aiModel.startsWith('gpt') || DBState.db.subModel.startsWith('gpt')
-        || DBState.db.aiModel.startsWith('instructgpt') || DBState.db.subModel.startsWith('instructgpt')}
+    {#if modelInfo.provider === LLMProvider.OpenAI || subModelInfo.provider === LLMProvider.OpenAI}
         <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
     {/if}
 
     <div class="py-2 flex flex-col gap-2 mb-4">
-        {#if DBState.db.aiModel.startsWith('gpt') || DBState.db.aiModel === 'reverse_proxy' || DBState.db.aiModel === 'openrouter' || DBState.db.aiModel.startsWith('claude-3')}
+        {#if modelInfo.flags.includes(LLMFlags.hasStreaming) || subModelInfo.flags.includes(LLMFlags.hasStreaming)}
             <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
         {/if}
 
-        {#if DBState.db.aiModel.startsWith('palm2') || DBState.db.subModel.startsWith('palm2') || DBState.db.aiModel.startsWith('gemini') || DBState.db.subModel.startsWith('gemini')}
-            <Check check={DBState.db.google.projectId !== 'aigoogle'} name={'Use Vertex AI'} onChange={(v) => {
-                if(!v){
-                    DBState.db.google.projectId = 'aigoogle'
-                }
-                else{
-                    DBState.db.google.projectId = ''
-                }
-            }}/>
-        {/if}
         {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
             <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
         {/if}
-        {#if DBState.db.aiModel === "novelai" || DBState.db.subModel === "novelai" || DBState.db.aiModel === 'novelai_kayra' || DBState.db.subModel === 'novelai_kayra'}
+        {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
             <Check bind:check={DBState.db.NAIadventure} name={language.textAdventureNAI}/>
 
             <Check bind:check={DBState.db.NAIappendName} name={language.appendNameNAI}/>
@@ -299,25 +282,21 @@
     <NumberInput bind:value={DBState.db.generationSeed} marginBottom={true}/>
     {/if}
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
-
-    {#if DBState.db.aiModel.startsWith("novelai")}
-        <SliderInput min={0} max={250} marginBottom bind:value={DBState.db.temperature} multiple={0.01} fixed={2} disableable/>
-    {:else}
-        <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.temperature} multiple={0.01} fixed={2} disableable/>
-    {/if}
-    {#if DBState.db.aiModel.startsWith('openrouter') || DBState.db.aiModel.startsWith('claude-3') || DBState.db.aiModel.startsWith('cohere-')|| DBState.db.aiModel === 'kobold'}
+    <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.temperature} multiple={0.01} fixed={2} disableable/>
+    {#if modelInfo.parameters.includes('top_k')}
         <span class="text-textcolor">Top K</span>
         <SliderInput min={0} max={100} marginBottom step={1} bind:value={DBState.db.top_k} disableable/>
     {/if}
-    {#if DBState.db.aiModel.startsWith('openrouter')}
+    {#if modelInfo.parameters.includes('min_p')}
         <span class="text-textcolor">Min P</span>
         <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.min_p} disableable/>
 
     {/if}
-    {#if DBState.db.aiModel.startsWith('openrouter') || DBState.db.aiModel === 'kobold'}
+    {#if modelInfo.parameters.includes('top_a')}
         <span class="text-textcolor">Top A</span>
         <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.top_a} disableable/>
-
+    {/if}
+    {#if modelInfo.parameters.includes('repetition_penalty')}
         <span class="text-textcolor">Repetition penalty</span>
         <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={DBState.db.repetition_penalty} disableable/>
 
@@ -389,7 +368,7 @@
         </div>
         <Check bind:check={DBState.db.ooba.formating.useName} name={language.useNamePrefix}/>
     
-    {:else if DBState.db.aiModel.startsWith('novelai')}
+    {:else if modelInfo.format === LLMFormat.NovelAI}
         <div class="flex flex-col p-3 bg-darkbg mt-4">
             <span class="text-textcolor">Starter</span>
             <TextInput bind:value={DBState.db.NAIsettings.starter} placeholder={'⁂'} />
@@ -423,7 +402,7 @@
         <span class="text-textcolor">Cfg Scale</span>
         <SliderInput min={1} max={3} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.cfg_scale}/>
 
-    {:else if DBState.db.aiModel.startsWith('novellist')}
+    {:else if modelInfo.format === LLMFormat.NovelList}
         <span class="text-textcolor">Top P</span>
         <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.top_p}/>
         <span class="text-textcolor">Reputation Penalty</span>
@@ -438,22 +417,19 @@
         <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.top_a}/>
         <span class="text-textcolor">Typical P</span>
         <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.typical_p}/>
-    {:else if DBState.db.aiModel.startsWith('claude')}
-        <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.top_p} disableable/>
-    {:else if DBState.db.aiModel.startsWith('kobold')}
-    <span class="text-textcolor">Top P <Help key="topP"/></span>
-    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.top_p} disableable/>
     {:else}
-
-
-        <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.top_p} disableable/>
-
-        <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.frequencyPenalty} disableable/>
-        <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.PresensePenalty} disableable/>
+        {#if modelInfo.parameters.includes('top_p')}
+            <span class="text-textcolor">Top P</span>
+            <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.top_p} disableable/>
+        {/if}
+        {#if modelInfo.parameters.includes('frequency_penalty')}
+            <span class="text-textcolor">{language.frequencyPenalty}</span>
+            <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.frequencyPenalty} disableable/>
+        {/if}
+        {#if modelInfo.parameters.includes('presence_penalty')}
+            <span class="text-textcolor">{language.presensePenalty}</span>
+            <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.PresensePenalty} disableable/>
+        {/if}
     {/if}
 
     {#if (DBState.db.reverseProxyOobaMode && DBState.db.aiModel === 'reverse_proxy') || (DBState.db.aiModel === 'ooba')}
@@ -463,6 +439,41 @@
     {#if DBState.db.aiModel.startsWith('openrouter')}
         <OpenrouterSettings />
     {/if}
+
+    <Arcodion name={language.seperateParameters} styled>
+        <CheckInput bind:check={DBState.db.seperateParametersEnabled} name={language.seperateParametersEnabled} />
+        {#if DBState.db.seperateParametersEnabled}
+            {#each Object.keys(DBState.db.seperateParameters) as param, i}
+                <Arcodion name={
+                    {
+                        memory: language.longTermMemory,
+                        emotion: language.emotionImage,
+                        translate: language.translator,
+                        otherAx: language.others,
+
+                    }[param]
+                } styled>
+                    <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
+                    <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.seperateParameters[param].temperature} multiple={0.01} fixed={2} disableable/>
+                    <span class="text-textcolor">Top K</span>
+                    <SliderInput min={0} max={100} marginBottom step={1} bind:value={DBState.db.seperateParameters[param].top_k} disableable/>
+                    <span class="text-textcolor">Repetition penalty</span>
+                    <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].repetition_penalty} disableable/>
+                    <span class="text-textcolor">Min P</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].min_p} disableable/>
+                    <span class="text-textcolor">Top A</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].top_a} disableable/>
+                    <span class="text-textcolor">Top P</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].top_p} disableable/>
+                    <span class="text-textcolor">Frequency Penalty</span>
+                    <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].frequency_penalty} disableable/>
+                    <span class="text-textcolor">Presence Penalty</span>
+                    <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].presence_penalty} disableable/>
+                </Arcodion>
+            {/each}
+
+        {/if}
+    </Arcodion>
 
 {/if}
 

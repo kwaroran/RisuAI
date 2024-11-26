@@ -15,6 +15,7 @@
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     $effect.pre(() => {
         DBState.db.NAIImgConfig ??= {
             width: 512,
@@ -423,8 +424,8 @@
             <span class="text-textcolor">{language.SuperMemory} OpenAI Key</span>
             <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryKey}/>
             {/if}
-            <span class="text-textcolor">{language.SuperMemory} Prompt</span>
-            <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
+            <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt" /></span>
+            <TextAreaInput size="sm" bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
             <span class="text-textcolor">{language.HypaMemory} Model</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.hypaModel}>
                 <OptionInput value="MiniLM">MiniLM-L6-v2 (Free / Local)</OptionInput>

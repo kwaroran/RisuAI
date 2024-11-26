@@ -1465,9 +1465,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 formated: promptbody,
                 bias: emobias,
                 currentChar: currentChar,
-                temperature: 0.4,
                 maxTokens: 30,
-            }, 'submodel', abortSignal)
+            }, 'emotion', abortSignal)
 
             if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
                 if(abortSignal.aborted){

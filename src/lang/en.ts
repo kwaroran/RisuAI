@@ -167,6 +167,9 @@ export const languageEnglish = {
         chatHTML: "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button.",
         systemContentReplacement: "The prompt format that replaces system prompt if the model doesn't support system prompt.",
         systemRoleReplacement: "The role that replaces system role if the model doesn't support system role.",
+        summarizationPrompt: "The prompt that is used for summarization. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the chat data.",
+        translatorPrompt: "The prompt that is used for translation. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the dest language, {{solt::content}} for the content, and {{slot::tnote}} for the translator note.",
+        translateBeforeHTMLFormatting: "If enabled, it will translate the text before Regex scripts and HTML formatting. this could make the token lesser but could break the formatting.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -801,4 +804,9 @@ export const languageEnglish = {
     predictedOutput: "Predicted Output",
     systemContentReplacement: "System Content Replacement",
     systemRoleReplacement: "System Role Replacement",
+    seperateParameters: "Seperate Parameters",
+    seperateParametersEnabled: "Enable Seperate Parameters",
+    summarizationPrompt: "Summarization Prompt",
+    translatorPrompt: "Translation Prompt",
+    translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
 }

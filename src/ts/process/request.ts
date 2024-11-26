@@ -1,5 +1,5 @@
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
-import { getCurrentCharacter, getDatabase, type character } from "../storage/database.svelte";
+import { getCurrentCharacter, getDatabase, setDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
@@ -47,6 +47,7 @@ interface RequestDataArgumentExtended extends requestDataArgument{
     abortSignal?:AbortSignal
     modelInfo?:LLMModel
     customURL?:string
+    mode?:ModelModeExtended
 }
 
 type requestDataResponse = {
@@ -89,12 +90,31 @@ interface OaiFunctions {
 
 
 export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'
+export type ModelModeExtended = 'model'|'submodel'|'memory'|'emotion'|'otherAx'|'translate'
 type ParameterMap = {
     [key in Parameter]?: string;
 };
 
-function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap = {}) {
+function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended): { [key: string]: any } {
     const db = getDatabase()
+    if(db.seperateParametersEnabled && ModelMode !== 'model'){
+        if(ModelMode === 'submodel'){
+            ModelMode = 'otherAx'
+        }
+
+        for(const parameter of parameters){
+            let value = db.seperateParameters[ModelMode][parameter]
+
+            if(value === -1000 || value === undefined){
+                continue
+            }
+
+            data[rename[parameter] ?? parameter] = value
+        }
+        return data
+    }
+
+
     for(const parameter of parameters){
         let value = 0
         switch(parameter){
@@ -141,7 +161,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
     return data
 }
 
-export async function requestChatData(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
+export async function requestChatData(arg:requestDataArgument, model:ModelModeExtended, abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
     let trys = 0
     while(true){
@@ -240,7 +260,7 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
 }
 
 
-export async function requestChatDataMain(arg:requestDataArgument, model:'model'|'submodel', abortSignal:AbortSignal=null):Promise<requestDataResponse> {
+export async function requestChatDataMain(arg:requestDataArgument, model:ModelModeExtended, abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
     const targ:RequestDataArgumentExtended = arg
     targ.formated = safeStructuredClone(arg.formated)
@@ -255,6 +275,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:'model'
     targ.multiGen = ((db.genTime > 1 && targ.aiModel.startsWith('gpt') && (!arg.continue)) && (!arg.noMultiGen))
     targ.abortSignal = abortSignal
     targ.modelInfo = getModelInfo(targ.aiModel)
+    targ.mode = model
     if(targ.aiModel === 'reverse_proxy'){
         targ.modelInfo.internalID = db.customProxyRequestModel
         targ.modelInfo.format = db.customAPIFormat
@@ -502,7 +523,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                 top_p: db.top_p,
                 safe_prompt: false,
                 max_tokens: arg.maxTokens,
-            }, ['temperature', 'presence_penalty', 'frequency_penalty'] ),
+            }, ['temperature', 'presence_penalty', 'frequency_penalty'], {}, arg.mode ),
             headers: {
                 "Authorization": "Bearer " + db.mistralKey,
             },
@@ -625,8 +646,11 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
-    body = applyParameters(body,
-        aiModel === 'openrouter' ? ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'] : ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+    body = applyParameters(
+        body,
+        aiModel === 'openrouter' ? ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'] : ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty'],
+        {},
+        arg.mode
     )
 
     if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
@@ -1465,7 +1489,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             "maxOutputTokens": maxTokens,
         }, ['temperature', 'top_p'], {
             'top_p': "topP"
-        }),
+        }, arg.mode),
         safetySettings: uncensoredCatagory
     }
 
@@ -1523,11 +1547,22 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
         const data = await response.json();
 
-        return data.access_token;
+        const token = data.access_token;
+
+        const db2 = getDatabase()
+        db2.vertexAccessToken = token
+        db2.vertexAccessTokenExpires = Date.now() + 3500 * 1000
+        setDatabase(db2)
+        return token;
     }
 
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
-        headers['Authorization'] = "Bearer " + generateToken(db.google.clientEmail, db.google.privateKey)
+        if(db.vertexAccessTokenExpires < Date.now()){
+            headers['Authorization'] = "Bearer " + generateToken(db.vertexClientEmail, db.vertexPrivateKey)
+        }
+        else{
+            headers['Authorization'] = "Bearer " + db.vertexAccessToken
+        }
     }
 
     const url = arg.customURL ?? (arg.modelInfo.format === LLMFormat.VertexAIGemini ?
@@ -1606,7 +1641,7 @@ async function requestKobold(arg:RequestDataArgumentExtended):Promise<requestDat
         'top_a'
     ], {
         'repetition_penalty': 'rep_pen'
-    }) as KoboldGenerationInputSchema
+    }, arg.mode) as KoboldGenerationInputSchema
     
     const da = await globalFetch(url.toString(), {
         method: "POST",
@@ -1802,7 +1837,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
     ], {
         'top_k': 'k',
         'top_p': 'p',
-    })
+    }, arg.mode)
 
     if(aiModel !== 'cohere-command-r-03-2024' && aiModel !== 'cohere-command-r-plus-04-2024'){
         body.safety_mode = "NONE"
@@ -2091,7 +2126,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         system: systemPrompt.trim(),
         max_tokens: maxTokens,
         stream: useStreaming ?? false
-    }, ['temperature', 'top_k', 'top_p'])
+    }, ['temperature', 'top_k', 'top_p'], {}, arg.mode)
 
     if(systemPrompt === ''){
         delete body.system

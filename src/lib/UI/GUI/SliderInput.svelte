@@ -13,7 +13,7 @@
   {#if disableable}
 
     <div class="relative h-8 border-darkborderc border rounded-full cursor-pointer rounded-r-none border-r-0 flex justify-center items-center">
-      <CheckInput check={value !== -1000} margin={false} onChange={(c) => {
+      <CheckInput check={value !== -1000 && value !== undefined} margin={false} onChange={(c) => {
         onchange?.()
         if(c) {
           value = min;
@@ -58,7 +58,7 @@
     <span 
       class="absolute top-0 left-4 h-8 rounded-full items-center justify-center flex text-textcolor text-sm"
     >
-      {customText === undefined ? (value === -1000 ? language.disabled : (value * multiple).toFixed(fixed)) : customText}
+      {customText === undefined ? ((value === -1000 || value === undefined) ? language.disabled : (value * multiple).toFixed(fixed)) : customText}
     </span>
   </div>
 </div>

@@ -115,6 +115,8 @@
     {#if DBState.db.translatorType === 'llm'}
         <span class="text-textcolor mt-4">{language.translationResponseSize}</span>
         <NumberInput min={0} max={2048} marginBottom={true} bind:value={DBState.db.translatorMaxResponse}/>
+        <span class="text-textcolor mt-4">{language.translatorPrompt} <Help key="translatorPrompt" /></span>
+
         <TextAreaInput bind:value={DBState.db.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
@@ -149,4 +151,12 @@
             <Help key="legacyTranslation"/>
         </Check>
     </div>
+
+    {#if DBState.db.translatorType === 'llm'}
+        <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.translateBeforeHTMLFormatting} name={language.translateBeforeHTMLFormatting}>
+                <Help key="translateBeforeHTMLFormatting"/>
+            </Check>
+        </div>
+    {/if}
 {/if}

@@ -9,6 +9,7 @@ export enum LLMFlags{
     hasCache,
     hasFullSystemPrompt,
     hasFirstSystemPrompt,
+    hasStreaming,
     requiresAlternateRole,
     mustStartWithUserInput,
 }
@@ -26,6 +27,7 @@ export enum LLMProvider{
     WebLLM,
     Horde,
     AWS,
+    AI21
 }
 
 export enum LLMFormat{
@@ -87,7 +89,7 @@ export const LLMModels: LLMModel[] = [
         name: 'GPT-3.5',
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFullSystemPrompt],
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
         parameters: OpenAIParameters,
     },
     {
@@ -96,7 +98,7 @@ export const LLMModels: LLMModel[] = [
         name: 'InstructGPT-3.5',
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAILegacyInstruct,
-        flags: [LLMFlags.hasFullSystemPrompt],
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
         parameters: OpenAIParameters,
     },
     {
@@ -105,7 +107,7 @@ export const LLMModels: LLMModel[] = [
         name: 'GPT-4 Turbo',
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFullSystemPrompt],
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
         parameters: OpenAIParameters,
     },
     {
@@ -116,7 +118,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         recommended: true,
         parameters: OpenAIParameters,
@@ -129,7 +132,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         recommended: true,
         parameters: OpenAIParameters,
@@ -141,7 +145,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -152,7 +157,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -163,7 +169,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -174,7 +181,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -185,7 +193,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -196,7 +205,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -207,7 +217,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -218,7 +229,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -229,7 +241,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -240,7 +253,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -251,7 +265,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -262,7 +277,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -273,7 +289,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -283,7 +300,10 @@ export const LLMModels: LLMModel[] = [
         name: 'GPT-4 Vision 1106',
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasImageInput],
+        flags: [
+            LLMFlags.hasImageInput,
+            LLMFlags.hasStreaming
+        ],
         parameters: OpenAIParameters,
     },
     {
@@ -293,7 +313,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -305,7 +326,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -317,7 +339,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -329,7 +352,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -341,7 +365,8 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [
             LLMFlags.hasImageInput,
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -352,7 +377,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -363,7 +389,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: OpenAIParameters,
     },
@@ -376,7 +403,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         recommended: true,
         parameters: ClaudeParameters,
@@ -390,7 +418,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         recommended: true,
         parameters: ClaudeParameters,
@@ -404,7 +433,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -417,7 +447,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -430,7 +461,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -443,7 +475,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -456,7 +489,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -469,7 +503,8 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
     },
@@ -593,7 +628,7 @@ export const LLMModels: LLMModel[] = [
         id: 'openrouter',
         provider: LLMProvider.AsIs,
         format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasImageInput],
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasImageInput, LLMFlags.hasStreaming],
         parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'],
         recommended: true
     },
@@ -930,7 +965,7 @@ export const LLMModels: LLMModel[] = [
         name: "Custom API",
         provider: LLMProvider.AsIs,
         format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFullSystemPrompt],
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
         recommended: true,
         parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k']
     }
