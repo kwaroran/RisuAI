@@ -233,9 +233,6 @@
                 }
             }}/>
         {/if}
-        {#if DBState.db.aiModel.startsWith('claude-') || DBState.db.subModel.startsWith('claude-')}
-            <Check name="AWS Claude" bind:check={DBState.db.claudeAws}></Check>
-        {/if}
         {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
             <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
         {/if}
