@@ -447,7 +447,7 @@
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
-                <textarea class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
                     onkeydown={(e) => {
@@ -483,7 +483,7 @@
                 {:else}
                     <button
                         onclick={send}
-                        class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors"
+                        class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
                         style:height={inputHeight}
                     >
                         <Send />

@@ -165,7 +165,7 @@ export function alertMd(msg:string){
 }
 
 export function doingAlert(){
-    return get(alertStoreImported).type !== 'none' && get(alertStoreImported).type !== 'toast'
+    return get(alertStoreImported).type !== 'none' && get(alertStoreImported).type !== 'toast' && get(alertStoreImported).type !== 'wait'
 }
 
 export function alertToast(msg:string){

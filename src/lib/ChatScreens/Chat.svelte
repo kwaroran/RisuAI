@@ -304,7 +304,7 @@
     <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
         {#if DBState.db.useChatCopy && !blankMessage}
-            <button class="ml-2 hover:text-blue-500 transition-colors" onclick={async ()=>{
+            <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
                 if(window.navigator.clipboard.write){
                     alertWait(language.loading)
                     const root = document.querySelector(':root') as HTMLElement;
@@ -408,7 +408,7 @@
         {/if}
         {#if idx > -1}
             {#if DBState.db.characters[selIdState.selId].type !== 'group' && DBState.db.characters[selIdState.selId].ttsMode !== 'none' && (DBState.db.characters[selIdState.selId].ttsMode)}
-                <button class="ml-2 hover:text-blue-500 transition-colors" onclick={()=>{
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-tts" onclick={()=>{
                     return sayTTS(null, message)
                 }}>
                     <Volume2Icon size={20}/>
@@ -416,7 +416,7 @@
             {/if}
 
             {#if !$ConnectionOpenStore}
-                <button class={"ml-2 hover:text-blue-500 transition-colors "+(editMode?'text-blue-400':'')} onclick={() => {
+                <button class={"ml-2 hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} onclick={() => {
                     if(!editMode){
                         editMode = true
                     }
@@ -427,13 +427,13 @@
                 }}>
                     <PencilIcon size={20}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
                     <TrashIcon size={20}/>
                 </button>
             {/if}
         {/if}
         {#if DBState.db.translator !== '' && !blankMessage}
-            <button class={"ml-2 cursor-pointer hover:text-blue-500 transition-colors " + (translated ? 'text-blue-400':'')} class:translating={translating} onclick={async () => {
+            <button class={"ml-2 cursor-pointer hover:text-blue-500 transition-colors button-icon-translate " + (translated ? 'text-blue-400':'')} class:translating={translating} onclick={async () => {
                 translated = !translated
             }}>
                 <LanguagesIcon />
@@ -441,14 +441,14 @@
         {/if}
         {#if rerollIcon || altGreeting}
             {#if DBState.db.swipe || altGreeting}
-                <button class="ml-2 hover:text-blue-500 transition-colors" onclick={unReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll}>
                     <ArrowLeft size={22}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
                     <ArrowRight size={22}/>
                 </button>
             {:else}
-                <button class="ml-2 hover:text-blue-500 transition-colors" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
                     <RefreshCcwIcon size={20}/>
                 </button>
             {/if}
@@ -672,7 +672,7 @@
 
                         </div>
                         {#if editMode}
-                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none" bind:value={message}></textarea>
+                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none message-edit-area" bind:value={message}></textarea>
                         {:else}
                             <div class="flex-grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
                                 {@render textBox()}
