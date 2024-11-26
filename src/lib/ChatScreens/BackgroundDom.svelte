@@ -5,7 +5,7 @@
     import { moduleBackgroundEmbedding, ReloadGUIPointer, selIdState } from "src/ts/stores.svelte";
 
     let backgroundHTML = $derived(DBState.db?.characters?.[selIdState.selId]?.backgroundHTML)
-    let currentChar:character|groupChat = $state()
+    let currentChar:character|groupChat = $derived(DBState.db?.characters?.[selIdState.selId])
 
 </script>
 
