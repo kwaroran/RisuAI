@@ -1584,7 +1584,8 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        abortSignal: arg.abortSignal
     })
 
     if(!res.ok){
