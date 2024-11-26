@@ -303,16 +303,6 @@
 {#snippet icons(options:{applyTextColors?:boolean} = {})}
     <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
-        {#if DBState.db.logShare}
-            <button class="ml-2 hover:text-blue-500 transition-colors" onclick={() => {
-                alertStore.set({
-                    type: 'pukmakkurit',
-                    msg: lastParsed,
-                })
-            }}>
-                <Sparkles size={22}/>
-            </button>
-        {/if}
         {#if DBState.db.useChatCopy && !blankMessage}
             <button class="ml-2 hover:text-blue-500 transition-colors" onclick={async ()=>{
                 if(window.navigator.clipboard.write){
