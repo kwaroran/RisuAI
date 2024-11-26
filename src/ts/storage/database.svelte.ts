@@ -446,6 +446,8 @@ export function setDatabase(data:Database){
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
     data.customAPIFormat ??= LLMFormat.OpenAICompatible
+    data.systemContentReplacement ??= `system: {{slot}}`
+    data.systemRoleReplacement ??= 'user'
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -821,6 +823,8 @@ export interface Database{
     logShare:boolean
     OAIPrediction:string
     customAPIFormat:LLMFormat
+    systemContentReplacement:string
+    systemRoleReplacement:'user'|'assistant'
 }
 
 export interface customscript{
