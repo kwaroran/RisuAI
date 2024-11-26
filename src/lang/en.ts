@@ -809,4 +809,5 @@ export const languageEnglish = {
     summarizationPrompt: "Summarization Prompt",
     translatorPrompt: "Translation Prompt",
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
+    retranslate: "Retranslate",
 }

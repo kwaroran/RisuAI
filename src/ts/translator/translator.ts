@@ -216,7 +216,7 @@ export function isExpTranslator(){
     return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
-export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number): Promise<string> {
+export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number, regenerate = false): Promise<string> {
     let alwaysExistChar: character | groupChat | simpleCharacterArgument;
     if(charArg !== ''){
         if(typeof(charArg) === 'string'){
@@ -245,7 +245,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     }
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
-        return translateLLM(html, {to: tr})
+        return translateLLM(html, {to: tr, regenerate})
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
@@ -447,10 +447,12 @@ function needSuperChunkedTranslate(){
     return getDatabase().translatorType === 'deeplX'
 }
 
-async function translateLLM(text:string, arg:{to:string}):Promise<string>{
-    const cacheMatch = await LLMCacheStorage.getItem(text)
-    if(cacheMatch){
-        return cacheMatch as string
+async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):Promise<string>{
+    if(!arg.regenerate){
+        const cacheMatch = await LLMCacheStorage.getItem(text)
+        if(cacheMatch){
+            return cacheMatch as string
+        }
     }
     const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
     let styleDecodes:string[] = []

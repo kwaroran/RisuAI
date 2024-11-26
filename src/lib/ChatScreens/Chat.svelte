@@ -12,7 +12,7 @@
     import { type Unsubscriber } from "svelte/store";
     import { isEqual } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
-    import { capitalize } from "src/ts/util";
+    import { capitalize, sleep } from "src/ts/util";
     import { longpress } from "src/ts/gui/longtouch";
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
@@ -21,6 +21,7 @@
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
+    let retranslate = false
     interface Props {
         message?: string;
         name?: string;
@@ -148,9 +149,13 @@
                 }
             }
             if(translateText){
-                if(DBState.db.translator === 'llm' && DBState.db.translateBeforeHTMLFormatting){
+                let doRetranslate = retranslate
+                retranslate = false
+                console.log(`retranslating: ${doRetranslate}`)
+                if(DBState.db.translatorType === 'llm' && DBState.db.translateBeforeHTMLFormatting){
+                    await sleep(100)
                     translating = true
-                    data = await translateHTML(data, false, charArg, chatID)
+                    data = await translateHTML(data, false, charArg, chatID, doRetranslate)
                     translating = false
                     const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     lastParsedQueue = marked
@@ -160,7 +165,7 @@
                 else if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
-                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID))
+                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID, doRetranslate))
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
@@ -169,7 +174,7 @@
                 else{
                     const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     translating = true
-                    const translated = await translateHTML(marked, false, charArg, chatID)
+                    const translated = await translateHTML(marked, false, charArg, chatID, doRetranslate)
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
@@ -228,24 +233,40 @@
 
 
 {#snippet genInfo()}
-    {#if messageGenerationInfo && DBState.db.requestInfoInsideChat}
-        <div>
-            <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-2
-                            hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
-                    onclick={() => {
-                        alertRequestData({
-                            genInfo: messageGenerationInfo,
-                            idx: idx,
-                        })
-                    }}
-            >
-                <BotIcon size={20} />
-                <span class="ml-1">
-                    {capitalize(getModelInfo(messageGenerationInfo.model).shortName)}
-                </span>
-            </button>
+        <div class="flex flex-col items-end">
+            {#if messageGenerationInfo && DBState.db.requestInfoInsideChat}
+
+                <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
+                                hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                        onclick={() => {
+                            alertRequestData({
+                                genInfo: messageGenerationInfo,
+                                idx: idx,
+                            })
+                        }}
+                >
+                    <BotIcon size={20} />
+                    <span class="ml-1">
+                        {capitalize(getModelInfo(messageGenerationInfo.model).shortName)}
+                    </span>
+                </button>
+            {/if}
+            {#if DBState.db.translatorType === 'llm' && translated && !lastParsed.startsWith(`div class="flex justify-center items-center"><div class="animate-spin`)}
+                <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
+                                hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                        onclick={() => {
+                            lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
+                            retranslate = true
+                            $ReloadGUIPointer = $ReloadGUIPointer + 1
+                        }}
+                >
+                    <RefreshCcwIcon size={20} />
+                    <span class="ml-1">
+                        {language.retranslate}
+                    </span>
+                </button>
+            {/if}
         </div>
-    {/if}
 {/snippet}
 
 {#snippet textBox()}
