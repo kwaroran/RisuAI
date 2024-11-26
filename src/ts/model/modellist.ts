@@ -684,7 +684,7 @@ export const LLMModels: LLMModel[] = [
         name: "Gemini Exp 1121",
         id: 'gemini-exp-1121-vertex',
         internalID: 'gemini-exp-1121',
-        provider: LLMProvider.GoogleCloud,
+        provider: LLMProvider.VertexAI,
         format: LLMFormat.VertexAIGemini,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
         parameters: ['temperature', 'top_k', 'top_p']
@@ -693,7 +693,7 @@ export const LLMModels: LLMModel[] = [
         name: "Gemini Pro 1.5",
         id: 'gemini-1.5-pro-latest-vertex',
         internalID: 'gemini-1.5-pro-latest',
-        provider: LLMProvider.GoogleCloud,
+        provider: LLMProvider.VertexAI,
         format: LLMFormat.VertexAIGemini,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
         parameters: ['temperature', 'top_k', 'top_p']
@@ -702,7 +702,7 @@ export const LLMModels: LLMModel[] = [
         name: "Gemini Flash 1.5",
         id: 'gemini-1.5-flash-vertex',
         internalID: 'gemini-1.5-flash',
-        provider: LLMProvider.GoogleCloud,
+        provider: LLMProvider.VertexAI,
         format: LLMFormat.VertexAIGemini,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
         parameters: ['temperature', 'top_k', 'top_p']
