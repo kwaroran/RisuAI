@@ -2,7 +2,7 @@
     import { ArrowLeft, Sparkles, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
     import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser.svelte";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertConfirm, alertError, alertRequestData } from "../../ts/alert";
+    import { alertConfirm, alertError, alertNormal, alertRequestData, alertWait } from "../../ts/alert";
     import { language } from "../../lang";
     import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
     import { alertStore, DBState } from 'src/ts/stores.svelte';
@@ -10,7 +10,7 @@
     import { translateHTML } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { type Unsubscriber } from "svelte/store";
-    import { isEqual } from "lodash";
+    import { get, isEqual, startsWith } from "lodash";
     import { sayTTS } from "src/ts/process/tts";
     import { capitalize, sleep } from "src/ts/util";
     import { longpress } from "src/ts/gui/longtouch";
@@ -18,6 +18,8 @@
     import { ConnectionOpenStore } from "src/ts/sync/multiuser";
     import { onDestroy, onMount } from "svelte";
     import { getModelInfo } from "src/ts/model/modellist";
+  import { getCharImage } from "src/ts/characters";
+  import { getFileSrc } from "src/ts/globalApi.svelte";
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -151,7 +153,6 @@
             if(translateText){
                 let doRetranslate = retranslate
                 retranslate = false
-                console.log(`retranslating: ${doRetranslate}`)
                 if(DBState.db.translatorType === 'llm' && DBState.db.translateBeforeHTMLFormatting){
                     await sleep(100)
                     translating = true
@@ -221,7 +222,6 @@
         try {
             const parser = new DOMParser()
             const doc = parser.parseFromString(risuChatParser(html ?? '', {cbsConditions: getCbsCondition()}), 'text/html')
-            console.log(doc.body)
             return doc.body   
         } catch (error) {
             const placeholder = document.createElement('div')
@@ -314,7 +314,101 @@
             </button>
         {/if}
         {#if DBState.db.useChatCopy && !blankMessage}
-            <button class="ml-2 hover:text-blue-500 transition-colors" onclick={()=>{
+            <button class="ml-2 hover:text-blue-500 transition-colors" onclick={async ()=>{
+                if(window.navigator.clipboard.write){
+                    alertWait(language.loading)
+                    const root = document.querySelector(':root') as HTMLElement;
+
+                    const parser = new DOMParser()
+                    const doc = parser.parseFromString(lastParsed, 'text/html')
+                    doc.querySelectorAll('mark').forEach((el) => {
+                        const d = el.getAttribute('risu-mark')
+                        if(d === 'quote1' || d === 'quote2'){
+                            const newEle = document.createElement('div')
+                            newEle.textContent = el.textContent
+                            newEle.setAttribute('style', `background: transparent; color: ${
+                                root.style.getPropertyValue('--FontColorQuote' + d.slice(-1))
+                            };`)
+                            el.replaceWith(newEle)
+                            return
+                        }
+                    })
+                    doc.querySelectorAll('p').forEach((el) => {
+                        el.setAttribute('style', `color: ${root.style.getPropertyValue('--FontColorStandard')};`)
+                    })
+                    doc.querySelectorAll('em').forEach((el) => {
+                        el.setAttribute('style', `font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalic')};`)
+                    })
+                    doc.querySelectorAll('strong').forEach((el) => {
+                        el.setAttribute('style', `font-weight: bold; color: ${root.style.getPropertyValue('--FontColorBold')};`)
+                    })
+                    doc.querySelectorAll('em strong').forEach((el) => {
+                        el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
+                    })
+                    doc.querySelectorAll('strong em').forEach((el) => {
+                        el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
+                    })
+                    const imgs = doc.querySelectorAll('img')
+                    for(const img of imgs){
+                        img.setAttribute('alt', 'from RisuAI')
+                        const url = img.getAttribute('src')
+                        if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
+                            try {
+                                const data = await fetch(url)
+                                img.setAttribute('src', `${await data.blob().then((b) => new Promise((resolve, reject) => {
+                                    const reader = new FileReader()
+                                    reader.onload = () => resolve(reader.result as string)
+                                    reader.onerror = reject
+                                    reader.readAsDataURL(b)
+                                }))}`)
+                            } catch (error) {
+                                console.error(error)
+                            }
+                        }
+                    }
+
+                    let iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
+                    let iconDataUrl = ''
+
+                    if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
+                        try {
+                            const data = await fetch(iconImage)
+                            iconDataUrl = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                const reader = new FileReader()
+                                reader.onload = () => resolve(reader.result as string)
+                                reader.onerror = reject
+                                reader.readAsDataURL(b)
+                            }))
+                        } catch (error) {
+                            console.error(error)
+                        }
+                    }
+
+
+                    const html = `
+                        <div style="background: ${root.style.getPropertyValue('--risu-theme-bgcolor')};display: flex;flex-direction: column;align-items: center;justify-content: center;border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};border-radius: 0.5rem;box-shadow: 0 0 0.5rem ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin: 1rem;">
+                            <div style="display: flex;align-items: center;justify-content: center; margin-top: 0.5rem;">
+                                <img style="max-width: 100px; max-height: 100px;border-radius: 50%;border: 2px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin-top: 1rem;width: 100px; height: 100px;" src="${iconDataUrl}" alt="from RisuAI" width="100" height="100">
+                            </div><span style="font-size: 1.5rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};font-weight: bold;">${name}</span><span style="background: ${root.style.getPropertyValue('--risu-theme-darkbg')};color: ${root.style.getPropertyValue('--risu-theme-textcolor')};padding: 0.25rem;border-radius: 0.5rem;font-size: 0.75rem;">${capitalize(getModelInfo(messageGenerationInfo.model).shortName)}</span>
+                            <div style="padding-left: 1rem;padding-right: 1rem;padding-bottom: 0.5rem;padding-top: 1rem;width: 100%;">
+                                ${doc.body.innerHTML}
+                            </div>
+                            <div style="text-align: right;padding: 0.5rem;">
+                                <span style="font-size: 0.75rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};">From RisuAI</span>
+                            </div>
+                        </div>
+                    `
+
+
+                    await window.navigator.clipboard.write([
+                        new ClipboardItem({
+                            'text/plain': new Blob([msgDisplay], {type: 'text/plain'}),
+                            'text/html': new Blob([html], {type: 'text/html'})
+                        })
+                    ])
+                    // alertNormal(language.copied)
+                    return
+                }
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
                     setStatusMessage(language.copied)
                 })

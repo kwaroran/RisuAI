@@ -810,4 +810,5 @@ export const languageEnglish = {
     translatorPrompt: "Translation Prompt",
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
     retranslate: "Retranslate",
+    loading: "Loading",
 }
