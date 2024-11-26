@@ -1365,6 +1365,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
     let reformatedChat:GeminiChat[] = []
     let pendingImage = ''
+    let systemPrompt = ''
+
+    if(formated[0].role === 'system'){
+        systemPrompt = formated[0].content
+        formated.shift()
+    }
 
     for(let i=0;i<formated.length;i++){
         const chat = formated[i]
@@ -1490,7 +1496,14 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }, ['temperature', 'top_p'], {
             'top_p': "topP"
         }, arg.mode),
-        safetySettings: uncensoredCatagory
+        safetySettings: uncensoredCatagory,
+        systemInstruction: {
+            parts: [
+                {
+                    "text": systemPrompt
+                }
+            ]
+        },
     }
 
     let headers:{[key:string]:string} = {}
