@@ -26,7 +26,7 @@ export function initHotkey(){
                         clickQuery('.button-icon-translate')
                         return
                     }
-                    case "r":{
+                    case "d":{
                         ev.preventDefault()
                         clickQuery('.button-icon-remove')
                         return
