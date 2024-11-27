@@ -345,12 +345,23 @@
                         if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
                             try {
                                 const data = await fetch(url)
-                                img.setAttribute('src', `${await data.blob().then((b) => new Promise((resolve, reject) => {
+                                const canvas = document.createElement('canvas')
+                                const ctx = canvas.getContext('2d')
+                                const img = new Image()
+                                img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
                                     const reader = new FileReader()
                                     reader.onload = () => resolve(reader.result as string)
                                     reader.onerror = reject
                                     reader.readAsDataURL(b)
-                                }))}`)
+                                }))
+                                await new Promise((resolve) => {
+                                    img.onload = resolve
+                                })
+                                canvas.width = img.width
+                                canvas.height = img.height
+                                ctx.drawImage(img, 0, 0)
+                                const dataURL = canvas.toDataURL('image/jpeg')
+                                img.setAttribute('src', dataURL)
                             } catch (error) {
                                 console.error(error)
                             }
@@ -363,12 +374,22 @@
                     if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
                         try {
                             const data = await fetch(iconImage)
-                            iconDataUrl = await data.blob().then((b) => new Promise((resolve, reject) => {
+                            const canvas = document.createElement('canvas')
+                            const ctx = canvas.getContext('2d')
+                            const img = new Image()
+                            img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
                                 const reader = new FileReader()
                                 reader.onload = () => resolve(reader.result as string)
                                 reader.onerror = reject
                                 reader.readAsDataURL(b)
                             }))
+                            await new Promise((resolve) => {
+                                img.onload = resolve
+                            })
+                            canvas.width = img.width
+                            canvas.height = img.height
+                            ctx.drawImage(img, 0, 0)
+                            iconDataUrl = canvas.toDataURL('image/jpeg')
                         } catch (error) {
                             console.error(error)
                         }
