@@ -979,14 +979,9 @@ for(let model of LLMModels){
 
 export function getModelInfo(id: string): LLMModel{
 
-    const found:LLMModel = LLMModels.find(model => model.id === id) ?? {
-        id,
-        name: id,
-        provider: LLMProvider.AsIs,
-        format: LLMFormat.OpenAICompatible,
-        flags: [],
-        parameters: OpenAIParameters
-    }
+    const found:LLMModel = LLMModels.find(model => model.id === id)
+
+    console.log('found', found)
 
     if(found) return found
 
