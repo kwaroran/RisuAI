@@ -1154,6 +1154,17 @@ export interface botPreset{
     extractJson?:string
     groupTemplate?:string
     groupOtherBotRole?:string
+    seperateParametersEnabled?:boolean
+    seperateParameters?:{
+        memory: SeparateParameters,
+        emotion: SeparateParameters,
+        translate: SeparateParameters,
+        otherAx: SeparateParameters
+    }
+    customAPIFormat?:LLMFormat
+    systemContentReplacement?: string
+    systemRoleReplacement?: 'user'|'assistant'
+    openAIPrediction?: string
 }
 
 
@@ -1446,6 +1457,12 @@ export function saveCurrentPreset(){
         extractJson:db.extractJson ?? '',
         groupOtherBotRole: db.groupOtherBotRole ?? 'user',
         groupTemplate: db.groupTemplate ?? '',
+        seperateParametersEnabled: db.seperateParametersEnabled ?? false,
+        seperateParameters: safeStructuredClone(db.seperateParameters),
+        openAIPrediction: db.OAIPrediction,
+        customAPIFormat: safeStructuredClone(db.customAPIFormat),
+        systemContentReplacement: db.systemContentReplacement,
+        systemRoleReplacement: db.systemRoleReplacement,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1540,6 +1557,17 @@ export function setPreset(db:Database, newPres: botPreset){
     db.extractJson = newPres.extractJson ?? ''
     db.groupOtherBotRole = newPres.groupOtherBotRole ?? 'user'
     db.groupTemplate = newPres.groupTemplate ?? ''
+    db.seperateParametersEnabled = newPres.seperateParametersEnabled ?? false
+    db.seperateParameters = newPres.seperateParameters ? safeStructuredClone(newPres.seperateParameters) : {
+        memory: {},
+        emotion: {},
+        translate: {},
+        otherAx: {}
+    }
+    db.OAIPrediction = newPres.openAIPrediction ?? ''
+    db.customAPIFormat = safeStructuredClone(newPres.customAPIFormat) ?? LLMFormat.OpenAICompatible
+    db.systemContentReplacement = newPres.systemContentReplacement ?? ''
+    db.systemRoleReplacement = newPres.systemRoleReplacement ?? 'user'
     return db
 }
 
