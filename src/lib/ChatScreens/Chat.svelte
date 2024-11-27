@@ -306,45 +306,75 @@
         {#if DBState.db.useChatCopy && !blankMessage}
             <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
                 if(window.navigator.clipboard.write){
-                    alertWait(language.loading)
-                    const root = document.querySelector(':root') as HTMLElement;
+                    try {
+                        alertWait(language.loading)
+                        const root = document.querySelector(':root') as HTMLElement;
 
-                    const parser = new DOMParser()
-                    const doc = parser.parseFromString(lastParsed, 'text/html')
-                    doc.querySelectorAll('mark').forEach((el) => {
-                        const d = el.getAttribute('risu-mark')
-                        if(d === 'quote1' || d === 'quote2'){
-                            const newEle = document.createElement('div')
-                            newEle.textContent = el.textContent
-                            newEle.setAttribute('style', `background: transparent; color: ${
-                                root.style.getPropertyValue('--FontColorQuote' + d.slice(-1))
-                            };`)
-                            el.replaceWith(newEle)
-                            return
+                        const parser = new DOMParser()
+                        const doc = parser.parseFromString(lastParsed, 'text/html')
+                        doc.querySelectorAll('mark').forEach((el) => {
+                            const d = el.getAttribute('risu-mark')
+                            if(d === 'quote1' || d === 'quote2'){
+                                const newEle = document.createElement('div')
+                                newEle.textContent = el.textContent
+                                newEle.setAttribute('style', `background: transparent; color: ${
+                                    root.style.getPropertyValue('--FontColorQuote' + d.slice(-1))
+                                };`)
+                                el.replaceWith(newEle)
+                                return
+                            }
+                        })
+                        doc.querySelectorAll('p').forEach((el) => {
+                            el.setAttribute('style', `color: ${root.style.getPropertyValue('--FontColorStandard')};`)
+                        })
+                        doc.querySelectorAll('em').forEach((el) => {
+                            el.setAttribute('style', `font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalic')};`)
+                        })
+                        doc.querySelectorAll('strong').forEach((el) => {
+                            el.setAttribute('style', `font-weight: bold; color: ${root.style.getPropertyValue('--FontColorBold')};`)
+                        })
+                        doc.querySelectorAll('em strong').forEach((el) => {
+                            el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
+                        })
+                        doc.querySelectorAll('strong em').forEach((el) => {
+                            el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
+                        })
+                        const imgs = doc.querySelectorAll('img')
+                        for(const img of imgs){
+                            img.setAttribute('alt', 'from RisuAI')
+                            const url = img.getAttribute('src')
+                            if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
+                                try {
+                                    const data = await fetch(url)
+                                    const canvas = document.createElement('canvas')
+                                    const ctx = canvas.getContext('2d')
+                                    const img = new Image()
+                                    img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                        const reader = new FileReader()
+                                        reader.onload = () => resolve(reader.result as string)
+                                        reader.onerror = reject
+                                        reader.readAsDataURL(b)
+                                    }))
+                                    await new Promise((resolve) => {
+                                        img.onload = resolve
+                                    })
+                                    canvas.width = img.width
+                                    canvas.height = img.height
+                                    ctx.drawImage(img, 0, 0)
+                                    const dataURL = canvas.toDataURL('image/jpeg')
+                                    img.setAttribute('src', dataURL)
+                                } catch (error) {
+                                    console.error(error)
+                                }
+                            }
                         }
-                    })
-                    doc.querySelectorAll('p').forEach((el) => {
-                        el.setAttribute('style', `color: ${root.style.getPropertyValue('--FontColorStandard')};`)
-                    })
-                    doc.querySelectorAll('em').forEach((el) => {
-                        el.setAttribute('style', `font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalic')};`)
-                    })
-                    doc.querySelectorAll('strong').forEach((el) => {
-                        el.setAttribute('style', `font-weight: bold; color: ${root.style.getPropertyValue('--FontColorBold')};`)
-                    })
-                    doc.querySelectorAll('em strong').forEach((el) => {
-                        el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
-                    })
-                    doc.querySelectorAll('strong em').forEach((el) => {
-                        el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
-                    })
-                    const imgs = doc.querySelectorAll('img')
-                    for(const img of imgs){
-                        img.setAttribute('alt', 'from RisuAI')
-                        const url = img.getAttribute('src')
-                        if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
+
+                        let iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
+                        let iconDataUrl = ''
+
+                        if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
                             try {
-                                const data = await fetch(url)
+                                const data = await fetch(iconImage)
                                 const canvas = document.createElement('canvas')
                                 const ctx = canvas.getContext('2d')
                                 const img = new Image()
@@ -360,65 +390,40 @@
                                 canvas.width = img.width
                                 canvas.height = img.height
                                 ctx.drawImage(img, 0, 0)
-                                const dataURL = canvas.toDataURL('image/jpeg')
-                                img.setAttribute('src', dataURL)
+                                iconDataUrl = canvas.toDataURL('image/jpeg')
                             } catch (error) {
                                 console.error(error)
                             }
                         }
-                    }
 
-                    let iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
-                    let iconDataUrl = ''
 
-                    if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
-                        try {
-                            const data = await fetch(iconImage)
-                            const canvas = document.createElement('canvas')
-                            const ctx = canvas.getContext('2d')
-                            const img = new Image()
-                            img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
-                                const reader = new FileReader()
-                                reader.onload = () => resolve(reader.result as string)
-                                reader.onerror = reject
-                                reader.readAsDataURL(b)
-                            }))
-                            await new Promise((resolve) => {
-                                img.onload = resolve
+                        const html = `
+                            <div style="background: ${root.style.getPropertyValue('--risu-theme-bgcolor')};display: flex;flex-direction: column;align-items: center;justify-content: center;border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};border-radius: 0.5rem;box-shadow: 0 0 0.5rem ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin: 1rem;">
+                                <div style="display: flex;align-items: center;justify-content: center; margin-top: 0.5rem;">
+                                    <img style="max-width: 100px; max-height: 100px;border-radius: 50%;border: 2px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin-top: 1rem;width: 100px; height: 100px;" src="${iconDataUrl}" alt="from RisuAI" width="100" height="100">
+                                </div><span style="font-size: 1.5rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};font-weight: bold;">${name}</span><span style="background: ${root.style.getPropertyValue('--risu-theme-darkbg')};color: ${root.style.getPropertyValue('--risu-theme-textcolor')};padding: 0.25rem;border-radius: 0.5rem;font-size: 0.75rem;">${capitalize(getModelInfo(messageGenerationInfo.model).shortName)}</span>
+                                <div style="padding-left: 1rem;padding-right: 1rem;padding-bottom: 0.5rem;padding-top: 1rem;width: 100%;">
+                                    ${doc.body.innerHTML}
+                                </div>
+                                <div style="text-align: right;padding: 0.5rem;">
+                                    <span style="font-size: 0.75rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};">From RisuAI</span>
+                                </div>
+                            </div>
+                        `
+
+
+                        await window.navigator.clipboard.write([
+                            new ClipboardItem({
+                                'text/plain': new Blob([msgDisplay], {type: 'text/plain'}),
+                                'text/html': new Blob([html], {type: 'text/html'})
                             })
-                            canvas.width = img.width
-                            canvas.height = img.height
-                            ctx.drawImage(img, 0, 0)
-                            iconDataUrl = canvas.toDataURL('image/jpeg')
-                        } catch (error) {
-                            console.error(error)
-                        }
+                        ])
+                        alertNormal(language.copied)
+                        return
                     }
-
-
-                    const html = `
-                        <div style="background: ${root.style.getPropertyValue('--risu-theme-bgcolor')};display: flex;flex-direction: column;align-items: center;justify-content: center;border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};border-radius: 0.5rem;box-shadow: 0 0 0.5rem ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin: 1rem;">
-                            <div style="display: flex;align-items: center;justify-content: center; margin-top: 0.5rem;">
-                                <img style="max-width: 100px; max-height: 100px;border-radius: 50%;border: 2px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin-top: 1rem;width: 100px; height: 100px;" src="${iconDataUrl}" alt="from RisuAI" width="100" height="100">
-                            </div><span style="font-size: 1.5rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};font-weight: bold;">${name}</span><span style="background: ${root.style.getPropertyValue('--risu-theme-darkbg')};color: ${root.style.getPropertyValue('--risu-theme-textcolor')};padding: 0.25rem;border-radius: 0.5rem;font-size: 0.75rem;">${capitalize(getModelInfo(messageGenerationInfo.model).shortName)}</span>
-                            <div style="padding-left: 1rem;padding-right: 1rem;padding-bottom: 0.5rem;padding-top: 1rem;width: 100%;">
-                                ${doc.body.innerHTML}
-                            </div>
-                            <div style="text-align: right;padding: 0.5rem;">
-                                <span style="font-size: 0.75rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};">From RisuAI</span>
-                            </div>
-                        </div>
-                    `
-
-
-                    await window.navigator.clipboard.write([
-                        new ClipboardItem({
-                            'text/plain': new Blob([msgDisplay], {type: 'text/plain'}),
-                            'text/html': new Blob([html], {type: 'text/html'})
-                        })
-                    ])
-                    alertNormal(language.copied)
-                    return
+                    catch (e) {
+                        alertError(`Error, please try again: ${e.message}`)
+                    }
                 }
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
                     setStatusMessage(language.copied)
