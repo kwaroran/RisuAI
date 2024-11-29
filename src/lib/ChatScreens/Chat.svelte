@@ -140,11 +140,12 @@
                 translateText = false
                 try {
                     if(DBState.db.autoTranslate){
-                        if(DBState.db.autoTranslateCachedOnly && DBState.db.translatorType === "llm"){
-                            const cache = await getLLMCache(data)
-                            if(cache !== null){
-                                translateText = true
-                            }
+                        if(DBState.db.autoTranslateCachedOnly && DBState.db.translatorType === 'llm'){
+                            const cache = DBState.db.translateBeforeHTMLFormatting
+                            ? await getLLMCache(data)
+                            : await getLLMCache(await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition()))
+                  
+                            translateText = cache !== null
                         }
                         else{
                             translateText = true
