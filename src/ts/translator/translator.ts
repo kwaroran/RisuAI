@@ -508,3 +508,7 @@ async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):P
     await LLMCacheStorage.setItem(text, result)
     return result
 }
+
+export async function getLLMCache(text:string):Promise<string | null>{
+    return await LLMCacheStorage.getItem(text)
+}
