@@ -170,6 +170,7 @@ export const languageEnglish = {
         summarizationPrompt: "The prompt that is used for summarization. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the chat data.",
         translatorPrompt: "The prompt that is used for translation. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the dest language, {{solt::content}} for the content, and {{slot::tnote}} for the translator note.",
         translateBeforeHTMLFormatting: "If enabled, it will translate the text before Regex scripts and HTML formatting. this could make the token lesser but could break the formatting.",
+        autoTranslateCachedOnly: "If enabled, it will automatically translate only the text that the user has translated previously.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -811,4 +812,5 @@ export const languageEnglish = {
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
     retranslate: "Retranslate",
     loading: "Loading",
+    autoTranslateCachedOnly: "Auto Translate Cached Only",
 }

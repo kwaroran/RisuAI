@@ -846,6 +846,7 @@ export interface Database{
         otherAx: SeparateParameters
     }
     translateBeforeHTMLFormatting:boolean
+    autoTranslateCachedOnly:boolean
 }
 
 interface SeparateParameters{

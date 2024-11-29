@@ -158,5 +158,11 @@
                 <Help key="translateBeforeHTMLFormatting"/>
             </Check>
         </div>
+
+        <div class="flex items-center mt-4">
+            <Check bind:check={DBState.db.autoTranslateCachedOnly} name={language.autoTranslateCachedOnly}>
+                    <Help key="autoTranslateCachedOnly"/>
+                </Check>
+        </div>        
     {/if}
 {/if}

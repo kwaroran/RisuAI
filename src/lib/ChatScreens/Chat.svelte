@@ -7,7 +7,7 @@
     import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
     import { alertStore, DBState } from 'src/ts/stores.svelte';
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte";
-    import { translateHTML } from "../../ts/translator/translator";
+    import { translateHTML, getLLMCache } from "../../ts/translator/translator";
     import { risuChatParser } from "src/ts/process/scripts";
     import { type Unsubscriber } from "svelte/store";
     import { get, isEqual, startsWith } from "lodash";
@@ -140,7 +140,15 @@
                 translateText = false
                 try {
                     if(DBState.db.autoTranslate){
-                        translateText = true
+                        if(DBState.db.autoTranslateCachedOnly && DBState.db.translatorType === "llm"){
+                            const cache = await getLLMCache(data)
+                            if(cache !== null){
+                                translateText = true
+                            }
+                        }
+                        else{
+                            translateText = true
+                        }
                     }
 
                     setTimeout(() => {
