@@ -134,6 +134,13 @@
         <Help key="dynamicAssets"/>
     </Check>
 </div>
+{#if DBState.db?.account?.useSync}
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.lightningRealmImport} name={"Lightning Realm Import"}>
+            <Help key="experimental"/>
+        </Check>
+    </div>
+{/if}
 {#if DBState.db.dynamicAssets}
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.dynamicAssetsEditDisplay} name={language.dynamicAssetsEditDisplay}>

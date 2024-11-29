@@ -44,6 +44,7 @@ export async function importCharacter() {
 export async function importCharacterProcess(f:{
     name: string;
     data: Uint8Array|File|ReadableStream<Uint8Array>
+    lightningRealmImport?:boolean
 }) {
     if(f.name.endsWith('json')){
         if(f.data instanceof ReadableStream){
@@ -123,6 +124,9 @@ export async function importCharacterProcess(f:{
         returnTrimed: true
     })
     const assets:{[key:string]:string} = {}
+    let queueFetch:Promise<Response>[] = []
+    let queueFetchKey:string[] = []
+    let queueFetchData:Buffer[] = []
     for await (const chunk of readGenerator){
         console.log(chunk)
         if(!chunk){
@@ -149,10 +153,53 @@ export async function importCharacterProcess(f:{
             const assetIndex = chunk.key.replace('chara-ext-asset_:', '').replace('chara-ext-asset_', '')
             alertWait('Loading... (Reading Asset ' + assetIndex + ')' )
             const assetData = Buffer.from(chunk.value, 'base64')
+            if(db.account?.useSync && f.lightningRealmImport){
+                const id = await hasher(assetData)
+                const xid = 'assets/' + id + '.png'
+                queueFetchKey.push(assetIndex)
+                queueFetchData.push(assetData)
+                queueFetch.push(fetch('https://sv.risuai.xyz/rs/' + xid))
+                assets[assetIndex] =  'xid:' + xid
+                if(queueFetch.length > 10){
+                    const res = await Promise.all(queueFetch)
+                    for(let i=0;i<res.length;i++){
+                        if(res[i].status !== 200){
+                            const assetId = await saveAsset(queueFetchData[i])
+                            assets[queueFetchKey[i]] = assetId
+                        }
+                        else{
+                            assets[queueFetchKey[i]] = assets[queueFetchKey[i]].replace('xid:', '')
+                        }
+                    }
+                    queueFetch = []
+                    queueFetchKey = []
+                    queueFetchData = []
+                }
+                continue
+            }
+
+
             const assetId = await saveAsset(assetData)
             assets[assetIndex] = assetId
         }
     }
+
+    if(queueFetch.length > 0){
+        const res = await Promise.all(queueFetch)
+        for(let i=0;i<res.length;i++){
+            if(res[i].status !== 200){
+                const assetId = await saveAsset(queueFetchData[i])
+                assets[queueFetchKey[i]] = assetId
+            }
+            else{
+                assets[queueFetchKey[i]] = assets[queueFetchKey[i]].replace('xid:', '')
+            }
+        }
+        queueFetch = []
+        queueFetchKey = []
+        queueFetchData = []
+    }
+
     if(!readedChara && !readedCCv3){
         alertError(language.errors.noData)
         return
@@ -581,6 +628,8 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     if(!card ||(card.spec !== 'chara_card_v2' && card.spec !== 'chara_card_v3' )){
         return false
     }
+
+    console.log(`Importing ${card.spec}, mode is ${mode}`)
 
     const data = card.data
     console.log(card)
@@ -1605,12 +1654,14 @@ export async function downloadRisuHub(id:string, arg:{
         }
 
         if(res.headers.get('content-type') === 'image/png'){
+            let db = getDatabase()
             await importCharacterProcess({
                 name: 'realm.png',
-                data: res.body
+                data: res.body,
+                lightningRealmImport: db.lightningRealmImport
             })
             checkCharOrder()
-            let db = getDatabase()
+            db = getDatabase()
             if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
                 const index = db.characters.length-1
                 characterFormatUpdate(index);
