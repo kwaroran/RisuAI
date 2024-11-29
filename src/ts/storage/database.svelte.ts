@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "140.0.3"
+export let appVer = "140.1.0"
 export let webAppSubVer = ''
 
 
