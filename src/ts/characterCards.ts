@@ -494,36 +494,16 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
     let loresettings:undefined|loreSettings = undefined
     let loreExt:undefined|any = undefined
     if(charbook){
-        if((!checkNullish(charbook.recursive_scanning)) &&
-            (!checkNullish(charbook.scan_depth)) &&
-            (!checkNullish(charbook.token_budget))){
-            loresettings = {
-                tokenBudget:charbook.token_budget,
-                scanDepth:charbook.scan_depth,
-                recursiveScanning: charbook.recursive_scanning,
-                fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
-            }
-        }
+        const a = convertCharbook({
+            lorebook,
+            charbook,
+            loresettings,
+            loreExt
+        })
 
-        loreExt = charbook.extensions
-
-        for(const book of charbook.entries){
-            lorebook.push({
-                key: book.keys.join(', '),
-                secondkey: book.secondary_keys?.join(', ') ?? '',
-                insertorder: book.insertion_order,
-                comment: book.name ?? book.comment ?? "",
-                content: book.content,
-                mode: "normal",
-                alwaysActive: book.constant ?? false,
-                selective: book.selective ?? false,
-                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
-                activationPercent: book.extensions?.risu_activationPercent,
-                loreCache: book.extensions?.risu_loreCache ?? null,
-                //@ts-ignore
-                useRegex: book.use_regex ?? false
-            })
-        }
+        lorebook = a.lorebook
+        loresettings = a.loresettings
+        loreExt = a.loreExt
     }
 
     return {
@@ -794,99 +774,16 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     let loresettings:undefined|loreSettings = undefined
     let loreExt:undefined|any = undefined
     if(charbook){
-        if((!checkNullish(charbook.recursive_scanning)) &&
-            (!checkNullish(charbook.scan_depth)) &&
-            (!checkNullish(charbook.token_budget))){
-            loresettings = {
-                tokenBudget:charbook.token_budget,
-                scanDepth:charbook.scan_depth,
-                recursiveScanning: charbook.recursive_scanning,
-                fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
-            }
-        }
+        const a = convertCharbook({
+            lorebook,
+            charbook,
+            loresettings,
+            loreExt
+        })
 
-        loreExt = charbook.extensions
-
-        for(const book of charbook.entries){
-            let content = book.content
-
-            if(book.use_regex && !book.keys?.[0]?.startsWith('/')){
-                book.use_regex = false
-            }
-
-            //extention migration
-            const extensions = book.extensions ?? {}
-
-            if(extensions.useProbability && extensions.probability !== undefined && extensions.probability !== 100){
-                content = `@@probability ${extensions.probability}\n` + content
-                delete extensions.useProbability
-                delete extensions.probability
-            }
-            if(extensions.position === 4 && typeof extensions.depth === 'number' && typeof(extensions.role) === 'number'){
-                content = `@@depth ${extensions.depth}\n@@role ${['system','user','assistant'][extensions.role]}\n` + content
-                delete extensions.position
-                delete extensions.depth
-                delete extensions.role
-            }
-            if(typeof(extensions.selectiveLogic) === 'number' && book.secondary_keys && book.secondary_keys.length > 0){
-                switch(extensions.selectiveLogic){
-                    case 0:{
-                        if(!book.secondary_keys || book.secondary_keys.length === 0){
-                            book.selective = false
-                        }
-                        break
-                    }
-                    case 1:{
-                        book.selective = false
-                        content = `@@exclude_keys_all ${book.secondary_keys.join(',')}\n` + content
-                        break
-                    }
-                    case 2:{
-                        book.selective = false
-                        for(const secKey of book.secondary_keys){
-                            content = `@@exclude_keys ${secKey}\n` + content
-                        }
-                        break
-                    }
-                    case 3:{
-                        book.selective = false
-                        for(const secKey of book.secondary_keys){
-                            content = `@@additional_keys ${secKey}\n` + content
-                        }
-                        break
-                    }
-                }
-            }
-            if(typeof extensions.delay === 'number' && extensions.delay > 0){
-                content = `@@activate_only_after ${extensions.delay}\n` + content
-                delete extensions.delay
-            }
-            if(extensions.match_whole_words === true){
-                content = `@@match_full_word\n` + content
-                delete extensions.match_whole_words
-            }
-            if(extensions.match_whole_words === false){
-                content = `@@match_partial_word\n` + content
-                delete extensions.match_whole_words
-            }
-
-            lorebook.push({
-                key: book.keys.join(', '),
-                secondkey: book.secondary_keys?.join(', ') ?? '',
-                insertorder: book.insertion_order,
-                comment: book.name ?? book.comment ?? "",
-                content: content,
-                mode: "normal",
-                alwaysActive: book.constant ?? false,
-                selective: book.selective ?? false,
-                extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
-                activationPercent: book.extensions?.risu_activationPercent,
-                loreCache: book.extensions?.risu_loreCache ?? null,
-                //@ts-ignore
-                useRegex: book.use_regex ?? false
-            })
-        }
-
+        lorebook = a.lorebook
+        loresettings = a.loresettings
+        loreExt = a.loreExt
     }
 
     let ext = safeStructuredClone(data?.extensions ?? {})
@@ -978,6 +875,113 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     alertNormal(language.importedCharacter)
     return true
 
+}
+
+function convertCharbook(arg:{
+    lorebook:loreBook[]
+    charbook:CharacterBook
+    loresettings:loreSettings
+    loreExt:any
+}){
+    let {lorebook, loresettings, loreExt, charbook} = arg
+    if((!checkNullish(charbook.recursive_scanning)) &&
+        (!checkNullish(charbook.scan_depth)) &&
+        (!checkNullish(charbook.token_budget))){
+        loresettings = {
+            tokenBudget:charbook.token_budget,
+            scanDepth:charbook.scan_depth,
+            recursiveScanning: charbook.recursive_scanning,
+            fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
+        }
+    }
+
+    loreExt = charbook.extensions
+
+    for(const book of charbook.entries){
+        let content = book.content
+
+        if(book.use_regex && !book.keys?.[0]?.startsWith('/')){
+            book.use_regex = false
+        }
+
+        //extention migration
+        const extensions = book.extensions ?? {}
+
+        if(extensions.useProbability && extensions.probability !== undefined && extensions.probability !== 100){
+            content = `@@probability ${extensions.probability}\n` + content
+            delete extensions.useProbability
+            delete extensions.probability
+        }
+        if(extensions.position === 4 && typeof extensions.depth === 'number' && typeof(extensions.role) === 'number'){
+            content = `@@depth ${extensions.depth}\n@@role ${['system','user','assistant'][extensions.role]}\n` + content
+            delete extensions.position
+            delete extensions.depth
+            delete extensions.role
+        }
+        if(typeof(extensions.selectiveLogic) === 'number' && book.secondary_keys && book.secondary_keys.length > 0){
+            switch(extensions.selectiveLogic){
+                case 0:{
+                    if(!book.secondary_keys || book.secondary_keys.length === 0){
+                        book.selective = false
+                    }
+                    break
+                }
+                case 1:{
+                    book.selective = false
+                    content = `@@exclude_keys_all ${book.secondary_keys.join(',')}\n` + content
+                    break
+                }
+                case 2:{
+                    book.selective = false
+                    for(const secKey of book.secondary_keys){
+                        content = `@@exclude_keys ${secKey}\n` + content
+                    }
+                    break
+                }
+                case 3:{
+                    book.selective = false
+                    for(const secKey of book.secondary_keys){
+                        content = `@@additional_keys ${secKey}\n` + content
+                    }
+                    break
+                }
+            }
+        }
+        if(typeof extensions.delay === 'number' && extensions.delay > 0){
+            content = `@@activate_only_after ${extensions.delay}\n` + content
+            delete extensions.delay
+        }
+        if(extensions.match_whole_words === true){
+            content = `@@match_full_word\n` + content
+            delete extensions.match_whole_words
+        }
+        if(extensions.match_whole_words === false){
+            content = `@@match_partial_word\n` + content
+            delete extensions.match_whole_words
+        }
+
+        lorebook.push({
+            key: book.keys.join(', '),
+            secondkey: book.secondary_keys?.join(', ') ?? '',
+            insertorder: book.insertion_order,
+            comment: book.name ?? book.comment ?? "",
+            content: content,
+            mode: "normal",
+            alwaysActive: book.constant ?? false,
+            selective: book.selective ?? false,
+            extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
+            activationPercent: book.extensions?.risu_activationPercent,
+            loreCache: book.extensions?.risu_loreCache ?? null,
+            //@ts-ignore
+            useRegex: book.use_regex ?? false
+        })
+    }
+
+    return {
+        lorebook,
+        loresettings,
+        loreExt
+    }
 }
 
 
