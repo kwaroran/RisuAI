@@ -111,7 +111,7 @@ export async function runTranslator(text:string, reverse:boolean, from:string,ta
 async function translateMain(text:string, arg:{from:string, to:string, host:string}){
     let db = getDatabase()
     if(db.translatorType === 'llm'){
-        const tr = db.translator || 'en'
+        const tr = arg.to || 'en'
         return translateLLM(text, {to: tr})
     }
     if(db.translatorType === 'deepl'){
