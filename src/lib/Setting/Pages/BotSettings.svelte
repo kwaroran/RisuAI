@@ -1,10 +1,12 @@
 <script lang="ts">
+
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
-    import { DataBase } from "src/ts/storage/database";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { customProviderStore } from "src/ts/plugins/plugins";
-    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/storage/globalApi";
+    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/globalApi.svelte";
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
@@ -23,50 +25,59 @@
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import PromptSettings from "./PromptSettings.svelte";
-    import { openPresetList } from "src/ts/stores";
-  import { selectSingleFile } from "src/ts/util";
-  import { isArray } from "lodash";
+    import { openPresetList } from "src/ts/stores.svelte";
+    import { selectSingleFile } from "src/ts/util";
+  import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
+  import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
 
-    let tokens = {
+    let tokens = $state({
         mainPrompt: 0,
         jailbreak: 0,
         globalNote: 0,
+    })
+
+    interface Props {
+        goPromptTemplate?: any;
     }
 
-    export let goPromptTemplate = () => {}
+    let { goPromptTemplate = () => {} }: Props = $props();
 
     async function loadTokenize(){
-        tokens.mainPrompt = await tokenizeAccurate($DataBase.mainPrompt, true)
-        tokens.jailbreak = await tokenizeAccurate($DataBase.jailbreak, true)
-        tokens.globalNote = await tokenizeAccurate($DataBase.globalNote, true)
+        tokens.mainPrompt = await tokenizeAccurate(DBState.db.mainPrompt, true)
+        tokens.jailbreak = await tokenizeAccurate(DBState.db.jailbreak, true)
+        tokens.globalNote = await tokenizeAccurate(DBState.db.globalNote, true)
     }
 
-    $: if($DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'mancer'){
-        $DataBase.useStreaming = $DataBase.textgenWebUIStreamURL.startsWith("wss://")
-    }
+    $effect.pre(() => {
+        if(DBState.db.aiModel === 'textgen_webui' || DBState.db.subModel === 'mancer'){
+            DBState.db.useStreaming = DBState.db.textgenWebUIStreamURL.startsWith("wss://")
+        }
+    });
 
-    let submenu = $DataBase.useLegacyGUI ? -1 : 0
+    let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
+    let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
+    let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
 {#if submenu !== -1}
     <div class="flex w-full rounded-md border border-darkborderc mb-4">
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 0
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
             <span>{language.model}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 1
         }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
             <span>{language.parameters}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 2
         }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
             <span>{language.prompt}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 3
         }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
             <span>{language.others}</span>
@@ -76,107 +87,88 @@
 
 {#if submenu === 0 || submenu === -1}
     <span class="text-textcolor mt-4">{language.model} <Help key="model"/></span>
-    <ModelList bind:value={$DataBase.aiModel}/>
+    <ModelList bind:value={DBState.db.aiModel}/>
 
     <span class="text-textcolor mt-2">{language.submodel} <Help key="submodel"/></span>
-    <ModelList bind:value={$DataBase.subModel}/>
+    <ModelList bind:value={DBState.db.subModel}/>
 
-    {#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
-        <span class="text-textcolor">
-            {#if $DataBase.google.projectId === 'aigoogle'}
-                GoogleAI API Key
-            {:else}
-                Google Bearer Token
-            {/if}
-        </span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={$DataBase.hideApiKey} bind:value={$DataBase.google.accessToken}/>
-
-        {#if $DataBase.google.projectId !== 'aigoogle'}
-            <span class="text-textcolor">Google Project ID</span>
-            <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={$DataBase.hideApiKey} bind:value={$DataBase.google.projectId}/>
-        {/if}
+    {#if modelInfo.provider === LLMProvider.GoogleCloud || subModelInfo.provider === LLMProvider.GoogleCloud}
+        <span class="text-textcolor">GoogleAI API Key</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('jamba') || $DataBase.subModel.startsWith('jamba')}
+    {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
+        <span class="text-textcolor">Vertex Client Email</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexClientEmail}/>
+        <span class="text-textcolor">Vertex Private Key</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey}/>
+    {/if}
+    {#if modelInfo.provider === LLMProvider.AI21 || subModelInfo.provider === LLMProvider.AI21}
         <span class="text-textcolor">AI21 {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.ai21Key}/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.ai21Key}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('novellist') || $DataBase.subModel.startsWith('novellist')}
+    {#if modelInfo.provider === LLMProvider.NovelList || subModelInfo.provider === LLMProvider.NovelList}
         <span class="text-textcolor">NovelList {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.novellistAPI}/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.novellistAPI}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('mancer') || $DataBase.subModel.startsWith('mancer')}
+    {#if DBState.db.aiModel.startsWith('mancer') || DBState.db.subModel.startsWith('mancer')}
         <span class="text-textcolor">Mancer {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mancerHeader}/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mancerHeader}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
+    {#if modelInfo.provider === LLMProvider.Anthropic || subModelInfo.provider === LLMProvider.Anthropic
+            || modelInfo.provider === LLMProvider.AWS || subModelInfo.provider === LLMProvider.AWS }
         <span class="text-textcolor">Claude {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.claudeAPIKey}/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.claudeAPIKey}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('mistral') || $DataBase.subModel.startsWith('mistral')}
+    {#if modelInfo.provider === LLMProvider.Mistral || subModelInfo.provider === LLMProvider.Mistral}
         <span class="text-textcolor">Mistral {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={$DataBase.mistralKey}/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mistralKey}/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('novelai') || $DataBase.subModel.startsWith('novelai')}
+    {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
         <span class="text-textcolor">NovelAI Bearer Token</span>
-        <TextInput bind:value={$DataBase.novelai.token}/>
+        <TextInput bind:value={DBState.db.novelai.token}/>
     {/if}
-    {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
+    {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
         <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.forceReplaceUrl} placeholder="https//..." />
+        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.forceReplaceUrl} placeholder="https//..." />
         <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={$DataBase.proxyKey} />
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={DBState.db.proxyKey} />
         <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
-        <SelectInput className="mt-2" bind:value={$DataBase.proxyRequestModel}>
-            <OptionInput value="">None</OptionInput>
-            <OptionInput value="gpt35">GPT 3.5</OptionInput>
-            <OptionInput value="gpt35_16k">GPT 3.5 16k</OptionInput>
-            <OptionInput value="gpt4">GPT-4</OptionInput>
-            <OptionInput value="gpt4o">GPT-4o</OptionInput>
-            <OptionInput value="gpt4_32k">GPT-4 32k</OptionInput>
-            <OptionInput value="gpt4_turbo">GPT-4 Turbo</OptionInput>
-            <OptionInput value="gpt4_1106">GPT-4 Turbo 1106</OptionInput>
-            <OptionInput value="gptvi4_1106">GPT-4 Turbo 1106 Vision</OptionInput>
-            <OptionInput value="gpt35_0301">GPT-3.5 0301</OptionInput>
-            <OptionInput value="gpt4_0301">GPT-4 0301</OptionInput>
-            <OptionInput value="gpt35_0613">GPT-3.5 0613</OptionInput>
-            <OptionInput value="gpt4_0613">GPT-4 0613</OptionInput>
-            <OptionInput value="claude-2.1">claude-2.1</OptionInput>
-            <OptionInput value="claude-2.0">claude-2.0</OptionInput>
-            <OptionInput value="claude-2">claude-2</OptionInput>
-            <OptionInput value="claude-v1.3">claude-v1.3</OptionInput>
-            <OptionInput value="claude-v1.3-100k">claude-v1.3-100k</OptionInput>
-            <OptionInput value="claude-v1.2">claude-v1.2</OptionInput>
-            <OptionInput value="claude-instant-v1.1">claude-instant-v1.1</OptionInput>
-            <OptionInput value="claude-instant-v1.1-100k">claude-instant-v1.1-100k</OptionInput>
-            <OptionInput value="claude-3-opus-20240229">claude-3-opus-20240229</OptionInput>
-            <OptionInput value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</OptionInput>
-            <OptionInput value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</OptionInput>
-            <OptionInput value="custom">Custom</OptionInput>
+        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.customProxyRequestModel} placeholder="Name" />
+        <span class="text-textcolor mt-4"> {language.format}</span>
+        <SelectInput value={DBState.db.customAPIFormat.toString()} onchange={(e) => {
+            DBState.db.customAPIFormat = parseInt(e.currentTarget.value)
+        }}>
+            <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
+                OpenAI Compatible
+            </OptionInput>
+            <OptionInput value={LLMFormat.Anthropic.toString()}>
+                Anthropic Claude
+            </OptionInput>
+            <OptionInput value={LLMFormat.Mistral.toString()}>
+                Mistral
+            </OptionInput>
+            <OptionInput value={LLMFormat.GoogleCloud.toString()}>
+                Google Cloud
+            </OptionInput>
+            <OptionInput value={LLMFormat.Cohere.toString()}>
+                Cohere
+            </OptionInput>
         </SelectInput>
-        {#if $DataBase.proxyRequestModel === 'custom'}
-            <TextInput marginBottom={true} size={"sm"} bind:value={$DataBase.customProxyRequestModel} placeholder="Name" />
-        {:else}
-            <div class="mb-4"></div>
-        {/if}
     {/if}
-    {#if $DataBase.aiModel.startsWith('risullm')}
-        <span class="text-textcolor mt-4">Risu {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.proxyKey} />
-    {/if}
-    {#if $DataBase.aiModel.startsWith('cohere')}
+    {#if modelInfo.provider === LLMProvider.Cohere || subModelInfo.provider === LLMProvider.Cohere}
         <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.cohereAPIKey} />
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.cohereAPIKey} />
     {/if}
-    {#if $DataBase.aiModel === 'ollama-hosted'}
+    {#if DBState.db.aiModel === 'ollama-hosted'}
         <span class="text-textcolor mt-4">Ollama URL</span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.ollamaURL} />
+        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaURL} />
 
         <span class="text-textcolor mt-4">Ollama Model</span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={$DataBase.ollamaModel} />
+        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaModel} />
     {/if}
-    {#if $DataBase.aiModel === 'openrouter' || $DataBase.subModel === 'openrouter'}
+    {#if DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter'}
         <span class="text-textcolor mt-4">Openrouter Key</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.openrouterKey} />
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openrouterKey} />
 
         <span class="text-textcolor mt-4">Openrouter Model</span>
         {#await openRouterModels()}
@@ -184,7 +176,7 @@
                 <OptionInput value="">Loading..</OptionInput>
             </SelectInput>
         {:then m}
-            <SelectInput className="mt-2 mb-4" bind:value={$DataBase.openrouterRequestModel}>
+            <SelectInput className="mt-2 mb-4" bind:value={DBState.db.openrouterRequestModel}>
                 {#if (!m) || (m.length === 0)}
                     <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
                     <OptionInput value="openai/gpt-3.5-turbo-16k">GPT 3.5 16k</OptionInput>
@@ -206,52 +198,38 @@
             </SelectInput>
         {/await}
     {/if}
-    {#if $DataBase.aiModel === 'openrouter' || $DataBase.aiModel === 'reverse_proxy'}
+    {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy'}
         <span class="text-textcolor">{language.tokenizer}</span>
-        <SelectInput bind:value={$DataBase.customTokenizer}>
+        <SelectInput bind:value={DBState.db.customTokenizer}>
             {#each tokenizerList as entry}
                 <OptionInput value={entry[0]}>{entry[1]}</OptionInput>
             {/each}
         </SelectInput>
     {/if}
-    {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.subModel.startsWith('gpt')
-        || $DataBase.aiModel.startsWith('instructgpt') || $DataBase.subModel.startsWith('instructgpt')}
+    {#if modelInfo.provider === LLMProvider.OpenAI || subModelInfo.provider === LLMProvider.OpenAI}
         <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={false} size={"sm"} bind:value={$DataBase.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
 
     {/if}
 
     <div class="py-2 flex flex-col gap-2 mb-4">
-        {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter' || $DataBase.aiModel.startsWith('claude-3')}
-            <Check bind:check={$DataBase.useStreaming} name={`Response ${language.streaming}`}/>
+        {#if modelInfo.flags.includes(LLMFlags.hasStreaming) || subModelInfo.flags.includes(LLMFlags.hasStreaming)}
+            <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
         {/if}
 
-        {#if $DataBase.aiModel.startsWith('palm2') || $DataBase.subModel.startsWith('palm2') || $DataBase.aiModel.startsWith('gemini') || $DataBase.subModel.startsWith('gemini')}
-            <Check check={$DataBase.google.projectId !== 'aigoogle'} name={'Use Vertex AI'} onChange={(v) => {
-                if(!v){
-                    $DataBase.google.projectId = 'aigoogle'
-                }
-                else{
-                    $DataBase.google.projectId = ''
-                }
-            }}/>
+        {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
+            <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
         {/if}
-        {#if $DataBase.aiModel.startsWith('claude-') || $DataBase.subModel.startsWith('claude-')}
-            <Check name="AWS Claude" bind:check={$DataBase.claudeAws}></Check>
-        {/if}
-        {#if $DataBase.aiModel === 'reverse_proxy' || $DataBase.subModel === 'reverse_proxy'}
-            <Check bind:check={$DataBase.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
-        {/if}
-        {#if $DataBase.aiModel === "novelai" || $DataBase.subModel === "novelai" || $DataBase.aiModel === 'novelai_kayra' || $DataBase.subModel === 'novelai_kayra'}
-            <Check bind:check={$DataBase.NAIadventure} name={language.textAdventureNAI}/>
+        {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
+            <Check bind:check={DBState.db.NAIadventure} name={language.textAdventureNAI}/>
 
-            <Check bind:check={$DataBase.NAIappendName} name={language.appendNameNAI}/>
+            <Check bind:check={DBState.db.NAIappendName} name={language.appendNameNAI}/>
         {/if}
     </div>
 
-    {#if $DataBase.aiModel === 'custom' || $DataBase.subModel === 'custom'}
+    {#if DBState.db.aiModel === 'custom' || DBState.db.subModel === 'custom'}
         <span class="text-textcolor mt-2">{language.plugin}</span>
-        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.currentPluginProvider}>
+        <SelectInput className="mt-2 mb-4" bind:value={DBState.db.currentPluginProvider}>
             <OptionInput value="">None</OptionInput>
             {#each $customProviderStore as plugin}
                 <OptionInput value={plugin}>{plugin}</OptionInput>
@@ -259,131 +237,127 @@
         </SelectInput>
     {/if}
 
-    {#if $DataBase.aiModel === "kobold" || $DataBase.subModel === "kobold"}
+    {#if DBState.db.aiModel === "kobold" || DBState.db.subModel === "kobold"}
         <span class="text-textcolor">Kobold URL</span>
-        <TextInput marginBottom={true} bind:value={$DataBase.koboldURL} />
+        <TextInput marginBottom={true} bind:value={DBState.db.koboldURL} />
 
     {/if}
 
 
-    {#if $DataBase.aiModel.startsWith("horde") || $DataBase.subModel.startsWith("horde") }
+    {#if DBState.db.aiModel.startsWith("horde") || DBState.db.subModel.startsWith("horde") }
         <span class="text-textcolor">Horde {language.apiKey}</span>
-        <TextInput hideText={$DataBase.hideApiKey} marginBottom={true} bind:value={$DataBase.hordeConfig.apiKey} />
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} bind:value={DBState.db.hordeConfig.apiKey} />
     {/if}
-    {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.subModel === 'textgen_webui'
-        || $DataBase.aiModel === 'mancer' || $DataBase.subModel === 'mancer'}
+    {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.subModel === 'textgen_webui'
+        || DBState.db.aiModel === 'mancer' || DBState.db.subModel === 'mancer'}
         <span class="text-textcolor mt-2">Blocking {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
+        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
         <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
         <span class="text-textcolor mt-2">Stream {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIStreamURL} placeholder="wss://..."/>
+        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIStreamURL} placeholder="wss://..."/>
         {#if !isTauri}
             <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
         {/if}
         <span class="text-draculared text-xs mb-2">Warning: For Ooba version over 1.7, use "Ooba" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
     {/if}
-    {#if $DataBase.aiModel === 'ooba' || $DataBase.subModel === 'ooba'}
+    {#if DBState.db.aiModel === 'ooba' || DBState.db.subModel === 'ooba'}
         <span class="text-textcolor mt-2">Ooba {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={$DataBase.textgenWebUIBlockingURL} placeholder="https://..."/>
+        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
     {/if}
-    {#if $DataBase.aiModel.startsWith("horde") || $DataBase.aiModel === 'kobold' }
+    {#if DBState.db.aiModel.startsWith("horde") || DBState.db.aiModel === 'kobold' }
         <ChatFormatSettings />
     {/if}
 {/if}
 
 {#if submenu === 1 || submenu === -1}
     <span class="text-textcolor">{language.maxContextSize}</span>
-    <NumberInput min={0} max={getModelMaxContext($DataBase.aiModel)} marginBottom={true} bind:value={$DataBase.maxContext}/>
+    <NumberInput min={0} max={getModelMaxContext(DBState.db.aiModel)} marginBottom={true} bind:value={DBState.db.maxContext}/>
 
 
     <span class="text-textcolor">{language.maxResponseSize}</span>
-    <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.maxResponse}/>
+    <NumberInput min={0} max={2048} marginBottom={true} bind:value={DBState.db.maxResponse}/>
 
-    {#if $DataBase.aiModel.startsWith('gpt') || $DataBase.aiModel === 'reverse_proxy' || $DataBase.aiModel === 'openrouter'}
+    {#if DBState.db.aiModel.startsWith('gpt') || DBState.db.aiModel === 'reverse_proxy' || DBState.db.aiModel === 'openrouter'}
     <span class="text-textcolor">{language.seed}</span>
 
-    <NumberInput bind:value={$DataBase.generationSeed} marginBottom={true}/>
+    <NumberInput bind:value={DBState.db.generationSeed} marginBottom={true}/>
     {/if}
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
-
-    {#if $DataBase.aiModel.startsWith("novelai")}
-        <SliderInput min={0} max={250} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2} disableable/>
-    {:else}
-        <SliderInput min={0} max={200} marginBottom bind:value={$DataBase.temperature} multiple={0.01} fixed={2} disableable/>
-    {/if}
-    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel.startsWith('claude-3') || $DataBase.aiModel.startsWith('cohere-')|| $DataBase.aiModel === 'kobold'}
+    <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.temperature} multiple={0.01} fixed={2} disableable/>
+    {#if modelInfo.parameters.includes('top_k')}
         <span class="text-textcolor">Top K</span>
-        <SliderInput min={0} max={100} marginBottom step={1} bind:value={$DataBase.top_k} disableable/>
+        <SliderInput min={0} max={100} marginBottom step={1} bind:value={DBState.db.top_k} disableable/>
     {/if}
-    {#if $DataBase.aiModel.startsWith('openrouter')}
+    {#if modelInfo.parameters.includes('min_p')}
         <span class="text-textcolor">Min P</span>
-        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.min_p} disableable/>
+        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.min_p} disableable/>
 
     {/if}
-    {#if $DataBase.aiModel.startsWith('openrouter') || $DataBase.aiModel === 'kobold'}
+    {#if modelInfo.parameters.includes('top_a')}
         <span class="text-textcolor">Top A</span>
-        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={$DataBase.top_a} disableable/>
-
+        <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.top_a} disableable/>
+    {/if}
+    {#if modelInfo.parameters.includes('repetition_penalty')}
         <span class="text-textcolor">Repetition penalty</span>
-        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={$DataBase.repetition_penalty} disableable/>
+        <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={DBState.db.repetition_penalty} disableable/>
 
     {/if}
-    {#if $DataBase.aiModel === 'textgen_webui' || $DataBase.aiModel === 'mancer' || $DataBase.aiModel.startsWith('local_') || $DataBase.aiModel.startsWith('hf:::')}
+    {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.aiModel === 'mancer' || DBState.db.aiModel.startsWith('local_') || DBState.db.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
-        <SliderInput min={1} max={1.5} step={0.01} fixed={2} marginBottom bind:value={$DataBase.ooba.repetition_penalty}/>
+        <SliderInput min={1} max={1.5} step={0.01} fixed={2} marginBottom bind:value={DBState.db.ooba.repetition_penalty}/>
         <span class="text-textcolor">Length Penalty</span>
-        <SliderInput min={-5} max={5} step={0.05} marginBottom fixed={2} bind:value={$DataBase.ooba.length_penalty}/>
+        <SliderInput min={-5} max={5} step={0.05} marginBottom fixed={2} bind:value={DBState.db.ooba.length_penalty}/>
         <span class="text-textcolor">Top K</span>
-        <SliderInput min={0} max={100} step={1} marginBottom bind:value={$DataBase.ooba.top_k} />
+        <SliderInput min={0} max={100} step={1} marginBottom bind:value={DBState.db.ooba.top_k} />
         <span class="text-textcolor">Top P</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.top_p}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ooba.top_p}/>
         <span class="text-textcolor">Typical P</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.typical_p}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ooba.typical_p}/>
         <span class="text-textcolor">Top A</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ooba.top_a}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ooba.top_a}/>
         <span class="text-textcolor">No Repeat n-gram Size</span>
-        <SliderInput min={0} max={20} step={1} marginBottom bind:value={$DataBase.ooba.no_repeat_ngram_size}/>
+        <SliderInput min={0} max={20} step={1} marginBottom bind:value={DBState.db.ooba.no_repeat_ngram_size}/>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.ooba.do_sample} name={'Do Sample'}/>
+            <Check bind:check={DBState.db.ooba.do_sample} name={'Do Sample'}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.ooba.add_bos_token} name={'Add BOS Token'}/>
+            <Check bind:check={DBState.db.ooba.add_bos_token} name={'Add BOS Token'}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.ooba.ban_eos_token} name={'Ban EOS Token'}/>
+            <Check bind:check={DBState.db.ooba.ban_eos_token} name={'Ban EOS Token'}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
+            <Check bind:check={DBState.db.ooba.skip_special_tokens} name={'Skip Special Tokens'}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check check={!!$DataBase.localStopStrings} name={language.customStopWords} onChange={() => {
-                if(!$DataBase.localStopStrings){
-                    $DataBase.localStopStrings = []
+            <Check check={!!DBState.db.localStopStrings} name={language.customStopWords} onChange={() => {
+                if(!DBState.db.localStopStrings){
+                    DBState.db.localStopStrings = []
                 }
                 else{
-                    $DataBase.localStopStrings = null
+                    DBState.db.localStopStrings = null
                 }
             }} />
         </div>
-        {#if $DataBase.localStopStrings}
+        {#if DBState.db.localStopStrings}
             <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
                 <div class="p-2">
-                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
-                        let localStopStrings = $DataBase.localStopStrings
+                    <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
+                        let localStopStrings = DBState.db.localStopStrings
                         localStopStrings.push('')
-                        $DataBase.localStopStrings = localStopStrings
+                        DBState.db.localStopStrings = localStopStrings
                     }}><PlusIcon /></button>
                 </div>
-                {#each $DataBase.localStopStrings as stopString, i}
+                {#each DBState.db.localStopStrings as stopString, i}
                     <div class="flex w-full">
                         <div class="flex-grow">
-                            <TextInput marginBottom bind:value={$DataBase.localStopStrings[i]} fullwidth fullh/>
+                            <TextInput marginBottom bind:value={DBState.db.localStopStrings[i]} fullwidth fullh/>
                         </div>
                         <div>
-                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
-                                let localStopStrings = $DataBase.localStopStrings
+                            <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
+                                let localStopStrings = DBState.db.localStopStrings
                                 localStopStrings.splice(i, 1)
-                                $DataBase.localStopStrings = localStopStrings
+                                DBState.db.localStopStrings = localStopStrings
                             }}><TrashIcon /></button>
                         </div>
                     </div>
@@ -393,223 +367,259 @@
         <div class="flex flex-col p-3 rounded-md border-selected border mt-4">
             <ChatFormatSettings />
         </div>
-        <Check bind:check={$DataBase.ooba.formating.useName} name={language.useNamePrefix}/>
+        <Check bind:check={DBState.db.ooba.formating.useName} name={language.useNamePrefix}/>
     
-    {:else if $DataBase.aiModel.startsWith('novelai')}
+    {:else if modelInfo.format === LLMFormat.NovelAI}
         <div class="flex flex-col p-3 bg-darkbg mt-4">
             <span class="text-textcolor">Starter</span>
-            <TextInput bind:value={$DataBase.NAIsettings.starter} placeholder={'⁂'} />
+            <TextInput bind:value={DBState.db.NAIsettings.starter} placeholder={'⁂'} />
             <span class="text-textcolor">Seperator</span>
-            <TextInput bind:value={$DataBase.NAIsettings.seperator} placeholder={"\\n"}/>
+            <TextInput bind:value={DBState.db.NAIsettings.seperator} placeholder={"\\n"}/>
         </div>
         <span class="text-textcolor">Top P</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.topP}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.topP}/>
         <span class="text-textcolor">Top K</span>
-        <SliderInput min={0} max={100} step={1} marginBottom bind:value={$DataBase.NAIsettings.topK}/>
+        <SliderInput min={0} max={100} step={1} marginBottom bind:value={DBState.db.NAIsettings.topK}/>
         <span class="text-textcolor">Top A</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.topA}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.topA}/>
         <span class="text-textcolor">Tailfree Sampling</span>
-        <SliderInput min={0} max={1} step={0.001} marginBottom fixed={3} bind:value={$DataBase.NAIsettings.tailFreeSampling}/>
+        <SliderInput min={0} max={1} step={0.001} marginBottom fixed={3} bind:value={DBState.db.NAIsettings.tailFreeSampling}/>
         <span class="text-textcolor">Typical P</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.typicalp}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.typicalp}/>
         <span class="text-textcolor">Repetition Penalty</span>
-        <SliderInput min={0} max={3} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.repetitionPenalty}/>
+        <SliderInput min={0} max={3} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.repetitionPenalty}/>
         <span class="text-textcolor">Repetition Penalty Range</span>
-        <SliderInput min={0} max={8192} step={1} marginBottom fixed={0} bind:value={$DataBase.NAIsettings.repetitionPenaltyRange}/>
+        <SliderInput min={0} max={8192} step={1} marginBottom fixed={0} bind:value={DBState.db.NAIsettings.repetitionPenaltyRange}/>
         <span class="text-textcolor">Repetition Penalty Slope</span>
-        <SliderInput min={0} max={10} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.repetitionPenaltySlope}/>
+        <SliderInput min={0} max={10} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.repetitionPenaltySlope}/>
         <span class="text-textcolor">Frequency Penalty</span>
-        <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.frequencyPenalty}/>
+        <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.frequencyPenalty}/>
         <span class="text-textcolor">Presence Penalty</span>
-        <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.presencePenalty}/>
+        <SliderInput min={-2} max={2} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.presencePenalty}/>
         <span class="text-textcolor">Mirostat LR</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.mirostat_lr}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.mirostat_lr}/>
         <span class="text-textcolor">Mirostat Tau</span>
-        <SliderInput min={0} max={6} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.mirostat_tau}/>
+        <SliderInput min={0} max={6} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.mirostat_tau}/>
         <span class="text-textcolor">Cfg Scale</span>
-        <SliderInput min={1} max={3} step={0.01} marginBottom fixed={2} bind:value={$DataBase.NAIsettings.cfg_scale}/>
+        <SliderInput min={1} max={3} step={0.01} marginBottom fixed={2} bind:value={DBState.db.NAIsettings.cfg_scale}/>
 
-    {:else if $DataBase.aiModel.startsWith('novellist')}
+    {:else if modelInfo.format === LLMFormat.NovelList}
         <span class="text-textcolor">Top P</span>
-        <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_p}/>
+        <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.top_p}/>
         <span class="text-textcolor">Reputation Penalty</span>
-        <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen}/>
+        <SliderInput min={0} max={2} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.rep_pen}/>
         <span class="text-textcolor">Reputation Penalty Range</span>
-        <SliderInput min={0} max={2048} step={1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen_range}/>
+        <SliderInput min={0} max={2048} step={1} marginBottom fixed={2} bind:value={DBState.db.ainconfig.rep_pen_range}/>
         <span class="text-textcolor">Reputation Penalty Slope</span>
-        <SliderInput min={0} max={10} step={0.1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.rep_pen_slope}/>
+        <SliderInput min={0} max={10} step={0.1} marginBottom fixed={2} bind:value={DBState.db.ainconfig.rep_pen_slope}/>
         <span class="text-textcolor">Top K</span>
-        <SliderInput min={1} max={500} step={1} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_k}/>
+        <SliderInput min={1} max={500} step={1} marginBottom fixed={2} bind:value={DBState.db.ainconfig.top_k}/>
         <span class="text-textcolor">Top A</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.top_a}/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.top_a}/>
         <span class="text-textcolor">Typical P</span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.ainconfig.typical_p}/>
-    {:else if $DataBase.aiModel.startsWith('claude')}
-        <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
-    {:else if $DataBase.aiModel.startsWith('kobold')}
-    <span class="text-textcolor">Top P <Help key="topP"/></span>
-    <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
+        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.ainconfig.typical_p}/>
     {:else}
-
-
-        <span class="text-textcolor">Top P <Help key="topP"/></span>
-        <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={$DataBase.top_p} disableable/>
-
-        <span class="text-textcolor">{language.frequencyPenalty} <Help key="frequencyPenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.frequencyPenalty} disableable/>
-        <span class="text-textcolor">{language.presensePenalty} <Help key="presensePenalty"/></span>
-        <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={$DataBase.PresensePenalty} disableable/>
+        {#if modelInfo.parameters.includes('top_p')}
+            <span class="text-textcolor">Top P</span>
+            <SliderInput min={0} max={1} step={0.01} marginBottom fixed={2} bind:value={DBState.db.top_p} disableable/>
+        {/if}
+        {#if modelInfo.parameters.includes('frequency_penalty')}
+            <span class="text-textcolor">{language.frequencyPenalty}</span>
+            <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.frequencyPenalty} disableable/>
+        {/if}
+        {#if modelInfo.parameters.includes('presence_penalty')}
+            <span class="text-textcolor">{language.presensePenalty}</span>
+            <SliderInput min={0} max={200} marginBottom fixed={2} multiple={0.01} bind:value={DBState.db.PresensePenalty} disableable/>
+        {/if}
     {/if}
 
-    {#if ($DataBase.reverseProxyOobaMode && $DataBase.aiModel === 'reverse_proxy') || ($DataBase.aiModel === 'ooba')}
-        <OobaSettings instructionMode={$DataBase.aiModel === 'ooba'} />
+    {#if (DBState.db.reverseProxyOobaMode && DBState.db.aiModel === 'reverse_proxy') || (DBState.db.aiModel === 'ooba')}
+        <OobaSettings instructionMode={DBState.db.aiModel === 'ooba'} />
     {/if}
 
-    {#if $DataBase.aiModel.startsWith('openrouter')}
+    {#if DBState.db.aiModel.startsWith('openrouter')}
         <OpenrouterSettings />
     {/if}
+
+    <Arcodion name={language.seperateParameters} styled>
+        <CheckInput bind:check={DBState.db.seperateParametersEnabled} name={language.seperateParametersEnabled} />
+        {#if DBState.db.seperateParametersEnabled}
+            {#each Object.keys(DBState.db.seperateParameters) as param, i}
+                <Arcodion name={
+                    {
+                        memory: language.longTermMemory,
+                        emotion: language.emotionImage,
+                        translate: language.translator,
+                        otherAx: language.others,
+
+                    }[param]
+                } styled>
+                    <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
+                    <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.seperateParameters[param].temperature} multiple={0.01} fixed={2} disableable/>
+                    <span class="text-textcolor">Top K</span>
+                    <SliderInput min={0} max={100} marginBottom step={1} bind:value={DBState.db.seperateParameters[param].top_k} disableable/>
+                    <span class="text-textcolor">Repetition penalty</span>
+                    <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].repetition_penalty} disableable/>
+                    <span class="text-textcolor">Min P</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].min_p} disableable/>
+                    <span class="text-textcolor">Top A</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].top_a} disableable/>
+                    <span class="text-textcolor">Top P</span>
+                    <SliderInput min={0} max={1} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].top_p} disableable/>
+                    <span class="text-textcolor">Frequency Penalty</span>
+                    <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].frequency_penalty} disableable/>
+                    <span class="text-textcolor">Presence Penalty</span>
+                    <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].presence_penalty} disableable/>
+                </Arcodion>
+            {/each}
+
+        {/if}
+    </Arcodion>
 
 {/if}
 
 {#if submenu === 3 || submenu === -1}
     <Arcodion styled name="Bias " help="bias">
         <table class="contain w-full max-w-full tabler">
+            <tbody>
             <tr>
                 <th class="font-medium">Bias</th>
                 <th class="font-medium">{language.value}</th>
                 <th>
-                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
-                        let bia = $DataBase.bias
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" onclick={() => {
+                        let bia = DBState.db.bias
                         bia.push(['', 0])
-                        $DataBase.bias = bia
+                        DBState.db.bias = bia
                     }}><PlusIcon /></button>
                 </th>
             </tr>
-            {#if $DataBase.bias.length === 0}
+            {#if DBState.db.bias.length === 0}
                 <tr>
-                    <div class="text-textcolor2">{language.noBias}</div>
+                    <td colspan="3" class="text-textcolor2">{language.noBias}</td>
                 </tr>
             {/if}
-            {#each $DataBase.bias as bias, i}
+            {#each DBState.db.bias as bias, i}
                 <tr>
                     <td class="font-medium truncate">
-                        <TextInput bind:value={$DataBase.bias[i][0]} size="lg" fullwidth/>
+                        <TextInput bind:value={DBState.db.bias[i][0]} size="lg" fullwidth/>
                     </td>
                     <td class="font-medium truncate">
-                        <NumberInput bind:value={$DataBase.bias[i][1]} max={100} min={-101} size="lg" fullwidth/>
+                        <NumberInput bind:value={DBState.db.bias[i][1]} max={100} min={-101} size="lg" fullwidth/>
                     </td>
                     <td>
-                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
-                            let bia = $DataBase.bias
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
+                            let bia = DBState.db.bias
                             bia.splice(i, 1)
-                            $DataBase.bias = bia
+                            DBState.db.bias = bia
                         }}><TrashIcon /></button>
                     </td>
                 </tr>
             {/each}
+            </tbody>
         </table>
         <div class="text-textcolor2 mt-2 flex items-center gap-2">
-            <button class="font-medium cursor-pointer hover:text-textcolor gap-2" on:click={() => {
-                const data = JSON.stringify($DataBase.bias, null, 2)
+            <button class="font-medium cursor-pointer hover:text-textcolor gap-2" onclick={() => {
+                const data = JSON.stringify(DBState.db.bias, null, 2)
                 downloadFile('bias.json', data)
             }}><DownloadIcon /></button>
-            <button class="font-medium cursor-pointer hover:text-textcolor" on:click={async () => {
+            <button class="font-medium cursor-pointer hover:text-textcolor" onclick={async () => {
                 const sel = await selectSingleFile(['json'])
                 const utf8 = new TextDecoder().decode(sel.data)
                 if(Array.isArray(JSON.parse(utf8))){
-                    $DataBase.bias = JSON.parse(utf8)
+                    DBState.db.bias = JSON.parse(utf8)
                 }
             }}><FolderUpIcon /></button>
         </div>
     </Arcodion>
 
-    {#if $DataBase.aiModel === 'reverse_proxy'}
+    {#if DBState.db.aiModel === 'reverse_proxy'}
     <Arcodion styled name="{language.additionalParams} " help="additionalParams">
         <table class="contain w-full max-w-full tabler">
+            <tbody>
             <tr>
                 <th class="font-medium">{language.key}</th>
                 <th class="font-medium">{language.value}</th>
                 <th>
-                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" on:click={() => {
-                        let additionalParams = $DataBase.additionalParams
+                    <button class="font-medium cursor-pointer hover:text-green-500 w-full flex justify-center items-center" onclick={() => {
+                        let additionalParams = DBState.db.additionalParams
                         additionalParams.push(['', ''])
-                        $DataBase.additionalParams = additionalParams
+                        DBState.db.additionalParams = additionalParams
                     }}><PlusIcon /></button>
                 </th>
             </tr>
-            {#if $DataBase.bias.length === 0}
-                <tr>
-                    <div class="text-textcolor2">{language.noData}</div>
+            {#if DBState.db.bias.length === 0}
+                <tr class="text-textcolor2">
+                    <td colspan="3">{language.noData}</td>
                 </tr>
             {/if}
-            {#each $DataBase.additionalParams as additionalParams, i}
+            {#each DBState.db.additionalParams as additionalParams, i}
                 <tr>
                     <td class="font-medium truncate">
-                        <TextInput bind:value={$DataBase.additionalParams[i][0]} size="lg" fullwidth/>
+                        <TextInput bind:value={DBState.db.additionalParams[i][0]} size="lg" fullwidth/>
                     </td>
                     <td class="font-medium truncate">
-                        <TextInput bind:value={$DataBase.additionalParams[i][1]} size="lg" fullwidth/>
+                        <TextInput bind:value={DBState.db.additionalParams[i][1]} size="lg" fullwidth/>
                     </td>
                     <td>
-                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" on:click={() => {
-                            let additionalParams = $DataBase.additionalParams
+                        <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
+                            let additionalParams = DBState.db.additionalParams
                             additionalParams.splice(i, 1)
-                            $DataBase.additionalParams = additionalParams
+                            DBState.db.additionalParams = additionalParams
                         }}><TrashIcon /></button>
                     </td>
                 </tr>
             {/each}
+            </tbody>
         </table>
     </Arcodion>
     {/if}
 
 
     <Arcodion styled name={language.promptTemplate}>
-        {#if $DataBase.promptTemplate}
+        {#if DBState.db.promptTemplate}
             {#if submenu !== -1}
                 <PromptSettings mode='inline' subMenu={1} />
             {/if}
-            <Check check={!!$DataBase.promptTemplate} name={language.usePromptTemplate} className="mt-4" onChange={async ()=>{
+            <Check check={!!DBState.db.promptTemplate} name={language.usePromptTemplate} className="mt-4" onChange={async ()=>{
                 const conf = await alertConfirm(language.resetPromptTemplateConfirm)
                 
                 if(conf){
-                    $DataBase.promptTemplate = undefined
+                    DBState.db.promptTemplate = undefined
                 }
                 else{
-                    $DataBase.promptTemplate = $DataBase.promptTemplate
+                    DBState.db.promptTemplate = DBState.db.promptTemplate
                 }
             }}/>
         {:else}
             <Check check={false} name={language.usePromptTemplate} onChange={() => {
-                $DataBase.promptTemplate = []
+                DBState.db.promptTemplate = []
             }}/>
         {/if}
     </Arcodion>
     
     <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
-        <TextAreaInput bind:value={$DataBase.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
+        <TextAreaInput bind:value={DBState.db.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
     </Arcodion>
     {#if submenu !== -1}
-        <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
+        <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
     {/if}
 {/if}
 
 {#if submenu === 2 || submenu === -1}
-    {#if !$DataBase.promptTemplate}
+    {#if !DBState.db.promptTemplate}
         <span class="text-textcolor">{language.mainPrompt} <Help key="mainprompt"/></span>
-        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.mainPrompt}></TextAreaInput>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={DBState.db.mainPrompt}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.mainPrompt} {language.tokens}</span>
         <span class="text-textcolor">{language.jailbreakPrompt} <Help key="jailbreak"/></span>
-        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.jailbreak}></TextAreaInput>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={DBState.db.jailbreak}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.jailbreak} {language.tokens}</span>
         <span class="text-textcolor">{language.globalNote} <Help key="globalNote"/></span>
-        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={$DataBase.globalNote}></TextAreaInput>
+        <TextAreaInput fullwidth autocomplete="off" height={"32"} bind:value={DBState.db.globalNote}></TextAreaInput>
         <span class="text-textcolor2 mb-6 text-sm mt-2">{tokens.globalNote} {language.tokens}</span>  
         <span class="text-textcolor mb-2 mt-4">{language.formatingOrder} <Help key="formatOrder"/></span>
-        <DropList bind:list={$DataBase.formatingOrder} />
+        <DropList bind:list={DBState.db.formatingOrder} />
         <div class="flex items-center mt-4">
-            <Check bind:check={$DataBase.promptPreprocess} name={language.promptPreprocess}/>
+            <Check bind:check={DBState.db.promptPreprocess} name={language.promptPreprocess}/>
         </div>
     {:else if submenu === 2}
         <PromptSettings mode='inline' />
@@ -617,11 +627,11 @@
 {/if}
 
 
-{#if $DataBase.promptTemplate && submenu === -1}
+{#if DBState.db.promptTemplate && submenu === -1}
     <div class="mt-2">
-        <Button on:click={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
+        <Button onclick={goPromptTemplate} size="sm">{language.promptTemplate}</Button>
     </div>
 {/if}
 {#if submenu === -1}
-    <Button on:click={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
+    <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}

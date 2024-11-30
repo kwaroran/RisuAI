@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import { openURL } from "src/ts/storage/globalApi";
+    import { openURL } from "src/ts/globalApi.svelte";
 
 
     interface supporters{
@@ -38,12 +38,12 @@
 
 <!-- Patreon Button -->
 <div class="flex items-center justify-center rounded-md flex-wrap gap-2">
-    <button class="h-12 w-44" on:click={() => {
+    <button class="h-12 w-44" onclick={() => {
         openURL("https://www.patreon.com/RisuAI")
     }}>
         <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="patreon button" class="w-full h-full"/>
     </button>
-    <button class="h-12 w-44 bg-slate-700 font-bold text-sm" on:click={() => {
+    <button class="h-12 w-44 bg-slate-700 font-bold text-sm" onclick={() => {
         openURL("https://sv.risuai.xyz/patreon")
     }}>
         ADD YOUR NAME

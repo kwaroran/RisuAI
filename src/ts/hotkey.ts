@@ -1,13 +1,62 @@
 import { get } from "svelte/store"
 import { alertSelect, alertToast, doingAlert } from "./alert"
-import { DataBase, changeToPreset as changeToPreset2  } from "./storage/database"
-import { MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores"
+import { changeToPreset as changeToPreset2, getDatabase  } from "./storage/database.svelte"
+import { alertStore, MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
         if(ev.ctrlKey){
+
+            if(ev.altKey){
+                switch(ev.key){
+                    case "r":{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-reroll')
+                        return
+                    }
+                    case "f":{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-unreroll')
+                        return
+                    }
+                    case "t":{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-translate')
+                        return
+                    }
+                    case "d":{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-remove')
+                        return
+                    }
+                    case 'e':{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-edit')
+                        setTimeout(() => {
+                            focusQuery('.message-edit-area')
+                        }, 100)
+                        return
+                    }
+                    case 'c':{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-copy')
+                        return
+                    }
+                    case 'i':{
+                        ev.preventDefault()
+                        focusQuery('.text-input-area')
+                        return
+                    }
+                    case 'Enter':{
+                        ev.preventDefault()
+                        clickQuery('.button-icon-send')
+                        return
+                    }
+                }
+            }
+
             switch (ev.key){
                 case "1":{
                     changeToPreset(0)
@@ -105,6 +154,15 @@ export function initHotkey(){
             }
             ev.preventDefault()
         }
+        if(ev.key === 'Enter'){
+            const alertType = get(alertStore).type 
+            if(alertType === 'ask' || alertType === 'normal' || alertType === 'error'){
+                alertStore.set({
+                    type: 'none',
+                    msg: 'yes'
+                })
+            }
+        }
     })
 
 
@@ -142,6 +200,23 @@ export function initHotkey(){
         touchs = 0
     })
 }
+
+function clickQuery(query:string){
+    let ele = document.querySelector(query) as HTMLElement
+    console.log(ele)
+    if(ele){
+        ele.click()
+    }
+}
+
+function focusQuery(query:string){
+    let ele = document.querySelector(query) as HTMLElement
+    if(ele){
+        ele.focus()
+    }
+}
+
+
 
 export function initMobileGesture(){
 
@@ -197,7 +272,7 @@ export function initMobileGesture(){
 
 function changeToPreset(num:number){
     if(!doingAlert()){
-        let db = get(DataBase)
+        let db = getDatabase()
         let pres = db.botPresets
         if(pres.length > num){
             alertToast(`Changed to Preset: ${pres[num].name}`)

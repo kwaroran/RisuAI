@@ -1,22 +1,43 @@
 <script lang="ts">
-    import { tooltipRight } from "src/ts/gui/tooltip";
+  import { tooltipRight } from "src/ts/gui/tooltip";
 
-  export let rounded:boolean
-  export let src:string|Promise<string>;
-  export let name:string
-  export let size = "22";
-  export let onClick = () => {}
-  export let bordered = false
-  export let color:string = ''
+  interface Props {
+    rounded: boolean;
+    src: string|Promise<string>;
+    name: string;
+    size?: string;
+    onClick?: any;
+    bordered?: boolean;
+    color?: string;
+    children?: import('svelte').Snippet;
+    oncontextmenu?: (event: MouseEvent & {
+        currentTarget: EventTarget & HTMLDivElement;
+    }) => any
+  }
+
+  let {
+    rounded,
+    src,
+    name,
+    size = "22",
+    onClick = () => {},
+    bordered = false,
+    color = '',
+    children,
+    oncontextmenu
+  }: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <span class="flex shrink-0 items-center justify-center avatar"
       class:border = {bordered}
       class:border-selected={bordered}
       class:rounded-md={bordered}
-      on:contextmenu
-      on:click={onClick} use:tooltipRight={name}>
+      oncontextmenu={oncontextmenu}
+      onclick={onClick} use:tooltipRight={name}
+      role="button"
+      tabindex="0"
+>
   {#if src}
     {#if src === "slot"}
       <div
@@ -35,7 +56,7 @@
         style:height={size + "px"}
         style:minWidth={size + "px"}
         class:rounded-md={!rounded} class:rounded-full={rounded} 
-      ><slot /></div>
+      >{@render children?.()}</div>
     {:else}
       {#await src}
         <div
@@ -44,7 +65,7 @@
           style:height={size + "px"}
           style:minWidth={size + "px"}
           class:rounded-md={!rounded} class:rounded-full={rounded} 
-        />
+></div>
       {:then img}
         <img
           src={img}
@@ -64,6 +85,6 @@
       style:height={size + "px"}
       style:minWidth={size + "px"}
       class:rounded-md={!rounded} class:rounded-full={rounded} 
-    />
+></div>
   {/if}
 </span>

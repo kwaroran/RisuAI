@@ -255,3 +255,14 @@ html, body{
 .z-100{
   z-index: 100;
 }
+
+.flexium{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.chat-width{
+  max-width: calc(100% - 0.5rem);
+  word-break: normal;
+  overflow-wrap: anywhere;
+}

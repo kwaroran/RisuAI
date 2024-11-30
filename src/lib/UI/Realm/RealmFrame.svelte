@@ -1,18 +1,19 @@
 <script lang="ts">
     import { alertMd } from "src/ts/alert";
     import { shareRealmCardData } from "src/ts/realm";
-    import { DataBase, downloadPreset } from "src/ts/storage/database";
-    import { CurrentCharacter, ShowRealmFrameStore } from "src/ts/stores";
+    import { downloadPreset } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
+    import { selectedCharID, ShowRealmFrameStore } from "src/ts/stores.svelte";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
     const close =  () => {
         $ShowRealmFrameStore = ''
     }
-    let iframe: HTMLIFrameElement = null
-    const tk = $DataBase?.account?.token;
-    const id = $DataBase?.account?.id
-    let loadingStage = 0
+    let iframe: HTMLIFrameElement = $state(null)
+    const tk = DBState.db?.account?.token;
+    const id = DBState.db?.account?.id
+    let loadingStage = $state(0)
     let pongGot = false
 
     const pmfunc = (e:MessageEvent) => {
@@ -30,9 +31,9 @@
             if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
                 //TODO, add preset edit
             }
-            else if($CurrentCharacter.type === 'character'){
+            else if(DBState.db.characters[$selectedCharID].type === 'character'){
                 loadingStage = 0
-                $CurrentCharacter.realmId = e.data.id
+                DBState.db.characters[$selectedCharID].realmId = e.data.id
             }
             close()
         }
@@ -67,7 +68,7 @@
             }
         }
         else if($ShowRealmFrameStore.startsWith('module')){
-            const predata = $DataBase.modules[Number($ShowRealmFrameStore.split(':')[1])]
+            const predata = DBState.db.modules[Number($ShowRealmFrameStore.split(':')[1])]
             //@ts-ignore
             predata.type = 'risuModule'
             const encodedPredata = new TextEncoder().encode(JSON.stringify(predata))
@@ -96,8 +97,8 @@
         if($ShowRealmFrameStore.startsWith('preset') || $ShowRealmFrameStore.startsWith('module')){
             //TODO, add preset edit
         }
-        else if($CurrentCharacter.type === 'character' && $CurrentCharacter.realmId){
-            url += `&edit=${$CurrentCharacter.realmId}&edit-type=normal`
+        else if(DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].realmId){
+            url += `&edit=${DBState.db.characters[$selectedCharID].realmId}&edit-type=normal`
         }
         url += '#noLayout'
         return url
@@ -111,15 +112,15 @@
 <div class="top-0 left-0 z-50 fixed w-full h-full flex flex-col justify-center items-center text-textcolor bg-white">
     <div class="bg-darkbg border-b border-b-darkborderc w-full flex p-2">
         <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">Upload to Realm</h1>
-        <button class="text-textcolor text-lg hover:text-red-500 ml-auto" on:click={close}>&times;</button>
+        <button class="text-textcolor text-lg hover:text-red-500 ml-auto" onclick={close}>&times;</button>
     </div>
     {#if loadingStage < 1}
     <div class="w-full flex justify-center items-center p-4 flex-1">
-        <div class="loadmove"/>
+        <div class="loadmove"></div>
     </div>
     {/if}
     <iframe bind:this={iframe}
         src={getUrl()}
         title="upload" class="w-full flex-1" class:hidden={loadingStage < 1}
-    />
+></iframe>
 </div>

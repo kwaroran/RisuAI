@@ -1,25 +1,32 @@
 <script lang="ts">
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
-    import { ParseMarkdown } from "src/ts/parser";
+    import { ParseMarkdown } from "src/ts/parser.svelte";
     import { parseMultilangString, toLangName } from "src/ts/util";
 
-    export let value: string
-    export let markdown: boolean = false
-    let valueObject: {[code:string]:string} = parseMultilangString(value)
-    let selectedLang = "en"
+    interface Props {
+        value: string;
+        markdown?: boolean;
+    }
+
+    let { value, markdown = false }: Props = $props();
+    let valueObject: {[code:string]:string} = $state(parseMultilangString(value))
+    let selectedLang = $state("en")
     if(valueObject["en"] === undefined){
         selectedLang = "xx"
     }
-    $: valueObject = parseMultilangString(value)
+    $effect.pre(() => {
+        valueObject = parseMultilangString(value)
+    });
 </script>
 
 <div class="flex flex-col">
     <div class="flex flex-wrap max-w-fit p-1 gap-2">
         {#each Object.keys(valueObject) as lang}
             {#if lang !== 'xx' || Object.keys(valueObject).length === 1}
-                <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={selectedLang === lang} on:click|stopPropagation={() => {
+                <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={selectedLang === lang} onclick={((e) => {
+                    e.stopPropagation()
                     selectedLang = lang
-                }}>{toLangName(lang)}</button>
+                })}>{toLangName(lang)}</button>
             {/if}
         {/each}
     </div>

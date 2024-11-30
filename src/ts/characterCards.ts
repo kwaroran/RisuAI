@@ -1,13 +1,13 @@
 import { get, writable, type Writable } from "svelte/store"
 import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
-import { DataBase, defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat } from "./storage/database"
+import { defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter, getDatabase, setDatabaseLite, appVer } from "./storage/database.svelte"
 import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./storage/globalApi"
-import { CurrentCharacter, SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores"
-import { convertImage, hasher } from "./parser"
+import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
+import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
+import { convertImage, hasher } from "./parser.svelte"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/image"
 import { PngChunk } from "./pngChunk"
@@ -15,6 +15,8 @@ import type { OnnxModelFiles } from "./process/transformers"
 import { CharXReader, CharXWriter } from "./process/processzip"
 import { Capacitor } from "@capacitor/core"
 import { exportModule, readModule, type RisuModule } from "./process/modules"
+import { readFile } from "@tauri-apps/plugin-fs"
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 export const hubURL = "https://sv.risuai.xyz"
 
@@ -39,9 +41,10 @@ export async function importCharacter() {
     }
 }
 
-async function importCharacterProcess(f:{
+export async function importCharacterProcess(f:{
     name: string;
     data: Uint8Array|File|ReadableStream<Uint8Array>
+    lightningRealmImport?:boolean
 }) {
     if(f.name.endsWith('json')){
         if(f.data instanceof ReadableStream){
@@ -50,13 +53,13 @@ async function importCharacterProcess(f:{
         const data = f.data instanceof Uint8Array ? f.data : new Uint8Array(await f.data.arrayBuffer())
         const da = JSON.parse(Buffer.from(data).toString('utf-8'))
         if(await importCharacterCardSpec(da)){
-            let db = get(DataBase)
+            let db = getDatabase()
             return db.characters.length - 1
         }
         if((da.char_name || da.name) && (da.char_persona || da.description) && (da.char_greeting || da.first_mes)){
-            let db = get(DataBase)
+            let db = getDatabase()
             db.characters.push(convertOffSpecCards(da))
-            DataBase.set(db)
+            setDatabaseLite(db)
             alertNormal(language.importedCharacter)
             return
         }
@@ -66,7 +69,7 @@ async function importCharacterProcess(f:{
         }
     }
 
-    let db = get(DataBase)
+    let db = getDatabase()
     db.statics.imports += 1
 
     if(f.name.endsWith('charx')){
@@ -97,7 +100,7 @@ async function importCharacterProcess(f:{
             card.data.extensions.risuai.customScripts = md.regex ?? []
         }
         await importCharacterCardSpec(card, undefined, 'normal', reader.assets)
-        let db = get(DataBase)
+        let db = getDatabase()
         return db.characters.length - 1
     }
 
@@ -121,6 +124,9 @@ async function importCharacterProcess(f:{
         returnTrimed: true
     })
     const assets:{[key:string]:string} = {}
+    let queueFetch:Promise<Response>[] = []
+    let queueFetchKey:string[] = []
+    let queueFetchData:Buffer[] = []
     for await (const chunk of readGenerator){
         console.log(chunk)
         if(!chunk){
@@ -147,10 +153,53 @@ async function importCharacterProcess(f:{
             const assetIndex = chunk.key.replace('chara-ext-asset_:', '').replace('chara-ext-asset_', '')
             alertWait('Loading... (Reading Asset ' + assetIndex + ')' )
             const assetData = Buffer.from(chunk.value, 'base64')
+            if(db.account?.useSync && f.lightningRealmImport){
+                const id = await hasher(assetData)
+                const xid = 'assets/' + id + '.png'
+                queueFetchKey.push(assetIndex)
+                queueFetchData.push(assetData)
+                queueFetch.push(fetch('https://sv.risuai.xyz/rs/' + xid))
+                assets[assetIndex] =  'xid:' + xid
+                if(queueFetch.length > 10){
+                    const res = await Promise.all(queueFetch)
+                    for(let i=0;i<res.length;i++){
+                        if(res[i].status !== 200){
+                            const assetId = await saveAsset(queueFetchData[i])
+                            assets[queueFetchKey[i]] = assetId
+                        }
+                        else{
+                            assets[queueFetchKey[i]] = assets[queueFetchKey[i]].replace('xid:', '')
+                        }
+                    }
+                    queueFetch = []
+                    queueFetchKey = []
+                    queueFetchData = []
+                }
+                continue
+            }
+
+
             const assetId = await saveAsset(assetData)
             assets[assetIndex] = assetId
         }
     }
+
+    if(queueFetch.length > 0){
+        const res = await Promise.all(queueFetch)
+        for(let i=0;i<res.length;i++){
+            if(res[i].status !== 200){
+                const assetId = await saveAsset(queueFetchData[i])
+                assets[queueFetchKey[i]] = assetId
+            }
+            else{
+                assets[queueFetchKey[i]] = assets[queueFetchKey[i]].replace('xid:', '')
+            }
+        }
+        queueFetch = []
+        queueFetchKey = []
+        queueFetchData = []
+    }
+
     if(!readedChara && !readedCCv3){
         alertError(language.errors.noData)
         return
@@ -191,7 +240,7 @@ async function importCharacterProcess(f:{
                         const decrypted = await decryptBuffer(encrypted, password)         
                         const charaData:CharacterCardV2Risu = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
                         if(await importCharacterCardSpec(charaData, img, "normal", assets)){
-                            let db = get(DataBase)
+                            let db = getDatabase()
                             return db.characters.length - 1
                         }
                         else{
@@ -208,7 +257,7 @@ async function importCharacterProcess(f:{
                 try {
                     const charaData:CharacterCardV2Risu = JSON.parse(Buffer.from(decrypted).toString('utf-8'))
                     if(await importCharacterCardSpec(charaData, img, "normal", assets)){
-                        let db = get(DataBase)
+                        let db = getDatabase()
                         return db.characters.length - 1
                     }   
                 } catch (error) {
@@ -219,28 +268,26 @@ async function importCharacterProcess(f:{
 
         }
     }
-    else {
-        const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-        //fix readedChara version pointing number instead of string because of previous version
-        if(typeof (parsed as CharacterCardV2Risu)?.data?.character_version === 'number'){
-            (parsed as CharacterCardV2Risu).data.character_version = (parsed as CharacterCardV2Risu).data.character_version.toString()
-        }
-
-        const checkedVersion = CCardLib.character.check(parsed)
-        if(checkedVersion === 'v2' || checkedVersion === 'v3'){
-            if(await importCharacterCardSpec(parsed, img, "normal", assets)){
-                let db = get(DataBase)
-                return db.characters.length - 1
-            }
-        }
+    const parsed = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+    //fix readedChara version pointing number instead of string because of previous version
+    if(typeof (parsed as CharacterCardV2Risu)?.data?.character_version === 'number'){
+        (parsed as CharacterCardV2Risu).data.character_version = (parsed as CharacterCardV2Risu).data.character_version.toString()
     }
-    const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-    console.log(charaData)
-    const imgp = await saveAsset(await reencodeImage(img))
-    db.characters.push(convertOffSpecCards(charaData, imgp))
-    DataBase.set(db)
-    alertNormal(language.importedCharacter)
+
+    if(parsed.spec !== 'chara_card_v2' && parsed.spec !== 'chara_card_v3'){
+        const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
+        console.log(charaData)
+        const imgp = await saveAsset(await reencodeImage(img))
+        db.characters.push(convertOffSpecCards(charaData, imgp))
+        setDatabaseLite(db)
+        alertNormal(language.importedCharacter)
+        return db.characters.length - 1
+    }
+    await importCharacterCardSpec(parsed, img, "normal", assets)
+    
+    db = getDatabase()
     return db.characters.length - 1
+    
 }
 
 export const getRealmInfo = async (realmPath:string) => {
@@ -299,12 +346,27 @@ export async function characterURLImport() {
 
 
     const hash = location.hash
+    if(hash.startsWith('#import=')){
+        location.hash = ''
+        const url = hash.replace('#import=', '')
+        try {
+            const res = await fetch(url, {
+                method: 'GET',
+            })
+            const data = new Uint8Array(await res.arrayBuffer())
+            await importFile(getFileName(res), data)
+            checkCharOrder()
+        } catch (error) {
+            alertError(language.errors.noData)
+            return null
+        }
+    }
     if(hash.startsWith('#import_module=')){
         const data = hash.replace('#import_module=', '')
         const importData = JSON.parse(Buffer.from(decodeURIComponent(data), 'base64').toString('utf-8'))
         importData.id = v4()
 
-        const db = get(DataBase)
+        const db = getDatabase()
         if(importData.lowLevelAccess){
             const conf = await alertConfirm(language.lowLevelAccessConfirm)
             if(!conf){
@@ -348,7 +410,7 @@ export async function characterURLImport() {
         const module = new Uint8Array(await data.arrayBuffer())
         const md = await readModule(Buffer.from(module))
         md.id = v4()
-        const db = get(DataBase)
+        const db = getDatabase()
         db.modules.push(md)
         setDatabase(db)
         alertNormal(language.successImport)
@@ -373,31 +435,7 @@ export async function characterURLImport() {
             for(const f of files){
                 const file = await f.getFile()
                 const data = new Uint8Array(await file.arrayBuffer())
-                if(f.name.endsWith('.charx')){
-                    await importCharacterProcess({
-                        name: f.name,
-                        data: data
-                    })
-                }
-                if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
-                    await importPreset({
-                        name: f.name,
-                        data: data
-                    })
-                    SettingsMenuIndex.set(1)
-                    settingsOpen.set(true)
-                    alertNormal(language.successImport)
-                }
-                if(f.name.endsWith('risum')){
-                    const md = await readModule(Buffer.from(data))
-                    md.id = v4()
-                    const db = get(DataBase)
-                    db.modules.push(md)
-                    setDatabase(db)
-                    alertNormal(language.successImport)
-                    SettingsMenuIndex.set(14)
-                    settingsOpen.set(true)
-                }
+                await importFile(f.name, data);
             }
         }
         //@ts-ignore
@@ -408,13 +446,113 @@ export async function characterURLImport() {
             }
         });
     }
+
+    if("tauriOpenedFiles" in window){
+        //@ts-ignore
+        const files:string[] = window.tauriOpenedFiles
+        if(files){
+            for(const file of files){
+                const data = await readFile(file)
+                await importFile(file, data)
+            }
+        }
+    }
     
+    if(isTauri){
+        await onOpenUrl((urls) => {
+            for(const url of urls){
+                const splited = url.split('/')
+                const id = splited[splited.length - 1]
+                const type = splited[splited.length - 2]
+                switch(type){
+                    case 'realm':{
+                        downloadRisuHub(id)
+                    }
+                }
+            }
+        })
+    }
+
+    async function importFile(name:string, data:Uint8Array) {
+        if(name.endsWith('.charx') || name.endsWith('.png')){
+            await importCharacterProcess({
+                name: name,
+                data: data
+            })
+            return
+        }
+        if(name.endsWith('.risupreset') || name.endsWith('.risup')){
+            await importPreset({
+                name: name,
+                data: data
+            })
+            SettingsMenuIndex.set(1)
+            settingsOpen.set(true)
+            alertNormal(language.successImport)
+            return
+        }
+        if(name.endsWith('risum')){
+            const md = await readModule(Buffer.from(data))
+            md.id = v4()
+            const db = getDatabase()
+            db.modules.push(md)
+            setDatabase(db)
+            alertNormal(language.successImport)
+            SettingsMenuIndex.set(14)
+            settingsOpen.set(true)
+            return
+        }
+    }
+
+    function getFileName(res : Response) : string {
+        return getFromContent(res.headers.get('content-disposition')) || getFromURL(res.url);
+    
+        function getFromContent(contentDisposition : string) {
+            if (!contentDisposition) return null;
+            const pattern = /filename\*=UTF-8''([^"';\n]+)|filename[^;\n=]*=["']?([^"';\n]+)["']?/;
+            const matches = contentDisposition.match(pattern);
+            if (matches) {
+                if (matches[1]) {
+                    return decodeURIComponent(matches[1]);
+                } else if (matches[2]) {
+                    return matches[2];
+                }
+            }
+            return null;
+        }
+        
+        function getFromURL(url : string) : string {
+            try {
+                const path = new URL(url).pathname;
+                return path.substring(path.lastIndexOf('/') + 1);
+            } catch {
+                return "";
+            }
+        }
+    }
 }
 
 
 function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:string|undefined = undefined):character{
     const data = charaData.spec_version === '2.0' ? charaData.data : charaData
     console.log("Off spec detected, converting")
+    const charbook = charaData.spec_version === '2.0' ? charaData.data.character_book : null
+    let lorebook:loreBook[] = []
+    let loresettings:undefined|loreSettings = undefined
+    let loreExt:undefined|any = undefined
+    if(charbook){
+        const a = convertCharbook({
+            lorebook,
+            charbook,
+            loresettings,
+            loreExt
+        })
+
+        lorebook = a.lorebook
+        loresettings = a.loresettings
+        loreExt = a.loreExt
+    }
+
     return {
         name: data.name ?? 'unknown name',
         firstMessage: data.first_mes ?? 'unknown first message',
@@ -430,7 +568,7 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
         image: imgp,
         emotionImages: [],
         bias: [],
-        globalLore: [],
+        globalLore: lorebook,
         viewScreen: 'none',
         chaId: uuidv4(),
         sdData: defaultSdDataFunc(),
@@ -449,13 +587,16 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
         firstMsgIndex: -1,
         replaceGlobalNote: "",
         triggerscript: [],
-        additionalText: ''
+        additionalText: '',
+        loreExt: loreExt,
+        loreSettings: loresettings,
+        
     }
 }
 
 export async function exportChar(charaID:number):Promise<string> {
-    const db = get(DataBase)
-    let char = structuredClone(db.characters[charaID])
+    const db = getDatabase({snapshot: true})
+    let char = safeStructuredClone(db.characters[charaID])
 
     if(char.type === 'group'){
         return ''
@@ -488,12 +629,14 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         return false
     }
 
+    console.log(`Importing ${card.spec}, mode is ${mode}`)
+
     const data = card.data
     console.log(card)
     let im = img ? await saveAsset(await reencodeImage(img)) : undefined
-    let db = get(DataBase)
+    let db = getDatabase()
 
-    const risuext = structuredClone(data.extensions.risuai)
+    const risuext = safeStructuredClone(data.extensions.risuai)
     let emotions:[string, string][] = []
     let bias:[string, number][] = []
     let viewScreen: "none" | "emotion" | "imggen" = 'none'
@@ -680,40 +823,19 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     let loresettings:undefined|loreSettings = undefined
     let loreExt:undefined|any = undefined
     if(charbook){
-        if((!checkNullish(charbook.recursive_scanning)) &&
-            (!checkNullish(charbook.scan_depth)) &&
-            (!checkNullish(charbook.token_budget))){
-            loresettings = {
-                tokenBudget:charbook.token_budget,
-                scanDepth:charbook.scan_depth,
-                recursiveScanning: charbook.recursive_scanning,
-                fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
-            }
-        }
+        const a = convertCharbook({
+            lorebook,
+            charbook,
+            loresettings,
+            loreExt
+        })
 
-        loreExt = charbook.extensions
-
-        for(const book of charbook.entries){
-            lorebook.push({
-                key: book.keys.join(', '),
-                secondkey: book.secondary_keys?.join(', ') ?? '',
-                insertorder: book.insertion_order,
-                comment: book.name ?? book.comment ?? "",
-                content: book.content,
-                mode: "normal",
-                alwaysActive: book.constant ?? false,
-                selective: book.selective ?? false,
-                extentions: {...book.extensions, risu_case_sensitive: book.case_sensitive},
-                activationPercent: book.extensions?.risu_activationPercent,
-                loreCache: book.extensions?.risu_loreCache ?? null,
-                //@ts-ignore
-                useRegex: book.use_regex ?? false
-            })
-        }
-
+        lorebook = a.lorebook
+        loresettings = a.loresettings
+        loreExt = a.loreExt
     }
 
-    let ext = structuredClone(data?.extensions ?? {})
+    let ext = safeStructuredClone(data?.extensions ?? {})
 
     for(const key in ext){
         if(key === 'risuai'){
@@ -752,7 +874,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         alternateGreetings:data.alternate_greetings ?? [],
         tags:data.tags ?? [],
         creator:data.creator ?? '',
-        characterVersion: `${data.character_version}` ?? '',
+        characterVersion: `${data.character_version}` || '',
         personality:data.personality ?? '',
         scenario:data.scenario ?? '',
         firstMsgIndex: -1,
@@ -804,6 +926,113 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
 
 }
 
+function convertCharbook(arg:{
+    lorebook:loreBook[]
+    charbook:CharacterBook
+    loresettings:loreSettings
+    loreExt:any
+}){
+    let {lorebook, loresettings, loreExt, charbook} = arg
+    if((!checkNullish(charbook.recursive_scanning)) &&
+        (!checkNullish(charbook.scan_depth)) &&
+        (!checkNullish(charbook.token_budget))){
+        loresettings = {
+            tokenBudget:charbook.token_budget,
+            scanDepth:charbook.scan_depth,
+            recursiveScanning: charbook.recursive_scanning,
+            fullWordMatching: charbook?.extensions?.risu_fullWordMatching ?? false,
+        }
+    }
+
+    loreExt = charbook.extensions
+
+    for(const book of charbook.entries){
+        let content = book.content
+
+        if(book.use_regex && !book.keys?.[0]?.startsWith('/')){
+            book.use_regex = false
+        }
+
+        //extention migration
+        const extensions = book.extensions ?? {}
+
+        if(extensions.useProbability && extensions.probability !== undefined && extensions.probability !== 100){
+            content = `@@probability ${extensions.probability}\n` + content
+            delete extensions.useProbability
+            delete extensions.probability
+        }
+        if(extensions.position === 4 && typeof extensions.depth === 'number' && typeof(extensions.role) === 'number'){
+            content = `@@depth ${extensions.depth}\n@@role ${['system','user','assistant'][extensions.role]}\n` + content
+            delete extensions.position
+            delete extensions.depth
+            delete extensions.role
+        }
+        if(typeof(extensions.selectiveLogic) === 'number' && book.secondary_keys && book.secondary_keys.length > 0){
+            switch(extensions.selectiveLogic){
+                case 0:{
+                    if(!book.secondary_keys || book.secondary_keys.length === 0){
+                        book.selective = false
+                    }
+                    break
+                }
+                case 1:{
+                    book.selective = false
+                    content = `@@exclude_keys_all ${book.secondary_keys.join(',')}\n` + content
+                    break
+                }
+                case 2:{
+                    book.selective = false
+                    for(const secKey of book.secondary_keys){
+                        content = `@@exclude_keys ${secKey}\n` + content
+                    }
+                    break
+                }
+                case 3:{
+                    book.selective = false
+                    for(const secKey of book.secondary_keys){
+                        content = `@@additional_keys ${secKey}\n` + content
+                    }
+                    break
+                }
+            }
+        }
+        if(typeof extensions.delay === 'number' && extensions.delay > 0){
+            content = `@@activate_only_after ${extensions.delay}\n` + content
+            delete extensions.delay
+        }
+        if(extensions.match_whole_words === true){
+            content = `@@match_full_word\n` + content
+            delete extensions.match_whole_words
+        }
+        if(extensions.match_whole_words === false){
+            content = `@@match_partial_word\n` + content
+            delete extensions.match_whole_words
+        }
+
+        lorebook.push({
+            key: book.keys.join(', '),
+            secondkey: book.secondary_keys?.join(', ') ?? '',
+            insertorder: book.insertion_order,
+            comment: book.name ?? book.comment ?? "",
+            content: content,
+            mode: "normal",
+            alwaysActive: book.constant ?? false,
+            selective: book.selective ?? false,
+            extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
+            activationPercent: book.extensions?.risu_activationPercent,
+            loreCache: book.extensions?.risu_loreCache ?? null,
+            //@ts-ignore
+            useRegex: book.use_regex ?? false
+        })
+    }
+
+    return {
+        lorebook,
+        loresettings,
+        loreExt
+    }
+}
+
 
 
 async function createBaseV2(char:character) {
@@ -817,7 +1046,7 @@ async function createBaseV2(char:character) {
                 key:string
                 data:string[]
             }
-        } = structuredClone(lore.extentions ?? {})
+        } = safeStructuredClone(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
@@ -864,7 +1093,7 @@ async function createBaseV2(char:character) {
             },
             tags: char.tags ?? [],
             creator: char.additionalData?.creator ?? '',
-            character_version: `${char.additionalData?.character_version}` ?? '',
+            character_version: `${char.additionalData?.character_version}` || '',
             extensions: {
                 risuai: {
                     // emotions: char.emotionImages,
@@ -1147,7 +1376,7 @@ export function createBaseV3(char:character){
         uri: string
         name: string
         ext: string
-    }> = structuredClone(char.ccAssets ?? [])
+    }> = safeStructuredClone(char.ccAssets ?? [])
 
     if(char.additionalAssets){
         for(const asset of char.additionalAssets){
@@ -1186,7 +1415,7 @@ export function createBaseV3(char:character){
                 key:string
                 data:string[]
             }
-        } = structuredClone(lore.extentions ?? {})
+        } = safeStructuredClone(lore.extentions ?? {})
 
         let caseSensitive = ext.risu_case_sensitive ?? false
         ext.risu_activationPercent = lore.activationPercent
@@ -1234,7 +1463,7 @@ export function createBaseV3(char:character){
             },
             tags: char.tags ?? [],
             creator: char.additionalData?.creator ?? '',
-            character_version: `${char.additionalData?.character_version}` ?? '',
+            character_version: `${char.additionalData?.character_version}` || '',
             extensions: {
                 risuai: {
                     bias: char.bias,
@@ -1286,7 +1515,7 @@ export async function shareRisuHub2(char:character, arg:{
     update: boolean
 }) {
     try {
-        char = structuredClone(char)
+        char = safeStructuredClone(char)
         char.license = arg.license
         let tagList = arg.tag.split(',')
         
@@ -1320,8 +1549,8 @@ export async function shareRisuHub2(char:character, arg:{
             headers: {
                 "Content-Type": 'image/png',
                 "x-risu-api-version": "4",
-                "x-risu-token": get(DataBase)?.account?.token,
-                'x-risu-username': arg.anon ? '' : (get(DataBase)?.account?.id),
+                "x-risu-token": getDatabase()?.account?.token,
+                'x-risu-username': arg.anon ? '' : (getDatabase()?.account?.id),
                 'x-risu-debug': 'true',
                 'x-risu-update-id': arg.update ? (char.realmId ?? 'null') : 'null'
             }
@@ -1336,12 +1565,12 @@ export async function shareRisuHub2(char:character, arg:{
         else{
             const resJSON = await res.json()
             alertMd(resJSON.message)
-            const currentChar = get(CurrentCharacter)
+            const currentChar = getCurrentCharacter()
             if(currentChar.type === 'group'){
                 return
             }
             currentChar.realmId = resJSON.id
-            CurrentCharacter.set(currentChar)
+            setCurrentCharacter(currentChar)
         }   
     } catch (error) {
         alertError(`${error}`)
@@ -1382,7 +1611,11 @@ export async function getRisuHub(arg:{
         arg.search += ' __shared'
         const stringArg = `search==${arg.search}&&page==${arg.page}&&nsfw==${arg.nsfw}&&sort==${arg.sort}&&web==${(!isNodeServer && !Capacitor.isNativePlatform() && !isTauri) ? 'web' : 'other'}`
 
-        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg))
+        const da = await fetch(hubURL + '/realm/' + encodeURIComponent(stringArg), {
+            headers: {
+                "x-risuai-info": appVer + ';' + (isNodeServer ? 'node' : (Capacitor.isNativePlatform() ? 'capacitor' : isTauri ? 'tauri' : 'web'))
+            }
+        })
         if(da.status !== 200){
             return []
         }
@@ -1421,12 +1654,14 @@ export async function downloadRisuHub(id:string, arg:{
         }
 
         if(res.headers.get('content-type') === 'image/png'){
+            let db = getDatabase()
             await importCharacterProcess({
                 name: 'realm.png',
-                data: res.body
+                data: res.body,
+                lightningRealmImport: db.lightningRealmImport
             })
             checkCharOrder()
-            let db = get(DataBase)
+            db = getDatabase()
             if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
                 const index = db.characters.length-1
                 characterFormatUpdate(index);
@@ -1443,7 +1678,7 @@ export async function downloadRisuHub(id:string, arg:{
     
         await importCharacterCardSpec(data, await getHubResources(img), 'hub')
         checkCharOrder()
-        let db = get(DataBase)
+        let db = getDatabase()
         if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
             const index = db.characters.length-1
             characterFormatUpdate(index);
@@ -1580,6 +1815,7 @@ interface charBookEntry{
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
+    use_regex?:boolean
 }
 
 interface RccCardMetaData{

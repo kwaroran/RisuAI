@@ -1,27 +1,28 @@
 <script lang="ts">
-    import { CurrentCharacter, CurrentChat, selectedCharID } from "src/ts/stores";
+    import { selectedCharID } from "src/ts/stores.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
-    import { getRequestLog } from "src/ts/storage/globalApi";
+    import { getRequestLog } from "src/ts/globalApi.svelte";
     import { alertMd, alertWait } from "src/ts/alert";
     import Arcodion from "../UI/Arcodion.svelte";
     import { getCharToken, getChatToken } from "src/ts/tokenizer";
     import { tokenizePreset } from "src/ts/process/prompt";
-    import { DataBase, setDatabase } from "src/ts/storage/database";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import { selectSingleFile } from "src/ts/util";
-    import { file } from "jszip";
-    import { doingChat, previewFormated, sendChat } from "src/ts/process";
+    import { doingChat, previewFormated, sendChat } from "src/ts/process/index.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
-  import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import OptionInput from "../UI/GUI/OptionInput.svelte";
+  import { loadLoreBookV3Prompt } from "src/ts/process/lorebook.svelte";
 
-    let previewMode = 'chat'
-    let previewJoin = 'yes'
-    let instructType = 'chatml'
-    let instructCustom = ''
+    let previewMode = $state('chat')
+    let previewJoin = $state('yes')
+    let instructType = $state('chatml')
+    let instructCustom = $state('')
 
     const preview = async () => {
         if($doingChat){
@@ -39,7 +40,7 @@
             "system": "⚙️ System",
             "assistant": "✨ Assistant",
         }
-        let formated = structuredClone(previewFormated)
+        let formated = safeStructuredClone(previewFormated)
 
         if(previewJoin === 'yes'){
             let newFormated = []
@@ -85,20 +86,20 @@
         alertMd(md)
     }
     
-    let autopilot = []
+    let autopilot = $state([])
 </script>
 
 <Arcodion styled name={"Variables"}>
     <div class="rounded-md border border-darkborderc grid grid-cols-2 gap-2 p-2">
-        {#if $CurrentChat.scriptstate &&  Object.keys($CurrentChat.scriptstate).length > 0}
-            {#each Object.keys($CurrentChat.scriptstate) as key}
+        {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate &&  Object.keys(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate).length > 0}
+            {#each Object.keys(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate) as key}
                 <span>{key}</span>
-                {#if typeof $CurrentChat.scriptstate[key] === "object"}
+                {#if typeof DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate[key] === "object"}
                     <div class="p-2 text-center">Object</div>
-                {:else if typeof $CurrentChat.scriptstate[key] === "string"}
-                    <TextInput bind:value={$CurrentChat.scriptstate[key]} />
-                {:else if typeof $CurrentChat.scriptstate[key] === "number"}
-                    <NumberInput bind:value={$CurrentChat.scriptstate[key]} />
+                {:else if typeof DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate[key] === "string"}
+                    <TextInput bind:value={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate[key] as string} />
+                {:else if typeof DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate[key] === "number"}
+                    <NumberInput bind:value={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate[key] as number} />
                 {/if}
             {/each}
         {:else}
@@ -109,7 +110,7 @@
 
 <Arcodion styled name={"Tokens"}>
     <div class="rounded-md border border-darkborderc grid grid-cols-2 gap-2 p-2">
-        {#await getCharToken($CurrentCharacter)}
+        {#await getCharToken(DBState.db.characters[$selectedCharID])}
             <span>Character Persistant</span>
             <div class="p-2 text-center">Loading...</div>
             <span>Character Dynamic</span>
@@ -120,15 +121,15 @@
             <span>Character Dynamic</span>
             <div class="p-2 text-center">{token.dynamic} Tokens</div>
         {/await}
-        {#await getChatToken($CurrentChat)}
+        {#await getChatToken(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage])}
             <span>Current Chat</span>
             <div class="p-2 text-center">Loading...</div>
         {:then token}
             <span>Current Chat</span>
             <div class="p-2 text-center">{token} Tokens</div>
         {/await}
-        {#if $DataBase.promptTemplate}
-            {#await tokenizePreset($DataBase.promptTemplate)}
+        {#if DBState.db.promptTemplate}
+            {#await tokenizePreset(DBState.db.promptTemplate)}
                 <span>Prompt Template</span>
                 <div class="p-2 text-center">Loading...</div>
             {:then token}
@@ -142,26 +143,26 @@
 
 <Arcodion styled name={"Autopilot"}>
     <div class="flex flex-col p-2 border border-darkborderc rounded-md">
-        {#each autopilot as text}
-            <TextAreaInput bind:value={text} />
+        {#each autopilot as text, i}
+            <TextAreaInput bind:value={autopilot[i]} />
         {/each}
     </div>
     <div class="flex justify-end">
-        <button class="text-textcolor2 hover:text-textcolor" on:click={() => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
             autopilot.pop()
             autopilot = autopilot
         }}>
             <TrashIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" on:click={() => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
             autopilot.push('')
             autopilot = autopilot
         }}>
             <PlusIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" on:click={async () => {
+        <button class="text-textcolor2 hover:text-textcolor" onclick={async () => {
             const selected = await selectSingleFile([
                 'txt', 'csv', 'json'
             ])
@@ -190,12 +191,12 @@
             <FolderUpIcon />
         </button>
     </div>
-    <Button className="mt-2" on:click={async () => {
+    <Button className="mt-2" onclick={async () => {
         if($doingChat){
             return
         }
         for(let i=0;i<autopilot.length;i++){
-            const db = ($DataBase)
+            const db = (DBState.db)
             let currentChar = db.characters[$selectedCharID]
             let currentChat = currentChar.chats[currentChar.chatPage]
             currentChat.message.push({
@@ -243,9 +244,43 @@
         <OptionInput value="yes">With Join</OptionInput>
         <OptionInput value="no">Without Join</OptionInput>
     </SelectInput>
-    <Button className="mt-2" on:click={() => {preview()}}>Run</Button>
+    <Button className="mt-2" onclick={() => {preview()}}>Run</Button>
 </Arcodion>
 
-<Button className="mt-2" on:click={() => {
+<Arcodion styled name={"Preview Lorebook"}>
+    <Button className="mt-2" onclick={async () => {
+        const lorebookResult = await loadLoreBookV3Prompt()
+        const html = `
+        ${lorebookResult.actives.map((v) => {
+            return `## ${v.source}\n\n\`\`\`\n${v.prompt}\n\`\`\`\n`
+        }).join('\n')}
+        `.trim()
+        alertMd(html)
+    }}>Test Lore</Button>
+    <Button className="mt-2" onclick={async () => {
+        const lorebookResult = await loadLoreBookV3Prompt()
+        const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${lorebookResult.matchLog.map((v) => {
+                    return `<tr>
+                        <td><pre>${v.activated.trim()}</pre></td>
+                        <td><pre>${v.source.trim()}</pre></td>
+                    </tr>`
+                }).join('\n')}
+            </tbody>
+        </table>
+        `.trim()
+        alertMd(html)
+    }}>Match Sources</Button>
+</Arcodion>
+
+<Button className="mt-2" onclick={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>

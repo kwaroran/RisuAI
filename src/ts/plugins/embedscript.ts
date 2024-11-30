@@ -2,9 +2,9 @@ import { get } from 'svelte/store'
 import type { ScriptMode } from '../process/scripts'
 //@ts-ignore
 import WorkerUrl from './embedworker?worker&url'
-import { DataBase, type Message } from '../storage/database'
-import { selectedCharID } from '../stores'
-import { setDatabase } from '../storage/database'
+import { getDatabase, type Message } from '../storage/database.svelte'
+import { selectedCharID } from '../stores.svelte'
+import { setDatabase } from '../storage/database.svelte'
 
 let worker = new Worker(WorkerUrl, {type: 'module'})
 
@@ -77,14 +77,16 @@ function runVirtualJS(code:string){
 }
 
 addWorkerFunction('getChat', async () => {
-    const db = get(DataBase)
+    const db = getDatabase({
+        snapshot: true
+    })
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
-    return structuredClone(char.chats[char.chatPage].message)
+    return safeStructuredClone(char.chats[char.chatPage].message)
 })
 
 addWorkerFunction('setChat', async (data:Message[]) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     let newChat:Message[] = []
     for(const dat of data){
@@ -117,14 +119,14 @@ addWorkerFunction('setChat', async (data:Message[]) => {
 })
 
 addWorkerFunction('getName', async () => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     return char.name
 })
 
 addWorkerFunction('setName', async (data:string) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     if(typeof data !== 'string'){
         return false
@@ -135,7 +137,7 @@ addWorkerFunction('setName', async (data:string) => {
 })
 
 addWorkerFunction('getDescription', async () => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     if(char.type === 'group'){
@@ -145,7 +147,7 @@ addWorkerFunction('getDescription', async () => {
 })
 
 addWorkerFunction('setDescription', async (data:string) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char =db.characters[selectedChar]
     if(typeof data !== 'string'){
@@ -161,14 +163,14 @@ addWorkerFunction('setDescription', async (data:string) => {
 })
 
 addWorkerFunction('getCharacterFirstMessage', async () => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     return char.firstMessage
 })
 
 addWorkerFunction('setCharacterFirstMessage', async (data:string) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     if(typeof data !== 'string'){
@@ -181,14 +183,14 @@ addWorkerFunction('setCharacterFirstMessage', async (data:string) => {
 })
 
 addWorkerFunction('getBackgroundEmbedding', async () => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     return char.backgroundHTML
 })
 
 addWorkerFunction('setBackgroundEmbedding', async (data:string) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     if(typeof data !== 'string'){
         return false
@@ -200,7 +202,7 @@ addWorkerFunction('setBackgroundEmbedding', async (data:string) => {
 
 
 addWorkerFunction('getState', async (statename) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     const chat = char.chats[char.chatPage]
@@ -208,7 +210,7 @@ addWorkerFunction('getState', async (statename) => {
 })
 
 addWorkerFunction('setState', async (statename, data) => {
-    const db = get(DataBase)
+    const db = getDatabase()
     const selectedChar = get(selectedCharID)
     const char = db.characters[selectedChar]
     const chat = char.chats[char.chatPage]
@@ -243,12 +245,9 @@ export async function runCharacterJS(arg:{
     mode: ScriptMode|'onButtonClick'|'modifyRequestChat'
     data: any
 }):Promise<any>{
+    const perf = performance.now()
     try {
-        if(arg.code === null){
-            const db = get(DataBase)
-            const selectedChar = get(selectedCharID)
-            arg.code = db.characters[selectedChar].virtualscript
-        }
+        arg.code = arg.code ?? ''
         const codes = {
             "editinput": 'editInput',
             "editoutput": 'editOutput',
@@ -317,6 +316,9 @@ export async function runCharacterJS(arg:{
             return `Error: ${error}`
         }
         return arg.data
+    }
+    finally{
+        console.log('runCharacterJS',performance.now() - perf)
     }
 
 }

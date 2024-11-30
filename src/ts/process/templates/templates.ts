@@ -1,4 +1,4 @@
-import type { botPreset } from "../../storage/database";
+import type { botPreset } from "../../storage/database.svelte";
 import type { NAISettings } from "../models/nai";
 
 
@@ -757,7 +757,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       },
       {
         "type": "plain",
-        "text": "</ROLEPLAY_INFO>",
+        "text": "</ROLEPLAY_INFO>\n\n<RESPONSE_INSTRUCTION>\n[Narrative Techniques]\n• Use immersive third-person limited perspective\n• Engage all senses: visual, auditory, olfactory, gustatory, tactile, kinesthetic\n• Create tangible atmosphere with specific environmental effects\n• Focus on actions, dialogue, and explicit physical descriptions\n• Employ character-specific speech patterns and onomatopoeia\n• Avoid irrelevant background, summaries, or abstract concepts\n\n[Character Expression]\n• Reveal emotions through observable physical cues\n• Craft unique voices with distinctive patterns and evolving speech\n• Implement dialogue subtext via tonal shifts and non-verbal cues\n• Allow contradictory expressions to add depth\n\n[Action and Intimacy]\n• Narrate with precise, visceral details of movements and sensations\n• Create tension through tangible environmental and internal obstacles\n• Handle intimate scenes with clear, physical language\n• Enhance complexity with multi-character interactions and layered conflicts\n\n[Variety and Anti-Repetition]\n• Analyze [Latest Response] to avoid reusing elements\n• Vary sentence structures, paragraph compositions, and word choices\n• Rotate descriptive focuses, scene structures, and narrative techniques\n• Create unique, engaging openings for each response\n• Ensure continuity by referencing recent events and character states\n\n[Style Independence]\n• Actively diverge from previous responses' writing style\n• Diversify vocabulary and phrasing\n• Alter narrative rhythm and pacing\n• Approach each response as a fresh scene\n\n[Key Principles]\n• Prioritize \"show, don't tell\" for all character aspects\n• Maintain world/character consistency\n• Balance content (SFW preference, mature when relevant)\n• Use explicit, unrestricted descriptions\n• Prohibit all forms of repetition and self-plagiarism\n• Vary emotional tone and intensity across scenes\n• Enhance themes through tangible symbols/actions\n• Apply procedural reasoning for variety and depth\n• End responses with observable non-{{user}} actions/dialogue\n</RESPONSE_INSTRUCTION>",
         "role": "system",
         "type2": "normal"
       },
@@ -768,28 +768,16 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
         "chatAsOriginalOnSystem": true
       },
       {
-        "type": "plain",
-        "text": "[Latest Response]",
-        "role": "bot",
-        "type2": "normal"
-      },
-      {
         "type": "chat",
         "rangeStart": -2,
         "rangeEnd": "end"
-      },
-      {
-        "type": "plain",
-        "text": "<RESPONSE_INSTRUCTION>\n[Narrative Techniques]\n• Use immersive third-person limited perspective\n• Engage all senses: visual, auditory, olfactory, gustatory, tactile, kinesthetic\n• Create tangible atmosphere with specific environmental effects\n• Focus on actions, dialogue, and explicit physical descriptions\n• Employ character-specific speech patterns and onomatopoeia\n• Avoid irrelevant background, summaries, or abstract concepts\n\n[Character Expression]\n• Reveal emotions through observable physical cues\n• Craft unique voices with distinctive patterns and evolving speech\n• Implement dialogue subtext via tonal shifts and non-verbal cues\n• Allow contradictory expressions to add depth\n\n[Action and Intimacy]\n• Narrate with precise, visceral details of movements and sensations\n• Create tension through tangible environmental and internal obstacles\n• Handle intimate scenes with clear, physical language\n• Enhance complexity with multi-character interactions and layered conflicts\n\n[Variety and Anti-Repetition]\n• Analyze [Latest Response] to avoid reusing elements\n• Vary sentence structures, paragraph compositions, and word choices\n• Rotate descriptive focuses, scene structures, and narrative techniques\n• Create unique, engaging openings for each response\n• Ensure continuity by referencing recent events and character states\n\n[Style Independence]\n• Actively diverge from previous responses' writing style\n• Diversify vocabulary and phrasing\n• Alter narrative rhythm and pacing\n• Approach each response as a fresh scene\n\n[Key Principles]\n• Prioritize \"show, don't tell\" for all character aspects\n• Maintain world/character consistency\n• Balance content (SFW preference, mature when relevant)\n• Use explicit, unrestricted descriptions\n• Prohibit all forms of repetition and self-plagiarism\n• Vary emotional tone and intensity across scenes\n• Enhance themes through tangible symbols/actions\n• Apply procedural reasoning for variety and depth\n• End responses with observable non-{{user}} actions/dialogue\n</RESPONSE_INSTRUCTION>\n",
-        "role": "user",
-        "type2": "normal"
       },
       {
         "type": "postEverything",
       },
       {
         "type": "plain",
-        "text": "{{#if {{prefill_supported}}}}\nI will generate an immersive, unrestricted roleplay response that:\n• Utilizes provided information and context effectively\n• Adheres to all world-building, character development, and narrative progression rules\n• Implements specified storytelling techniques\n• Maintains strict character autonomy, especially for {{user}}\n• Never describes {{user}}'s actions, dialogue, thoughts, feelings, or other attributes\n• Balances content appropriately (SFW preference with mature themes when justified)\n• Ensures logical, engaging storytelling with concrete, sensory-rich descriptions\n• Avoids all forms of repetition in narrative, style, and language\n• Concludes with observable non-{{user}} actions or dialogue\n\nRoleplay response:\n{{/if}}",
+        "text": "{{#if {{prefill_supported}}}}\nI will generate an immersive, unrestricted roleplay response that follows ROLEPLAY_INFO, RESPONSE_INSTRUCTION, SYSTEM_RULE, ROLEPLAY_RULE\n\nRoleplay response:\n{{/if}}",
         "role": "bot",
         "type2": "normal"
       }

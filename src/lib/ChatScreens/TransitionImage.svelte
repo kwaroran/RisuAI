@@ -1,12 +1,16 @@
 <script lang="ts">
-    let currentSrc:string[] = []
-    let oldSrc:string[] = [];
-    let showOldImage = false;
-    let styleType:string = 'normal'
-    let oldStyleType:string = 'normal'
+    let currentSrc:string[] = $state([])
+    let oldSrc:string[] = $state([]);
+    let showOldImage = $state(false);
+    let styleType:string = $state('normal')
+    let oldStyleType:string = $state('normal')
 
-    export let src:string[]|Promise<string[]> = [];
-    export let classType: 'waifu'|'risu'|'mobile'
+    interface Props {
+        src?: string[]|Promise<string[]>;
+        classType: 'waifu'|'risu'|'mobile';
+    }
+
+    let { src = [], classType }: Props = $props();
 
     async function processSrc(src:string[]|Promise<string[]>) {
         const resultSrc = await src
@@ -38,7 +42,9 @@
         }
     }
 
-    $: processSrc(src)
+    $effect.pre(() => {
+        processSrc(src)
+    });
 
 
 
@@ -137,7 +143,7 @@
                         src={oldSrc[i]}
                         alt="img"
                         class="old-image"
-                        on:animationend={handleTransitionEnd}
+                        onanimationend={handleTransitionEnd}
                         style:width={`${100 / oldSrc.length}%`}
                         style:left={`${100 / oldSrc.length * i}%`}
                     />
@@ -150,7 +156,7 @@
                             src={oldSrc[i]}
                             alt="img"
                             class="old-image"
-                            on:animationend={handleTransitionEnd}
+                            onanimationend={handleTransitionEnd}
                             style:width={`${80 - (i*10)}%`}
                             style:left={`${30-(i*30)}%`}
                             style:z-index={9 - i}

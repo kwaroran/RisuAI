@@ -1,11 +1,11 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { alertError } from "../alert";
-import { DataBase } from "../storage/database";
+import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
-import type { OpenAIChat } from "../process";
-import { globalFetch } from "../storage/globalApi";
-import { selectedCharID } from "../stores";
+import type { OpenAIChat } from "../process/index.svelte";
+import { globalFetch } from "../globalApi.svelte";
+import { selectedCharID } from "../stores.svelte";
 import { addAdditionalCharaJS } from "./embedscript";
 
 export const customProviderStore = writable([] as string[])
@@ -29,7 +29,7 @@ export type RisuPlugin = ProviderPlugin
 
 export async function importPlugin(){
     try {
-        let db = get(DataBase)
+        let db = getDatabase()
         const f = await selectSingleFile(['js'])
         if(!f){
             return
@@ -96,7 +96,7 @@ export async function importPlugin(){
         db.plugins ??= []
         db.plugins.push(pluginData)
 
-        DataBase.set(db)
+        setDatabaseLite(db)
         loadPlugins()
     } catch (error) {
         console.error(error)
@@ -123,7 +123,7 @@ function postMsgPluginWorker(type:string, body:any){
 let pluginTranslator = false
 
 export async function loadPlugins() {
-    let db = get(DataBase)
+    let db = getDatabase()
     if(pluginWorker){
         pluginWorker.terminate()
         pluginWorker = null
@@ -219,7 +219,7 @@ export async function loadPlugins() {
                 }
                 case "getArg":{
                     try {
-                        const db = get(DataBase)
+                        const db = getDatabase()
                         const arg:string[] = data.body.arg.split('::')
                         for(const plug of db.plugins){
                             if(arg[0] === plug.name){
@@ -243,7 +243,7 @@ export async function loadPlugins() {
                     break
                 }
                 case "getChar":{
-                    const db = get(DataBase)
+                    const db = getDatabase()
                     const charid = get(selectedCharID)
                     const char = db.characters[charid]
                     postMsgPluginWorker('fetchData',{
@@ -253,7 +253,7 @@ export async function loadPlugins() {
                     break
                 }
                 case "setChar":{
-                    const db = get(DataBase)
+                    const db = getDatabase()
                     const charid = get(selectedCharID)
                     db.characters[charid] = data.body
                     break
@@ -303,7 +303,7 @@ export async function pluginProcess(arg:{
     bias: {[key:string]:string}
 }|{}){
     try {
-        let db = get(DataBase)
+        let db = getDatabase()
         if(!pluginWorker){
             return {
                 success: false,

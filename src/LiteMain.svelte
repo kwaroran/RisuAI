@@ -1,7 +1,7 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub } from "src/ts/characterCards";
     import LiteCardIcon from "./lib/LiteUI/LiteCardIcon.svelte";
-  import { selectedCharID } from "./ts/stores";
+  import { selectedCharID } from "./ts/stores.svelte";
   import DefaultChatScreen from "./lib/ChatScreens/DefaultChatScreen.svelte";
 </script>
 
@@ -32,7 +32,7 @@
                 로딩중...
             {:then cards} 
                 {#each cards as card}
-                    <LiteCardIcon card={card} on:click={async () => {
+                    <LiteCardIcon card={card} onclick={async () => {
                         await downloadRisuHub(card.id, {
                             forceRedirect: true
                         })

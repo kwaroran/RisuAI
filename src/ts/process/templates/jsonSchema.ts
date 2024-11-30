@@ -1,6 +1,5 @@
-import { risuChatParser } from "src/ts/parser"
-import { DataBase } from "src/ts/storage/database"
-import { get } from "svelte/store"
+import { risuChatParser } from "src/ts/parser.svelte"
+import { getDatabase } from "src/ts/storage/database.svelte"
 
 export function convertInterfaceToSchema(int:string){
     if(!int.startsWith('interface ') && !int.startsWith('export interface ')){
@@ -122,7 +121,7 @@ export function convertInterfaceToSchema(int:string){
 }
 
 export function getOpenAIJSONSchema(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const schema = {
         "name": "format",
         "strict": db.strictJsonSchema,

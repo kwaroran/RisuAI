@@ -8,11 +8,21 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
-    import { DataBase } from "src/ts/storage/database";
-    export let promptItem:PromptItem
-    export let onRemove:() => void = () => {}
-    export let moveUp:() => void = () => {}
-    export let moveDown:() => void = () => {}
+    
+    import { DBState } from 'src/ts/stores.svelte';
+    interface Props {
+        promptItem: PromptItem;
+        onRemove?: () => void;
+        moveUp?: () => void;
+        moveDown?: () => void;
+    }
+
+    let {
+        promptItem = $bindable(),
+        onRemove = () => {},
+        moveUp = () => {},
+        moveDown = () => {}
+    }: Props = $props();
 
     const chatPromptChange = () => {
         const currentprompt = promptItem as PromptItemChat
@@ -30,13 +40,13 @@
 
 <div class="flex flex-col first:mt-0 mt-2 border border-selected p-4 rounded-md bg-darkbg">
     <span class="mb-2">
-        <button class="float-right" on:click={onRemove}><XIcon /></button>
-        <button class="float-right" on:click={moveDown}><ArrowDown /></button>
-        <button class="float-right" on:click={moveUp}><ArrowUp /></button>
+        <button class="float-right" onclick={onRemove}><XIcon /></button>
+        <button class="float-right" onclick={moveDown}><ArrowDown /></button>
+        <button class="float-right" onclick={moveUp}><ArrowUp /></button>
     </span>
     <span>{language.type}
     </span>
-    <SelectInput bind:value={promptItem.type} on:change={() => {
+    <SelectInput bind:value={promptItem.type} onchange={() => {
         if(promptItem.type === 'plain' || promptItem.type === 'jailbreak' || promptItem.type === 'cot'){
             promptItem.text = ""
             promptItem.role = "system"
@@ -55,7 +65,7 @@
         <OptionInput value="lorebook">{language.formating.lorebook}</OptionInput>
         <OptionInput value="memory">{language.formating.memory}</OptionInput>
         <OptionInput value="postEverything">{language.formating.postEverything}</OptionInput>
-        {#if $DataBase.promptSettings.customChainOfThought}
+        {#if DBState.db.promptSettings.customChainOfThought}
             <OptionInput value="cot">{language.cot}</OptionInput>
         {/if}
     </SelectInput>
@@ -96,7 +106,7 @@
                     }
                 }} />
             {/if}
-            {#if $DataBase.promptSettings.sendChatAsSystem}
+            {#if DBState.db.promptSettings.sendChatAsSystem}
                 <CheckInput name={language.chatAsOriginalOnSystem} bind:check={promptItem.chatAsOriginalOnSystem}/>
             {/if}
         {/if}

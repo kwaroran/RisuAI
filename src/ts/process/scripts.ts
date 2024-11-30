@@ -1,11 +1,11 @@
 import { get } from "svelte/store";
-import { CharEmotion, selectedCharID } from "../stores";
-import { DataBase, setDatabase, type character, type customscript, type groupChat, type Database } from "../storage/database";
-import { downloadFile } from "../storage/globalApi";
+import { CharEmotion, selectedCharID } from "../stores.svelte";
+import { type character, type customscript, type groupChat, type Database, getDatabase } from "../storage/database.svelte";
+import { downloadFile } from "../globalApi.svelte";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
-import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser";
+import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser.svelte";
 import { runCharacterJS } from "../plugins/embedscript";
 import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
@@ -27,7 +27,7 @@ export async function processScript(char:character|groupChat, data:string, mode:
 }
 
 export function exportRegex(s?:customscript[]){
-    let db = get(DataBase)
+    let db = getDatabase()
     const script = s ?? db.globalscript
     const data = Buffer.from(JSON.stringify({
         type: 'regex',
@@ -43,7 +43,7 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
     if(!filedata){
         return o
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     try {
         const imported= JSON.parse(Buffer.from(filedata).toString('utf-8'))
         if(imported.type === 'regex' && imported.data){
@@ -65,9 +65,42 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 }
 
 let bestMatchCache = new Map<string, string>()
+let processScriptCache = new Map<string, string>()
+
+function cacheScript(scripts:customscript[], data:string, result:string, mode:ScriptMode){
+    let hash = data + '|||' + mode + '|||'
+    for(const script of scripts){
+        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+    }
+
+    processScriptCache.set(hash, result)
+
+    if(processScriptCache.size > 500){
+        processScriptCache.delete(processScriptCache.keys().next().value)
+    }
+
+}
+
+function getScriptCache(scripts:customscript[], data:string, mode:ScriptMode){
+    let hash = data + '|||' + mode + '|||'
+    for(const script of scripts){
+        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+    }
+
+    return processScriptCache.get(hash)
+}
+
+export function resetScriptCache(){
+    processScriptCache = new Map()
+}
 
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
-    let db = get(DataBase)
+    let db = getDatabase()
+    const originalData = data
+    const cached = getScriptCache((db.globalscript ?? []).concat(char.customscript), originalData, mode)
+    if(cached){
+        return {data: cached, emoChanged: false}
+    }
     let emoChanged = false
     const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runCharacterJS({
@@ -77,6 +110,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     })
     data = await runLuaEditTrigger(char, mode, data)
     if(scripts.length === 0){
+        cacheScript(scripts, originalData, data, mode)
         return {data, emoChanged}
     }
     function executeScript(pscript:pScript){
@@ -231,7 +265,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     for (const script of scripts){
         if(script.ableFlag && script.flag?.includes('<')){
             const rregex = /<(.+?)>/g
-            const scriptData = structuredClone(script)
+            const scriptData = safeStructuredClone(script)
             let order = 0
             const actions:string[] = []
             scriptData.flag = scriptData.flag?.replace(rregex, (v:string, p1:string) => {
@@ -310,6 +344,8 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    cacheScript(scripts, originalData, data, mode)
 
     return {data, emoChanged}
 }

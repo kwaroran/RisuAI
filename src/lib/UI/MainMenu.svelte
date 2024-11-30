@@ -1,9 +1,10 @@
 <script lang="ts">
-    import { DataBase, appVer, webAppSubVer } from "src/ts/storage/database";
+    import { appVer, webAppSubVer } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore } from "src/ts/stores";
+    import { OpenRealmStore } from "src/ts/stores.svelte";
     import { ArrowLeft } from "lucide-svelte";
-    import { isNodeServer, isTauri, openURL } from "src/ts/storage/globalApi";
+    import { isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
     import { getRisuHub, hubAdditionalHTML } from "src/ts/characterCards";
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
@@ -22,10 +23,10 @@
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
-      <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" on:click={() => {
+      <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" onclick={() => {
         $OpenRealmStore = true
       }}>Get More</button></h1>
-          {#if !$DataBase.hideRealm}
+          {#if !DBState.db.hideRealm}
             {#await getRisuHub({
                   search: '',
                   page: 0,
@@ -51,7 +52,7 @@
         Related Links
       </h1>
         <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
-        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" on:click={() => {
+        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" onclick={() => {
           openURL("https://discord.gg/Exy3NrqkGm")
         }}>
           <h2 class="text-xl">Discord</h2>
@@ -59,7 +60,7 @@
             Join our Discord server to chat with other users and the developer.
           </span>
         </button>
-        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" on:click={() => {
+        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" onclick={() => {
           openURL("https://risuai.net")
         }}>
           <h2 class="text-xl">
@@ -69,7 +70,7 @@
             See the official website for the project.
           </span>
         </button>
-        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" on:click={() => {
+        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" onclick={() => {
           openURL("https://github.com/kwaroran/RisuAI")
         }}>
           <h2 class="text-xl">Github</h2>
@@ -77,7 +78,7 @@
             View the source code and contribute to the project.
           </span>
         </button>
-        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" on:click={() => {
+        <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start text-start" onclick={() => {
           openURL("mailto:support@risuai.net")
         }}>
           <h2 class="text-xl">Email</h2>
@@ -89,7 +90,7 @@
 
       {:else}
         <div class="flex items-center mt-4">
-          <button class="mr-2 text-textcolor2 hover:text-green-500" on:click={() => ($OpenRealmStore = false)}>
+          <button class="mr-2 text-textcolor2 hover:text-green-500" onclick={() => ($OpenRealmStore = false)}>
             <ArrowLeft/>
           </button>
         </div>

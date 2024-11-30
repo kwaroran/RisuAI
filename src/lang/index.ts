@@ -6,29 +6,29 @@ import { languageKorean } from "./ko";
 import { LanguageVietnamese } from "./vi";
 import { languageChineseTraditional } from "./zh-Hant";
 import { languageSpanish } from "./es";
-import { googleBuild } from "src/ts/storage/globalApi";
+import { googleBuild } from "src/ts/globalApi.svelte";
 
 export let language:typeof languageEnglish = languageEnglish
 
 
 export function changeLanguage(lang:string){
     if(lang === 'cn'){
-        language = merge(structuredClone(languageEnglish), languageChinese)
+        language = merge(safeStructuredClone(languageEnglish), languageChinese)
     }
     else if(lang === 'de'){
-        language = merge(structuredClone(languageEnglish), languageGerman)
+        language = merge(safeStructuredClone(languageEnglish), languageGerman)
     }
     else if(lang === 'ko'){
-        language = merge(structuredClone(languageEnglish), languageKorean)
+        language = merge(safeStructuredClone(languageEnglish), languageKorean)
     }
     else if(lang === 'vi'){
-        language = merge(structuredClone(languageEnglish), LanguageVietnamese)
+        language = merge(safeStructuredClone(languageEnglish), LanguageVietnamese)
     }
     else if(lang === 'zh-Hant'){
-        language = merge(structuredClone(languageEnglish), languageChineseTraditional)
+        language = merge(safeStructuredClone(languageEnglish), languageChineseTraditional)
     }
     else if(lang === 'es'){
-        language = merge(structuredClone(languageEnglish), languageSpanish)
+        language = merge(safeStructuredClone(languageEnglish), languageSpanish)
     }
     else{
         language = languageEnglish

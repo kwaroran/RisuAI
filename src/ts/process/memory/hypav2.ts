@@ -1,12 +1,11 @@
-import { DataBase, type Chat, type character, type groupChat } from "src/ts/storage/database";
-import type { OpenAIChat } from "..";
+import { getDatabase, type Chat, type character, type groupChat } from "src/ts/storage/database.svelte";
+import type { OpenAIChat } from "../index.svelte";
 import type { ChatTokenizer } from "src/ts/tokenizer";
-import { get } from "svelte/store";
 import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
-import { globalFetch } from "src/ts/storage/globalApi";
+import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";
-import { last, remove } from "lodash";
+import { parseChatML } from "src/ts/parser.svelte";
 
 export interface HypaV2Data {
     chunks: {
@@ -20,7 +19,7 @@ export interface HypaV2Data {
 }
 
 async function summary(stringlizedChat: string): Promise<{ success: boolean; data: string }> {
-    const db = get(DataBase);
+    const db = getDatabase();
     console.log("Summarizing");
 
     if (db.supaModelType === 'distilbart') {
@@ -85,7 +84,10 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             };
         }
     } else {
-        const promptbody: OpenAIChat[] = [
+
+        let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
+
+        const promptbody: OpenAIChat[] = parsedPrompt ?? [
             {
                 role: "user",
                 content: stringlizedChat
@@ -101,7 +103,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
             bias: {},
             useStreaming: false,
             noMultiGen: true
-        }, 'submodel');
+        }, 'memory');
         if (da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline') {
             return {
                 success: false,
@@ -123,7 +125,7 @@ export async function hypaMemoryV2(
     arg: { asHyper?: boolean, summaryModel?: string, summaryPrompt?: string, hypaModel?: string } = {}
 ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?: string; memory?: HypaV2Data; }> {
 
-    const db = get(DataBase);
+    const db = getDatabase();
     const data: HypaV2Data = room.hypaV2Data ?? { chunks: [], mainChunks: [] };
 
     let allocatedTokens = db.hypaAllocatedTokens;

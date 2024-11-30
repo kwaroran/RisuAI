@@ -1,13 +1,13 @@
-import { get } from "svelte/store";
-import type { OpenAIChat } from "..";
-import { DataBase, type Chat, type character, type groupChat } from "../../storage/database";
+import type { OpenAIChat } from "../index.svelte";
+import { getDatabase, type Chat, type character, type groupChat } from "../../storage/database.svelte";
 import { tokenize, type ChatTokenizer } from "../../tokenizer";
 import { requestChatData } from "../request";
 import { HypaProcesser } from "./hypamemory";
 import { stringlizeChat } from "../stringlize";
-import { globalFetch } from "src/ts/storage/globalApi";
+import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";
 import { getUserName } from "src/ts/util";
+import { parseChatML } from "src/ts/parser.svelte";
 
 export async function supaMemory(
         chats:OpenAIChat[],
@@ -18,7 +18,7 @@ export async function supaMemory(
         tokenizer:ChatTokenizer,
         arg:{asHyper?:boolean} = {}
     ): Promise<{ currentTokens: number; chats: OpenAIChat[]; error?:string; memory?:string;lastId?:string}>{
-    const db = get(DataBase)
+    const db = getDatabase()
 
     currentTokens += 10
 
@@ -74,7 +74,7 @@ export async function supaMemory(
                     for(let j=0;j<HypaData.length;j++){
                         let i =0;
                         let countTokens  = currentTokens
-                        let countChats = structuredClone(chats)
+                        let countChats = safeStructuredClone(chats)
                         while(true){
                             if(countChats.length === 0){
                                 break
@@ -253,7 +253,8 @@ export async function supaMemory(
                 }
             }
             else {
-                const promptbody:OpenAIChat[] = [
+                let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
+                const promptbody:OpenAIChat[] = parsedPrompt ?? [
                     {
                         role: "user",
                         content: stringlizedChat
@@ -268,7 +269,7 @@ export async function supaMemory(
                     bias: {},
                     useStreaming: false,
                     noMultiGen: true
-                }, 'submodel')
+                }, 'memory')
                 if(da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline'){
                     return {
                         currentTokens: currentTokens,

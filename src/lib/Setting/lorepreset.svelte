@@ -1,11 +1,13 @@
 <script>
     import { alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { DataBase } from "../../ts/storage/database";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
-    let editMode = false
-    export let close = () => {}
+    let editMode = $state(false)
+    /** @type {{close?: any}} */
+    let { close = () => {} } = $props();
 </script>
 
 <div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
@@ -13,55 +15,55 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.loreBook}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" on:click={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
                     <XIcon size={24}/>
                 </button>
             </div>
         </div>
-        {#each $DataBase.loreBook as lore, ind}
-            <button on:click={() => {
+        {#each DBState.db.loreBook as lore, ind}
+            <button onclick={() => {
                 if(!editMode){
-                    $DataBase.loreBookPage = ind
+                    DBState.db.loreBookPage = ind
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === $DataBase.loreBookPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === DBState.db.loreBookPage}>
                 {#if editMode}
-                    <TextInput bind:value={$DataBase.loreBook[ind].name} placeholder="string" padding={false}/>
+                    <TextInput bind:value={DBState.db.loreBook[ind].name} placeholder="string" padding={false}/>
                 {:else}
                     <span>{lore.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                         e.stopPropagation()
-                        if($DataBase.loreBook.length === 1){
+                        if(DBState.db.loreBook.length === 1){
                             return
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${lore.name}`)
                         if(d){
-                            $DataBase.loreBookPage = 0
-                            let loreBook = $DataBase.loreBook
+                            DBState.db.loreBookPage = 0
+                            let loreBook = DBState.db.loreBook
                             loreBook.splice(ind, 1)
-                            $DataBase.loreBook = loreBook
+                            DBState.db.loreBook = loreBook
                         }
                     }}>
                         <TrashIcon size={18}/>
-                    </button>
+                    </div>
                 </div>
             </button>
         {/each}
         <div class="flex mt-2 items-center">
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" on:click={() => {
-                let loreBooks = $DataBase.loreBook
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
+                let loreBooks = DBState.db.loreBook
                 let newLoreBook = {
                     name: `New LoreBook`,
                     data: []
                 }
                 loreBooks.push(newLoreBook)
 
-                $DataBase.loreBook = loreBooks
+                DBState.db.loreBook = loreBooks
             }}>
                 <PlusIcon/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" on:click={() => {
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
                 <EditIcon size={18}/>

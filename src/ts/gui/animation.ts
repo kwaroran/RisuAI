@@ -1,7 +1,6 @@
-import { get } from "svelte/store";
-import { DataBase } from "../storage/database";
+import { getDatabase } from "../storage/database.svelte";
 
 export function updateAnimationSpeed(){
-    const db = get(DataBase);
+    const db = getDatabase();
     document.documentElement.style.setProperty('--risu-animation-speed', db.animationSpeed  + 's');
 }

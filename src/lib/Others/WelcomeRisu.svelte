@@ -1,33 +1,35 @@
 <script lang="ts">
-
-    import { ArrowBigLeftIcon, Send } from "lucide-svelte";
+    import { Send } from "lucide-svelte";
     import { changeLanguage, language } from "src/lang";
-    import { DataBase, setPreset } from "src/ts/storage/database";
+    import { setPreset } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import Chat from "../ChatScreens/Chat.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
 
-    let step = 0
-    let provider = ''
-    let input = ''
+    let step = $state(0)
+    let provider = $state('')
+    let input = $state('')
+    let chatLang = $state(0)
+    let chatMemorySelection = $state(0)
 
-    if(step === 0){
+    {
         const browserLang = navigator.language
         const browserLangShort = browserLang.split('-')[0]
         const usableLangs = ['de', 'en', 'ko', 'cn', 'vi', 'zh-Hant']
         if(usableLangs.includes(browserLangShort)){
             changeLanguage(browserLangShort)
-            $DataBase.language = browserLangShort
+            DBState.db.language = browserLangShort
             step = 1
         }
     }
-    let start = false
+    let start = $state(false)
 
     function send(){
         switch(step){
             case 1:{
                 if(input.length > 0){
-                    $DataBase.username = input
+                    DBState.db.username = input
                     step = 2
                     input = ''
                 }
@@ -41,18 +43,25 @@
                 }
                 break
             }
-            case 3:{
+            case 4:{
                 if(provider === 'openai'){
                     if(input.length > 0 && input.startsWith('sk-')){
-                        $DataBase.openAIKey = input
-                        step = 10
+                        DBState.db.openAIKey = input
+                        step = 5
                         input = ''
                     }
                 }
                 if(provider === 'openrouter'){
                     if(input.length > 0 && input.startsWith('sk-')){
-                        $DataBase.openrouterKey = input
-                        step = 10
+                        DBState.db.openrouterKey = input
+                        step = 5
+                        input = ''
+                    }
+                }
+                if(provider === 'claude'){
+                    if(input.length > 0 && input.startsWith('sk-')){
+                        DBState.db.claudeAPIKey = input
+                        step = 5
                         input = ''
                     }
                 }
@@ -60,37 +69,102 @@
         }
     }
 
-    $: {
+    $effect.pre(() => {
         if(step === 10){
             setTimeout(() => {
-                $DataBase = setPreset($DataBase, prebuiltPresets.OAI2)
-                $DataBase.textTheme = 'highcontrast'
+                DBState.db = setPreset(DBState.db, prebuiltPresets.OAI2)
+                DBState.db.textTheme = 'highcontrast'
                 updateTextThemeAndCSS()
-                if(provider === 'openrouter'){
-                    $DataBase.aiModel = 'openrouter'
-                    $DataBase.subModel = 'openrouter'
-                    $DataBase.openrouterRequestModel = 'risu/free'
-                    $DataBase.maxContext = 6000
+
+                switch(chatMemorySelection){
+                    case 0:{
+                        DBState.db.maxContext = 16000
+                        DBState.db.maxResponse = 1000
+                        break
+                    }
+                    case 1:{
+                        DBState.db.maxContext = 8000
+                        DBState.db.maxResponse = 500
+                        break
+                    }
+                    case 2:{
+                        DBState.db.maxContext = 12000
+                        DBState.db.maxResponse = 800
+                        break
+                    }
+                    case 3:{
+                        DBState.db.maxContext = 100000
+                        DBState.db.maxResponse = 1000
+                        break
+                    }
                 }
-                if(provider === 'horde'){
-                    $DataBase.aiModel = 'horde:::auto'
-                    $DataBase.subModel = 'horde:::auto'
+
+                if(provider === 'claude'){
+                    DBState.db.aiModel = 'claude-3-5-sonnet-20241022'
+                    DBState.db.subModel = 'claude-3-5-sonnet-20241022'
                 }
 
                 if(provider === 'openai'){
-                    $DataBase.maxContext = 4000
+                    DBState.db.aiModel = 'gpt4o-chatgpt'
+                    DBState.db.subModel = 'gpt4o-chatgpt'
                 }
-                $DataBase.didFirstSetup = true
+
+                if(provider === 'openrouter'){
+                    DBState.db.aiModel = 'openrouter'
+                    DBState.db.subModel = 'openrouter'
+                    DBState.db.openrouterRequestModel = 'risu/free'
+                }
+                if(provider === 'horde'){
+                    DBState.db.aiModel = 'horde:::auto'
+                    DBState.db.subModel = 'horde:::auto'
+                }
+                if(chatLang !== 0){
+                    switch(DBState.db.language){
+                        case 'de':{
+                            DBState.db.translator = 'de'
+                            break
+                        }
+                        case 'en':{
+                            DBState.db.translator = 'en'
+                            break
+                        }
+                        case 'ko':{
+                            DBState.db.translator = 'ko'
+                            break
+                        }
+                        case 'cn':{
+                            DBState.db.translator = 'zh'
+                            break
+                        }
+                        case 'vi':{
+                            DBState.db.translator = 'vi'
+                            break
+                        }
+                        case 'zh-Hant':{
+                            DBState.db.translator = 'zh-TW'
+                            break
+                        }
+                    }
+                }
+                if(chatLang === 1){
+                    DBState.db.autoTranslate = true
+                    DBState.db.translatorType = 'google'
+                    DBState.db.useAutoTranslateInput = true
+                }
+
+                DBState.db.didFirstSetup = true
             }, 1000);
+
+            DBState.db.claudeCachingExperimental = true
         }
 
-    }
+    });
 </script>
 
 <div class="w-full h-full flex justify-center welcome-bg text-textcolor relative bg-gray-900">
     <div class="w-2xl overflow-x-hidden max-w-full min-h-full h-full flex flex-col overflow-y-hidden" class:justify-center={!start}>
         {#if !start}
-            <div class="w-full justify-center flex mt-8 logo-animation" on:animationend={() => {
+            <div class="w-full justify-center flex mt-8 logo-animation" onanimationend={() => {
                 start = true
             }}>
                 <img src="/logo_typo_trans.png" alt="logo" class="w-full max-w-screen-sm  mb-0">
@@ -100,34 +174,34 @@
                 {#if step === 0}
                     <h2 class="animate-bounce">Choose your language</h2>
                     <div class="flex flex-col items-start ml-2">
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('de')
-                            $DataBase.language='de'
+                            DBState.db.language='de'
                             step = 1
                         }}>• Deutsch</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('en')
-                            $DataBase.language='en'
+                            DBState.db.language='en'
                             step = 1
                         }}>• English</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('ko')
-                            $DataBase.language='ko'
+                            DBState.db.language='ko'
                             step = 1
                         }}>• 한국어</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('cn')
-                            $DataBase.language='cn'
+                            DBState.db.language='cn'
                             step = 1
                         }}>• 中文</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('zh-Hant')
-                            $DataBase.language='zh-Hant'
+                            DBState.db.language='zh-Hant'
                             step = 1
                         }}>• 中文(繁體)</button>
-                        <button class="hover:text-green-500 transition-colors" on:click={() => {
+                        <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('vi')
-                            $DataBase.language='vi'
+                            DBState.db.language='vi'
                             step = 1
                         }}>• Tiếng Việt</button>
                     </div>
@@ -135,68 +209,165 @@
                 {:else}
                     <Chat name="Risu" message={language.setup.welcome} isLastMemory={false} />
                     {#if step >= 2}
-                        <Chat name={$DataBase.username} message={$DataBase.username} isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', $DataBase.username)} isLastMemory={false} />
+                        <Chat name={DBState.db.username} message={DBState.db.username} isLastMemory={false} />
+                        <Chat name="Risu" message={language.setup.setupLaterMessage.replace('{username}', DBState.db.username)} isLastMemory={false} />
                     {/if}
                     {#if step === 2}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-                                provider = 'openai'
+                        <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1 col-span-2" onclick={() => {
                                 step = 3
                             }}>
-                                <h1 class="text-2xl font-bold text-start">OpenAI</h1>
-                                <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIProvider}</span>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.setupMessageOption1}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.setupMessageOption1Desc}</span>
                             </button>
-                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                provider = 'later'
+                                step = 10
+                            }}>
+                                <h1 class="text-md font-bold text-start text-gray-500">{language.setup.setupMessageOption2}</h1>
+                            </button>
+                        </div>
+                    {/if}
+                    {#if step >= 3}
+                        <Chat name={DBState.db.username} message={language.setup.setupMessageOption1} isLastMemory={false} />
+                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', DBState.db.username)} isLastMemory={false} />
+                    {/if}
+                    {#if step === 3}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                provider = 'claude'
+                                step = 4
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">Claude <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.claudeDesc}</span>
+                            </button>
+                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                provider = 'openai'
+                                step = 4
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">OpenAI</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIDesc}</span>
+                            </button>
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'horde'
                                 step = 10
                             }}>
                                 <h1 class="text-2xl font-bold text-start">Horde</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
                             </button>
-                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
+                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openrouter'
-                                step = 3
+                                step = 4
                             }}>
                                 <h1 class="text-2xl font-bold text-start">OpenRouter</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openrouterProvider}</span>
                             </button>
-                            <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" on:click={() => {
-                                provider = 'later'
-                                step = 10
-                            }}>
-                                <h1 class="text-2xl font-bold text-start">Setup Later</h1>
-                                <span class="mt-2 text-textcolor2 text-start">{language.setup.setProviderLater}</span>
-                            </button>
                         </div>
                     {/if}
-                    {#if step >= 3}
-                        <Chat name={$DataBase.username} message={provider} isLastMemory={false} />
+                    {#if step >= 4}
+                        <Chat name={DBState.db.username} message={provider} isLastMemory={false} />
                         {#if provider === 'openai'}
                             <Chat name="Risu" message={language.setup.setupOpenAI} isLastMemory={false} />
                         {/if}
                         {#if provider === 'openrouter'}
                             <Chat name="Risu" message={language.setup.setupOpenrouter} isLastMemory={false} />
                         {/if}
+                        {#if provider === 'claude'}
+                            {#each language.setup.setupClaudeSteps as step, i}
+                                <Chat name="Risu" message={
+                                `![alt text](/welcome/claude/ant_${i}.webp)\n\n${i === 0 ? 'https://console.anthropic.com/login?returnTo=%2F%3F\n\n' : ''}` + step
+                            } isLastMemory={false} />
+                                
+                            {/each}
+                        {/if}
+                    {/if}
+                    {#if step >= 5}
+                        <Chat name={DBState.db.username} message="<HIDDEN>" isLastMemory={false} />
+                        <Chat name="Risu" message={language.setup.chooseChatType} isLastMemory={false} />
+                    {/if}
+                    {#if step === 5}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatLang = 0
+                                step = 6
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption1}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption1Desc}</span>
+                            </button>
+                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatLang = 1
+                                step = 6
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption2}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption2Desc}</span>
+                            </button>
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatLang = 2
+                                step = 6
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption3}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption3Desc}</span>
+                            </button>
+                        </div>
+                    {/if}
+                    {#if step >= 6}
+                        <Chat name={DBState.db.username} message={
+                            language.setup[`chooseChatTypeOption${chatLang+1}`]
+                        } isLastMemory={false} />
+                        <Chat name="Risu" message={language.setup.chooseCheapOrMemory} isLastMemory={false} />
+                    {/if}
+                    {#if step === 6}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatMemorySelection = 2
+                                step = 10
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption3} <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption3Desc}</span>
+                            </button>
+                            <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatMemorySelection = 0
+                                step = 10
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption1}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption1Desc}</span>
+                            </button>
+                            <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatMemorySelection = 1
+                                step = 10
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption2}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption2Desc}</span>
+                            </button>
+                            <button class="border-l-yellow-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                                chatMemorySelection = 3
+                                step = 10
+                            }}>
+                                <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption4}</h1>
+                                <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption4Desc}</span>
+                            </button>
+                        </div>
                     {/if}
                     {#if step === 10}
                         <Chat name="Risu" message={language.setup.allDone} isLastMemory={false} />
                     {/if}
-                    <div class="flex items-end mb-2 w-full mt-auto ">
-                        <input class="flex-grow text-textcolor p-2 min-w-0 bg-transparent input-text text-xl ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <div class="flex items-stretch mb-2 w-full mt-auto">
+                        <textarea class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
                             bind:value={input}
-                            on:keydown={(e) => {
+                            onkeydown={(e) => {
                                 if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                                     e.preventDefault()
                                     send()
                                 }
                             }}
                             style:height={'44px'}
-                        />
-                        <div on:click={send}
-                            class="mr-2 bg-textcolor2 flex justify-center items-center text-gray-100 w-12 h-12 rounded-md hover:bg-green-500 transition-colors">
+                        ></textarea>
+                        <button
+                            onclick={send}
+                            class="flex justify-center border-y border-r rounded-r-md border-darkborderc items-center text-gray-100 p-2 peer-focus:border-textcolor hover:bg-blue-500 transition-colors"
+                        >
                             <Send />
-                        </div>
+                        </button>
                     </div>
                 {/if}
             </div>

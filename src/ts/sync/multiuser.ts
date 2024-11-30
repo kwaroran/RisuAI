@@ -1,12 +1,12 @@
 import { v4 } from 'uuid';
 import { alertError, alertInput, alertNormal, alertStore, alertWait } from '../alert';
 import { get, writable } from 'svelte/store';
-import { DataBase, setDatabase, type character, saveImage, type Chat } from '../storage/database';
-import { CurrentChat, selectedCharID } from '../stores';
+import { setDatabase, type character, saveImage, type Chat, getCurrentChat, setCurrentChat, getDatabase } from '../storage/database.svelte';
+import { selectedCharID } from '../stores.svelte';
 import { findCharacterIndexbyId, sleep } from '../util';
 import type { DataConnection, Peer } from 'peerjs';
-import { readImage } from '../storage/globalApi';
-import { doingChat } from '../process';
+import { readImage } from '../globalApi.svelte';
+import { doingChat } from '../process/index.svelte';
 
 async function importPeerJS(){
     return await import('peerjs');
@@ -79,9 +79,11 @@ export async function createMultiuserRoom(){
         console.log("new connection", conn)
 
         async function requestChar(excludeAssets:string[]|null = null){
-            const db = get(DataBase)
+            const db = getDatabase({
+                snapshot: true
+            })
             const selectedCharId = get(selectedCharID)
-            const char = structuredClone(db.characters[selectedCharId])
+            const char = safeStructuredClone(db.characters[selectedCharId])
             if(char.type === 'group'){
                 return
             }
@@ -127,9 +129,11 @@ export async function createMultiuserRoom(){
                 requestChar()
             }
             if(data.type === 'receive-char'){
-                const db = get(DataBase)
+                const db = getDatabase({
+                    snapshot: true
+                })
                 const selectedCharId = get(selectedCharID)
-                const char = structuredClone(db.characters[selectedCharId])
+                const char = safeStructuredClone(db.characters[selectedCharId])
                 const recivedChar = data.data
                 if(char.type === 'group'){
                     return
@@ -137,7 +141,7 @@ export async function createMultiuserRoom(){
                 char.chats[char.chatPage] = recivedChar.chats[0]
             }
             if(data.type === 'request-chat-sync'){
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedCharId = get(selectedCharID)
                 const char = db.characters[selectedCharId]
                 char.chats[char.chatPage] = data.data
@@ -157,7 +161,7 @@ export async function createMultiuserRoom(){
                 }
             }
             if(data.type === 'request-chat'){
-                const db = get(DataBase)
+                const db = getDatabase()
                 const selectedCharId = get(selectedCharID)
                 const char = db.characters[selectedCharId]
                 const chat = char.chats[char.chatPage]
@@ -285,7 +289,7 @@ export async function joinMultiuserRoom(){
             switch(data.type){
                 case 'receive-char':{
                     //create temp character
-                    const db = get(DataBase)
+                    const db = getDatabase()
                     const cha = data.data
                     cha.chaId = '§temp'
                     cha.chatPage = 0
@@ -309,9 +313,11 @@ export async function joinMultiuserRoom(){
                     break
                 }
                 case 'receive-chat':{
-                    const db = get(DataBase)
+                    const db = getDatabase({
+                        snapshot: true
+                    })
                     const selectedCharId = get(selectedCharID)
-                    const char = structuredClone(db.characters[selectedCharId])
+                    const char = safeStructuredClone(db.characters[selectedCharId])
                     char.chats[char.chatPage] = data.data
                     db.characters[selectedCharId] = char
                     latestSyncChat = data.data
@@ -365,7 +371,7 @@ export async function peerSync(){
         return
     }
     await sleep(1)
-    const chat = get(CurrentChat)
+    const chat = getCurrentChat()
     latestSyncChat = chat
     if(!conn){
         // host user
@@ -426,5 +432,5 @@ export function peerRevertChat() {
     if(!connectionOpen || !latestSyncChat){
         return
     }
-    CurrentChat.set(latestSyncChat)
+    setCurrentChat(latestSyncChat)
 }

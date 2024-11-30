@@ -1,15 +1,21 @@
 <script lang="ts">
-    import { getFileSrc } from "src/ts/storage/globalApi";
-    import { CurrentCharacter } from "src/ts/stores";
+    
+    import { DBState } from 'src/ts/stores.svelte';
+    import { getFileSrc } from "src/ts/globalApi.svelte";
+    import { selectedCharID } from "src/ts/stores.svelte";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
     const style:number = 1
-    export let text:string = "Hello World, this is a test, so I can see if this works. I hope it does, because I don't want to have to rewrite this. I hope this is long enough to test the text wrapping. Lonnnnnng String "
-    let renderedText = ''
+    interface Props {
+        text?: string;
+    }
+
+    let { text = "Hello World, this is a test, so I can see if this works. I hope it does, because I don't want to have to rewrite this. I hope this is long enough to test the text wrapping. Lonnnnnng String " }: Props = $props();
+    let renderedText = $state('')
     let alive = true
 
-    export const forceRender = () => {
+    const forceRender = () => {
         renderedText = text
     }
 
@@ -36,8 +42,8 @@
     })
 </script>
 
-{#if $CurrentCharacter.type === 'character' && $CurrentCharacter.emotionImages[0]}
-    {#await getFileSrc($CurrentCharacter.emotionImages[0][1]) then imglink}
+{#if DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].emotionImages[0]}
+    {#await getFileSrc(DBState.db.characters[$selectedCharID].emotionImages[0][1]) then imglink}
         <div class="w-full absolute top-0 h-full bottom-0 justify-center flex">
             <img src={imglink} alt="character">
         </div>
@@ -48,7 +54,7 @@
         <div class="w-3xl max-w-full flex flex-col">
 
             <div class="bg-slate-700 h-12 rounded-lg border-slate-500 border-1 w-40 mb-2 bg-opacity-90 text-center flex items-center justify-center">
-                <span class="font-bold p-2">{$CurrentCharacter.name}</span>
+                <span class="font-bold p-2">{DBState.db.characters[$selectedCharID].name}</span>
             </div>
             <div class="bg-slate-700 h-40 rounded-lg border-slate-500 border-1 w-full bg-opacity-90 text-justify p-4">
                 Test
@@ -62,7 +68,7 @@
             <div class="bg-neutral-200 h-12 rounded-lg border-pink-900 border-1 w-48 mb-2 text-center relative top-6 left-4 text-lg">
                 <div class="border-pink-300 border-4 h-full rounded-lg">
                     <div class="border-pink-900 border-1 text-justify h-full rounded-lg flex items-center justify-center">
-                        <span class="font-bold p-2">{$CurrentCharacter.name}</span>
+                        <span class="font-bold p-2">{DBState.db.characters[$selectedCharID].name}</span>
                     </div>
                 </div>
             </div>

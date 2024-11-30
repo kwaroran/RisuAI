@@ -1,26 +1,30 @@
 import { get } from "svelte/store"
 import { translatorPlugin } from "../plugins/plugins"
-import { DataBase, type character, type customscript, type groupChat } from "../storage/database"
-import { globalFetch, isTauri } from "../storage/globalApi"
+import { getDatabase, type character, type customscript, type groupChat } from "../storage/database.svelte"
+import { globalFetch, isTauri } from "../globalApi.svelte"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request"
-import { doingChat, type OpenAIChat } from "../process"
-import { applyMarkdownToNode, parseChatML, type simpleCharacterArgument } from "../parser"
-import { selectedCharID } from "../stores"
+import { doingChat, type OpenAIChat } from "../process/index.svelte"
+import { applyMarkdownToNode, parseChatML, type simpleCharacterArgument } from "../parser.svelte"
+import { selectedCharID } from "../stores.svelte"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
 import { processScriptFull } from "../process/scripts"
-import { Capacitor } from "@capacitor/core"
+import localforage from "localforage"
 
 let cache={
     origin: [''],
     trans: ['']
 }
 
+const LLMCacheStorage = localforage.createInstance({
+    name: "LLMTranslateCache"
+})
+
 let waitTrans = 0
 
 export async function translate(text:string, reverse:boolean) {
-    let db = get(DataBase)
+    let db = getDatabase()
     const plug = await translatorPlugin(text, reverse ? db.translator: 'en', reverse ? 'en' : db.translator)
     if(plug){
         return plug.content
@@ -105,7 +109,7 @@ export async function runTranslator(text:string, reverse:boolean, from:string,ta
 }
 
 async function translateMain(text:string, arg:{from:string, to:string, host:string}){
-    let db = get(DataBase)
+    let db = getDatabase()
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
         return translateLLM(text, {to: tr})
@@ -208,15 +212,15 @@ async function jaTrans(text:string) {
 }
 
 export function isExpTranslator(){
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.translatorType === 'llm' || db.translatorType === 'deepl' || db.translatorType === 'deeplX'
 }
 
-export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number): Promise<string> {
+export async function translateHTML(html: string, reverse:boolean, charArg:simpleCharacterArgument|string = '', chatID:number, regenerate = false): Promise<string> {
     let alwaysExistChar: character | groupChat | simpleCharacterArgument;
     if(charArg !== ''){
         if(typeof(charArg) === 'string'){
-            const db = get(DataBase)
+            const db = getDatabase()
             const charId = get(selectedCharID)
             alwaysExistChar = db.characters[charId]
         }
@@ -232,7 +236,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             chaId: 'simple'
         }
     }
-    let db = get(DataBase)
+    let db = getDatabase()
     let DoingChat = get(doingChat)
     if(DoingChat){
         if(isExpTranslator()){
@@ -241,7 +245,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     }
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
-        return translateLLM(html, {to: tr})
+        return translateLLM(html, {to: tr, regenerate})
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
@@ -440,13 +444,15 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
 }
 
 function needSuperChunkedTranslate(){
-    return get(DataBase).translatorType === 'deeplX'
+    return getDatabase().translatorType === 'deeplX'
 }
 
-let llmCache = new Map<string, string>()
-async function translateLLM(text:string, arg:{to:string}){
-    if(llmCache.has(text)){
-        return llmCache.get(text)
+async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):Promise<string>{
+    if(!arg.regenerate){
+        const cacheMatch = await LLMCacheStorage.getItem(text)
+        if(cacheMatch){
+            return cacheMatch as string
+        }
     }
     const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
     let styleDecodes:string[] = []
@@ -455,15 +461,24 @@ async function translateLLM(text:string, arg:{to:string}){
         return `<style-data style-index="${styleDecodes.length-1}"></style-data>`
     })
 
-    const db = get(DataBase)
+    const db = getDatabase()
+    const charIndex = get(selectedCharID)
+    const currentChar = db.characters[charIndex]
+    let translatorNote
+    if (currentChar.type === "character") {
+        translatorNote = currentChar.translatorNote ?? ""
+    } else {
+        translatorNote = ""
+    }
+
     let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
-    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text))
+    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text).replaceAll('{{slot::tnote}}', translatorNote))
     if(parsedPrompt){
         formated = parsedPrompt
     }
     else{
-        prompt = prompt.replaceAll('{{slot}}', arg.to)
+        prompt = prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{slot::tnote}}', translatorNote)
         formated = [
             {
                 'role': 'system',
@@ -481,7 +496,7 @@ async function translateLLM(text:string, arg:{to:string}){
         useStreaming: false,
         noMultiGen: true,
         maxTokens: db.translatorMaxResponse,
-    }, 'submodel')
+    }, 'translate')
 
     if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
         alertError(`${rq.result}`)
@@ -490,6 +505,10 @@ async function translateLLM(text:string, arg:{to:string}){
     const result = rq.result.replace(/<style-data style-index="(\d+)" ?\/?>/g, (match, p1) => {
         return styleDecodes[parseInt(p1)] ?? ''
     }).replace(/<\/style-data>/g, '')
-    llmCache.set(text, result)
+    await LLMCacheStorage.setItem(text, result)
     return result
+}
+
+export async function getLLMCache(text:string):Promise<string | null>{
+    return await LLMCacheStorage.getItem(text)
 }

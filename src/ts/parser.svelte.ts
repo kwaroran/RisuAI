@@ -1,16 +1,17 @@
 import DOMPurify from 'isomorphic-dompurify';
 import markdownit from 'markdown-it'
-import { DataBase, setDatabase, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database';
-import { getFileSrc } from './storage/globalApi';
+import { getCurrentCharacter, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
+import { DBState } from './stores.svelte';
+import { getFileSrc } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { CurrentCharacter, SizeStore, selectedCharID } from './stores';
+import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayImage } from './process/files/image';
 import { getModuleAssets, getModuleLorebooks } from './process/modules';
-import type { OpenAIChat } from './process';
+import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 
@@ -73,17 +74,21 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     }
 })
 
+DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+    if (['IMG', 'SOURCE', 'STYLE'].includes(node.nodeName) && data.attrName === 'src' && data.attrValue.startsWith('asset://localhost/')) {
+        data.forceKeepAttr = true;
+    }
+});
 
 function renderMarkdown(md:markdownit, data:string){
-    const db = get(DataBase)
     let quotes = ['“', '”', '‘', '’']
-    if(db?.customQuotes){
-        quotes = db.customQuotesData ?? quotes
+    if(DBState.db?.customQuotes){
+        quotes = DBState.db.customQuotesData ?? quotes
     }
 
     let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
 
-    if(db?.unformatQuotes){
+    if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
         text = text.replace(/\uE9b2/gu, quotes[2]).replace(/\uE9b3/gu, quotes[3])
     }
@@ -254,8 +259,7 @@ async function renderHighlightableMarkdown(data:string) {
 export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
-    const db = get(DataBase)
-    const assetWidthString = (db.assetWidth && db.assetWidth !== -1 || db.assetWidth === 0) ? `max-width:${db.assetWidth}rem;` : ''
+    const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''
 
     let assetPaths:{[key:string]:{
         path:string
@@ -348,7 +352,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     })
 
     if(needsSourceAccess){
-        const chara = get(CurrentCharacter)
+        const chara = getCurrentCharacter()
         if(chara.image){}
         data = data.replace(/\uE9b4CHAR\uE9b4/g,
             chara.image ? (await getFileSrc(chara.image)) : ''
@@ -479,7 +483,9 @@ function decodeStyle(text:string){
 
     return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
         try {
-            const ast = css.parse(Buffer.from(txt, 'hex').toString('utf-8'))
+            let text = Buffer.from(txt, 'hex').toString('utf-8')
+            text = risuChatParser(text)
+            const ast = css.parse(text)
             const rules = ast?.stylesheet?.rules
             if(rules){
                 for(let i=0;i<rules.length;i++){
@@ -500,7 +506,7 @@ export async function hasher(data:Uint8Array){
 }
 
 export async function convertImage(data:Uint8Array) {
-    if(!get(DataBase).imageCompression){
+    if(!DBState.db.imageCompression){
         return data
     }
     const type = checkImageType(data)
@@ -1775,16 +1781,21 @@ export function risuChatParser(da:string, arg:{
     cbsConditions?:CbsConditions
 } = {}):string{
     const chatID = arg.chatID ?? -1
-    const db = arg.db ?? get(DataBase)
+    const db = arg.db ?? DBState.db
     const aChara = arg.chara
     const visualize = arg.visualize ?? false
     let chara:character|string = null
 
     if(aChara){
         if(typeof(aChara) !== 'string' && aChara.type === 'group'){
-            const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
-            if(gc.name !== 'Unknown Character'){
-                chara = gc
+            if(aChara.chats[aChara.chatPage].message.length > 0){
+                const gc = findCharacterbyId(aChara.chats[aChara.chatPage].message.at(-1).saying ?? '')
+                if(gc.name !== 'Unknown Character'){
+                    chara = gc
+                }
+            }
+            else{
+                chara = 'bot'
             }
         }
         else{
@@ -1792,7 +1803,7 @@ export function risuChatParser(da:string, arg:{
         }
     }
     if(arg.tokenizeAccurate){
-        const db = arg.db ?? get(DataBase)
+        const db = arg.db ?? DBState.db
         const selchar = chara ?? db.characters[get(selectedCharID)]
         if(!selchar){
             chara = 'bot'
@@ -2098,9 +2109,8 @@ export function risuChatParser(da:string, arg:{
 
 
 export function getChatVar(key:string){
-    const db = get(DataBase)
     const selectedChar = get(selectedCharID)
-    const char = db.characters[selectedChar]
+    const char = DBState.db.characters[selectedChar]
     if(!char){
         return 'null'
     }
@@ -2108,7 +2118,7 @@ export function getChatVar(key:string){
     chat.scriptstate = chat.scriptstate ?? {}
     const state = (chat.scriptstate['$' + key])
     if(state === undefined || state === null){
-        const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
+        const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(DBState.db.templateDefaultVariables))
         const findResult = defaultVariables.find((f) => {
             return f[0] === key
         })
@@ -2121,20 +2131,15 @@ export function getChatVar(key:string){
 }
 
 export function getGlobalChatVar(key:string){
-    const db = get(DataBase)
-    return db.globalChatVariables[key] ?? 'null'
+    return DBState.db.globalChatVariables[key] ?? 'null'
 }
 
 export function setChatVar(key:string, value:string){
-    const db = get(DataBase)
     const selectedChar = get(selectedCharID)
-    const char = db.characters[selectedChar]
-    const chat = char.chats[char.chatPage]
-    chat.scriptstate = chat.scriptstate ?? {}
-    chat.scriptstate['$' + key] = value
-    char.chats[char.chatPage] = chat
-    db.characters[selectedChar] = char
-    setDatabase(db)
+    if(!DBState.db.characters[selectedChar].chats[DBState.db.characters[selectedChar].chatPage].scriptstate){
+        DBState.db.characters[selectedChar].chats[DBState.db.characters[selectedChar].chatPage].scriptstate = {}
+    }
+    DBState.db.characters[selectedChar].chats[DBState.db.characters[selectedChar].chatPage].scriptstate['$' + key] = value
 }
 
 

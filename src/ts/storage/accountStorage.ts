@@ -1,15 +1,17 @@
-import { get, writable } from "svelte/store"
-import { DataBase } from "./database"
+import { writable } from "svelte/store"
+import { getDatabase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
-import { alertError, alertLogin, alertStore, alertWait } from "../alert"
-import { forageStorage, getUnpargeables, replaceDbResources } from "./globalApi"
-import { encodeRisuSave } from "./risuSave"
+import { alertLogin, alertNormalWait, alertStore, alertWait } from "../alert"
+import { forageStorage, getUnpargeables } from "../globalApi.svelte"
+import { encodeRisuSaveLegacy } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
+import { sleep } from "../util"
 
 export const AccountWarning = writable('')
 const risuSession = Date.now().toFixed(0)
+const cachedForage = localforage.createInstance({name: "risuaiAccountCached"})
 
 let seenWarnings:string[] = []
 
@@ -20,7 +22,20 @@ export class AccountStorage{
     async setItem(key:string, value:Uint8Array) {
         this.checkAuth()
         let da:Response
+
+        let daText:string|undefined = undefined
+        const getDaText = async () => {
+            if(daText === undefined){
+                daText = await da.text()
+            }
+            return daText
+        }
+
+
         while((!da) || da.status === 403){
+
+            const saveDate = Date.now().toFixed(0)
+
             da = await fetch(hubURL + '/api/account/write', {
                 method: "POST",
                 body: value,
@@ -29,11 +44,18 @@ export class AccountStorage{
                     'x-risu-key': key,
                     'x-risu-auth': this.auth,
                     'X-Format': 'nocheck',
-                    'x-risu-session': risuSession
+                    'x-risu-session': risuSession,
+                    'x-risu-save-date': saveDate
                 }
             })
+            if(key === 'database/database.bin'){
+                cachedForage.setItem(key, value).then(() => {
+                    cachedForage.setItem(key + '__date', saveDate)
+                })
+            }
+
             if(da.headers.get('Content-Type') === 'application/json'){
-                const json = (await da.json())
+                const json = JSON.parse(await getDaText())
                 if(json?.warning){
                     if(!seenWarnings.includes(json.warning)){
                         seenWarnings.push(json.warning)
@@ -41,8 +63,10 @@ export class AccountStorage{
                     }
                 }
                 if(json?.reloadSession){
-                    alertWait(language.reloadSession)
-                    location.reload()
+                    alertNormalWait(language.activeTabChange).then(() => {
+                        location.reload()
+                    })
+                    await sleep(100000000) // wait forever
                     return
                 }
             }
@@ -59,9 +83,9 @@ export class AccountStorage{
             }
         }
         if(da.status < 200 || da.status >= 300){
-            throw await da.text()
+            throw await getDaText()
         }
-        return await da.text()
+        return await getDaText()
     }
     async getItem(key:string):Promise<Buffer> {
         this.checkAuth()
@@ -72,13 +96,16 @@ export class AccountStorage{
             }
         }
         let da:Response
+        const saveDate = await cachedForage.getItem(key + '__date') as number|undefined
+        const perf = performance.now()
         while((!da) || da.status === 403){
             da = await fetch(hubURL + '/api/account/read/' + Buffer.from(key ,'utf-8').toString('hex') + 
                 (key.includes('database') ? ('|' + v4()) : ''), {
                 method: "GET",
                 headers: {
                     'x-risu-key': key,
-                    'x-risu-auth': this.auth
+                    'x-risu-auth': this.auth,
+                    'x-risu-save-date': (saveDate || 0).toString()
                 }
             })
             if(da.status === 403){
@@ -86,6 +113,18 @@ export class AccountStorage{
                 this.checkAuth()
             }
         }
+        if(da.status === 303){
+            console.log(performance.now() - perf)
+            const data = await da.json()
+            if(data.match){
+                const c = Buffer.from(await cachedForage.getItem(key))
+                return c
+            }
+            else{
+                return null
+            }
+        }
+
         if(da.status < 200 || da.status >= 300){
             throw await da.text()
         }
@@ -99,7 +138,7 @@ export class AccountStorage{
         return Buffer.from(ab)
     }
     async keys():Promise<string[]>{
-        let db = get(DataBase)
+        let db = getDatabase()
         return getUnpargeables(db, 'pure')
     }
     async removeItem(key:string){
@@ -107,7 +146,7 @@ export class AccountStorage{
     }
 
     private checkAuth(){
-        const db = get(DataBase)
+        const db = getDatabase()
         this.auth = db?.account?.token
         if(!this.auth){
             db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
@@ -122,7 +161,7 @@ export class AccountStorage{
 
 export async function unMigrationAccount() {
     const keys = await forageStorage.keys()
-    let db = get(DataBase)
+    let db = getDatabase()
     let i = 0;
     const MigrationStorage = localforage.createInstance({name: "risuai"})
     
@@ -136,7 +175,7 @@ export async function unMigrationAccount() {
     }
 
     db.account = null
-    await MigrationStorage.setItem('database/database.bin', encodeRisuSave(db))
+    await MigrationStorage.setItem('database/database.bin', encodeRisuSaveLegacy(db))
 
     alertStore.set({
         type: "none",

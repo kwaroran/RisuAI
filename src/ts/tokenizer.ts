@@ -1,13 +1,11 @@
 import type { Tiktoken } from "@dqbd/tiktoken";
 import type { Tokenizer } from "@mlc-ai/web-tokenizers";
-import { DataBase, type groupChat, type character, type Chat } from "./storage/database";
-import { get } from "svelte/store";
-import type { MultiModal, OpenAIChat } from "./process";
+import { type groupChat, type character, type Chat, getCurrentCharacter, getDatabase } from "./storage/database.svelte";
+import type { MultiModal, OpenAIChat } from "./process/index.svelte";
 import { supportsInlayImage } from "./process/files/image";
-import { risuChatParser } from "./parser";
+import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
-import { globalFetch } from "./storage/globalApi";
-import { CurrentCharacter } from "./stores";
+import { globalFetch } from "./globalApi.svelte";
 
 
 export const tokenizerList = [
@@ -23,7 +21,7 @@ export const tokenizerList = [
 ] as const
 
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
-    let db = get(DataBase)
+    let db = getDatabase()
     if(db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
         switch(db.customTokenizer){
             case 'mistral':
@@ -43,12 +41,7 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
             case 'cohere':
                 return await tokenizeWebTokenizers(data, 'cohere')
             default:
-                // Add exception for gpt-4o tokenizers on reverse_proxy
-                if(db.proxyRequestModel?.startsWith('gpt4o') || 
-                (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt-4o'))) {
-                    return await tikJS(data, 'o200k_base')
-                }
-                return await tikJS(data)
+                return await tikJS(data, 'o200k_base')
         }
     }
     if(db.aiModel.startsWith('novellist')){
@@ -131,7 +124,7 @@ async function tikJS(text:string, model='cl100k_base') {
 }
 
 async function geminiTokenizer(text:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     const fetchResult = await globalFetch(`https://generativelanguage.googleapis.com/v1beta/${db.aiModel}:countTextTokens`, {
         "headers": {
             "content-type": "application/json",
@@ -250,7 +243,7 @@ export class ChatTokenizer {
     }
 
     async tokenizeMultiModal(data:MultiModal){
-        const db = get(DataBase)
+        const db = getDatabase()
         if(!supportsInlayImage()){
             return this.chatAdditonalTokens
         }
@@ -353,7 +346,7 @@ export async function getCharToken(char?:character|groupChat|null){
     let dynamic = 0
 
     if(!char){
-        const c = get(CurrentCharacter)
+        const c = getCurrentCharacter()
         char = c
     }
     if(char.type === 'group'){

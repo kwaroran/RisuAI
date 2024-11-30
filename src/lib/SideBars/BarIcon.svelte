@@ -1,14 +1,19 @@
 <!-- TODO: REMOVE AND REFACTOR TO BASE BUTTON UI COMPONENT -->
 
 <script lang="ts">
-  export let onClick = () => {};
-  export let additionalStyle: string | Promise<string> = "";
+  interface Props {
+    onClick?: any;
+    additionalStyle?: string | Promise<string>;
+    children?: import('svelte').Snippet;
+  }
+
+  let { onClick = () => {}, additionalStyle = "", children }: Props = $props();
 </script>
 
 {#await additionalStyle}
-  <button on:click={onClick} class="ico"><slot /></button>
+  <button onclick={onClick} class="ico">{@render children?.()}</button>
 {:then as}
-  <button on:click={onClick} class="ico" style={as}><slot /></button>
+  <button onclick={onClick} class="ico" style={as}>{@render children?.()}</button>
 {/await}
 
 <style>

@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import sveltePreprocess from "svelte-preprocess";
+import {sveltePreprocess} from "svelte-preprocess";
 import wasm from "vite-plugin-wasm";
 import { internalIpV4 } from 'internal-ip'
 import topLevelAwait from "vite-plugin-top-level-await";
@@ -32,10 +32,7 @@ export default defineConfig({
       host: '0.0.0.0', // listen on all addresses
       port: 5174,
       strictPort: true,
-      hmr: {
-        protocol: 'ws',
-        port: 5184,
-      },
+      // hmr: false,
     },
     // to make use of `TAURI_DEBUG` and other env variables
     // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand

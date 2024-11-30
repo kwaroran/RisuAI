@@ -1,8 +1,6 @@
 import { Template } from '@huggingface/jinja';
-import type { OpenAIChat } from '..';
-import { get } from 'svelte/store';
-import { DataBase } from 'src/ts/storage/database';
-import { CurrentCharacter } from 'src/ts/stores';
+import type { OpenAIChat } from '../index.svelte';
+import { getCurrentCharacter, getDatabase } from 'src/ts/storage/database.svelte';
 import { getUserName } from 'src/ts/util';
 
 export const chatTemplates = {
@@ -30,13 +28,13 @@ export const applyChatTemplate = (messages:OpenAIChat[], arg:{
     type?: string
     custom?: string
 } = {}) => {
-    const db = get(DataBase)
-    const currentChar = get(CurrentCharacter)
+    const db = getDatabase()
+    const currentChar = getCurrentCharacter()
     const type = arg.type ?? db.instructChatTemplate
     if(!type){
         throw new Error('Template type is not set')
     }
-    let clonedMessages = structuredClone(messages)
+    let clonedMessages = safeStructuredClone(messages)
     const template = type === 'jinja' ? (new Template(arg.custom ?? db.JinjaTemplate)) :(new Template(chatTemplates[type]))
     let formatedMessages:{
         "role": 'user'|'assistant'|'system',

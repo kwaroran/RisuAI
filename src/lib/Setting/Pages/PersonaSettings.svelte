@@ -8,24 +8,25 @@
     import { alertConfirm, alertSelect } from "src/ts/alert";
     import { getCharImage } from "src/ts/characters";
     import { changeUserPersona, exportUserPersona, importUserPersona, saveUserPersona, selectUserImg } from "src/ts/persona";
-    import { DataBase, setDatabase } from "src/ts/storage/database";
+    import { setDatabase } from "src/ts/storage/database.svelte";
+    import { DBState } from 'src/ts/stores.svelte';
     import { get } from "svelte/store";
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
 <div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2">
-    {#each $DataBase.personas as persona, i}
-        <button on:click={() => {
+    {#each DBState.db.personas as persona, i}
+        <button onclick={() => {
             changeUserPersona(i)
         }}>
             {#if persona.icon === ''}
-                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona} />
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
             {:else}
                 {#await getCharImage(persona.icon, 'css')}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === $DataBase.selectedPersona}/>
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
                 {:then im} 
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === $DataBase.selectedPersona} />                
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === DBState.db.selectedPersona}></div>                
                 {/await}
             {/if}
         </button>
@@ -37,14 +38,12 @@
                 if(sel === 1){
                     return
                 }
-                let db = get(DataBase)
-                db.personas.push({
+                DBState.db.personas.push({
                     name: 'New Persona',
                     icon: '',
                     personaPrompt: ''
                 })
-                setDatabase(db)
-                changeUserPersona(db.personas.length - 1)
+                changeUserPersona(DBState.db.personas.length - 1)
             }}
             ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
                 ><path
@@ -62,41 +61,41 @@
 
 <div class="flex w-full items-starts rounded-md border-darkborderc border p-4 max-w-full flex-wrap">
     <div class="flex flex-col mt-4 mr-4">
-        <button on:click={() => {selectUserImg()}}>
-            {#if $DataBase.userIcon === ''}
-                <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+        <button onclick={() => {selectUserImg()}}>
+            {#if DBState.db.userIcon === ''}
+                <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
             {:else}
-                {#await getCharImage($DataBase.userIcon, $DataBase.personas[$DataBase.selectedPersona].largePortrait ? 'lgcss' : 'css')}
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                {#await getCharImage(DBState.db.userIcon, DBState.db.personas[DBState.db.selectedPersona].largePortrait ? 'lgcss' : 'css')}
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
                 {:then im} 
-                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} />                
+                    <div class="rounded-md h-28 w-28 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
                 {/await}
             {/if}
         </button>
     </div>
     <div class="flex flex-grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
-        <TextInput marginBottom size="lg" placeholder="User" bind:value={$DataBase.username}/>
+        <TextInput marginBottom size="lg" placeholder="User" bind:value={DBState.db.username}/>
         <span class="text-sm text-textcolor2">{language.description}</span>
-        <TextAreaInput autocomplete="off" bind:value={$DataBase.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
+        <TextAreaInput autocomplete="off" bind:value={DBState.db.personaPrompt} placeholder={`Put the description of this persona here.\nExample: [<user> is a 20 year old girl.]`} />
         <div class="flex gap-2 mt-4 max-w-full flex-wrap">
-            <Button on:click={exportUserPersona}>{language.export}</Button>
-            <Button on:click={importUserPersona}>{language.import}</Button>
+            <Button onclick={exportUserPersona}>{language.export}</Button>
+            <Button onclick={importUserPersona}>{language.import}</Button>
 
-            <Button styled="danger" on:click={async () => {
-                if($DataBase.personas.length === 1){
+            <Button styled="danger" onclick={async () => {
+                if(DBState.db.personas.length === 1){
                     return
                 }
-                const d = await alertConfirm(`${language.removeConfirm}${$DataBase.personas[$DataBase.selectedPersona].name}`)
+                const d = await alertConfirm(`${language.removeConfirm}${DBState.db.personas[DBState.db.selectedPersona].name}`)
                 if(d){
                     saveUserPersona()
-                    let personas = $DataBase.personas
-                    personas.splice($DataBase.selectedPersona, 1)
-                    $DataBase.personas = personas
+                    let personas = DBState.db.personas
+                    personas.splice(DBState.db.selectedPersona, 1)
+                    DBState.db.personas = personas
                     changeUserPersona(0, 'noSave')
                 }
             }}>{language.remove}</Button>
-            <Check bind:check={$DataBase.personas[$DataBase.selectedPersona].largePortrait}>{language.largePortrait}</Check>
+            <Check bind:check={DBState.db.personas[DBState.db.selectedPersona].largePortrait}>{language.largePortrait}</Check>
         </div>
     </div>
 </div>

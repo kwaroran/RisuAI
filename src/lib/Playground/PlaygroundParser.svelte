@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { ParseMarkdown } from "src/ts/parser";
+    import { ParseMarkdown } from "src/ts/parser.svelte";
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-    let input = "";
-    let output = "";
+    let input = $state("");
+    let output = $state("");
     const onInput = async () => {
         try {
             output = await ParseMarkdown(input)

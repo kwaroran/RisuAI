@@ -1,11 +1,10 @@
-import { get } from "svelte/store";
 import { alertError } from "../alert";
-import { DataBase, type character } from "../storage/database";
+import { getCurrentCharacter, getDatabase, type character } from "../storage/database.svelte";
 import { runTranslator, translateVox } from "../translator/translator";
-import { globalFetch, loadAsset } from "../storage/globalApi";
+import { globalFetch, loadAsset } from "../globalApi.svelte";
 import { language } from "src/lang";
-import { getCurrentCharacter, sleep } from "../util";
-import { registerOnnxModel, runVITS } from "./transformers";
+import { sleep } from "../util";
+import { runVITS } from "./transformers";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -23,7 +22,7 @@ export async function sayTTS(character:character,text:string) {
             return
         }
     
-        let db = get(DataBase)
+        let db = getDatabase()
         text = text.replace(/\*/g,'')
     
         if(character.ttsReadOnlyQuoted){
@@ -311,6 +310,49 @@ export async function sayTTS(character:character,text:string) {
                     throw new Error(text);
                 }
             }
+            case 'fishspeech':{
+                if (character.fishSpeechConfig.model._id === ''){
+                    throw new Error('FishSpeech Model is not selected')
+                }
+                const audioContext = new AudioContext();
+
+                const body = {
+                    text: text,
+                    reference_id: character.fishSpeechConfig.model._id,
+                    chunk_length: character.fishSpeechConfig.chunk_length,
+                    normalize: character.fishSpeechConfig.normalize,
+                    format: 'mp3',
+                    mp3_bitrate: 192,
+                }
+
+
+                console.log(body)
+
+                const response = await globalFetch(`https://api.fish.audio/v1/tts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${db.fishSpeechKey}`
+                    },
+                    body: body,
+                    rawResponse: true,
+                })
+                console.log(response)
+
+                if (response.ok) {
+                    const audioBuffer = response.data.buffer;
+                    audioContext.decodeAudioData(audioBuffer, (decodedData) => {
+                        const sourceNode = audioContext.createBufferSource();
+                        sourceNode.buffer = decodedData;
+                        sourceNode.connect(audioContext.destination);
+                        sourceNode.start();
+                    });
+                } else {
+                    const textBuffer: Uint8Array = response.data.buffer
+                    const text = Buffer.from(textBuffer).toString('utf-8')
+                    throw new Error(text);
+                }
+            }
         }   
     } catch (error) {
         alertError(`TTS Error: ${error}`)
@@ -340,7 +382,7 @@ export function getWebSpeechTTSVoices() {
 }
 
 export async function getElevenTTSVoices() {
-    let db = get(DataBase)
+    let db = getDatabase()
 
     const data = await fetch('https://api.elevenlabs.io/v1/voices', {
         headers: {
@@ -354,7 +396,7 @@ export async function getElevenTTSVoices() {
 }
 
 export async function getVOICEVOXVoices() {
-    const db = get(DataBase);
+    const db = getDatabase();
     const speakerData = await fetch(`${db.voicevoxUrl}/speakers`)
     const speakerList = await speakerData.json()
     const speakersInfo = speakerList.map((speaker) => {

@@ -1,16 +1,15 @@
 import { language } from "src/lang"
 import { alertConfirm, alertError, alertModuleSelect, alertNormal, alertStore } from "../alert"
-import { DataBase, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database"
-import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../storage/globalApi"
-import { get } from "svelte/store"
-import { CurrentCharacter, CurrentChat } from "../stores"
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, setDatabase, type customscript, type loreBook, type triggerscript } from "../storage/database.svelte"
+import { AppendableBuffer, downloadFile, isNodeServer, isTauri, readImage, saveAsset } from "../globalApi.svelte"
 import { selectSingleFile, sleep } from "../util"
 import { v4 } from "uuid"
-import { convertExternalLorebook } from "./lorebook"
-import { encode } from "msgpackr"
+import { convertExternalLorebook } from "./lorebook.svelte"
 import { decodeRPack, encodeRPack } from "../rpack/rpack_bg"
-import { convertImage } from "../parser"
+import { convertImage } from "../parser.svelte"
 import { Capacitor } from "@capacitor/core"
+import { HideIconStore, moduleBackgroundEmbedding, ReloadGUIPointer } from "../stores.svelte"
+import {get} from "svelte/store"
 
 export interface RisuModule{
     name: string
@@ -47,7 +46,7 @@ export async function exportModule(module:RisuModule, arg:{
     }
 
     const assets = module.assets ?? []
-    module = structuredClone(module)
+    module = safeStructuredClone(module)
     module.assets ??= []
     module.assets = module.assets.map((asset) => {
         return [asset[0], '', asset[2]] as [string,string,string]
@@ -173,7 +172,7 @@ export async function importModule(){
         return
     }
     let fileData = f.data
-    const db = get(DataBase)
+    const db = getDatabase()
     if(f.name.endsWith('.risum')){
         try {
             const buf = Buffer.from(fileData)
@@ -250,7 +249,7 @@ export async function importModule(){
 }
 
 function getModuleById(id:string){
-    const db = get(DataBase)
+    const db = getDatabase()
     for(let i=0;i<db.modules.length;i++){
         if(db.modules[i].id === id){
             return db.modules[i]
@@ -261,7 +260,7 @@ function getModuleById(id:string){
 
 function getModuleByIds(ids:string[]){
     let modules:RisuModule[] = []
-    const db = get(DataBase)
+    const db = getDatabase()
     for(let i=0;i<ids.length;i++){
         const module = db.modules.find((m) => m.id === ids[i] || (m.namespace === ids[i] && m.namespace))
         if(module){
@@ -274,8 +273,8 @@ function getModuleByIds(ids:string[]){
 let lastModules = ''
 let lastModuleData:RisuModule[] = []
 export function getModules(){
-    const currentChat = get(CurrentChat)
-    const db = get(DataBase)
+    const currentChat = getCurrentChat()
+    const db = getDatabase()
     let ids = db.enabledModules ?? []
     if (currentChat){
         ids = ids.concat(currentChat.modules ?? [])
@@ -363,12 +362,12 @@ export async function applyModule() {
         return
     }
 
-    const module = structuredClone(getModuleById(sel))
+    const module = safeStructuredClone(getModuleById(sel))
     if (!module) {
         return
     }
 
-    const currentChar = get(CurrentCharacter)
+    const currentChar = getCurrentCharacter()
     if (!currentChar) {
         return
     }
@@ -392,7 +391,42 @@ export async function applyModule() {
         }
     }
 
-    CurrentCharacter.set(currentChar)
+    setCurrentCharacter(currentChar)
 
     alertNormal(language.successApplyModule)
+}
+
+let lastModuleIds:string = ''
+
+export function moduleUpdate(){
+
+
+    const m = getModules()
+
+    const ids = m.map((m) => m.id).join('-')
+    
+    let moduleHideIcon = false
+    let backgroundEmbedding = ''
+    m.forEach((module) => {
+        if(!module){
+            return
+        }
+
+        if(module.hideIcon){
+            moduleHideIcon = true
+        }
+        if(module.backgroundEmbedding){
+            backgroundEmbedding += '\n' + module.backgroundEmbedding + '\n'
+        }
+    })
+
+    if(backgroundEmbedding){
+        moduleBackgroundEmbedding.set(backgroundEmbedding)
+    }
+    HideIconStore.set(getCurrentCharacter()?.hideChatIcon || moduleHideIcon)
+
+    if(lastModuleIds !== ids){
+        ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+        lastModuleIds = ids
+    }
 }

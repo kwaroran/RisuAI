@@ -1,25 +1,26 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { changeLanguage, language } from "src/lang";
-    import { DataBase } from "src/ts/storage/database";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { sleep } from "src/ts/util";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import { alertNormal, alertSelect, alertConfirm } from "src/ts/alert";
-    import { downloadFile, isTauri } from "src/ts/storage/globalApi";
+    import { downloadFile, isTauri } from "src/ts/globalApi.svelte";
     import { languageEnglish } from "src/lang/en";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
-    let langChanged = false
+    let langChanged = $state(false)
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
 <span class="text-textcolor mt-4">{language.UiLanguage}</span>
-<SelectInput className="mt-2" bind:value={$DataBase.language} on:change={async () => {
-    if($DataBase.language === 'translang'){
+<SelectInput className="mt-2" bind:value={DBState.db.language} onchange={async () => {
+    if(DBState.db.language === 'translang'){
 
         const j = await alertSelect([
             'Continue Translating Existing Language',
@@ -46,10 +47,10 @@
             alertNormal("Downloaded JSON, translate it, and send it to the dev by discord DM and email. I will add it to the next version.")
         }
 
-        $DataBase.language = 'en'
+        DBState.db.language = 'en'
     }
     await sleep(10)
-    changeLanguage($DataBase.language)
+    changeLanguage(DBState.db.language)
     langChanged = true
 }}>
     <OptionInput value="de" >Deutsch</OptionInput>
@@ -64,12 +65,12 @@
     <span class="bg-red-500 text-sm">Close the settings to take effect</span>
 {/if}
 <span class="text-textcolor mt-4">{language.translatorLanguage}</span>
-<SelectInput className="mt-2 mb-4" bind:value={$DataBase.translator}>
+<SelectInput className="mt-2 mb-4" bind:value={DBState.db.translator}>
     <OptionInput value="" >{language.disabled}</OptionInput>
     <OptionInput value="ko" >Korean</OptionInput>
     <OptionInput value="ru" >Russian</OptionInput>
     <OptionInput value="zh" >Chinese</OptionInput>
-    {#if $DataBase.translatorType === 'google'}
+    {#if DBState.db.translatorType === 'google'}
         <OptionInput value="zh-TW" >Chinese (Traditional)</OptionInput>
     {/if}
     <OptionInput value="ja" >Japanese</OptionInput>
@@ -82,44 +83,46 @@
     <OptionInput value="uk" >Ukranian</OptionInput>
 </SelectInput>
 
-{#if $DataBase.translator}
+{#if DBState.db.translator}
     <span class="text-textcolor mt-4">{language.translatorType}</span>
-    <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorType}>
+    <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
         <OptionInput value="deepl" >DeepL</OptionInput>
         <OptionInput value="llm" >Ax. Model</OptionInput>
         <OptionInput value="deeplX" >DeepL X</OptionInput>
     </SelectInput>
 
-    {#if $DataBase.translatorType === 'deepl'}
+    {#if DBState.db.translatorType === 'deepl'}
         {#if !isTauri}
             <span class="text-draculared text-xs ml-2">{language.webdeeplwarn}</span>
         {/if}
         <span class="text-textcolor mt-4">{language.deeplKey}</span>
-        <TextInput bind:value={$DataBase.deeplOptions.key} />
+        <TextInput bind:value={DBState.db.deeplOptions.key} />
 
         <div class="flex items-center mt-2">
-            <Check bind:check={$DataBase.deeplOptions.freeApi} name={language.deeplFreeKey}/>
+            <Check bind:check={DBState.db.deeplOptions.freeApi} name={language.deeplFreeKey}/>
         </div>
     {/if}
 
-    {#if $DataBase.translatorType === 'deeplX'}
+    {#if DBState.db.translatorType === 'deeplX'}
         <span class="text-textcolor mt-4" placeholder="http://localhost:1188">{language.deeplXUrl}</span>
-        <TextInput bind:value={$DataBase.deeplXOptions.url} />
+        <TextInput bind:value={DBState.db.deeplXOptions.url} />
         
         <span class="text-textcolor mt-4">{language.deeplXToken}</span>
-        <TextInput bind:value={$DataBase.deeplXOptions.token} />
+        <TextInput bind:value={DBState.db.deeplXOptions.token} />
     {/if}
     
-    {#if $DataBase.translatorType === 'llm'}
+    {#if DBState.db.translatorType === 'llm'}
         <span class="text-textcolor mt-4">{language.translationResponseSize}</span>
-        <NumberInput min={0} max={2048} marginBottom={true} bind:value={$DataBase.translatorMaxResponse}/>
-        <TextAreaInput bind:value={$DataBase.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
+        <NumberInput min={0} max={2048} marginBottom={true} bind:value={DBState.db.translatorMaxResponse}/>
+        <span class="text-textcolor mt-4">{language.translatorPrompt} <Help key="translatorPrompt" /></span>
+
+        <TextAreaInput bind:value={DBState.db.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
     {/if}
 
-    {#if $DataBase.translatorType === 'google'}
+    {#if DBState.db.translatorType === 'google'}
         <span class="text-textcolor mt-4">Translator Input Language</span>
-        <SelectInput className="mt-2 mb-4" bind:value={$DataBase.translatorInputLanguage}>
+        <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translatorInputLanguage}>
             <OptionInput value="auto">Auto</OptionInput>
             <OptionInput value="en">English</OptionInput>
             <OptionInput value="zh">Chinese</OptionInput>
@@ -134,18 +137,32 @@
 
 
     <div class="flex items-center mt-2">
-        <Check bind:check={$DataBase.autoTranslate} name={language.autoTranslation}/>
+        <Check bind:check={DBState.db.autoTranslate} name={language.autoTranslation}/>
     </div>
 
     <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.combineTranslation} name={language.combineTranslation}>
+        <Check bind:check={DBState.db.combineTranslation} name={language.combineTranslation}>
             <Help key="combineTranslation"/>
         </Check>
     </div>
 
     <div class="flex items-center mt-4">
-        <Check bind:check={$DataBase.legacyTranslation} name={language.legacyTranslation}>
+        <Check bind:check={DBState.db.legacyTranslation} name={language.legacyTranslation}>
             <Help key="legacyTranslation"/>
         </Check>
     </div>
+
+    {#if DBState.db.translatorType === 'llm'}
+        <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.translateBeforeHTMLFormatting} name={language.translateBeforeHTMLFormatting}>
+                <Help key="translateBeforeHTMLFormatting"/>
+            </Check>
+        </div>
+
+        <div class="flex items-center mt-4">
+            <Check bind:check={DBState.db.autoTranslateCachedOnly} name={language.autoTranslateCachedOnly}>
+                    <Help key="autoTranslateCachedOnly"/>
+                </Check>
+        </div>        
+    {/if}
 {/if}

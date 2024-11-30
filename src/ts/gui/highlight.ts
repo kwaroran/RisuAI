@@ -126,10 +126,10 @@ const deprecatedCBSwithParams = [
     'remaind', 'pow'
 ]
 
-const decorators = [
+export const decorators = [
     'activate_only_after', 'activate_only_every', 'keep_activate_after_match', 'dont_activate_after_match', 'depth', 'reverse_depth',
     'instruct_depth', 'reverse_instruct_depth', 'instruct_scan_depth', 'role', 'scan_depth', 'is_greeting', 'position', 'ignore_on_max_context',
-    'additional_keys', 'exclude_keys', 'is_user_icon', 'activate', 'dont_activate', 'disable_ui_prompt', 'probability'
+    'additional_keys', 'exclude_keys', 'is_user_icon', 'activate', 'dont_activate', 'disable_ui_prompt', 'probability', 'exclude_keys_all', 'match_full_word', 'match_partial_word'
 ]
 
 const deprecatedDecorators = [

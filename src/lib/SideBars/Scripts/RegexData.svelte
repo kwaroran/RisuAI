@@ -2,7 +2,7 @@
     import { XIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm } from "src/ts/alert";
-    import type { customscript } from "src/ts/storage/database";
+    import type { customscript } from "src/ts/storage/database.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
@@ -10,12 +10,23 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
+  import { ReloadGUIPointer } from "src/ts/stores.svelte";
 
-    export let value:customscript
-    export let onRemove: () => void = () => {}
-    export let onClose: () => void = () => {}
-    export let onOpen: () => void = () => {}
-    export let idx:number
+  interface Props {
+    value: customscript;
+    onRemove?: () => void;
+    onClose?: () => void;
+    onOpen?: () => void;
+    idx: number;
+  }
+
+  let {
+    value = $bindable(),
+    onRemove = () => {},
+    onClose = () => {},
+    onOpen = () => {},
+    idx
+  }: Props = $props();
 
     const checkFlagContain = (flag:string, matchFlag:string) => {
         if(flag.length === 1){
@@ -67,12 +78,12 @@
         ['No Newline Subfix', '<no_end_nl>'],
     ]
 
-    let open = false
+    let open = $state(false)
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full ">
-        <button class="endflex valuer border-borderc" on:click={() => {
+        <button class="endflex valuer border-borderc" onclick={() => {
             open = !open
             if(open){
                 onOpen()
@@ -83,7 +94,7 @@
         }}>
             <span>{value.comment.length === 0 ? 'Unnamed Script' : value.comment}</span>
         </button>
-        <button class="valuer" on:click={async () => {
+        <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
                 if(!open){
@@ -98,9 +109,13 @@
     {#if open}
         <div class="seperator p-2">
             <span class="text-textcolor mt-6">{language.name}</span>
-            <TextInput size="sm" bind:value={value.comment} />
+            <TextInput size="sm" bind:value={value.comment} onchange={(e) => {
+                $ReloadGUIPointer += 1
+            }} />
             <span class="text-textcolor mt-4">Modification Type</span>
-            <SelectInput bind:value={value.type}>
+            <SelectInput bind:value={value.type} onchange={(e) => {
+                $ReloadGUIPointer += 1
+            }}>
                 <OptionInput value="editinput">{language.editInput}</OptionInput>
                 <OptionInput value="editoutput">{language.editOutput}</OptionInput>
                 <OptionInput value="editprocess">{language.editProcess}</OptionInput>
@@ -110,7 +125,9 @@
             <span class="text-textcolor mt-6">IN:</span>
             <TextInput size="sm" bind:value={value.in} />
             <span class="text-textcolor mt-6">OUT:</span>
-            <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} />
+            <TextAreaInput highlight autocomplete="off" size="sm" bind:value={value.out} onInput={(e) => {
+                $ReloadGUIPointer += 1
+            }} />
             {#if value.ableFlag}
                 <!-- <span class="text-textcolor mt-6">FLAG:</span>
                 <TextInput size="sm" bind:value={value.flag} /> -->
@@ -123,7 +140,7 @@
                                 class:border-b-1={i < flags.length - 2}
                                 class:text-textcolor2={!checkFlagContain(flag[1], value.flag)}
                                 class:text-textcolor={checkFlagContain(flag[1], value.flag)}
-                                on:click={() => {
+                                onclick={() => {
                                     toggleFlag(flag[1])
                                 }}
                             >

@@ -8,7 +8,7 @@
     import PluginSettings from "./Pages/PluginSettings.svelte";
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
-    import { MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores";
+    import { MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores.svelte";
     import Botpreset from "./botpreset.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
@@ -22,7 +22,7 @@
     import ModuleSettings from "./Pages/Module/ModuleSettings.svelte";
   import { isLite } from "src/ts/lite";
 
-    let openLoreList = false
+    let openLoreList = $state(false)
     if(window.innerWidth >= 900 && $SettingsMenuIndex === -1 && !$MobileGUI){
         $SettingsMenuIndex = 1
     }
@@ -40,7 +40,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 1 || $SettingsMenuIndex === 13}
                         class:text-textcolor2={$SettingsMenuIndex !== 1 && $SettingsMenuIndex !== 13}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 1
                             
                     }}>
@@ -50,7 +50,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 12}
                         class:text-textcolor2={$SettingsMenuIndex !== 12}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 12
                     }}>
                         <ContactIcon />
@@ -59,7 +59,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 2}
                         class:text-textcolor2={$SettingsMenuIndex !== 2}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 2
                     }}>
                         <Sailboat />
@@ -68,7 +68,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 3}
                         class:text-textcolor2={$SettingsMenuIndex !== 3}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 3
                     }}>
                         <MonitorIcon />
@@ -78,7 +78,7 @@
                 <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={$SettingsMenuIndex === 10}
                     class:text-textcolor2={$SettingsMenuIndex !== 10}
-                    on:click={() => {
+                    onclick={() => {
                         $SettingsMenuIndex = 10
                 }}>
                     <LanguagesIcon />
@@ -88,7 +88,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 11}
                         class:text-textcolor2={$SettingsMenuIndex !== 11}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 11
                     }}>
                         <AccessibilityIcon />
@@ -97,7 +97,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 14}
                         class:text-textcolor2={$SettingsMenuIndex !== 14}
-                        on:click={() => {
+                        onclick={() => {
                             $SettingsMenuIndex = 14
                     }}>
                         <PackageIcon />
@@ -106,7 +106,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 4}
                         class:text-textcolor2={$SettingsMenuIndex !== 4}
-                        on:click={() => {
+                        onclick={() => {
                         $SettingsMenuIndex = 4
                     }}>
                         <CodeIcon />
@@ -116,7 +116,7 @@
                 <button class="flex gap-2 items-center hover:text-textcolor"
                     class:text-textcolor={$SettingsMenuIndex === 0}
                     class:text-textcolor2={$SettingsMenuIndex !== 0}
-                    on:click={() => {
+                    onclick={() => {
                         $SettingsMenuIndex = 0
                 }}>
                     <UserIcon />
@@ -126,7 +126,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 6}
                         class:text-textcolor2={$SettingsMenuIndex !== 6}
-                        on:click={() => {
+                        onclick={() => {
                         $SettingsMenuIndex = 6
                     }}>
                         <ActivityIcon />
@@ -135,7 +135,7 @@
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 77}
                         class:text-textcolor2={$SettingsMenuIndex !== 77}
-                        on:click={() => {
+                        onclick={() => {
                         $SettingsMenuIndex = 77
                     }}>
                         <BoxIcon />
@@ -143,7 +143,7 @@
                     </button>
                 {/if}
                 {#if window.innerWidth < 700 && !$MobileGUI}
-                    <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
+                    <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
                     }}> <XCircleIcon /> </button>
                 {/if}
@@ -192,7 +192,7 @@
             </div>
             {/key}
             {#if !$MobileGUI}
-                <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" on:click={() => {
+                <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                     if(window.innerWidth >= 700){
                         settingsOpen.set(false)
                     }

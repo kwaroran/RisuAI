@@ -1,14 +1,14 @@
 import { get } from "svelte/store"
-import { DataBase, type character } from "../storage/database"
+import { getDatabase, type character } from "../storage/database.svelte"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
-import { globalFetch, readImage } from "../storage/globalApi"
-import { CharEmotion } from "../stores"
-import type { OpenAIChat } from "."
+import { globalFetch, readImage } from "../globalApi.svelte"
+import { CharEmotion } from "../stores.svelte"
+import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
 import { keiServerURL } from "../kei/kei"
 export async function stableDiff(currentChar:character,prompt:string){
-    let db = get(DataBase)
+    let db = getDatabase()
 
     if(db.sdProvider === ''){
         alertError("Stable diffusion is not set in settings.")
@@ -56,7 +56,7 @@ export async function stableDiff(currentChar:character,prompt:string){
 }
 
 export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string):Promise<string|false>{
-    const db = get(DataBase)
+    const db = getDatabase()
     console.log(db.sdProvider)
     if(db.sdProvider === 'webui'){
 
@@ -490,7 +490,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     if(db.sdProvider === 'kei'){
-        const db = get(DataBase)
+        const db = getDatabase()
         let auth = db?.account?.token
         if(!auth){
             db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))

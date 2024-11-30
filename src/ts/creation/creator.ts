@@ -1,11 +1,10 @@
 import { language } from "src/lang";
 import { alertError, alertInput, alertNormal, alertSelect, alertStore } from "../alert";
 import { requestChatData } from "../process/request";
-import { checkCharOrder, globalFetch, isNodeServer, isTauri, saveAsset } from "../storage/globalApi";
+import { checkCharOrder, globalFetch, isNodeServer, isTauri, saveAsset } from "../globalApi.svelte";
 import { tokenize } from "../tokenizer";
 import { createBlankChar } from "../characters";
-import { DataBase, setDatabase, type character } from "../storage/database";
-import { get } from "svelte/store";
+import { getDatabase, setDatabase, type character } from "../storage/database.svelte";
 import { sleep } from "../util";
 import { Capacitor } from "@capacitor/core";
 
@@ -306,7 +305,7 @@ async function createBotFromWeb() {
     })
     const d = (sel === 0) ? (await createBotFromWebMain(search)) : (await createBotByAI(search))
     if(d.ok === 'creation'){
-        const db = get(DataBase)
+        const db = getDatabase()
         const cha = d.data
         const fm =  await createFirstMsg(cha.desc)
         if(fm.type === 'multiline' || fm.type === 'fail' || fm.type === 'streaming'){

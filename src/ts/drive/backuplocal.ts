@@ -1,11 +1,9 @@
-import { BaseDirectory, readBinaryFile, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
+import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { alertError, alertNormal, alertStore, alertWait } from "../alert";
-import { LocalWriter, forageStorage, isTauri } from "../storage/globalApi";
-import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
-import { get } from "svelte/store";
-import { DataBase } from "../storage/database";
-import { save } from "@tauri-apps/api/dialog";
-import { relaunch } from "@tauri-apps/api/process";
+import { LocalWriter, forageStorage, isTauri } from "../globalApi.svelte";
+import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
+import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 
@@ -32,7 +30,7 @@ export async function SaveLocalBackup(){
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(get(DataBase)),
+        body: JSON.stringify(getDatabase()),
     })
     if(corrupted.status === 400){
         alertError('Failed, Backup data is corrupted')
@@ -41,7 +39,7 @@ export async function SaveLocalBackup(){
     
 
     if(isTauri){
-        const assets = await readDir('assets', {dir: BaseDirectory.AppData})
+        const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
         let i = 0;
         for(let asset of assets){
             i += 1;
@@ -50,7 +48,7 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await readBinaryFile(asset.path))
+            await writer.writeBackup(key, await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData}))
         }
     }
     else{
@@ -63,14 +61,14 @@ export async function SaveLocalBackup(){
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await forageStorage.getItem(key))
+            await writer.writeBackup(key, await forageStorage.getItem(key) as unknown as Uint8Array)
             if(forageStorage.isAccount){
                 await sleep(1000)
             }
         }
     }
 
-    const dbData = encodeRisuSave(get(DataBase), 'compression')
+    const dbData = encodeRisuSaveLegacy(getDatabase(), 'compression')
 
     alertWait(`Saving local Backup... (Saving database)`)
 
@@ -113,9 +111,9 @@ export async function LoadLocalBackup(){
                     if(name === 'database.risudat'){
                         const db = new Uint8Array(data)
                         const dbData = await decodeRisuSave(db)
-                        DataBase.set(dbData)
+                        setDatabaseLite(dbData)
                         if(isTauri){
-                            await writeBinaryFile('database/database.bin', db, {dir: BaseDirectory.AppData})
+                            await writeFile('database/database.bin', db, {baseDir: BaseDirectory.AppData})
                             relaunch()
                             alertStore.set({
                                 type: "wait",
@@ -133,7 +131,7 @@ export async function LoadLocalBackup(){
                         continue
                     }
                     if(isTauri){
-                        await writeBinaryFile(`assets/` + name, data ,{dir: BaseDirectory.AppData})
+                        await writeFile(`assets/` + name, data ,{baseDir: BaseDirectory.AppData})
                     }
                     else{
                         await forageStorage.setItem('assets/' + name, data)

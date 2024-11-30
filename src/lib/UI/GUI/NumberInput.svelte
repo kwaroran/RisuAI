@@ -20,23 +20,41 @@
     id={id}
     disabled={disabled}
     bind:value
-    on:change={onChange}
+    onchange={onChange}
 />
 
 <script lang="ts">
-    import type { ChangeEventHandler } from "svelte/elements";
-    export let min:number = undefined
-    export let max:number = undefined
-    export let size: 'sm'|'md'|'lg' = 'sm'
-    export let value:number
-    export let id:string = undefined
-    export let padding = true
-    export let marginBottom = false
-    export let fullwidth = false
-    export let fullh = false
-    export let onChange:ChangeEventHandler<HTMLInputElement> = () => {}
-    export let className = ''
-    export let disabled = false
+    interface Props {
+        min?: number;
+        max?: number;
+        size?: 'sm'|'md'|'lg';
+        value: number;
+        id?: string;
+        padding?: boolean;
+        marginBottom?: boolean;
+        fullwidth?: boolean;
+        fullh?: boolean;
+        onChange?: (event: Event & {
+            currentTarget: EventTarget & HTMLInputElement;
+        }) => any;
+        className?: string;
+        disabled?: boolean;
+    }
+
+    let {
+        min = undefined,
+        max = undefined,
+        size = 'sm',
+        value = $bindable(),
+        id = undefined,
+        padding = true,
+        marginBottom = false,
+        fullwidth = false,
+        fullh = false,
+        onChange = () => {},
+        className = '',
+        disabled = false
+    }: Props = $props();
 </script>
 
 <style>

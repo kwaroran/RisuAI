@@ -1,9 +1,8 @@
-import { get } from "svelte/store"
-import { DataBase } from "../storage/database"
+import { getDatabase } from "../storage/database.svelte"
 
 export async function openRouterModels() {
     try {
-        const db = get(DataBase)
+        const db = getDatabase()
         let headers = {
             "Authorization": "Bearer " + db.openrouterKey,
             "Content-Type": "application/json"

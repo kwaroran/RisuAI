@@ -1,11 +1,11 @@
 import { get } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database";
-import { CurrentCharacter, CurrentChat, selectedCharID } from "../stores";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase } from "../storage/database.svelte";
+import { selectedCharID } from "../stores.svelte";
 import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
 import { sayTTS } from "./tts";
-import { risuChatParser } from "../parser";
-import { sendChat } from ".";
-import { loadLoreBookV3Prompt } from "./lorebook";
+import { risuChatParser } from "../parser.svelte";
+import { sendChat } from "./index.svelte";
+import { loadLoreBookV3Prompt } from "./lorebook.svelte";
 import { runTrigger } from "./triggers";
 
 export async function processMultiCommand(command:string) {
@@ -40,7 +40,7 @@ export async function processMultiCommand(command:string) {
 
 
 async function processCommand(command:string, pipe:string):Promise<false | string>{
-    const db = get(DataBase)
+    const db = getDatabase()
     const currentChar = db.characters[get(selectedCharID)]
     const currentChat = currentChar.chats[currentChar.chatPage]
     let {commandName, arg, namedArg} = commandParser(command, pipe)
@@ -180,7 +180,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
         }
         case 'setvar':{
             console.log(namedArg, arg)
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
@@ -194,7 +194,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return ''
         }
         case 'addvar':{
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
@@ -207,7 +207,7 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return ''
         }
         case 'getvar':{
-            const db = get(DataBase)
+            const db = getDatabase()
             const selectedChar = get(selectedCharID)
             const char = db.characters[selectedChar]
             const chat = char.chats[char.chatPage]
@@ -222,17 +222,17 @@ async function processCommand(command:string, pipe:string):Promise<false | strin
             return JSON.stringify(p)
         }
         case 'trigger':{
-            const currentChar = get(CurrentCharacter)
+            const currentChar = getCurrentCharacter()
             if(currentChar.type === 'group'){
                 return;
             }
             const triggerResult = await runTrigger(currentChar, 'manual', {
-                chat: get(CurrentChat),
+                chat: getCurrentChat(),
                 manualName: arg
             });
 
             if(triggerResult){
-               CurrentChat.set(triggerResult.chat);
+               setCurrentChat(triggerResult.chat);
             }
             return
         }

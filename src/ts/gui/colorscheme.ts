@@ -1,10 +1,10 @@
 import { get, writable } from "svelte/store";
-import { DataBase, setDatabase } from "../storage/database";
-import { downloadFile } from "../storage/globalApi";
+import { getDatabase, setDatabase } from "../storage/database.svelte";
+import { downloadFile } from "../globalApi.svelte";
 import { BufferToText, selectSingleFile } from "../util";
 import { alertError } from "../alert";
 import { isLite } from "../lite";
-import { CustomCSSStore, SafeModeStore } from "../stores";
+import { CustomCSSStore, SafeModeStore } from "../stores.svelte";
 
 export interface ColorScheme{
     bgcolor: string;
@@ -94,6 +94,18 @@ const colorShemes = {
         darkBorderc: "#4b5563",
         darkbutton: "#374151",
         type:'dark'
+    },
+    "lite": {
+        bgcolor: "#1f2937",
+        darkbg: "#1C2533",
+        borderc: "#475569",
+        selected: "#475569",
+        draculared: "#ff5555",
+        textcolor: "#f8f8f2",
+        textcolor2: "#64748b",
+        darkBorderc: "#030712",
+        darkbutton: "#374151",
+        type:'dark'
     }
 
 } as const
@@ -103,9 +115,9 @@ export const ColorSchemeTypeStore = writable('dark' as 'dark'|'light')
 export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorShemes)[]
 
 export function changeColorScheme(colorScheme: string){
-    let db = get(DataBase)
+    let db = getDatabase()
     if(colorScheme !== 'custom'){
-        db.colorScheme = structuredClone(colorShemes[colorScheme])
+        db.colorScheme = safeStructuredClone(colorShemes[colorScheme])
     }
     db.colorSchemeName = colorScheme
     setDatabase(db)
@@ -113,16 +125,16 @@ export function changeColorScheme(colorScheme: string){
 }
 
 export function updateColorScheme(){
-    let db = get(DataBase)
+    let db = getDatabase()
 
     let colorScheme = db.colorScheme
 
     if(colorScheme == null){
-        colorScheme = structuredClone(defaultColorScheme)
+        colorScheme = safeStructuredClone(defaultColorScheme)
     }
 
     if(get(isLite)){
-        colorScheme = structuredClone(colorShemes.light)
+        colorScheme = safeStructuredClone(colorShemes.lite)
     }
 
     //set css variables
@@ -139,7 +151,7 @@ export function updateColorScheme(){
 }
 
 export function exportColorScheme(){
-    let db = get(DataBase)
+    let db = getDatabase()
     let json = JSON.stringify(db.colorScheme)
     downloadFile('colorScheme.json', json)
 }
@@ -169,7 +181,7 @@ export async function importColorScheme(){
             return
         }
         changeColorScheme('custom')
-        let db = get(DataBase)
+        let db = getDatabase()
         db.colorScheme = colorScheme
         setDatabase(db)
         updateColorScheme()
@@ -182,13 +194,13 @@ export async function importColorScheme(){
 }
 
 export function updateTextThemeAndCSS(){
-    let db = get(DataBase)
+    let db = getDatabase()
     const root = document.querySelector(':root') as HTMLElement;
     if(!root){
         return
     }
     let textTheme = get(isLite) ? 'standard' : db.textTheme
-    let colorScheme = get(isLite) ? 'light' : db.colorScheme.type
+    let colorScheme = get(isLite) ? 'dark' : db.colorScheme.type
     switch(textTheme){
         case "standard":{
             if(colorScheme === 'dark'){

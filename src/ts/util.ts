@@ -1,13 +1,14 @@
 import { get, writable, type Writable } from "svelte/store"
-import type { Database, Message } from "./storage/database"
-import { DataBase } from "./storage/database"
-import { selectedCharID } from "./stores"
-import {open} from '@tauri-apps/api/dialog'
-import { readBinaryFile } from "@tauri-apps/api/fs"
+import type { Database, Message } from "./storage/database.svelte"
+import { getDatabase } from "./storage/database.svelte"
+import { selectedCharID } from "./stores.svelte"
+import {open} from '@tauri-apps/plugin-dialog'
+import { readFile } from "@tauri-apps/plugin-fs"
 import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
-import { appWindow } from '@tauri-apps/api/window';
-import { isTauri } from "./storage/globalApi"
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { isTauri } from "./globalApi.svelte"
+const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
@@ -16,7 +17,7 @@ export interface Messagec extends Message{
 }
 
 export function messageForm(arg:Message[], loadPages:number){
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedChar = get(selectedCharID)
     function reformatContent(data:string){
         return data.trim()
@@ -64,7 +65,7 @@ export async function selectSingleFile(ext:string[]){
     } else if (selected === null) {
         return null
     } else {
-        return {name: await basename(selected),data:await readBinaryFile(selected)}
+        return {name: await basename(selected),data:await readFile(selected)}
     }
 }
 
@@ -88,18 +89,18 @@ export async function selectMultipleFile(ext:string[]){
     if (Array.isArray(selected)) {
         let arr:{name:string, data:Uint8Array}[] = []
         for(const file of selected){
-            arr.push({name: await basename(file),data:await readBinaryFile(file)})
+            arr.push({name: await basename(file),data:await readFile(file)})
         }
         return arr
     } else if (selected === null) {
         return null
     } else {
-        return [{name: await basename(selected),data:await readBinaryFile(selected)}]
+        return [{name: await basename(selected),data:await readFile(selected)}]
     }
 }
 
 export const replacePlaceholders = (msg:string, name:string) => {
-    let db = get(DataBase)
+    let db = getDatabase()
     let selectedChar = get(selectedCharID)
     let currentChar = db.characters[selectedChar]
     return msg  .replace(/({{char}})|({{Char}})|(<Char>)|(<char>)/gi, currentChar.name)
@@ -109,7 +110,7 @@ export const replacePlaceholders = (msg:string, name:string) => {
 
 function checkPersonaBinded(){
     try {
-        let db = get(DataBase)
+        let db = getDatabase()
         const selectedChar = get(selectedCharID)
         const character = db.characters[selectedChar]
         const chat = character.chats[character.chatPage]
@@ -128,7 +129,7 @@ export function getUserName(){
     if(bindedPersona){
         return bindedPersona.name
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.username ?? 'User'
 }
 
@@ -137,7 +138,7 @@ export function getUserIcon(){
     if(bindedPersona){
         return bindedPersona.icon
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.userIcon ?? ''
 }
 
@@ -146,7 +147,7 @@ export function getPersonaPrompt(){
     if(bindedPersona){
         return bindedPersona.personaPrompt
     }
-    const db = get(DataBase)
+    const db = getDatabase()
     return db.personaPrompt ?? ''
 }
 
@@ -156,7 +157,7 @@ export function getUserIconProtrait(){
         if(bindedPersona){
             return bindedPersona.largePortrait
         }
-        const db = get(DataBase)
+        const db = getDatabase()
         return db.personas[db.selectedPersona].largePortrait       
     } catch (error) {
         return false
@@ -171,7 +172,7 @@ export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.multiple = multiple === 'multiple';
-        const acceptAll = (get(DataBase).allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
+        const acceptAll = (getDatabase().allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
         if(!acceptAll){
             if (allowedExtensions && allowedExtensions.length) {
                 fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');
@@ -222,7 +223,7 @@ function readFileAsUint8Array(file) {
 }
 
 export async function changeFullscreen(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const isFull = await appWindow.isFullscreen()
     if(db.fullScreen && (!isFull)){
         await appWindow.setFullscreen(true)
@@ -243,7 +244,7 @@ export async function getCustomBackground(db:string){
 }
 
 export function findCharacterbyId(id:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     for(const char of db.characters){
         if(char.type !== 'group'){
             if(char.chaId === id){
@@ -257,7 +258,7 @@ export function findCharacterbyId(id:string) {
 }
 
 export function findCharacterIndexbyId(id:string) {
-    const db = get(DataBase)
+    const db = getDatabase()
     let i=0;
     for(const char of db.characters){
         if(char.chaId === id){
@@ -269,7 +270,7 @@ export function findCharacterIndexbyId(id:string) {
 }
 
 export function getCharacterIndexObject() {
-    const db = get(DataBase)
+    const db = getDatabase()
     let i=0;
     let result:{[key:string]:number} = {}
     for(const char of db.characters){
@@ -363,7 +364,7 @@ export async function getEmotion(db:Database,chaEmotion:{[key:string]: [string, 
 }
 
 export function getAuthorNoteDefaultText(){
-    const db = get(DataBase)
+    const db = getDatabase()
     const template = db.promptTemplate
     if(!template){
         return ''
@@ -426,12 +427,6 @@ export async function decryptBuffer(data:Uint8Array, keys:string){
     )
 
     return result
-}
-
-export function getCurrentCharacter(){
-    const db = get(DataBase)
-    const selectedChar = get(selectedCharID)
-    return db.characters[selectedChar]
 }
 
 export function toState<T>(t:T):Writable<T>{

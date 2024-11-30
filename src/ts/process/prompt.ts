@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import { tokenizeAccurate } from "../tokenizer";
-import { DataBase, presetTemplate, setDatabase, type Database } from "../storage/database";
+import { getDatabase, presetTemplate, setDatabase, type Database } from "../storage/database.svelte";
 import { alertError, alertNormal } from "../alert";
 import type { OobaChatCompletionRequestParams } from "../model/ooba";
 
@@ -256,7 +256,7 @@ export const OobaParams = [
 ]
 
 export function promptConvertion(files:{ name: string, content: string, type:string }[]){
-    let preset = structuredClone(presetTemplate)
+    let preset = safeStructuredClone(presetTemplate)
     let instData = {
         "system_prompt": "",
         "input_sequence": "",
@@ -383,7 +383,7 @@ export function promptConvertion(files:{ name: string, content: string, type:str
     if(type === 'STCHAT'){
         preset.aiModel = 'openrouter'
         preset.subModel = 'openrouter'
-        const db = get(DataBase)
+        const db = getDatabase()
         db.botPresets.push(preset)
         setDatabase(db)
     
@@ -461,7 +461,7 @@ export function promptConvertion(files:{ name: string, content: string, type:str
     preset.name ||= 'Converted from JSON'
 
 
-    const db = get(DataBase)
+    const db = getDatabase()
     db.botPresets.push(preset)
     setDatabase(db)
 

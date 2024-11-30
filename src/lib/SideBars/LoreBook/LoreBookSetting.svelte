@@ -1,31 +1,36 @@
 <script lang="ts">
-    import { DataBase } from "../../../ts/storage/database";
+    
+    import { DBState } from 'src/ts/stores.svelte';
     import { language } from "../../../lang";
-    import {CurrentCharacter, selectedCharID} from '../../../ts/stores'
     import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
-    import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook";
+    import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
     import Help from "src/lib/Others/Help.svelte";
+  import { selectedCharID } from "src/ts/stores.svelte";
 
-    let submenu = 0
-    export let globalMode = false
+    let submenu = $state(0)
+    interface Props {
+        globalMode?: boolean;
+    }
+
+    let { globalMode = $bindable(false) }: Props = $props();
 </script>
 
 {#if !globalMode}
     <div class="flex w-full rounded-md border border-selected">
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 0
         }} class="p-2 flex-1" class:bg-selected={submenu === 0}>
-            <span>{$CurrentCharacter.type === 'group' ? language.group : language.character}</span>
+            <span>{DBState.db.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 1
         }} class="p2 flex-1 border-r border-l border-selected" class:bg-selected={submenu === 1}>
             <span>{language.Chat}</span>
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
             submenu = 2
         }} class="p-2 flex-1" class:bg-selected={submenu === 2}>
             <span>{language.settings}</span>
@@ -34,34 +39,34 @@
 {/if}
 {#if submenu !== 2}
     {#if !globalMode}
-        <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? $CurrentCharacter.type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
+        <span class="text-textcolor2 mt-2 mb-6 text-sm">{submenu === 0 ? DBState.db.characters[$selectedCharID].type === 'group' ? language.groupLoreInfo : language.globalLoreInfo : language.localLoreInfo}</span>
     {/if}
-    <LoreBookList bind:globalMode bind:submenu lorePlus={(!globalMode) && $CurrentCharacter?.lorePlus} />
+    <LoreBookList globalMode={globalMode} submenu={submenu} lorePlus={(!globalMode) && DBState.db.characters[$selectedCharID]?.lorePlus} />
 {:else}
-    {#if $CurrentCharacter.loreSettings}
+    {#if DBState.db.characters[$selectedCharID].loreSettings}
         <div class="flex items-center mt-4">
             <Check check={false} onChange={() => {
-                $CurrentCharacter.loreSettings = undefined
+                DBState.db.characters[$selectedCharID].loreSettings = undefined
             }}
             name={language.useGlobalSettings}
             />
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$CurrentCharacter.loreSettings.recursiveScanning} name={language.recursiveScanning}/>
+            <Check bind:check={DBState.db.characters[$selectedCharID].loreSettings.recursiveScanning} name={language.recursiveScanning}/>
         </div>
         <div class="flex items-center mt-4">
-            <Check bind:check={$CurrentCharacter.loreSettings.fullWordMatching} name={language.fullWordMatching}/>
+            <Check bind:check={DBState.db.characters[$selectedCharID].loreSettings.fullWordMatching} name={language.fullWordMatching}/>
         </div>
         <span class="text-textcolor mt-4 mb-2">{language.loreBookDepth}</span>
-        <NumberInput size="sm" min={0} max={20} bind:value={$CurrentCharacter.loreSettings.scanDepth} />
+        <NumberInput size="sm" min={0} max={20} bind:value={DBState.db.characters[$selectedCharID].loreSettings.scanDepth} />
         <span class="text-textcolor">{language.loreBookToken}</span>
-        <NumberInput size="sm" min={0} max={4096} bind:value={$CurrentCharacter.loreSettings.tokenBudget} />
+        <NumberInput size="sm" min={0} max={4096} bind:value={DBState.db.characters[$selectedCharID].loreSettings.tokenBudget} />
     {:else}
         <div class="flex items-center mt-4">
             <Check check={true} onChange={() => {
-                $CurrentCharacter.loreSettings = {
-                    tokenBudget: $DataBase.loreBookToken,
-                    scanDepth:$DataBase.loreBookDepth,
+                DBState.db.characters[$selectedCharID].loreSettings = {
+                    tokenBudget: DBState.db.loreBookToken,
+                    scanDepth:DBState.db.loreBookDepth,
                     recursiveScanning: false
                 }
             }}
@@ -70,8 +75,8 @@
         </div>
     {/if}
     <div class="flex items-center mt-4">
-        {#if $DataBase.useExperimental}
-            <Check bind:check={$CurrentCharacter.lorePlus}
+        {#if DBState.db.useExperimental}
+            <Check bind:check={DBState.db.characters[$selectedCharID].lorePlus}
                 name={language.lorePlus}
             ><Help key="lorePlus"></Help><Help key="experimental"></Help></Check>
         {/if}
@@ -81,15 +86,15 @@
 {#if submenu !== 2}
 
 <div class="text-textcolor2 mt-2 flex">
-    <button on:click={() => {addLorebook(globalMode ? -1 : submenu)}} class="hover:text-textcolor cursor-pointer">
+    <button onclick={() => {addLorebook(globalMode ? -1 : submenu)}} class="hover:text-textcolor cursor-pointer">
         <PlusIcon />
     </button>
-    <button on:click={() => {
+    <button onclick={() => {
         exportLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-textcolor ml-1  cursor-pointer">
         <DownloadIcon />
     </button>
-    <button on:click={() => {
+    <button onclick={() => {
         importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-textcolor ml-2  cursor-pointer">
         <FolderUpIcon />

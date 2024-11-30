@@ -1,6 +1,6 @@
 import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
-import { isTauri } from "./globalApi";
+import { AppendableBuffer, isTauri } from "../globalApi.svelte";
 
 const packr = new Packr({
     useRecords:false
@@ -12,9 +12,22 @@ const unpackr = new Unpackr({
 })
 
 const magicHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 7]); 
-const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 8]); 
+const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 8]);
+const magicStreamCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 9]);
 
-export function encodeRisuSave(data:any, compression:'noCompression'|'compression' = 'noCompression'){
+
+async function checkCompressionStreams(){
+    if(!CompressionStream){
+        const {makeCompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        globalThis.CompressionStream = makeCompressionStream(TransformStream);
+    }
+    if(!DecompressionStream){
+        const {makeDecompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        globalThis.DecompressionStream = makeDecompressionStream(TransformStream);
+    }
+}
+
+export function encodeRisuSaveLegacy(data:any, compression:'noCompression'|'compression' = 'noCompression'){
     let encoded:Uint8Array = packr.encode(data)
     if(compression === 'compression'){
         encoded = fflate.compressSync(encoded)
@@ -31,7 +44,21 @@ export function encodeRisuSave(data:any, compression:'noCompression'|'compressio
     }
 }
 
-export function decodeRisuSave(data:Uint8Array){
+export async function encodeRisuSave(data:any) {
+    await checkCompressionStreams()
+    let encoded:Uint8Array = packr.encode(data)
+    const cs = new CompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    writer.write(encoded);
+    writer.close();
+    const buf = await new Response(cs.readable).arrayBuffer()
+    const result = new Uint8Array(new Uint8Array(buf).length + magicStreamCompressedHeader.length);
+    result.set(magicStreamCompressedHeader, 0)
+    result.set(new Uint8Array(buf), magicStreamCompressedHeader.length)
+    return result
+}
+
+export async function decodeRisuSave(data:Uint8Array){
     try {
         switch(checkHeader(data)){
             case "compressed":
@@ -40,6 +67,16 @@ export function decodeRisuSave(data:Uint8Array){
             case "raw":
                 data = data.slice(magicHeader.length)
                 return unpackr.decode(data)
+            case "stream":{
+                await checkCompressionStreams()
+                data = data.slice(magicStreamCompressedHeader.length)
+                const cs = new DecompressionStream('gzip');
+                const writer = cs.writable.getWriter();
+                writer.write(data);
+                writer.close();
+                const buf = await new Response(cs.readable).arrayBuffer()
+                return unpackr.decode(new Uint8Array(buf))
+            }
         }
         return unpackr.decode(data)
     }
@@ -63,7 +100,7 @@ export function decodeRisuSave(data:Uint8Array){
 
 function checkHeader(data: Uint8Array) {
 
-    let header:'none'|'compressed'|'raw' = 'raw'
+    let header:'none'|'compressed'|'raw'|'stream' = 'raw'
 
     if (data.length < magicHeader.length) {
       return false;
@@ -84,7 +121,18 @@ function checkHeader(data: Uint8Array) {
                 break
             }
         }
-    }  
+    }
+
+    if(header === 'none'){
+        header = 'stream'
+        for (let i = 0; i < magicStreamCompressedHeader.length; i++) {
+            if (data[i] !== magicStreamCompressedHeader[i]) {
+                header = 'none'
+                break
+            }
+        }
+    }
+
     // All bytes matched
     return header;
   }

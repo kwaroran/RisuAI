@@ -1,39 +1,45 @@
 <script lang="ts">
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore } from './ts/stores.svelte';
     import Sidebar from './lib/SideBars/Sidebar.svelte';
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI } from './ts/stores';
-    import { DataBase, loadedStore } from './ts/storage/database';
+    import { DBState } from './ts/stores.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
     import AlertComp from './lib/Others/AlertComp.svelte';
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';
-    import { alertStore } from './ts/alert';
     import GridChars from './lib/Others/GridCatalog.svelte';
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
     import Settings from './lib/Setting/Settings.svelte';
-    import { showRealmInfoStore } from './ts/characterCards';
+    import { showRealmInfoStore, importCharacterProcess } from './ts/characterCards';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import { AccountWarning } from './ts/storage/accountStorage';
     import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
-  import { isLite } from './ts/lite';
-  import LiteMain from './LiteMain.svelte';
-  import Botpreset from './lib/Setting/botpreset.svelte';
-  import ListedPersona from './lib/Setting/listedPersona.svelte';
-  import MobileHeader from './lib/Mobile/MobileHeader.svelte';
-  import MobileBody from './lib/Mobile/MobileBody.svelte';
-  import MobileFooter from './lib/Mobile/MobileFooter.svelte';
+    import Botpreset from './lib/Setting/botpreset.svelte';
+    import ListedPersona from './lib/Setting/listedPersona.svelte';
+    import MobileHeader from './lib/Mobile/MobileHeader.svelte';
+    import MobileBody from './lib/Mobile/MobileBody.svelte';
+    import MobileFooter from './lib/Mobile/MobileFooter.svelte';
+    import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
+  import { checkCharOrder } from './ts/globalApi.svelte';
 
   
-    let didFirstSetup: boolean  = false
-    let gridOpen = false
-
-    DataBase.subscribe(db => {
-        if(db.didFirstSetup !== didFirstSetup){
-            didFirstSetup = db.didFirstSetup || false
-        }
-    })
+    let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
+    let gridOpen = $state(false)
 
 </script>
 
-<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor">
+<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" ondragover={(e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'link'
+}} ondrop={async (e) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file) {
+        await importCharacterProcess({
+            name: file.name,
+            data: file
+        })
+        checkCharOrder()
+    }
+}}>
     {#if !$loadedStore}
         <div class="w-full h-full flex justify-center items-center text-textcolor text-xl bg-gray-900">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-textcolor" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -42,6 +48,8 @@
             </svg>
             <span>Loading...</span>
         </div>
+    {:else if $CustomGUISettingMenuStore}
+        <CustomGUISettingMenu />
     {:else if !didFirstSetup}
         <WelcomeRisu />
     {:else if $settingsOpen}
@@ -60,7 +68,7 @@
                 <Sidebar openGrid={() => {gridOpen = true}} hidden={!$sideBarStore} />
             {:else}
                 <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" class:fixed={$sideBarStore} class:hidden={!$sideBarStore} >
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
 
 

@@ -1,5 +1,10 @@
-<option value={value} selected={selected} class="bg-darkbg appearance-none"><slot></slot></option>
+<option value={value} selected={selected} class="bg-darkbg appearance-none">{@render children?.()}</option>
 <script lang="ts">
-    export let value:string
-    export let selected:boolean = false
+    interface Props {
+        value: string;
+        selected?: boolean;
+        children?: import('svelte').Snippet;
+    }
+
+    let { value, selected = false, children }: Props = $props();
 </script>

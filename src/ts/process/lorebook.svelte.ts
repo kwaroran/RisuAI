@@ -1,22 +1,21 @@
 import { get } from "svelte/store";
-import {selectedCharID} from '../stores'
-import { DataBase, setDatabase, type Message, type loreBook } from "../storage/database";
+import {selectedCharID} from '../stores.svelte'
+import { type Message, type loreBook } from "../storage/database.svelte";
+import { DBState } from '../stores.svelte';
 import { tokenize } from "../tokenizer";
-import { checkNullish, selectSingleFile } from "../util";
+import { checkNullish, findCharacterbyId, selectSingleFile } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
-import { downloadFile } from "../storage/globalApi";
-import { HypaProcesser } from "./memory/hypamemory";
+import { downloadFile } from "../globalApi.svelte";
 import { getModuleLorebooks } from "./modules";
 import { CCardLib } from "@risuai/ccardlib";
 
 export function addLorebook(type:number) {
-    let selectedID = get(selectedCharID)
-    let db = get(DataBase)
+    const selectedID = get(selectedCharID)
     if(type === 0){
-        db.characters[selectedID].globalLore.push({
+        DBState.db.characters[selectedID].globalLore.push({
             key: '',
-            comment: `New Lore ${db.characters[selectedID].globalLore.length + 1}`,
+            comment: `New Lore ${DBState.db.characters[selectedID].globalLore.length + 1}`,
             content: '',
             mode: 'normal',
             insertorder: 100,
@@ -26,10 +25,10 @@ export function addLorebook(type:number) {
         })
     }
     else{
-        const page = db.characters[selectedID].chatPage
-        db.characters[selectedID].chats[page].localLore.push({
+        const page = DBState.db.characters[selectedID].chatPage
+        DBState.db.characters[selectedID].chats[page].localLore.push({
             key: '',
-            comment: `New Lore ${db.characters[selectedID].chats[page].localLore.length + 1}`,
+            comment: `New Lore ${DBState.db.characters[selectedID].chats[page].localLore.length + 1}`,
             content: '',
             mode: 'normal',
             insertorder: 100,
@@ -38,245 +37,145 @@ export function addLorebook(type:number) {
             selective: false
         })
     }
-    setDatabase(db)
 }
-
-interface formatedLore{
-    keys:string[]|'always'|{type:'regex',regex:string},
-    secondKey:string[]|{type:'regex',regex:string}
-    content: string
-    order: number
-    activatied: boolean
-}
-
-const rmRegex = / |\n/g
-
-export async function loadLoreBookPrompt(){
-    
-    const selectedID = get(selectedCharID)
-    const db = get(DataBase)
-    const char = db.characters[selectedID]
-    const page = char.chatPage
-    const characterLore = char.globalLore ?? []
-    const chatLore = char.chats[page].localLore ?? []
-    const moduleLorebook = getModuleLorebooks()
-    const fullLore = characterLore.concat(chatLore).concat(moduleLorebook)
-    const currentChat = char.chats[page].message
-    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
-    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
-    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
-
-    let activatiedPrompt: string[] = []
-
-    let formatedLore:formatedLore[] = []
-
-    for (const lore of fullLore){
-        if(lore){
-            if(lore.key.length > 1 || lore.alwaysActive){
-                if(!checkNullish(lore.activationPercent)){
-                    let activationPercent = lore.activationPercent
-                    if(isNaN(activationPercent) || !activationPercent || activationPercent < 0){
-                        activationPercent = 0
-                    }
-                    if(activationPercent < (Math.random() * 100)){
-                        continue
-                    }
-                }
-
-                if(lore.key?.startsWith('@@@')){
-                    lore.key = lore.key.replace('@@@','@@')
-                }
-                formatedLore.push({
-                    keys: lore.alwaysActive ? 'always' : (lore.key?.startsWith("@@regex ")) ? ({type:'regex',regex:lore.key.replace('@@regex ','')}) :
-                        (lore.key ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                            return a.length > 1
-                        }),
-                    secondKey: lore.selective ? ((lore.secondkey?.startsWith("@@regex ")) ? ({type:'regex',regex:lore.secondkey.replace('@@regex ','')}) :
-                        (lore.secondkey ?? '').replace(rmRegex, '').toLocaleLowerCase().split(',').filter((a) => {
-                            return a.length > 1
-                        })) : [],
-                    content: lore.content,
-                    order: lore.insertorder,
-                    activatied: false
-                })
-            }
-        }
-    }
-
-    formatedLore.sort((a, b) => {
-        return b.order - a.order
-    })
-
-    const formatedChatMain = currentChat.slice(currentChat.length - loreDepth,currentChat.length).map((msg) => {
-        return msg.data
-    }).join('||').replace(rmRegex,'').toLocaleLowerCase()
-
-    let loreListUpdated = true
-    
-    while(loreListUpdated){
-        loreListUpdated = false
-        const formatedChat = formatedChatMain + activatiedPrompt.join('').replace(rmRegex,'').toLocaleLowerCase()
-        const formatedChatList = fullWordMatching ? formatedChat.split(' ') : formatedChat
-        for(let i=0;i<formatedLore.length;i++){
-            const lore = formatedLore[i]
-            if(lore.activatied){
-                continue
-            }
-            const totalTokens = await tokenize(activatiedPrompt.concat([lore.content]).join('\n\n'))
-            if(totalTokens > loreToken){
-                break
-            }
-
-            if(lore.keys === 'always'){
-                activatiedPrompt.push(lore.content)
-                lore.activatied = true
-                loreListUpdated = true
-                continue
-            }
-    
-            let firstKeyActivation = false
-            if(Array.isArray(lore.keys)){
-                for(const key of lore.keys){
-                    if(key){
-                        if(formatedChatList.includes(key)){
-                            firstKeyActivation = true
-                            break
-                        }
-                    }
-                }
-            }
-            else{
-                if(formatedChat.match(new RegExp(lore.keys.regex,'g'))){
-                    firstKeyActivation = true
-                }
-            }
-    
-            if(firstKeyActivation){
-                if(Array.isArray(lore.secondKey)){
-                    if(lore.secondKey.length === 0){
-                        activatiedPrompt.push(lore.content)
-                        lore.activatied = true
-                        loreListUpdated = true
-                        continue
-                    }
-                    for(const key of lore.secondKey){
-                        if(formatedChatList.includes(key)){
-                            activatiedPrompt.push(lore.content)
-                            lore.activatied = true
-                            loreListUpdated = true
-                            break
-                        }
-                    }
-                }
-                else{
-                    if(formatedChat.match(new RegExp(lore.secondKey.regex,'g'))){
-                        firstKeyActivation = true
-                    }
-                }
-            }
-        }
-        if(!(char.loreSettings?.recursiveScanning)){
-            break
-        }
-    }
-
-
-    let sactivated:string[] = []
-    let decoratedArray:{
-        depth:number,
-        pos:string,
-        prompt:string
-    }[] = []
-    activatiedPrompt = activatiedPrompt.filter((v) => {
-        if(v.startsWith("@@@end")){
-            sactivated.push(v.replace('@@@end','').trim())
-            return false
-        }
-        if(v.startsWith('@@end')){
-            sactivated.push(v.replace('@@end','').trim())
-            return false
-        }
-        return true
-    })
-
-    return {
-        act: activatiedPrompt.reverse().join('\n\n'),
-        special_act: sactivated.reverse().join('\n\n'),
-        decorated: decoratedArray
-    }
-}
-
 
 export async function loadLoreBookV3Prompt(){
     const selectedID = get(selectedCharID)
-    const db = get(DataBase)
-    const char = db.characters[selectedID]
+    const char = DBState.db.characters[selectedID]
     const page = char.chatPage
     const characterLore = char.globalLore ?? []
     const chatLore = char.chats[page].localLore ?? []
     const moduleLorebook = getModuleLorebooks()
-    const fullLore = structuredClone(characterLore.concat(chatLore).concat(moduleLorebook))
+    const fullLore = safeStructuredClone(characterLore.concat(chatLore).concat(moduleLorebook))
     const currentChat = char.chats[page].message
-    const loreDepth = char.loreSettings?.scanDepth ?? db.loreBookDepth
-    const loreToken = char.loreSettings?.tokenBudget ?? db.loreBookToken
-    const fullWordMatching = char.loreSettings?.fullWordMatching ?? false
+    const loreDepth = char.loreSettings?.scanDepth ?? DBState.db.loreBookDepth
+    const loreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken
+    const fullWordMatchingSetting = char.loreSettings?.fullWordMatching ?? false
     const chatLength = currentChat.length + 1 //includes first message
-    const recursiveScanning = char.loreSettings?.recursiveScanning ?? false
-    let recursiveAdditionalPrompt = ''
+    const recursiveScanning = char.loreSettings?.recursiveScanning ?? true
+    let recursivePrompt:{
+        prompt: string,
+        source: string
+    }[] = []
+    let matchLog:{
+        prompt: string,
+        source: string
+        activated: string
+    }[] = []
 
     const searchMatch = (messages:Message[],arg:{
         keys:string[],
         searchDepth:number,
         regex:boolean
         fullWordMatching:boolean
-        recursiveAdditionalPrompt:string
+        all?:boolean
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
-        let mText = sliced.map((msg) => {
-            return msg.data
-        }).join('||')
-        if(arg.recursiveAdditionalPrompt){
-            mText += arg.recursiveAdditionalPrompt
-        }
-        if(arg.regex){
-            for(const regexString of arg.keys){
-                if(!regexString.startsWith('/')){
-                    return false
+        let mList:{
+            source:string
+            prompt:string
+        }[] = sliced.map((msg, i) => {
+            if(msg.role === 'user'){
+                return {
+                    source: `message ${i} by user`,
+                    prompt: `\x01{{${DBState.db.username}}}:` + msg.data + '\x01'
                 }
-                const regexFlag = regexString.split('/').pop()
-                if(regexFlag){
-                    arg.keys[0] = regexString.replace('/'+regexFlag,'')
-                    try {
-                        const regex = new RegExp(arg.keys[0],regexFlag)
-                        return regex.test(mText)
-                    } catch (error) {
+            }
+            else{
+                return {
+                    source: `message ${i} by char`,
+                    prompt: `\x01{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data + '\x01'
+                }
+            }
+        }).concat(recursivePrompt.map((msg) => {
+            return {
+                source: 'lorebook ' + msg.source,
+                prompt: msg.prompt
+            }
+        }))
+
+        if(arg.regex){
+            for(const mText of mList){
+                for(const regexString of arg.keys){
+                    if(!regexString.startsWith('/')){
                         return false
                     }
+                    const regexFlag = regexString.split('/').pop()
+                    if(regexFlag){
+                        arg.keys[0] = regexString.replace('/'+regexFlag,'')
+                        try {
+                            const regex = new RegExp(arg.keys[0],regexFlag)
+                            const d = regex.test(mText.prompt)
+                            if(d){
+                                matchLog.push({
+                                    prompt: mText.prompt,
+                                    source: mText.source,
+                                    activated: regexString
+                                })
+                                return true
+                            }
+                        } catch (error) {
+                            return false
+                        }
+                    }
                 }
-                return false
             }
+            return false
         }
 
-        mText = mText.toLocaleLowerCase()
-        mText = mText.replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
+        mList = mList.map((m) => {
+            return {
+                source: m.source,
+                prompt: m.prompt.toLocaleLowerCase().replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
+            }
+        })
 
-        if(arg.fullWordMatching){
-            const splited = mText.split(' ')
-            for(const key of arg.keys){
-                if(splited.includes(key.toLocaleLowerCase())){
-                    return true
+        let allMode = arg.all ?? false
+        let allModeMatched = true
+
+        for(const m of mList){
+            let mText = m.prompt
+            if(arg.fullWordMatching){
+                const splited = mText.split(' ')
+                for(const key of arg.keys){
+                    if(splited.includes(key.toLocaleLowerCase())){
+                        matchLog.push({
+                            prompt: m.prompt,
+                            source: m.source,
+                            activated: key
+                        })
+                        if(!allMode){
+                            return true
+                        }
+                    }
+                    else if(allMode){
+                        allModeMatched = false
+                    }
+                }
+            }
+            else{
+                mText = mText.replace(/ /g,'')
+                for(const key of arg.keys){
+                    const realKey = key.toLocaleLowerCase().replace(/ /g,'')
+                    if(mText.includes(realKey)){
+                        matchLog.push({
+                            prompt: m.prompt,
+                            source: m.source,
+                            activated: key
+                        })
+                        if(!allMode){
+                            return true
+                        }
+                    }
+                    else if(allMode){
+                        allModeMatched = false
+                    }
                 }
             }
         }
-        else{
-            mText = mText.replace(/ /g,'')
-            for(const key of arg.keys){
-                const realKey = key.toLocaleLowerCase().replace(/ /g,'')
-                if(mText.includes(realKey)){
-                    return true
-                }
-            }
+        if(allMode && allModeMatched){
+            return true
         }
         return false
     
@@ -291,6 +190,7 @@ export async function loadLoreBookV3Prompt(){
         order:number
         tokens:number
         priority:number
+        source:string
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
@@ -314,8 +214,10 @@ export async function loadLoreBookV3Prompt(){
             let role:'system'|'user'|'assistant' = 'system'
             let searchQueries:{
                 keys:string[],
-                negative:boolean
+                negative:boolean,
+                all?:boolean
             }[] = []
+            let fullWordMatching = fullWordMatchingSetting
             const content = CCardLib.decorator.parse(fullLore[i].content, (name, arg) => {
                 switch(name){
                     case 'end':{
@@ -412,6 +314,22 @@ export async function loadLoreBookV3Prompt(){
                         })
                         return
                     }
+                    case 'exclude_keys_all':{
+                        searchQueries.push({
+                            keys: arg,
+                            negative: true,
+                            all: true
+                        })
+                        return
+                    }
+                    case 'match_full_word':{
+                        fullWordMatching = true
+                        return
+                    }
+                    case 'match_partial_word':{
+                        fullWordMatching = false
+                        return
+                    }
                     case 'is_user_icon':{
                         //TODO
                         return false
@@ -455,6 +373,13 @@ export async function loadLoreBookV3Prompt(){
                     keys: fullLore[i].key.split(','),
                     negative: false
                 })
+
+                if(fullLore[i].secondkey && fullLore[i].selective){
+                    searchQueries.push({
+                        keys: fullLore[i].secondkey.split(','),
+                        negative: false
+                    })
+                }
     
                 for(const query of searchQueries){
                     const result = searchMatch(currentChat, {
@@ -462,7 +387,7 @@ export async function loadLoreBookV3Prompt(){
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
                         fullWordMatching: fullWordMatching,
-                        recursiveAdditionalPrompt: recursiveAdditionalPrompt
+                        all: query.all
                     })
                     if(query.negative){
                         if(result){
@@ -494,12 +419,16 @@ export async function loadLoreBookV3Prompt(){
                     role: role,
                     order: order,
                     tokens: await tokenize(content),
-                    priority: priority
+                    priority: priority,
+                    source: fullLore[i].comment || `lorebook ${i}`
                 })
                 activatedIndexes.push(i)
                 if(recursiveScanning){
                     matching = true
-                    recursiveAdditionalPrompt += content + '\n\n'
+                    recursivePrompt.push({
+                        prompt: content,
+                        source: fullLore[i].comment || `lorebook ${i}`
+                    })
                 }
             }
         }
@@ -524,18 +453,18 @@ export async function loadLoreBookV3Prompt(){
     })
 
     return {
-        actives: activesResorted.reverse()
+        actives: activesResorted.reverse(),
+        matchLog: matchLog,
     }
 
 }
 
 export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     const selectedID = get(selectedCharID)
-    let db = get(DataBase)
-    const page = mode === 'sglobal' ? -1 : db.characters[selectedID].chatPage
+    const page = mode === 'sglobal' ? -1 : DBState.db.characters[selectedID].chatPage
     let lore = 
-        mode === 'global' ? db.characters[selectedID].globalLore : 
-        db.characters[selectedID].chats[page].localLore
+        mode === 'global' ? DBState.db.characters[selectedID].globalLore : 
+        DBState.db.characters[selectedID].chats[page].localLore
     const lorebook = (await selectSingleFile(['json', 'lorebook'])).data
     if(!lorebook){
         return
@@ -556,12 +485,11 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
             lore.push(...convertExternalLorebook(entries))
         }
         if(mode === 'global'){
-            db.characters[selectedID].globalLore = lore
+            DBState.db.characters[selectedID].globalLore = lore
         }
         else{
-            db.characters[selectedID].chats[page].localLore = lore
+            DBState.db.characters[selectedID].chats[page].localLore = lore
         }
-        setDatabase(db)
     } catch (error) {
         alertError(`${error}`)
     }
@@ -613,11 +541,10 @@ export function convertExternalLorebook(entries:{[key:string]:CCLorebook}){
 export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
     try {
         const selectedID = get(selectedCharID)
-        const db = get(DataBase)
-        const page = mode === 'sglobal' ? -1 :  db.characters[selectedID].chatPage
+        const page = mode === 'sglobal' ? -1 : DBState.db.characters[selectedID].chatPage
         const lore = 
-            mode === 'global' ? db.characters[selectedID].globalLore : 
-            db.characters[selectedID].chats[page].localLore        
+            mode === 'global' ? DBState.db.characters[selectedID].globalLore : 
+            DBState.db.characters[selectedID].chats[page].localLore        
         const stringl = Buffer.from(JSON.stringify({
             type: 'risu',
             ver: 1,
