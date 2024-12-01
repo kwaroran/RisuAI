@@ -411,7 +411,7 @@ export async function ParseMarkdown(
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
-    data = await parseInlayImages(data)
+    data = await parseInlayImages(data ?? '')
 
     data = encodeStyle(data)
     if(mode === 'normal'){
@@ -773,10 +773,10 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             case 'messages':{
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
-                return makeArray(chat.message.concat([{
+                return makeArray([{
                     role: 'char',
                     data: chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
-                }]).map((v) => {
+                }].concat(chat.message).map((v) => {
                     v = safeStructuredClone(v)
                     v.data = risuChatParser(v.data, matcherArg)
                     return JSON.stringify(v)
@@ -1735,7 +1735,11 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
         return {type:'pure-display'}
     }
     if(p1.startsWith('#each')){
-        return {type:'each',type2:p1.substring(5).trim()}
+        let t2 = p1.substring(5).trim()
+        if(t2.startsWith('as ')){
+            t2 = t2.substring(3).trim()
+        }
+        return {type:'each',type2:t2}
     }
     if(p1.startsWith('#func')){
         const statement = p1.split(' ')
@@ -1839,6 +1843,12 @@ export function risuChatParser(da:string, arg:{
         arg:string[]
     }> = arg.functions ?? (new Map())
 
+    arg.callStack = (arg.callStack ?? 0) + 1
+
+    if(arg.callStack > 20){
+        return 'ERROR: Call stack limit reached'
+    }
+
     const matcherObj = {
         chatID: chatID,
         chara: chara,
@@ -1850,7 +1860,8 @@ export function risuChatParser(da:string, arg:{
         role: arg.role,
         runVar: arg.runVar ?? false,
         consistantChar: arg.consistantChar ?? false,
-        cbsConditions: arg.cbsConditions ?? {}
+        cbsConditions: arg.cbsConditions ?? {},
+        callStack: arg.callStack,
     }
 
 
@@ -1979,7 +1990,7 @@ export function risuChatParser(da:string, arg:{
                     }
                 }
                 if(dat.startsWith('call::')){
-                    if(arg.callStack && arg.callStack > 10){
+                    if(arg.callStack && arg.callStack > 20){
                         nested[0] += `ERROR: Call stack limit reached`
                         break
                     }
@@ -1993,7 +2004,6 @@ export function risuChatParser(da:string, arg:{
                             data = data.replaceAll(`{{arg::${i}}}`, argData[i])
                         }
                         arg.functions = functions
-                        arg.callStack = (arg.callStack ?? 0) + 1
                         nested[0] += risuChatParser(data, arg)
                         break
                     }
