@@ -2,7 +2,7 @@
     import { ArrowLeft, Sparkles, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
     import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser.svelte";
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertConfirm, alertError, alertNormal, alertRequestData, alertWait } from "../../ts/alert";
+    import { alertClear, alertConfirm, alertError, alertNormal, alertRequestData, alertWait } from "../../ts/alert";
     import { language } from "../../lang";
     import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
     import { alertStore, DBState } from 'src/ts/stores.svelte';
@@ -430,7 +430,10 @@
                         return
                     }
                     catch (e) {
-                        alertError(`Error, please try again: ${e.message}`)
+                        alertClear()
+                        window.navigator.clipboard.writeText(msgDisplay).then(() => {
+                            setStatusMessage(language.copied)
+                        })
                     }
                 }
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
