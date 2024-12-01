@@ -807,10 +807,14 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     return JSON.stringify(v)
                 }))
             }
+            case 'jb':
+            case 'jailbreak':{
+                return risuChatParser(db.jailbreak, matcherArg)
+            }
             case 'ujb':
             case 'global_note':
             case 'system_note':{
-                return db.globalNote
+                return risuChatParser(db.globalNote, matcherArg)
             }
             case 'chat_index':{
                 return chatID.toString() 
