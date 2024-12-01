@@ -89,15 +89,12 @@
         })
 
         if(ind !== -1){
-            DBState.db.promptTemplate[ind] = promptItem
-            promptItem = prompt
+            DBState.db.promptTemplate.splice(ind, 1)
         }
-        else{
-            const myInd = DBState.db.promptTemplate.findIndex((item, index) => {
-                return JSON.stringify(item) === JSON.stringify(promptItem)
-            })
-            DBState.db.promptTemplate.splice(myInd, 0, prompt)
-        }
+        const myInd = DBState.db.promptTemplate.findIndex((item, index) => {
+            return JSON.stringify(item) === JSON.stringify(promptItem)
+        })
+        DBState.db.promptTemplate.splice(myInd, 0, prompt)
 
     }
 
