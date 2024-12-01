@@ -28,6 +28,7 @@ import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
+import { parseChatML } from "../parser.svelte";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -548,6 +549,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     await tokenizeChatArray([prompt])
                     break
                 }
+                case 'chatML':{
+                    let prompts = parseChatML(card.text)
+                    await tokenizeChatArray(prompts)
+                    break
+                }
                 case 'chat':{
                     let start = card.rangeStart
                     let end = (card.rangeEnd === 'end') ? unformated.chats.length : card.rangeEnd
@@ -1005,6 +1011,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     }
 
                     pushPrompts([prompt])
+                    break
+                }
+                case 'chatML':{
+                    let prompts = parseChatML(card.text)
+                    pushPrompts(prompts)
                     break
                 }
                 case 'chat':{

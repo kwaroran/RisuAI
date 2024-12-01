@@ -4,7 +4,7 @@ import { getDatabase, presetTemplate, setDatabase, type Database } from "../stor
 import { alertError, alertNormal } from "../alert";
 import type { OobaChatCompletionRequestParams } from "../model/ooba";
 
-export type PromptItem = PromptItemPlain|PromptItemTyped|PromptItemChat|PromptItemAuthorNote;
+export type PromptItem = PromptItemPlain|PromptItemTyped|PromptItemChat|PromptItemAuthorNote|PromptItemChatML
 export type PromptType = PromptItem['type'];
 export type PromptSettings = {
     assistantPrefill: string
@@ -21,17 +21,26 @@ export interface PromptItemPlain {
     type2: 'normal'|'globalNote'|'main'
     text: string;
     role: 'user'|'bot'|'system';
+    name?: string
+}
+
+export interface PromptItemChatML {
+    type: 'chatML'
+    text: string
+    name?: string
 }
 
 export interface PromptItemTyped {
     type: 'persona'|'description'|'lorebook'|'postEverything'|'memory'
-    innerFormat?: string
+    innerFormat?: string,
+    name?: string
 }
 
 export interface PromptItemAuthorNote {
     type : 'authornote'
     innerFormat?: string
     defaultText?: string
+    name?: string
 }
 
 
@@ -40,6 +49,7 @@ export interface PromptItemChat {
     rangeStart: number;
     rangeEnd: number|'end';
     chatAsOriginalOnSystem?: boolean;
+    name?: string
 }
 
 export async function tokenizePreset(prompts:PromptItem[], consti:boolean = false){
