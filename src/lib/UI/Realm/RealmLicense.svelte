@@ -13,7 +13,7 @@
 {#if Object.keys(CCLicenseData).includes(license)}
     <div class="w-full flex flex-row">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div class="flex flex-wrap flex-row gap-1 mt-2 items-center cursor-pointer" use:tooltip={CCLicenseData[license][1] + ". The License only applys to the text."} onclick={((e) => {
+        <div role="button" tabindex="0" class="flex flex-wrap flex-row gap-1 mt-2 items-center cursor-pointer" use:tooltip={CCLicenseData[license][1] + ". The License only applys to the text."} onclick={((e) => {
             e.stopPropagation();
             openURL(`https://creativecommons.org/licenses/${CCLicenseData[license][0]}/4.0/`)
         })}>

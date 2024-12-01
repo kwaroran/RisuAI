@@ -73,7 +73,7 @@
                                     <CheckCircle2Icon size={18}/>
                                 </button>
                             {:else if DBState.db.enabledModules.includes(rmodule.id)}
-                                <button class="mr-2 text-textcolor2 cursor-not-allowed">
+                                <button class="mr-2 text-textcolor2 cursor-not-allowed"aria-labelledby="disabled">
                                 </button>
                             {:else}
                                 <button class={(!DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?

@@ -475,6 +475,7 @@
                 
                 {#if $doingChat || doingChatInputTranslate} 
                     <button
+                        aria-labelledby="cancel"
                         class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" onclick={abortChat}
                         style:height={inputHeight}
                     >

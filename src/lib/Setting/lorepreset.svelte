@@ -32,7 +32,7 @@
                     <span>{lore.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         if(DBState.db.loreBook.length === 1){
                             return
@@ -43,6 +43,10 @@
                             let loreBook = DBState.db.loreBook
                             loreBook.splice(ind, 1)
                             DBState.db.loreBook = loreBook
+                        }
+                    }} onkeydown={(e) => {
+                        if(e.key === 'Enter'){
+                            e.currentTarget.click()
                         }
                     }}>
                         <TrashIcon size={18}/>

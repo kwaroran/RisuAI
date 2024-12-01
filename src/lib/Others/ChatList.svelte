@@ -37,13 +37,15 @@
                     <span>{chat.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <div class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         exportChat(i)
+                    }} onkeydown={() => {
+
                     }}>
                         <DownloadIcon size={18}/>
                     </div>
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         if(DBState.db.characters[$selectedCharID].chats.length === 1){
                             alertError(language.errors.onlyOneChat)
@@ -56,6 +58,8 @@
                             chats.splice(i, 1)
                             DBState.db.characters[$selectedCharID].chats = chats
                         }
+                    }} onkeydown={() => {
+                        
                     }}>
                         <TrashIcon size={18}/>
                     </div>
