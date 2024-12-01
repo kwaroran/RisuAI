@@ -720,7 +720,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 if(achara.type === 'group'){
                     return ""
                 }
-                return achara.personality
+                return risuChatParser(achara.personality, matcherArg)
             }
             case 'description':
             case 'char_desc':{
@@ -729,7 +729,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 if(achara.type === 'group'){
                     return ""
                 }
-                return achara.desc
+                return risuChatParser(achara.desc, matcherArg)
             }
             case 'scenario':{
                 const argChara = chara
@@ -737,7 +737,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 if(achara.type === 'group'){
                     return ""
                 }
-                return achara.scenario
+                return risuChatParser(achara.scenario, matcherArg)
             }
             case 'example_dialogue':
             case 'example_message':{
@@ -746,15 +746,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 if(achara.type === 'group'){
                     return ""
                 }
-                return achara.exampleMessage
+                return risuChatParser(achara.exampleMessage, matcherArg)
             }
             case 'persona':
             case 'user_persona':{
-                return getPersonaPrompt()
+                return risuChatParser(getPersonaPrompt(), matcherArg)
             }
             case 'main_prompt':
             case 'system_prompt':{
-                return db.mainPrompt
+                return risuChatParser(db.mainPrompt, matcherArg)
             }
             case 'lorebook':
             case 'world_info':{
@@ -765,44 +765,47 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 const characterLore = (achara.type === 'group') ? [] : (achara.globalLore ?? [])
                 const chatLore = chat.localLore ?? []
                 const fullLore = characterLore.concat(chatLore.concat(getModuleLorebooks()))
-                return fullLore.map((f) => {
-                    return JSON.stringify(f)
-                }).join("§\n")
+                return makeArray(fullLore.map((v) => {
+                    return JSON.stringify(v)
+                }))
             }
             case 'history':
             case 'messages':{
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.map((f) => {
-                    return f.role + ': ' + f.data
-                }).join("§\n")
+                return makeArray(chat.message.concat([{
+                    role: 'char',
+                    data: chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
+                }]).map((v) => {
+                    v = safeStructuredClone(v)
+                    v.data = risuChatParser(v.data, matcherArg)
+                    return JSON.stringify(v)
+                }))
             }
 
             case 'user_history':
             case 'user_messages':{
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.map((f) => {
-                    if(f.role === 'user'){
-                        return f.data
-                    }
-                    return ''
-                }).filter((f) => {
-                    return f !== ''
-                }).join("§\n")
+                return makeArray(chat.message.filter((v) => {
+                    return v.role === 'user'
+                }).map((v) => {
+                    v = safeStructuredClone(v)
+                    v.data = risuChatParser(v.data, matcherArg)
+                    return JSON.stringify(v)
+                }))
             }
             case 'char_history':
             case 'char_messages':{
                 const selchar = db.characters[get(selectedCharID)]
                 const chat = selchar.chats[selchar.chatPage]
-                return chat.message.map((f) => {
-                    if(f.role === 'char'){
-                        return f.data
-                    }
-                    return ''
-                }).filter((f) => {
-                    return f !== ''
-                }).join("§\n")
+                return makeArray(chat.message.filter((v) => {
+                    return v.role === 'char'
+                }).map((v) => {
+                    v = safeStructuredClone(v)
+                    v.data = risuChatParser(v.data, matcherArg)
+                    return JSON.stringify(v)
+                }))
             }
             case 'ujb':
             case 'global_note':
@@ -1038,9 +1041,9 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 if(!selchar || selchar.type === 'group'){
                     return ''
                 }
-                return selchar.additionalAssets?.map((f) => {
+                return makeArray(selchar.additionalAssets?.map((f) => {
                     return f[0]
-                })?.join('§') ?? ''
+                }))
             }
             case 'prefill_supported':{
                 return db.aiModel.startsWith('claude') ? '1' : '0'
@@ -1286,7 +1289,9 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 }
                 case 'arraypush':
                 case 'array_push':{
-                    return arra[1] + '§' + arra[2]
+                    const arr = parseArray(arra[1])
+                    arr.push(arra[2])
+                    return makeArray(arr)
                 }
                 case 'arraysplice':
                 case 'array_splice':{
@@ -1351,14 +1356,13 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     const start = arr.length > 1 ? Number(arr[0]) : 0
                     const end = arr.length > 1 ? Number(arr[1]) : Number(arr[0])
                     const step = arr.length > 2 ? Number(arr[2]) : 1
-                    let out = ''
+                    let out:string[] = []
+
                     for(let i=start;i<end;i+=step){
-                        out += i.toString()
-                        if(i + step < end){
-                            out += '§'
-                        }
+                        out.push(i.toString())
                     }
-                    return out
+                    
+                    return makeArray(out)
                 }
                 case 'date':
                 case 'time':
