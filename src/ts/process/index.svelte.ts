@@ -1330,6 +1330,22 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         })
     }
 
+    if(DBState.db.notification){
+        try {
+            const permission = await Notification.requestPermission()
+            if(permission === 'granted'){
+                const noti = new Notification('RisuAI', {
+                    body: result
+                })
+                noti.onclick = () => {
+                    window.focus()
+                }
+            }
+        } catch (error) {
+            
+        }
+    }
+
     chatProcessStage.set(4)
 
     peerSync()

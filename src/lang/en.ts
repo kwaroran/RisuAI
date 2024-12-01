@@ -813,4 +813,6 @@ export const languageEnglish = {
     retranslate: "Retranslate",
     loading: "Loading",
     autoTranslateCachedOnly: "Auto Translate Cached Only",
+    notification: "Notification",
+    permissionDenied: "Permission Denied by Your Browser or OS",
 }

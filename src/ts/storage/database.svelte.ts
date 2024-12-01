@@ -848,6 +848,7 @@ export interface Database{
     translateBeforeHTMLFormatting:boolean
     autoTranslateCachedOnly:boolean
     lightningRealmImport:boolean
+    notification: boolean
 }
 
 interface SeparateParameters{
