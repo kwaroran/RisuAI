@@ -2280,7 +2280,7 @@ export function parseChatML(data:string):OpenAIChat[]|null{
 
         return {
             role: role,
-            content: v
+            content: risuChatParser(v)
         }
     })
 }
