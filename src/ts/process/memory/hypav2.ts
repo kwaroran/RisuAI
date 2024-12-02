@@ -154,9 +154,8 @@ function cleanInvalidChunks(
             (chunk) => chunk.chatRange[1] < editedChatIndex
         );
     } else {
-        // Build a set of current chat memo IDs
+        // Confirmed that chat.memo is indeed unique uuid
         const currentChatIds = new Set(chats.map((chat) => chat.memo));
-        console.log("OpenAI Chat IDs? ", currentChatIds)
 
         // 존재하지 않는 챗의 요약본 삭제
         data.mainChunks = data.mainChunks.filter((chunk) => {
@@ -164,6 +163,7 @@ function cleanInvalidChunks(
             // Check if all chats in the range exist
             for (let i = startIdx; i <= endIdx; i++) {
                 if (!currentChatIds.has(chats[i]?.memo)) {
+                    console.log(`Removing this mainChunk(summary) due to chat context change: ${chunk}`);
                     return false; // false로 filtering
                 }
             }
@@ -176,6 +176,7 @@ function cleanInvalidChunks(
             // 생성된 chunks는 더이상 mainChunks와 연결되지 않음. 따라서 같은 작업을 진행해야 한다.
             for (let i = startIdx; i <= endIdx; i++) {
                 if (!currentChatIds.has(chats[i]?.memo)) {
+                    console.log(`Removing this chunk(split) due to chat context change: ${chunk}`);
                     return false;
                 }
             }
