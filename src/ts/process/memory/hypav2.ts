@@ -156,27 +156,33 @@ function cleanInvalidChunks(
     } else {
         // Build a set of current chat memo IDs
         const currentChatIds = new Set(chats.map((chat) => chat.memo));
+        console.log("OpenAI Chat IDs? ", currentChatIds)
 
-        // Filter mainChunks
+        // 존재하지 않는 챗의 요약본 삭제
         data.mainChunks = data.mainChunks.filter((chunk) => {
-            // Check if all chat memos in the range exist
             const [startIdx, endIdx] = chunk.chatRange;
+            // Check if all chats in the range exist
             for (let i = startIdx; i <= endIdx; i++) {
                 if (!currentChatIds.has(chats[i]?.memo)) {
-                    return false; // Chat no longer exists, remove this mainChunk
+                    return false; // false로 filtering
                 }
             }
             return true;
         });
 
-        // Similarly for chunks
-        data.chunks = data.chunks.filter(() => {
-            // Since chunks are associated with mainChunks, they have been filtered already
+        // 같은거, 근데 이건 쪼개진 chunk들에 대하여 수행
+        data.chunks = data.chunks.filter((chunk) => {
+            const [startIdx, endIdx] = chunk.chatRange;
+            // 생성된 chunks는 더이상 mainChunks와 연결되지 않음. 따라서 같은 작업을 진행해야 한다.
+            for (let i = startIdx; i <= endIdx; i++) {
+                if (!currentChatIds.has(chats[i]?.memo)) {
+                    return false;
+                }
+            }
             return true;
         });
     }
 }
-
 export async function hypaMemoryV2(
     chats: OpenAIChat[],
     currentTokens: number,
