@@ -184,6 +184,16 @@ function cleanInvalidChunks(
         });
     }
 }
+export async function regenerateSummary(
+    chats: OpenAIChat[],
+    data: HypaV2Data,
+    mainChunkIndex: number
+) : Promise<void> {
+// Should re-summarize a certain main chunk, based on index. It will then replace the original one. How much chat needs to be summarized is already defined in the mainChunk's chatRange field.
+    // After the update on mainChunks, it should also update chunks that have the same ChatRange, as they should be updated with the newly generated summary. Follow the same principles of splitting them.
+
+
+}
 export async function hypaMemoryV2(
     chats: OpenAIChat[],
     currentTokens: number,
