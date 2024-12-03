@@ -1643,7 +1643,7 @@ export async function downloadRisuHub(id:string, arg:{
                 msg: "Downloading..."
             })
         }
-        const res = await fetch("https://realm.risuai.net/api/v1/download/png-v3/" + id + '?cors=true', {
+        const res = await fetch("https://realm.risuai.net/api/v1/download/dynamic/" + id + '?cors=true', {
             headers: {
                 "x-risu-api-version": "4"
             }
@@ -1653,13 +1653,23 @@ export async function downloadRisuHub(id:string, arg:{
             return
         }
 
-        if(res.headers.get('content-type') === 'image/png'){
+        if(res.headers.get('content-type') === 'image/png' || res.headers.get('content-type') === 'application/zip'){
             let db = getDatabase()
-            await importCharacterProcess({
-                name: 'realm.png',
-                data: res.body,
-                lightningRealmImport: db.lightningRealmImport
-            })
+            if(res.headers.get('content-type') === 'application/zip'){
+                console.log('zip')
+                await importCharacterProcess({
+                    name: 'realm.charx',
+                    data: new Uint8Array(await res.arrayBuffer()),
+                    lightningRealmImport: db.lightningRealmImport,
+                })
+            }
+            else{
+                await importCharacterProcess({
+                    name: 'realm.png',
+                    data: res.body,
+                    lightningRealmImport: db.lightningRealmImport,
+                })
+            }
             checkCharOrder()
             db = getDatabase()
             if(db.characters[db.characters.length-1] && (db.goCharacterOnImport || arg.forceRedirect)){
