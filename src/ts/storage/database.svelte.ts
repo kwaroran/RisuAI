@@ -459,6 +459,8 @@ export function setDatabase(data:Database){
         translate: {},
         otherAx: {}
     }
+    data.customFlags ??= []
+    data.enableCustomFlags ??= false
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -849,6 +851,8 @@ export interface Database{
     autoTranslateCachedOnly:boolean
     lightningRealmImport:boolean
     notification: boolean
+    customFlags: LLMFlags[]
+    enableCustomFlags: boolean
 }
 
 interface SeparateParameters{
@@ -1168,6 +1172,8 @@ export interface botPreset{
     systemContentReplacement?: string
     systemRoleReplacement?: 'user'|'assistant'
     openAIPrediction?: string
+    enableCustomFlags?: boolean
+    customFlags?: LLMFlags[]
 }
 
 
@@ -1466,6 +1472,8 @@ export function saveCurrentPreset(){
         customAPIFormat: safeStructuredClone(db.customAPIFormat),
         systemContentReplacement: db.systemContentReplacement,
         systemRoleReplacement: db.systemRoleReplacement,
+        customFlags: safeStructuredClone(db.customFlags),
+        enableCustomFlags: db.enableCustomFlags,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1571,6 +1579,8 @@ export function setPreset(db:Database, newPres: botPreset){
     db.customAPIFormat = safeStructuredClone(newPres.customAPIFormat) ?? LLMFormat.OpenAICompatible
     db.systemContentReplacement = newPres.systemContentReplacement ?? ''
     db.systemRoleReplacement = newPres.systemRoleReplacement ?? 'user'
+    db.customFlags = safeStructuredClone(newPres.customFlags) ?? []
+    db.enableCustomFlags = newPres.enableCustomFlags ?? false
     return db
 }
 
@@ -1581,7 +1591,7 @@ import type { RisuModule } from '../process/modules';
 import type { HypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
-import { LLMFormat } from '../model/modellist';
+import { LLMFlags, LLMFormat } from '../model/modellist';
 import type { Parameter } from '../process/request';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){

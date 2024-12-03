@@ -815,4 +815,6 @@ export const languageEnglish = {
     autoTranslateCachedOnly: "Auto Translate Cached Only",
     notification: "Notification",
     permissionDenied: "Permission Denied by Your Browser or OS",
+    customFlags: "Custom Flags",
+    enableCustomFlags: "Enable Custom Flags",
 }
