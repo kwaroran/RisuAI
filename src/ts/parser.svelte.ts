@@ -1760,16 +1760,19 @@ function trimLines(p1:string){
 }
 
 function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherArg:matcherArg):string{
+    const p1Trimed = p1.trim() 
     switch(type.type){
         case 'pure':
-        case 'parse-pure':
         case 'pure-display':
         case 'function':{
-            return p1
+            return p1Trimed
         }
         case 'parse':
         case 'each':{
-            return trimLines(p1)
+            return trimLines(p1Trimed)
+        }
+        case 'parse-pure':{
+            return p1
         }
         default:{
             return ''
@@ -1952,7 +1955,7 @@ export function risuChatParser(da:string, arg:{
                         }
                         blockNestType.delete(nested.length)
                         const dat2 = nested.shift()
-                        const matchResult = blockEndMatcher(dat2.trim(), blockType, matcherObj)
+                        const matchResult = blockEndMatcher(dat2, blockType, matcherObj)
                         if(blockType.type === 'each'){
                             const subind = blockType.type2.lastIndexOf(' ')
                             const sub = blockType.type2.substring(subind + 1)
