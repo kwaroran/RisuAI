@@ -87,7 +87,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
 
         let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
 
-        const promptbody: OpenAIChat[] = parsedPrompt ?? [
+        const promptbody: OpenAIChat[] = (parsedPrompt ?? [
             {
                 role: "user",
                 content: stringlizedChat
@@ -96,7 +96,10 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
                 role: "system",
                 content: supaPrompt
             }
-        ];
+        ]).map(message => ({
+            ...message,
+            memo: "supaPrompt"
+        }));
         console.log("Using submodel: ", db.subModel, "for supaMemory model");
         const da = await requestChatData({
             formated: promptbody,
