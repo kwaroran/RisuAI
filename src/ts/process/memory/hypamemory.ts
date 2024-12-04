@@ -1,8 +1,7 @@
 import localforage from "localforage";
-import { globalFetch } from "src/ts/globalApi.svelte";
-import { runEmbedding } from "../transformers";
-import { alertError } from "src/ts/alert";
-import { appendLastPath } from "src/ts/util";
+import {globalFetch} from "src/ts/globalApi.svelte";
+import {runEmbedding} from "../transformers";
+import {appendLastPath} from "src/ts/util";
 
 
 export class HypaProcesser{
@@ -139,8 +138,7 @@ export class HypaProcesser{
     }
 
     async similaritySearchScored(query: string) {
-        const results = await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
-        return results
+        return await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],)
     }
 
     private async similaritySearchVectorWithScore(

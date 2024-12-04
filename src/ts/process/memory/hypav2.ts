@@ -13,15 +13,15 @@ import { runSummarizer } from "../transformers";
 import { parseChatML } from "src/ts/parser.svelte";
 
 export interface HypaV2Data {
-    chunks: {
+    lastMainChunkId: number; // can be removed, but exists to more readability of the code.
+    mainChunks: { // summary itself
+        id: number;
         text: string;
-        targetId: string;
-        chatRange: [number, number]; // Start and end indices of chats summarized
+        chatMemos: Set<string>; // UUIDs of summarized chats
     }[];
-    mainChunks: {
-        text: string;
-        targetId: string;
-        chatRange: [number, number]; // Start and end indices of chats summarized
+    chunks: { // split mainChunks for retrieval or something. Although quite uncomfortable logic, so maybe I will delete it soon or later.
+        mainChunkID: number;
+        text:string;
     }[];
 }
 
@@ -138,61 +138,42 @@ async function summary(
         result = da.result;
     }
     return { success: true, data: result };
+} // No, I am not going to touch any http API calls.
+
+function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean { // simple helper function. Check if subset IS a subset of superset given.
+    for (const item of subset) {
+        if (!superset.has(item)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function cleanInvalidChunks(
     chats: OpenAIChat[],
     data: HypaV2Data,
-    editedChatIndex?: number
 ): void {
-    // If editedChatIndex is provided, remove chunks and mainChunks that summarize chats from that index onwards
-    if (editedChatIndex !== undefined) {
-        data.mainChunks = data.mainChunks.filter(
-            (chunk) => chunk.chatRange[1] < editedChatIndex
-        );
-        data.chunks = data.chunks.filter(
-            (chunk) => chunk.chatRange[1] < editedChatIndex
-        );
-    } else {
-        // Confirmed that chat.memo is indeed unique uuid
-        const currentChatIds = new Set(chats.map((chat) => chat.memo));
+    const currentChatMemos = new Set(chats.map((chat) => chat.memo)); // if chunk's memo set is not subset of this, the chunk's content -> delete
 
-        // 존재하지 않는 챗의 요약본 삭제
-        data.mainChunks = data.mainChunks.filter((chunk) => {
-            const [startIdx, endIdx] = chunk.chatRange;
-            // Check if all chats in the range exist
-            for (let i = startIdx; i <= endIdx; i++) {
-                if (!currentChatIds.has(chats[i]?.memo)) {
-                    console.log(`Removing this mainChunk(summary) due to chat context change: ${chunk}`);
-                    return false; // false로 filtering
-                }
-            }
-            return true;
-        });
+    // mainChunks filtering
+    data.mainChunks = data.mainChunks.filter((mainChunk) => {
+        return isSubset(mainChunk.chatMemos, currentChatMemos);
+    });
+    // chunk filtering based on mainChunk's id
+    const validMainChunkIds = new Set(data.mainChunks.map((mainChunk) => mainChunk.id));
+    data.chunks = data.chunks.filter((chunk) =>
+        validMainChunkIds.has(chunk.mainChunkID)
+    );
+    data.lastMainChunkId = data.mainChunks[-1].id; // Quite literally the definition of lastMainChunkId. Didn't use .length, since middle chat context can be partially deleted.
 
-        // 같은거, 근데 이건 쪼개진 chunk들에 대하여 수행
-        data.chunks = data.chunks.filter((chunk) => {
-            const [startIdx, endIdx] = chunk.chatRange;
-            // 생성된 chunks는 더이상 mainChunks와 연결되지 않음. 따라서 같은 작업을 진행해야 한다.
-            for (let i = startIdx; i <= endIdx; i++) {
-                if (!currentChatIds.has(chats[i]?.memo)) {
-                    console.log(`Removing this chunk(split) due to chat context change: ${chunk}`);
-                    return false;
-                }
-            }
-            return true;
-        });
-    }
 }
 export async function regenerateSummary(
     chats: OpenAIChat[],
     data: HypaV2Data,
     mainChunkIndex: number
 ) : Promise<void> {
-// Should re-summarize a certain main chunk, based on index. It will then replace the original one. How much chat needs to be summarized is already defined in the mainChunk's chatRange field.
-    // After the update on mainChunks, it should also update chunks that have the same ChatRange, as they should be updated with the newly generated summary. Follow the same principles of splitting them.
-
-
+    const targetMainChunk = data.mainChunks[mainChunkIndex];
+    
 }
 export async function hypaMemoryV2(
     chats: OpenAIChat[],
@@ -200,8 +181,7 @@ export async function hypaMemoryV2(
     maxContextTokens: number,
     room: Chat,
     char: character | groupChat,
-    tokenizer: ChatTokenizer,
-    editedChatIndex?: number
+    tokenizer: ChatTokenizer
 ): Promise<{
     currentTokens: number;
     chats: OpenAIChat[];
@@ -209,51 +189,48 @@ export async function hypaMemoryV2(
     memory?: HypaV2Data;
 }> {
     const db = getDatabase();
-    const data: HypaV2Data = room.hypaV2Data ?? { chunks: [], mainChunks: [] };
+    const data: HypaV2Data = room.hypaV2Data ?? {
+        lastMainChunkId: 0,
+        chunks: [],
+        mainChunks: []
+    };
 
-    // Clean invalid chunks based on the edited chat index
-    cleanInvalidChunks(chats, data, editedChatIndex);
+    // Clean invalid HypaV2 data
+    cleanInvalidChunks(chats, data);
 
     let allocatedTokens = db.hypaAllocatedTokens;
     let chunkSize = db.hypaChunkSize;
-    currentTokens += allocatedTokens + 50;
+    currentTokens += allocatedTokens + chats.length * 4; // ChatML token counting from official openai documentation
     let mainPrompt = "";
     const lastTwoChats = chats.slice(-2);
-    // Error handling for infinite summarization attempts
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
-    const summarizedIndices = new Set<number>();
+    const summarizedMemos = new Set<string>();
 
     // Token management loop
     while (currentTokens >= maxContextTokens) {
         let idx = 0;
-        let targetId = "";
         const halfData: OpenAIChat[] = [];
-
         let halfDataTokens = 0;
-        let startIdx = -1;
 
-        // Find the next batch of chats to summarize
+        // Accumulate chats to summarize
         while (
             halfDataTokens < chunkSize &&
             idx < chats.length - 2 // Ensure latest two chats are not added to summarization.
             ) {
-            if (!summarizedIndices.has(idx)) {
-                const chat = chats[idx];
-                if (startIdx === -1) startIdx = idx;
+            const chat = chats[idx];
+            if (!summarizedMemos.has(chat.memo)) {
                 halfDataTokens += await tokenizer.tokenizeChat(chat);
                 halfData.push(chat);
-                targetId = chat.memo;
             }
             idx++;
         }
+        // End index gone due to using UUID sets
+        // Last two chats must not be summarized, else request will be broken
 
-        const endIdx = idx - 1; // End index of the chats being summarized
-
-        // Avoid summarizing the last two chats
         if (halfData.length < 3) break;
 
-        const stringlizedChat = halfData
+        const stringlizedChat = halfData // please change this name to something else
             .map((e) => `${e.role}: ${e.content}`)
             .join("\n");
         const summaryData = await summary(stringlizedChat);
@@ -281,10 +258,15 @@ export async function hypaMemoryV2(
         currentTokens -= halfDataTokens;
         allocatedTokens -= summaryDataToken;
 
-        data.mainChunks.unshift({
+        // lastMainChunkId updating(increment)
+        data.lastMainChunkId++;
+        const newMainChunkId = data.lastMainChunkId;
+
+        const chatMemos = new Set(halfData.map((chat) => chat.memo));
+        data.mainChunks.push({
+            id: newMainChunkId,
             text: summaryData.data,
-            targetId: targetId,
-            chatRange: [startIdx, endIdx],
+            chatMemos: chatMemos,
         });
 
         // Split the summary into chunks based on double line breaks
@@ -296,15 +278,14 @@ export async function hypaMemoryV2(
         // Update chunks with the new summary
         data.chunks.push(
             ...splitted.map((e) => ({
+                mainChunkID: newMainChunkId,
                 text: e,
-                targetId: targetId,
-                chatRange: [startIdx, endIdx] as [number, number],
             }))
         );
 
         // Mark the chats as summarized
-        for (let i = startIdx; i <= endIdx; i++) {
-            summarizedIndices.add(i);
+        for (const memo of chatMemos) {
+            summarizedMemos.add(memo);
         }
     }
 
@@ -325,15 +306,18 @@ export async function hypaMemoryV2(
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
 
+    const searchDocumentPrefix = "search_document: ";
+    const prefixLength = searchDocumentPrefix.length;
+
     // Add chunks to processor for similarity search
     await processor.addText(
         data.chunks
             .filter((v) => v.text.trim().length > 0)
-            .map((v) => "search_document: " + v.text.trim())
+            .map((v) => searchDocumentPrefix + v.text.trim()) // sometimes this should not be used at all. RisuAI does not support embedding model that this is meaningful, isn't it?
     );
 
     let scoredResults: { [key: string]: number } = {};
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) { // Should parameterize this, fixed length 3 is a magic number without explanation
         const pop = chats[chats.length - i - 1];
         if (!pop) break;
         const searched = await processor.similaritySearchScored(
@@ -355,16 +339,17 @@ export async function hypaMemoryV2(
         scoredArray.length > 0
         ) {
         const [text] = scoredArray.shift();
+        const content = text.substring(prefixLength);
         const tokenized = await tokenizer.tokenizeChat({
             role: "system",
-            content: text.substring(14),
+            content: content,
         });
         if (
             tokenized >
             allocatedTokens - mainPromptTokens - chunkResultTokens
         )
             break;
-        chunkResultPrompts += text.substring(14) + "\n\n";
+        chunkResultPrompts += content + "\n\n";
         chunkResultTokens += tokenized;
     }
 
@@ -372,7 +357,7 @@ export async function hypaMemoryV2(
 
     // Filter out summarized chats
     const unsummarizedChats = chats.filter(
-        (_, idx) => !summarizedIndices.has(idx)
+        (chat) => !summarizedMemos.has(chat.memo)
     );
 
     // Insert the memory system prompt at the beginning
