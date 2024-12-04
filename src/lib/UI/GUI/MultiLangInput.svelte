@@ -10,7 +10,12 @@
     }
 
     let { value = $bindable(), className = "", onInput = () => {} }: Props = $props();
-    let valueObject: {[code:string]:string} = $state(parseMultilangString(value))
+    let parsed = parseMultilangString(value)
+    if(parsed["en"] === undefined){
+        parsed["en"] = parsed["xx"]
+        delete parsed["xx"]
+    }
+    let valueObject: {[code:string]:string} = $state(parsed)
     const updateValue = () => {
         for(let lang in valueObject){
             if(valueObject[lang] === "" && lang !== selectedLang && lang!=="en" ){
@@ -26,11 +31,7 @@
         valueObject = valueObject // force update
         value = encodeMultilangString(valueObject)
     }
-    if(valueObject["en"] === undefined){
-        valueObject["en"] = valueObject["xx"]
-        delete valueObject["xx"]
-        updateValue()
-    }
+    updateValue()
     $effect.pre(() => {
         valueObject = parseMultilangString(value)
     });

@@ -3,7 +3,7 @@
         <!-- Image -->
         <img class="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300 ease-in-out" 
              src="your-image-url.jpg" 
-             alt="Card Image">
+             alt="Card">
         <!-- Optional overlay gradient -->
         <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent"></div>
     </div>

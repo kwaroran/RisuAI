@@ -77,6 +77,8 @@
             handleKeyDown(e)
             onInput()
         }}
+        role="textbox"
+        tabindex="0"
         oninput={(e) => {
             autoComplete()
         }}

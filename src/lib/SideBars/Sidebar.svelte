@@ -352,7 +352,7 @@
     {/if}
   </div>
   <div class="flex flex-grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
-    <div class="h-4 min-h-4 w-14" ondragover={(e) => {
+    <div class="h-4 min-h-4 w-14" role="listitem" ondragover={(e) => {
       e.preventDefault()
       e.dataTransfer.dropEffect = 'move'
       e.currentTarget.classList.add('bg-green-500')
@@ -368,6 +368,7 @@
     }} ondragenter={preventAll}></div>
     {#each charImages as char, ind}
       <div class="group relative flex items-center px-2"
+        role="listitem"
         draggable="true"
         ondragstart={(e) => {avatarDragStart({index:ind}, e)}}
         ondragover={avatarDragOver}
@@ -379,6 +380,7 @@
         />
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
+            role="button" tabindex="0"
             onclick={() => {
               if(char.type === "normal"){
                 changeChar(char.index, {reseter});
@@ -391,7 +393,6 @@
                 }
               }
             }}
-            tabindex="0"
           >
           {#if char.type === 'normal'}
             <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char.name} />
@@ -463,7 +464,7 @@
           class:bg-indigo-700={char.color === 'indigo'}
           class:bg-purple-700={char.color === 'purple'}
           class:bg-pink-700={char.color === 'pink'}></div>
-          <div class="h-4 min-h-4 w-14 relative z-10" ondragover={(e) => {
+          <div class="h-4 min-h-4 w-14 relative z-10" role="listitem" ondragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'
             e.currentTarget.classList.add('bg-green-500')
@@ -479,6 +480,7 @@
           }} ondragenter={preventAll}></div>
           {#each char.folder as char2, ind}
               <div class="group relative flex items-center px-2 z-10"
+              role="listitem"
               draggable="true"
               ondragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
               ondragover={avatarDragOver}
@@ -490,6 +492,7 @@
               />
               <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
               <div
+                  role="button" tabindex="0"
                   onclick={() => {
                     if(char2.type === "normal"){
                       changeChar(char2.index, {reseter});
@@ -502,12 +505,11 @@
                       }
                     }
                   }}
-                  tabindex="0"
                 >
                 <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char2.name}/>
               </div>
             </div>
-            <div class="h-4 min-h-4 w-14 relative z-20" ondragover={(e) => {
+            <div class="h-4 min-h-4 w-14 relative z-20" role="listitem" ondragover={(e) => {
               e.preventDefault()
               e.dataTransfer.dropEffect = 'move'
               e.currentTarget.classList.add('bg-green-500')
@@ -525,7 +527,7 @@
         </div>
         {/key}
       {/if}
-      <div class="h-4 min-h-4 w-14" ondragover={((e) => {
+      <div class="h-4 min-h-4 w-14" role="listitem" ondragover={((e) => {
         e.preventDefault()
         e.dataTransfer.dropEffect = 'move'
         e.currentTarget.classList.add('bg-green-500')
@@ -648,12 +650,17 @@
 </div>
 
 {#if $DynamicGUI}
-    <div class="flex-grow h-full min-w-12" class:hidden={hidden} onclick={() => {
+    <div role="button" tabindex="0" class="flex-grow h-full min-w-12" class:hidden={hidden} onclick={() => {
       if($sideBarClosing){
         return
       }
       $sideBarClosing = true;
     }}
+      onkeydown={(e)=>{
+        if(e.key === 'Enter'){
+            e.currentTarget.click()
+        }
+      }}
       class:sidebar-dark-animation={!$sideBarClosing}
       class:sidebar-dark-close-animation={$sideBarClosing}>
 

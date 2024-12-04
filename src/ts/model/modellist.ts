@@ -1,4 +1,5 @@
 import type { Parameter } from "../process/request"
+import { getDatabase } from "../storage/database.svelte"
 
 export enum LLMFlags{
     hasImageInput,
@@ -979,11 +980,16 @@ for(let model of LLMModels){
 
 export function getModelInfo(id: string): LLMModel{
 
-    const found:LLMModel = LLMModels.find(model => model.id === id)
+    const db = getDatabase()
+    const found:LLMModel = safeStructuredClone(LLMModels.find(model => model.id === id))
+    
+    if(found){
+        if(db.enableCustomFlags){
+            found.flags = db.customFlags
+        }
 
-    console.log('found', found)
-
-    if(found) return found
+        return found
+    }
 
     if(id.startsWith('hf:::')){
         const withoutPrefix = id.replace('hf:::', '')

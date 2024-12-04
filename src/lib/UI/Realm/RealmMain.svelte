@@ -163,7 +163,7 @@
 
 {#if menuOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" onclick={() => {
+    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" role="button" tabindex="0" onclick={() => {
         menuOpen = false
     }}>
         <div class="max-w-full bg-darkbg rounded-md flex flex-col gap-4 overflow-y-auto p-4">

@@ -596,6 +596,38 @@
             }}/>
         {/if}
     </Arcodion>
+
+    {#snippet CustomFlagButton(name:string,flag:number)}
+        <Button className="mt-2" onclick={(e) => {
+            if(DBState.db.customFlags.includes(flag)){
+                DBState.db.customFlags = DBState.db.customFlags.filter((f) => f !== flag)
+            }
+            else{
+                DBState.db.customFlags.push(flag)
+            }
+        }} styled={DBState.db.customFlags.includes(flag) ? 'primary' : 'outlined'}>
+            {name}
+        </Button>
+    {/snippet}
+
+    <Arcodion styled name={language.customFlags}>
+        <Check bind:check={DBState.db.enableCustomFlags} name={language.enableCustomFlags}/>
+
+
+        {#if DBState.db.enableCustomFlags}
+            {@render CustomFlagButton('hasImageInput', 0)}
+            {@render CustomFlagButton('hasImageOutput', 1)}
+            {@render CustomFlagButton('hasAudioInput', 2)}
+            {@render CustomFlagButton('hasAudioOutput', 3)}
+            {@render CustomFlagButton('hasPrefill', 4)}
+            {@render CustomFlagButton('hasCache', 5)}
+            {@render CustomFlagButton('hasFullSystemPrompt', 6)}
+            {@render CustomFlagButton('hasFirstSystemPrompt', 7)}
+            {@render CustomFlagButton('hasStreaming', 8)}
+            {@render CustomFlagButton('requiresAlternateRole', 9)}
+            {@render CustomFlagButton('mustStartWithUserInput', 10)}
+        {/if}
+    </Arcodion>
     
     <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
         <TextAreaInput bind:value={DBState.db.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>

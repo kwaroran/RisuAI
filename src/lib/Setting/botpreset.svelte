@@ -43,13 +43,17 @@
                     <span>{presets.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" onclick={(e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
                         e.stopPropagation()
                         copyPreset(i)
+                    }} onkeydown={(e) => {
+                        if(e.key === 'Enter'){
+                            e.currentTarget.click()
+                        }
                     }}>
                         <CopyIcon size={18}/>
                     </div>
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" onclick={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         const data = await alertCardExport('preset')
                         console.log(data.type)
@@ -59,11 +63,15 @@
                         if(data.type === 'realm'){
                             $ShowRealmFrameStore = `preset:${i}`
                         }
+                    }} onkeydown={(e) => {
+                        if(e.key === 'Enter'){
+                            e.currentTarget.click()
+                        }
                     }}>
 
                         <Share2Icon size={18} />
                     </div>
-                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
+                    <div class="text-textcolor2 hover:text-green-500 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         if(DBState.db.botPresets.length === 1){
                             alertError(language.errors.onlyOneChat)
@@ -76,6 +84,10 @@
                             botPresets.splice(i, 1)
                             DBState.db.botPresets = botPresets
                             changeToPreset(0, false)
+                        }
+                    }} onkeydown={(e) => {
+                        if(e.key === 'Enter'){
+                            e.currentTarget.click()
                         }
                     }}>
                         <TrashIcon size={18}/>

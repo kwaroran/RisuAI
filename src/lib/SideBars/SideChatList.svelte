@@ -104,7 +104,11 @@
                 <span>{chat.name}</span>
             {/if}
             <div class="flex-grow flex justify-end">
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async () => {
+                <div role="button" tabindex="0" onkeydown={(e) => {
+                    if(e.key === 'Enter'){
+                        e.currentTarget.click()
+                    }
+                }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async () => {
                     const option = await alertChatOptions()
                     switch(option){
                         case 0:{
@@ -145,18 +149,30 @@
                 }}>
                     <MenuIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
+                <div role="button" tabindex="0" onkeydown={(e) => {
+                    if(e.key === 'Enter'){
+                        e.currentTarget.click()
+                    }
+                }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
                     editMode = !editMode
                 }}>
                     <PencilIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
+                <div role="button" tabindex="0" onkeydown={(e) => {
+                    if(e.key === 'Enter'){
+                        e.currentTarget.click()
+                    }
+                }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                     e.stopPropagation()
                     exportChat(i)
                 }}>
                     <DownloadIcon size={18}/>
                 </div>
-                <div class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
+                <div role="button" tabindex="0" onkeydown={(e) => {
+                    if(e.key === 'Enter'){
+                        e.currentTarget.click()
+                    }
+                }} class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                     e.stopPropagation()
                     if(chara.chats.length === 1){
                         alertError(language.errors.onlyOneChat)

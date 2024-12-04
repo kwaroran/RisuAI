@@ -23,9 +23,7 @@
 <div class="flex-grow h-full min-w-0 relative justify-center flex">
     <SideBarArrow />
     <BackgroundDom />
-    <div style={wallPaper} class="h-full w-full bg-cover" onclick={() => {
-        forceRender()
-    }}>
+    <div style={wallPaper} class="h-full w-full bg-cover">
         <VisualNovelChat />
     </div>
 </div>

@@ -87,7 +87,7 @@
 <div class="box bg-darkbg bg-opacity-70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;">
     <!-- Your content here -->
     <TransitionImage classType='risu' src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
-    <div
+    <div role="button" tabindex="0"
       class="resize-handle"
       onmousedown={handleStart}
       onmouseup={handleEnd}
