@@ -87,7 +87,7 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
 
         let parsedPrompt = parseChatML(supaPrompt.replaceAll('{{slot}}', stringlizedChat))
 
-        const promptbody: OpenAIChat[] = parsedPrompt ?? [
+        const promptbody: OpenAIChat[] = (parsedPrompt ?? [
             {
                 role: "user",
                 content: stringlizedChat
@@ -96,7 +96,10 @@ async function summary(stringlizedChat: string): Promise<{ success: boolean; dat
                 role: "system",
                 content: supaPrompt
             }
-        ];
+        ]).map(message => ({
+            ...message,
+            memo: "supaPrompt"
+        }));
         console.log("Using submodel: ", db.subModel, "for supaMemory model");
         const da = await requestChatData({
             formated: promptbody,
@@ -230,6 +233,7 @@ export async function hypaMemoryV2(
     }
 
     // Fetch additional memory from chunks
+    const searchDocumentPrefix = "search_document: ";
     const processor = new HypaProcesser(db.hypaModel);
     processor.oaikey = db.supaMemoryKey;
 
@@ -249,7 +253,7 @@ export async function hypaMemoryV2(
     console.log("Older Chunks:", olderChunks);
 
     // Add older chunks to processor for similarity search
-    await processor.addText(olderChunks.filter(v => v.text.trim().length > 0).map(v => "search_document: " + v.text.trim()));
+    await processor.addText(olderChunks.filter(v => v.text.trim().length > 0).map(v => searchDocumentPrefix + v.text.trim()));
 
     let scoredResults: { [key: string]: number } = {};
     for (let i = 0; i < 3; i++) {
@@ -267,9 +271,10 @@ export async function hypaMemoryV2(
     let chunkResultTokens = 0;
     while (allocatedTokens - mainPromptTokens - chunkResultTokens > 0 && scoredArray.length > 0) {
         const [text] = scoredArray.shift();
-        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: text.substring(14) });
+        const tokenized = await tokenizer.tokenizeChat({ role: 'system', content: text.substring(searchDocumentPrefix.length) });
         if (tokenized > allocatedTokens - mainPromptTokens - chunkResultTokens) break;
-        chunkResultPrompts += text.substring(14) + '\n\n';
+        // Ensure strings are truncated correctly using searchDocumentPrefix.length
+        chunkResultPrompts += text.substring(searchDocumentPrefix.length) + '\n\n';
         chunkResultTokens += tokenized;
     }
 
