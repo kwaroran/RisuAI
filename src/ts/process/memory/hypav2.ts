@@ -18,6 +18,7 @@ export interface HypaV2Data {
         id: number;
         text: string;
         chatMemos: Set<string>; // UUIDs of summarized chats
+        lastChatMemo: string;
     }[];
     chunks: { // split mainChunks for retrieval or something. Although quite uncomfortable logic, so maybe I will delete it soon or later.
         mainChunkID: number;
@@ -205,11 +206,21 @@ export async function hypaMemoryV2(
     const lastTwoChats = chats.slice(-2);
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
-    const summarizedMemos = new Set<string>();
+    
+    // Find the index to start summarizing from
+    let idx = 0;
+    if (data.mainChunks.length > 0) {
+        const lastMainChunk = data.mainChunks[data.mainChunks.length - 1];
+        const lastChatMemo = lastMainChunk.lastChatMemo;
+        const lastChatIndex = chats.findIndex(chat => chat.memo === lastChatMemo);
+        if (lastChatIndex !== -1) {
+            idx = lastChatIndex + 1;
+        }
+    } 
+    // Starting chat index of new mainChunk to be generated
 
-    // Token management loop
+    // Token management loop(where using of )
     while (currentTokens >= maxContextTokens) {
-        let idx = 0;
         const halfData: OpenAIChat[] = [];
         let halfDataTokens = 0;
 
@@ -217,20 +228,16 @@ export async function hypaMemoryV2(
         while (
             halfDataTokens < chunkSize &&
             idx < chats.length - 2 // Ensure latest two chats are not added to summarization.
-            ) {
+        ) {
             const chat = chats[idx];
-            if (!summarizedMemos.has(chat.memo)) {
-                halfDataTokens += await tokenizer.tokenizeChat(chat);
-                halfData.push(chat);
-            }
             idx++;
+            halfDataTokens += await tokenizer.tokenizeChat(chat);
+            halfData.push(chat);
         }
-        // End index gone due to using UUID sets
-        // Last two chats must not be summarized, else request will be broken
 
-        if (halfData.length < 3) break;
+        if (halfData.length === 0) break;
 
-        const stringlizedChat = halfData // please change this name to something else
+        const stringlizedChat = halfData
             .map((e) => `${e.role}: ${e.content}`)
             .join("\n");
         const summaryData = await summary(stringlizedChat);
@@ -258,18 +265,21 @@ export async function hypaMemoryV2(
         currentTokens -= halfDataTokens;
         allocatedTokens -= summaryDataToken;
 
-        // lastMainChunkId updating(increment)
+        // Update lastMainChunkId and create a new mainChunk
         data.lastMainChunkId++;
         const newMainChunkId = data.lastMainChunkId;
 
         const chatMemos = new Set(halfData.map((chat) => chat.memo));
+        const lastChatMemo = halfData[halfData.length - 1].memo;
+
         data.mainChunks.push({
             id: newMainChunkId,
             text: summaryData.data,
             chatMemos: chatMemos,
+            lastChatMemo: lastChatMemo,
         });
 
-        // Split the summary into chunks based on double line breaks
+        // Split the summary into chunks
         const splitted = summaryData.data
             .split("\n\n")
             .map((e) => e.trim())
@@ -282,11 +292,6 @@ export async function hypaMemoryV2(
                 text: e,
             }))
         );
-
-        // Mark the chats as summarized
-        for (const memo of chatMemos) {
-            summarizedMemos.add(memo);
-        }
     }
 
     // Construct the mainPrompt from mainChunks
@@ -356,9 +361,7 @@ export async function hypaMemoryV2(
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
 
     // Filter out summarized chats
-    const unsummarizedChats = chats.filter(
-        (chat) => !summarizedMemos.has(chat.memo)
-    );
+    const unsummarizedChats = chats.slice(idx);
 
     // Insert the memory system prompt at the beginning
     unsummarizedChats.unshift({
@@ -367,9 +370,6 @@ export async function hypaMemoryV2(
         memo: "supaMemory",
     });
 
-    // Add the last two chats back if they were removed
-    const lastTwoChatsSet = new Set(lastTwoChats.map((chat) => chat.memo));
-    console.log(lastTwoChatsSet) // Not so sure if chat.memo is unique id.
     for (const chat of lastTwoChats) {
         if (!unsummarizedChats.find((c) => c.memo === chat.memo)) {
             unsummarizedChats.push(chat);
