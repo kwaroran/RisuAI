@@ -160,14 +160,20 @@ function cleanInvalidChunks(
     data.mainChunks = data.mainChunks.filter((mainChunk) => {
         return isSubset(mainChunk.chatMemos, currentChatMemos);
     });
+
     // chunk filtering based on mainChunk's id
     const validMainChunkIds = new Set(data.mainChunks.map((mainChunk) => mainChunk.id));
     data.chunks = data.chunks.filter((chunk) =>
         validMainChunkIds.has(chunk.mainChunkID)
     );
-    data.lastMainChunkId = data.mainChunks[-1].id; // Quite literally the definition of lastMainChunkId. Didn't use .length, since middle chat context can be partially deleted.
-
+    // Update lastMainChunkId
+    if (data.mainChunks.length > 0) {
+        data.lastMainChunkId = data.mainChunks[data.mainChunks.length - 1].id;
+    } else {
+        data.lastMainChunkId = 0;
+    }
 }
+
 export async function regenerateSummary(
     chats: OpenAIChat[],
     data: HypaV2Data,
@@ -206,7 +212,7 @@ export async function hypaMemoryV2(
     const lastTwoChats = chats.slice(-2);
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
-    
+
     // Find the index to start summarizing from
     let idx = 0;
     if (data.mainChunks.length > 0) {
@@ -216,7 +222,7 @@ export async function hypaMemoryV2(
         if (lastChatIndex !== -1) {
             idx = lastChatIndex + 1;
         }
-    } 
+    }
     // Starting chat index of new mainChunk to be generated
 
     // Token management loop(where using of )
