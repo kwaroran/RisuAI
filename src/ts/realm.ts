@@ -18,8 +18,8 @@ export async function shareRealmCardData():Promise<{ name: ArrayBuffer; data: Ar
     const char = safeStructuredClone(getCurrentCharacter({snapshot:true})) as character
     const trimedName = char.name.replace(/[^a-zA-Z0-9]/g, '') || 'character';
     const writer = new VirtualWriter()
-    const namebuf = new TextEncoder().encode(trimedName + '.png')
-    await exportCharacterCard(char, 'png', {writer: writer, spec: 'v3'})
+    const namebuf = new TextEncoder().encode(trimedName + '.charx')
+    await exportCharacterCard(char, 'charx', {writer: writer, spec: 'v3'})
     alertStore.set({
         type: 'none',
         msg: ''
