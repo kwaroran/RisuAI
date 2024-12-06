@@ -141,7 +141,7 @@ async function summary(
     return { success: true, data: result };
 } // No, I am not going to touch any http API calls.
 
-function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean { // simple helper function. Check if subset IS a subset of superset given.
+function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
     for (const item of subset) {
         if (!superset.has(item)) {
             return false;
@@ -154,7 +154,7 @@ function cleanInvalidChunks(
     chats: OpenAIChat[],
     data: HypaV2Data,
 ): void {
-    const currentChatMemos = new Set(chats.map((chat) => chat.memo)); // if chunk's memo set is not subset of this, the chunk's content -> delete
+    const currentChatMemos = new Set(chats.map((chat) => chat.memo));
 
     // mainChunks filtering
     data.mainChunks = data.mainChunks.filter((mainChunk) => {
@@ -225,10 +225,13 @@ export async function hypaMemoryV2(
     }
     // Starting chat index of new mainChunk to be generated
 
-    // Token management loop(where using of )
+    // Token management loop(If current token exceeds allowed amount...)
     while (currentTokens >= maxContextTokens) {
+        console.log("The current Token exceeded maxContextTokens. Current tokens: ", currentTokens, "\nMax Context Tokens: ", maxContextTokens)
         const halfData: OpenAIChat[] = [];
         let halfDataTokens = 0;
+
+        const startIdx = idx;
 
         // Accumulate chats to summarize
         while (
@@ -240,7 +243,8 @@ export async function hypaMemoryV2(
             halfDataTokens += await tokenizer.tokenizeChat(chat);
             halfData.push(chat);
         }
-
+        const endIdx = idx - 1;
+        console.log(`Summarizing chats from index ${startIdx} to ${endIdx}.`);
         if (halfData.length === 0) break;
 
         const stringlizedChat = halfData
