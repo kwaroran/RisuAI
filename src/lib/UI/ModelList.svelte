@@ -72,9 +72,6 @@
                     {/each}
                 {/await}
             </Arcodion>
-            {#if DBState.db.plugins.length > 0}
-                <button onclick={() => {changeModel('custom')}} class="hover:bg-selected px-6 py-2 text-lg" >Plugin</button>
-            {/if}
             <div class="text-textcolor2 text-xs">
                 <CheckInput name={language.showUnrecommended}  grayText bind:check={showUnrec}/>
             </div>

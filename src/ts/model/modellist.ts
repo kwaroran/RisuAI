@@ -695,6 +695,14 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
+        parameters: ['temperature', 'top_k', 'top_p']
+    },
+    {
+        name: "Gemini Exp 1206",
+        id: 'gemini-exp-1206',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
         recommended: true,
         parameters: ['temperature', 'top_k', 'top_p']
     },

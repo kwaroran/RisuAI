@@ -1580,7 +1580,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
     const url = arg.customURL ?? (arg.modelInfo.format === LLMFormat.VertexAIGemini ?
         `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`)
+        : `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${(arg.aiModel === 'reverse_proxy') ?  db.proxyKey : db.google.accessToken}`)
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
@@ -2533,7 +2533,7 @@ async function requestWebLLM(arg:RequestDataArgumentExtended):Promise<requestDat
         top_p: db.ooba.top_p,
         repetition_penalty: db.ooba.repetition_penalty,
         typical_p: db.ooba.typical_p,
-    })
+    } as any)
     return {
         type: 'success',
         result: unstringlizeChat(v.generated_text as string, formated, currentChar?.name ?? '')
