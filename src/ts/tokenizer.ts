@@ -6,7 +6,7 @@ import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./globalApi.svelte";
-import { getModelInfo } from "./model/modellist";
+import { getModelInfo, LLMTokenizer } from "./model/modellist";
 
 
 export const tokenizerList = [
@@ -45,48 +45,37 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
                 return await tikJS(data, 'o200k_base')
         }
     }
-    if(db.aiModel.startsWith('novellist')){
+    const modelInfo = getModelInfo(db.aiModel)
+
+    if(modelInfo.tokenizer === LLMTokenizer.NovelList){
         const nv= await tokenizeWebTokenizers(data, 'novellist')
         return nv
     }
-    if(db.aiModel.startsWith('claude')){
+    if(modelInfo.tokenizer === LLMTokenizer.Claude){
         return await tokenizeWebTokenizers(data, 'claude')
     }
-    if(db.aiModel.startsWith('novelai')){
+    if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
         return await tokenizeWebTokenizers(data, 'novelai')
     }
-    if(db.aiModel.startsWith('mistral')){
+    if(modelInfo.tokenizer === LLMTokenizer.Mistral){
         return await tokenizeWebTokenizers(data, 'mistral')
     }
-    if(db.aiModel === 'mancer' ||
-        db.aiModel === 'textgen_webui' ||
-        (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
+    if(modelInfo.tokenizer === LLMTokenizer.Llama){
         return await tokenizeWebTokenizers(data, 'llama')
     }
-    if(db.aiModel.startsWith('local_')){
+    if(modelInfo.tokenizer === LLMTokenizer.Local){
         return await tokenizeGGUFModel(data)
     }
-    if(db.aiModel === 'ooba'){
-        if(db.reverseProxyOobaArgs.tokenizer === 'mixtral' || db.reverseProxyOobaArgs.tokenizer === 'mistral'){
-            return await tokenizeWebTokenizers(data, 'mistral')
-        }
-        else if(db.reverseProxyOobaArgs.tokenizer === 'llama'){
-            return await tokenizeWebTokenizers(data, 'llama')
-        }
-        else{
-            return await tokenizeWebTokenizers(data, 'llama')
-        }
-    }
-    if(db.aiModel.startsWith('gpt4o')){
+    if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
         return await tikJS(data, 'o200k_base')
     }
-    if(db.aiModel.startsWith('gemini')){
-        if(db.aiModel.endsWith('-vertex')){
-            return await tokenizeWebTokenizers(data, 'gemma')
-        }
+    if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
         return await tokenizeGoogleCloud(data)
     }
-    if(db.aiModel.startsWith('cohere')){
+    if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
+        return await tokenizeWebTokenizers(data, 'gemma')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Cohere){
         return await tokenizeWebTokenizers(data, 'cohere')
     }
 

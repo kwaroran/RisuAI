@@ -112,6 +112,11 @@
             <Help key="experimental"/><Help key="oaiRandomUser"/>
         </Check>
     </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.googleClaudeTokenizing} name={language.googleCloudTokenization}>
+            <Help key="experimental"/>
+        </Check>
+    </div>
 {/if}
 {#if DBState.db.showUnrecommended}
     <div class="flex items-center mt-4">

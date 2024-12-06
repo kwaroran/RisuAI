@@ -817,4 +817,5 @@ export const languageEnglish = {
     permissionDenied: "Permission Denied by Your Browser or OS",
     customFlags: "Custom Flags",
     enableCustomFlags: "Enable Custom Flags",
+    googleCloudTokenization: "Google Cloud Tokenization",
 }

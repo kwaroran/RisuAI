@@ -853,6 +853,7 @@ export interface Database{
     notification: boolean
     customFlags: LLMFlags[]
     enableCustomFlags: boolean
+    googleClaudeTokenizing: boolean
 }
 
 interface SeparateParameters{
