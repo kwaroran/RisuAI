@@ -699,7 +699,7 @@ export interface Database{
     colorSchemeName:string
     promptTemplate?:PromptItem[]
     forceProxyAsOpenAI?:boolean
-    hypaModel:'ada'|'MiniLM'
+    hypaModel:HypaModel
     saveTime?:number
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
@@ -1593,6 +1593,7 @@ import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFlags, LLMFormat } from '../model/modellist';
 import type { Parameter } from '../process/request';
+import type { HypaModel } from '../process/memory/hypamemory';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

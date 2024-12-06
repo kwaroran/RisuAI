@@ -13,7 +13,7 @@ export async function hanuraiMemory(chats:OpenAIChat[],arg:{
 }){
     const db = getDatabase()
     const tokenizer = arg.tokenizer
-    const processer = new HypaProcesser('MiniLM')
+    const processer = new HypaProcesser()
     let addTexts:string[] = []
     const queryStartIndex=chats.length-maxRecentChatQuery
     console.log(chats.length,maxRecentChatQuery,queryStartIndex)

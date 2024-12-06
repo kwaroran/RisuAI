@@ -1394,7 +1394,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             }
 
             if(DBState.db.emotionProcesser === 'embedding'){
-                const hypaProcesser = new HypaProcesser('MiniLM')
+                const hypaProcesser = new HypaProcesser()
                 await hypaProcesser.addText(emotionList.map((v) => 'emotion:' + v))
                 let searched = (await hypaProcesser.similaritySearchScored(result)).map((v) => {
                     v[0] = v[0].replace("emotion:",'')

@@ -459,7 +459,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         break
                     }
 
-                    const processer = new HypaProcesser('MiniLM')
+                    const processer = new HypaProcesser()
                     const effectValue = risuChatParser(effect.value,{chara:char})
                     const source = risuChatParser(effect.source,{chara:char})
                     await processer.addText(effectValue.split('§'))

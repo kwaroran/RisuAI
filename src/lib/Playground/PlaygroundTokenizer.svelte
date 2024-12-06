@@ -6,9 +6,12 @@
     let input = $state("");
     let output = $state("");
     let outputLength = $state(0);
+    let time = $state(0)
     const onInput = async () => {
         try {
+            const start = performance.now();
             const tokenized = await encode(input);
+            time = performance.now() - start;
             const tokenizedNumArray = Array.from(tokenized)
             outputLength = tokenizedNumArray.length;
             output = JSON.stringify(tokenizedNumArray);
@@ -29,3 +32,4 @@
 <TextAreaInput value={output} />
 
 <span class="text-textcolor2 text-lg">{outputLength} {language.tokens}</span>
+<span class="text-textcolor2 text-lg">{time} ms</span>

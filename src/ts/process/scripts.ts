@@ -321,7 +321,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
 
-        const processer = new HypaProcesser('MiniLM')
+        const processer = new HypaProcesser()
         await processer.addText(assetNames)
         const matches = data.matchAll(assetRegex)
 
