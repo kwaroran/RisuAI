@@ -141,7 +141,7 @@ async function summary(
     return { success: true, data: result };
 } // No, I am not going to touch any http API calls.
 
-function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean { // simple helper function. Check if subset IS a subset of superset given.
+function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
     for (const item of subset) {
         if (!superset.has(item)) {
             return false;
@@ -154,20 +154,27 @@ function cleanInvalidChunks(
     chats: OpenAIChat[],
     data: HypaV2Data,
 ): void {
-    const currentChatMemos = new Set(chats.map((chat) => chat.memo)); // if chunk's memo set is not subset of this, the chunk's content -> delete
+    const currentChatMemos = new Set(chats.map((chat) => chat.memo));
 
     // mainChunks filtering
     data.mainChunks = data.mainChunks.filter((mainChunk) => {
         return isSubset(mainChunk.chatMemos, currentChatMemos);
     });
+
     // chunk filtering based on mainChunk's id
     const validMainChunkIds = new Set(data.mainChunks.map((mainChunk) => mainChunk.id));
     data.chunks = data.chunks.filter((chunk) =>
         validMainChunkIds.has(chunk.mainChunkID)
     );
-    data.lastMainChunkId = data.mainChunks[-1].id; // Quite literally the definition of lastMainChunkId. Didn't use .length, since middle chat context can be partially deleted.
 
+    // Update lastMainChunkId
+    if (data.mainChunks.length > 0) {
+        data.lastMainChunkId = data.mainChunks[data.mainChunks.length - 1].id;
+    } else {
+        data.lastMainChunkId = 0;
+    }
 }
+
 export async function regenerateSummary(
     chats: OpenAIChat[],
     data: HypaV2Data,
