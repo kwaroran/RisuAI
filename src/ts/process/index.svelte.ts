@@ -788,6 +788,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             currentTokens = sp.currentTokens
             currentChat.hypaV2Data = sp.memory ?? currentChat.hypaV2Data
             DBState.db.characters[selectedChar].chats[selectedChat].hypaV2Data = currentChat.hypaV2Data
+
+            currentChat = DBState.db.characters[selectedChar].chats[selectedChat];
             console.log("Current chat's HypaV2Data: ", currentChat.hypaV2Data)
         }
         else{
