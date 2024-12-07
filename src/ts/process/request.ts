@@ -1364,7 +1364,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
 
     let reformatedChat:GeminiChat[] = []
-    let pendingImage = ''
     let systemPrompt = ''
 
     if(formated[0].role === 'system'){
