@@ -790,7 +790,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             DBState.db.characters[selectedChar].chats[selectedChat].hypaV2Data = currentChat.hypaV2Data
 
             currentChat = DBState.db.characters[selectedChar].chats[selectedChat];
-            console.log("Current chat's HypaV2Data: ", currentChat.hypaV2Data)
+            console.log("[Expected to be updated] chat's HypaV2Data: ", currentChat.hypaV2Data)
         }
         else{
             const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {

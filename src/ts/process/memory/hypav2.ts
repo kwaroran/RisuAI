@@ -30,7 +30,6 @@ async function summary(
     stringlizedChat: string
 ): Promise<{ success: boolean; data: string }> {
     const db = getDatabase();
-    console.log("Summarizing");
 
     if (db.supaModelType === "distilbart") {
         try {
