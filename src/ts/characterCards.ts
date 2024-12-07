@@ -88,7 +88,7 @@ export async function importCharacterProcess(f:{
             return
         }
         const card:CharacterCardV3 = JSON.parse(cardData)
-        if(CCardLib.character.check(card) !== 'v3'){
+        if(card.spec !== 'chara_card_v3'){
             alertError(language.errors.noData)
             return
         }
