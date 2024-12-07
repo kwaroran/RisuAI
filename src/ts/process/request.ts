@@ -1408,16 +1408,16 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 
                 for (const modal of chat.multimodals) {
                     if (modal.type === "image") {
-                    const dataurl = modal.base64;
-                    const base64 = dataurl.split(",")[1];
-                    const mediaType = dataurl.split(";")[0].split(":")[1];
-        
-                    geminiParts.push({
-                        inlineData: {
-                            mimeType: mediaType,
-                            data: base64,
-                        }
-                    });
+                        const dataurl = modal.base64;
+                        const base64 = dataurl.split(",")[1];
+                        const mediaType = dataurl.split(";")[0].split(":")[1];
+            
+                        geminiParts.push({
+                            inlineData: {
+                                mimeType: mediaType,
+                                data: base64,
+                            }
+                        });
                     }
                 }
         
