@@ -41,8 +41,9 @@
 <span class="text-textcolor">Kei Server URL</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.keiServerURL} placeholder="Leave it blank to use default"/>
 
-<span class="text-textcolor">{language.presetChain}</span>
-<TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.presetChain} placeholder="Leave it blank to not use"/>
+<span class="text-textcolor">{language.presetChain} <Help key="presetChain"/></span>
+<TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.presetChain} placeholder="Leave it blank to not use">
+</TextInput>
 
 <span class="text-textcolor">{language.requestretrys} <Help key="requestretrys"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={DBState.db.requestRetrys}/>
