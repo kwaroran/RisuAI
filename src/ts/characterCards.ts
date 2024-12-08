@@ -1316,7 +1316,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                             path = `assets/${type}/${itype}/${name}.${card.data.assets[i].ext}`
                         }
                         card.data.assets[i].uri = 'embeded://' + path
-                        await writer.write(path, rData)
+                        await writer.write(path, Buffer.from(await convertImage(rData)))
                     }
                 }
             }
