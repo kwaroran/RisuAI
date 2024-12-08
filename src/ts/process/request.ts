@@ -1364,7 +1364,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
 
     let reformatedChat:GeminiChat[] = []
-    let pendingImage = ''
     let systemPrompt = ''
 
     if(formated[0].role === 'system'){
@@ -1374,10 +1373,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
     for(let i=0;i<formated.length;i++){
         const chat = formated[i]
-        if(chat.memo && chat.memo.startsWith('inlayImage')){
-            pendingImage = chat.content
-            continue
-        }
+  
         if(i === 0){
             if(chat.role === 'user' || chat.role === 'assistant'){
                 reformatedChat.push({
@@ -1403,7 +1399,34 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 chat.role === 'assistant' ? 'MODEL' :
                 chat.role
 
-            if(prevChat.role === qRole){
+            if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
+                let geminiParts: GeminiPart[] = [];
+                
+                geminiParts.push({
+                    text: chat.content,
+                });
+                
+                for (const modal of chat.multimodals) {
+                    if (modal.type === "image") {
+                        const dataurl = modal.base64;
+                        const base64 = dataurl.split(",")[1];
+                        const mediaType = dataurl.split(";")[0].split(":")[1];
+            
+                        geminiParts.push({
+                            inlineData: {
+                                mimeType: mediaType,
+                                data: base64,
+                            }
+                        });
+                    }
+                }
+        
+                reformatedChat.push({
+                    role: "USER",
+                    parts: geminiParts,
+                });
+        
+            } else if (prevChat.role === qRole) {
                 reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
                 continue
             }
@@ -1420,36 +1443,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     })
                 }
             }
-            else if(chat.role === 'user' && pendingImage !== ''){
-                //conver image to jpeg so it can be inlined
-                const canv = document.createElement('canvas')
-                const img = new Image()
-                img.src = pendingImage  
-                await img.decode()
-                canv.width = img.width
-                canv.height = img.height
-                const ctx = canv.getContext('2d')
-                ctx.drawImage(img, 0, 0)
-                const base64 = canv.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, "")
-                const mimeType = 'image/jpeg'
-                pendingImage = ''
-                canv.remove()
-                img.remove()
 
-                reformatedChat.push({
-                    role: "USER",
-                    parts: [
-                    {
-                        text: chat.content,
-                    },
-                    {
-                        inlineData: {
-                            mimeType: mimeType,
-                            data: base64
-                        }
-                    }]
-                })
-            }
             else if(chat.role === 'assistant' || chat.role === 'user'){
                 reformatedChat.push({
                     role: chat.role === 'user' ? 'USER' : 'MODEL',
