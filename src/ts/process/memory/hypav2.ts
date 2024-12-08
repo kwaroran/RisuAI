@@ -20,7 +20,7 @@ export interface HypaV2Data {
         chatMemos: Set<string>; // UUIDs of summarized chats
         lastChatMemo: string;
     }[];
-    chunks: { // split mainChunks for retrieval or something. Although quite uncomfortable logic, so maybe I will delete it soon or later.
+    chunks: { // split mainChunks for retrieval or something. Although quite uncomfortable logic, so maybe I will delete it soon.
         mainChunkID: number;
         text:string;
     }[];
@@ -224,27 +224,56 @@ export async function hypaMemoryV2(
     }
     // Starting chat index of new mainChunk to be generated
 
-    // Token management loop(If current token exceeds allowed amount...)
+// Token management loop(If current token exceeds allowed amount...)
     while (currentTokens >= maxContextTokens) {
-        console.log("The current Token exceeded maxContextTokens. Current tokens: ", currentTokens, "\nMax Context Tokens: ", maxContextTokens)
         const halfData: OpenAIChat[] = [];
         let halfDataTokens = 0;
 
         const startIdx = idx;
 
+        console.log(
+            "Entering summarization step:",
+            "\nCurrent Tokens:", currentTokens,
+            "\nMax Context Tokens:", maxContextTokens,
+            "\nIndex Start:", startIdx
+        );
+
         // Accumulate chats to summarize
         while (
             halfDataTokens < chunkSize &&
             idx < chats.length - 2 // Ensure latest two chats are not added to summarization.
-        ) {
+            ) {
             const chat = chats[idx];
-            idx++;
-            halfDataTokens += await tokenizer.tokenizeChat(chat);
+            const chatTokens = await tokenizer.tokenizeChat(chat);
+            if (halfDataTokens + chatTokens > chunkSize) {
+                // If adding this chat would exceed chunkSize, break and summarize what we have
+                break;
+            }
             halfData.push(chat);
+            halfDataTokens += chatTokens;
+            idx++;
         }
+
         const endIdx = idx - 1;
-        console.log(`Summarizing chats from index ${startIdx} to ${endIdx}.`);
-        if (halfData.length === 0) break;
+
+        console.log(
+            "Summarization batch ready:",
+            "\nStartIdx:", startIdx,
+            "\nEndIdx:", endIdx,
+            "\nNumber of chats in halfData:", halfData.length,
+            "\nhalfDataTokens:", halfDataTokens,
+            "\nChats chosen for summarization:",
+            halfData.map((c, i) => ({
+                index: startIdx + i,
+                role: c.role,
+                content: c.content
+            }))
+        );
+
+        if (halfData.length === 0) {
+            console.log("No chats to summarize this round. Breaking out...");
+            break;
+        }
 
         const stringlizedChat = halfData
             .map((e) => `${e.role}: ${e.content}`)
@@ -252,8 +281,10 @@ export async function hypaMemoryV2(
         const summaryData = await summary(stringlizedChat);
 
         if (!summaryData.success) {
+            console.log("Summarization failed:", summaryData.data);
             summarizationFailures++;
             if (summarizationFailures >= maxSummarizationFailures) {
+                console.error("Summarization failed multiple times. Aborting...");
                 return {
                     currentTokens: currentTokens,
                     chats: chats,
@@ -261,18 +292,34 @@ export async function hypaMemoryV2(
                         "Summarization failed multiple times. Aborting to prevent infinite loop.",
                 };
             }
-            continue;
+            continue; // Retry summarizing next loop iteration
         }
 
-        summarizationFailures = 0; // Reset failure counter on success
+        summarizationFailures = 0; // Reset on success
 
         const summaryDataToken = await tokenizer.tokenizeChat({
             role: "system",
             content: summaryData.data,
         });
+
+        console.log(
+            "Summarization success:",
+            "\nSummary Data:", summaryData.data,
+            "\nSummary Token Count:", summaryDataToken,
+            "\nBefore adjusting tokens:",
+            "\nCurrent Tokens:", currentTokens,
+            "\nAllocated Tokens:", allocatedTokens
+        );
+
         mainPrompt += `\n\n${summaryData.data}`;
         currentTokens -= halfDataTokens;
         allocatedTokens -= summaryDataToken;
+
+        console.log(
+            "After adjusting tokens:",
+            "\nCurrent Tokens:", currentTokens,
+            "\nAllocated Tokens:", allocatedTokens
+        );
 
         // Update lastMainChunkId and create a new mainChunk
         data.lastMainChunkId++;
@@ -294,12 +341,22 @@ export async function hypaMemoryV2(
             .map((e) => e.trim())
             .filter((e) => e.length > 0);
 
-        // Update chunks with the new summary
+        console.log(
+            "Splitting summary into chunks for memory:",
+            splitted
+        );
+
         data.chunks.push(
             ...splitted.map((e) => ({
                 mainChunkID: newMainChunkId,
                 text: e,
             }))
+        );
+
+        console.log(
+            "End of iteration:",
+            "\nData mainChunks count:", data.mainChunks.length,
+            "\nData chunks count:", data.chunks.length
         );
     }
 
