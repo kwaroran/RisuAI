@@ -110,7 +110,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     doingChat.set(true)
 
     if(chatProcessIndex === -1 && DBState.db.presetChain){
-        const names = DBState.db.presetChain.split(' ')
+        const names = DBState.db.presetChain.split(',').map((v) => v.trim())
         const randomSelect = Math.floor(Math.random() * names.length)
         const ele = names[randomSelect]
 
