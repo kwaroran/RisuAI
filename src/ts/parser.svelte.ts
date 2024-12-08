@@ -455,7 +455,6 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
             closestDist = dist
         }
     }
-    console.table({closest, closestDist, time: performance.now() - perf, len:Object.keys(assetPaths).length})
     return assetPaths[closest]
 }
 
