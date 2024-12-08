@@ -375,10 +375,14 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
 }
 
 function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext?:string}}){
+    
     if(Object.keys(assetPaths).length === 0){
         return null
     }
 
+    const perf = performance.now()
+
+    //Levenshtein distance, old with 2d array
     const dest = (a:string, b:string) => {
         let d:Int16Array[] = []
 
@@ -406,15 +410,52 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
         return d[a.length][b.length];
     }
 
+    //Levenshtein distance, new with 1d array
+    const dest2 = (a:string, b:string) => {
+        const h = a.length + 1
+        const w = b.length + 1
+        let d = new Int16Array(h * w)
+        for(let i=0;i<h;i++){
+            d[i * w] = i
+        }
+        for(let i=0;i<w;i++){
+            d[i] = i
+        }
+        for(let i=1; i<h; i++){
+            for(let j=1;j<w;j++){
+                d[i * w + j] = Math.min(
+                    d[(i-1) * w + j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
+                    d[(i-1) * w + j]+1, d[i * w + j-1]+1
+                )
+            }
+        }
+        return d[h * w - 1]
+
+    }
+
+    function trimmer(str:string){
+        const ext = ['webp', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'avi', 'm4p', 'm4v', 'mp3', 'wav', 'ogg']
+        for(const e of ext){
+            if(str.endsWith('.' + e)){
+                str = str.substring(0, str.length - e.length - 1)
+            }
+        }
+
+
+        return str.trim().replace(/[_ -.]/g, '')
+    }
+
     let closest = ''
     let closestDist = 999999
+    const trimmedName = trimmer(name)
     for(const key in assetPaths){
-        const dist = dest(name.trim().replace(/[_ ]/g, ''), key.trim().replace(/[_ ]/g, ''))
+        const dist = dest2(trimmedName, trimmer(key))
         if(dist < closestDist){
             closest = key
             closestDist = dist
         }
     }
+    console.table({closest, closestDist, time: performance.now() - perf, len:Object.keys(assetPaths).length})
     return assetPaths[closest]
 }
 
