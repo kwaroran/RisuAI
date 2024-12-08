@@ -1,10 +1,10 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, changeToPreset } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
-import { alertError } from "../alert";
+import { alertError, alertToast } from "../alert";
 import { loadLoreBookV3Prompt } from "./lorebook.svelte";
 import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation } from "../util";
 import { requestChatData } from "./request";
@@ -108,6 +108,22 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
     }
     doingChat.set(true)
+
+    if(chatProcessIndex === -1 && DBState.db.presetChain){
+        const names = DBState.db.presetChain.split(' ')
+        const ele = names[Math.random() * names.length]
+
+        const findId = DBState.db.botPresets.findIndex((v) => {
+            return v.name === ele
+        })
+
+        if(findId === -1){
+            alertToast(`Cannot find preset: ${ele}`)
+        }
+        else{
+            changeToPreset(findId, true)
+        }
+    }
 
     if(connectionOpen){
         chatProcessStage.set(4)
