@@ -220,12 +220,6 @@
         {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
             <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
         {/if}
-        {#if modelInfo.flags.includes(LLMFlags.poolSupported) && DBState.db.useExperimental}
-            <Check bind:check={DBState.db.risuPool} name={language.APIPool}>
-                <Help key="APIPool" />
-                <Help key="experimental" />
-            </Check>
-        {/if}
         {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
             <Check bind:check={DBState.db.NAIadventure} name={language.textAdventureNAI}/>
 

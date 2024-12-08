@@ -1573,7 +1573,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     }
 
     let url = ''
-    const pool = arg.modelInfo.flags.includes(LLMFlags.poolSupported) && db.risuPool && (!arg.customURL) && arg.modelInfo.format !== LLMFormat.VertexAIGemini
     
     if(arg.customURL){
         const u = new URL(arg.customURL)
@@ -1583,9 +1582,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         url =`https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
     }
-    else if(pool){
-        url = `https://sv.risuai.xyz/rapi/pool?model=${arg.modelInfo.internalID}&key=${db.google.accessToken}&type=google`
-    }
     else{
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
     }
@@ -1594,7 +1590,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         body: body,
         chatId: arg.chatId,
         abortSignal: arg.abortSignal,
-        plainFetchForce: pool
     })
 
     if(!res.ok){
