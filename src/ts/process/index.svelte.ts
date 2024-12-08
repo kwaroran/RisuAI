@@ -111,7 +111,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     if(chatProcessIndex === -1 && DBState.db.presetChain){
         const names = DBState.db.presetChain.split(' ')
-        const ele = names[Math.random() * names.length]
+        const randomSelect = Math.floor(Math.random() * names.length)
+        const ele = names[randomSelect]
 
         const findId = DBState.db.botPresets.findIndex((v) => {
             return v.name === ele
