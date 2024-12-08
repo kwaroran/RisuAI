@@ -1578,14 +1578,29 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
 
-    const url = arg.customURL ?? (arg.modelInfo.format === LLMFormat.VertexAIGemini ?
-        `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${(arg.aiModel === 'reverse_proxy') ?  db.proxyKey : db.google.accessToken}`)
+    let url = ''
+    const pool = arg.modelInfo.flags.includes(LLMFlags.poolSupported) && db.risuPool && (!arg.customURL) && arg.modelInfo.format !== LLMFormat.VertexAIGemini
+    
+    if(arg.customURL){
+        const u = new URL(arg.customURL)
+        u.searchParams.set('key', db.proxyKey)
+        url = u.toString()
+    }
+    else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
+        url =`https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
+    }
+    else if(pool){
+        url = `https://sv.risuai.xyz/rapi/pool?model=${arg.modelInfo.internalID}&key=${db.google.accessToken}&type=google`
+    }
+    else{
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
+    }
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
         chatId: arg.chatId,
-        abortSignal: arg.abortSignal
+        abortSignal: arg.abortSignal,
+        plainFetchForce: pool
     })
 
     if(!res.ok){

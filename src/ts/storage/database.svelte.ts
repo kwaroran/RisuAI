@@ -854,6 +854,7 @@ export interface Database{
     customFlags: LLMFlags[]
     enableCustomFlags: boolean
     googleClaudeTokenizing: boolean
+    risuPool: boolean
 }
 
 interface SeparateParameters{

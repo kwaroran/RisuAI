@@ -906,6 +906,7 @@ async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<Global
       "risu-url": encodeURIComponent(url),
       "Content-Type": arg.body instanceof URLSearchParams ? "application/x-www-form-urlencoded" : "application/json",
       ...(arg.useRisuToken && { "x-risu-tk": "use" }),
+      "risu-pool": DBState.db.risuPool ? 'true' : 'false'
     };
 
     const body = arg.body instanceof URLSearchParams ? arg.body.toString() : JSON.stringify(arg.body);

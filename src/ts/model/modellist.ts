@@ -13,6 +13,7 @@ export enum LLMFlags{
     hasStreaming,
     requiresAlternateRole,
     mustStartWithUserInput,
+    poolSupported
 }
 
 export enum LLMProvider{
@@ -766,16 +767,16 @@ export const LLMModels: LLMModel[] = [
         id: 'gemini-exp-1121',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported],
         parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.GoogleCloud
+        tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
         name: "Gemini Exp 1206",
         id: 'gemini-exp-1206',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported],
         recommended: true,
         parameters: ['temperature', 'top_k', 'top_p'],
         tokenizer: LLMTokenizer.GoogleCloud
