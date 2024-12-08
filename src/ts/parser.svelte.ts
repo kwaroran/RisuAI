@@ -380,38 +380,8 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
         return null
     }
 
-    const perf = performance.now()
-
-    //Levenshtein distance, old with 2d array
-    const dest = (a:string, b:string) => {
-        let d:Int16Array[] = []
-
-        for(let i=0;i<a.length+1;i++){
-            d.push(new Int16Array(b.length+1))
-        }
-    
-        for(let i=0;i<=a.length;i++){
-            d[i][0] = i
-        }
-
-        for(let i=0;i<=b.length;i++){
-            d[0][i] = i
-        }
-    
-        for(let i=1; i<=a.length; i++){
-            for(let j=1;j<=b.length;j++){
-                d[i][j] = Math.min(
-                    d[i-1][j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
-                    d[i-1][j]+1, d[i][j-1]+1
-                )
-            }
-        }
-    
-        return d[a.length][b.length];
-    }
-
     //Levenshtein distance, new with 1d array
-    const dest2 = (a:string, b:string) => {
+    const dest = (a:string, b:string) => {
         const h = a.length + 1
         const w = b.length + 1
         let d = new Int16Array(h * w)
@@ -449,7 +419,7 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
     let closestDist = 999999
     const trimmedName = trimmer(name)
     for(const key in assetPaths){
-        const dist = dest2(trimmedName, trimmer(key))
+        const dist = dest(trimmedName, trimmer(key))
         if(dist < closestDist){
             closest = key
             closestDist = dist
