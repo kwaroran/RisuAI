@@ -128,7 +128,7 @@ export const languageChineseTraditional = {
         "systemRoleReplacement": "若模型不支援系統角色，將使用此角色取代系統角色。",
         "summarizationPrompt": "用於摘要的提示詞。留空將使用預設提示詞。您也可以使用包含 {{slot}} 的 ChatML 格式來處理聊天數據。",
         "translatorPrompt": "用於翻譯的提示詞。留空將使用默認提示。您還可以使用帶有 {{slot}} 的 ChatML 格式表示目標語言：用 {{slot::content}} 表示內容，用 {{slot::tnote}} 表示翻譯註釋。",
-        "translateBeforeHTMLFormatting": "啟用後，將在正規表達式和 HTML 格式化之前翻譯文本。這可能減少 Token 數，但可能破壞格式。"
+        "translateBeforeHTMLFormatting": "啟用後，將在正規表達式和 HTML 格式化之前翻譯文本。這可能減少 Token 數，但可能破壞格式。",
         "autoTranslateCachedOnly": "啟用後，僅會自動翻譯使用者之前已翻譯的內容。",
         "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。"
     },
@@ -772,7 +772,7 @@ export const languageChineseTraditional = {
     "translatorPrompt": "翻譯提示詞",
     "translateBeforeHTMLFormatting": "於 HTML 格式化前翻譯",
     "retranslate": "重新翻譯",
-    "loading": "載入中"
+    "loading": "載入中",
     "autoTranslateCachedOnly": "僅自動翻譯已快取的內容",
     "notification": "使用系統通知",
     "permissionDenied": "權限被您的瀏覽器或操作系統拒絕",
