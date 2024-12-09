@@ -213,7 +213,7 @@ export async function hypaMemoryV2(
     const maxSummarizationFailures = 3;
 
     // Find the index to start summarizing from
-    let idx = 0;
+    let idx = 2; // first two should not be considered
     if (data.mainChunks.length > 0) {
         const lastMainChunk = data.mainChunks[data.mainChunks.length - 1];
         const lastChatMemo = lastMainChunk.lastChatMemo;
@@ -224,7 +224,7 @@ export async function hypaMemoryV2(
     }
     // Starting chat index of new mainChunk to be generated
 
-// Token management loop(If current token exceeds allowed amount...)
+// Token management loop (If current token usage exceeds allowed amount)
     while (currentTokens >= maxContextTokens) {
         const halfData: OpenAIChat[] = [];
         let halfDataTokens = 0;
@@ -232,52 +232,65 @@ export async function hypaMemoryV2(
         const startIdx = idx;
 
         console.log(
-            "Entering summarization step:",
-            "\nCurrent Tokens:", currentTokens,
+            "Starting summarization iteration:",
+            "\nCurrent Tokens (before):", currentTokens,
             "\nMax Context Tokens:", maxContextTokens,
-            "\nIndex Start:", startIdx
+            "\nStartIdx:", startIdx,
+            "\nchunkSize:", chunkSize
         );
 
         // Accumulate chats to summarize
         while (
             halfDataTokens < chunkSize &&
-            idx < chats.length - 2 // Ensure latest two chats are not added to summarization.
+            idx < chats.length - 2 // keep the last two chats from summarizing(else, the roles will be fucked up)
             ) {
             const chat = chats[idx];
             const chatTokens = await tokenizer.tokenizeChat(chat);
+
+            console.log(
+                "Evaluating chat for summarization:",
+                "\nIndex:", idx,
+                "\nRole:", chat.role,
+                "\nContent:", chat.content,
+                "\nchatTokens:", chatTokens,
+                "\nhalfDataTokens so far:", halfDataTokens,
+                "\nWould adding this exceed chunkSize?", (halfDataTokens + chatTokens > chunkSize)
+            );
+
+            // Check if adding this chat would exceed our chunkSize limit
             if (halfDataTokens + chatTokens > chunkSize) {
-                // If adding this chat would exceed chunkSize, break and summarize what we have
+                // Can't add this chat without going over chunkSize
+                // Break out, and summarize what we have so far.
                 break;
             }
+
+            // Add this chat to the halfData batch
             halfData.push(chat);
             halfDataTokens += chatTokens;
             idx++;
         }
 
         const endIdx = idx - 1;
-
         console.log(
-            "Summarization batch ready:",
+            "Summarization batch chosen with this:",
             "\nStartIdx:", startIdx,
             "\nEndIdx:", endIdx,
             "\nNumber of chats in halfData:", halfData.length,
-            "\nhalfDataTokens:", halfDataTokens,
-            "\nChats chosen for summarization:",
-            halfData.map((c, i) => ({
-                index: startIdx + i,
-                role: c.role,
-                content: c.content
-            }))
+            "\nTotal tokens in halfData:", halfDataTokens,
+            "\nChats selected:", halfData.map(h => ({role: h.role, content: h.content}))
         );
 
+        // If no chats were added, break to avoid infinite loop
         if (halfData.length === 0) {
-            console.log("No chats to summarize this round. Breaking out...");
+            console.log("No chats to summarize in this iteration, breaking out.");
             break;
         }
 
         const stringlizedChat = halfData
             .map((e) => `${e.role}: ${e.content}`)
             .join("\n");
+
+        // Summarize the accumulated chunk
         const summaryData = await summary(stringlizedChat);
 
         if (!summaryData.success) {
@@ -288,11 +301,11 @@ export async function hypaMemoryV2(
                 return {
                     currentTokens: currentTokens,
                     chats: chats,
-                    error:
-                        "Summarization failed multiple times. Aborting to prevent infinite loop.",
+                    error: "Summarization failed multiple times. Aborting to prevent infinite loop.",
                 };
             }
-            continue; // Retry summarizing next loop iteration
+            // If summarization fails, try again in next iteration
+            continue;
         }
 
         summarizationFailures = 0; // Reset on success
@@ -305,20 +318,23 @@ export async function hypaMemoryV2(
         console.log(
             "Summarization success:",
             "\nSummary Data:", summaryData.data,
-            "\nSummary Token Count:", summaryDataToken,
-            "\nBefore adjusting tokens:",
-            "\nCurrent Tokens:", currentTokens,
-            "\nAllocated Tokens:", allocatedTokens
+            "\nSummary Token Count:", summaryDataToken
         );
 
-        mainPrompt += `\n\n${summaryData.data}`;
-        currentTokens -= halfDataTokens;
-        allocatedTokens -= summaryDataToken;
+        // **Token accounting fix:**
+        // Previous commits, the code likely have missed removing summarized chat's tokens.
+        // and never actually accounted for adding the summary tokens.
+        // Now we:
+        // 1. Remove old chats' tokens (they are replaced by summary)
+        // 2. Add summary tokens instead
+        currentTokens -= halfDataTokens;       // remove original chats' tokens
+        currentTokens += summaryDataToken;     // add the summary's tokens
 
         console.log(
-            "After adjusting tokens:",
-            "\nCurrent Tokens:", currentTokens,
-            "\nAllocated Tokens:", allocatedTokens
+            "After token adjustment:",
+            "\nRemoved halfDataTokens:", halfDataTokens,
+            "\nAdded summaryDataToken:", summaryDataToken,
+            "\nCurrent Tokens (after):", currentTokens
         );
 
         // Update lastMainChunkId and create a new mainChunk
@@ -341,11 +357,6 @@ export async function hypaMemoryV2(
             .map((e) => e.trim())
             .filter((e) => e.length > 0);
 
-        console.log(
-            "Splitting summary into chunks for memory:",
-            splitted
-        );
-
         data.chunks.push(
             ...splitted.map((e) => ({
                 mainChunkID: newMainChunkId,
@@ -354,9 +365,10 @@ export async function hypaMemoryV2(
         );
 
         console.log(
-            "End of iteration:",
-            "\nData mainChunks count:", data.mainChunks.length,
-            "\nData chunks count:", data.chunks.length
+            "Chunks added:",
+            splitted,
+            "\nUpdated mainChunks count:", data.mainChunks.length,
+            "\nUpdated chunks count:", data.chunks.length
         );
     }
 
