@@ -426,12 +426,6 @@
             {/if}
             <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt" /></span>
             <TextAreaInput size="sm" bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
-            <span class="text-textcolor">{language.HypaMemory} Model</span>
-            <SelectInput className="mt-2 mb-2" bind:value={DBState.db.hypaModel}>
-                <OptionInput value="MiniLM">MiniLM-L6-v2 (Free / Local)</OptionInput>
-                <OptionInput value="nomic">Nomic (Free / Local)</OptionInput>
-                <OptionInput value="ada">OpenAI Ada (Davinci / Curie Only)</OptionInput>
-            </SelectInput>
             <span class="text-textcolor">{language.hypaChunkSize}</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaChunkSize} min={100} />
             <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
@@ -454,16 +448,30 @@
                 <span class="text-textcolor">{language.SuperMemory} Prompt</span>
                 <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
             {/if}
-            {#if DBState.db.hypaMemory}
-                <span class="text-textcolor">{language.HypaMemory} Model</span>
-                <SelectInput className="mt-2 mb-2" bind:value={DBState.db.hypaModel}>
-                    <OptionInput value="MiniLM" >MiniLM-L6-v2 (Free / Local)</OptionInput>
-                    <OptionInput value="ada" >OpenAI Ada (Davinci / Curie Only)</OptionInput>
-                </SelectInput>
-            {/if}
             <div class="flex">
                 <Check bind:check={DBState.db.hypaMemory} name={language.enable + ' ' + language.HypaMemory}/>
             </div>
+        {/if}
+
+        <span class="text-textcolor">{language.embedding}</span>
+        <SelectInput className="mt-2 mb-2" bind:value={DBState.db.hypaModel}>
+            {#if 'gpu' in navigator}
+                <OptionInput value="nomicGPU">Nomic Embed Text v1.5 (GPU)</OptionInput>
+                <OptionInput value="bgeSmallEnGPU">BGE Small English (GPU)</OptionInput>
+                <OptionInput value="bgem3GPU">BGE Medium 3 (GPU)</OptionInput>
+            {/if}
+            <OptionInput value="MiniLM">MiniLM L6 v2 (CPU)</OptionInput>
+            <OptionInput value="nomic">Nomic Embed Text v1.5 (CPU)</OptionInput>
+            <OptionInput value="bgeSmallEn">BGE Small English (CPU)</OptionInput>
+            <OptionInput value="bgem3">BGE Medium 3 (CPU)</OptionInput>
+            <OptionInput value="openai3small">OpenAI text-embedding-3-small</OptionInput>
+            <OptionInput value="openai3large">OpenAI text-embedding-3-large</OptionInput>
+            <OptionInput value="ada">OpenAI Ada</OptionInput>
+        </SelectInput>
+
+        {#if DBState.db.hypaModel === 'openai3small' || DBState.db.hypaModel === 'openai3large' || DBState.db.hypaModel === 'ada'}
+            <span class="text-textcolor">OpenAI API Key</span>
+            <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryKey}/>
         {/if}
 
     </Arcodion>

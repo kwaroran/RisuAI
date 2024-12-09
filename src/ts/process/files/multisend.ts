@@ -124,7 +124,7 @@ async function sendPDFFile(arg:sendFileArg) {
         }
     }
     console.log(texts)
-    const hypa = new HypaProcesser('MiniLM')
+    const hypa = new HypaProcesser()
     hypa.addText(texts)
     const result = await hypa.similaritySearch(arg.query)
     let message = ''
@@ -142,7 +142,7 @@ async function sendTxtFile(arg:sendFileArg) {
     const lines = arg.file.split('\n').filter((a) => {
         return a !== ''
     })
-    const hypa = new HypaProcesser('MiniLM')
+    const hypa = new HypaProcesser()
     hypa.addText(lines)
     const result = await hypa.similaritySearch(arg.query)
     let message = ''
@@ -157,7 +157,7 @@ async function sendTxtFile(arg:sendFileArg) {
 }
 
 async function sendXMLFile(arg:sendFileArg) {
-    const hypa = new HypaProcesser('MiniLM')
+    const hypa = new HypaProcesser()
     let nodeTexts:string[] = []
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(arg.file, "text/xml");

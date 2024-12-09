@@ -318,9 +318,17 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 }
             }
         }
-        const path = assetPaths[name]
+        let path = assetPaths[name]
         if(!path){
-            return ''
+            if(DBState.db.legacyMediaFindings){
+                return ''
+            }
+
+            path = getClosestMatch(name, assetPaths)
+
+            if(!path){
+                return ''
+            }
         }
         switch(type){
             case 'raw':
@@ -364,6 +372,50 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     }
     
     return data
+}
+
+function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext?:string}}){
+    if(Object.keys(assetPaths).length === 0){
+        return null
+    }
+
+    const dest = (a:string, b:string) => {
+        let d:Int16Array[] = []
+
+        for(let i=0;i<a.length+1;i++){
+            d.push(new Int16Array(b.length+1))
+        }
+    
+        for(let i=0;i<=a.length;i++){
+            d[i][0] = i
+        }
+
+        for(let i=0;i<=b.length;i++){
+            d[0][i] = i
+        }
+    
+        for(let i=1; i<=a.length; i++){
+            for(let j=1;j<=b.length;j++){
+                d[i][j] = Math.min(
+                    d[i-1][j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
+                    d[i-1][j]+1, d[i][j-1]+1
+                )
+            }
+        }
+    
+        return d[a.length][b.length];
+    }
+
+    let closest = ''
+    let closestDist = 999999
+    for(const key in assetPaths){
+        const dist = dest(name.trim().replace(/[_ ]/g, ''), key.trim().replace(/[_ ]/g, ''))
+        if(dist < closestDist){
+            closest = key
+            closestDist = dist
+        }
+    }
+    return assetPaths[closest]
 }
 
 async function parseInlayImages(data:string){

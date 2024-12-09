@@ -3,7 +3,7 @@ import { HypaProcesser } from '../memory/hypamemory'
 import { getUserName } from "src/ts/util";
 
 export async function additionalInformations(char: character,chats:Chat,){
-    const processer = new HypaProcesser('MiniLM')
+    const processer = new HypaProcesser()
     const db = getDatabase()
 
     const info = char.additionalText

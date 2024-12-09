@@ -171,6 +171,8 @@ export const languageEnglish = {
         translatorPrompt: "The prompt that is used for translation. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the dest language, {{solt::content}} for the content, and {{slot::tnote}} for the translator note.",
         translateBeforeHTMLFormatting: "If enabled, it will translate the text before Regex scripts and HTML formatting. this could make the token lesser but could break the formatting.",
         autoTranslateCachedOnly: "If enabled, it will automatically translate only the text that the user has translated previously.",
+        presetChain: "If it is not blank, the preset will be changed and applied randomly every time when user sends a message in the preset list in this input. preset list should be seperated by comma, for example, `preset1,preset2`.",
+        legacyMediaFindings: "If enabled, it will use the old method to find media assets, without using the additional search algorithm.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -817,4 +819,7 @@ export const languageEnglish = {
     permissionDenied: "Permission Denied by Your Browser or OS",
     customFlags: "Custom Flags",
     enableCustomFlags: "Enable Custom Flags",
+    googleCloudTokenization: "Google Cloud Tokenization",
+    presetChain: "Preset Chain",
+    legacyMediaFindings: "Legacy Media Findings",
 }

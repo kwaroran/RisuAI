@@ -30,6 +30,7 @@ async function summary(
     stringlizedChat: string
 ): Promise<{ success: boolean; data: string }> {
     const db = getDatabase();
+    console.log("Summarizing");
 
     if (db.supaModelType === "distilbart") {
         try {
@@ -101,35 +102,27 @@ async function summary(
             supaPrompt.replaceAll("{{slot}}", stringlizedChat)
         );
 
-        const promptbody: OpenAIChat[] = parsedPrompt ?? [
+        const promptbody: OpenAIChat[] = (parsedPrompt ?? [
             {
                 role: "user",
                 content: stringlizedChat,
             },
             {
                 role: "system",
-                content: supaPrompt,
-            },
-        ];
-        console.log(
-            "Using submodel: ",
-            db.subModel,
-            "for supaMemory model"
-        );
-        const da = await requestChatData(
-            {
-                formated: promptbody,
-                bias: {},
-                useStreaming: false,
-                noMultiGen: true,
-            },
-            "memory"
-        );
-        if (
-            da.type === "fail" ||
-            da.type === "streaming" ||
-            da.type === "multiline"
-        ) {
+                content: supaPrompt
+            }
+        ]).map(message => ({
+            ...message,
+            memo: "supaPrompt"
+        }));
+        console.log("Using submodel: ", db.subModel, "for supaMemory model");
+        const da = await requestChatData({
+            formated: promptbody,
+            bias: {},
+            useStreaming: false,
+            noMultiGen: true
+        }, 'memory');
+        if (da.type === 'fail' || da.type === 'streaming' || da.type === 'multiline') {
             return {
                 success: false,
                 data: "SupaMemory: HTTP: " + da.result,
@@ -179,7 +172,7 @@ export async function regenerateSummary(
     mainChunkIndex: number
 ) : Promise<void> {
     const targetMainChunk = data.mainChunks[mainChunkIndex];
-    
+
 }
 export async function hypaMemoryV2(
     chats: OpenAIChat[],
@@ -209,6 +202,7 @@ export async function hypaMemoryV2(
     currentTokens += allocatedTokens + chats.length * 4; // ChatML token counting from official openai documentation
     let mainPrompt = "";
     const lastTwoChats = chats.slice(-2);
+    // Error handling for infinite summarization attempts
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
 

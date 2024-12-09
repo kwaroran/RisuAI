@@ -213,7 +213,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaLowLevelIds.has(id)){
                     return
                 }
-                const processer = new HypaProcesser('MiniLM')
+                const processer = new HypaProcesser()
                 await processer.addText(value)
                 return await processer.similaritySearch(source)
             })

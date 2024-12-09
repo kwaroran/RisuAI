@@ -4,7 +4,7 @@ export function getGenerationModelString(){
     const db = getDatabase()
     switch (db.aiModel){
         case 'reverse_proxy':
-            return 'reverse_proxy-' + (db.reverseProxyOobaMode ? 'ooba' : db.proxyRequestModel)
+            return 'custom-' + (db.reverseProxyOobaMode ? 'ooba' : db.customProxyRequestModel)
         case 'openrouter':
             return 'openrouter-' + db.openrouterRequestModel
         default:

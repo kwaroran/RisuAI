@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "141.2.0"
+export let appVer = "143.0.1"
 export let webAppSubVer = ''
 
 
@@ -703,7 +703,7 @@ export interface Database{
     colorSchemeName:string
     promptTemplate?:PromptItem[]
     forceProxyAsOpenAI?:boolean
-    hypaModel:'ada'|'MiniLM'
+    hypaModel:HypaModel
     saveTime?:number
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
@@ -857,6 +857,9 @@ export interface Database{
     notification: boolean
     customFlags: LLMFlags[]
     enableCustomFlags: boolean
+    googleClaudeTokenizing: boolean
+    presetChain: string
+    legacyMediaFindings?:boolean
 }
 
 interface SeparateParameters{
@@ -1597,6 +1600,7 @@ import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFlags, LLMFormat } from '../model/modellist';
 import type { Parameter } from '../process/request';
+import type { HypaModel } from '../process/memory/hypamemory';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

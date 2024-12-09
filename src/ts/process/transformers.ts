@@ -1,4 +1,4 @@
-import {env, AutoTokenizer, pipeline, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline, type ImageToTextOutput } from '@xenova/transformers';
+import {env, AutoTokenizer, pipeline, type SummarizationOutput, type TextGenerationConfig, type TextGenerationOutput, FeatureExtractionPipeline, TextToAudioPipeline, type ImageToTextOutput } from '@huggingface/transformers';
 import { unzip } from 'fflate';
 import { globalFetch, loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
 import { selectSingleFile } from 'src/ts/util';
@@ -15,6 +15,7 @@ async function initTransformers(){
     env.useBrowserCache = false
     env.useFSCache = false
     env.useCustomCache = true
+    env.allowLocalModels = true
     env.customCache = {
         put: async (url:URL|string, response:Response) => {
             await tfCache.put(url, response)
@@ -33,10 +34,12 @@ async function initTransformers(){
     console.log('transformers loaded')
 }
 
-export const runTransformers = async (baseText:string, model:string,config:TextGenerationConfig = {}) => {
+export const runTransformers = async (baseText:string, model:string,config:TextGenerationConfig, device:'webgpu'|'wasm' = 'wasm') => {
     await initTransformers()
     let text = baseText
-    let generator = await pipeline('text-generation', model);
+    let generator = await pipeline('text-generation', model, {
+        device
+    });
     let output = await generator(text, config) as TextGenerationOutput
     const outputOne = output[0]
     return outputOne
@@ -50,16 +53,25 @@ export const runSummarizer = async (text: string) => {
 }
 
 let extractor:FeatureExtractionPipeline = null
+let lastEmbeddingModelQuery:string = ''
 type EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'|'nomic-ai/nomic-embed-text-v1.5'
-export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'):Promise<Float32Array[]> => {
+export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xenova/all-MiniLM-L6-v2', device:'webgpu'|'wasm'):Promise<Float32Array[]> => {
     await initTransformers()
-    if(!extractor){
-        extractor = await pipeline('feature-extraction', model);
+    console.log('running embedding')
+    let embeddingModelQuery = model + device
+    if(!extractor || embeddingModelQuery !== lastEmbeddingModelQuery){
+        extractor = await pipeline('feature-extraction', model, {
+            device: device,
+            progress_callback: (progress) => {
+                console.log(progress)
+            }
+        });
+        console.log('extractor loaded')
     }
     let result = await extractor(texts, { pooling: 'mean', normalize: true });
     console.log(texts, result)
     const data = result.data as Float32Array
-
+    console.log(data)
     const lenPerText = data.length / texts.length
     let res:Float32Array[] = []
     for(let i = 0; i < texts.length; i++){

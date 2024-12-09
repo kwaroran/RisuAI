@@ -41,6 +41,10 @@
 <span class="text-textcolor">Kei Server URL</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.keiServerURL} placeholder="Leave it blank to use default"/>
 
+<span class="text-textcolor">{language.presetChain} <Help key="presetChain"/></span>
+<TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.presetChain} placeholder="Leave it blank to not use">
+</TextInput>
+
 <span class="text-textcolor">{language.requestretrys} <Help key="requestretrys"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={DBState.db.requestRetrys}/>
 
@@ -79,6 +83,9 @@
     <Check bind:check={DBState.db.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.legacyMediaFindings} name={language.legacyMediaFindings}> <Help key="legacyMediaFindings"/></Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.autofillRequestUrl} name={language.autoFillRequestURL}> <Help key="autoFillRequestURL"/></Check>
 </div>
 <div class="flex items-center mt-4">
@@ -110,6 +117,11 @@
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.putUserOpen} name={language.oaiRandomUser}>
             <Help key="experimental"/><Help key="oaiRandomUser"/>
+        </Check>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.googleClaudeTokenizing} name={language.googleCloudTokenization}>
+            <Help key="experimental"/>
         </Check>
     </div>
 {/if}

@@ -6,6 +6,7 @@ import { supportsInlayImage } from "./process/files/image";
 import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./globalApi.svelte";
+import { getModelInfo, LLMTokenizer } from "./model/modellist";
 
 
 export const tokenizerList = [
@@ -44,57 +45,85 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
                 return await tikJS(data, 'o200k_base')
         }
     }
-    if(db.aiModel.startsWith('novellist')){
+    const modelInfo = getModelInfo(db.aiModel)
+
+    if(modelInfo.tokenizer === LLMTokenizer.NovelList){
         const nv= await tokenizeWebTokenizers(data, 'novellist')
         return nv
     }
-    if(db.aiModel.startsWith('claude')){
+    if(modelInfo.tokenizer === LLMTokenizer.Claude){
         return await tokenizeWebTokenizers(data, 'claude')
     }
-    if(db.aiModel.startsWith('novelai')){
+    if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
         return await tokenizeWebTokenizers(data, 'novelai')
     }
-    if(db.aiModel.startsWith('mistral')){
+    if(modelInfo.tokenizer === LLMTokenizer.Mistral){
         return await tokenizeWebTokenizers(data, 'mistral')
     }
-    if(db.aiModel === 'mancer' ||
-        db.aiModel === 'textgen_webui' ||
-        (db.aiModel === 'reverse_proxy' && db.reverseProxyOobaMode)){
+    if(modelInfo.tokenizer === LLMTokenizer.Llama){
         return await tokenizeWebTokenizers(data, 'llama')
     }
-    if(db.aiModel.startsWith('local_')){
+    if(modelInfo.tokenizer === LLMTokenizer.Local){
         return await tokenizeGGUFModel(data)
     }
-    if(db.aiModel === 'ooba'){
-        if(db.reverseProxyOobaArgs.tokenizer === 'mixtral' || db.reverseProxyOobaArgs.tokenizer === 'mistral'){
-            return await tokenizeWebTokenizers(data, 'mistral')
-        }
-        else if(db.reverseProxyOobaArgs.tokenizer === 'llama'){
-            return await tokenizeWebTokenizers(data, 'llama')
-        }
-        else{
-            return await tokenizeWebTokenizers(data, 'llama')
-        }
-    }
-    if(db.aiModel.startsWith('gpt4o')){
+    if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
         return await tikJS(data, 'o200k_base')
     }
-    if(db.aiModel.startsWith('gemini')){
+    if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
+        return await tokenizeGoogleCloud(data)
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
         return await tokenizeWebTokenizers(data, 'gemma')
     }
-    if(db.aiModel.startsWith('cohere')){
+    if(modelInfo.tokenizer === LLMTokenizer.Cohere){
         return await tokenizeWebTokenizers(data, 'cohere')
     }
 
     return await tikJS(data)
 }
 
-type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'
+type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'|'googleCloud'
 
 let tikParser:Tiktoken = null
 let tokenizersTokenizer:Tokenizer = null
 let tokenizersType:tokenizerType = null
 let lastTikModel = 'cl100k_base'
+
+let googleCloudTokenizedCache = new Map<string, number>()
+
+async function tokenizeGoogleCloud(text:string) {
+    const db = getDatabase()
+    const model = getModelInfo(db.aiModel)
+
+    if(googleCloudTokenizedCache.has(text + model.internalID)){
+        const count = googleCloudTokenizedCache.get(text)
+        return new Uint32Array(count)
+    }
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model.internalID}:countTokens?key=${db.google?.accessToken}`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts:[{
+                    text: text
+                }]
+            }]
+        }),
+    })
+
+    if(res.status !== 200){
+        return await tokenizeWebTokenizers(text, 'gemma')
+    }
+
+    const json = await res.json()
+    googleCloudTokenizedCache.set(text + model.internalID, json.totalTokens as number)
+    const count = json.totalTokens as number
+
+    return new Uint32Array(count)
+}
 
 async function tikJS(text:string, model='cl100k_base') {
     if(!tikParser || lastTikModel !== model){

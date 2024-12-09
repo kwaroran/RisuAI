@@ -57,7 +57,7 @@
     }: Props = $props();
 
     let msgDisplay = $state('')
-    let translated = $state(DBState.db.autoTranslate)
+    let translated = $state(false)
     let role = $derived(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.role)
     async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){

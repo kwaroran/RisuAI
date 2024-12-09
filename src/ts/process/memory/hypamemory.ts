@@ -1,22 +1,49 @@
 import localforage from "localforage";
-import {globalFetch} from "src/ts/globalApi.svelte";
-import {runEmbedding} from "../transformers";
-import {appendLastPath} from "src/ts/util";
+import { globalFetch } from "src/ts/globalApi.svelte";
+import { runEmbedding } from "../transformers";
+import { alertError } from "src/ts/alert";
+import { appendLastPath } from "src/ts/util";
+import { getDatabase } from "src/ts/storage/database.svelte";
 
+
+export type HypaModel = 'ada'|'MiniLM'|'nomic'|'custom'|'nomicGPU'|'bgeSmallEn'|'bgeSmallEnGPU'|'bgem3'|'bgem3GPU'|'openai3small'|'openai3large'
+
+const localModels = {
+    models: {
+        'MiniLM':'Xenova/all-MiniLM-L6-v2',
+        'nomic':'nomic-ai/nomic-embed-text-v1.5',
+        'nomicGPU':'nomic-ai/nomic-embed-text-v1.5',
+        'bgeSmallEn': 'BAAI/bge-small-en-v1.5',
+        'bgeSmallEnGPU': 'BAAI/bge-small-en-v1.5',
+        'bgem3': 'BAAI/bge-m3',
+        'bgem3GPU': 'BAAI/bge-m3',
+    },
+    gpuModels:[
+        'nomicGPU',
+        'bgeSmallEnGPU',
+        'bgem3GPU'
+    ]
+}
 
 export class HypaProcesser{
     oaikey:string
     vectors:memoryVector[]
     forage:LocalForage
-    model:'ada'|'MiniLM'|'nomic'|'custom'
+    model:HypaModel
     customEmbeddingUrl:string
 
-    constructor(model:'ada'|'MiniLM'|'nomic'|'custom',customEmbeddingUrl?:string){
+    constructor(model:HypaModel|'auto' = 'auto',customEmbeddingUrl?:string){
         this.forage = localforage.createInstance({
             name: "hypaVector"
         })
         this.vectors = []
-        this.model = model
+        if(model === 'auto'){
+            const db = getDatabase()
+            this.model = db.hypaModel || 'MiniLM'
+        }
+        else{
+            this.model = model
+        }
         this.customEmbeddingUrl = customEmbeddingUrl
     }
 
@@ -38,9 +65,9 @@ export class HypaProcesser{
     
     
     async getEmbeds(input:string[]|string):Promise<VectorArray[]> {
-        if(this.model === 'MiniLM' || this.model === 'nomic'){
+        if(Object.keys(localModels.models).includes(this.model)){
             const inputs:string[] = Array.isArray(input) ? input : [input]
-            let results:Float32Array[] = await runEmbedding(inputs, this.model === 'nomic' ? 'nomic-ai/nomic-embed-text-v1.5' : 'Xenova/all-MiniLM-L6-v2')
+            let results:Float32Array[] = await runEmbedding(inputs, localModels.models[this.model], localModels.gpuModels.includes(this.model) ? 'webgpu' : 'wasm')
             return results
         }
         let gf = null;
@@ -57,14 +84,21 @@ export class HypaProcesser{
                 },
             })
         }
-        if(this.model === 'ada'){
+        if(this.model === 'ada' || this.model === 'openai3small' || this.model === 'openai3large'){
+            const db = getDatabase()
+            const models = {
+                'ada':'text-embedding-ada-002',
+                'openai3small':'text-embedding-3-small',
+                'openai3large':'text-embedding-3-large'
+            }
+
             gf = await globalFetch("https://api.openai.com/v1/embeddings", {
                 headers: {
-                "Authorization": "Bearer " + this.oaikey
+                    "Authorization": "Bearer " + db.supaMemoryKey || this.oaikey
                 },
                 body: {
-                "input": input,
-                "model": "text-embedding-ada-002"
+                    "input": input,
+                    "model": models[this.model]
                 }
             })
         }
@@ -138,7 +172,7 @@ export class HypaProcesser{
     }
 
     async similaritySearchScored(query: string) {
-        return await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],)
+        return await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
     }
 
     private async similaritySearchVectorWithScore(
