@@ -465,6 +465,7 @@
                 }}>
                     <PencilIcon size={20}/>
                 </button>
+                <!-- 이 버튼이 수정 버튼. edit() 함수를 주목할 것-->
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
                     <TrashIcon size={20}/>
                 </button>
