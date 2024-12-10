@@ -172,8 +172,7 @@ export class HypaProcesser{
     }
 
     async similaritySearchScored(query: string) {
-        const results = await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
-        return results
+        return await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
     }
 
     private async similaritySearchVectorWithScore(

@@ -229,6 +229,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.supaMemoryKey)){
         data.supaMemoryKey = ""
     }
+    if(checkNullish(data.hypaMemoryKey)){
+        data.hypaMemoryKey = ""
+    }
     if(checkNullish(data.supaModelType)){
         data.supaModelType = "none"
     }
@@ -630,6 +633,7 @@ export interface Database{
     useStreaming:boolean
     palmAPI:string,
     supaMemoryKey:string
+    hypaMemoryKey:string
     supaModelType:string
     textScreenColor?:string
     textBorder?:boolean
