@@ -460,7 +460,7 @@ export const languageEnglish = {
     loadDataFromAccount: "Load Data from Account",
     saveCurrentDataToAccount: "Save Current Data to Account",
     chatAssumed: "",
-    proxyAPIKey: "Proxy Key/Password",
+    proxyAPIKey: "Key/Password",
     proxyRequestModel: "Request Model",
     officialWiki: "Official Wiki",
     officialWikiDesc: "Official Wiki for RisuAI. feel free to see.",
