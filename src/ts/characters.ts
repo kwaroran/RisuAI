@@ -2,14 +2,11 @@ import { get, writable } from "svelte/store";
 import { saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook, getDatabase, getCharacterByIndex, setCharacterByIndex } from "./storage/database.svelte";
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
-import { decode as decodeMsgpack } from "msgpackr";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
 import { checkCharOrder, downloadFile, getFileSrc } from "./globalApi.svelte";
-import { reencodeImage } from "./process/files/image";
 import { updateInlayScreen } from "./process/inlayScreen";
-import { PngChunk } from "./pngChunk";
 import { parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
 import { doingChat } from "./process/index.svelte";
@@ -84,7 +81,7 @@ export async function selectCharImg(charIndex:number) {
     }
     const img = selected.data
     let db = getDatabase()
-    const imgp = await saveImage(await reencodeImage(img))
+    const imgp = await saveImage(img)
     dumpCharImage(charIndex)
     db.characters[charIndex].image = imgp
     setDatabase(db)
@@ -666,56 +663,6 @@ function dataURLtoBuffer(string:string){
     const ext = matches[1];
     const data = matches[2];
     return Buffer.from(data, 'base64');
-}
-
-export async function addDefaultCharacters() {
-    const imgs = [fetch('/sample/rika.png'),fetch('/sample/yuzu.png')]
-
-    alertStore.set({
-        type: 'wait',
-        msg: `Loading Sample bots...`
-    })
-
-    for(const img of imgs){
-        const imgBuffer = await (await img).arrayBuffer()
-        const readed = PngChunk.read(Buffer.from(imgBuffer), ["risuai"])?.risuai
-        await sleep(10)
-        const va = decodeMsgpack(Buffer.from(readed,'base64')) as any
-        if(va.type !== 101){
-            alertError(language.errors.noData)
-            return
-        }
-        let char:character = va.data
-        let db = getDatabase()
-        if(char.emotionImages && char.emotionImages.length > 0){
-            for(let i=0;i<char.emotionImages.length;i++){
-                await sleep(10)
-                const imgp = await saveImage(char.emotionImages[i][1] as any)
-                char.emotionImages[i][1] = imgp
-            }
-        }
-        char.chats = [{
-            message: [],
-            note: '',
-            name: 'Chat 1',
-            localLore: []
-        }]
-
-        if(checkNullish(char.sdData)){
-            char.sdData = defaultSdDataFunc()
-        }
-
-        char.chatPage = 0
-        char.image = await saveImage(await reencodeImage(Buffer.from(imgBuffer)))
-        char.chaId = uuidv4()
-        db.characters.push(characterFormatUpdate(char))
-        setDatabase(db)
-    }
-
-    alertStore.set({
-        type: 'none',
-        msg: ''
-    })
 }
 
 export async function removeChar(index:number,name:string, type:'normal'|'permanent'|'permanentForce' = 'normal'){

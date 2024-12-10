@@ -277,7 +277,7 @@ export async function importCharacterProcess(f:{
     if(parsed.spec !== 'chara_card_v2' && parsed.spec !== 'chara_card_v3'){
         const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
         console.log(charaData)
-        const imgp = await saveAsset(await reencodeImage(img))
+        const imgp = await saveAsset(img)
         db.characters.push(convertOffSpecCards(charaData, imgp))
         setDatabaseLite(db)
         alertNormal(language.importedCharacter)
@@ -633,7 +633,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
 
     const data = card.data
     console.log(card)
-    let im = img ? await saveAsset(await reencodeImage(img)) : undefined
+    let im = img ? await saveAsset(img) : undefined
     let db = getDatabase()
 
     const risuext = safeStructuredClone(data.extensions.risuai)
@@ -1140,7 +1140,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     const spec:'v2'|'v3' = arg.spec ?? 'v2' //backward compatibility
     try{
         char.image = ''
-        img = await reencodeImage(img)
+        img = type === 'png' ? (await reencodeImage(img)) : img
         const localWriter = arg.writer ?? (new LocalWriter())
         if(!arg.writer && type !== 'json'){
             const nameExt = {
