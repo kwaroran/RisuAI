@@ -708,7 +708,7 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.Mistral,
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.mustStartWithUserInput, LLMFlags.requiresAlternateRole],
         recommended: true,
-        parameters: ['temperature', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'],
         tokenizer: LLMTokenizer.Mistral
     },
     {
@@ -719,7 +719,7 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.Mistral,
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.mustStartWithUserInput, LLMFlags.requiresAlternateRole],
         recommended: true,
-        parameters: ['temperature', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'],
         tokenizer: LLMTokenizer.Mistral
     },
     {
@@ -729,7 +729,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.Mistral,
         format: LLMFormat.Mistral,
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.mustStartWithUserInput, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'],
         tokenizer: LLMTokenizer.Mistral
     },
     {
@@ -739,7 +739,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.Mistral,
         format: LLMFormat.Mistral,
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.mustStartWithUserInput, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'],
         tokenizer: LLMTokenizer.Mistral
     },
     {
@@ -749,7 +749,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.Mistral,
         format: LLMFormat.Mistral,
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.mustStartWithUserInput, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'],
         recommended: true,
         tokenizer: LLMTokenizer.Mistral
     },

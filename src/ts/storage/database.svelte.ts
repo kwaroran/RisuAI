@@ -453,7 +453,7 @@ export function setDatabase(data:Database){
     data.vertexClientEmail ??= ''
     data.vertexPrivateKey ??= ''
     data.seperateParametersEnabled ??= false
-    data.seperateParameters = {
+    data.seperateParameters ??= {
         memory: {},
         emotion: {},
         translate: {},

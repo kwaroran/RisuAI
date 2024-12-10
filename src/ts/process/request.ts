@@ -520,10 +520,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             body: applyParameters({
                 model: requestModel,
                 messages: reformatedChat,
-                top_p: db.top_p,
                 safe_prompt: false,
                 max_tokens: arg.maxTokens,
-            }, ['temperature', 'presence_penalty', 'frequency_penalty'], {}, arg.mode ),
+            }, ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'], {}, arg.mode ),
             headers: {
                 "Authorization": "Bearer " + db.mistralKey,
             },
