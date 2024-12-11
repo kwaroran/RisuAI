@@ -41,7 +41,7 @@ export interface OpenAIChat{
 }
 
 export interface MultiModal{
-    type:'image'|'video'
+    type:'image'|'video'|'audio'
     base64:string,
     height?:number,
     width?:number
