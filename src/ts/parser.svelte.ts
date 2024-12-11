@@ -435,13 +435,13 @@ async function parseInlayAssets(data:string){
             const id = inlay.substring(9, inlay.length - 2)
             const asset = await getInlayAsset(id)
             if(asset?.type === 'image'){
-                data = data.replace(inlay, `<img src="${asset.data}"/>`)
+                data = data.replace(inlay, `<div class="risu-inlay-image"><img src="${asset.data}"/></div>`)
             }
             if(asset?.type === 'video'){
-                data = data.replace(inlay, `<video controls><source src="${asset.data}" type="video/mp4"></video>`)
+                data = data.replace(inlay, `<div class="risu-inlay-image"><video controls><source src="${asset.data}" type="video/mp4"></video></div>`)
             }
             if(asset?.type === 'audio'){
-                data = data.replace(inlay, `<audio controls><source src="${asset.data}" type="audio/mpeg"></audio>`)
+                data = data.replace(inlay, `<div class="risu-inlay-image"><audio controls><source src="${asset.data}" type="audio/mpeg"></audio></div>`)
             }
             
         }
