@@ -9,7 +9,7 @@ import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServ
 import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { convertImage, hasher } from "./parser.svelte"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
-import { reencodeImage } from "./process/files/image"
+import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
 import { CharXReader, CharXWriter } from "./process/processzip"

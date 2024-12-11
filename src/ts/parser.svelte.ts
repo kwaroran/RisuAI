@@ -9,7 +9,7 @@ import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage } from './process/files/image';
+import { getInlayAsset } from './process/files/inlays';
 import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
@@ -428,15 +428,22 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
     return assetPaths[closest]
 }
 
-async function parseInlayImages(data:string){
+async function parseInlayAssets(data:string){
     const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
     if(inlayMatch){
         for(const inlay of inlayMatch){
             const id = inlay.substring(9, inlay.length - 2)
-            const img = await getInlayImage(id)
-            if(img){
-                data = data.replace(inlay, `<img src="${img.data}"/>`)
+            const asset = await getInlayAsset(id)
+            if(asset?.type === 'image'){
+                data = data.replace(inlay, `<img src="${asset.data}"/>`)
             }
+            if(asset?.type === 'video'){
+                data = data.replace(inlay, `<video controls><source src="${asset.data}" type="video/mp4"></video>`)
+            }
+            if(asset?.type === 'audio'){
+                data = data.replace(inlay, `<audio controls><source src="${asset.data}" type="audio/mpeg"></audio>`)
+            }
+            
         }
     }
     return data
@@ -473,7 +480,7 @@ export async function ParseMarkdown(
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
-    data = await parseInlayImages(data ?? '')
+    data = await parseInlayAssets(data ?? '')
 
     data = encodeStyle(data)
     if(mode === 'normal'){

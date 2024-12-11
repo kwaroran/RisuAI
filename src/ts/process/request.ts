@@ -11,7 +11,7 @@ import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { supportsInlayImage } from "./files/image";
+import { supportsInlayImage } from "./files/inlays";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -95,7 +95,9 @@ type ParameterMap = {
     [key in Parameter]?: string;
 };
 
-function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended): { [key: string]: any } {
+function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended, arg:{
+    ignoreTopKIfOne?:boolean
+} = {}): { [key: string]: any } {
     const db = getDatabase()
     if(db.seperateParametersEnabled && ModelMode !== 'model'){
         if(ModelMode === 'submodel'){
@@ -103,6 +105,10 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
         }
 
         for(const parameter of parameters){
+            if(parameter === 'top_k' && arg.ignoreTopKIfOne && db.seperateParameters[ModelMode][parameter] === 1){
+                continue
+            }
+
             let value = db.seperateParameters[ModelMode][parameter]
 
             if(value === -1000 || value === undefined){
@@ -117,6 +123,9 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
     for(const parameter of parameters){
         let value = 0
+        if(parameter === 'top_k' && arg.ignoreTopKIfOne && db.top_k === 1){
+            value = 0
+        }
         switch(parameter){
             case 'temperature':{
                 value = db.temperature === -1000 ? -1000 : (db.temperature / 100)
@@ -1495,7 +1504,9 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             'top_k': "topK",
             'presence_penalty': "presencePenalty",
             'frequency_penalty': "frequencyPenalty"
-        }, arg.mode),
+        }, arg.mode, {
+            ignoreTopKIfOne: true
+        }),
         safetySettings: uncensoredCatagory,
         systemInstruction: {
             parts: [
