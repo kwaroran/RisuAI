@@ -1494,12 +1494,17 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         },
     ]
 
+    let para:Parameter[] = ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty']
+
+    para = para.filter((v) => {
+        return arg.modelInfo.parameters.includes(v)
+    })
 
     const body = {
         contents: reformatedChat,
         generation_config: applyParameters({
             "maxOutputTokens": maxTokens,
-        }, ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty'], {
+        }, para, {
             'top_p': "topP",
             'top_k': "topK",
             'presence_penalty': "presencePenalty",
