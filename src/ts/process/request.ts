@@ -96,7 +96,7 @@ type ParameterMap = {
 };
 
 function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended, arg:{
-    ignoreTopKIfOne?:boolean
+    ignoreTopKIfZero?:boolean
 } = {}): { [key: string]: any } {
     const db = getDatabase()
     if(db.seperateParametersEnabled && ModelMode !== 'model'){
@@ -105,7 +105,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
         }
 
         for(const parameter of parameters){
-            if(parameter === 'top_k' && arg.ignoreTopKIfOne && db.seperateParameters[ModelMode][parameter] === 1){
+            if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.seperateParameters[ModelMode][parameter] === 0){
                 continue
             }
 
@@ -123,7 +123,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
     for(const parameter of parameters){
         let value = 0
-        if(parameter === 'top_k' && arg.ignoreTopKIfOne && db.top_k === 1){
+        if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.top_k === 0){
             value = 0
         }
         switch(parameter){
@@ -1505,7 +1505,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             'presence_penalty': "presencePenalty",
             'frequency_penalty': "frequencyPenalty"
         }, arg.mode, {
-            ignoreTopKIfOne: true
+            ignoreTopKIfZero: true
         }),
         safetySettings: uncensoredCatagory,
         systemInstruction: {
