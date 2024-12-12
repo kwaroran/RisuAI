@@ -688,10 +688,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         let inlays:string[] = []
         if(msg.role === 'char'){
-            formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
+            formatedChat = formatedChat.replace(/{{(inlay|inlayed)::(.+?)}}/g, '')
         }
         else{
-            const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
+            const inlayMatch = formatedChat.match(/{{(inlay|inlayed)::(.+?)}}/g)
             if(inlayMatch){
                 for(const inlay of inlayMatch){
                     inlays.push(inlay)
@@ -703,7 +703,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         const modelinfo = getModelInfo(DBState.db.aiModel)
         if(inlays.length > 0){
             for(const inlay of inlays){
-                const inlayName = inlay.replace('{{inlay::', '').replace('}}', '')
+                const inlayName = inlay.replace('{{inlayed::', '').replace('{{inlay::', '').replace('}}', '')
                 const inlayData = await getInlayAsset(inlayName)
                 if(inlayData?.type === 'image'){
                     if(modelinfo.flags.includes(LLMFlags.hasImageInput)){

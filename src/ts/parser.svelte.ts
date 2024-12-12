@@ -429,19 +429,24 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
 }
 
 async function parseInlayAssets(data:string){
-    const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
+    const inlayMatch = data.match(/{{(inlay|inlayed)::(.+?)}}/g)
     if(inlayMatch){
         for(const inlay of inlayMatch){
-            const id = inlay.substring(9, inlay.length - 2)
+            const inlayType = inlay.startsWith('{{inlayed') ? 'inlayed' : 'inlay'
+            const id = inlay.substring(inlay.indexOf('::') + 2, inlay.length - 2)
             const asset = await getInlayAsset(id)
-            if(asset?.type === 'image'){
-                data = data.replace(inlay, `<div class="risu-inlay-image"><img src="${asset.data}"/></div>\n\n`)
-            }
-            if(asset?.type === 'video'){
-                data = data.replace(inlay, `<div class="risu-inlay-image"><video controls><source src="${asset.data}" type="video/mp4"></video></div>\n\n`)
-            }
-            if(asset?.type === 'audio'){
-                data = data.replace(inlay, `<div class="risu-inlay-image"><audio controls><source src="${asset.data}" type="audio/mpeg"></audio></div>\n\n`)
+            let prefix = inlayType === 'inlayed' ? `<div class="risu-inlay-image">` : ''
+            let postfix = inlayType === 'inlayed' ? `</div>\n\n` : ''
+            switch(asset?.type){
+                case 'image':
+                    data = data.replace(inlay, `${prefix}<img src="${asset.data}"/>${postfix}`)
+                    break
+                case 'video':
+                    data = data.replace(inlay, `${prefix}<video controls><source src="${asset.data}" type="video/mp4"></video>${postfix}`)
+                    break
+                case 'audio':
+                    data = data.replace(inlay, `${prefix}<audio controls><source src="${asset.data}" type="audio/mpeg"></audio>${postfix}`)
+                    break
             }
             
         }

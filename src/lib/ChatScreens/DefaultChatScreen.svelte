@@ -71,7 +71,7 @@
 
         if(fileInput.length > 0){
             for(const file of fileInput){
-                messageInput += `{{inlay::${file}}}`
+                messageInput += `{{inlayed::${file}}}`
             }
             fileInput = []
         }
