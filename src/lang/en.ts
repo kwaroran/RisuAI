@@ -822,4 +822,5 @@ export const languageEnglish = {
     googleCloudTokenization: "Google Cloud Tokenization",
     presetChain: "Preset Chain",
     legacyMediaFindings: "Legacy Media Findings",
+    staticsDisclaimer: "The statistics are based on the data from after July 2024. the data may not be accurate.",
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
-    
+    import Button from "src/lib/UI/GUI/Button.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { alertMd } from "src/ts/alert";
     import { getRequestLog, isTauri } from "src/ts/globalApi.svelte";
@@ -165,21 +165,23 @@
         <Check bind:check={DBState.db.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
     </div>
 {/if}
-<button
+<Button
+    className="mt-4"
     onclick={async () => {
         alertMd(getRequestLog())
     }}
-    class="drop-shadow-lg p-3 border-darkborderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+>
     {language.ShowLog}
-</button>
+</Button>
 {#if Capacitor.isNativePlatform()}
-    <button
+    <Button
+        className="mt-4"
         onclick={async () => {
             estaStorage = await capStorageInvestigation()
         }}
-        class="drop-shadow-lg p-3 border-darkborderc border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
+    >
         Investigate Storage
-    </button>
+    </Button>
 
     {#if estaStorage.length > 0}
         <div class="mt-4 flex flex-col w-full p-2">
@@ -192,12 +194,17 @@
         </div>
     {/if}
 {/if}
-{#if DBState.db.tpo}
-    <button
-        onclick={async () => {
-            installPython()
-        }}
-        class="drop-shadow-lg p-3 border-darkbutton border-solid mt-6 flex justify-center items-center ml-2 mr-2 border-1 hover:bg-selected text-sm">
-        Test Python
-    </button>
-{/if}
+<Button
+    className="mt-4"
+    onclick={async () => {
+        let mdTable = "| Type | Value |\n| --- | --- |\n"
+        const s = DBState.db.statics
+        for (const key in s) {
+            mdTable += `| ${key} | ${s[key]} |\n`
+        }
+        mdTable += `\n\n<small>${language.staticsDisclaimer}</small>`
+        alertMd(mdTable)
+    }}
+>
+Show Statistics
+</Button>
