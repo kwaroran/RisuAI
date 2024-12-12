@@ -124,7 +124,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
     for(const parameter of parameters){
         let value = 0
         if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.top_k === 0){
-            value = 0
+            continue
         }
         switch(parameter){
             case 'temperature':{
