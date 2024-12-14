@@ -856,6 +856,7 @@ export interface Database{
     googleClaudeTokenizing: boolean
     presetChain: string
     legacyMediaFindings?:boolean
+    geminiStream?:boolean
 }
 
 interface SeparateParameters{

@@ -218,8 +218,13 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
 
     if(!modelInfo.flags.includes(LLMFlags.hasFullSystemPrompt)){
         if(modelInfo.flags.includes(LLMFlags.hasFirstSystemPrompt)){
-            if(formated[0].role === 'system'){
-                systemPrompt = formated[0]
+            while(formated[0].role === 'system'){
+                if(systemPrompt){
+                    systemPrompt.content += '\n\n' + formated[0].content
+                }
+                else{
+                    systemPrompt = formated[0]
+                }
                 formated = formated.slice(1)
             }
         }
@@ -400,7 +405,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     if(db.newOAIHandle){
         formatedChat = formatedChat.filter(m => {
-            return m.content !== ''
+            return m.content !== '' || (m.multimodals && m.multimodals.length > 0)
         })
     }
 

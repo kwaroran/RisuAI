@@ -1141,7 +1141,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             pointer++
         }
         formated = formated.filter((v) => {
-            return v.content !== ''
+            return v.content !== ''  || (v.multimodals && v.multimodals.length > 0)
         })
     }
 

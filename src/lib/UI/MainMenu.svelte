@@ -31,7 +31,7 @@
                   search: '',
                   page: 0,
                   nsfw: false,
-                  sort: ''
+                  sort: 'recommended'
               }) then charas}
             {#if charas.length > 0}
               {@html hubAdditionalHTML}
