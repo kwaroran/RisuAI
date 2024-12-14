@@ -1609,9 +1609,65 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         url =`https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
     }
+    else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}`
+    }
     else{
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
     }
+
+
+    if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
+        headers['Content-Type'] = 'application/json'
+        const f = await fetchNative(url, {
+            headers: headers,
+            body: JSON.stringify(body),
+            method: 'POST',
+            chatId: arg.chatId,
+        })
+
+        if(f.status !== 200){
+            return {
+                type: 'fail',
+                result: await textifyReadableStream(f.body)
+            }
+        }
+
+        let fullResult:string = ''
+
+        const stream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
+            async transform(chunk, control) {
+                fullResult += new TextDecoder().decode(chunk)
+                try {
+                    let reformatted = fullResult
+                    if(reformatted.endsWith(',')){
+                        reformatted = fullResult.slice(0, -1) + ']'
+                    }
+                    if(!reformatted.endsWith(']')){
+                        reformatted = fullResult + ']'
+                    }
+
+                    const data = JSON.parse(reformatted)
+
+                    let r = ''
+                    for(const d of data){
+                        r += d.candidates[0].content.parts[0].text
+                    }
+                    control.enqueue({
+                        '0': r
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        },)
+
+        return {
+            type: 'streaming',
+            result: f.body.pipeThrough(stream)
+        }
+    }
+
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
