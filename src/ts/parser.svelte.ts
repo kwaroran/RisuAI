@@ -1941,6 +1941,7 @@ export function risuChatParser(da:string, arg:{
         callStack: arg.callStack,
     }
 
+    da = da.replace(/\<(user|char|bot)\>/gi, '{{$1}}')
 
     const isPureMode = () => {
         return pureModeNest.size > 0
@@ -1961,15 +1962,6 @@ export function risuChatParser(da:string, arg:{
                 pointer++
                 nested.unshift('')
                 stackType[nested.length] = 1
-                break
-            }
-            case '<':{
-                if(stackType[nested.length] === 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                nested.unshift('')
-                stackType[nested.length] = 2
                 break
             }
             case '#':{
@@ -2097,79 +2089,6 @@ export function risuChatParser(da:string, arg:{
                     tempVar = mc.var
                     if(tempVar['__force_return__']){
                         return tempVar['__return__'] ?? 'null'
-                    }
-                }
-                break
-            }
-            case '>':{
-                if(stackType[nested.length] === 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                if(nested.length === 1 || stackType[nested.length] !== 2){
-                    break
-                }
-                const dat = nested.shift()
-                if(isPureMode() && pureModeType() !== 'pureSyntax' && pureModeType() !== ''){
-                    nested[0] += `<${dat}>`
-                    break
-                }
-                switch(dat){
-                    case 'Comment':{
-                        if(arg.runVar){
-                            break
-                        }
-                        if(!commentMode){
-                            thinkingMode = false
-                            commentMode = true
-                            commentLatest = nested.map((f) => f)
-                            if(commentLatest[0].endsWith('\n')){
-                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
-                            }
-                            commentV = new Uint8Array(stackType)
-                        }
-                        break
-                    }
-                    case '/Comment':{
-                        if(commentMode){
-                            nested = commentLatest
-                            stackType = commentV
-                            commentMode = false
-                        }
-                        break
-                    }
-                    case 'Thoughts':{
-                        if(!visualize){
-                            nested[0] += `<${dat}>`
-                            break
-                        }
-                        if(!commentMode){
-                            thinkingMode = true
-                            commentMode = true
-                            commentLatest = nested.map((f) => f)
-                            if(commentLatest[0].endsWith('\n')){
-                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
-                            }
-                            commentV = new Uint8Array(stackType)
-                        }
-                        break
-                    }
-                    case '/Thoughts':{
-                        if(!visualize){
-                            nested[0] += `<${dat}>`
-                            break
-                        }
-                        if(commentMode){
-                            nested = commentLatest
-                            stackType = commentV
-                            commentMode = false
-                        }
-                        break
-                    }
-                    default:{
-                        const mc = isPureMode() ? null : smMatcher(dat, matcherObj)
-                        nested[0] += mc ?? `<${dat}>`
-                        break
                     }
                 }
                 break
