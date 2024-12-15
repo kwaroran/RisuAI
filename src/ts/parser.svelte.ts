@@ -9,7 +9,7 @@ import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
-import { getInlayImage } from './process/files/image';
+import { getInlayAsset } from './process/files/inlays';
 import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
@@ -375,41 +375,51 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
 }
 
 function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext?:string}}){
+    
     if(Object.keys(assetPaths).length === 0){
         return null
     }
 
+    //Levenshtein distance, new with 1d array
     const dest = (a:string, b:string) => {
-        let d:Int16Array[] = []
-
-        for(let i=0;i<a.length+1;i++){
-            d.push(new Int16Array(b.length+1))
+        const h = a.length + 1
+        const w = b.length + 1
+        let d = new Int16Array(h * w)
+        for(let i=0;i<h;i++){
+            d[i * w] = i
         }
-    
-        for(let i=0;i<=a.length;i++){
-            d[i][0] = i
+        for(let i=0;i<w;i++){
+            d[i] = i
         }
-
-        for(let i=0;i<=b.length;i++){
-            d[0][i] = i
-        }
-    
-        for(let i=1; i<=a.length; i++){
-            for(let j=1;j<=b.length;j++){
-                d[i][j] = Math.min(
-                    d[i-1][j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
-                    d[i-1][j]+1, d[i][j-1]+1
+        for(let i=1; i<h; i++){
+            for(let j=1;j<w;j++){
+                d[i * w + j] = Math.min(
+                    d[(i-1) * w + j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
+                    d[(i-1) * w + j]+1, d[i * w + j-1]+1
                 )
             }
         }
-    
-        return d[a.length][b.length];
+        return d[h * w - 1]
+
+    }
+
+    function trimmer(str:string){
+        const ext = ['webp', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'avi', 'm4p', 'm4v', 'mp3', 'wav', 'ogg']
+        for(const e of ext){
+            if(str.endsWith('.' + e)){
+                str = str.substring(0, str.length - e.length - 1)
+            }
+        }
+
+
+        return str.trim().replace(/[_ -.]/g, '')
     }
 
     let closest = ''
     let closestDist = 999999
+    const trimmedName = trimmer(name)
     for(const key in assetPaths){
-        const dist = dest(name.trim().replace(/[_ ]/g, ''), key.trim().replace(/[_ ]/g, ''))
+        const dist = dest(trimmedName, trimmer(key))
         if(dist < closestDist){
             closest = key
             closestDist = dist
@@ -418,15 +428,27 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
     return assetPaths[closest]
 }
 
-async function parseInlayImages(data:string){
-    const inlayMatch = data.match(/{{inlay::(.+?)}}/g)
+async function parseInlayAssets(data:string){
+    const inlayMatch = data.match(/{{(inlay|inlayed)::(.+?)}}/g)
     if(inlayMatch){
         for(const inlay of inlayMatch){
-            const id = inlay.substring(9, inlay.length - 2)
-            const img = await getInlayImage(id)
-            if(img){
-                data = data.replace(inlay, `<img src="${img.data}"/>`)
+            const inlayType = inlay.startsWith('{{inlayed') ? 'inlayed' : 'inlay'
+            const id = inlay.substring(inlay.indexOf('::') + 2, inlay.length - 2)
+            const asset = await getInlayAsset(id)
+            let prefix = inlayType === 'inlayed' ? `<div class="risu-inlay-image">` : ''
+            let postfix = inlayType === 'inlayed' ? `</div>\n\n` : ''
+            switch(asset?.type){
+                case 'image':
+                    data = data.replace(inlay, `${prefix}<img src="${asset.data}"/>${postfix}`)
+                    break
+                case 'video':
+                    data = data.replace(inlay, `${prefix}<video controls><source src="${asset.data}" type="video/mp4"></video>${postfix}`)
+                    break
+                case 'audio':
+                    data = data.replace(inlay, `${prefix}<audio controls><source src="${asset.data}" type="audio/mpeg"></audio>${postfix}`)
+                    break
             }
+            
         }
     }
     return data
@@ -463,7 +485,7 @@ export async function ParseMarkdown(
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
-    data = await parseInlayImages(data ?? '')
+    data = await parseInlayAssets(data ?? '')
 
     data = encodeStyle(data)
     if(mode === 'normal'){

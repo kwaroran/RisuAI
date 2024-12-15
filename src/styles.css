@@ -248,7 +248,15 @@ html, body{
   @apply w-full flex justify-center
 }
 
-.x-risu-risu-inlay-image > img{
+.x-risu-risu-inlay-image img{
+  @apply rounded-lg focus:outline-none max-w-80 w-full
+}
+
+.x-risu-risu-inlay-image video{
+  @apply rounded-lg focus:outline-none max-w-80 w-full
+}
+
+.x-risu-risu-inlay-image audio{
   @apply rounded-lg focus:outline-none max-w-80 w-full
 }
 

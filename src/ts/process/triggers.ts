@@ -11,7 +11,7 @@ import type { OpenAIChat } from "./index.svelte";
 import { HypaProcesser } from "./memory/hypamemory";
 import { requestChatData } from "./request";
 import { generateAIImage } from "./stableDiff";
-import { writeInlayImage } from "./files/image";
+import { writeInlayImage } from "./files/inlays";
 import { runLua } from "./lua";
 
 

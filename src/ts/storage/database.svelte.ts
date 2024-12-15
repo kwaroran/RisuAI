@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "143.0.1"
+export let appVer = "143.5.0"
 export let webAppSubVer = ''
 
 
@@ -456,7 +456,7 @@ export function setDatabase(data:Database){
     data.vertexClientEmail ??= ''
     data.vertexPrivateKey ??= ''
     data.seperateParametersEnabled ??= false
-    data.seperateParameters = {
+    data.seperateParameters ??= {
         memory: {},
         emotion: {},
         translate: {},
@@ -860,6 +860,7 @@ export interface Database{
     googleClaudeTokenizing: boolean
     presetChain: string
     legacyMediaFindings?:boolean
+    geminiStream?:boolean
 }
 
 interface SeparateParameters{

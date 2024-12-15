@@ -18,7 +18,7 @@ import { groupOrder } from "./group";
 import { runTrigger } from "./triggers";
 import { HypaProcesser } from "./memory/hypamemory";
 import { additionalInformations } from "./embedding/addinfo";
-import { getInlayImage, supportsInlayImage } from "./files/image";
+import { getInlayAsset, supportsInlayImage } from "./files/inlays";
 import { getGenerationModelString } from "./models/modelString";
 import { connectionOpen, peerRevertChat, peerSafeCheck, peerSync } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
@@ -29,6 +29,7 @@ import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
 import { parseChatML } from "../parser.svelte";
+import { getModelInfo, LLMFlags } from "../model/modellist";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -41,7 +42,7 @@ export interface OpenAIChat{
 }
 
 export interface MultiModal{
-    type:'image'|'video'
+    type:'image'|'video'|'audio'
     base64:string,
     height?:number,
     width?:number
@@ -687,10 +688,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         let inlays:string[] = []
         if(msg.role === 'char'){
-            formatedChat = formatedChat.replace(/{{inlay::(.+?)}}/g, '')
+            formatedChat = formatedChat.replace(/{{(inlay|inlayed)::(.+?)}}/g, '')
         }
         else{
-            const inlayMatch = formatedChat.match(/{{inlay::(.+?)}}/g)
+            const inlayMatch = formatedChat.match(/{{(inlay|inlayed)::(.+?)}}/g)
             if(inlayMatch){
                 for(const inlay of inlayMatch){
                     inlays.push(inlay)
@@ -699,12 +700,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
 
         let multimodal:MultiModal[] = []
+        const modelinfo = getModelInfo(DBState.db.aiModel)
         if(inlays.length > 0){
             for(const inlay of inlays){
-                const inlayName = inlay.replace('{{inlay::', '').replace('}}', '')
-                const inlayData = await getInlayImage(inlayName)
-                if(inlayData){
-                    if(supportsInlayImage()){
+                const inlayName = inlay.replace('{{inlayed::', '').replace('{{inlay::', '').replace('}}', '')
+                const inlayData = await getInlayAsset(inlayName)
+                if(inlayData?.type === 'image'){
+                    if(modelinfo.flags.includes(LLMFlags.hasImageInput)){
                         multimodal.push({
                             type: 'image',
                             base64: inlayData.data,
@@ -715,6 +717,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     else{
                         const captionResult = await runImageEmbedding(inlayData.data) 
                         formatedChat += `[${captionResult[0].generated_text}]`
+                    }
+                }
+                if(inlayData?.type === 'video' || inlayData?.type === 'audio'){
+                    if(multimodal.length === 0){
+                        multimodal.push({
+                            type: inlayData.type,
+                            base64: inlayData.data
+                        })
                     }
                 }
                 formatedChat = formatedChat.replace(inlay, '')
@@ -1133,7 +1143,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             pointer++
         }
         formated = formated.filter((v) => {
-            return v.content !== ''
+            return v.content !== ''  || (v.multimodals && v.multimodals.length > 0)
         })
     }
 

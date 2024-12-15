@@ -4,7 +4,7 @@ import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
 import { downloadFile, readImage } from "./globalApi.svelte"
 import { language } from "src/lang"
-import { reencodeImage } from "./process/files/image"
+import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
 import { v4 } from "uuid"
 

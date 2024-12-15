@@ -11,7 +11,7 @@ import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { supportsInlayImage } from "./files/image";
+import { supportsInlayImage } from "./files/inlays";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -95,7 +95,9 @@ type ParameterMap = {
     [key in Parameter]?: string;
 };
 
-function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended): { [key: string]: any } {
+function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended, arg:{
+    ignoreTopKIfZero?:boolean
+} = {}): { [key: string]: any } {
     const db = getDatabase()
     if(db.seperateParametersEnabled && ModelMode !== 'model'){
         if(ModelMode === 'submodel'){
@@ -103,6 +105,10 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
         }
 
         for(const parameter of parameters){
+            if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.seperateParameters[ModelMode][parameter] === 0){
+                continue
+            }
+
             let value = db.seperateParameters[ModelMode][parameter]
 
             if(value === -1000 || value === undefined){
@@ -117,6 +123,9 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
     for(const parameter of parameters){
         let value = 0
+        if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.top_k === 0){
+            continue
+        }
         switch(parameter){
             case 'temperature':{
                 value = db.temperature === -1000 ? -1000 : (db.temperature / 100)
@@ -209,8 +218,13 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
 
     if(!modelInfo.flags.includes(LLMFlags.hasFullSystemPrompt)){
         if(modelInfo.flags.includes(LLMFlags.hasFirstSystemPrompt)){
-            if(formated[0].role === 'system'){
-                systemPrompt = formated[0]
+            while(formated[0].role === 'system'){
+                if(systemPrompt){
+                    systemPrompt.content += '\n\n' + formated[0].content
+                }
+                else{
+                    systemPrompt = formated[0]
+                }
                 formated = formated.slice(1)
             }
         }
@@ -391,7 +405,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     if(db.newOAIHandle){
         formatedChat = formatedChat.filter(m => {
-            return m.content !== ''
+            return m.content !== '' || (m.multimodals && m.multimodals.length > 0)
         })
     }
 
@@ -520,10 +534,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             body: applyParameters({
                 model: requestModel,
                 messages: reformatedChat,
-                top_p: db.top_p,
                 safe_prompt: false,
                 max_tokens: arg.maxTokens,
-            }, ['temperature', 'presence_penalty', 'frequency_penalty'], {}, arg.mode ),
+            }, ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'], {}, arg.mode ),
             headers: {
                 "Authorization": "Bearer " + db.mistralKey,
             },
@@ -1407,7 +1420,11 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 });
                 
                 for (const modal of chat.multimodals) {
-                    if (modal.type === "image") {
+                    if (
+                        (modal.type === "image" && arg.modelInfo.flags.includes(LLMFlags.hasImageInput)) ||
+                        (modal.type === "audio" && arg.modelInfo.flags.includes(LLMFlags.hasAudioInput)) ||
+                        (modal.type === "video" && arg.modelInfo.flags.includes(LLMFlags.hasVideoInput))
+                    ) {
                         const dataurl = modal.base64;
                         const base64 = dataurl.split(",")[1];
                         const mediaType = dataurl.split(";")[0].split(":")[1];
@@ -1482,14 +1499,24 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         },
     ]
 
+    let para:Parameter[] = ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty']
+
+    para = para.filter((v) => {
+        return arg.modelInfo.parameters.includes(v)
+    })
 
     const body = {
         contents: reformatedChat,
         generation_config: applyParameters({
             "maxOutputTokens": maxTokens,
-        }, ['temperature', 'top_p'], {
-            'top_p': "topP"
-        }, arg.mode),
+        }, para, {
+            'top_p': "topP",
+            'top_k': "topK",
+            'presence_penalty': "presencePenalty",
+            'frequency_penalty': "frequencyPenalty"
+        }, arg.mode, {
+            ignoreTopKIfZero: true
+        }),
         safetySettings: uncensoredCatagory,
         systemInstruction: {
             parts: [
@@ -1582,9 +1609,65 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         url =`https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
     }
+    else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}`
+    }
     else{
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
     }
+
+
+    if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
+        headers['Content-Type'] = 'application/json'
+        const f = await fetchNative(url, {
+            headers: headers,
+            body: JSON.stringify(body),
+            method: 'POST',
+            chatId: arg.chatId,
+        })
+
+        if(f.status !== 200){
+            return {
+                type: 'fail',
+                result: await textifyReadableStream(f.body)
+            }
+        }
+
+        let fullResult:string = ''
+
+        const stream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
+            async transform(chunk, control) {
+                fullResult += new TextDecoder().decode(chunk)
+                try {
+                    let reformatted = fullResult
+                    if(reformatted.endsWith(',')){
+                        reformatted = fullResult.slice(0, -1) + ']'
+                    }
+                    if(!reformatted.endsWith(']')){
+                        reformatted = fullResult + ']'
+                    }
+
+                    const data = JSON.parse(reformatted)
+
+                    let r = ''
+                    for(const d of data){
+                        r += d.candidates[0].content.parts[0].text
+                    }
+                    control.enqueue({
+                        '0': r
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        },)
+
+        return {
+            type: 'streaming',
+            result: f.body.pipeThrough(stream)
+        }
+    }
+
     const res = await globalFetch(url, {
         headers: headers,
         body: body,

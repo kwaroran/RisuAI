@@ -2,25 +2,73 @@ import localforage from "localforage";
 import { v4 } from "uuid";
 import { getDatabase } from "../../storage/database.svelte";
 import { checkImageType } from "../../parser.svelte";
+import { getModelInfo, LLMFlags } from "src/ts/model/modellist";
+
+const inlayImageExts = [
+    'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'
+]
+
+const inlayAudioExts = [
+    'wav', 'mp3', 'ogg', 'flac'
+]
+
+const inlayVideoExts = [
+    'webm', 'mp4', 'mkv'
+]
 
 const inlayStorage = localforage.createInstance({
     name: 'inlay',
     storeName: 'inlay'
 })
 
-export async function postInlayImage(img:{
+export async function postInlayAsset(img:{
     name:string,
     data:Uint8Array
 }){
 
     const extention = img.name.split('.').at(-1)
     const imgObj = new Image()
-    imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
 
-    return await writeInlayImage(imgObj, {
-        name: img.name,
-        ext: extention
-    })
+    if(inlayImageExts.includes(extention)){
+        imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
+
+        return await writeInlayImage(imgObj, {
+            name: img.name,
+            ext: extention
+        })
+    }
+
+    if(inlayAudioExts.includes(extention)){
+        const b64 = Buffer.from(img.data).toString('base64')
+        const dataURI = `data:audio/${extention};base64,${b64}`
+        const imgid = v4()
+
+        await inlayStorage.setItem(imgid, {
+            name: img.name,
+            data: dataURI,
+            ext: extention,
+            type: 'audio'
+        })
+
+        return `${imgid}`
+    }
+
+    if(inlayVideoExts.includes(extention)){
+        const b64 = Buffer.from(img.data).toString('base64')
+        const dataURI = `data:video/${extention};base64,${b64}`
+        const imgid = v4()
+
+        await inlayStorage.setItem(imgid, {
+            name: img.name,
+            data: dataURI,
+            ext: extention,
+            type: 'video'
+        })
+
+        return `${imgid}`
+    }
+
+    return null
 }
 
 export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string, ext?:string} = {}) {
@@ -60,21 +108,23 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
     await inlayStorage.setItem(imgid, {
         name: arg.name ?? imgid,
         data: dataURI,
-        ext: arg.ext ?? 'png',
+        ext: 'png',
         height: drawHeight,
-        width: drawWidth
+        width: drawWidth,
+        type: 'image'
     })
 
     return `${imgid}`
 }
 
-export async function getInlayImage(id: string){
+export async function getInlayAsset(id: string){
     const img:{
         name: string,
         data: string
         ext: string
         height: number
         width: number
+        type: 'image'|'video'|'audio'
     } = await inlayStorage.getItem(id)
     if(img === null){
         return null
@@ -84,19 +134,7 @@ export async function getInlayImage(id: string){
 
 export function supportsInlayImage(){
     const db = getDatabase()
-    return db.aiModel.startsWith('gptv') || db.aiModel === 'gemini-pro-vision' || db.aiModel.startsWith('gemini-exp') || db.aiModel.startsWith('claude-3') || db.aiModel.startsWith('gpt4_turbo') || db.aiModel.startsWith('gpt5') || db.aiModel.startsWith('gpt4o') ||
-        (db.aiModel === 'reverse_proxy' && (
-            db.proxyRequestModel?.startsWith('gptv') || db.proxyRequestModel === 'gemini-pro-vision' || db.proxyRequestModel?.startsWith('claude-3') || db.proxyRequestModel.startsWith('gpt4_turbo') ||
-            db.proxyRequestModel?.startsWith('gpt5') || db.proxyRequestModel?.startsWith('gpt4o') ||
-            db.proxyRequestModel === 'custom'  && (
-                db.customProxyRequestModel?.startsWith('gptv') ||
-                db.customProxyRequestModel === 'gemini-pro-vision' ||
-                db.customProxyRequestModel?.startsWith('claude-3') ||
-                db.customProxyRequestModel.startsWith('gpt-4-turbo') ||
-                db.customProxyRequestModel?.startsWith('gpt5') ||
-                db.customProxyRequestModel?.startsWith('gpt4o')
-            )
-        ))
+    return getModelInfo(db.aiModel).flags.includes(LLMFlags.hasImageInput)
 }
 
 export async function reencodeImage(img:Uint8Array){

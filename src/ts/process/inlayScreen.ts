@@ -1,4 +1,4 @@
-import { writeInlayImage } from "./files/image";
+import { writeInlayImage } from "./files/inlays";
 import type { character } from "../storage/database.svelte";
 import { generateAIImage } from "./stableDiff";
 

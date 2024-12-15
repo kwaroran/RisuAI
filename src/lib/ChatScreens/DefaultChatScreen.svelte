@@ -2,7 +2,7 @@
 
 	import Suggestion from './Suggestion.svelte';
 	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon } from "lucide-svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
@@ -25,7 +25,7 @@
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
     import { processMultiCommand } from 'src/ts/process/command';
     import { postChatFile } from 'src/ts/process/files/multisend';
-    import { getInlayImage } from 'src/ts/process/files/image';
+    import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
 
@@ -71,7 +71,7 @@
 
         if(fileInput.length > 0){
             for(const file of fileInput){
-                messageInput += `{{inlay::${file}}}`
+                messageInput += `{{inlayed::${file}}}`
             }
             fileInput = []
         }
@@ -546,8 +546,31 @@
             {#if fileInput.length > 0}
                 <div class="flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md">
                     {#each fileInput as file, i}
-                        {#await getInlayImage(file) then inlayImage}
-                            <img src={inlayImage.data} alt="Inlay" class="max-w-24 max-h-24">
+                        {#await getInlayAsset(file) then inlayAsset}
+                            <div class="relative">
+                                {#if inlayAsset.type === 'image'}
+                                    <img src={inlayAsset.data} alt="Inlay" class="max-w-48 max-h-48 border border-darkborderc">
+                                {:else if inlayAsset.type === 'video'}
+                                    <video controls class="max-w-48 max-h-48 border border-darkborderc">
+                                        <source src={inlayAsset.data} type="video/mp4" />
+                                        <track kind="captions" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                {:else if inlayAsset.type === 'audio'}
+                                    <audio controls class="max-w-48 max-h-24 border border-darkborderc">
+                                        <source src={inlayAsset.data} type="audio/mpeg" />
+                                        Your browser does not support the audio tag.
+                                    </audio>
+                                {:else}
+                                    <div class="max-w-24 max-h-24">{file}</div>
+                                {/if}
+                                <button class="absolute -right-1 -top-1 p-1 bg-darkbg text-textcolor rounded-md transition-colors hover:text-draculared focus:text-draculared" onclick={() => {
+                                    fileInput.splice(i, 1)
+                                    updateInputSizeAll()
+                                }}>
+                                    <XIcon size={18} />
+                                </button>
+                            </div>
                         {/await}
                     {/each}
                 </div>
@@ -741,7 +764,7 @@
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
                         const res = await postChatFile(messageInput)
-                        if(res?.type === 'image'){
+                        if(res?.type === 'asset'){
                             fileInput.push(res.data)
                             updateInputSizeAll()
                         }
