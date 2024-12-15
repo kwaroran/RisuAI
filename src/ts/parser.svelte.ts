@@ -117,18 +117,30 @@ async function renderHighlightableMarkdown(data:string) {
             //import language if not already loaded
             //we do not refactor this to a function because we want to keep vite to only import the languages that are needed
             let languageModule:any = null
+            let shotLang = ''
             switch(lang){
                 case 'js':
                 case 'javascript':{
                     lang = 'javascript'
+                    shotLang = 'js'
                     if(!hljs.getLanguage('javascript')){
                         languageModule = await import('highlight.js/lib/languages/javascript')
+                    }
+                    break
+                }
+                case 'txt':
+                case 'vtt':{
+                    shotLang = lang
+                    lang = 'plaintext'
+                    if(!hljs.getLanguage('plaintext')){
+                        languageModule = await import('highlight.js/lib/languages/plaintext')
                     }
                     break
                 }
                 case 'py':
                 case 'python':{
                     lang = 'python'
+                    shotLang = 'py'
                     if(!hljs.getLanguage('python')){
                         languageModule = await import('highlight.js/lib/languages/python')
                     }
@@ -136,6 +148,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'css':{
                     lang = 'css'
+                    shotLang = 'css'
                     if(!hljs.getLanguage('css')){
                         languageModule = await import('highlight.js/lib/languages/css')
                     }
@@ -144,6 +157,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'xml':
                 case 'html':{
                     lang = 'xml'
+                    shotLang = 'xml'
                     if(!hljs.getLanguage('xml')){
                         languageModule = await import('highlight.js/lib/languages/xml')
                     }
@@ -151,6 +165,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'lua':{
                     lang = 'lua'
+                    shotLang = 'lua'
                     if(!hljs.getLanguage('lua')){
                         languageModule = await import('highlight.js/lib/languages/lua')
                     }
@@ -158,6 +173,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'dart':{
                     lang = 'dart'
+                    shotLang = 'dart'
                     if(!hljs.getLanguage('dart')){
                         languageModule = await import('highlight.js/lib/languages/dart')
                     }
@@ -165,6 +181,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'java':{
                     lang = 'java'
+                    shotLang = 'java'
                     if(!hljs.getLanguage('java')){
                         languageModule = await import('highlight.js/lib/languages/java')
                     }
@@ -172,6 +189,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'rust':{
                     lang = 'rust'
+                    shotLang = 'rs'
                     if(!hljs.getLanguage('rust')){
                         languageModule = await import('highlight.js/lib/languages/rust')
                     }
@@ -180,6 +198,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'c':
                 case 'cpp':{
                     lang = 'cpp'
+                    shotLang = 'cpp'
                     if(!hljs.getLanguage('cpp')){
                         languageModule = await import('highlight.js/lib/languages/cpp')
                     }
@@ -188,6 +207,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'csharp':
                 case 'cs':{
                     lang = 'csharp'
+                    shotLang = 'cs'
                     if(!hljs.getLanguage('csharp')){
                         languageModule = await import('highlight.js/lib/languages/csharp')
                     }
@@ -196,6 +216,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'ts':
                 case 'typescript':{
                     lang = 'typescript'
+                    shotLang = 'ts'
                     if(!hljs.getLanguage('typescript')){
                         languageModule = await import('highlight.js/lib/languages/typescript')
                     }
@@ -203,6 +224,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'json':{
                     lang = 'json'
+                    shotLang = 'json'
                     if(!hljs.getLanguage('json')){
                         languageModule = await import('highlight.js/lib/languages/json')
                     }
@@ -210,6 +232,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'yaml':{
                     lang = 'yaml'
+                    shotLang = 'yml'
                     if(!hljs.getLanguage('yaml')){
                         languageModule = await import('highlight.js/lib/languages/yaml')
                     }
@@ -217,6 +240,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'shell':{
                     lang = 'shell'
+                    shotLang = 'sh'
                     if(!hljs.getLanguage('shell')){
                         languageModule = await import('highlight.js/lib/languages/shell')
                     }
@@ -224,6 +248,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'bash':{
                     lang = 'bash'
+                    shotLang = 'sh'
                     if(!hljs.getLanguage('bash')){
                         languageModule = await import('highlight.js/lib/languages/bash')
                     }
@@ -231,6 +256,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 default:{
                     lang = 'none'
+                    shotLang = 'none'
                 }
             }
             if(languageModule){
@@ -244,7 +270,9 @@ async function renderHighlightableMarkdown(data:string) {
                     language: lang,
                     ignoreIllegals: true
                 }).value
-                rendered = rendered.replace(placeholder, `<pre class="hljs"><code>${highlighted}</code></pre>`)   
+                rendered = rendered.replace(placeholder, `<pre class="hljs" x-hl-lang="${shotLang}" x-hl-text="${
+                    Buffer.from(code).toString('hex')
+                }"><code>${highlighted}</code></pre>`)   
             }
         } catch (error) {
             
@@ -492,8 +520,8 @@ export async function ParseMarkdown(
         data = await renderHighlightableMarkdown(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em",],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
     }))
 }
 

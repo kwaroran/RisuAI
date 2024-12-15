@@ -500,12 +500,12 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
             else{
                 const prevChat = reformatedChat[reformatedChat.length-1]
-                if(prevChat.role === chat.role){
+                if(prevChat?.role === chat.role){
                     reformatedChat[reformatedChat.length-1].content += '\n' + chat.content
                     continue
                 }
                 else if(chat.role === 'system'){
-                    if(prevChat.role === 'user'){
+                    if(prevChat?.role === 'user'){
                         reformatedChat[reformatedChat.length-1].content += '\nSystem:' + chat.content
                     }
                     else{
@@ -1387,14 +1387,50 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     for(let i=0;i<formated.length;i++){
         const chat = formated[i]
   
-        if(i === 0){
-            if(chat.role === 'user' || chat.role === 'assistant'){
-                reformatedChat.push({
-                    role: chat.role === 'user' ? 'USER' : 'MODEL',
-                    parts: [{
-                        text: chat.content
-                    }]
-                })
+        const prevChat = reformatedChat[reformatedChat.length-1]
+        const qRole = 
+            chat.role === 'user' ? 'USER' :
+            chat.role === 'assistant' ? 'MODEL' :
+            chat.role
+
+        if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
+            let geminiParts: GeminiPart[] = [];
+            
+            geminiParts.push({
+                text: chat.content,
+            });
+            
+            for (const modal of chat.multimodals) {
+                if (
+                    (modal.type === "image" && arg.modelInfo.flags.includes(LLMFlags.hasImageInput)) ||
+                    (modal.type === "audio" && arg.modelInfo.flags.includes(LLMFlags.hasAudioInput)) ||
+                    (modal.type === "video" && arg.modelInfo.flags.includes(LLMFlags.hasVideoInput))
+                ) {
+                    const dataurl = modal.base64;
+                    const base64 = dataurl.split(",")[1];
+                    const mediaType = dataurl.split(";")[0].split(":")[1];
+        
+                    geminiParts.push({
+                        inlineData: {
+                            mimeType: mediaType,
+                            data: base64,
+                        }
+                    });
+                }
+            }
+    
+            reformatedChat.push({
+                role: "USER",
+                parts: geminiParts,
+            });
+    
+        } else if (prevChat?.role === qRole) {
+            reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
+            continue
+        }
+        else if(chat.role === 'system'){
+            if(prevChat?.role === 'USER'){
+                reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
             }
             else{
                 reformatedChat.push({
@@ -1405,78 +1441,22 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 })
             }
         }
+
+        else if(chat.role === 'assistant' || chat.role === 'user'){
+            reformatedChat.push({
+                role: chat.role === 'user' ? 'USER' : 'MODEL',
+                parts: [{
+                    text: chat.content
+                }]
+            })
+        }
         else{
-            const prevChat = reformatedChat[reformatedChat.length-1]
-            const qRole = 
-                chat.role === 'user' ? 'USER' :
-                chat.role === 'assistant' ? 'MODEL' :
-                chat.role
-
-            if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
-                let geminiParts: GeminiPart[] = [];
-                
-                geminiParts.push({
-                    text: chat.content,
-                });
-                
-                for (const modal of chat.multimodals) {
-                    if (
-                        (modal.type === "image" && arg.modelInfo.flags.includes(LLMFlags.hasImageInput)) ||
-                        (modal.type === "audio" && arg.modelInfo.flags.includes(LLMFlags.hasAudioInput)) ||
-                        (modal.type === "video" && arg.modelInfo.flags.includes(LLMFlags.hasVideoInput))
-                    ) {
-                        const dataurl = modal.base64;
-                        const base64 = dataurl.split(",")[1];
-                        const mediaType = dataurl.split(";")[0].split(":")[1];
-            
-                        geminiParts.push({
-                            inlineData: {
-                                mimeType: mediaType,
-                                data: base64,
-                            }
-                        });
-                    }
-                }
-        
-                reformatedChat.push({
-                    role: "USER",
-                    parts: geminiParts,
-                });
-        
-            } else if (prevChat.role === qRole) {
-                reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
-                continue
-            }
-            else if(chat.role === 'system'){
-                if(prevChat.role === 'USER'){
-                    reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
-                }
-                else{
-                    reformatedChat.push({
-                        role: "USER",
-                        parts: [{
-                            text: chat.role + ':' + chat.content
-                        }]
-                    })
-                }
-            }
-
-            else if(chat.role === 'assistant' || chat.role === 'user'){
-                reformatedChat.push({
-                    role: chat.role === 'user' ? 'USER' : 'MODEL',
-                    parts: [{
-                        text: chat.content
-                    }]
-                })
-            }
-            else{
-                reformatedChat.push({
-                    role: "USER",
-                    parts: [{
-                        text: chat.role + ':' + chat.content
-                    }]
-                })
-            }
+            reformatedChat.push({
+                role: "USER",
+                parts: [{
+                    text: chat.role + ':' + chat.content
+                }]
+            })
         }
     }
 
