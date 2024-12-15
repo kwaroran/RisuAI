@@ -453,7 +453,6 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
             closestDist = dist
         }
     }
-    console.log(closestDist, closest)
     if(closestDist > DBState.db.assetMaxDifference){
         return null
     }
