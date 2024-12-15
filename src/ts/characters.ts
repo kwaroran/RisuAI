@@ -5,12 +5,13 @@ import { language } from "../lang";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
-import { checkCharOrder, downloadFile, getFileSrc } from "./globalApi.svelte";
+import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
-import { parseMarkdownSafe } from "./parser.svelte";
+import { checkImageType, parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
 import { doingChat } from "./process/index.svelte";
 import { importCharacter } from "./characterCards";
+import { PngChunk } from "./pngChunk";
 
 export function createNewCharacter() {
     let db = getDatabase()
@@ -81,6 +82,41 @@ export async function selectCharImg(charIndex:number) {
     }
     const img = selected.data
     let db = getDatabase()
+
+    const type = checkImageType(img)
+    console.log(type)
+
+    try {
+        if(type === 'PNG' && db.characters[charIndex].type === 'character'){
+            const gen = PngChunk.readGenerator(img)
+            const allowedChunk = [
+                'parameters', 'Comment', 'Title', 'Description', 'Author', 'Software', 'Source', 'Disclaimer', 'Warning', 'Copyright',
+            ]
+            for await (const chunk of gen){
+                if(chunk instanceof AppendableBuffer){
+                    continue
+                }
+                if(!chunk){
+                    continue
+                }
+                if(chunk.value.length > 20_000){
+                    continue
+                }
+                if(allowedChunk.includes(chunk.key)){
+                    console.log(chunk.key, chunk.value)
+                    db.characters[charIndex].extentions ??= {}
+                    db.characters[charIndex].extentions.pngExif ??= {}
+                    db.characters[charIndex].extentions.pngExif[chunk.key] = chunk.value
+                }
+            }
+            console.log(db.characters[charIndex].extentions)
+        }   
+    } catch (error) {
+        console.error(error)
+    }
+
+
+
     const imgp = await saveImage(img)
     dumpCharImage(charIndex)
     db.characters[charIndex].image = imgp
