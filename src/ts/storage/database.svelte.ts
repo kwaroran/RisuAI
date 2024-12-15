@@ -467,9 +467,6 @@ export function setDatabase(data:Database){
 }
 
 export function setDatabaseLite(data:Database){
-    if(import.meta.env.DEV){
-        console.trace('setDatabaseLite executed')
-    }
     DBState.db = data
 }
 
