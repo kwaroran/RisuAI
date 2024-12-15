@@ -461,6 +461,7 @@ export function setDatabase(data:Database){
     }
     data.customFlags ??= []
     data.enableCustomFlags ??= false
+    data.assetMaxDifference ??= 4
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -857,6 +858,7 @@ export interface Database{
     presetChain: string
     legacyMediaFindings?:boolean
     geminiStream?:boolean
+    assetMaxDifference:number
 }
 
 interface SeparateParameters{

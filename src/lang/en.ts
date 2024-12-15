@@ -827,4 +827,5 @@ export const languageEnglish = {
     subtitlesWarning1: "You must use model with audio/video input to use this feature.",
     subtitlesWarning2: "You must use model with streaming feature to use this feature.",
     reset: "Reset",
+    assetMaxDifference: "Asset Max Difference",
 }
