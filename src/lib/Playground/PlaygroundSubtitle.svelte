@@ -14,6 +14,7 @@
     import SliderInput from "../UI/GUI/SliderInput.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import sendSound from '../../etc/send.mp3'
 
 
 
@@ -28,6 +29,39 @@
     let vttB64 = $state('')
     let vobj:TranscribeObj[] = $state([])
     let mode = $state('llm')
+    let sourceLang:string|null = $state(null)    
+
+    function getLanguageCodes(){
+        let languageCodes:{
+            code: string
+            name: string
+        }[] = []
+
+        for(let i=0x41;i<=0x5A;i++){
+            for(let j=0x41;j<=0x5A;j++){
+                languageCodes.push({
+                    code: String.fromCharCode(i) + String.fromCharCode(j),
+                    name: ''
+                })
+            }
+        }
+        
+        languageCodes = languageCodes.map(v => {
+            return {
+                code: v.code,
+                name: new Intl.DisplayNames([
+                    DBState.db.language === 'cn' ? 'zh' : DBState.db.language
+                ], {
+                    type: 'language',
+                    fallback: 'none'
+                }).of(v.code)
+            }
+        }).filter((a) => {
+            return a.name
+        }).sort((a, b) => a.name.localeCompare(b.name))
+
+        return languageCodes
+    }
 
 
 
@@ -120,6 +154,9 @@
         vobj = convertTransToObj(latest)
         outputText = makeWebVtt(vobj)
         vttB64 = `data:text/vtt;base64,${Buffer.from(outputText).toString('base64')}`
+
+        const audio = new Audio(sendSound);
+        audio.play();
     }
 
     async function runWhisperMode() {
@@ -133,13 +170,12 @@
 
         const file = files?.[0]
 
+        let requestFile:File = null
+
         if(!file){
             outputText = ''
             return
         }
-
-        const formData = new FormData()
-
         const videos = [
             'mp4', 'webm', 'mkv', 'avi', 'mov'
         ]
@@ -198,28 +234,100 @@
             })
 
             outputText = 'Transcribing audio...\n\n'
-            formData.append('file', file2)
+            requestFile = file2
         }
         else{
-            formData.append('file', file)
+            requestFile = file
         }
 
-        formData.append('model', 'whisper-1')
-        formData.append('response_format', 'vtt')
+
+        if(mode === 'whisperLocal'){
+            try {
+                const {pipeline} = await import('@huggingface/transformers')
+                let stats:{
+                    [key:string]:{
+                        name:string
+                        status:string
+                        file:string
+                        progress?:number
+                    }
+                } = {}
+
+                const device = ('gpu' in navigator) ? 'webgpu' : 'wasm'
+
+                const transcriber = await pipeline(
+                    "automatic-speech-recognition",
+                    "onnx-community/whisper-large-v3-turbo_timestamped",
+                    {
+                        device: device,
+                        progress_callback: (progress) => {
+                            stats[progress.name + progress.file] = progress
+                            outputText = Object.values(stats).map(v => `${v.name}-${v.file}: ${progress.status} ${v.progress ? `[${v.progress.toFixed(2)}%]` : ''}`).join('\n')
+                        },
+                        dtype: 'q8'
+                    },
+                );
+
+                const audioContext = new AudioContext()
+                const audioBuffer = await audioContext.decodeAudioData(await requestFile.arrayBuffer())
+                const combined = new Float32Array(audioBuffer.getChannelData(0).length)
+                for(let j = 0; j < audioBuffer.getChannelData(0).length; j++){
+                    for(let i = 0; i < audioBuffer.numberOfChannels; i++){
+                        combined[j] += audioBuffer.getChannelData(i)[j]
+                    }
+
+                    if(combined[j] > 1){
+                        combined[j] = 1
+                    }
+                    if(combined[j] < -1){
+                        combined[j] = -1
+                    }
+                }
+                
+                outputText = ('Transcribing... (This may take a while. Do not close the tab.)')
+                if(device !== 'webgpu'){
+                    outputText += `\nYour browser or OS do not support WebGPU, so the transcription may be slower.`
+                }
+                await sleep(10)
+                const res1 = await transcriber(combined, {
+                    return_timestamps: true,
+                    language: sourceLang,
+                })
+                const res2 = Array.isArray(res1) ? res1[0] : res1
+                const chunks = res2.chunks
+
+                outputText = 'WEBVTT\n\n'
+
+                for(const chunk of chunks){
+                    outputText += `${chunk.timestamp[0]} --> ${chunk.timestamp[1]}\n${chunk.text}\n\n`
+                }
+
+                console.log(outputText)
+
+            } catch (error) {
+                alertError(JSON.stringify(error))
+                outputText = ''
+                return
+            }
+        }
+        else{
+            const formData = new FormData()
+            formData.append('file', requestFile)
+            formData.append('model', 'whisper-1')
+            formData.append('response_format', 'vtt')
 
 
-        const d = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${DBState.db.openAIKey}`
-            },
-            body: formData
+            const d = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${DBState.db.openAIKey}`
+                },
+                body: formData
 
-        })
+            })
+            outputText = await d.text()
+        }
 
-        const fileBuffer = await file.arrayBuffer()
-
-        outputText = await d.text()
 
         const v = await requestChatData({
             formated: [{
@@ -254,9 +362,6 @@
 
             outputText = value[firstKey]
         }
-
-        console.log(outputText)
-
         if(!outputText.trim().endsWith('```')){
             outputText = outputText.trim() + '\n```'
         }
@@ -268,12 +373,14 @@
             latest = match[3].trim()
         }
 
+        const fileBuffer = await file.arrayBuffer()
         outputText = latest
         vttB64 = `data:text/vtt;base64,${Buffer.from(outputText).toString('base64')}`
         fileB64 = `data:audio/wav;base64,${Buffer.from(fileBuffer).toString('base64')}`
         vobj = convertWebVTTtoObj(outputText)
 
-
+        const audio = new Audio(sendSound);
+        audio.play();
     }
 
     
@@ -355,7 +462,18 @@
 
 <h2 class="text-4xl text-textcolor my-6 font-black relative">{language.subtitles}</h2>
 
-<span class="text-textcolor text-lg mt-4">{language.language}</span>
+{#if mode === 'whisperLocal'}
+    <span class="text-textcolor text-lg mt-4">{language.sourceLanguage}</span>
+    <SelectInput value={sourceLang === null ? 'auto' : sourceLang}>
+        <OptionInput value="auto">Auto</OptionInput>
+        {#each getLanguageCodes() as lang}
+            <OptionInput value={lang.code}>{lang.name}</OptionInput>
+        {/each}
+    </SelectInput>
+{/if}
+
+
+<span class="text-textcolor text-lg mt-4">{language.destinationLanguage}</span>
 <TextInput bind:value={selLang} />
 
 <span class="text-textcolor text-lg mt-4">{language.prompt}</span>
@@ -366,19 +484,23 @@
     if(mode === 'llm'){
         prompt = LLMModePrompt
     }
-    if(mode === 'whisper'){
+    if(mode === 'whisper' || mode === 'whisperLocal'){
         prompt = WhisperModePrompt
     }
 }}>
     <OptionInput value="llm">LLM</OptionInput>
     <OptionInput value="whisper">Whisper</OptionInput>
+    <OptionInput value="whisperLocal">Whisper Local</OptionInput>
 </SelectInput>
 
-{#if !(modelInfo.flags.includes(LLMFlags.hasAudioInput) && modelInfo.flags.includes(LLMFlags.hasVideoInput))}
+{#if !(modelInfo.flags.includes(LLMFlags.hasAudioInput) && modelInfo.flags.includes(LLMFlags.hasVideoInput)) && mode === 'llm'}
     <span class="text-draculared text-lg mt-4">{language.subtitlesWarning1}</span>
 {/if}
 {#if !(modelInfo.flags.includes(LLMFlags.hasStreaming) && DBState.db.useStreaming)}
     <span class="text-draculared text-lg mt-4">{language.subtitlesWarning2}</span>
+{/if}
+{#if !('gpu' in navigator) && mode === 'whisperLocal'}
+    <span class="text-draculared text-lg mt-4">{language.noWebGPU}</span>
 {/if}
 
 {#if !outputText}
@@ -386,7 +508,7 @@
         if(mode === 'llm'){
             runLLMMode()
         }
-        if(mode === 'whisper'){
+        if(mode === 'whisper' || mode === 'whisperLocal'){
             runWhisperMode()
         }
     }}>

@@ -14,7 +14,8 @@ export enum LLMFlags{
     requiresAlternateRole,
     mustStartWithUserInput,
     poolSupported,
-    hasVideoInput
+    hasVideoInput,
+    OAICompletionTokens
 }
 
 export enum LLMProvider{
@@ -409,7 +410,7 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasImageInput,
             LLMFlags.hasFullSystemPrompt,
-            LLMFlags.hasStreaming
+            LLMFlags.hasStreaming,
         ],
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
@@ -421,8 +422,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
-            LLMFlags.hasFullSystemPrompt,
-            LLMFlags.hasStreaming
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens
         ],
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
@@ -434,8 +435,23 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.OpenAI,
         format: LLMFormat.OpenAICompatible,
         flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens
+        ],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'o1',
+        internalID: 'o1',
+        name: 'o1',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
             LLMFlags.hasFullSystemPrompt,
-            LLMFlags.hasStreaming
+            LLMFlags.hasImageInput
         ],
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base

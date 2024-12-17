@@ -134,7 +134,6 @@ export const runVITS = async (text: string, modelData:string|OnnxModelFiles = 'X
     });
 }
 
-
 export const registerOnnxModel = async ():Promise<OnnxModelFiles> => {
     const id = v4().replace(/-/g, '')
 

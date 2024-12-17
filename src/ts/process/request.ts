@@ -409,15 +409,6 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         })
     }
 
-    if(aiModel.startsWith('gpt4o1')){
-        for(let i=0;i<formatedChat.length;i++){
-            if(formatedChat[i].role === 'system'){
-                formatedChat[i].content = `<system>${formatedChat[i].content}</system>`
-                formatedChat[i].role = 'user'
-            }
-        }
-    }
-
     for(let i=0;i<arg.biasString.length;i++){
         const bia = arg.biasString[i]
         if(bia[0].startsWith('[[') && bia[0].endsWith(']]')){
@@ -617,7 +608,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     })
 
-    if(aiModel.startsWith('gpt4o1')){
+    if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
         body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
     }

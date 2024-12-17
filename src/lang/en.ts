@@ -828,4 +828,7 @@ export const languageEnglish = {
     subtitlesWarning2: "You must use model with streaming feature to use this feature.",
     reset: "Reset",
     assetMaxDifference: "Asset Max Difference",
+    sourceLanguage: "Source Language",
+    destinationLanguage: "Destination Language",
+    noWebGPU: "Your Browser or OS doesn't support WebGPU. this will slow down the performance significantly.",
 }

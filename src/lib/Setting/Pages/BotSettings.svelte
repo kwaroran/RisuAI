@@ -271,7 +271,7 @@
 
 {#if submenu === 1 || submenu === -1}
     <span class="text-textcolor">{language.maxContextSize}</span>
-    <NumberInput min={0} max={getModelMaxContext(DBState.db.aiModel)} marginBottom={true} bind:value={DBState.db.maxContext}/>
+    <NumberInput min={0} marginBottom={true} bind:value={DBState.db.maxContext}/>
 
 
     <span class="text-textcolor">{language.maxResponseSize}</span>
