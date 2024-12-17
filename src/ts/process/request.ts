@@ -505,11 +505,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
         formatedChat = formatedChat.map((v) => {
             if(v.role === 'system'){
-                return {
-                    ...v,
-                    role: 'developer'
-                }
+                v.role = 'developer'
             }
+            return v
         })
     }
 
