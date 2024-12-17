@@ -237,7 +237,7 @@ interface OpenAIImageContents {
 type OpenAIContents = OpenAITextContents|OpenAIImageContents
 
 export interface OpenAIChatExtra {
-    role: 'system'|'user'|'assistant'|'function'
+    role: 'system'|'user'|'assistant'|'function'|'developer'
     content: string|OpenAIContents[]
     memo?:string
     name?:string
@@ -554,6 +554,17 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                     })
                 }
             }
+        }
+
+        if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
+            reformatedChat = reformatedChat.map((v) => {
+                if(v.role === 'system'){
+                    return {
+                        ...v,
+                        role: 'developer'
+                    }
+                }
+            })
         }
     
         const res = await globalFetch(arg.customURL ?? "https://api.mistral.ai/v1/chat/completions", {

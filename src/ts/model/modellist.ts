@@ -15,7 +15,8 @@ export enum LLMFlags{
     mustStartWithUserInput,
     poolSupported,
     hasVideoInput,
-    OAICompletionTokens
+    OAICompletionTokens,
+    DeveloperRole
 }
 
 export enum LLMProvider{
@@ -451,7 +452,8 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.OAICompletionTokens,
             LLMFlags.hasFullSystemPrompt,
-            LLMFlags.hasImageInput
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
         ],
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
