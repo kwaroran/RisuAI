@@ -105,11 +105,46 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
         }
 
         for(const parameter of parameters){
+            
+            let value = 0
             if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.seperateParameters[ModelMode][parameter] === 0){
                 continue
             }
 
-            let value = db.seperateParameters[ModelMode][parameter]
+            switch(parameter){
+                case 'temperature':{
+                    value = db.seperateParameters[ModelMode].temperature === -1000 ? -1000 : (db.seperateParameters[ModelMode].temperature / 100)
+                    break
+                }
+                case 'top_k':{
+                    value = db.seperateParameters[ModelMode].top_k
+                    break
+                }
+                case 'repetition_penalty':{
+                    value = db.seperateParameters[ModelMode].repetition_penalty
+                    break
+                }
+                case 'min_p':{
+                    value = db.seperateParameters[ModelMode].min_p
+                    break
+                }
+                case 'top_a':{
+                    value = db.seperateParameters[ModelMode].top_a
+                    break
+                }
+                case 'top_p':{
+                    value = db.seperateParameters[ModelMode].top_p
+                    break
+                }
+                case 'frequency_penalty':{
+                    value = db.seperateParameters[ModelMode].frequency_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].frequency_penalty / 100)
+                    break
+                }
+                case 'presence_penalty':{
+                    value = db.seperateParameters[ModelMode].presence_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].presence_penalty / 100)
+                    break
+                }
+            }
 
             if(value === -1000 || value === undefined){
                 continue
