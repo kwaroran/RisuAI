@@ -502,6 +502,17 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         openrouterRequestModel = await getFreeOpenRouterModel()
     }
 
+    if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
+        formatedChat = formatedChat.map((v) => {
+            if(v.role === 'system'){
+                return {
+                    ...v,
+                    role: 'developer'
+                }
+            }
+        })
+    }
+
     console.log(formatedChat)
     if(arg.modelInfo.format === LLMFormat.Mistral){
         requestModel = aiModel
@@ -554,17 +565,6 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                     })
                 }
             }
-        }
-
-        if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
-            reformatedChat = reformatedChat.map((v) => {
-                if(v.role === 'system'){
-                    return {
-                        ...v,
-                        role: 'developer'
-                    }
-                }
-            })
         }
     
         const res = await globalFetch(arg.customURL ?? "https://api.mistral.ai/v1/chat/completions", {
