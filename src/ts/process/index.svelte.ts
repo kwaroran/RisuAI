@@ -803,9 +803,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             chats = hn.chats
             currentTokens = hn.tokens
         }
-        else if(DBState.db.hypav2){ //HypaV2 support needs to be changed like this.
+        else if(DBState.db.hypav2){
+            console.log("Current chat's hypaV2 Data: ", currentChat.hypaV2Data)
             const sp = await hypaMemoryV2(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
-            console.log("All chats: ", chats)
             if(sp.error){
                 console.log(sp)
                 alertError(sp.error)
@@ -815,7 +815,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             currentTokens = sp.currentTokens
             currentChat.hypaV2Data = sp.memory ?? currentChat.hypaV2Data
             DBState.db.characters[selectedChar].chats[selectedChat].hypaV2Data = currentChat.hypaV2Data
-            console.log(currentChat.hypaV2Data)
+
+            currentChat = DBState.db.characters[selectedChar].chats[selectedChat];
+            console.log("[Expected to be updated] chat's HypaV2Data: ", currentChat.hypaV2Data)
         }
         else{
             const sp = await supaMemory(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer, {
