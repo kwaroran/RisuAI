@@ -7,6 +7,8 @@
     import { MessageSquareIcon, PlusIcon } from "lucide-svelte";
 
     const agoFormatter = new Intl.RelativeTimeFormat(navigator.languages, { style: 'short' });
+    
+    let {gridMode = false, endGrid = () => {}} = $props();
 
     function makeAgoText(time:number){
         if(time === 0){
@@ -60,6 +62,7 @@
         {#if char.name.toLocaleLowerCase().includes($MobileSearch.toLocaleLowerCase())}
             <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} onclick={() => {
                 changeChar(char.i)
+                endGrid()
             }}>
                 <BarIcon additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
                 <div class="flex flex-1 w-full flex-col justify-start items-start text-start">
@@ -76,8 +79,10 @@
     {/each}
 </div>
 
-<button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" onclick={() => {
-    addCharacter()
-}}>
-    <PlusIcon size={24} />
-</button>
+{#if gridMode}
+    <button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" onclick={() => {
+        addCharacter()
+    }}>
+        <PlusIcon size={24} />
+    </button>
+{/if}
