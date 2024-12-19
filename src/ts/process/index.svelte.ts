@@ -752,12 +752,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
             }
         }
-        if(usingPromptTemplate && DBState.db.promptSettings.maxThoughtTagDepth !== -1){
-            const depth = ms.length - index
-            if(depth >= DBState.db.promptSettings.maxThoughtTagDepth){
-                formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
-            }
-        }
+        formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
 
         const chat:OpenAIChat = {
             role: role,

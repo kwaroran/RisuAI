@@ -14,6 +14,7 @@ import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
+import { language } from 'src/lang';
 
 const markdownItOptions = {
     html: true,
@@ -495,6 +496,11 @@ export interface simpleCharacterArgument{
     triggerscript?: triggerscript[]
 }
 
+function parseThoughts(data:string){
+    return data.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (full, txt) => {
+        return `<details><summary>${language.cot}</summary>${txt}</details>`
+    })
+}
 
 export async function ParseMarkdown(
     data:string,
@@ -506,17 +512,23 @@ export async function ParseMarkdown(
     let firstParsed = ''
     const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
+
     if(char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'pre')
         firstParsed = data
     }
+
     if(char){
         data = (await processScriptFull(char, data, 'editdisplay', chatID, cbsConditions)).data
     }
+
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
+
     data = await parseInlayAssets(data ?? '')
+
+    data = parseThoughts(data)
 
     data = encodeStyle(data)
     if(mode === 'normal'){

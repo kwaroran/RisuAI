@@ -1665,8 +1665,28 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     const data = JSON.parse(reformatted)
 
                     let r = ''
+                    let r2 = ''
+                    let bump = false
                     for(const d of data){
-                        r += d.candidates[0].content.parts[0].text
+                        const parts = d.candidates[0].content?.parts
+                        for(let i=0;i<parts.length;i++){
+                            const part = parts[i]
+                            if(i === 1){
+                                bump = true
+                            }
+
+                            if(!bump){
+                                r += part.text
+                            }
+                            else{
+                                r2 += part.text
+                            }
+                        }
+                    }
+
+                    console.log(data)
+                    if(r2){
+                        r = `<Thoughts>${r}</Thoughts>\n\n${r2}`
                     }
                     control.enqueue({
                         '0': r
@@ -1697,11 +1717,14 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
 
-    let fullRes = ''
-
+    let r = ''
+    let r2 = ''
     const processDataItem = (data:any) => {
         if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
-            fullRes += data.candidates[0].content.parts[0].text
+            r += data.candidates[0].content.parts[0].text
+        }
+        if(data?.candidates?.[0]?.content?.parts?.[1]?.text){
+            r2 += data.candidates[0].content.parts[1].text
         }
         else if(data?.errors){
             return {
@@ -1726,9 +1749,14 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         processDataItem(res.data)
     }
 
+    
+    if(r2){
+        r = `<Thoughts>${r}</Thoughts>\n\n${r2}`
+    }
+
     return {
         type: 'success',
-        result: fullRes
+        result: r
     }
 }
 

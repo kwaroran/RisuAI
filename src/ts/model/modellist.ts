@@ -16,7 +16,7 @@ export enum LLMFlags{
     poolSupported,
     hasVideoInput,
     OAICompletionTokens,
-    DeveloperRole
+    DeveloperRole,
 }
 
 export enum LLMProvider{
@@ -802,6 +802,16 @@ export const LLMModels: LLMModel[] = [
     {
         name: "Gemini Flash 2.0 Exp",
         id: 'gemini-2.0-flash-exp',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
+        name: "Gemini Flash 2.0 Thinking 1219",
+        id: 'gemini-2.0-flash-thinking-exp-1219',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming],
