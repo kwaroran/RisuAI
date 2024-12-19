@@ -282,7 +282,23 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
             }
 
             if(newFormated[newFormated.length-1].role === m.role){
+            
                 newFormated[newFormated.length-1].content += '\n' + m.content
+
+                if(m.multimodals){
+                    if(!newFormated[newFormated.length-1].multimodals){
+                        newFormated[newFormated.length-1].multimodals = []
+                    }
+                    newFormated[newFormated.length-1].multimodals.push(...m.multimodals)
+                }
+
+                if(m.thoughts){
+                    if(!newFormated[newFormated.length-1].thoughts){
+                        newFormated[newFormated.length-1].thoughts = []
+                    }
+                    newFormated[newFormated.length-1].thoughts.push(...m.thoughts)
+                }
+
                 continue
             }
             else{
