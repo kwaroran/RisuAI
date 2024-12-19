@@ -1688,7 +1688,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
                     if(rDatas.length > 1){
                         const thought = rDatas.splice(rDatas.length-2, 1)[0]
-                        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n')}`
+                        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
                     }
                     control.enqueue({
                         '0': rDatas[rDatas.length-1],
@@ -1757,7 +1757,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     
     if(rDatas.length > 1){
         const thought = rDatas.splice(rDatas.length-2, 1)[0]
-        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n')}`
+        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
     }
 
     return {
