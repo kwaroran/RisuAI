@@ -39,6 +39,7 @@ export interface OpenAIChat{
     removable?:boolean
     attr?:string[]
     multimodals?: MultiModal[]
+    thoughts?: string[]
 }
 
 export interface MultiModal{
@@ -752,14 +753,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
             }
         }
-        formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, '')
+        let thoughts:string[] = []
+        formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, (match, p1) => {
+            thoughts.push(p1)
+            return ''
+        })
 
         const chat:OpenAIChat = {
             role: role,
             content: formatedChat,
             memo: msg.chatId,
             attr: attr,
-            multimodals: multimodal
+            multimodals: multimodal,
+            thoughts: thoughts
         }
         if(chat.multimodals.length === 0){
             delete chat.multimodals

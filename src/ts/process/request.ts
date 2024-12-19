@@ -1458,7 +1458,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 role: "USER",
                 parts: geminiParts,
             });
-    
         } else if (prevChat?.role === qRole) {
             reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
             continue
@@ -1475,6 +1474,16 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     }]
                 })
             }
+        }
+        else if(chat.role === 'assistant' && arg.modelInfo.flags.includes(LLMFlags.geminiThinking) && chat.thoughts?.length > 0){
+            reformatedChat.push({
+                role: 'MODEL',
+                parts: [{
+                    text: chat.thoughts.join('\n\n')
+                }, {
+                    text: chat.content
+                }]
+            })
         }
 
         else if(chat.role === 'assistant' || chat.role === 'user'){
@@ -1664,32 +1673,25 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
                     const data = JSON.parse(reformatted)
 
-                    let r = ''
-                    let r2 = ''
-                    let bump = false
+                    let rDatas:string[] = ['']
                     for(const d of data){
                         const parts = d.candidates[0].content?.parts
                         for(let i=0;i<parts.length;i++){
                             const part = parts[i]
-                            if(i === 1){
-                                bump = true
+                            if(i > 0){
+                                rDatas.push('')
                             }
 
-                            if(!bump){
-                                r += part.text
-                            }
-                            else{
-                                r2 += part.text
-                            }
+                            rDatas[rDatas.length-1] += part.text
                         }
                     }
 
-                    console.log(data)
-                    if(r2){
-                        r = `<Thoughts>${r}</Thoughts>\n\n${r2}`
+                    if(rDatas.length > 1){
+                        const thought = rDatas.splice(rDatas.length-2, 1)[0]
+                        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n')}`
                     }
                     control.enqueue({
-                        '0': r
+                        '0': rDatas[rDatas.length-1],
                     })
                 } catch (error) {
                     console.log(error)
@@ -1717,16 +1719,19 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
 
-    let r = ''
-    let r2 = ''
+    let rDatas:string[] = ['']
     const processDataItem = (data:any) => {
-        if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
-            r += data.candidates[0].content.parts[0].text
+        const parts = data?.candidates?.[0]?.content?.parts
+        for(let i=0;i<parts.length;i++){
+            const part = parts[i]
+            if(i > 0){
+                rDatas.push('')
+            }
+
+            rDatas[rDatas.length-1] += part.text
         }
-        if(data?.candidates?.[0]?.content?.parts?.[1]?.text){
-            r2 += data.candidates[0].content.parts[1].text
-        }
-        else if(data?.errors){
+        
+        if(data?.errors){
             return {
                 type: 'fail',
                 result: `${JSON.stringify(data.errors)}`
@@ -1750,13 +1755,14 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     }
 
     
-    if(r2){
-        r = `<Thoughts>${r}</Thoughts>\n\n${r2}`
+    if(rDatas.length > 1){
+        const thought = rDatas.splice(rDatas.length-2, 1)[0]
+        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n')}`
     }
 
     return {
         type: 'success',
-        result: r
+        result: rDatas[rDatas.length-1]
     }
 }
 
