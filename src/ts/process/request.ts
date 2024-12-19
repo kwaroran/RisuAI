@@ -1459,7 +1459,9 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 parts: geminiParts,
             });
         } else if (prevChat?.role === qRole) {
-            reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
+            reformatedChat[reformatedChat.length-1].parts[
+                reformatedChat[reformatedChat.length-1].parts.length-1
+            ].text += '\n' + chat.content
             continue
         }
         else if(chat.role === 'system'){
@@ -1475,12 +1477,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 })
             }
         }
-        else if(chat.role === 'assistant' && arg.modelInfo.flags.includes(LLMFlags.geminiThinking) && chat.thoughts?.length > 0){
+        else if(chat.role === 'assistant' && arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
             reformatedChat.push({
                 role: 'MODEL',
-                parts: [{
+                parts: [chat.thoughts?.length > 0 ? {
                     text: chat.thoughts.join('\n\n')
-                }, {
+                } : null, {
                     text: chat.content
                 }]
             })
