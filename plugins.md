@@ -133,8 +133,9 @@ Adds a risu replacer to the plugin.
 
 - `type: string` - The replacer type. one of `beforeRequest`, `afterRequest`.
 - `func: ReplacerFunction` - The replacer function. vary depending on the type.
-    - If the type is `afterRequest`, the function should be `(content: string) => string`.
-    - If the type is `beforeRequest`, the function should be `(content: Chat[]) => Chat[]`.
+    - If the type is `afterRequest`, the function should be `(content: string, mode:string) => string`.
+    - If the type is `beforeRequest`, the function should be `(content: Chat[], mode:string) => Chat[]`.
+    - mode is one of `model`, `submodel`, `memory`, `emotion`, `otherAx`, `translate`.
 
 ### `removeRisuReplacer(type: string, func: ReplacerFunction): void`
 
