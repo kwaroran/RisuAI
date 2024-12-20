@@ -25,7 +25,7 @@ A plugin is a js file with a header. for example:
 
 ### `risuFetch(url: string, arg: GlobalFetchArgs = {}): Promise<GlobalFetchResult>`
 
-> Note: `nativeFetch` is recommended for fetching URLs with POST request, as it has the same functionality as `risuFetch`, but with a similar API to `fetch` with more predictable behavior.
+> Note: `nativeFetch` is recommended for fetching URLs, as it has the same functionality as `risuFetch`, but with a similar API to `fetch` with more predictable behavior.
 
 Fetches a URL with a native API, which doesn't have CORS restrictions.
 
@@ -48,7 +48,7 @@ Fetches a URL with a native API, which doesn't have CORS restrictions.
 
 ### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<NativeFetchResults>`
 
-Fetches a URL with the native API, which doesn't have CORS restrictions. this API is designed as a subset of [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) with a few differences.
+Fetches a URL with the native API, which doesn't have CORS restrictions. this API is designed as a subset of [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), except it doesn't have CORS restrictions and default method is `POST`.
 
 #### Arguments
 
@@ -56,7 +56,7 @@ Fetches a URL with the native API, which doesn't have CORS restrictions. this AP
 - `arg: NativeFetchArg` - The fetch arguments.
     - `body: string|Uint8Array|ArrayBuffer` - The body to send with the request.
     - `headers: Record<string, string>` - The headers to send with the request.
-    - `method: string` - The method to use for the request. only `POST` is supported. Default: `POST`.
+    - `method: string` - The method to use for the request. `GET`, `POST`, `PUT`, `DELETE` are supported. Default: `POST`.
     - `signal: AbortSignal` - The signal to use for aborting the request.
 
 #### Returns
