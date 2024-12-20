@@ -157,5 +157,6 @@ The plugin system has been updated to V2. The following changes have been made:
   - `bias` argument has been removed from `addProvider`. however for compatibility, it still calls with empty array.
   - Now plugin doesn't automatically terminates itself. you have to manually unload the plugin using `onUnload` function.
   - `addCharaJs` function has been removed. use `addRisuScriptHandler` instead.
+  - `risuLog` function has been removed. use `console.log` instead.
   - Many security restrictions have been removed.
   - `@risu-name`, `@risu-display-name`, `@risu-arg` headers has been removed. use `@name`, `@display-name`, `@arg` instead. if it's not present, it will be ran as V1 plugin.
