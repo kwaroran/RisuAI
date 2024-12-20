@@ -1811,7 +1811,7 @@ const pipeFetchLog = (fetchLogIndex: number, readableStream: ReadableStream<Uint
 export async function fetchNative(url:string, arg:{
     body:string|Uint8Array|ArrayBuffer,
     headers?:{[key:string]:string},
-    method?:"POST",
+    method?:"POST"|"GET"|"PUT"|"DELETE",
     signal?:AbortSignal,
     useRisuTk?:boolean,
     chatId?:string
@@ -1836,9 +1836,14 @@ export async function fetchNative(url:string, arg:{
         }
     }
 
+    arg.method = arg.method ?? 'POST'
+
     let headers = arg.headers ?? {}
     let realBody:Uint8Array
 
+    if(arg.method === 'GET' || arg.method === 'DELETE'){
+        realBody = new Uint8Array(0)
+    }
     if(typeof arg.body === 'string'){
         realBody = new TextEncoder().encode(arg.body)
     }
@@ -1861,7 +1866,7 @@ export async function fetchNative(url:string, arg:{
         success: true,
         url: url,
         resType: 'stream',
-        chatId: arg.chatId
+        chatId: arg.chatId,
     })
     if(isTauri){
         fetchIndex++
@@ -1885,6 +1890,7 @@ export async function fetchNative(url:string, arg:{
                 url: url,
                 headers: JSON.stringify(headers),
                 body: Buffer.from(realBody).toString('base64'),
+                method: arg.method
             }).then((res) => {
                 try {
                     const parsedRes = JSON.parse(res as string)
@@ -1973,7 +1979,7 @@ export async function fetchNative(url:string, arg:{
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json"
             },
-            method: "POST",
+            method: arg.method,
             signal: arg.signal
         })
 
@@ -1990,7 +1996,7 @@ export async function fetchNative(url:string, arg:{
             body: realBody,
             headers: headers,
             method: arg.method,
-            signal: arg.signal
+            signal: arg.signal,
         })
     }
 }
