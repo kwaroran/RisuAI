@@ -259,6 +259,7 @@ export interface OpenAIChatExtra {
     removable?:boolean
     attr?:string[]
     multimodals?:MultiModal[]
+    thoughts?:string[]
 }
 
 function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
@@ -451,6 +452,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             delete formatedChat[i].removable
             delete formatedChat[i].attr
             delete formatedChat[i].multimodals
+            delete formatedChat[i].thoughts
         }
         if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
             const cont = formatedChat[i].content
