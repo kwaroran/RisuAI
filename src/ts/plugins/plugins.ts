@@ -305,7 +305,7 @@ type EditFunction = (content:string) => string|null|undefined|Promise<string|nul
 type ReplacerFunction = (content:OpenAIChat[], type:string) => OpenAIChat[]|Promise<OpenAIChat[]>
 
 export const pluginV2 = {
-    providers: new Map<string, (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}> >(),
+    providers: new Map<string, (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string|ReadableStream<string>}> >(),
     editdisplay: new Set<EditFunction>(),
     editoutput: new Set<EditFunction>(),
     editprocess: new Set<EditFunction>(),

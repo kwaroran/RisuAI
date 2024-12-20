@@ -1420,7 +1420,24 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
     else if(!d.success){
         return {
             type: 'fail',
-            result: d.content
+            result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content
+        }
+    }
+    else if(d.content instanceof ReadableStream){
+
+        let fullText = ''
+        const piper = new TransformStream<string, StreamResponseChunk>(  {
+            transform(chunk, control) {
+                fullText += chunk
+                control.enqueue({
+                    "0": fullText
+                })
+            }
+        })
+
+        return {
+            type: 'streaming',
+            result: d.content.pipeThrough(piper)
         }
     }
     else{

@@ -107,9 +107,9 @@ Adds a provider to the plugin.
         - `top_p?: number` - The top p value.
         - `temperature?: number` - The temperature value.
         - `mode: string` - The mode. one of `model`, `submodel`, `memory`, `emotion`, `otherAx`, `translate`
-    - `Promise<{success:boolean,content:string}>` - The provider result.
+    - `Promise<{success:boolean,content:string|ReadableStream<string>}>` - The provider result.
         - `success: boolean` - If the provider was successful.
-        - `content: string` - The provider content.
+        - `content: string|ReadableStream<string>` - The provider content. if it's a ReadableStream, it will be streamed to the chat.
 
 ### `addRisuScriptHandler(type: string, func: (content:string) => string|null|undefined|Promise<string|null|undefined>): void`
 
@@ -118,6 +118,10 @@ Adds a risu script handler to the plugin.
 #### Arguments
 
 - `type: string` - The handler type. one of `display`, `output`, `input`, `process`
+    - `display` - The handler will be called when the data is displayed.
+    - `output` - The handler will be called when the data is outputted by the AI model.
+    - `input` - The handler will be called when the data is inputted to the user.
+    - `process` - The handler will be called when creating actual request data.
 - `func: (content:string) => string|null|undefined|Promise<string|null|undefined>` - The handler function.
     - `content: string` - The content to handle.
     - `string|null|undefined|Promise<string|null|undefined>` - The handler result. if it is a string or string promise, the data will be replaced with the result.
@@ -133,6 +137,8 @@ Adds a risu replacer to the plugin.
 #### Arguments
 
 - `type: string` - The replacer type. one of `beforeRequest`, `afterRequest`.
+    - `beforeRequest` - The replacer will be called right before the request is sent.
+    - `afterRequest` - The replacer will be called right after the response is received.
 - `func: ReplacerFunction` - The replacer function. vary depending on the type.
     - If the type is `afterRequest`, the function should be `(content: string, mode:string) => string`.
     - If the type is `beforeRequest`, the function should be `(content: Chat[], mode:string) => Chat[]`.
@@ -147,7 +153,7 @@ Removes a risu replacer from the plugin.
 Adds an unload handler to the plugin.
 
 
-## Migration from Plugin V1
+## Changes from Plugin V1
 
 The plugin system has been updated to V2. The following changes have been made:
   - Now runs in same context as the main script rather than in a sandbox, making it accessible to the main script and DOM.
