@@ -1740,13 +1740,16 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     let rDatas:string[] = ['']
     const processDataItem = (data:any) => {
         const parts = data?.candidates?.[0]?.content?.parts
-        for(let i=0;i<parts.length;i++){
-            const part = parts[i]
-            if(i > 0){
-                rDatas.push('')
-            }
+        if(parts){
+         
+            for(let i=0;i<parts.length;i++){
+                const part = parts[i]
+                if(i > 0){
+                    rDatas.push('')
+                }
 
-            rDatas[rDatas.length-1] += part.text
+                rDatas[rDatas.length-1] += part.text
+            }   
         }
         
         if(data?.errors){
