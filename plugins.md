@@ -67,6 +67,7 @@ Fetches a URL with the native API, which doesn't have CORS restrictions. this AP
     - `status: number` - The response status.
     - `json: () => Promise<any>` - A function that returns a promise that resolves to the JSON representation of the response body.
     - `text: () => Promise<string>` - A function that returns a promise that resolves to the text representation of the response body.
+    - `arrayBuffer: () => Promise<ArrayBuffer>` - A function that returns a promise that resolves to the ArrayBuffer representation of the response body.
 
 ### `getArg(name: string): string|number`
 

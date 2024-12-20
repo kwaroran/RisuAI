@@ -1821,6 +1821,7 @@ export async function fetchNative(url:string, arg:{
     status: number;
     json: () => Promise<any>;
     text: () => Promise<string>;
+    arrayBuffer: () => Promise<ArrayBuffer>;
 }> {
 
     const jsonizer = (body:ReadableStream<Uint8Array>) => {
@@ -1833,6 +1834,27 @@ export async function fetchNative(url:string, arg:{
         return async () => {
             const text = await textifyReadableStream(body)
             return text
+        }
+    }
+    const arrayBufferizer = (body:ReadableStream<Uint8Array>) => {
+        return async () => {
+            const chunks:Uint8Array[] = []
+            const reader = body.getReader()
+            while(true){
+                const {done, value} = await reader.read()
+                if(done){
+                    break
+                }
+                chunks.push(value)
+            }
+            const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+            const arrayBuffer = new Uint8Array(totalLength)
+            let offset = 0
+            for(const chunk of chunks){
+                arrayBuffer.set(chunk, offset)
+                offset += chunk.length
+            }
+            return arrayBuffer.buffer
         }
     }
 
@@ -1961,7 +1983,8 @@ export async function fetchNative(url:string, arg:{
             headers: new Headers(resHeaders),
             status: status,
             json: jsonizer(readableStream),
-            text: textizer(readableStream)
+            text: textizer(readableStream),
+            arrayBuffer: arrayBufferizer(readableStream)
         }
 
 
@@ -1988,7 +2011,8 @@ export async function fetchNative(url:string, arg:{
             headers: r.headers,
             status: r.status,
             json: jsonizer(r.body),
-            text: textizer(r.body)
+            text: textizer(r.body),
+            arrayBuffer: arrayBufferizer(r.body)
         }
     }
     else{
