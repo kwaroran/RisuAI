@@ -48,7 +48,7 @@ Fetches a URL with a native API, which doesn't have CORS restrictions.
 
 ### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<NativeFetchResults>`
 
-Fetches a URL with the native fetch API, which has CORS restrictions.
+Fetches a URL with the native API, which doesn't have CORS restrictions. this API is designed as a subset of [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) with a few differences.
 
 #### Arguments
 
