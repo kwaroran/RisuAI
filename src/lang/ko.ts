@@ -293,7 +293,7 @@ export const languageKorean = {
     "singleView": "싱글",
     "SpacedView": "멀티플",
     "emphasizedView": "더블",
-    "pluginWarn": "플러그인은 기본적으로 분리된 환경에서 실행되지만, 악성 플러그인 설치 시 문제가 생길 수 있습니다.",
+    "pluginWarn": "악성 플러그인 설치 시 문제가 생길 수 있습니다.",
     "createGroupImg": "그룹 아이콘 자동생성",
     "waifuWidth": "Waifu 채팅창 넓이",
     "savebackup": "구글 백업 저장",

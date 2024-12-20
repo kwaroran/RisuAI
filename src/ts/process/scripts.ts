@@ -10,6 +10,7 @@ import { runCharacterJS } from "../plugins/embedscript";
 import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 import { runLuaEditTrigger } from "./lua";
+import { pluginV2 } from "../plugins/plugins";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -109,6 +110,15 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         data,
     })
     data = await runLuaEditTrigger(char, mode, data)
+    if(pluginV2[mode].size > 0){
+        for(const plugin of pluginV2[mode]){
+            const res = await plugin(data)
+            if(res !== null && res !== undefined){
+                data = res
+            }
+        }
+    }
+    
     if(scripts.length === 0){
         cacheScript(scripts, originalData, data, mode)
         return {data, emoChanged}

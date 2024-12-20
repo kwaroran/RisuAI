@@ -341,7 +341,7 @@ export const languageEnglish = {
     singleView: "Single View",
     SpacedView: "Multiple Character View",
     emphasizedView: "Double Character View",
-    pluginWarn: "Plugins run in an isolated environment, but installing malicious plugins can cause problems.",
+    pluginWarn: "Installing malicious plugins can cause problems.",
     createGroupImg: "Generate group icon",
     waifuWidth: "Waifu Chat Width",
     savebackup: "Save Backup to google",

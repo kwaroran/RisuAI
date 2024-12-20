@@ -181,7 +181,7 @@ export const LanguageVietnamese = {
     "singleView": "Chế độ xem đơn",
     "SpacedView": "Xem nhiều ký tự",
     "emphasizedView": "Chế độ xem nhân vật đôi",
-    "pluginWarn": "Các plugin chạy trong môi trường biệt lập nhưng việc cài đặt các plugin độc hại có thể gây ra sự cố.",
+    "pluginWarn": "Các plugin có thể gây ra sự cố khi cài đặt các plugin độc hại.",
     "createGroupImg": "Tạo biểu tượng nhóm",
     "waifuWidth": "Chiều rộng trò chuyện Waifu",
     "savebackup": "Lưu Sao lưu vào google",

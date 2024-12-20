@@ -1,6 +1,6 @@
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
 import { getCurrentCharacter, getDatabase, setDatabase, type character } from "../storage/database.svelte";
-import { pluginProcess } from "../plugins/plugins";
+import { pluginProcess, pluginV2 } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../globalApi.svelte";
@@ -209,7 +209,22 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     const db = getDatabase()
     let trys = 0
     while(true){
+
+        if(pluginV2.replacerbeforeRequest.size > 0){
+            for(const replacer of pluginV2.replacerbeforeRequest){
+                arg.formated = await replacer(arg.formated, model)
+            }
+        }
+
         const da = await requestChatDataMain(arg, model, abortSignal)
+
+        if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
+            for(const replacer of pluginV2.replacerafterRequest){
+                da.result = await replacer(da.result, model)
+            }
+        }
+
+
         if(da.type !== 'fail' || da.noRetry){
             return da
         }
@@ -1379,7 +1394,15 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
     const db = getDatabase()
     const maxTokens = arg.maxTokens
     const bias = arg.biasString
-    const d = await pluginProcess({
+    const v2Function = pluginV2.providers.get(db.currentPluginProvider)
+
+    const d = v2Function ? (await v2Function(applyParameters({
+        prompt_chat: formated,
+        mode: arg.mode,
+        bias: []
+    }, [
+        'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
+    ], {}, arg.mode) as any)) : await pluginProcess({
         bias: bias,
         prompt_chat: formated,
         temperature: (db.temperature / 100),
@@ -1387,6 +1410,7 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         presence_penalty: (db.PresensePenalty / 100),
         frequency_penalty: (db.frequencyPenalty / 100)
     })
+
     if(!d){
         return {
             type: 'fail',

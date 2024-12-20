@@ -30,6 +30,7 @@ import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
 import { parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
+import { pluginV2 } from "../plugins/plugins";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'

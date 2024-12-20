@@ -300,7 +300,7 @@ export const languageChineseTraditional = {
     "singleView": "單角色模式",
     "SpacedView": "多角色模式",
     "emphasizedView": "雙角色模式",
-    "pluginWarn": "外掛程式可在隔離環境中運行，但安裝惡意外掛可能導致問題。",
+    "pluginWarn": "但安裝惡意外掛可能導致問題。",
     "createGroupImg": "產生群組頭像",
     "waifuWidth": "角色對話框寬度",
     "savebackup": "備份至 Google",

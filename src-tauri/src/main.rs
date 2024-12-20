@@ -357,12 +357,14 @@ async fn streamed_fetch(
         return format!(r#"{{"success":false,"body":"Invalid header JSON"}}"#);
     }
 
+    let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
+
     let client = reqwest::Client::new();
     let response = client
         .post(&url)
         .headers(headers)
         .timeout(Duration::from_secs(240))
-        .body(body)
+        .body(body_decoded)
         .send()
         .await;
 

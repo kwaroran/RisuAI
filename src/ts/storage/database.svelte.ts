@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "143.9.1"
+export let appVer = "144.0.0"
 export let webAppSubVer = ''
 
 
@@ -857,6 +857,7 @@ export interface Database{
     geminiStream?:boolean
     assetMaxDifference:number
     menuSideBar:boolean
+    pluginV2: RisuPlugin[]
 }
 
 interface SeparateParameters{
