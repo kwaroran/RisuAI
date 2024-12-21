@@ -13,7 +13,7 @@ import { runSummarizer } from "../transformers";
 import { parseChatML } from "src/ts/parser.svelte";
 
 export interface HypaV2Data {
-    lastMainChunkId: number; // can be removed, but exists to more readability of the code.
+    lastMainChunkID: number; // can be removed, but exists to more readability of the code.
     mainChunks: { // summary itself
         id: number;
         text: string;
@@ -133,6 +133,18 @@ async function summary(
     return { success: true, data: result };
 } // No, I am not going to touch any http API calls.
 
+// Helper function start
+export interface OldHypaV2Data {
+    chunks: {
+        text: string;
+        targetId: string;
+    }[];
+    mainChunks: {
+        text: string;
+        targetId: string;
+    }[];
+}
+
 function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
     for (const item of subset) {
         if (!superset.has(item)) {
@@ -140,6 +152,114 @@ function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
         }
     }
     return true;
+}
+function isOldHypaV2Data(obj:any): obj is OldHypaV2Data {
+    return (
+        typeof obj === 'object' &&
+        obj !== null &&
+        Array.isArray(obj.chunks) &&
+        Array.isArray(obj.mainChunks) &&
+        obj.chunks.every(chunk =>
+            typeof chunk === 'object' &&
+            chunk !== null &&
+            typeof chunk.text === 'string' &&
+            typeof chunk.targetId === 'string'
+        ) &&
+        obj.mainChunks.every(mainChunk =>
+            typeof mainChunk === 'object' &&
+            mainChunk !== null &&
+            typeof mainChunk.text === 'string' &&
+            typeof mainChunk.targetId === 'string'
+        )
+    );
+}
+// Helper function end
+
+function convertOldToNewHypaV2Data(oldData: OldHypaV2Data, chats: OpenAIChat[]): HypaV2Data {
+    const oldMainChunks = oldData.mainChunks.slice().reverse(); // Inversed order, old mainchunk is done by unshift instead of push
+    const oldChunks = oldData.chunks.slice();
+    const newData: HypaV2Data = {
+        lastMainChunkID: 0,
+        mainChunks: [],
+        chunks: [],
+    };
+
+    const mainChunkTargetIds = new Set<string>();
+    for (const mc of oldMainChunks) {
+        if (mc.targetId) {
+            mainChunkTargetIds.add(mc.targetId);
+        }
+    }
+
+    // map chat memo to index, efficiency issues
+    const chatMemoToIndex = new Map<string, number>();
+    for (const tid of mainChunkTargetIds) {
+        const idx = chats.findIndex(c => c.memo === tid);
+        if (idx !== -1) {
+            chatMemoToIndex.set(tid, idx);
+        } else {
+            chatMemoToIndex.set(tid, -1);
+        }
+    }
+
+    for (let i = 0; i < oldMainChunks.length; i++) {
+        const oldMainChunk = oldMainChunks[i];
+        const targetId = oldMainChunk.targetId;
+        const mainChunkText = oldMainChunk.text;
+
+        const previousMainChunk = i > 0 ? oldMainChunks[i - 1] : null;
+        const previousMainChunkTarget = previousMainChunk ? previousMainChunk.targetId : null;
+
+        let chatMemos = new Set<string>();
+
+        if (previousMainChunkTarget && targetId) {
+            const startIndex = chatMemoToIndex.get(previousMainChunkTarget) ?? -1;
+            const endIndex = chatMemoToIndex.get(targetId) ?? -1;
+
+            if (startIndex !== -1 && endIndex !== -1) {
+                const lowerIndex = Math.min(startIndex, endIndex);
+                const upperIndex = Math.max(startIndex, endIndex);
+
+                for (let j = lowerIndex; j <= upperIndex; j++) {
+                    chatMemos.add(chats[j].memo);
+                }
+            } else {
+                // Can't identify the chats correctly, so discard this main chunk at all
+                continue; // Technically, if this is the case Previous HypaV2Data is bugged. Discussion opened for changing it to break;
+            }
+        } else {
+            // No previous chunk, so we gather all chats from index 0 up to the targetId's index
+            if (targetId) {
+                const targetIndex = chatMemoToIndex.get(targetId) ?? -1;
+                if (targetIndex !== -1) {
+                    // Include all memos from 0 up to targetIndex
+                    for (let j = 0; j <= targetIndex; j++) {
+                        chatMemos.add(chats[j].memo);
+                    }
+                } else {
+                    continue; // Invalid MainChunk.
+                }
+            }
+        }
+        const newMainChunk = {
+            id: newData.lastMainChunkID,
+            text: mainChunkText,
+            chatMemos: chatMemos,
+            lastChatMemo: targetId,
+        }
+        newData.mainChunks.push(newMainChunk);
+        newData.lastMainChunkID++;
+        // Adding chunks accordingly, matching MainChunkID by leveraging same targetId
+        const matchingOldChunks = oldChunks.filter((oldChunk) => oldChunk.targetId === targetId);
+        for (const oldChunk of matchingOldChunks) {
+            newData.chunks.push({
+                mainChunkID: newMainChunk.id,
+                text: oldChunk.text,
+            });
+        }
+    }
+
+    return newData; // updated HypaV2Data
 }
 
 function cleanInvalidChunks(
@@ -158,11 +278,11 @@ function cleanInvalidChunks(
     data.chunks = data.chunks.filter((chunk) =>
         validMainChunkIds.has(chunk.mainChunkID)
     );
-    // Update lastMainChunkId
+    // Update lastMainChunkID
     if (data.mainChunks.length > 0) {
-        data.lastMainChunkId = data.mainChunks[data.mainChunks.length - 1].id;
+        data.lastMainChunkID = data.mainChunks[data.mainChunks.length - 1].id;
     } else {
-        data.lastMainChunkId = 0;
+        data.lastMainChunkID = 0;
     }
 }
 
@@ -188,8 +308,14 @@ export async function hypaMemoryV2(
     memory?: HypaV2Data;
 }> {
     const db = getDatabase();
+
+    if(room.hypaV2Data && isOldHypaV2Data(room.hypaV2Data)){
+        console.log("Old HypaV2 data detected. Converting to new format...");
+        room.hypaV2Data = convertOldToNewHypaV2Data(room.hypaV2Data, chats);
+    }
+
     const data: HypaV2Data = room.hypaV2Data ?? {
-        lastMainChunkId: 0,
+        lastMainChunkID: 0,
         chunks: [],
         mainChunks: []
     };
@@ -331,9 +457,9 @@ export async function hypaMemoryV2(
             "\nCurrent Tokens (after):", currentTokens
         );
 
-        // Update lastMainChunkId and create a new mainChunk
-        data.lastMainChunkId++;
-        const newMainChunkId = data.lastMainChunkId;
+        // Update lastMainChunkID and create a new mainChunk
+        data.lastMainChunkID++;
+        const newMainChunkId = data.lastMainChunkID;
 
         const chatMemos = new Set(halfData.map((chat) => chat.memo));
         const lastChatMemo = halfData[halfData.length - 1].memo;
