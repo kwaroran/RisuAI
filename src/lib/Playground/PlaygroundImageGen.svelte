@@ -1,34 +1,44 @@
-<div class="max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-    <div class="relative">
-        <!-- Image -->
-        <img class="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300 ease-in-out" 
-             src="your-image-url.jpg" 
-             alt="Card">
-        <!-- Optional overlay gradient -->
-        <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent"></div>
-    </div>
-    
-    <div class="p-6">
-        <!-- Title -->
-        <h2 class="mb-3 text-2xl font-bold text-gray-800 hover:text-indigo-600 transition-colors duration-300">
-            Card Title
-        </h2>
-        
-        <!-- Description -->
-        <p class="text-gray-600 leading-relaxed mb-4">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptates rerum quisquam, temporibus quasi distinctio magnam.
-        </p>
-        
-        <!-- Optional footer with button -->
-        <div class="flex justify-between items-center mt-4">
-            <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 transform hover:scale-105">
-                Learn More
-            </button>
-            
-            <!-- Optional metadata -->
-            <span class="text-sm text-gray-500">
-                5 min read
-            </span>
-        </div>
-    </div>
-</div>
+<script lang="ts">
+    import { language } from "src/lang";
+    import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
+    import Button from "../UI/GUI/Button.svelte";
+    import { generateAIImage } from "src/ts/process/stableDiff";
+    import { createBlankChar } from "src/ts/characters";
+    let prompt = $state("");
+    let negPrompt = $state("");
+    let img = $state("");
+    let generating = $state(false)
+    const run = async () => {
+        console.log('running')
+        if(generating){
+            return
+        }
+        generating = true
+        const gen = await generateAIImage(prompt, createBlankChar(), negPrompt, 'inlay')
+        generating = false
+        if(gen){
+            img = gen
+        }
+    }
+</script>
+
+<h2 class="text-4xl text-textcolor my-6 font-black relative">{language.imageGeneration}</h2>
+
+<span class="text-textcolor text-lg">Prompt</span>
+<TextAreaInput bind:value={prompt} />
+
+<span class="text-textcolor text-lg">Neg. Prompt</span>
+<TextAreaInput bind:value={negPrompt} />
+
+{#if img}
+    <span class="text-textcolor text-lg">Generated</span>
+    <img src={img} class="max-w-full mt-4" alt="Generated"/>
+{/if}
+
+<Button className="mt-6" onclick={run}>
+    {#if generating}
+        <div class="loadmove"></div>
+    {:else}
+        Generate
+    {/if}
+</Button>

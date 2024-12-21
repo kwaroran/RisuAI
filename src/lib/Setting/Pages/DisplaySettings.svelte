@@ -364,6 +364,10 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.menuSideBar} name={language.menuSideBar}/>
+    </div>
+
+    <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.notification} name={language.notification} onChange={async (e) => {
             let hasPermission = {state: 'denied'}
             try {

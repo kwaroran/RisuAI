@@ -51,6 +51,9 @@
 <span class="text-textcolor">{language.genTimes} <Help key="genTimes"/></span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={4096} bind:value={DBState.db.genTime}/>
 
+<span class="text-textcolor">{language.assetMaxDifference}</span>
+<NumberInput marginBottom={true} size={"sm"} bind:value={DBState.db.assetMaxDifference}/>
+
 <span class="text-textcolor mt-4">GPT Vision Quality <Help key="gptVisionQuality"/></span>
 <SelectInput bind:value={DBState.db.gptVisionQuality}>
     <OptionInput value="low">Low</OptionInput>

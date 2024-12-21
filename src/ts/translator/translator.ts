@@ -317,8 +317,15 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
                 return
             }
 
-            // node.textContent = await translate(node.textContent || '', reverse);
-            let translated = await translate(node.textContent || "", reverse);
+            const translateChunks = (node.textContent || '').split(/\n\n+/g);
+            let translatedChunksPromises: Promise<string>[] = [];
+            for (const chunk of translateChunks) {
+                const translatedPromise = translate(chunk, reverse);
+                translatedChunksPromises.push(translatedPromise);
+            }
+
+            const translatedChunks = await Promise.all(translatedChunksPromises);
+            let translated = translatedChunks.join("\n\n");
             if (!reprocessDisplayScript) {
                 node.textContent = translated;
                 return;

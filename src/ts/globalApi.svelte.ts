@@ -1809,24 +1809,86 @@ const pipeFetchLog = (fetchLogIndex: number, readableStream: ReadableStream<Uint
  * @throws {Error} - Throws an error if the request is aborted or if there is an error in the response.
  */
 export async function fetchNative(url:string, arg:{
-    body:string,
+    body:string|Uint8Array|ArrayBuffer,
     headers?:{[key:string]:string},
-    method?:"POST",
+    method?:"POST"|"GET"|"PUT"|"DELETE",
     signal?:AbortSignal,
     useRisuTk?:boolean,
     chatId?:string
-}):Promise<{ body: ReadableStream<Uint8Array>; headers: Headers; status: number }> {
+}):Promise<{
+    body: ReadableStream<Uint8Array>;
+    headers: Headers;
+    status: number;
+    json: () => Promise<any>;
+    text: () => Promise<string>;
+    arrayBuffer: () => Promise<ArrayBuffer>;
+}> {
+
+    const jsonizer = (body:ReadableStream<Uint8Array>) => {
+        return async () => {
+            const text = await textifyReadableStream(body)
+            return JSON.parse(text)
+        }
+    }
+    const textizer = (body:ReadableStream<Uint8Array>) => {
+        return async () => {
+            const text = await textifyReadableStream(body)
+            return text
+        }
+    }
+    const arrayBufferizer = (body:ReadableStream<Uint8Array>) => {
+        return async () => {
+            const chunks:Uint8Array[] = []
+            const reader = body.getReader()
+            while(true){
+                const {done, value} = await reader.read()
+                if(done){
+                    break
+                }
+                chunks.push(value)
+            }
+            const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+            const arrayBuffer = new Uint8Array(totalLength)
+            let offset = 0
+            for(const chunk of chunks){
+                arrayBuffer.set(chunk, offset)
+                offset += chunk.length
+            }
+            return arrayBuffer.buffer
+        }
+    }
+
+    arg.method = arg.method ?? 'POST'
+
     let headers = arg.headers ?? {}
+    let realBody:Uint8Array
+
+    if(arg.method === 'GET' || arg.method === 'DELETE'){
+        realBody = new Uint8Array(0)
+    }
+    if(typeof arg.body === 'string'){
+        realBody = new TextEncoder().encode(arg.body)
+    }
+    else if(arg.body instanceof Uint8Array){
+        realBody = arg.body
+    }
+    else if(arg.body instanceof ArrayBuffer){
+        realBody = new Uint8Array(arg.body)
+    }
+    else{
+        throw new Error('Invalid body type')
+    }
+
     const db = getDatabase()
     let throughProxy = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
     let fetchLogIndex = addFetchLog({
-        body: arg.body,
+        body: new TextDecoder().decode(realBody),
         headers: arg.headers,
         response: 'Streamed Fetch',
         success: true,
         url: url,
         resType: 'stream',
-        chatId: arg.chatId
+        chatId: arg.chatId,
     })
     if(isTauri){
         fetchIndex++
@@ -1849,7 +1911,8 @@ export async function fetchNative(url:string, arg:{
                 id: fetchId,
                 url: url,
                 headers: JSON.stringify(headers),
-                body: arg.body,
+                body: Buffer.from(realBody).toString('base64'),
+                method: arg.method
             }).then((res) => {
                 try {
                     const parsedRes = JSON.parse(res as string)
@@ -1868,7 +1931,7 @@ export async function fetchNative(url:string, arg:{
                 id: fetchId,
                 url: url,
                 headers: headers,
-                body: Buffer.from(arg.body).toString('base64'),
+                body: Buffer.from(realBody).toString('base64'),
             }).then((res) => {
                 if(!res.success){
                     error = res.error
@@ -1918,14 +1981,17 @@ export async function fetchNative(url:string, arg:{
         return {
             body: readableStream,
             headers: new Headers(resHeaders),
-            status: status
+            status: status,
+            json: jsonizer(readableStream),
+            text: textizer(readableStream),
+            arrayBuffer: arrayBufferizer(readableStream)
         }
 
 
     }
     else if(throughProxy){
         const r = await fetch(hubURL + `/proxy2`, {
-            body: arg.body,
+            body: realBody,
             headers: arg.useRisuTk ? {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
@@ -1936,22 +2002,25 @@ export async function fetchNative(url:string, arg:{
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json"
             },
-            method: "POST",
+            method: arg.method,
             signal: arg.signal
         })
 
         return {
             body: pipeFetchLog(fetchLogIndex, r.body),
             headers: r.headers,
-            status: r.status
+            status: r.status,
+            json: jsonizer(r.body),
+            text: textizer(r.body),
+            arrayBuffer: arrayBufferizer(r.body)
         }
     }
     else{
         return await fetch(url, {
-            body: arg.body,
+            body: realBody,
             headers: headers,
             method: arg.method,
-            signal: arg.signal
+            signal: arg.signal,
         })
     }
 }

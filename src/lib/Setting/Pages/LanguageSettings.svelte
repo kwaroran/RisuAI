@@ -121,7 +121,7 @@
     {/if}
 
     {#if DBState.db.translatorType === 'google'}
-        <span class="text-textcolor mt-4">Translator Input Language</span>
+        <span class="text-textcolor mt-4">{language.sourceLanguage}</span>
         <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translatorInputLanguage}>
             <OptionInput value="auto">Auto</OptionInput>
             <OptionInput value="en">English</OptionInput>

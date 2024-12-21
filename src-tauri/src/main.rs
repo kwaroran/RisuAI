@@ -333,6 +333,7 @@ async fn streamed_fetch(
     headers: String,
     body: String,
     app: AppHandle,
+    method: String,
 ) -> String {
     //parse headers
     let headers_json: Value = match serde_json::from_str(&headers) {
@@ -358,11 +359,50 @@ async fn streamed_fetch(
     }
 
     let client = reqwest::Client::new();
-    let response = client
+    let builder: reqwest::RequestBuilder;
+    if method == "POST" {
+
+        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
+
+        builder = client
         .post(&url)
         .headers(headers)
         .timeout(Duration::from_secs(240))
-        .body(body)
+        .body(body_decoded)
+    }
+    else if method == "GET" {
+        builder = client
+        .get(&url)
+        .headers(headers)
+        .timeout(Duration::from_secs(240));
+    }
+    else if method == "PUT" {
+
+        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
+
+        builder = client
+        .put(&url)
+        .headers(headers)
+        .timeout(Duration::from_secs(240))
+        .body(body_decoded)
+    }
+    else if method == "DELETE" {
+
+        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
+
+        builder = client
+        .delete(&url)
+        .headers(headers)
+        .timeout(Duration::from_secs(240))
+        .body(body_decoded)
+    }
+    else {
+        return format!(r#"{{"success":false, body:"Invalid method"}}"#);
+    }
+
+
+
+    let response = builder
         .send()
         .await;
 

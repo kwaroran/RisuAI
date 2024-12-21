@@ -210,7 +210,7 @@ export const languageGerman = {
     singleView: "Einzelansicht",
     SpacedView: "Mehrere Charakteransicht",
     emphasizedView: "Doppelte Charakteransicht",
-    pluginWarn: "Plugins werden in einer isolierten Umgebung ausgeführten, aber das Installieren von Plugins unbekannter Herkunft könnte Probleme verursachen oder sogar schädlichen Code enthalten",
+    pluginWarn: "Installieren von Plugins unbekannter Herkunft könnte Probleme verursachen oder sogar schädlichen Code enthalten",
     createGroupImg: "Gruppenicon generieren",
     waifuWidth: "Breite des Waifu Chat-Bereichs",
     savebackup: "Erstellen und laden Sie ein Backup auf Google hoch",

@@ -10,13 +10,14 @@
     import { language } from "src/lang";
     import { parseMultilangString } from "src/ts/util";
     import { checkCharOrder } from "src/ts/globalApi.svelte";
+  import MobileCharacters from "../Mobile/MobileCharacters.svelte";
     interface Props {
         endGrid?: any;
     }
 
     let { endGrid = () => {} }: Props = $props();
     let search = $state('')
-    let selected = $state(0)
+    let selected = $state(3)
 
     function changeChar(index = -1){
         characterFormatUpdate(index)
@@ -57,22 +58,19 @@
 
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
-        <h1 class="text-textcolor text-2xl font-bold mt-2 flex items-center mx-4 mb-2">
-            <button class="mr-2 hover:text-textcolor text-textcolor2" onclick={() => {
-                endGrid()
-            }}><ArrowLeft /></button>
-            <span>Catalog</span>
-        </h1>
         <div class="mx-4 mb-6 flex flex-col">
             <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off"/>
             <div class="flex flex-wrap gap-2 mt-2">
-                <Button selected={selected === 0} size="sm" onclick={() => {selected = 0}}>
+                <Button styled={selected === 3 ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 3}}>
+                    {language.simple}
+                </Button>
+                <Button styled={selected === 0 ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 0}}>
                     {language.grid}
                 </Button>
-                <Button selected={selected === 1} size="sm" onclick={() => {selected = 1}}>
+                <Button styled={selected === 1  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 1}}>
                     {language.list}
                 </Button>
-                <Button selected={selected === 2} size="sm" onclick={() => {selected = 2}}>
+                <Button styled={selected === 2  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 2}}>
                     {language.trash}
                 </Button>
             </div>
@@ -143,6 +141,8 @@
                     </div>
                 </div>
             {/each}
+        {:else if selected === 3}
+            <MobileCharacters gridMode endGrid={endGrid} />
         {/if}
     </div>
 </div>

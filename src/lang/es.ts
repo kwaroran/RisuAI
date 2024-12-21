@@ -260,7 +260,7 @@ export const languageSpanish = {
     singleView: "Vista Única",
     SpacedView: "Vista de Múltiples Personajes",
     emphasizedView: "Vista de Personajes Doble",
-    pluginWarn: "Los plugins se ejecutan en un entorno aislado, pero instalar plugins maliciosos puede causar problemas.",
+    pluginWarn: "Instalar plugins maliciosos puede causar problemas.",
     createGroupImg: "Generar icono de grupo",
     waifuWidth: "Ancho del Chat Waifu",
     savebackup: "Guardar Respaldo en Google",

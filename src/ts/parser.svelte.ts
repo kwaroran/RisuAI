@@ -14,6 +14,7 @@ import { getModuleAssets, getModuleLorebooks } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
+import { language } from 'src/lang';
 
 const markdownItOptions = {
     html: true,
@@ -117,18 +118,30 @@ async function renderHighlightableMarkdown(data:string) {
             //import language if not already loaded
             //we do not refactor this to a function because we want to keep vite to only import the languages that are needed
             let languageModule:any = null
+            let shotLang = ''
             switch(lang){
                 case 'js':
                 case 'javascript':{
                     lang = 'javascript'
+                    shotLang = 'js'
                     if(!hljs.getLanguage('javascript')){
                         languageModule = await import('highlight.js/lib/languages/javascript')
+                    }
+                    break
+                }
+                case 'txt':
+                case 'vtt':{
+                    shotLang = lang
+                    lang = 'plaintext'
+                    if(!hljs.getLanguage('plaintext')){
+                        languageModule = await import('highlight.js/lib/languages/plaintext')
                     }
                     break
                 }
                 case 'py':
                 case 'python':{
                     lang = 'python'
+                    shotLang = 'py'
                     if(!hljs.getLanguage('python')){
                         languageModule = await import('highlight.js/lib/languages/python')
                     }
@@ -136,6 +149,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'css':{
                     lang = 'css'
+                    shotLang = 'css'
                     if(!hljs.getLanguage('css')){
                         languageModule = await import('highlight.js/lib/languages/css')
                     }
@@ -144,6 +158,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'xml':
                 case 'html':{
                     lang = 'xml'
+                    shotLang = 'xml'
                     if(!hljs.getLanguage('xml')){
                         languageModule = await import('highlight.js/lib/languages/xml')
                     }
@@ -151,6 +166,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'lua':{
                     lang = 'lua'
+                    shotLang = 'lua'
                     if(!hljs.getLanguage('lua')){
                         languageModule = await import('highlight.js/lib/languages/lua')
                     }
@@ -158,6 +174,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'dart':{
                     lang = 'dart'
+                    shotLang = 'dart'
                     if(!hljs.getLanguage('dart')){
                         languageModule = await import('highlight.js/lib/languages/dart')
                     }
@@ -165,6 +182,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'java':{
                     lang = 'java'
+                    shotLang = 'java'
                     if(!hljs.getLanguage('java')){
                         languageModule = await import('highlight.js/lib/languages/java')
                     }
@@ -172,6 +190,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'rust':{
                     lang = 'rust'
+                    shotLang = 'rs'
                     if(!hljs.getLanguage('rust')){
                         languageModule = await import('highlight.js/lib/languages/rust')
                     }
@@ -180,6 +199,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'c':
                 case 'cpp':{
                     lang = 'cpp'
+                    shotLang = 'cpp'
                     if(!hljs.getLanguage('cpp')){
                         languageModule = await import('highlight.js/lib/languages/cpp')
                     }
@@ -188,6 +208,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'csharp':
                 case 'cs':{
                     lang = 'csharp'
+                    shotLang = 'cs'
                     if(!hljs.getLanguage('csharp')){
                         languageModule = await import('highlight.js/lib/languages/csharp')
                     }
@@ -196,6 +217,7 @@ async function renderHighlightableMarkdown(data:string) {
                 case 'ts':
                 case 'typescript':{
                     lang = 'typescript'
+                    shotLang = 'ts'
                     if(!hljs.getLanguage('typescript')){
                         languageModule = await import('highlight.js/lib/languages/typescript')
                     }
@@ -203,6 +225,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'json':{
                     lang = 'json'
+                    shotLang = 'json'
                     if(!hljs.getLanguage('json')){
                         languageModule = await import('highlight.js/lib/languages/json')
                     }
@@ -210,6 +233,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'yaml':{
                     lang = 'yaml'
+                    shotLang = 'yml'
                     if(!hljs.getLanguage('yaml')){
                         languageModule = await import('highlight.js/lib/languages/yaml')
                     }
@@ -217,6 +241,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'shell':{
                     lang = 'shell'
+                    shotLang = 'sh'
                     if(!hljs.getLanguage('shell')){
                         languageModule = await import('highlight.js/lib/languages/shell')
                     }
@@ -224,6 +249,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 case 'bash':{
                     lang = 'bash'
+                    shotLang = 'sh'
                     if(!hljs.getLanguage('bash')){
                         languageModule = await import('highlight.js/lib/languages/bash')
                     }
@@ -231,6 +257,7 @@ async function renderHighlightableMarkdown(data:string) {
                 }
                 default:{
                     lang = 'none'
+                    shotLang = 'none'
                 }
             }
             if(languageModule){
@@ -244,7 +271,9 @@ async function renderHighlightableMarkdown(data:string) {
                     language: lang,
                     ignoreIllegals: true
                 }).value
-                rendered = rendered.replace(placeholder, `<pre class="hljs"><code>${highlighted}</code></pre>`)   
+                rendered = rendered.replace(placeholder, `<pre class="hljs" x-hl-lang="${shotLang}" x-hl-text="${
+                    Buffer.from(code).toString('hex')
+                }"><code>${highlighted}</code></pre>`)   
             }
         } catch (error) {
             
@@ -425,6 +454,9 @@ function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext
             closestDist = dist
         }
     }
+    if(closestDist > DBState.db.assetMaxDifference){
+        return null
+    }
     return assetPaths[closest]
 }
 
@@ -464,6 +496,11 @@ export interface simpleCharacterArgument{
     triggerscript?: triggerscript[]
 }
 
+function parseThoughts(data:string){
+    return data.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (full, txt) => {
+        return `<details><summary>${language.cot}</summary>${txt}</details>`
+    })
+}
 
 export async function ParseMarkdown(
     data:string,
@@ -475,25 +512,31 @@ export async function ParseMarkdown(
     let firstParsed = ''
     const additionalAssetMode = (mode === 'back') ? 'back' : 'normal'
     let char = (typeof(charArg) === 'string') ? (findCharacterbyId(charArg)) : (charArg)
+
     if(char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'pre')
         firstParsed = data
     }
+
     if(char){
         data = (await processScriptFull(char, data, 'editdisplay', chatID, cbsConditions)).data
     }
+
     if(firstParsed !== data && char && char.type !== 'group'){
         data = await parseAdditionalAssets(data, char, additionalAssetMode, 'post')
     }
+
     data = await parseInlayAssets(data ?? '')
+
+    data = parseThoughts(data)
 
     data = encodeStyle(data)
     if(mode === 'normal'){
         data = await renderHighlightableMarkdown(data)
     }
     return decodeStyle(DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark'],
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em",],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
     }))
 }
 
@@ -1941,6 +1984,7 @@ export function risuChatParser(da:string, arg:{
         callStack: arg.callStack,
     }
 
+    da = da.replace(/\<(user|char|bot)\>/gi, '{{$1}}')
 
     const isPureMode = () => {
         return pureModeNest.size > 0
@@ -1961,15 +2005,6 @@ export function risuChatParser(da:string, arg:{
                 pointer++
                 nested.unshift('')
                 stackType[nested.length] = 1
-                break
-            }
-            case '<':{
-                if(stackType[nested.length] === 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                nested.unshift('')
-                stackType[nested.length] = 2
                 break
             }
             case '#':{
@@ -2097,79 +2132,6 @@ export function risuChatParser(da:string, arg:{
                     tempVar = mc.var
                     if(tempVar['__force_return__']){
                         return tempVar['__return__'] ?? 'null'
-                    }
-                }
-                break
-            }
-            case '>':{
-                if(stackType[nested.length] === 1){
-                    nested[0] += da[pointer]
-                    break
-                }
-                if(nested.length === 1 || stackType[nested.length] !== 2){
-                    break
-                }
-                const dat = nested.shift()
-                if(isPureMode() && pureModeType() !== 'pureSyntax' && pureModeType() !== ''){
-                    nested[0] += `<${dat}>`
-                    break
-                }
-                switch(dat){
-                    case 'Comment':{
-                        if(arg.runVar){
-                            break
-                        }
-                        if(!commentMode){
-                            thinkingMode = false
-                            commentMode = true
-                            commentLatest = nested.map((f) => f)
-                            if(commentLatest[0].endsWith('\n')){
-                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
-                            }
-                            commentV = new Uint8Array(stackType)
-                        }
-                        break
-                    }
-                    case '/Comment':{
-                        if(commentMode){
-                            nested = commentLatest
-                            stackType = commentV
-                            commentMode = false
-                        }
-                        break
-                    }
-                    case 'Thoughts':{
-                        if(!visualize){
-                            nested[0] += `<${dat}>`
-                            break
-                        }
-                        if(!commentMode){
-                            thinkingMode = true
-                            commentMode = true
-                            commentLatest = nested.map((f) => f)
-                            if(commentLatest[0].endsWith('\n')){
-                                commentLatest[0] = commentLatest[0].substring(0, commentLatest[0].length - 1)
-                            }
-                            commentV = new Uint8Array(stackType)
-                        }
-                        break
-                    }
-                    case '/Thoughts':{
-                        if(!visualize){
-                            nested[0] += `<${dat}>`
-                            break
-                        }
-                        if(commentMode){
-                            nested = commentLatest
-                            stackType = commentV
-                            commentMode = false
-                        }
-                        break
-                    }
-                    default:{
-                        const mc = isPureMode() ? null : smMatcher(dat, matcherObj)
-                        nested[0] += mc ?? `<${dat}>`
-                        break
                     }
                 }
                 break

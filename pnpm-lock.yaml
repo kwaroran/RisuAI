@@ -14,6 +14,9 @@ importers:
       '@aws-crypto/sha256-js':
         specifier: ^5.2.0
         version: 5.2.0
+      '@breezystack/lamejs':
+        specifier: ^1.2.7
+        version: 1.2.7
       '@capacitor/android':
         specifier: ^5.6.0
         version: 5.6.0(@capacitor/core@5.6.0)
@@ -360,6 +363,9 @@ packages:
   '@babel/highlight@7.23.4':
     resolution: {integrity: sha512-acGdbYSfp2WheJoJm/EBBBLh/ID8KDc64ISZ9DYtBmC8/Q204PZJLHyzeB5qMzJ5trcOkybd78M4x2KWsUq++A==}
     engines: {node: '>=6.9.0'}
+
+  '@breezystack/lamejs@1.2.7':
+    resolution: {integrity: sha512-6wc7ck65ctA75Hq7FYHTtTvGnYs6msgdxiSUICQ+A01nVOWg6rqouZB8IdyteRlfpYYiFovkf67dIeOgWIUzTA==}
 
   '@capacitor/android@5.6.0':
     resolution: {integrity: sha512-6O7xV6K6c8WvQzKxOe7fnhRyoVpS3TNDXy1FyfhvOvclBvu+1JddSdFvW4e4dSL60s2c00sCzNRgYhm+cn0/dQ==}
@@ -4060,6 +4066,8 @@ snapshots:
       '@babel/helper-validator-identifier': 7.22.20
       chalk: 2.4.2
       js-tokens: 4.0.0
+
+  '@breezystack/lamejs@1.2.7': {}
 
   '@capacitor/android@5.6.0(@capacitor/core@5.6.0)':
     dependencies:

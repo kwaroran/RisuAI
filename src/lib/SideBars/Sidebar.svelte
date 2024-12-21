@@ -23,6 +23,7 @@
     FolderOpenIcon,
     HomeIcon,
     WrenchIcon,
+    User2Icon,
   } from "lucide-svelte";
     import {
   addCharacter,
@@ -292,7 +293,79 @@
     return false
   }
 </script>
+{#if DBState.db.menuSideBar}
+<div
+  class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative rs-sidebar"
+  class:editMode
+  class:risu-sub-sidebar={$sideBarClosing}
+  class:risu-sub-sidebar-close={$sideBarClosing}
+  class:hidden={hidden}
+  class:flex={!hidden}
+>
+<button
+  class="flex items-center justify-center py-2 flex-col gap-1 w-full mt-4"
+  class:text-textcolor2={!(
+    $selectedCharID < 0 &&
+    $PlaygroundStore === 0 &&
+    !$settingsOpen
+  )}
+  onclick={() => {
+    reseter();
+    selectedCharID.set(-1)
+    PlaygroundStore.set(0)
+    OpenRealmStore.set(false)
+  }}
+>
+  <HomeIcon />
+  <span class="text-xs">{language.home}</span>
+</button>
+<button
+  class="flex items-center justify-center py-2 flex-col gap-1 w-full"
+  class:text-textcolor2={!$settingsOpen}
+  onclick={() => {
+    if ($settingsOpen) {
+      reseter();
+      settingsOpen.set(false);
+    } else {
+      reseter();
+      settingsOpen.set(true);
+    }
+  }}
+>
+  <Settings />
+  <span class="text-xs">{language.settings}</span>
+</button>
+<button
+  class="flex items-center justify-center py-2 flex-col gap-1 w-full"
+  class:text-textcolor2={!(
+    $selectedCharID >= 0
+  )}
+  onclick={() => {
+    reseter();
+    openGrid();
 
+  }}
+>
+  <User2Icon />
+  <span class="text-xs">{language.character}</span>
+</button>
+<button
+  class="flex items-center justify-center py-2 flex-col gap-1 w-full"
+  class:text-textcolor2={!(
+    $selectedCharID < 0 &&
+    $PlaygroundStore !== 0
+  )}
+  onclick={() => {
+    reseter();
+    selectedCharID.set(-1)
+    PlaygroundStore.set(1)
+  }}
+>
+  <ShellIcon />
+  <span class="text-xs">{language.playground}</span>
+</button>
+</div>
+{:else}
 <div
   class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative rs-sidebar"
   class:editMode
@@ -561,6 +634,7 @@
     </div>
   </div>
 </div>
+{/if}
 <div
   class="setting-area h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
   class:risu-sidebar={!$sideBarClosing}

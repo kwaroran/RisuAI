@@ -298,7 +298,7 @@ export const languageChinese = {
     "singleView": "单角色模式",
     "SpacedView": "多角色模式",
     "emphasizedView": "双角色模式",
-    "pluginWarn": "插件可在隔离环境中运行，但安装恶意插件可能导致问题。",
+    "pluginWarn": "但安装恶意插件可能导致问题。",
     "createGroupImg": "产生群组头像",
     "waifuWidth": "角色对话框宽度",
     "savebackup": "备份至 Google",

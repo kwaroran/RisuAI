@@ -1,6 +1,6 @@
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
 import { getCurrentCharacter, getDatabase, setDatabase, type character } from "../storage/database.svelte";
-import { pluginProcess } from "../plugins/plugins";
+import { pluginProcess, pluginV2 } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
 import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "../globalApi.svelte";
@@ -105,11 +105,46 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
         }
 
         for(const parameter of parameters){
+            
+            let value = 0
             if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.seperateParameters[ModelMode][parameter] === 0){
                 continue
             }
 
-            let value = db.seperateParameters[ModelMode][parameter]
+            switch(parameter){
+                case 'temperature':{
+                    value = db.seperateParameters[ModelMode].temperature === -1000 ? -1000 : (db.seperateParameters[ModelMode].temperature / 100)
+                    break
+                }
+                case 'top_k':{
+                    value = db.seperateParameters[ModelMode].top_k
+                    break
+                }
+                case 'repetition_penalty':{
+                    value = db.seperateParameters[ModelMode].repetition_penalty
+                    break
+                }
+                case 'min_p':{
+                    value = db.seperateParameters[ModelMode].min_p
+                    break
+                }
+                case 'top_a':{
+                    value = db.seperateParameters[ModelMode].top_a
+                    break
+                }
+                case 'top_p':{
+                    value = db.seperateParameters[ModelMode].top_p
+                    break
+                }
+                case 'frequency_penalty':{
+                    value = db.seperateParameters[ModelMode].frequency_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].frequency_penalty / 100)
+                    break
+                }
+                case 'presence_penalty':{
+                    value = db.seperateParameters[ModelMode].presence_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].presence_penalty / 100)
+                    break
+                }
+            }
 
             if(value === -1000 || value === undefined){
                 continue
@@ -174,7 +209,22 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     const db = getDatabase()
     let trys = 0
     while(true){
+
+        if(pluginV2.replacerbeforeRequest.size > 0){
+            for(const replacer of pluginV2.replacerbeforeRequest){
+                arg.formated = await replacer(arg.formated, model)
+            }
+        }
+
         const da = await requestChatDataMain(arg, model, abortSignal)
+
+        if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
+            for(const replacer of pluginV2.replacerafterRequest){
+                da.result = await replacer(da.result, model)
+            }
+        }
+
+
         if(da.type !== 'fail' || da.noRetry){
             return da
         }
@@ -202,7 +252,7 @@ interface OpenAIImageContents {
 type OpenAIContents = OpenAITextContents|OpenAIImageContents
 
 export interface OpenAIChatExtra {
-    role: 'system'|'user'|'assistant'|'function'
+    role: 'system'|'user'|'assistant'|'function'|'developer'
     content: string|OpenAIContents[]
     memo?:string
     name?:string
@@ -247,7 +297,23 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
             }
 
             if(newFormated[newFormated.length-1].role === m.role){
+            
                 newFormated[newFormated.length-1].content += '\n' + m.content
+
+                if(m.multimodals){
+                    if(!newFormated[newFormated.length-1].multimodals){
+                        newFormated[newFormated.length-1].multimodals = []
+                    }
+                    newFormated[newFormated.length-1].multimodals.push(...m.multimodals)
+                }
+
+                if(m.thoughts){
+                    if(!newFormated[newFormated.length-1].thoughts){
+                        newFormated[newFormated.length-1].thoughts = []
+                    }
+                    newFormated[newFormated.length-1].thoughts.push(...m.thoughts)
+                }
+
                 continue
             }
             else{
@@ -409,15 +475,6 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         })
     }
 
-    if(aiModel.startsWith('gpt4o1')){
-        for(let i=0;i<formatedChat.length;i++){
-            if(formatedChat[i].role === 'system'){
-                formatedChat[i].content = `<system>${formatedChat[i].content}</system>`
-                formatedChat[i].role = 'user'
-            }
-        }
-    }
-
     for(let i=0;i<arg.biasString.length;i++){
         const bia = arg.biasString[i]
         if(bia[0].startsWith('[[') && bia[0].endsWith(']]')){
@@ -476,6 +533,15 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         openrouterRequestModel = await getFreeOpenRouterModel()
     }
 
+    if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
+        formatedChat = formatedChat.map((v) => {
+            if(v.role === 'system'){
+                v.role = 'developer'
+            }
+            return v
+        })
+    }
+
     console.log(formatedChat)
     if(arg.modelInfo.format === LLMFormat.Mistral){
         requestModel = aiModel
@@ -500,12 +566,12 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
             else{
                 const prevChat = reformatedChat[reformatedChat.length-1]
-                if(prevChat.role === chat.role){
+                if(prevChat?.role === chat.role){
                     reformatedChat[reformatedChat.length-1].content += '\n' + chat.content
                     continue
                 }
                 else if(chat.role === 'system'){
-                    if(prevChat.role === 'user'){
+                    if(prevChat?.role === 'user'){
                         reformatedChat[reformatedChat.length-1].content += '\nSystem:' + chat.content
                     }
                     else{
@@ -617,7 +683,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     })
 
-    if(aiModel.startsWith('gpt4o1')){
+    if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
         body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
     }
@@ -1328,7 +1394,15 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
     const db = getDatabase()
     const maxTokens = arg.maxTokens
     const bias = arg.biasString
-    const d = await pluginProcess({
+    const v2Function = pluginV2.providers.get(db.currentPluginProvider)
+
+    const d = v2Function ? (await v2Function(applyParameters({
+        prompt_chat: formated,
+        mode: arg.mode,
+        bias: []
+    }, [
+        'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
+    ], {}, arg.mode) as any)) : await pluginProcess({
         bias: bias,
         prompt_chat: formated,
         temperature: (db.temperature / 100),
@@ -1336,6 +1410,7 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         presence_penalty: (db.PresensePenalty / 100),
         frequency_penalty: (db.frequencyPenalty / 100)
     })
+
     if(!d){
         return {
             type: 'fail',
@@ -1387,14 +1462,51 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     for(let i=0;i<formated.length;i++){
         const chat = formated[i]
   
-        if(i === 0){
-            if(chat.role === 'user' || chat.role === 'assistant'){
-                reformatedChat.push({
-                    role: chat.role === 'user' ? 'USER' : 'MODEL',
-                    parts: [{
-                        text: chat.content
-                    }]
-                })
+        const prevChat = reformatedChat[reformatedChat.length-1]
+        const qRole = 
+            chat.role === 'user' ? 'USER' :
+            chat.role === 'assistant' ? 'MODEL' :
+            chat.role
+
+        if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
+            let geminiParts: GeminiPart[] = [];
+            
+            geminiParts.push({
+                text: chat.content,
+            });
+            
+            for (const modal of chat.multimodals) {
+                if (
+                    (modal.type === "image" && arg.modelInfo.flags.includes(LLMFlags.hasImageInput)) ||
+                    (modal.type === "audio" && arg.modelInfo.flags.includes(LLMFlags.hasAudioInput)) ||
+                    (modal.type === "video" && arg.modelInfo.flags.includes(LLMFlags.hasVideoInput))
+                ) {
+                    const dataurl = modal.base64;
+                    const base64 = dataurl.split(",")[1];
+                    const mediaType = dataurl.split(";")[0].split(":")[1];
+        
+                    geminiParts.push({
+                        inlineData: {
+                            mimeType: mediaType,
+                            data: base64,
+                        }
+                    });
+                }
+            }
+    
+            reformatedChat.push({
+                role: "USER",
+                parts: geminiParts,
+            });
+        } else if (prevChat?.role === qRole) {
+            reformatedChat[reformatedChat.length-1].parts[
+                reformatedChat[reformatedChat.length-1].parts.length-1
+            ].text += '\n' + chat.content
+            continue
+        }
+        else if(chat.role === 'system'){
+            if(prevChat?.role === 'USER'){
+                reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
             }
             else{
                 reformatedChat.push({
@@ -1405,78 +1517,32 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 })
             }
         }
+        else if(chat.role === 'assistant' && arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
+            reformatedChat.push({
+                role: 'MODEL',
+                parts: [chat.thoughts?.length > 0 ? {
+                    text: chat.thoughts.join('\n\n')
+                } : null, {
+                    text: chat.content
+                }]
+            })
+        }
+
+        else if(chat.role === 'assistant' || chat.role === 'user'){
+            reformatedChat.push({
+                role: chat.role === 'user' ? 'USER' : 'MODEL',
+                parts: [{
+                    text: chat.content
+                }]
+            })
+        }
         else{
-            const prevChat = reformatedChat[reformatedChat.length-1]
-            const qRole = 
-                chat.role === 'user' ? 'USER' :
-                chat.role === 'assistant' ? 'MODEL' :
-                chat.role
-
-            if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
-                let geminiParts: GeminiPart[] = [];
-                
-                geminiParts.push({
-                    text: chat.content,
-                });
-                
-                for (const modal of chat.multimodals) {
-                    if (
-                        (modal.type === "image" && arg.modelInfo.flags.includes(LLMFlags.hasImageInput)) ||
-                        (modal.type === "audio" && arg.modelInfo.flags.includes(LLMFlags.hasAudioInput)) ||
-                        (modal.type === "video" && arg.modelInfo.flags.includes(LLMFlags.hasVideoInput))
-                    ) {
-                        const dataurl = modal.base64;
-                        const base64 = dataurl.split(",")[1];
-                        const mediaType = dataurl.split(";")[0].split(":")[1];
-            
-                        geminiParts.push({
-                            inlineData: {
-                                mimeType: mediaType,
-                                data: base64,
-                            }
-                        });
-                    }
-                }
-        
-                reformatedChat.push({
-                    role: "USER",
-                    parts: geminiParts,
-                });
-        
-            } else if (prevChat.role === qRole) {
-                reformatedChat[reformatedChat.length-1].parts[0].text += '\n' + chat.content
-                continue
-            }
-            else if(chat.role === 'system'){
-                if(prevChat.role === 'USER'){
-                    reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
-                }
-                else{
-                    reformatedChat.push({
-                        role: "USER",
-                        parts: [{
-                            text: chat.role + ':' + chat.content
-                        }]
-                    })
-                }
-            }
-
-            else if(chat.role === 'assistant' || chat.role === 'user'){
-                reformatedChat.push({
-                    role: chat.role === 'user' ? 'USER' : 'MODEL',
-                    parts: [{
-                        text: chat.content
-                    }]
-                })
-            }
-            else{
-                reformatedChat.push({
-                    role: "USER",
-                    parts: [{
-                        text: chat.role + ':' + chat.content
-                    }]
-                })
-            }
+            reformatedChat.push({
+                role: "USER",
+                parts: [{
+                    text: chat.role + ':' + chat.content
+                }]
+            })
         }
     }
 
@@ -1649,12 +1715,25 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
 
                     const data = JSON.parse(reformatted)
 
-                    let r = ''
+                    let rDatas:string[] = ['']
                     for(const d of data){
-                        r += d.candidates[0].content.parts[0].text
+                        const parts = d.candidates[0].content?.parts
+                        for(let i=0;i<parts.length;i++){
+                            const part = parts[i]
+                            if(i > 0){
+                                rDatas.push('')
+                            }
+
+                            rDatas[rDatas.length-1] += part.text
+                        }
+                    }
+
+                    if(rDatas.length > 1){
+                        const thought = rDatas.splice(rDatas.length-2, 1)[0]
+                        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
                     }
                     control.enqueue({
-                        '0': r
+                        '0': rDatas[rDatas.length-1],
                     })
                 } catch (error) {
                     console.log(error)
@@ -1682,13 +1761,22 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
 
-    let fullRes = ''
-
+    let rDatas:string[] = ['']
     const processDataItem = (data:any) => {
-        if(data?.candidates?.[0]?.content?.parts?.[0]?.text){
-            fullRes += data.candidates[0].content.parts[0].text
+        const parts = data?.candidates?.[0]?.content?.parts
+        if(parts){
+         
+            for(let i=0;i<parts.length;i++){
+                const part = parts[i]
+                if(i > 0){
+                    rDatas.push('')
+                }
+
+                rDatas[rDatas.length-1] += part.text
+            }   
         }
-        else if(data?.errors){
+        
+        if(data?.errors){
             return {
                 type: 'fail',
                 result: `${JSON.stringify(data.errors)}`
@@ -1711,9 +1799,15 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         processDataItem(res.data)
     }
 
+    
+    if(rDatas.length > 1){
+        const thought = rDatas.splice(rDatas.length-2, 1)[0]
+        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
+    }
+
     return {
         type: 'success',
-        result: fullRes
+        result: rDatas[rDatas.length-1]
     }
 }
 

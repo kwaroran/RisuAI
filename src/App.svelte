@@ -36,7 +36,7 @@
         await importCharacterProcess({
             name: file.name,
             data: file
-        })
+    })
         checkCharOrder()
     }
 }}>

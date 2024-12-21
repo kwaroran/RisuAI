@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "143.5.0"
+export let appVer = "144.1.0"
 export let webAppSubVer = ''
 
 
@@ -464,14 +464,12 @@ export function setDatabase(data:Database){
     }
     data.customFlags ??= []
     data.enableCustomFlags ??= false
+    data.assetMaxDifference ??= 4
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
 
 export function setDatabaseLite(data:Database){
-    if(import.meta.env.DEV){
-        console.trace('setDatabaseLite executed')
-    }
     DBState.db = data
 }
 
@@ -861,6 +859,9 @@ export interface Database{
     presetChain: string
     legacyMediaFindings?:boolean
     geminiStream?:boolean
+    assetMaxDifference:number
+    menuSideBar:boolean
+    pluginV2: RisuPlugin[]
 }
 
 interface SeparateParameters{

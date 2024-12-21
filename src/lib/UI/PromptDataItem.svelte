@@ -8,8 +8,9 @@
     import CheckInput from "./GUI/CheckInput.svelte";
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
-    
     import { DBState } from 'src/ts/stores.svelte';
+    import { onDestroy, onMount } from "svelte";
+    
     let opened = $state(false)
     interface Props {
         promptItem: PromptItem;
@@ -97,6 +98,20 @@
         DBState.db.promptTemplate.splice(myInd, 0, prompt)
 
     }
+
+    const EL = (e:KeyboardEvent) => {
+        if(e.ctrlKey && e.altKey && e.key === 'o'){
+            opened = !opened
+        }
+    }
+
+    onMount(() => {
+        document.addEventListener('keydown', EL)
+    })
+
+    onDestroy(() => {
+        document.removeEventListener('keydown', EL)
+    })
 
 </script>
 
