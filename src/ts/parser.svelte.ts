@@ -2335,9 +2335,17 @@ export function parseChatML(data:string):OpenAIChat[]|null{
             v = v.substring(0, v.length - ender.length)
         }
 
+
+        let thoughts:string[] = []
+        v = v.replace(/<Thoughts>(.*?)<\/Thoughts>/g, (match, p1) => {
+            thoughts.push(p1)
+            return ''
+        })
+
         return {
             role: role,
-            content: risuChatParser(v)
+            content: risuChatParser(v),
+            thoughts: thoughts
         }
     })
 }
