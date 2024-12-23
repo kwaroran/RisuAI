@@ -54,7 +54,7 @@ export const runSummarizer = async (text: string) => {
 
 let extractor:FeatureExtractionPipeline = null
 let lastEmbeddingModelQuery:string = ''
-type EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'|'nomic-ai/nomic-embed-text-v1.5'
+type EmbeddingModel = 'Xenova/all-MiniLM-L6-v2'|'elyn-dev/eloquant-e5-large'
 export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xenova/all-MiniLM-L6-v2', device:'webgpu'|'wasm'):Promise<Float32Array[]> => {
     await initTransformers()
     console.log('running embedding')
