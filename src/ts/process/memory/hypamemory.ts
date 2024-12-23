@@ -11,8 +11,8 @@ export type HypaModel = 'ada'|'MiniLM'|'nomic'|'custom'|'nomicGPU'|'bgeSmallEn'|
 const localModels = {
     models: {
         'MiniLM':'Xenova/all-MiniLM-L6-v2',
-        'nomic':'nomic-ai/nomic-embed-text-v1.5',
-        'nomicGPU':'nomic-ai/nomic-embed-text-v1.5',
+        'nomic':'elyn-dev/eloquant-e5-large',
+        'nomicGPU':'elyn-dev/eloquant-e5-large',
         'bgeSmallEn': 'BAAI/bge-small-en-v1.5',
         'bgeSmallEnGPU': 'BAAI/bge-small-en-v1.5',
         'bgem3': 'BAAI/bge-m3',
