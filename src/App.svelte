@@ -10,8 +10,7 @@
     import Settings from './lib/Setting/Settings.svelte';
     import { showRealmInfoStore, importCharacterProcess } from './ts/characterCards';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
-    import { AccountWarning } from './ts/storage/accountStorage';
-    import AccountWarningComp from './lib/Others/AccountWarningComp.svelte';
+    import SavePopupIconComp from './lib/Others/SavePopupIcon.svelte';
     import Botpreset from './lib/Setting/botpreset.svelte';
     import ListedPersona from './lib/Setting/listedPersona.svelte';
     import MobileHeader from './lib/Mobile/MobileHeader.svelte';
@@ -87,13 +86,11 @@
     {#if $ShowRealmFrameStore}
         <RealmFrame />
     {/if}
-    {#if $AccountWarning}
-        <AccountWarningComp />
-    {/if}
     {#if $openPresetList}
         <Botpreset close={() => {$openPresetList = false}} />
     {/if}
     {#if $openPersonaList}
         <ListedPersona close={() => {$openPersonaList = false}} />
     {/if}
+    <SavePopupIconComp />
 </main>

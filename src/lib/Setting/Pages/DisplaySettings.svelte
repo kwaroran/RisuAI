@@ -202,7 +202,7 @@
     <SliderInput  min={50} max={200} bind:value={DBState.db.zoomsize} marginBottom/>
 
     <span class="text-textcolor">{language.lineHeight}</span>
-    <SliderInput  min={0.5} max={3} step={0.05} bind:value={DBState.db.lineHeight} marginBottom/>
+    <SliderInput  min={0.5} max={3} step={0.05} fixed={2} bind:value={DBState.db.lineHeight} marginBottom/>
 
     <span class="text-textcolor">{language.iconSize}</span>
     <SliderInput min={50} max={200} bind:value={DBState.db.iconsize} marginBottom/>
@@ -298,6 +298,10 @@
 
     <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.textScreenRounded} name={language.textScreenRound}/>
+    </div>
+
+    <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.showSavingIcon} name={language.showSavingIcon}/>
     </div>
 
     {#if DBState.db.textScreenBorder}

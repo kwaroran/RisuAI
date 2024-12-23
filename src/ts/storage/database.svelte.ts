@@ -462,6 +462,7 @@ export function setDatabase(data:Database){
     data.customFlags ??= []
     data.enableCustomFlags ??= false
     data.assetMaxDifference ??= 4
+    data.showSavingIcon ??= false
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -858,6 +859,7 @@ export interface Database{
     assetMaxDifference:number
     menuSideBar:boolean
     pluginV2: RisuPlugin[]
+    showSavingIcon:boolean
 }
 
 interface SeparateParameters{

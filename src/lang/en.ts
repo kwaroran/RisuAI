@@ -833,4 +833,5 @@ export const languageEnglish = {
     noWebGPU: "Your Browser or OS doesn't support WebGPU. this will slow down the performance significantly.",
     menuSideBar: "Menu Side Bar",
     home: "Home",
+    showSavingIcon: "Show Saving Icon",
 }

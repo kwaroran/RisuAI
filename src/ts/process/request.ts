@@ -1392,60 +1392,68 @@ async function requestOoba(arg:RequestDataArgumentExtended):Promise<requestDataR
 }
 
 async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
-    const formated = arg.formated
     const db = getDatabase()
-    const maxTokens = arg.maxTokens
-    const bias = arg.biasString
-    const v2Function = pluginV2.providers.get(db.currentPluginProvider)
-
-    const d = v2Function ? (await v2Function(applyParameters({
-        prompt_chat: formated,
-        mode: arg.mode,
-        bias: []
-    }, [
-        'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
-    ], {}, arg.mode) as any)) : await pluginProcess({
-        bias: bias,
-        prompt_chat: formated,
-        temperature: (db.temperature / 100),
-        max_tokens: maxTokens,
-        presence_penalty: (db.PresensePenalty / 100),
-        frequency_penalty: (db.frequencyPenalty / 100)
-    })
-
-    if(!d){
-        return {
-            type: 'fail',
-            result: (language.errors.unknownModel)
-        }
-    }
-    else if(!d.success){
-        return {
-            type: 'fail',
-            result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content
-        }
-    }
-    else if(d.content instanceof ReadableStream){
-
-        let fullText = ''
-        const piper = new TransformStream<string, StreamResponseChunk>(  {
-            transform(chunk, control) {
-                fullText += chunk
-                control.enqueue({
-                    "0": fullText
-                })
-            }
+    try {
+        const formated = arg.formated
+        const maxTokens = arg.maxTokens
+        const bias = arg.biasString
+        const v2Function = pluginV2.providers.get(db.currentPluginProvider)
+    
+        const d = v2Function ? (await v2Function(applyParameters({
+            prompt_chat: formated,
+            mode: arg.mode,
+            bias: []
+        }, [
+            'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
+        ], {}, arg.mode) as any)) : await pluginProcess({
+            bias: bias,
+            prompt_chat: formated,
+            temperature: (db.temperature / 100),
+            max_tokens: maxTokens,
+            presence_penalty: (db.PresensePenalty / 100),
+            frequency_penalty: (db.frequencyPenalty / 100)
         })
-
-        return {
-            type: 'streaming',
-            result: d.content.pipeThrough(piper)
+    
+        if(!d){
+            return {
+                type: 'fail',
+                result: (language.errors.unknownModel)
+            }
         }
-    }
-    else{
+        else if(!d.success){
+            return {
+                type: 'fail',
+                result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content
+            }
+        }
+        else if(d.content instanceof ReadableStream){
+    
+            let fullText = ''
+            const piper = new TransformStream<string, StreamResponseChunk>(  {
+                transform(chunk, control) {
+                    fullText += chunk
+                    control.enqueue({
+                        "0": fullText
+                    })
+                }
+            })
+    
+            return {
+                type: 'streaming',
+                result: d.content.pipeThrough(piper)
+            }
+        }
+        else{
+            return {
+                type: 'success',
+                result: d.content
+            }
+        }   
+    } catch (error) {
+        console.error(error)
         return {
-            type: 'success',
-            result: d.content
+            type: 'fail',
+            result: `Plugin Error from ${db.currentPluginProvider}: ` + JSON.stringify(error)
         }
     }
 }

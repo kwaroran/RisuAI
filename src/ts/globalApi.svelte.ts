@@ -302,6 +302,9 @@ export async function loadAsset(id:string){
 }
 
 let lastSave = ''
+export let saving = $state({
+    state: false
+})
 
 /**
  * Saves the current state of the database.
@@ -335,19 +338,25 @@ export async function saveDb(){
     $effect.root(() => {
 
         let selIdState = $state(0)
+        let oldSaveHash = ''
 
         selectedCharID.subscribe((v) => {
             selIdState = v
         })
 
         $effect(() => {
-            $state.snapshot(DBState?.db?.characters?.[selIdState])
+            let newSaveHash = ''
+            newSaveHash += JSON.stringify(DBState?.db?.characters?.[selIdState])
             for(const key in DBState.db){
                 if(key !== 'characters'){
-                    $state.snapshot(DBState.db[key])
+                    newSaveHash += (DBState.db[key])
                 }
             }
-            changed = true
+
+            if(newSaveHash !== oldSaveHash){
+                changed = true
+                oldSaveHash = newSaveHash
+            }
         })
     })
 
@@ -356,10 +365,11 @@ export async function saveDb(){
     await sleep(1000)
     while(true){
         if(!changed){
-            await sleep(1000)
+            await sleep(500)
             continue
         }
 
+        saving.state = true
         changed = false
 
         try {
@@ -430,6 +440,8 @@ export async function saveDb(){
                 console.error(error)
             }
         }
+
+        saving.state = false
     }
 }
 
