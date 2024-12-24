@@ -834,4 +834,5 @@ export const languageEnglish = {
     menuSideBar: "Menu Side Bar",
     home: "Home",
     showSavingIcon: "Show Saving Icon",
+    pluginVersionWarn: "This is {{plugin_version}} version of the plugin. which is not compatible with this version of RisuAI. please update the plugin to {{required_version}} version.",
 }
