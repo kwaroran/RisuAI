@@ -106,6 +106,7 @@ Adds a provider to the plugin.
         - `top_k?: number` - The top k value.
         - `top_p?: number` - The top p value.
         - `temperature?: number` - The temperature value.
+        - `max_tokens?: number` - The max tokens value.
         - `mode: string` - The mode. one of `model`, `submodel`, `memory`, `emotion`, `otherAx`, `translate`
     - `Promise<{success:boolean,content:string|ReadableStream<string>}>` - The provider result.
         - `success: boolean` - If the provider was successful.

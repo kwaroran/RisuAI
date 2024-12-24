@@ -1402,7 +1402,8 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         const d = v2Function ? (await v2Function(applyParameters({
             prompt_chat: formated,
             mode: arg.mode,
-            bias: []
+            bias: [],
+            max_tokens: maxTokens,
         }, [
             'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
         ], {}, arg.mode) as any)) : await pluginProcess({
