@@ -753,7 +753,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             }
         }
         let thoughts:string[] = []
-        formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, (match, p1) => {
+        formatedChat = formatedChat.replace(/<Thoughts>([\s\S]+?)<\/Thoughts>/g, (match, p1) => {
             thoughts.push(p1)
             return ''
         })
