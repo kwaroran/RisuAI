@@ -166,8 +166,9 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
         risuFetch: globalFetch,
         nativeFetch: fetchNative,
         getArg: (arg:string) => {
+            const db = getDatabase()
             const [name, realArg] = arg.split('::')
-            for(const plug of plugins){
+            for(const plug of db.plugins){
                 if(plug.name === name){
                     return plug.realArg[realArg]
                 }
