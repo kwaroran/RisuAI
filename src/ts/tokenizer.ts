@@ -7,6 +7,7 @@ import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./globalApi.svelte";
 import { getModelInfo, LLMTokenizer } from "./model/modellist";
+import { pluginV2 } from "./plugins/plugins";
 
 
 export const tokenizerList = [
@@ -45,7 +46,38 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
                 return await tikJS(data, 'o200k_base')
         }
     }
+
     const modelInfo = getModelInfo(db.aiModel)
+
+    if(db.aiModel === 'custom' && pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer){
+        const tokenizer = pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer
+        switch(tokenizer){
+            case 'mistral':
+                return await tokenizeWebTokenizers(data, 'mistral')
+            case 'llama':
+                return await tokenizeWebTokenizers(data, 'llama')
+            case 'novelai':
+                return await tokenizeWebTokenizers(data, 'novelai')
+            case 'claude':
+                return await tokenizeWebTokenizers(data, 'claude')
+            case 'novellist':
+                return await tokenizeWebTokenizers(data, 'novellist')
+            case 'llama3':
+                return await tokenizeWebTokenizers(data, 'llama')
+            case 'gemma':
+                return await tokenizeWebTokenizers(data, 'gemma')
+            case 'cohere':
+                return await tokenizeWebTokenizers(data, 'cohere')
+            case 'o200k_base':
+                return await tikJS(data, 'o200k_base')
+            case 'cl100k_base':
+                return await tikJS(data, 'cl100k_base')
+            case 'custom':
+                return await pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizerFunc?.(data) ?? [0]
+            default:
+                return await tikJS(data, 'o200k_base')
+        }
+    }
 
     if(modelInfo.tokenizer === LLMTokenizer.NovelList){
         const nv= await tokenizeWebTokenizers(data, 'novellist')

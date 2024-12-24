@@ -89,7 +89,7 @@ Gets the current character.
 
 Sets the current character.
 
-### `addProvider(type: string, func: (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>): void`
+### `addProvider(type: string, func: (arg:PluginV2ProviderArgument, options?:PluginV2ProviderOptions) => Promise<{success:boolean,content:string}>): void`
 
 Adds a provider to the plugin.
 
@@ -111,6 +111,9 @@ Adds a provider to the plugin.
     - `Promise<{success:boolean,content:string|ReadableStream<string>}>` - The provider result.
         - `success: boolean` - If the provider was successful.
         - `content: string|ReadableStream<string>` - The provider content. if it's a ReadableStream, it will be streamed to the chat.
+- `options?: PluginV2ProviderOptions` - The provider options.
+    - `tokenizer?: string` - The tokenizer name. must be one of `"mistral"`, `"llama"`, `"novelai"`, `"claude"`, `"novellist"`, `"llama3"`, `"gemma"`, `"cohere"`, `"tiktoken"` or `"custom"`. if it's `"custom"`, you have to provide `tokenizerFunc`.
+    - `tokenizerFunc?: (content: string) => number[]|Promise<number[]>` - The tokenizer function.
 
 ### `addRisuScriptHandler(type: string, func: (content:string) => string|null|undefined|Promise<string|null|undefined>): void`
 

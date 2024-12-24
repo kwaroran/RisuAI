@@ -131,11 +131,17 @@ type PluginV2ProviderArgument = {
     mode: string
 }
 
+type PluginV2ProviderOptions = {
+    tokenizer?: string
+    tokenizerFunc?: (content:string) => number[]|Promise<number[]>
+}
+
 type EditFunction = (content:string) => string|null|undefined|Promise<string|null|undefined>
 type ReplacerFunction = (content:OpenAIChat[], type:string) => OpenAIChat[]|Promise<OpenAIChat[]>
 
 export const pluginV2 = {
     providers: new Map<string, (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string|ReadableStream<string>}> >(),
+    providerOptions: new Map<string, PluginV2ProviderOptions>(),
     editdisplay: new Set<EditFunction>(),
     editoutput: new Set<EditFunction>(),
     editprocess: new Set<EditFunction>(),
@@ -183,10 +189,11 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
             db.characters[charid] = char
             setDatabaseLite(db)
         },
-        addProvider: (name:string, func:(arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>) => {
+        addProvider: (name:string, func:(arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>, options?:PluginV2ProviderOptions) => {
             let provs = get(customProviderStore)
             provs.push(name)
             pluginV2.providers.set(name, func)
+            pluginV2.providerOptions.set(name, options ?? {})
             customProviderStore.set(provs)
         },
         addRisuScriptHandler: (name:ScriptMode, func:EditFunction) => {
