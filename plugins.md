@@ -46,7 +46,7 @@ Fetches a URL with a native API, which doesn't have CORS restrictions.
     - `data: any` - The response data which is parsed JSON if possible. if `rawResponse` is true, it will be a Uint8Array.
     - `headers: Record<string, string>` - The response headers.
 
-### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<NativeFetchResults>`
+### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<Response>`
 
 Fetches a URL with the native API, which doesn't have CORS restrictions. this API is designed as a subset of [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), except it doesn't have CORS restrictions and default method is `POST`.
 
@@ -61,13 +61,7 @@ Fetches a URL with the native API, which doesn't have CORS restrictions. this AP
 
 #### Returns
 
-- `Promise<NativeFetchResults>` - The fetch result.
-    - `body: ReadableStream<Uint8Array>` - The response body.
-    - `headers: Headers` - The response headers.
-    - `status: number` - The response status.
-    - `json: () => Promise<any>` - A function that returns a promise that resolves to the JSON representation of the response body.
-    - `text: () => Promise<string>` - A function that returns a promise that resolves to the text representation of the response body.
-    - `arrayBuffer: () => Promise<ArrayBuffer>` - A function that returns a promise that resolves to the ArrayBuffer representation of the response body.
+- `Promise<Response>` - The fetch result, in a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object.
 
 ### `getArg(name: string): string|number`
 
