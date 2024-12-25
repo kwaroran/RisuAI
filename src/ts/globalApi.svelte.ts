@@ -1821,20 +1821,18 @@ const pipeFetchLog = (fetchLogIndex: number, readableStream: ReadableStream<Uint
  * @throws {Error} - Throws an error if the request is aborted or if there is an error in the response.
  */
 export async function fetchNative(url:string, arg:{
-    body:string|Uint8Array|ArrayBuffer,
+    body?:string|Uint8Array|ArrayBuffer,
     headers?:{[key:string]:string},
     method?:"POST"|"GET"|"PUT"|"DELETE",
     signal?:AbortSignal,
     useRisuTk?:boolean,
     chatId?:string
-}):Promise<{
-    body: ReadableStream<Uint8Array>;
-    headers: Headers;
-    status: number;
-    json: () => Promise<any>;
-    text: () => Promise<string>;
-    arrayBuffer: () => Promise<ArrayBuffer>;
-}> {
+}):Promise<Response> {
+
+    console.log(arg.body,'body')
+    if(arg.body === undefined && (arg.method === 'POST' || arg.method === 'PUT') ){
+        throw new Error('Body is required for POST and PUT requests')
+    }
 
     const jsonizer = (body:ReadableStream<Uint8Array>) => {
         return async () => {
@@ -1876,9 +1874,9 @@ export async function fetchNative(url:string, arg:{
     let realBody:Uint8Array
 
     if(arg.method === 'GET' || arg.method === 'DELETE'){
-        realBody = new Uint8Array(0)
+        realBody = undefined
     }
-    if(typeof arg.body === 'string'){
+    else if(typeof arg.body === 'string'){
         realBody = new TextEncoder().encode(arg.body)
     }
     else if(arg.body instanceof Uint8Array){
@@ -1990,18 +1988,15 @@ export async function fetchNative(url:string, arg:{
             throw new Error(error)
         }
 
-        return {
-            body: readableStream,
+        return new Response(readableStream, {
             headers: new Headers(resHeaders),
-            status: status,
-            json: jsonizer(readableStream),
-            text: textizer(readableStream),
-            arrayBuffer: arrayBufferizer(readableStream)
-        }
+            status: status
+        })
 
 
     }
     else if(throughProxy){
+
         const r = await fetch(hubURL + `/proxy2`, {
             body: realBody,
             headers: arg.useRisuTk ? {
@@ -2018,14 +2013,10 @@ export async function fetchNative(url:string, arg:{
             signal: arg.signal
         })
 
-        return {
-            body: pipeFetchLog(fetchLogIndex, r.body),
+        return new Response(r.body, {
             headers: r.headers,
-            status: r.status,
-            json: jsonizer(r.body),
-            text: textizer(r.body),
-            arrayBuffer: arrayBufferizer(r.body)
-        }
+            status: r.status
+        })
     }
     else{
         return await fetch(url, {
