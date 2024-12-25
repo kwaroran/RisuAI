@@ -245,6 +245,8 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
             const setChar = globalThis.__pluginApis__.setChar
             const addProvider = globalThis.__pluginApis__.addProvider
             const addRisuEventHandler = globalThis.__pluginApis__.addRisuEventHandler
+            const addRisuReplacer = globalThis.__pluginApis__.addRisuReplacer
+            const removeRisuReplacer = globalThis.__pluginApis__.removeRisuReplacer
             const onUnload = globalThis.__pluginApis__.onUnload
 
             ${data}
