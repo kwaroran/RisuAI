@@ -94,6 +94,10 @@ export const DBState = $state({
     db: {} as any as Database
 });
 
+export const LoadingStatusState = $state({
+    text: '',
+})
+
 export const disableHighlight = writable(true)
 
 ReloadGUIPointer.subscribe(() => {
