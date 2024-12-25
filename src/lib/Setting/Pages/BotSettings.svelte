@@ -10,7 +10,7 @@
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
-    import { PlusIcon, TrashIcon, FolderUpIcon, DownloadIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, FolderUpIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -29,6 +29,7 @@
     import { selectSingleFile } from "src/ts/util";
   import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
+  import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
 
     let tokens = $state({
         mainPrompt: 0,
@@ -580,16 +581,6 @@
             {#if submenu !== -1}
                 <PromptSettings mode='inline' subMenu={1} />
             {/if}
-            <Check check={!!DBState.db.promptTemplate} name={language.usePromptTemplate} className="mt-4" onChange={async ()=>{
-                const conf = await alertConfirm(language.resetPromptTemplateConfirm)
-                
-                if(conf){
-                    DBState.db.promptTemplate = undefined
-                }
-                else{
-                    DBState.db.promptTemplate = DBState.db.promptTemplate
-                }
-            }}/>
         {:else}
             <Check check={false} name={language.usePromptTemplate} onChange={() => {
                 DBState.db.promptTemplate = []
@@ -628,9 +619,41 @@
             {@render CustomFlagButton('mustStartWithUserInput', 10)}
         {/if}
     </Arcodion>
-    
-    <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
-        <TextAreaInput bind:value={DBState.db.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
+
+    <Arcodion styled name={language.regexScript}>
+        <RegexList bind:value={DBState.db.presetRegex} buttons />
+    </Arcodion>
+
+    <Arcodion styled name={language.icon}>
+        <div class="p-2 rounded-md border border-darkborderc flex flex-col items-center gap-2">
+            <span>
+                {language.preview}
+            </span>
+            <div class="flex items-center justify-center gap-2">
+                {#if DBState.db.botPresets[DBState.db.botPresetsId]?.image}
+                    <img src={DBState.db.botPresets[DBState.db.botPresetsId]?.image} alt="icon" class="w-6 h-6 rounded-md" decoding="async"/>
+                    <span class="text-textcolor2">{DBState.db.botPresets[DBState.db.botPresetsId]?.name}</span>
+                {:else}
+                    <span class="text-textcolor2">{language.noImages}</span>
+                {/if}
+            </div>
+        </div>
+        <button class="mt-2 text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={async () => {
+            const sel = await selectSingleFile(['png', 'jpg', 'jpeg', 'webp'])
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            const img = new Image()
+            const blob = new Blob([sel.data], {type: "image/png"})
+            img.src = URL.createObjectURL(blob)
+            await img.decode()
+            canvas.width = 48
+            canvas.height = 48
+            ctx.drawImage(img, 0, 0, 48, 48)
+            const data = canvas.toDataURL('image/jpeg', 0.7)
+            DBState.db.botPresets[DBState.db.botPresetsId].image = data //Since its small (max 2304 pixels), its okay to store it directly
+        }}>
+            <UploadIcon />
+        </button>
     </Arcodion>
     {#if submenu !== -1}
         <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>

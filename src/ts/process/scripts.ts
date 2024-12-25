@@ -97,12 +97,12 @@ export function resetScriptCache(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
     const originalData = data
-    const cached = getScriptCache((db.globalscript ?? []).concat(char.customscript), originalData, mode)
+    const cached = getScriptCache((db.presetRegex ?? []).concat(char.customscript), originalData, mode)
     if(cached){
         return {data: cached, emoChanged: false}
     }
     let emoChanged = false
-    const scripts = (db.globalscript ?? []).concat(char.customscript).concat(getModuleRegexScripts())
+    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runLuaEditTrigger(char, mode, data)
     if(pluginV2[mode].size > 0){
         for(const plugin of pluginV2[mode]){

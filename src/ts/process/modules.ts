@@ -279,10 +279,6 @@ export function getModules(){
     if (currentChat){
         ids = ids.concat(currentChat.modules ?? [])
     }
-    if(db.moduleIntergration){
-        const intList = db.moduleIntergration.split(',').map((s) => s.trim())
-        ids = ids.concat(intList)
-    }
     const idsJoined = ids.join('-')
     if(lastModules === idsJoined){
         return lastModuleData
