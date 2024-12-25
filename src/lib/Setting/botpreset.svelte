@@ -41,7 +41,7 @@
                         <span class="w-2 text-center mr-2 text-textcolor2">{i + 1}</span>
                     {/if}
                     {#if preset.image}
-                        <img src={DBState.db.botPresets[DBState.db.botPresetsId]?.image} alt="icon" class="mr-2 min-w-6 min-h-6 w-6 h-6 rounded-md" decoding="async"/>
+                        <img src={preset.image} alt="icon" class="mr-2 min-w-6 min-h-6 w-6 h-6 rounded-md" decoding="async"/>
 
                     {/if}
                     <span>{preset.name}</span>
