@@ -1489,7 +1489,8 @@ export function saveCurrentPreset(){
         systemRoleReplacement: db.systemRoleReplacement,
         customFlags: safeStructuredClone(db.customFlags),
         enableCustomFlags: db.enableCustomFlags,
-        regex: db.presetRegex
+        regex: db.presetRegex,
+        image: pres?.[db.botPresetsId]?.image ?? '',
     }
     db.botPresets = pres
     setDatabase(db)
