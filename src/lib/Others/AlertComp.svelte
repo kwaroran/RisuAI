@@ -287,20 +287,14 @@
                 </div>
                 {#if generationInfoMenuIndex === 0}
                     <div class="flex flex-col gap-2 w-full">
-                        {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk}
+                        {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk, i}
                             <TextAreaInput bind:value={chunk.text} />
                         {/each}
 
-                        <Button onclick={() => {
-                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks.push({
-                                text: '',
-                                targetId: 'all'
-                            })
-                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks
-                        }}>+</Button>
+                        <!-- Adding non-bound chunk is not okay, change the user flow to edit existing ones. -->
                     </div>
                 {:else}
-                    {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.chunks as chunk, i}
+                    {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data.mainChunks as chunk, i} <!-- Summarized should be mainChunks, afaik. Be aware of that chunks are created with mainChunks, however this editing would not change related chunks. -->
                         <div class="flex flex-col p-2 rounded-md border-darkborderc border">
                             {#if i === 0}
                                 <span class="text-green-500">Active</span>
