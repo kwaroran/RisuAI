@@ -345,18 +345,14 @@ export async function saveDb(){
         })
 
         $effect(() => {
-            let newSaveHash = ''
-            newSaveHash += JSON.stringify(DBState?.db?.characters?.[selIdState])
+            $state.snapshot(DBState?.db?.characters?.[selIdState])
             for(const key in DBState.db){
                 if(key !== 'characters'){
-                    newSaveHash += (DBState.db[key])
+                    $state.snapshot(DBState.db[key])
                 }
             }
 
-            if(newSaveHash !== oldSaveHash){
-                changed = true
-                oldSaveHash = newSaveHash
-            }
+            changed = true
         })
     })
 

@@ -1625,15 +1625,16 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
                 'risupreset'
             )
         }))
-        
+
+        const buf2 = await encodeRPack(buf)
+
         if(type === 'risupreset'){
-            const buf2 = await encodeRPack(buf)
             downloadFile(pres.name + "_preset.risup", buf2)
         }
         else{
             return {
                 data: pres,
-                buf
+                buf: buf2
             }
         }
 

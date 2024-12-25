@@ -455,6 +455,10 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                             input = input.replaceAll('{{risu_prompt}}', genPrompt) 
                             input = input.replaceAll('{{risu_neg}}', neg)
                         }
+
+                        if(inputKeys[j] === 'seed' && typeof input === 'number'){
+                            input = Math.floor(Math.random() * 1000000000)
+                        }
                         
                         node.inputs[inputKeys[j]] = input
                     }
