@@ -283,15 +283,15 @@ export async function tokenizeAccurate(data:string, consistantChar?:boolean) {
 
 export class ChatTokenizer {
 
-    private chatAdditonalTokens:number
+    private chatAdditionalTokens:number
     private useName:'name'|'noName'
 
-    constructor(chatAdditonalTokens:number, useName:'name'|'noName'){
-        this.chatAdditonalTokens = chatAdditonalTokens
+    constructor(chatAdditionalTokens:number, useName:'name'|'noName'){
+        this.chatAdditionalTokens = chatAdditionalTokens
         this.useName = useName
     }
     async tokenizeChat(data:OpenAIChat) {
-        let encoded = (await encode(data.content)).length + this.chatAdditonalTokens
+        let encoded = (await encode(data.content)).length + this.chatAdditionalTokens
         if(data.name && this.useName ==='name'){
             encoded += (await encode(data.name)).length + 1
         }
@@ -302,17 +302,24 @@ export class ChatTokenizer {
         }
         return encoded
     }
+    async tokenizeChats(data:OpenAIChat[]){
+        let encoded = 0
+        for(const chat of data){
+            encoded += await this.tokenizeChat(chat)
+        }
+        return encoded
+    }
 
     async tokenizeMultiModal(data:MultiModal){
         const db = getDatabase()
         if(!supportsInlayImage()){
-            return this.chatAdditonalTokens
+            return this.chatAdditionalTokens
         }
         if(db.gptVisionQuality === 'low'){
             return 87
         }
 
-        let encoded = this.chatAdditonalTokens
+        let encoded = this.chatAdditionalTokens
         let height = data.height ?? 0
         let width = data.width ?? 0
 
