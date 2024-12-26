@@ -9,7 +9,7 @@ A plugin is a js file with a header. for example:
 
 ```js
 //@name exampleplugin
-//display-name: Example Plugin
+//@display-name Example Plugin
 
 // Plugin code here
 ```
