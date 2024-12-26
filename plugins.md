@@ -118,7 +118,7 @@ Adds a risu script handler to the plugin.
 - `type: string` - The handler type. one of `display`, `output`, `input`, `process`
     - `display` - The handler will be called when the data is displayed.
     - `output` - The handler will be called when the data is outputted by the AI model.
-    - `input` - The handler will be called when the data is inputted to the user.
+    - `input` - The handler will be called when the data is inputted by the user.
     - `process` - The handler will be called when creating actual request data.
 - `func: (content:string) => string|null|undefined|Promise<string|null|undefined>` - The handler function.
     - `content: string` - The content to handle.
