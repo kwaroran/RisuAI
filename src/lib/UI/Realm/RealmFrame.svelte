@@ -61,7 +61,7 @@
         if($ShowRealmFrameStore.startsWith('preset')){
             const predata = await downloadPreset(Number($ShowRealmFrameStore.split(':')[1]), 'return')
             const encodedPredata = predata.buf
-            const encodedPredataName = new TextEncoder().encode(predata.data.name + '.risupreset')
+            const encodedPredataName = new TextEncoder().encode(predata.data.name + '.risup')
             data = {
                 data: encodedPredata.buffer,
                 name: encodedPredataName.buffer

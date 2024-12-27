@@ -22,7 +22,6 @@ import { getInlayAsset, supportsInlayImage } from "./files/inlays";
 import { getGenerationModelString } from "./models/modelString";
 import { connectionOpen, peerRevertChat, peerSafeCheck, peerSync } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
-import { runCharacterJS } from "../plugins/embedscript";
 import { addRerolls } from "./prereroll";
 import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
@@ -30,7 +29,6 @@ import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
 import { parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
-import { pluginV2 } from "../plugins/plugins";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -755,7 +753,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             }
         }
         let thoughts:string[] = []
-        formatedChat = formatedChat.replace(/<Thoughts>(.+?)<\/Thoughts>/gm, (match, p1) => {
+        formatedChat = formatedChat.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (match, p1) => {
             thoughts.push(p1)
             return ''
         })
@@ -1115,12 +1113,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
         })
     }
-
-    formated = await runCharacterJS({
-        code: null,
-        mode: 'modifyRequestChat',
-        data: formated
-    })
 
     formated = await runLuaEditTrigger(currentChar, 'editRequest', formated)
 

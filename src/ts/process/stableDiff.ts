@@ -2,7 +2,7 @@ import { get } from "svelte/store"
 import { getDatabase, type character } from "../storage/database.svelte"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
-import { globalFetch, readImage } from "../globalApi.svelte"
+import { fetchNative, globalFetch, readImage } from "../globalApi.svelte"
 import { CharEmotion } from "../stores.svelte"
 import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
@@ -415,12 +415,14 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
 
     }
-    if(db.sdProvider === 'comfy'){
+
+    if(db.sdProvider === 'comfy' || db.sdProvider === 'comfyui'){
+        const legacy = db.sdProvider === 'comfy' // Legacy Comfy mode
         const {workflow, posNodeID, posInputName, negNodeID, negInputName} = db.comfyConfig
         const baseUrl = new URL(db.comfyUiUrl)
 
         const createUrl = (pathname: string, params: Record<string, string> = {}) => {
-            const url = new URL(pathname, baseUrl)
+            const url = db.comfyUiUrl.endsWith('/api') ? new URL(`${db.comfyUiUrl}${pathname}`) : new URL(pathname, baseUrl)
             url.search = new URLSearchParams(params).toString()
             return url.toString()
         }
@@ -437,8 +439,31 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
         try {
             const prompt = JSON.parse(workflow)
-            prompt[posNodeID].inputs[posInputName] = genPrompt
-            prompt[negNodeID].inputs[negInputName] = neg
+            if(legacy){
+                prompt[posNodeID].inputs[posInputName] = genPrompt
+                prompt[negNodeID].inputs[negInputName] = neg
+            }
+            else{
+                //search all nodes for the prompt and negative prompt
+                const keys = Object.keys(prompt)
+                for(let i = 0; i < keys.length; i++){
+                    const node = prompt[keys[i]]
+                    const inputKeys = Object.keys(node.inputs)
+                    for(let j = 0; j < inputKeys.length; j++){
+                        let input = node.inputs[inputKeys[j]]
+                        if(typeof input === 'string'){
+                            input = input.replaceAll('{{risu_prompt}}', genPrompt) 
+                            input = input.replaceAll('{{risu_neg}}', neg)
+                        }
+
+                        if(inputKeys[j] === 'seed' && typeof input === 'number'){
+                            input = Math.floor(Math.random() * 1000000000)
+                        }
+                        
+                        node.inputs[inputKeys[j]] = input
+                    }
+                }
+            }
 
             const { prompt_id: id } = await fetchWrapper(createUrl('/prompt'), {
                 method: 'POST',
@@ -451,9 +476,10 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
             const startTime = Date.now()
             const timeout = db.comfyConfig.timeout * 1000
-            while (!(item = (await (await fetch(createUrl('/history'), {
+            while (!(item = (await (await fetchNative(createUrl('/history'), {
                 headers: { 'Content-Type': 'application/json' },
-                method: 'GET'})).json())[id])) {
+                method: 'GET'
+            })).json())[id])) {
                 console.log("Checking /history...")
                 if (Date.now() - startTime >= timeout) {
                     alertError("Error: Image generation took longer than expected.");
@@ -463,13 +489,14 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             } // Check history until the generation is complete.
             const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images)[0];
 
-            const imgResponse = await fetch(createUrl('/view', {
+            const imgResponse = await fetchNative(createUrl('/view', {
                 filename: genImgInfo.filename,
                 subfolder: genImgInfo.subfolder,
                 type: genImgInfo.type
             }), {
                 headers: { 'Content-Type': 'application/json' }, 
-                method: 'GET'})
+                method: 'GET'
+            })
             const img64 = Buffer.from(await imgResponse.arrayBuffer()).toString('base64')
 
             if(returnSdData === 'inlay'){
@@ -552,7 +579,6 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         if(db.falModel === 'fal-ai/flux-pro'){
             delete body.enable_safety_checker
         }
-        console.log(body)
 
         const res = await globalFetch('https://fal.run/' + model, {
             headers: {
@@ -562,8 +588,6 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             method: 'POST',
             body: body
         })
-
-        console.log(res)
 
         if(!res.ok){
             alertError(JSON.stringify(res.data))

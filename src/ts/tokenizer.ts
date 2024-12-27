@@ -7,6 +7,8 @@ import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./globalApi.svelte";
 import { getModelInfo, LLMTokenizer } from "./model/modellist";
+import { pluginV2 } from "./plugins/plugins";
+import type { GemmaTokenizer } from "@huggingface/transformers";
 
 
 export const tokenizerList = [
@@ -38,14 +40,45 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
             case 'llama3':
                 return await tokenizeWebTokenizers(data, 'llama')
             case 'gemma':
-                return await tokenizeWebTokenizers(data, 'gemma')
+                return await gemmaTokenize(data)
             case 'cohere':
                 return await tokenizeWebTokenizers(data, 'cohere')
             default:
                 return await tikJS(data, 'o200k_base')
         }
     }
+
     const modelInfo = getModelInfo(db.aiModel)
+
+    if(db.aiModel === 'custom' && pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer){
+        const tokenizer = pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer
+        switch(tokenizer){
+            case 'mistral':
+                return await tokenizeWebTokenizers(data, 'mistral')
+            case 'llama':
+                return await tokenizeWebTokenizers(data, 'llama')
+            case 'novelai':
+                return await tokenizeWebTokenizers(data, 'novelai')
+            case 'claude':
+                return await tokenizeWebTokenizers(data, 'claude')
+            case 'novellist':
+                return await tokenizeWebTokenizers(data, 'novellist')
+            case 'llama3':
+                return await tokenizeWebTokenizers(data, 'llama')
+            case 'gemma':
+                return await gemmaTokenize(data)
+            case 'cohere':
+                return await tokenizeWebTokenizers(data, 'cohere')
+            case 'o200k_base':
+                return await tikJS(data, 'o200k_base')
+            case 'cl100k_base':
+                return await tikJS(data, 'cl100k_base')
+            case 'custom':
+                return await pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizerFunc?.(data) ?? [0]
+            default:
+                return await tikJS(data, 'o200k_base')
+        }
+    }
 
     if(modelInfo.tokenizer === LLMTokenizer.NovelList){
         const nv= await tokenizeWebTokenizers(data, 'novellist')
@@ -73,7 +106,7 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
         return await tokenizeGoogleCloud(data)
     }
     if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
-        return await tokenizeWebTokenizers(data, 'gemma')
+        return await gemmaTokenize(data)
     }
     if(modelInfo.tokenizer === LLMTokenizer.Cohere){
         return await tokenizeWebTokenizers(data, 'cohere')
@@ -123,6 +156,17 @@ async function tokenizeGoogleCloud(text:string) {
     const count = json.totalTokens as number
 
     return new Uint32Array(count)
+}
+
+let gemmaTokenizer:GemmaTokenizer = null
+async function gemmaTokenize(text:string) {
+    if(!gemmaTokenizer){
+        const {GemmaTokenizer} = await import('@huggingface/transformers')
+        gemmaTokenizer = new GemmaTokenizer(
+            await (await fetch("/token/llama/llama3.json")
+        ).json(), {})
+    }
+    return gemmaTokenizer.encode(text)
 }
 
 async function tikJS(text:string, model='cl100k_base') {

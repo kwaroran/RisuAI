@@ -117,7 +117,7 @@ export class AutoStorage{
         return false
     }
 
-    private async Init(){
+    async Init(){
         if(!this.realStorage){
             if(localStorage.getItem('accountst') === 'able'){
                 this.realStorage = new AccountStorage()

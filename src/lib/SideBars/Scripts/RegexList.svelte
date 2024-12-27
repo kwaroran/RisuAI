@@ -4,11 +4,13 @@
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
+  import { PlusIcon } from "lucide-svelte";
     interface Props {
         value?: customscript[];
+        buttons?: boolean
     }
 
-    let { value = $bindable([]) }: Props = $props();
+    let { value = $bindable([]), buttons = false }: Props = $props();
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
@@ -75,3 +77,15 @@
         {/each}
     </div>
 {/key}
+{#if buttons}
+    <button class="w-full mt-2 rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={() => {
+        value.push({
+          comment: "",
+          in: "",
+          out: "",
+          type: "editinput"
+        })
+    }}>
+        <PlusIcon />
+    </button>
+{/if}

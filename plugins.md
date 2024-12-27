@@ -46,7 +46,7 @@ Fetches a URL with a native API, which doesn't have CORS restrictions.
     - `data: any` - The response data which is parsed JSON if possible. if `rawResponse` is true, it will be a Uint8Array.
     - `headers: Record<string, string>` - The response headers.
 
-### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<NativeFetchResults>`
+### `nativeFetch(url: string, arg: NativeFetchArg = {}): Promise<Response>`
 
 Fetches a URL with the native API, which doesn't have CORS restrictions. this API is designed as a subset of [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), except it doesn't have CORS restrictions and default method is `POST`.
 
@@ -61,13 +61,7 @@ Fetches a URL with the native API, which doesn't have CORS restrictions. this AP
 
 #### Returns
 
-- `Promise<NativeFetchResults>` - The fetch result.
-    - `body: ReadableStream<Uint8Array>` - The response body.
-    - `headers: Headers` - The response headers.
-    - `status: number` - The response status.
-    - `json: () => Promise<any>` - A function that returns a promise that resolves to the JSON representation of the response body.
-    - `text: () => Promise<string>` - A function that returns a promise that resolves to the text representation of the response body.
-    - `arrayBuffer: () => Promise<ArrayBuffer>` - A function that returns a promise that resolves to the ArrayBuffer representation of the response body.
+- `Promise<Response>` - The fetch result, in a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object.
 
 ### `getArg(name: string): string|number`
 
@@ -89,7 +83,7 @@ Gets the current character.
 
 Sets the current character.
 
-### `addProvider(type: string, func: (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>): void`
+### `addProvider(type: string, func: (arg:PluginV2ProviderArgument, options?:PluginV2ProviderOptions) => Promise<{success:boolean,content:string}>): void`
 
 Adds a provider to the plugin.
 
@@ -106,10 +100,14 @@ Adds a provider to the plugin.
         - `top_k?: number` - The top k value.
         - `top_p?: number` - The top p value.
         - `temperature?: number` - The temperature value.
+        - `max_tokens?: number` - The max tokens value.
         - `mode: string` - The mode. one of `model`, `submodel`, `memory`, `emotion`, `otherAx`, `translate`
-    - `Promise<{success:boolean,content:string}>` - The provider result.
+    - `Promise<{success:boolean,content:string|ReadableStream<string>}>` - The provider result.
         - `success: boolean` - If the provider was successful.
-        - `content: string` - The provider content.
+        - `content: string|ReadableStream<string>` - The provider content. if it's a ReadableStream, it will be streamed to the chat.
+- `options?: PluginV2ProviderOptions` - The provider options.
+    - `tokenizer?: string` - The tokenizer name. must be one of `"mistral"`, `"llama"`, `"novelai"`, `"claude"`, `"novellist"`, `"llama3"`, `"gemma"`, `"cohere"`, `"tiktoken"` or `"custom"`. if it's `"custom"`, you have to provide `tokenizerFunc`.
+    - `tokenizerFunc?: (content: string) => number[]|Promise<number[]>` - The tokenizer function.
 
 ### `addRisuScriptHandler(type: string, func: (content:string) => string|null|undefined|Promise<string|null|undefined>): void`
 
@@ -118,6 +116,10 @@ Adds a risu script handler to the plugin.
 #### Arguments
 
 - `type: string` - The handler type. one of `display`, `output`, `input`, `process`
+    - `display` - The handler will be called when the data is displayed.
+    - `output` - The handler will be called when the data is outputted by the AI model.
+    - `input` - The handler will be called when the data is inputted to the user.
+    - `process` - The handler will be called when creating actual request data.
 - `func: (content:string) => string|null|undefined|Promise<string|null|undefined>` - The handler function.
     - `content: string` - The content to handle.
     - `string|null|undefined|Promise<string|null|undefined>` - The handler result. if it is a string or string promise, the data will be replaced with the result.
@@ -133,6 +135,8 @@ Adds a risu replacer to the plugin.
 #### Arguments
 
 - `type: string` - The replacer type. one of `beforeRequest`, `afterRequest`.
+    - `beforeRequest` - The replacer will be called right before the request is sent.
+    - `afterRequest` - The replacer will be called right after the response is received.
 - `func: ReplacerFunction` - The replacer function. vary depending on the type.
     - If the type is `afterRequest`, the function should be `(content: string, mode:string) => string`.
     - If the type is `beforeRequest`, the function should be `(content: Chat[], mode:string) => Chat[]`.
@@ -147,7 +151,7 @@ Removes a risu replacer from the plugin.
 Adds an unload handler to the plugin.
 
 
-## Migration from Plugin V1
+## Changes from Plugin V1
 
 The plugin system has been updated to V2. The following changes have been made:
   - Now runs in same context as the main script rather than in a sandbox, making it accessible to the main script and DOM.

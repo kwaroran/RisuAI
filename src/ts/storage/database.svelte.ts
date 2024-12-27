@@ -5,14 +5,14 @@ import type { RisuPlugin } from '../plugins/plugins';
 import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi.svelte';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
-import { alertNormal, alertSelect } from '../alert';
+import { alertError, alertNormal, alertSelect } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "144.1.0"
+export let appVer = "145.0.1"
 export let webAppSubVer = ''
 
 
@@ -356,6 +356,7 @@ export function setDatabase(data:Database){
     data.huggingfaceKey ??= ''
     data.fishSpeechKey ??= ''
     data.statistics ??= {}
+    data.presetRegex ??= []
     data.reverseProxyOobaArgs ??= {
         mode: 'instruct'
     }
@@ -465,6 +466,7 @@ export function setDatabase(data:Database){
     data.customFlags ??= []
     data.enableCustomFlags ??= false
     data.assetMaxDifference ??= 4
+    data.showSavingIcon ??= false
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -862,6 +864,8 @@ export interface Database{
     assetMaxDifference:number
     menuSideBar:boolean
     pluginV2: RisuPlugin[]
+    showSavingIcon:boolean
+    presetRegex: customscript[]
 }
 
 interface SeparateParameters{
@@ -1183,6 +1187,8 @@ export interface botPreset{
     openAIPrediction?: string
     enableCustomFlags?: boolean
     customFlags?: LLMFlags[]
+    image?:string
+    regex?:customscript[]
 }
 
 
@@ -1483,6 +1489,8 @@ export function saveCurrentPreset(){
         systemRoleReplacement: db.systemRoleReplacement,
         customFlags: safeStructuredClone(db.customFlags),
         enableCustomFlags: db.enableCustomFlags,
+        regex: db.presetRegex,
+        image: pres?.[db.botPresetsId]?.image ?? '',
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1590,6 +1598,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.systemRoleReplacement = newPres.systemRoleReplacement ?? 'user'
     db.customFlags = safeStructuredClone(newPres.customFlags) ?? []
     db.enableCustomFlags = newPres.enableCustomFlags ?? false
+    db.presetRegex = newPres.regex ?? []
     return db
 }
 
@@ -1615,6 +1624,12 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
     pres.proxyKey = ''
     pres.textgenWebUIStreamURL=  ''
     pres.textgenWebUIBlockingURL=  ''
+
+    if((pres.image || pres.regex?.length > 0) && type !== 'return'){
+        alertError("Preset with image or regexes cannot be exported for now. use RisuRealm to share the preset.")
+        return
+    }
+
     if(type === 'json'){
         downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
     }
@@ -1627,15 +1642,16 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
                 'risupreset'
             )
         }))
-        
+
+        const buf2 = await encodeRPack(buf)
+
         if(type === 'risupreset'){
-            const buf2 = await encodeRPack(buf)
             downloadFile(pres.name + "_preset.risup", buf2)
         }
         else{
             return {
                 data: pres,
-                buf
+                buf: buf2
             }
         }
 

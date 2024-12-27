@@ -173,6 +173,7 @@ export const languageEnglish = {
         autoTranslateCachedOnly: "If enabled, it will automatically translate only the text that the user has translated previously.",
         presetChain: "If it is not blank, the preset will be changed and applied randomly every time when user sends a message in the preset list in this input. preset list should be seperated by comma, for example, `preset1,preset2`.",
         legacyMediaFindings: "If enabled, it will use the old method to find media assets, without using the additional search algorithm.",
+        comfyWorkflow: "Put the API workflow of comfy UI. you can get your API workflow in comfy UI by pressing the 'Workflow > Export (API)' button. you must also put {{risu_prompt}} in you workflow text. the {{risu_prompt}} will be replaced with the prompt provided by the Risu.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -833,4 +834,6 @@ export const languageEnglish = {
     noWebGPU: "Your Browser or OS doesn't support WebGPU. this will slow down the performance significantly.",
     menuSideBar: "Menu Side Bar",
     home: "Home",
+    showSavingIcon: "Show Saving Icon",
+    pluginVersionWarn: "This is {{plugin_version}} version of the plugin. which is not compatible with this version of RisuAI. please update the plugin to {{required_version}} version.",
 }

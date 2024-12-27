@@ -3,7 +3,7 @@ import { getDatabase } from "./database.svelte"
 import { hubURL } from "../characterCards"
 import localforage from "localforage"
 import { alertLogin, alertNormalWait, alertStore, alertWait } from "../alert"
-import { forageStorage, getUnpargeables } from "../globalApi.svelte"
+import { AppendableBuffer, forageStorage, getUnpargeables } from "../globalApi.svelte"
 import { encodeRisuSaveLegacy } from "./risuSave"
 import { v4 } from "uuid"
 import { language } from "src/lang"
@@ -87,7 +87,7 @@ export class AccountStorage{
         }
         return await getDaText()
     }
-    async getItem(key:string):Promise<Buffer> {
+    async getItem(key:string, callback?:(status:number) => void):Promise<Buffer> {
         this.checkAuth()
         if(key.startsWith('assets/')){
             const k:ArrayBuffer = await localforage.getItem(key)
@@ -131,11 +131,38 @@ export class AccountStorage{
         if(da.status === 204){
             return null
         }
-        const ab = await da.arrayBuffer()
         if(key.startsWith('assets/')){
+            const ab = await da.arrayBuffer()
             await localforage.setItem(key, ab)
+            return Buffer.from(ab)
         }
-        return Buffer.from(ab)
+        if(!callback){
+            const ab = await da.arrayBuffer()
+            return Buffer.from(ab)
+        }
+        const size = parseInt(da.headers.get('x-body-size'))
+        const appendable = new Uint8Array(size)
+        const reader = da.body.getReader()
+
+        //log all headers
+        console.log('logging headers')
+        for(const [key, value] of da.headers.entries()){
+            console.log(key, value)
+        }
+
+        let i = 0
+        while(true){
+            const {done, value} = await reader.read()
+            if(done){
+                break
+            }
+            console.log(value, size)
+            appendable.set(value, i)
+            i += value.length
+            callback(i/size)
+        }
+
+        return Buffer.from(appendable)
     }
     async keys():Promise<string[]>{
         let db = getDatabase()
