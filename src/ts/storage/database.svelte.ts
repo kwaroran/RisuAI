@@ -1566,8 +1566,9 @@ export function setPreset(db:Database, newPres: botPreset){
         postEndInnerFormat: '',
         sendChatAsSystem: false,
         sendName: false,
-        utilOverride: false
+        utilOverride: false,
     }
+    db.promptSettings.maxThoughtTagDepth ??= -1
     db.repetition_penalty = newPres.repetition_penalty
     db.min_p = newPres.min_p
     db.top_a = newPres.top_a
