@@ -1594,6 +1594,10 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
             "threshold": "BLOCK_NONE"
         },
+        {
+            "category": "HARM_CATEGORY_CIVIC_INTEGRITY",
+            "threshold": "BLOCK_NONE"
+        }
     ]
 
     let para:Parameter[] = ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty']
