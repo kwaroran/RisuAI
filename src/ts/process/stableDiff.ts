@@ -522,7 +522,6 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         if(!auth){
             db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
             auth = db?.account?.token
-            db.account.useSync = true
         }
         const da = await globalFetch(keiServerURL() + '/imaggen', {
             body: {

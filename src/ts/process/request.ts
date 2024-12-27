@@ -19,7 +19,7 @@ import {createParser} from 'eventsource-parser'
 import {Ollama} from 'ollama/dist/browser.mjs'
 import { applyChatTemplate } from "./templates/chatTemplate";
 import { OobaParams } from "./prompt";
-import { extractJSON, getOpenAIJSONSchema } from "./templates/jsonSchema";
+import { extractJSON, getGeneralJSONSchema, getOpenAIJSONSchema } from "./templates/jsonSchema";
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/modellist";
 
 
@@ -39,6 +39,8 @@ interface requestDataArgument{
     continue?:boolean
     chatId?:string
     noMultiGen?:boolean
+    schema?:string
+    extractJson?:string
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -357,6 +359,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
     targ.abortSignal = abortSignal
     targ.modelInfo = getModelInfo(targ.aiModel)
     targ.mode = model
+    targ.extractJson = arg.extractJson ?? db.extractJson
     if(targ.aiModel === 'reverse_proxy'){
         targ.modelInfo.internalID = db.customProxyRequestModel
         targ.modelInfo.format = db.customAPIFormat
@@ -694,10 +697,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         body.seed = db.generationSeed
     }
 
-    if(db.jsonSchemaEnabled){
+    if(db.jsonSchemaEnabled || arg.schema){
         body.response_format = {
             "type": "json_schema",
-            "json_schema": getOpenAIJSONSchema()
+            "json_schema": getOpenAIJSONSchema(arg.schema)
         }
     }
 
@@ -862,9 +865,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                             try {
                                 const rawChunk = data.replace("data: ", "")
                                 if(rawChunk === "[DONE]"){
-                                    if(db.extractJson && db.jsonSchemaEnabled){
+                                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                                         for(const key in readed){
-                                            const extracted = extractJSON(readed[key], db.extractJson)
+                                            const extracted = extractJSON(readed[key], arg.extractJson)
                                             JSONreaded[key] = extracted
                                         }
                                         console.log(JSONreaded)
@@ -897,9 +900,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                             } catch (error) {}
                         }
                     }
-                    if(db.extractJson && db.jsonSchemaEnabled){
+                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                         for(const key in readed){
-                            const extracted = extractJSON(readed[key], db.extractJson)
+                            const extracted = extractJSON(readed[key], arg.extractJson)
                             JSONreaded[key] = extracted
                         }
                         console.log(JSONreaded)
@@ -974,12 +977,12 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     if(res.ok){
         try {
             if(arg.multiGen && dat.choices){
-                if(db.extractJson && db.jsonSchemaEnabled){
+                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
 
                     const c = dat.choices.map((v:{
                         message:{content:string}
                     }) => {
-                        const extracted = extractJSON(v.message.content, db.extractJson)
+                        const extracted = extractJSON(v.message.content, arg.extractJson)
                         return ["char",extracted]
                     })
 
@@ -999,10 +1002,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
 
             if(dat?.choices[0]?.text){
-                if(db.extractJson && db.jsonSchemaEnabled){
+                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                     try {
                         const parsed = JSON.parse(dat.choices[0].text)
-                        const extracted = extractJSON(parsed, db.extractJson)
+                        const extracted = extractJSON(parsed, arg.extractJson)
                         return {
                             type: 'success',
                             result: extracted
@@ -1020,10 +1023,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                     result: dat.choices[0].text
                 }
             }
-            if(db.extractJson && db.jsonSchemaEnabled){
+            if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                 return {
                     type: 'success',
-                    result:  extractJSON(dat.choices[0].message.content, db.extractJson)
+                    result:  extractJSON(dat.choices[0].message.content, arg.extractJson)
                 }
             }
             const msg:OpenAIChatFull = (dat.choices[0].message)
@@ -1693,6 +1696,13 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
 
+    
+    if(db.jsonSchemaEnabled || arg.schema){
+        body.generation_config.response_mime_type = "application/json"
+        body.generation_config.response_schema = getGeneralJSONSchema(arg.schema, ['$schema','additionalProperties'])
+        console.log(body.generation_config.response_schema)
+    }
+
     let url = ''
     
     if(arg.customURL){
@@ -1753,6 +1763,13 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                             }
 
                             rDatas[rDatas.length-1] += part.text
+                        }
+                    }
+
+                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+                        for(let i=0;i<rDatas.length;i++){
+                            const extracted = extractJSON(rDatas[i], arg.extractJson)
+                            rDatas[i] = extracted
                         }
                     }
 
@@ -1827,6 +1844,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         processDataItem(res.data)
     }
 
+    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+        for(let i=0;i<rDatas.length;i++){
+            const extracted = extractJSON(rDatas[i], arg.extractJson)
+            rDatas[i] = extracted
+        }
+    }
     
     if(rDatas.length > 1){
         const thought = rDatas.splice(rDatas.length-2, 1)[0]
@@ -2539,7 +2562,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                             break
                                         }
                                         text += "Error:" + JSON.parse(e.data).error?.message
-                                        if(db.extractJson && db.jsonSchemaEnabled){
+                                        if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                                             controller.enqueue({
                                                 "0": extractJSON(text, db.jsonSchema)
                                             })
@@ -2618,7 +2641,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             result: JSON.stringify(res.data)
         }
     }
-    if(db.extractJson && db.jsonSchemaEnabled){
+    if(arg.extractJson && db.jsonSchemaEnabled){
         return {
             type: 'success',
             result: extractJSON(resText, db.jsonSchema)

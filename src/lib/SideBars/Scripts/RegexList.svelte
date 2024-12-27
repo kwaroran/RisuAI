@@ -4,7 +4,8 @@
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
-  import { PlusIcon } from "lucide-svelte";
+  import { DownloadIcon, FolderUpIcon, PlusIcon } from "lucide-svelte";
+  import { exportRegex, importRegex } from "src/ts/process/scripts";
     interface Props {
         value?: customscript[];
         buttons?: boolean
@@ -78,14 +79,22 @@
     </div>
 {/key}
 {#if buttons}
-    <button class="w-full mt-2 rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={() => {
-        value.push({
-          comment: "",
-          in: "",
-          out: "",
-          type: "editinput"
-        })
-    }}>
-        <PlusIcon />
-    </button>
+    <div class="flex gap-2 mt-2">
+        <button class="rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={() => {
+            value.push({
+            comment: "",
+            in: "",
+            out: "",
+            type: "editinput"
+            })
+        }}>
+            <PlusIcon />
+        </button>
+        <button class="rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={() => {
+            exportRegex(value)
+        }}><DownloadIcon /></button>
+        <button class="rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={async () => {
+            value = await importRegex(value)
+        }}><FolderUpIcon /></button>
+    </div>
 {/if}

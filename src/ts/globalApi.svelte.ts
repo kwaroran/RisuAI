@@ -547,10 +547,40 @@ export async function loadData() {
             else{
                 await forageStorage.Init()
 
+                LoadingStatusState.text = "Loading Local Save File..."
+                let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin') as unknown as Uint8Array
+                LoadingStatusState.text = "Decoding Local Save File..."
+                if(checkNullish(gotStorage)){
+                    gotStorage = encodeRisuSaveLegacy({})
+                    await forageStorage.setItem('database/database.bin', gotStorage)
+                }
+                try {
+                    const decoded = await decodeRisuSave(gotStorage)
+                    console.log(decoded)
+                    setDatabase(decoded)
+                } catch (error) {
+                    console.error(error)
+                    const backups = await getDbBackups()
+                    let backupLoaded = false
+                    for(const backup of backups){
+                        try {
+                            LoadingStatusState.text = `Reading Backup File ${backup}...`
+                            const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
+                            setDatabase(
+                                await decodeRisuSave(backupData)
+                            )
+                            backupLoaded = true
+                        } catch (error) {}
+                    }
+                    if(!backupLoaded){
+                        throw "Your save file is corrupted"
+                    }
+                }
+
                 if(await forageStorage.checkAccountSync()){
                     LoadingStatusState.text = "Checking Account Sync..."
                     let gotStorage:Uint8Array = await (forageStorage.realStorage as AccountStorage).getItem('database/database.bin', (v) => {
-                        LoadingStatusState.text = `Loading Save File ${(v*100).toFixed(2)}%`
+                        LoadingStatusState.text = `Loading Remote Save File ${(v*100).toFixed(2)}%`
                     })
                     if(checkNullish(gotStorage)){
                         gotStorage = encodeRisuSaveLegacy({})
@@ -578,37 +608,8 @@ export async function loadData() {
                         }
                     }
                 }
-                else{
-                    LoadingStatusState.text = "Loading Save File..."
-                    let gotStorage:Uint8Array = await forageStorage.getItem('database/database.bin') as unknown as Uint8Array
-                    LoadingStatusState.text = "Decoding Save File..."
-                    if(checkNullish(gotStorage)){
-                        gotStorage = encodeRisuSaveLegacy({})
-                        await forageStorage.setItem('database/database.bin', gotStorage)
-                    }
-                    try {
-                        const decoded = await decodeRisuSave(gotStorage)
-                        console.log(decoded)
-                        setDatabase(decoded)
-                    } catch (error) {
-                        console.error(error)
-                        const backups = await getDbBackups()
-                        let backupLoaded = false
-                        for(const backup of backups){
-                            try {
-                                LoadingStatusState.text = `Reading Backup File ${backup}...`
-                                const backupData:Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
-                                setDatabase(
-                                    await decodeRisuSave(backupData)
-                                )
-                                backupLoaded = true
-                            } catch (error) {}
-                        }
-                        if(!backupLoaded){
-                            throw "Your save file is corrupted"
-                        }
-                    }
-                }
+                LoadingStatusState.text = "Rechecking Account Sync..."
+                await forageStorage.checkAccountSync()
                 LoadingStatusState.text = "Checking Drive Sync..."
                 const isDriverMode = await checkDriverInit()
                 if(isDriverMode){

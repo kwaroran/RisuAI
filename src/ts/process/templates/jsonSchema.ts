@@ -120,14 +120,33 @@ export function convertInterfaceToSchema(int:string){
     return schema
 }
 
-export function getOpenAIJSONSchema(){
+export function getOpenAIJSONSchema(schema?:string){
     const db = getDatabase()
-    const schema = {
+    return {
         "name": "format",
         "strict": db.strictJsonSchema,
-        "schema": convertInterfaceToSchema(db.jsonSchema)
+        "schema": convertInterfaceToSchema(schema ?? db.jsonSchema)
     }
-    return schema
+}
+
+export function getGeneralJSONSchema(schema?:string, excludes:string[] = []){
+    const db = getDatabase()
+
+    function process(data:any){
+        const keys = Object.keys(data)
+        for(const key of keys){
+            if(excludes.includes(key)){
+                delete data[key]
+            }
+            if(typeof data[key] === 'object'){
+                data[key] = process(data[key])
+            }
+        }
+        return data
+    }
+
+    const d = convertInterfaceToSchema(schema ?? db.jsonSchema)
+    return process(d)
 }
 
 export function extractJSON(data:string, format:string){

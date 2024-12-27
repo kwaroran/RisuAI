@@ -312,6 +312,11 @@ export class ChatTokenizer {
                 encoded += await this.tokenizeMultiModal(multimodal)
             }
         }
+        if(data.thoughts && data.thoughts.length > 0){
+            for(const thought of data.thoughts){
+                encoded += (await encode(thought)).length + 1
+            }
+        }
         return encoded
     }
     async tokenizeChats(data:OpenAIChat[]){

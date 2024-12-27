@@ -176,9 +176,11 @@ export class AccountStorage{
         const db = getDatabase()
         this.auth = db?.account?.token
         if(!this.auth){
-            db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
-            this.auth = db?.account?.token
-            db.account.useSync = true
+            try {
+                db.account = JSON.parse(localStorage.getItem("fallbackRisuToken"))
+                this.auth = db?.account?.token
+                db.account.useSync = true
+            } catch (error) {}
         }
     }
 

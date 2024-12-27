@@ -15,6 +15,7 @@
     import ToolConvertion from "./ToolConvertion.svelte";
     import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   import PlaygroundSubtitle from "./PlaygroundSubtitle.svelte";
+  import PlaygroundImageTrans from "./PlaygroundImageTrans.svelte";
 
     let easterEggTouch = $state(0)
 
@@ -90,6 +91,11 @@
                 <h1 class="text-2xl font-bold text-start">{language.subtitles}</h1>
             </button>
             <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                PlaygroundStore.set(10)
+            }}>
+                <h1 class="text-2xl font-bold text-start">{language.imageTranslation}</h1>
+            </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(101)
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.promptConvertion}</h1>
@@ -147,7 +153,10 @@
             {/if}  
             {#if $PlaygroundStore === 9}
                 <PlaygroundSubtitle/>
-            {/if}  
+            {/if}
+            {#if $PlaygroundStore === 10}
+               <PlaygroundImageTrans/>
+            {/if}
             {#if $PlaygroundStore === 101}
                 <ToolConvertion/>
             {/if}  
