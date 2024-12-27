@@ -753,8 +753,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             }
         }
         let thoughts:string[] = []
+        const maxThoughtDepth = DBState.db.promptSettings?.maxThoughtTagDepth ?? -1
         formatedChat = formatedChat.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (match, p1) => {
-            thoughts.push(p1)
+            if(maxThoughtDepth === -1 || (maxThoughtDepth - ms.length) <= index){
+                thoughts.push(p1)
+            }
             return ''
         })
 
