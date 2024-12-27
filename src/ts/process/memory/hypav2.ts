@@ -317,15 +317,22 @@ export async function hypaMemoryV2(
     const data: HypaV2Data = room.hypaV2Data ?? {
         lastMainChunkID: 0,
         chunks: [],
-        mainChunks: []
+        mainChunks: [],
     };
+    // JSON s
+    data.mainChunks.forEach(mainChunk => {
+            if (mainChunk.chatMemos && Array.isArray(mainChunk.chatMemos)) {
+                    mainChunk.chatMemos = new Set(mainChunk.chatMemos);
+                }
+    });
 
     // Clean invalid HypaV2 data
     cleanInvalidChunks(chats, data);
 
     let allocatedTokens = db.hypaAllocatedTokens;
     let chunkSize = db.hypaChunkSize;
-    currentTokens += allocatedTokens + chats.length * 4; // ChatML token counting from official openai documentation
+    // Since likely the first update break the token count, will continue with this for few updates.
+    currentTokens = await tokenizer.tokenizeChats(chats) + allocatedTokens;
     let mainPrompt = "";
     const lastTwoChats = chats.slice(-2);
     // Error handling for infinite summarization attempts
@@ -345,7 +352,7 @@ export async function hypaMemoryV2(
     // Starting chat index of new mainChunk to be generated
 
 // Token management loop (If current token usage exceeds allowed amount)
-    while (currentTokens >= maxContextTokens) {
+    while (currentTokens > maxContextTokens) {
         const halfData: OpenAIChat[] = [];
         let halfDataTokens = 0;
 
@@ -362,7 +369,7 @@ export async function hypaMemoryV2(
         // Accumulate chats to summarize
         while (
             halfDataTokens < chunkSize &&
-            idx < chats.length - 2 // keep the last two chats from summarizing(else, the roles will be fucked up)
+            (idx < chats.length - 4) // keep the last two chats from summarizing(else, the roles will be fucked up)
             ) {
             const chat = chats[idx];
             const chatTokens = await tokenizer.tokenizeChat(chat);
@@ -402,7 +409,7 @@ export async function hypaMemoryV2(
 
         // If no chats were added, break to avoid infinite loop
         if (halfData.length === 0) {
-            console.log("No chats to summarize in this iteration, breaking out.");
+            console.log("HOW DID WE GET HERE???");
             break;
         }
 
@@ -441,22 +448,6 @@ export async function hypaMemoryV2(
             "\nSummary Token Count:", summaryDataToken
         );
 
-        // **Token accounting fix:**
-        // Previous commits, the code likely have missed removing summarized chat's tokens.
-        // and never actually accounted for adding the summary tokens.
-        // Now we:
-        // 1. Remove old chats' tokens (they are replaced by summary)
-        // 2. Add summary tokens instead
-        currentTokens -= halfDataTokens;       // remove original chats' tokens
-        currentTokens += summaryDataToken;     // add the summary's tokens
-
-        console.log(
-            "After token adjustment:",
-            "\nRemoved halfDataTokens:", halfDataTokens,
-            "\nAdded summaryDataToken:", summaryDataToken,
-            "\nCurrent Tokens (after):", currentTokens
-        );
-
         // Update lastMainChunkID and create a new mainChunk
         data.lastMainChunkID++;
         const newMainChunkId = data.lastMainChunkID;
@@ -490,6 +481,10 @@ export async function hypaMemoryV2(
             "\nUpdated mainChunks count:", data.mainChunks.length,
             "\nUpdated chunks count:", data.chunks.length
         );
+
+        // Update the currentTokens immediately, removing summarized portion.
+        currentTokens -= halfDataTokens;
+        console.log("Current tokens after summarization deduction:", currentTokens);
     }
 
     // Construct the mainPrompt from mainChunks
@@ -558,23 +553,24 @@ export async function hypaMemoryV2(
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
 
-    // Filter out summarized chats
-    const unsummarizedChats = chats.slice(idx);
+    // Filter out summarized chats and prepend the memory prompt
+    const unsummarizedChats: OpenAIChat[] = [
+        {
+            role: "system",
+            content: fullResult,
+            memo: "supaMemory",
+        },
+        ...chats.slice(idx) // Use the idx to slice out the summarized chats
+    ];
 
-    // Insert the memory system prompt at the beginning
-    unsummarizedChats.unshift({
-        role: "system",
-        content: fullResult,
-        memo: "supaMemory",
-    });
-
+    // Add the last two chats back if they are not already included
     for (const chat of lastTwoChats) {
         if (!unsummarizedChats.find((c) => c.memo === chat.memo)) {
             unsummarizedChats.push(chat);
         }
     }
 
-    // Recalculate currentTokens
+    // Recalculate currentTokens based on the final chat list
     currentTokens = await tokenizer.tokenizeChats(unsummarizedChats);
 
     console.log(
