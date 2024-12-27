@@ -29,7 +29,7 @@
   },
   "productName": "RisuAI",
   "mainBinaryName": "RisuAI",
-  "version": "145.0.1",
+  "version": "145.1.0",
   "identifier": "co.aiclient.risu",
   "plugins": {
     "updater": {
