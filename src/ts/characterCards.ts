@@ -7,7 +7,7 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
 import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
-import { convertImage, hasher } from "./parser.svelte"
+import { checkImageType, convertImage, hasher } from "./parser.svelte"
 import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
@@ -1316,6 +1316,21 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                             path = `assets/${type}/${itype}/${name}.${card.data.assets[i].ext}`
                         }
                         card.data.assets[i].uri = 'embeded://' + path
+                        const imageType = checkImageType(rData)
+                        if(imageType === 'PNG' && writer instanceof CharXWriter){
+                            const metadatas:Record<string,string> = {}
+                            const gen = PngChunk.readGenerator(rData)
+                            for await (const chunk of gen){
+                                if(!chunk || chunk instanceof AppendableBuffer){
+                                    continue
+                                }
+                                metadatas[chunk.key] = chunk.value
+                            }
+                            if(Object.keys(metadatas).length > 0){
+                                const metaPath = `x_meta/${name}.json`
+                                await writer.write(metaPath, Buffer.from(JSON.stringify(metadatas, null, 4)), 6)
+                            }
+                        }
                         await writer.write(path, Buffer.from(await convertImage(rData)))
                     }
                 }

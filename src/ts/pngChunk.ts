@@ -26,7 +26,21 @@ class StreamChunkWriter{
                 break
             }
             if(typeString === 'tEXt'){
-                pos += 12 + len
+                const endPos = 12 + len + pos
+                //get key
+                let key=''
+                while(data[pos+8] !== 0){
+                    key += String.fromCharCode(data[pos+8])
+                    pos++
+                    if(pos === endPos || key.length > 6){
+                        break
+                    }
+                }
+
+                if(key !== 'ccv3' && key !== 'chara'){
+                    await this.pushData(data.slice(pos,endPos))
+                }
+                pos = endPos
             }
             else{
                 await this.pushData(data.slice(pos,pos+12+len))

@@ -226,6 +226,19 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
             }
         }
 
+        if(da.type === 'success' && db.banCharacterset?.length > 0){
+            for(const set of db.banCharacterset){
+                const checkRegex = new RegExp(`\\p{Script=${set}}`, 'gu')
+
+                if(checkRegex.test(da.result)){
+                    return {
+                        type: 'fail',
+                        result: 'Banned character found'
+                    }
+                }
+            }
+        }
+
 
         if(da.type !== 'fail' || da.noRetry){
             return da

@@ -13,12 +13,53 @@
     import { installPython } from "src/ts/process/models/local";
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
+    import Arcodion from "src/lib/UI/Arcodion.svelte";
 
     let estaStorage:{
         key:string,
         size:string,
     }[] = $state([])
 
+    const characterSets = [
+        'Latn',
+        'Hani',
+        'Arab',
+        'Deva',
+        'Cyrl',
+        'Beng',
+        'Hrkt',
+        'Telu',
+        'Hang',
+        'Taml',
+        'Thai',
+        'Gujr',
+        'Knda',
+        'Ethi',
+        'Khmr',
+        'Grek',
+        'Hebr',
+    ]
+
+    const characterSetsPreview = {
+        'Latn': "ABC",
+        'Hani': "汉漢",
+        'Arab': "اعب",
+        'Deva': "अआइ",
+        'Cyrl': "АБВ",
+        'Beng': "অআই",
+        'Hrkt': "あア",
+        'Telu': "అఆఇ",
+        'Hang': "가나다",
+        'Taml': "அஆஇ",
+        'Thai': "กขค",
+        'Gujr': "અઆઇ",
+        'Knda': "ಅಆಇ",
+        'Ethi': "ሀሁሂ",
+        'Khmr': "កខគ",
+        'Grek': "ΑΒΓ",
+        'Hebr': "אבג",
+
+    }
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
 <span class="text-draculared text-xs mb-2">{language.advancedSettingsWarn}</span>
@@ -168,6 +209,21 @@
         <Check bind:check={DBState.db.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
     </div>
 {/if}
+
+<Arcodion styled name={language.banCharacterset}>
+    {#each characterSets as set}
+        <Button styled={DBState.db.banCharacterset.includes(set) ? 'primary' : "outlined"} onclick={(e) => {
+            if (DBState.db.banCharacterset.includes(set)) {
+                DBState.db.banCharacterset = DBState.db.banCharacterset.filter((item) => item !== set)
+            } else {
+                DBState.db.banCharacterset.push(set)
+            }
+        }}>
+            {new Intl.DisplayNames([navigator.language,'en'], { type: 'script' }).of(set)} ({characterSetsPreview[set]})
+        </Button>
+    {/each}
+</Arcodion>
+
 <Button
     className="mt-4"
     onclick={async () => {

@@ -17,7 +17,7 @@ let cache={
     trans: ['']
 }
 
-const LLMCacheStorage = localforage.createInstance({
+export const LLMCacheStorage = localforage.createInstance({
     name: "LLMTranslateCache"
 })
 
@@ -25,10 +25,6 @@ let waitTrans = 0
 
 export async function translate(text:string, reverse:boolean) {
     let db = getDatabase()
-    const plug = await translatorPlugin(text, reverse ? db.translator: 'en', reverse ? 'en' : db.translator)
-    if(plug){
-        return plug.content
-    }
     if(!reverse){
         const ind = cache.origin.indexOf(text)
         if(ind !== -1){
@@ -112,7 +108,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     let db = getDatabase()
     if(db.translatorType === 'llm'){
         const tr = arg.to || 'en'
-        return translateLLM(text, {to: tr})
+        return translateLLM(text, {to: tr, from: arg.from})
     }
     if(db.translatorType === 'deepl'){
         const body = {
@@ -197,12 +193,7 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
     return result
 }
 
-export async function translateVox(text:string) {
-    const plug = await translatorPlugin(text, 'en', 'ja')
-    if(plug){
-        return plug.content
-    }
-    
+export async function translateVox(text:string) {    
     return jaTrans(text)
 }
 
@@ -245,7 +236,8 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     }
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
-        return translateLLM(html, {to: tr, regenerate})
+        const from = db.translatorInputLanguage
+        return translateLLM(html, {to: tr, from: from, regenerate})
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
@@ -454,7 +446,7 @@ function needSuperChunkedTranslate(){
     return getDatabase().translatorType === 'deeplX'
 }
 
-async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):Promise<string>{
+async function translateLLM(text:string, arg:{to:string, from:string, regenerate?:boolean}):Promise<string>{
     if(!arg.regenerate){
         const cacheMatch = await LLMCacheStorage.getItem(text)
         if(cacheMatch){
@@ -472,7 +464,7 @@ async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):P
     const charIndex = get(selectedCharID)
     const currentChar = db.characters[charIndex]
     let translatorNote
-    if (currentChar.type === "character") {
+    if (currentChar?.type === "character") {
         translatorNote = currentChar.translatorNote ?? ""
     } else {
         translatorNote = ""
@@ -480,12 +472,12 @@ async function translateLLM(text:string, arg:{to:string, regenerate?:boolean}):P
 
     let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`
-    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text).replaceAll('{{slot::tnote}}', translatorNote))
+    let parsedPrompt = parseChatML(prompt.replaceAll('{{slot::from}}', arg.from).replaceAll('{{slot}}', arg.to).replaceAll('{{solt::content}}', text).replaceAll('{{slot::tnote}}', translatorNote))
     if(parsedPrompt){
         formated = parsedPrompt
     }
     else{
-        prompt = prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{slot::tnote}}', translatorNote)
+        prompt = prompt.replaceAll('{{slot}}', arg.to).replaceAll('{{slot::tnote}}', translatorNote).replaceAll('{{slot::from}}', arg.from)
         formated = [
             {
                 'role': 'system',

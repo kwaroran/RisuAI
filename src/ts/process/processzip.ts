@@ -41,7 +41,7 @@ export class CharXWriter{
         //do nothing, just to make compatible with other writer
     }
 
-    async write(key:string,data:Uint8Array|string){
+    async write(key:string,data:Uint8Array|string, level?:0|1|2|3|4|5|6|7|8|9){
         console.log('write',key)
         let dat:Uint8Array
         if(typeof data === 'string'){
@@ -52,7 +52,7 @@ export class CharXWriter{
         }
         this.writeEnd = false
         const file = new fflate.ZipDeflate(key, {
-            level: 0
+            level: level ?? 0
         });
         await this.zip.add(file)
         await file.push(dat, true)
@@ -101,6 +101,9 @@ export class CharXReader{
                     }
                     else if(file.name === 'module.risum'){
                         this.moduleData = assetData
+                    }
+                    else if(file.name.endsWith('.json')){
+                        //do nothing
                     }
                     else{
                         this.assetPromises.push((async () => {

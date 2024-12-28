@@ -467,6 +467,7 @@ export function setDatabase(data:Database){
     data.enableCustomFlags ??= false
     data.assetMaxDifference ??= 4
     data.showSavingIcon ??= false
+    data.banCharacterset ??= []
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -866,6 +867,7 @@ export interface Database{
     pluginV2: RisuPlugin[]
     showSavingIcon:boolean
     presetRegex: customscript[]
+    banCharacterset:string[]
 }
 
 interface SeparateParameters{

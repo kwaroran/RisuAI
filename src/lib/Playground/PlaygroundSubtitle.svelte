@@ -10,7 +10,7 @@
     import { selectFileByDom, selectSingleFile, sleep } from "src/ts/util";
     import { alertError, alertSelect } from "src/ts/alert";
     import { risuChatParser } from "src/ts/parser.svelte";
-    import { AppendableBuffer, downloadFile, globalFetch } from "src/ts/globalApi.svelte";
+    import { AppendableBuffer, downloadFile, getLanguageCodes, globalFetch } from "src/ts/globalApi.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
@@ -30,40 +30,6 @@
     let vobj:TranscribeObj[] = $state([])
     let mode = $state('llm')
     let sourceLang:string|null = $state(null)    
-
-    function getLanguageCodes(){
-        let languageCodes:{
-            code: string
-            name: string
-        }[] = []
-
-        for(let i=0x41;i<=0x5A;i++){
-            for(let j=0x41;j<=0x5A;j++){
-                languageCodes.push({
-                    code: String.fromCharCode(i) + String.fromCharCode(j),
-                    name: ''
-                })
-            }
-        }
-        
-        languageCodes = languageCodes.map(v => {
-            return {
-                code: v.code,
-                name: new Intl.DisplayNames([
-                    DBState.db.language === 'cn' ? 'zh' : DBState.db.language
-                ], {
-                    type: 'language',
-                    fallback: 'none'
-                }).of(v.code)
-            }
-        }).filter((a) => {
-            return a.name
-        }).sort((a, b) => a.name.localeCompare(b.name))
-
-        return languageCodes
-    }
-
-
 
     async function runLLMMode() {
         outputText = 'Loading...\n\n'
