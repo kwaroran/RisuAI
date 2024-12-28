@@ -39,12 +39,13 @@
     import { get } from "svelte/store";
     import { getCharacterIndexObject } from "src/ts/util";
     import { v4 } from "uuid";
-    import { checkCharOrder } from "src/ts/globalApi.svelte";
+    import { checkCharOrder, getFileSrc } from "src/ts/globalApi.svelte";
     import { alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
+  import { getModuleAssets } from 'src/ts/process/modules';
   let sideBarMode = $state(0);
   let editMode = $state(false);
   let menuMode = $state(0);
@@ -59,7 +60,7 @@
   }
 
   type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
-  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string}
+  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string, img?:string}
   let charImages: sortType[] = $state([]);
   let IconRounded = $state(false)
   let openFolders:string[] = $state([])
@@ -109,7 +110,8 @@
           type: "folder",
           id: folder.id,
           name: folder.name,
-          color: folder.color
+          color: folder.color,
+          img: folder.img,
         });
       }
     }
@@ -472,10 +474,10 @@
           {:else if char.type === "folder"}
             {#key char.color}
             {#key char.name}
-              <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color}
+              <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color} backgroundimg={char.img}
               oncontextmenu={async (e) => {
                 e.preventDefault()
-                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.cancel]))
+                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.changeFolderImage,language.cancel]))
                 if(sel === 0){
                   const v = await alertInput(language.changeFolderName)
                   const db = DBState.db
@@ -498,6 +500,36 @@
                     return
                   }
                   oder.color = colors[sel].toLocaleLowerCase()
+                  db.characterOrder[ind] = oder
+                  setDatabase(db)
+                }
+                else if(sel === 2) {
+                  let assetPaths:{[key:string]:{
+                      path:string
+                  }} = {}
+
+                  assetPaths["Default"] = {
+                    path: "",
+                  }
+
+                  const moduleAssets = getModuleAssets()
+                  if(moduleAssets.length > 0){
+                      for(const asset of moduleAssets){
+                          const assetPath = await getFileSrc(asset[1])
+                          assetPaths[asset[0].toLocaleLowerCase()] = {
+                              path: assetPath,
+                          }
+                      }
+                  }
+                  
+                  const assetNames = Object.keys(assetPaths)
+                  const sel = parseInt(await alertSelect(assetNames))
+                  const db = DBState.db
+                  const oder = db.characterOrder[ind]
+                  if(typeof(oder) === 'string'){
+                    return
+                  }
+                  oder.img = assetPaths[assetNames[sel]].path
                   db.characterOrder[ind] = oder
                   setDatabase(db)
                 }
