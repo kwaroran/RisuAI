@@ -1203,6 +1203,7 @@ export interface folder{
     data:string[]
     color:string
     id:string
+    imgFile?:string
     img?:string
 }
 

@@ -37,15 +37,14 @@
     import SidebarAvatar from "./SidebarAvatar.svelte";
     import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
     import { get } from "svelte/store";
-    import { getCharacterIndexObject } from "src/ts/util";
+    import { getCharacterIndexObject, selectSingleFile } from "src/ts/util";
     import { v4 } from "uuid";
-    import { checkCharOrder, getFileSrc } from "src/ts/globalApi.svelte";
+    import { checkCharOrder, getFileSrc, saveAsset } from "src/ts/globalApi.svelte";
     import { alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
-  import { getModuleAssets } from 'src/ts/process/modules';
   let sideBarMode = $state(0);
   let editMode = $state(false);
   let menuMode = $state(0);
@@ -504,34 +503,38 @@
                   setDatabase(db)
                 }
                 else if(sel === 2) {
-                  let assetPaths:{[key:string]:{
-                      path:string
-                  }} = {}
-
-                  assetPaths["Default"] = {
-                    path: "",
-                  }
-
-                  const moduleAssets = getModuleAssets()
-                  if(moduleAssets.length > 0){
-                      for(const asset of moduleAssets){
-                          const assetPath = await getFileSrc(asset[1])
-                          assetPaths[asset[0].toLocaleLowerCase()] = {
-                              path: assetPath,
-                          }
-                      }
-                  }
-                  
-                  const assetNames = Object.keys(assetPaths)
-                  const sel = parseInt(await alertSelect(assetNames))
+                  const sel = parseInt(await alertSelect(['Reset to Default Image', 'Select Image File']))
                   const db = DBState.db
                   const oder = db.characterOrder[ind]
                   if(typeof(oder) === 'string'){
                     return
                   }
-                  oder.img = assetPaths[assetNames[sel]].path
-                  db.characterOrder[ind] = oder
-                  setDatabase(db)
+
+                  switch (sel) {
+                    case 0:
+                      oder.imgFile = null
+                      oder.img = ''
+                      break;
+                  
+                    case 1:
+                      const folderImage = await selectSingleFile([
+                        'png',
+                        'jpg',
+                        'webp',
+                      ])
+
+                      if(!folderImage) {
+                        return
+                      }
+
+                      const folderImageData = await saveAsset(folderImage.data)
+
+                      oder.imgFile = folderImageData
+                      oder.img = await getFileSrc(folderImageData)
+                      db.characterOrder[ind] = oder
+                      setDatabase(db)
+                      break;
+                  }
                 }
               }}
               onClick={() => {
