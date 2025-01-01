@@ -227,15 +227,27 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
         }
 
         if(da.type === 'success' && db.banCharacterset?.length > 0){
+            let failed = false
             for(const set of db.banCharacterset){
+                console.log(set)
                 const checkRegex = new RegExp(`\\p{Script=${set}}`, 'gu')
 
                 if(checkRegex.test(da.result)){
-                    return {
-                        type: 'fail',
-                        result: 'Banned character found'
+                    trys += 1
+                    if(trys > db.requestRetrys){
+                        return {
+                            type: 'fail',
+                            result: 'Banned character found, retry limit reached'
+                        }
                     }
+                    
+                    failed = true
+                    break
                 }
+            }
+
+            if(failed){
+                continue
             }
         }
 

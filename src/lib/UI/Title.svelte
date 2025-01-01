@@ -38,38 +38,7 @@
 
     const onClick = () => {
         if(specialDay === 'newYear'){
-            const db = DBState.db
-            let messages = 0
-            let chats = 0
-            if(db.statistics?.newYear2024){
-                const markdown = `
-# Happy New Year!
-You've had:
-- Sent over ${db.statistics.newYear2024.messages.toLocaleString()} messages
-- Played over ${db.statistics.newYear2024.chats.toLocaleString()} chats
-*Statistics are approximate*
-                `
-                alertMd(markdown)
-                return
-            }
-            db.characters.map((c) => {
-                c.chats.map((chat) => {
-                    messages += chat.message.length
-                })
-                chats += c.chats.length
-            })
-            const markdown = `
-# Happy New Year!
-You've had:
-- Sent over ${messages.toLocaleString()} messages
-- Played over ${chats.toLocaleString()} chats
-*Statistics are approximate*
-            `
-            db.statistics.newYear2024 = {
-                messages,
-                chats
-            }
-            alertMd(markdown)
+
         }
     }
 
