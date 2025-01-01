@@ -9,6 +9,7 @@
     onClick?: any;
     bordered?: boolean;
     color?: string;
+    backgroundimg?: string;
     children?: import('svelte').Snippet;
     oncontextmenu?: (event: MouseEvent & {
         currentTarget: EventTarget & HTMLDivElement;
@@ -23,6 +24,7 @@
     onClick = () => {},
     bordered = false,
     color = '',
+    backgroundimg = '',
     children,
     oncontextmenu
   }: Props = $props();
@@ -55,8 +57,15 @@
         style:width={size + "px"}
         style:height={size + "px"}
         style:minWidth={size + "px"}
+        style:background-image={backgroundimg ? `url('${backgroundimg}')` : undefined}
+        style:background-size={backgroundimg ? "cover" : undefined}
+        style:background-position={backgroundimg ? "center" : undefined}
         class:rounded-md={!rounded} class:rounded-full={rounded} 
-      >{@render children?.()}</div>
+      >
+      {#if !backgroundimg}
+        {@render children?.()}
+      {/if}
+    </div>
     {:else}
       {#await src}
         <div

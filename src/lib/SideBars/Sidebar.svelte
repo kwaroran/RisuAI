@@ -37,9 +37,9 @@
     import SidebarAvatar from "./SidebarAvatar.svelte";
     import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
     import { get } from "svelte/store";
-    import { getCharacterIndexObject } from "src/ts/util";
+    import { getCharacterIndexObject, selectSingleFile } from "src/ts/util";
     import { v4 } from "uuid";
-    import { checkCharOrder } from "src/ts/globalApi.svelte";
+    import { checkCharOrder, getFileSrc, saveAsset } from "src/ts/globalApi.svelte";
     import { alertInput, alertSelect } from "src/ts/alert";
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
@@ -59,7 +59,7 @@
   }
 
   type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
-  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string}
+  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string, img?:string}
   let charImages: sortType[] = $state([]);
   let IconRounded = $state(false)
   let openFolders:string[] = $state([])
@@ -109,7 +109,8 @@
           type: "folder",
           id: folder.id,
           name: folder.name,
-          color: folder.color
+          color: folder.color,
+          img: folder.img,
         });
       }
     }
@@ -472,10 +473,10 @@
           {:else if char.type === "folder"}
             {#key char.color}
             {#key char.name}
-              <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color}
+              <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color} backgroundimg={char.img}
               oncontextmenu={async (e) => {
                 e.preventDefault()
-                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.cancel]))
+                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.changeFolderImage,language.cancel]))
                 if(sel === 0){
                   const v = await alertInput(language.changeFolderName)
                   const db = DBState.db
@@ -500,6 +501,40 @@
                   oder.color = colors[sel].toLocaleLowerCase()
                   db.characterOrder[ind] = oder
                   setDatabase(db)
+                }
+                else if(sel === 2) {
+                  const sel = parseInt(await alertSelect(['Reset to Default Image', 'Select Image File']))
+                  const db = DBState.db
+                  const oder = db.characterOrder[ind]
+                  if(typeof(oder) === 'string'){
+                    return
+                  }
+
+                  switch (sel) {
+                    case 0:
+                      oder.imgFile = null
+                      oder.img = ''
+                      break;
+                  
+                    case 1:
+                      const folderImage = await selectSingleFile([
+                        'png',
+                        'jpg',
+                        'webp',
+                      ])
+
+                      if(!folderImage) {
+                        return
+                      }
+
+                      const folderImageData = await saveAsset(folderImage.data)
+
+                      oder.imgFile = folderImageData
+                      oder.img = await getFileSrc(folderImageData)
+                      db.characterOrder[ind] = oder
+                      setDatabase(db)
+                      break;
+                  }
                 }
               }}
               onClick={() => {

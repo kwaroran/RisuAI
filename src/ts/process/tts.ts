@@ -309,6 +309,7 @@ export async function sayTTS(character:character,text:string) {
                     const text = Buffer.from(textBuffer).toString('utf-8')
                     throw new Error(text);
                 }
+                break;
             }
             case 'fishspeech':{
                 if (character.fishSpeechConfig.model._id === ''){

@@ -1082,6 +1082,14 @@ export function getUnpargeables(db: Database, uptype: 'basename' | 'pure' = 'bas
             addUnparge(v.icon);
         });
     }
+
+    if(db.characterOrder){
+        db.characterOrder.forEach((item) => {
+            if (typeof item === 'object' && 'imgFile' in item) {
+                addUnparge(item.imgFile);
+            }
+        })
+    }
     return unpargeable;
 }
 

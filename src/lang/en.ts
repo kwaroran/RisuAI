@@ -490,6 +490,7 @@ export const languageEnglish = {
     cancel: "Cancel",
     renameFolder: "Rename Folder",
     changeFolderColor: "Change Folder Color",
+    changeFolderImage: "Change Folder Image",
     fullWordMatching: "Full Word Matching",
     botSettingAtStart: "Bot Menu when Launch",
     triggerStart: "On chat Send",
