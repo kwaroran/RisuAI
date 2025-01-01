@@ -331,16 +331,15 @@ export async function hypaMemoryV2(
 
     let allocatedTokens = db.hypaAllocatedTokens;
     let chunkSize = db.hypaChunkSize;
-    // Since likely the first update break the token count, will continue with this for few updates.
-    currentTokens = await tokenizer.tokenizeChats(chats) + allocatedTokens;
+    currentTokens += allocatedTokens; // WARNING: VIRTUAL VALUE. This token is NOT real. This is a placeholder appended to calculate the maximum amount of HypaV2 memory retrieved data.
     let mainPrompt = "";
     const lastTwoChats = chats.slice(-2);
-    // Error handling for infinite summarization attempts
+    // Error handling for failed summarization
     let summarizationFailures = 0;
     const maxSummarizationFailures = 3;
 
     // Find the index to start summarizing from
-    let idx = 2; // first two should not be considered
+    let idx = 2; // first two should not be considered([Start a new chat], Memory prompt)
     if (data.mainChunks.length > 0) {
         const lastMainChunk = data.mainChunks[data.mainChunks.length - 1];
         const lastChatMemo = lastMainChunk.lastChatMemo;
@@ -359,7 +358,7 @@ export async function hypaMemoryV2(
         const startIdx = idx;
 
         console.log(
-            "Starting summarization iteration:",
+            "[HypaV2] Starting summarization iteration:",
             "\nCurrent Tokens (before):", currentTokens,
             "\nMax Context Tokens:", maxContextTokens,
             "\nStartIdx:", startIdx,
@@ -375,7 +374,7 @@ export async function hypaMemoryV2(
             const chatTokens = await tokenizer.tokenizeChat(chat);
 
             console.log(
-                "Evaluating chat for summarization:",
+                "[HypaV2] Evaluating chat for summarization:",
                 "\nIndex:", idx,
                 "\nRole:", chat.role,
                 "\nContent:", chat.content,
@@ -399,7 +398,7 @@ export async function hypaMemoryV2(
 
         const endIdx = idx - 1;
         console.log(
-            "Summarization batch chosen with this:",
+            "[HypaV2] Summarization batch chosen with this:",
             "\nStartIdx:", startIdx,
             "\nEndIdx:", endIdx,
             "\nNumber of chats in halfData:", halfData.length,
@@ -443,7 +442,7 @@ export async function hypaMemoryV2(
         });
 
         console.log(
-            "Summarization success:",
+            "[HypaV2] Summarization success:",
             "\nSummary Data:", summaryData.data,
             "\nSummary Token Count:", summaryDataToken
         );
@@ -476,15 +475,14 @@ export async function hypaMemoryV2(
         );
 
         console.log(
-            "Chunks added:",
+            "[HypaV2] Chunks added:",
             splitted,
             "\nUpdated mainChunks count:", data.mainChunks.length,
             "\nUpdated chunks count:", data.chunks.length
         );
 
-        // Update the currentTokens immediately, removing summarized portion.
         currentTokens -= halfDataTokens;
-        console.log("Current tokens after summarization deduction:", currentTokens);
+        console.log("[HypaV2] tokens after summarization deduction:", currentTokens);
     }
 
     // Construct the mainPrompt from mainChunks
@@ -552,6 +550,11 @@ export async function hypaMemoryV2(
     }
 
     const fullResult = `<Past Events Summary>${mainPrompt}</Past Events Summary>\n<Past Events Details>${chunkResultPrompts}</Past Events Details>`;
+    const fullResultTokens = await tokenizer.tokenizeChat({
+        role: "system",
+        content: fullResult,
+    });
+    currentTokens += fullResultTokens;
 
     // Filter out summarized chats and prepend the memory prompt
     const unsummarizedChats: OpenAIChat[] = [
@@ -563,18 +566,17 @@ export async function hypaMemoryV2(
         ...chats.slice(idx) // Use the idx to slice out the summarized chats
     ];
 
-    // Add the last two chats back if they are not already included
+    // Remove this later, as this is already done by the index
     for (const chat of lastTwoChats) {
         if (!unsummarizedChats.find((c) => c.memo === chat.memo)) {
             unsummarizedChats.push(chat);
         }
     }
 
-    // Recalculate currentTokens based on the final chat list
-    currentTokens = await tokenizer.tokenizeChats(unsummarizedChats);
+    currentTokens -= allocatedTokens; // Virtually added memory tokens got removed. Bad way, but had no choice.
 
     console.log(
-        "Model being used: ",
+        "[HypaV2] Model being used: ",
         db.hypaModel,
         db.supaModelType,
         "\nCurrent session tokens: ",
