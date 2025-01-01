@@ -441,6 +441,7 @@ export const languageKorean = {
     "cancel": "취소",
     "renameFolder": "폴더 이름 변경하기",
     "changeFolderColor": "폴더 색상 변경하기",
+    "changeFolderImage": "폴더 이미지 변경하기",
     "fullWordMatching": "단어 단위 매칭",
     "botSettingAtStart": "실행 시 봇 설정으로 시작하기",
     "triggerStart": "채팅 보낼 시",
