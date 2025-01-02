@@ -1255,7 +1255,7 @@ export interface Chat{
     localLore: loreBook[]
     sdData?:string
     supaMemoryData?:string
-    hypaV2Data?:HypaV2Data
+    hypaV2Data?:SerializableHypaV2Data
     lastMemory?:string
     suggestMessages?:string[]
     isStreaming?:boolean
@@ -1611,7 +1611,7 @@ import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
-import type { HypaV2Data } from '../process/memory/hypav2';
+import type { SerializableHypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFlags, LLMFormat } from '../model/modellist';
