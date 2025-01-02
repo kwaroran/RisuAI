@@ -14,7 +14,6 @@ function getBasename(data:string){
     return lasts
 }
 
-
 export async function SaveLocalBackup(){
     alertWait("Saving local backup...")
     const writer = new LocalWriter()
@@ -36,7 +35,6 @@ export async function SaveLocalBackup(){
         alertError('Failed, Backup data is corrupted')
         return
     }
-    
 
     if(isTauri){
         const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
@@ -80,74 +78,100 @@ export async function SaveLocalBackup(){
 }
 
 export async function LoadLocalBackup(){
-    //select file
     try {
-        const input = document.createElement('input')
-        input.type = 'file'
-        input.accept = '.bin'
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.bin';
         input.onchange = async () => {
-            if(!input.files || input.files.length === 0){
-                input.remove()
-                return
+            if (!input.files || input.files.length === 0) {
+                input.remove();
+                return;
             }
-            const file = input.files[0]
-            const reader = new FileReader()
-            input.remove()
-            reader.onload = async () => {
-                const buffer = reader.result as ArrayBuffer
-                const bufferLength = buffer.byteLength
-                for(let i=0;i<bufferLength;){
-                    const progress = (i / bufferLength * 100).toFixed(2)
-                    alertWait(`Loading local Backup... (${progress}%)`)
-                    
-                    const nameLength = new Uint32Array(buffer.slice(i, i+4))[0]
-                    i += 4
-                    const name = new TextDecoder().decode(new Uint8Array(buffer.slice(i, i+nameLength)))
-                    i += nameLength
-                    const dataLength = new Uint32Array(buffer.slice(i, i+4))[0]
-                    i += 4
-                    const data = new Uint8Array(buffer.slice(i, i+dataLength))
-                    i += dataLength
-                    if(name === 'database.risudat'){
-                        const db = new Uint8Array(data)
-                        const dbData = await decodeRisuSave(db)
-                        setDatabaseLite(dbData)
-                        if(isTauri){
-                            await writeFile('database/database.bin', db, {baseDir: BaseDirectory.AppData})
-                            relaunch()
-                            alertStore.set({
-                                type: "wait",
-                                msg: "Success, Refreshing your app."
-                            })
-                        }
-                        else{
-                            await forageStorage.setItem('database/database.bin', db)
-                            location.search = ''
-                            alertStore.set({
-                                type: "wait",
-                                msg: "Success, Refreshing your app."
-                            })
-                        }
-                        continue
-                    }
-                    if(isTauri){
-                        await writeFile(`assets/` + name, data ,{baseDir: BaseDirectory.AppData})
-                    }
-                    else{
-                        await forageStorage.setItem('assets/' + name, data)
-                    }
-                    await sleep(10)
-                    if(forageStorage.isAccount){
-                        await sleep(1000)
-                    }
+            const file = input.files[0];
+            input.remove();
+
+            const reader = file.stream().getReader();
+            const CHUNK_SIZE = 1024 * 1024; // 1MB chunk size
+            let bytesRead = 0;
+            let remainingBuffer = new Uint8Array();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
                 }
+
+                bytesRead += value.length;
+                const progress = ((bytesRead / file.size) * 100).toFixed(2);
+                alertWait(`Loading local Backup... (${progress}%)`);
+
+                const newBuffer = new Uint8Array(remainingBuffer.length + value.length);
+                newBuffer.set(remainingBuffer);
+                newBuffer.set(value, remainingBuffer.length);
+                remainingBuffer = newBuffer;
+
+                let offset = 0;
+                while (offset + 4 <= remainingBuffer.length) {
+                    const nameLength = new Uint32Array(remainingBuffer.slice(offset, offset + 4).buffer)[0];
+
+                    if (offset + 4 + nameLength > remainingBuffer.length) {
+                        break;
+                    }
+                    const nameBuffer = remainingBuffer.slice(offset + 4, offset + 4 + nameLength);
+                    const name = new TextDecoder().decode(nameBuffer);
+
+                    if (offset + 4 + nameLength + 4 > remainingBuffer.length) {
+                        break;
+                    }
+                    const dataLength = new Uint32Array(remainingBuffer.slice(offset + 4 + nameLength, offset + 4 + nameLength + 4).buffer)[0];
+
+                    if (offset + 4 + nameLength + 4 + dataLength > remainingBuffer.length) {
+                        break;
+                    }
+                    const data = remainingBuffer.slice(offset + 4 + nameLength + 4, offset + 4 + nameLength + 4 + dataLength);
+
+                    if (name === 'database.risudat') {
+                        const db = new Uint8Array(data);
+                        const dbData = await decodeRisuSave(db);
+                        setDatabaseLite(dbData);
+                        if (isTauri) {
+                            await writeFile('database/database.bin', db, { baseDir: BaseDirectory.AppData });
+                            await relaunch();
+                            alertStore.set({
+                                type: "wait",
+                                msg: "Success, Refreshing your app."
+                            });
+                        } else {
+                            await forageStorage.setItem('database/database.bin', db);
+                            location.search = '';
+                            alertStore.set({
+                                type: "wait",
+                                msg: "Success, Refreshing your app."
+                            });
+                        }
+                    } else {
+                        if (isTauri) {
+                            await writeFile(`assets/` + name, data, { baseDir: BaseDirectory.AppData });
+                        } else {
+                            await forageStorage.setItem('assets/' + name, data);
+                        }
+                    }
+                    await sleep(10);
+                    if (forageStorage.isAccount) {
+                        await sleep(1000);
+                    }
+
+                    offset += 4 + nameLength + 4 + dataLength;
+                }
+                remainingBuffer = remainingBuffer.slice(offset);
             }
-            reader.readAsArrayBuffer(file)
-        }
-    
-        input.click()   
+
+            alertNormal('Success');
+        };
+
+        input.click();
     } catch (error) {
-        console.error(error)
+        console.error(error);
         alertError('Failed, Is file corrupted?')
     }
 }
