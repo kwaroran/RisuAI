@@ -381,6 +381,12 @@ export async function hypaMemoryV2(
         const lastChatIndex = chats.findIndex(chat => chat.memo === lastChatMemo);
         if (lastChatIndex !== -1) {
             idx = lastChatIndex + 1;
+
+            // Subtract tokens of removed chats
+            const removedChats = chats.slice(0, lastChatIndex + 1);
+            for (const chat of removedChats) {
+                currentTokens -= await tokenizer.tokenizeChat(chat);
+            }
         }
     }
     // Starting chat index of new mainChunk to be generated
