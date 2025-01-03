@@ -26,6 +26,16 @@ export interface HypaV2Data {
     }[];
 }
 
+// Reuse HypaV2Data and override only chatMemos in mainChunks
+export interface SerializableHypaV2Data extends Omit<HypaV2Data, 'mainChunks'> {
+    mainChunks: {
+        id: number;
+        text: string;
+        chatMemos: string[]; // Override Set<string> with string[]
+        lastChatMemo: string;
+    }[];
+}
+
 async function summary(
     stringlizedChat: string
 ): Promise<{ success: boolean; data: string }> {
@@ -294,6 +304,34 @@ export async function regenerateSummary(
     const targetMainChunk = data.mainChunks[mainChunkIndex];
 
 }
+
+function toSerializableHypaV2Data(data: HypaV2Data): SerializableHypaV2Data {
+    return {
+        ...data,
+        mainChunks: data.mainChunks.map(mainChunk => ({
+            ...mainChunk,
+            chatMemos: Array.from(mainChunk.chatMemos),
+        })),
+    };
+}
+    
+function toHypaV2Data(data: SerializableHypaV2Data): HypaV2Data {
+    // Handle corrupted data due to invalid json serialization
+    data.mainChunks.forEach((mainChunk) => {
+        if (!Array.isArray(mainChunk.chatMemos)) {
+            mainChunk.chatMemos = [];
+        }
+    });
+
+    return {
+        ...data,
+        mainChunks: data.mainChunks.map(mainChunk => ({
+            ...mainChunk,
+            chatMemos: new Set(mainChunk.chatMemos),
+        })),
+    };
+}
+
 export async function hypaMemoryV2(
     chats: OpenAIChat[],
     currentTokens: number,
@@ -305,26 +343,23 @@ export async function hypaMemoryV2(
     currentTokens: number;
     chats: OpenAIChat[];
     error?: string;
-    memory?: HypaV2Data;
+    memory?: SerializableHypaV2Data;
 }> {
     const db = getDatabase();
-
-    if(room.hypaV2Data && isOldHypaV2Data(room.hypaV2Data)){
-        console.log("Old HypaV2 data detected. Converting to new format...");
-        room.hypaV2Data = convertOldToNewHypaV2Data(room.hypaV2Data, chats);
-    }
-
-    const data: HypaV2Data = room.hypaV2Data ?? {
+    let data: HypaV2Data = {
         lastMainChunkID: 0,
         chunks: [],
         mainChunks: [],
     };
-    // JSON s
-    data.mainChunks.forEach(mainChunk => {
-            if (mainChunk.chatMemos && Array.isArray(mainChunk.chatMemos)) {
-                    mainChunk.chatMemos = new Set(mainChunk.chatMemos);
-                }
-    });
+
+    if (room.hypaV2Data) {
+        if (isOldHypaV2Data(room.hypaV2Data)) {
+        console.log("Old HypaV2 data detected. Converting to new format...");
+        data = convertOldToNewHypaV2Data(room.hypaV2Data, chats);
+        } else {
+            data = toHypaV2Data(room.hypaV2Data);
+        }
+    }
 
     // Clean invalid HypaV2 data
     cleanInvalidChunks(chats, data);
@@ -346,6 +381,12 @@ export async function hypaMemoryV2(
         const lastChatIndex = chats.findIndex(chat => chat.memo === lastChatMemo);
         if (lastChatIndex !== -1) {
             idx = lastChatIndex + 1;
+
+            // Subtract tokens of removed chats
+            const removedChats = chats.slice(0, lastChatIndex + 1);
+            for (const chat of removedChats) {
+                currentTokens -= await tokenizer.tokenizeChat(chat);
+            }
         }
     }
     // Starting chat index of new mainChunk to be generated
@@ -590,6 +631,6 @@ export async function hypaMemoryV2(
     return {
         currentTokens: currentTokens,
         chats: unsummarizedChats,
-        memory: data,
+        memory: toSerializableHypaV2Data(data),
     };
 }
