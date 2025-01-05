@@ -10,7 +10,7 @@ export interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
             |'input'|'toast'|'wait2'|'markdown'|'select'|'login'
             |'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule'
-            |'chatOptions'|'pukmakkurit',
+            |'chatOptions'|'pukmakkurit'|'branches',
     msg: string,
     submsg?: string
 }

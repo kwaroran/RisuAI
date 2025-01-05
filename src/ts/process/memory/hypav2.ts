@@ -346,6 +346,7 @@ export async function hypaMemoryV2(
     memory?: SerializableHypaV2Data;
 }> {
     const db = getDatabase();
+    currentTokens -= db.maxResponse
     let data: HypaV2Data = {
         lastMainChunkID: 0,
         chunks: [],

@@ -3,9 +3,9 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import TextInput from "../UI/GUI/TextInput.svelte";
-    import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon } from "lucide-svelte";
+    import { DownloadIcon, PencilIcon, FolderUpIcon, MenuIcon, TrashIcon, GitBranchIcon, SplitIcon } from "lucide-svelte";
     import { exportChat, importChat } from "src/ts/characters";
-    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect } from "src/ts/alert";
+    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "src/ts/alert";
     import { language } from "src/lang";
     import Button from "../UI/GUI/Button.svelte";
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
@@ -15,6 +15,7 @@
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
+  import { getChatBranches } from "src/ts/gui/branches";
 
   interface Props {
     chara: character|groupChat;
@@ -202,10 +203,18 @@
             }}>
                 <FolderUpIcon size={18}/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
                 <PencilIcon size={18}/>
+            </button>
+            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
+                alertStore.set({
+                  type: "branches",
+                  msg: ""
+                })
+            }}>
+                <SplitIcon size={18}/>
             </button>
         </div>
 
