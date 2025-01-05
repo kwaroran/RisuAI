@@ -101,6 +101,9 @@ importers:
       crc:
         specifier: ^4.3.2
         version: 4.3.2(buffer@6.0.3)
+      diff:
+        specifier: ^7.0.0
+        version: 7.0.0
       dompurify:
         specifier: ^3.0.8
         version: 3.0.8
@@ -1886,6 +1889,10 @@ packages:
 
   diff@5.1.0:
     resolution: {integrity: sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==}
+    engines: {node: '>=0.3.1'}
+
+  diff@7.0.0:
+    resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
     engines: {node: '>=0.3.1'}
 
   dir-glob@3.0.1:
@@ -5560,6 +5567,8 @@ snapshots:
   diff@4.0.2: {}
 
   diff@5.1.0: {}
+
+  diff@7.0.0: {}
 
   dir-glob@3.0.1:
     dependencies:
