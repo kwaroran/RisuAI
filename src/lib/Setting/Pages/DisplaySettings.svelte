@@ -304,6 +304,10 @@
         <Check bind:check={DBState.db.showSavingIcon} name={language.showSavingIcon}/>
     </div>
 
+    <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.showPromptComparison} name={language.showPromptComparison}/>
+    </div>
+
     {#if DBState.db.textScreenBorder}
         <div class="flex items-center mt-2">
             <Check check={true} onChange={() => {

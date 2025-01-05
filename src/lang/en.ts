@@ -838,5 +838,7 @@ export const languageEnglish = {
     showSavingIcon: "Show Saving Icon",
     pluginVersionWarn: "This is {{plugin_version}} version of the plugin. which is not compatible with this version of RisuAI. please update the plugin to {{required_version}} version.",
     imageTranslation: "Image Translation",
-    banCharacterset: 'Auto Regenerate On Characterset'
+    banCharacterset: 'Auto Regenerate On Characterset',
+    checkCorruption: "Check Corruption",
+    showPromptComparison: "Show Prompt Comparison",
 }

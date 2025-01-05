@@ -468,6 +468,8 @@ export function setDatabase(data:Database){
     data.assetMaxDifference ??= 4
     data.showSavingIcon ??= false
     data.banCharacterset ??= []
+    data.showPromptComparison ??= false
+    data.checkCorruption ??= true
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -868,6 +870,8 @@ export interface Database{
     showSavingIcon:boolean
     presetRegex: customscript[]
     banCharacterset:string[]
+    showPromptComparison:boolean
+    checkCorruption:boolean
 }
 
 interface SeparateParameters{

@@ -8,7 +8,6 @@
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     import type { PromptItem, PromptItemPlain, PromptItemChatML, PromptItemTyped, PromptItemAuthorNote, PromptItemChat } from "src/ts/process/prompt.ts";
-    import { diffWordsWithSpace, diffLines } from 'diff';
 
     let editMode = $state(false)
     interface Props {
@@ -112,7 +111,8 @@
         return prompt
     }
 
-    function checkDiff(prompt1: string, prompt2: string): string {
+    async function checkDiff(prompt1: string, prompt2: string): Promise<string> {
+        const { diffLines } = await import('diff')
         const lineDiffs = diffLines(prompt1, prompt2)
 
         let resultHtml = '';
@@ -123,7 +123,7 @@
             if(linePart.removed){
                 const nextPart = lineDiffs[i + 1]
                 if(nextPart?.added){
-                    resultHtml += `<div style="border-left: 4px solid blue; padding-left: 8px;">${highlightChanges(linePart.value, nextPart.value)}</div>`
+                    resultHtml += `<div style="border-left: 4px solid blue; padding-left: 8px;">${await highlightChanges(linePart.value, nextPart.value)}</div>`
                     i++;
                 }
                 else{
@@ -148,7 +148,8 @@
         return resultHtml
     }
 
-    function highlightChanges(string1: string, string2: string) {
+    async function highlightChanges(string1: string, string2: string) {
+        const { diffWordsWithSpace } = await import('diff')
         const charDiffs = diffWordsWithSpace(string1, string2)
 
         return charDiffs
@@ -169,7 +170,7 @@
     }
     
 
-    function handleDiffMode(id: number) {
+    async function handleDiffMode(id: number) {
         if (selectedDiffPreset === id) {
             selectedDiffPreset = -1
             selectedPrompts = []
@@ -193,7 +194,7 @@
         }
         else{
             alertWait("Loading...")
-            const result = checkDiff(selectedPrompts[0], prompt)
+            const result = await checkDiff(selectedPrompts[0], prompt)
             alertMd(result)
             selectedDiffPreset = -1
             selectedPrompts = []
@@ -234,16 +235,18 @@
                     <span>{preset.name}</span>
                 {/if}
                 <div class="flex-grow flex justify-end">
-                    <div class="{selectedDiffPreset === i ? 'text-green-500' : 'text-textcolor2 hover:text-green-500'} cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
-                        e.stopPropagation()
-                        handleDiffMode(i)
-                    }} onkeydown={(e) => {
-                        if(e.key === 'Enter'){
-                            e.currentTarget.click()
-                        }
-                    }}>
-                        <GitCompare size={18}/>
-                    </div>
+                    {#if DBState.db.showPromptComparison}
+                        <div class="{selectedDiffPreset === i ? 'text-green-500' : 'text-textcolor2 hover:text-green-500'} cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
+                            e.stopPropagation()
+                            handleDiffMode(i)
+                        }} onkeydown={(e) => {
+                            if(e.key === 'Enter'){
+                                e.currentTarget.click()
+                            }
+                        }}>
+                            <GitCompare size={18}/>
+                        </div>
+                    {/if}
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
                         e.stopPropagation()
                         copyPreset(i)
