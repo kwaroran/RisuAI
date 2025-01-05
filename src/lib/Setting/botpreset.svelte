@@ -127,11 +127,11 @@
                     i++;
                 }
                 else{
-                    resultHtml += `<div style="color: red; background-color: #ffe6e6;">${escapeHtml(linePart.value)}</div>`
+                    resultHtml += `<div style="color: red; background-color: #ffe6e6; border-left: 4px solid red; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
                 }
             }
             else if(linePart.added){
-                resultHtml += `<div style="color: green; background-color: #e6ffe6;">${escapeHtml(linePart.value)}</div>`
+                resultHtml += `<div style="color: green; background-color: #e6ffe6; border-left: 4px solid green; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
             }
             else{
                 resultHtml += `<div>${escapeHtml(linePart.value)}</div>`
