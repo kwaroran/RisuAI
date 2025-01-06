@@ -1625,6 +1625,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     ]
 
+    if(arg.modelInfo.flags.includes(LLMFlags.geminiBlockOff)){
+        for(let i=0;i<uncensoredCatagory.length;i++){
+            uncensoredCatagory[i].threshold = "OFF"
+        }
+    }
+
     let para:Parameter[] = ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty']
 
     para = para.filter((v) => {

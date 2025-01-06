@@ -617,6 +617,11 @@
             {@render CustomFlagButton('hasStreaming', 8)}
             {@render CustomFlagButton('requiresAlternateRole', 9)}
             {@render CustomFlagButton('mustStartWithUserInput', 10)}
+            {@render CustomFlagButton('hasVideoInput', 12)}
+            {@render CustomFlagButton('OAICompletionTokens', 13)}
+            {@render CustomFlagButton('DeveloperRole', 14)}
+            {@render CustomFlagButton('geminiThinking', 15)}
+            {@render CustomFlagButton('geminiBlockOff', 16)}
         {/if}
     </Arcodion>
 
