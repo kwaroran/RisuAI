@@ -1668,9 +1668,9 @@ export async function downloadRisuHub(id:string, arg:{
             return
         }
 
-        if(res.headers.get('content-type') === 'image/png' || res.headers.get('content-type') === 'application/zip'){
+        if(res.headers.get('content-type') === 'image/png' || res.headers.get('content-type') === 'application/zip' || res.headers.get('content-type') === 'application/charx'){
             let db = getDatabase()
-            if(res.headers.get('content-type') === 'application/zip'){
+            if(res.headers.get('content-type') === 'application/zip' || res.headers.get('content-type') === 'application/charx'){
                 console.log('zip')
                 await importCharacterProcess({
                     name: 'realm.charx',
@@ -1715,6 +1715,7 @@ export async function downloadRisuHub(id:string, arg:{
         }
     } catch (error) {
         console.error(error)
+        console.log(error.stack)
         alertError("Error while importing")
     }
 }
