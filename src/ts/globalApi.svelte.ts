@@ -471,14 +471,12 @@ async function getDbBackups() {
     }
     else{
         const keys = await forageStorage.keys()
-        let backups:number[] = []
-        for(const key of keys){
-            if(key.startsWith("database/dbbackup-")){
-                let da = key.substring(18)
-                da = da.substring(0,da.length-4)
-                backups.push(parseInt(da))
-            }
-        }
+
+        const backups = keys
+          .filter(key => key.startsWith('database/dbbackup-'))
+          .map(key => parseInt(key.slice(18, -4)))
+          .sort((a, b) => b - a);
+
         while(backups.length > 20){
             const last = backups.pop()
             await forageStorage.removeItem(`database/dbbackup-${last}.bin`)
@@ -524,15 +522,17 @@ export async function loadData() {
                     const backups = await getDbBackups()
                     let backupLoaded = false
                     for(const backup of backups){
-                        try {
-                            LoadingStatusState.text = `Reading Backup File ${backup}...`
-                            const backupData = await readFile(`database/dbbackup-${backup}.bin`,{baseDir: BaseDirectory.AppData})
-                            setDatabase(
-                                await decodeRisuSave(backupData)
-                            )
-                            backupLoaded = true
-                        } catch (error) {
-                            console.error(error)
+                        if (!backupLoaded) {
+                            try {
+                                LoadingStatusState.text = `Reading Backup File ${backup}...`
+                                const backupData = await readFile(`database/dbbackup-${backup}.bin`, {baseDir: BaseDirectory.AppData})
+                                setDatabase(
+                                  await decodeRisuSave(backupData)
+                                )
+                                backupLoaded = true
+                            } catch (error) {
+                                console.error(error)
+                            }
                         }
                     }
                     if(!backupLoaded){
