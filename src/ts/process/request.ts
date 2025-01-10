@@ -1555,9 +1555,17 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 parts: geminiParts,
             });
         } else if (prevChat?.role === qRole) {
-            reformatedChat[reformatedChat.length-1].parts[
+            if (reformatedChat[reformatedChat.length-1].parts[
                 reformatedChat[reformatedChat.length-1].parts.length-1
-            ].text += '\n' + chat.content
+            ].inlineData) {
+                reformatedChat[reformatedChat.length-1].parts.push({
+                    text: chat.content,
+                })
+            } else {
+                reformatedChat[reformatedChat.length-1].parts[
+                    reformatedChat[reformatedChat.length-1].parts.length-1
+                ].text += '\n' + chat.content
+            }
             continue
         }
         else if(chat.role === 'system'){
