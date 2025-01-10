@@ -346,12 +346,16 @@ export async function hypaMemoryV2(
     memory?: SerializableHypaV2Data;
 }> {
     const db = getDatabase();
-    currentTokens -= db.maxResponse
     let data: HypaV2Data = {
         lastMainChunkID: 0,
         chunks: [],
         mainChunks: [],
     };
+
+    // Subtract maxResponse from currentTokens to fix the token calculation issue.
+    // This is not a fundamental solution but rather a temporary fix.
+    // It is designed to minimize impact on other code.
+    currentTokens -= db.maxResponse;
 
     if (room.hypaV2Data) {
         if (isOldHypaV2Data(room.hypaV2Data)) {
@@ -375,7 +379,7 @@ export async function hypaMemoryV2(
     const maxSummarizationFailures = 3;
 
     // Find the index to start summarizing from
-    let idx = 2; // first two should not be considered([Start a new chat], Memory prompt)
+    let idx = 0;
     if (data.mainChunks.length > 0) {
         const lastMainChunk = data.mainChunks[data.mainChunks.length - 1];
         const lastChatMemo = lastMainChunk.lastChatMemo;
@@ -383,9 +387,9 @@ export async function hypaMemoryV2(
         if (lastChatIndex !== -1) {
             idx = lastChatIndex + 1;
 
-            // Subtract tokens of removed chats
-            const removedChats = chats.slice(0, lastChatIndex + 1);
-            for (const chat of removedChats) {
+            // Subtract tokens of summarized chats
+            const summarizedChats = chats.slice(0, lastChatIndex + 1);
+            for (const chat of summarizedChats) {
                 currentTokens -= await tokenizer.tokenizeChat(chat);
             }
         }
@@ -425,6 +429,20 @@ export async function hypaMemoryV2(
                 "\nWould adding this exceed chunkSize?", (halfDataTokens + chatTokens > chunkSize)
             );
 
+            // Skip index 0 ([Start a new chat])
+            if (idx === 0) {
+                console.log("[HypaV2] Skipping index 0");
+                idx++;
+                continue;
+            }
+
+            // Skip if the content of this chat is empty
+            if (!chat.content.trim()) {
+                console.log(`[HypaV2] Skipping empty content of index ${idx}`);
+                idx++;
+                continue;
+            }
+
             // Check if adding this chat would exceed our chunkSize limit
             if (halfDataTokens + chatTokens > chunkSize) {
                 // Can't add this chat without going over chunkSize
@@ -450,8 +468,22 @@ export async function hypaMemoryV2(
 
         // If no chats were added, break to avoid infinite loop
         if (halfData.length === 0) {
-            console.log("HOW DID WE GET HERE???");
-            break;
+            // Case 1: Can't summarize the last 4 chats
+            if (idx >= chats.length - 4) {
+                return {
+                    currentTokens: currentTokens,
+                    chats: chats,
+                    error: `[HypaV2] Input tokens (${currentTokens}) exceeds max context size (${maxContextTokens}), but can't summarize last 4 messages. Please increase max context size to at least ${currentTokens}.`
+                };
+            }
+
+            // Case 2: Chat too large for chunk size
+            const chatTokens = await tokenizer.tokenizeChat(chats[idx]);
+            return {
+                currentTokens: currentTokens,
+                chats: chats,
+                error: `[HypaV2] Message tokens (${chatTokens}) exceeds chunk size (${chunkSize}). Please increase chunk size to at least ${chatTokens}.`
+            };
         }
 
         const stringlizedChat = halfData
@@ -465,11 +497,11 @@ export async function hypaMemoryV2(
             console.log("Summarization failed:", summaryData.data);
             summarizationFailures++;
             if (summarizationFailures >= maxSummarizationFailures) {
-                console.error("Summarization failed multiple times. Aborting...");
+                console.error("[HypaV2] Summarization failed multiple times. Aborting...");
                 return {
                     currentTokens: currentTokens,
                     chats: chats,
-                    error: "Summarization failed multiple times. Aborting to prevent infinite loop.",
+                    error: "[HypaV2] Summarization failed multiple times. Aborting to prevent infinite loop.",
                 };
             }
             // If summarization fails, try again in next iteration
