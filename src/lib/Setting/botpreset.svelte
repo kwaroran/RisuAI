@@ -116,6 +116,10 @@
         const lineDiffs = diffLines(prompt1, prompt2)
 
         let resultHtml = '';
+        let changedLines: string[] = []
+        let modifiedLinesCount = 0
+        let addedLinesCount = 0
+        let removedLinesCount = 0
 
         for (let i = 0; i < lineDiffs.length; i++) {
             const linePart = lineDiffs[i]
@@ -123,15 +127,24 @@
             if(linePart.removed){
                 const nextPart = lineDiffs[i + 1]
                 if(nextPart?.added){
-                    resultHtml += `<div style="border-left: 4px solid blue; padding-left: 8px;">${await highlightChanges(linePart.value, nextPart.value)}</div>`
+                    const modifiedLine = `<div style="border-left: 4px solid blue; padding-left: 8px;">${await highlightChanges(linePart.value, nextPart.value)}</div>`
+                    changedLines.push(modifiedLine)
+                    resultHtml += modifiedLine
                     i++;
+                    modifiedLinesCount += 1
                 }
                 else{
-                    resultHtml += `<div style="color: red; background-color: #ffe6e6; border-left: 4px solid red; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
+                    const removedLine = `<div style="color: red; background-color: #ffe6e6; border-left: 4px solid red; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
+                    changedLines.push(removedLine)
+                    resultHtml += removedLine
+                    removedLinesCount += 1
                 }
             }
             else if(linePart.added){
-                resultHtml += `<div style="color: green; background-color: #e6ffe6; border-left: 4px solid green; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
+                const addedLine = `<div style="color: green; background-color: #e6ffe6; border-left: 4px solid green; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
+                changedLines.push(addedLine)
+                resultHtml += addedLine
+                addedLinesCount += 1
             }
             else{
                 resultHtml += `<div>${escapeHtml(linePart.value)}</div>`
@@ -147,8 +160,20 @@
             }
         }
         else{
-            resultHtml = `<div style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review the changes.</div>` + resultHtml
+            const modifiedCount = `<span style="border-left: 4px solid blue; padding-left: 8px; padding-right: 8px;">${modifiedLinesCount}</span>`
+            const addedCount = `<span style="border-left: 4px solid green; padding-left: 8px; padding-right: 8px;">${addedLinesCount}</span>`
+            const removedCount = `<span style="border-left: 4px solid red; padding-left: 8px; padding-right: 8px;">${removedLinesCount}</span>`
+            const diffCounts = `<div>${modifiedCount}${addedCount}${removedCount}</div>`
+
+            resultHtml = `<div id="differences-detected" style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review the changes.${diffCounts}</div>` + resultHtml
             alertMd(resultHtml)
+
+            setTimeout(() => {
+                const differencesDetected = document.querySelector('#differences-detected');
+                if (differencesDetected) {
+                    differencesTooltip(changedLines)
+                }
+            }, 0)
         }
     }
 
@@ -171,6 +196,40 @@
                 }
             })
             .join('')
+    }
+
+    function differencesTooltip(changedLines: string[]) {
+        const differencesDetected = document.querySelector('#differences-detected')
+        if(!differencesDetected){
+            return
+        }
+
+        const tooltip = document.createElement('div')
+        tooltip.id = 'diff-tooltip'
+        tooltip.style.display = 'none'
+        tooltip.style.position = 'absolute'
+        tooltip.style.backgroundColor = '#282a36'
+        tooltip.style.padding = '10px'
+        tooltip.style.borderRadius = '5px'
+        tooltip.style.boxShadow = '0px 5px 5px rgba(0, 0, 0, 1)'
+        tooltip.style.maxWidth = '500px'
+        tooltip.style.overflowY = 'auto'
+        tooltip.style.maxHeight = '300px'
+        tooltip.style.textAlign = 'initial'
+
+        differencesDetected.appendChild(tooltip)
+
+        differencesDetected.addEventListener('mouseenter', () => {
+            const tooltipContent = !changedLines.length ? '' : `<div><strong>Changed Lines</strong></div>
+                <div>${changedLines.join('<br>')}</div>`
+
+            tooltip.innerHTML = tooltipContent;
+            tooltip.style.display = 'block'
+        })
+
+        differencesDetected.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none'
+        })
     }
     
 
