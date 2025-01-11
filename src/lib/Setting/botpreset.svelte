@@ -111,7 +111,7 @@
         return prompt
     }
 
-    async function checkDiff(prompt1: string, prompt2: string): Promise<string> {
+    async function checkDiff(prompt1: string, prompt2: string): Promise<void> {
         const { diffLines } = await import('diff')
         const lineDiffs = diffLines(prompt1, prompt2)
 
@@ -139,13 +139,17 @@
         }
 
         if(lineDiffs.length === 1 && !lineDiffs[0].added && !lineDiffs[0].removed) {
-            resultHtml = `<div style="background-color: #4caf50; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">No differences detected.</div>` + resultHtml
+            const userResponse = await alertConfirm('The two prompts are identical. Would you like to review the content?')
+
+            if(userResponse){
+                resultHtml = `<div style="background-color: #4caf50; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">No differences detected.</div>` + resultHtml
+                alertMd(resultHtml)
+            }
         }
         else{
             resultHtml = `<div style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review the changes.</div>` + resultHtml
+            alertMd(resultHtml)
         }
-
-        return resultHtml
     }
 
     async function highlightChanges(string1: string, string2: string) {
@@ -194,8 +198,8 @@
         }
         else{
             alertWait("Loading...")
-            const result = await checkDiff(selectedPrompts[0], prompt)
-            alertMd(result)
+            await checkDiff(selectedPrompts[0], prompt)
+
             selectedDiffPreset = -1
             selectedPrompts = []
         }
