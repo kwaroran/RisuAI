@@ -316,6 +316,60 @@
                         </div>
                     {/each}
                 {/if}
+            {:else if $alertStore.type === 'hypaV3'}
+                <div class="fixed inset-0 z-50 bg-black bg-opacity-50 p-4">
+                    <div class="h-full w-full flex justify-center">
+                        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col w-full max-w-3xl {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0 ? 'h-48' : 'max-h-full'}">
+                            <div class="flex justify-between items-center w-full mb-4">
+                                <h1 class="text-xl font-bold">HypaV3 Data</h1>
+                                <button class="p-2 hover:text-red-500 transition-colors" onclick={() => {
+                                    alertStore.set({
+                                        type: 'none',
+                                        msg: ''
+                                    })
+                                }}>
+                                    <XIcon size={24}/>
+                                </button>
+                            </div>
+                            <div class="flex flex-col gap-4 w-full overflow-y-auto">
+                                {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries as summary, i}
+                                    <div class="flex flex-col p-4 rounded-md border-darkborderc border bg-bgcolor">
+                                        <!-- Summary Text -->
+                                        <div class="mb-4">
+                                            <span class="text-sm text-textcolor2 mb-2 block">Summary #{i + 1}</span>
+                                            <TextAreaInput
+                                                bind:value={summary.text}
+                                                className="bg-darkbg"
+                                            />
+                                        </div>
+                                       
+                                        <!-- Connected Messages -->
+                                        <div class="mt-2">
+                                            <span class="text-sm text-textcolor2 mb-2 block">
+                                                Connected Messages ({summary.chatMemos.length})
+                                            </span>
+                                            <div class="flex flex-wrap gap-1">
+                                                {#each summary.chatMemos as memo}
+                                                    <div class="text-xs px-2 py-1 bg-darkbg rounded-full text-textcolor2 hover:bg-opacity-80 cursor-help"
+                                                    title={(() => {
+                                                        const message = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.find(m => m.chatId === memo);
+                                                        return message ? (message.data.length > 100 ? message.data.slice(0, 100).trim() + '...' : message.data.trim()) : 'Message not found';
+                                                    })()}
+                                                    >
+                                                        {memo}
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/each}
+                                {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0}
+                                    <span class="text-textcolor2 text-center p-4">No summaries yet</span>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 

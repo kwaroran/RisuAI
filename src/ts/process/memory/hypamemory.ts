@@ -206,9 +206,9 @@ function similarity(a:VectorArray, b:VectorArray) {
     return dot
 }
 
-type VectorArray = number[]|Float32Array
+export type VectorArray = number[]|Float32Array
 
-type memoryVector = {
+export type memoryVector = {
     embedding:number[]|Float32Array,
     content:string,
     alreadySaved?:boolean
