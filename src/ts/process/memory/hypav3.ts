@@ -86,7 +86,7 @@ function cleanOrphanedSummary(chats: OpenAIChat[], data: HypaV3Data): void {
   }
 }
 
-async function summary(
+export async function summarize(
   stringifiedChats: string
 ): Promise<{ success: boolean; data: string }> {
   const db = getDatabase();
@@ -446,10 +446,10 @@ export async function hypaMemoryV3(
         toSummarize
       );
 
-      const summaryResult = await summary(stringifiedChats);
+      const summarizeResult = await summarize(stringifiedChats);
 
-      if (!summaryResult.success) {
-        console.log("[HypaV3] Summarization failed:", summaryResult.data);
+      if (!summarizeResult.success) {
+        console.log("[HypaV3] Summarization failed:", summarizeResult.data);
         summarizationFailures++;
 
         if (summarizationFailures >= maxSummarizationFailures) {
@@ -465,7 +465,7 @@ export async function hypaMemoryV3(
       }
 
       data.summaries.push({
-        text: summaryResult.data,
+        text: summarizeResult.data,
         chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
       });
 
@@ -687,10 +687,10 @@ export async function hypaMemoryV3(
           recentChats
         );
 
-        const summaryResult = await summary(stringifiedRecentChats);
+        const summarizeResult = await summarize(stringifiedRecentChats);
 
-        if (!summaryResult.success) {
-          console.log("[HypaV3] Summarization failed:", summaryResult.data);
+        if (!summarizeResult.success) {
+          console.log("[HypaV3] Summarization failed:", summarizeResult.data);
           summarizationFailures++;
 
           if (summarizationFailures >= maxSummarizationFailures) {
@@ -706,7 +706,7 @@ export async function hypaMemoryV3(
         }
 
         const searched = await processor.similaritySearchScoredEx(
-          summaryResult.data
+          summarizeResult.data
         );
 
         for (const [chunk, similarity] of searched) {
