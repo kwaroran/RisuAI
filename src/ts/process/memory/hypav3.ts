@@ -337,18 +337,10 @@ export async function hypaMemoryV3(
 
   if (shouldReserveEmptyMemoryTokens) {
     currentTokens += emptyMemoryTokens;
-    console.log(
-      "[HypaV3] Reserved empty memory tokens:",
-      "\nTokens:",
-      emptyMemoryTokens
-    );
+    console.log("[HypaV3] Reserved empty memory tokens:", emptyMemoryTokens);
   } else {
     currentTokens += memoryTokens;
-    console.log(
-      "[HypaV3] Reserved max memory tokens:",
-      "\nTokens:",
-      memoryTokens
-    );
+    console.log("[HypaV3] Reserved max memory tokens:", memoryTokens);
   }
 
   // If summarization is needed
@@ -357,21 +349,21 @@ export async function hypaMemoryV3(
     maxContextTokens * (1 - db.hypaV3Settings.extraSummarizationRatio);
 
   while (summarizationMode) {
-    if (
-      currentTokens <= targetTokens ||
-      (currentTokens <= maxContextTokens &&
-        chats.length - startIdx <= minChatsForSimilarity)
-    ) {
+    if (currentTokens <= targetTokens) {
       break;
     }
 
     if (chats.length - startIdx <= minChatsForSimilarity) {
-      return {
-        currentTokens,
-        chats,
-        error: `[HypaV3] Cannot summarize further: input token count (${currentTokens}) exceeds max context size (${maxContextTokens}), but minimum ${minChatsForSimilarity} messages required.`,
-        memory: toSerializableHypaV3Data(data),
-      };
+      if (currentTokens <= maxContextTokens) {
+        break;
+      } else {
+        return {
+          currentTokens,
+          chats,
+          error: `[HypaV3] Cannot summarize further: input token count (${currentTokens}) exceeds max context size (${maxContextTokens}), but minimum ${minChatsForSimilarity} messages required.`,
+          memory: toSerializableHypaV3Data(data),
+        };
+      }
     }
 
     const toSummarize: OpenAIChat[] = [];
@@ -379,9 +371,10 @@ export async function hypaMemoryV3(
       startIdx + db.hypaV3Settings.maxChatsPerSummary,
       chats.length - minChatsForSimilarity
     );
+    let toSummarizeTokens = 0;
 
     console.log(
-      "[HypaV3] Starting summarization iteration:",
+      "[HypaV3] Evaluating summarization batch:",
       "\nCurrent Tokens:",
       currentTokens,
       "\nMax Context Tokens:",
@@ -412,7 +405,7 @@ export async function hypaMemoryV3(
         chatTokens
       );
 
-      currentTokens -= chatTokens;
+      toSummarizeTokens += chatTokens;
 
       if (i === 0 || !chat.content.trim()) {
         console.log(
@@ -425,6 +418,17 @@ export async function hypaMemoryV3(
       }
 
       toSummarize.push(chat);
+    }
+
+    // Stop summarization if further reduction would go below target tokens (unless we're over max tokens)
+    if (
+      currentTokens <= maxContextTokens &&
+      currentTokens - toSummarizeTokens < targetTokens
+    ) {
+      console.log(
+        `[HypaV3] Stopping summarization: would reduce below target tokens (${currentTokens} - ${toSummarizeTokens} < ${targetTokens})`
+      );
+      break;
     }
 
     // Attempt summarization
@@ -468,11 +472,14 @@ export async function hypaMemoryV3(
       break;
     }
 
+    currentTokens -= toSummarizeTokens;
     startIdx = endIdx;
   }
 
   console.log(
-    "[HypaV3] Finishing summarization:",
+    `[HypaV3] ${
+      summarizationMode ? "Completed" : "Skipped"
+    } summarization phase:`,
     "\nCurrent Tokens:",
     currentTokens,
     "\nMax Context Tokens:",
@@ -745,6 +752,9 @@ export async function hypaMemoryV3(
         summaryTokens + consumedSimilarMemoryTokens >
         reservedSimilarMemoryTokens
       ) {
+        console.log(
+          `[HypaV3] Stopping similar memory selection: would exceed reserved tokens (${consumedSimilarMemoryTokens} + ${summaryTokens} > ${reservedSimilarMemoryTokens})`
+        );
         break;
       }
 
@@ -798,8 +808,8 @@ export async function hypaMemoryV3(
     selectedSummaries,
     "\nReal Memory Tokens:",
     realMemoryTokens,
-    "\nCurrent Tokens:",
-    currentTokens
+    "\nAvailable Memory Tokens:",
+    availableMemoryTokens
   );
 
   if (currentTokens > maxContextTokens) {
