@@ -354,10 +354,7 @@ export async function hypaMemoryV3(
   // If summarization is needed
   let summarizationMode = currentTokens > maxContextTokens;
   const targetTokens =
-    maxContextTokens *
-    (1 -
-      db.hypaV3Settings.memoryTokensRatio -
-      db.hypaV3Settings.extraSummarizationRatio);
+    maxContextTokens * (1 - db.hypaV3Settings.extraSummarizationRatio);
 
   while (summarizationMode) {
     if (
@@ -811,16 +808,28 @@ export async function hypaMemoryV3(
     );
   }
 
+  const newChats: OpenAIChat[] = [
+    {
+      role: "system",
+      content: memory,
+      memo: "supaMemory",
+    },
+    ...chats.slice(startIdx),
+  ];
+
+  console.log(
+    "[HypaV3] Exiting function:",
+    "\nCurrent Tokens:",
+    currentTokens,
+    "\nAll chats, including memory prompt:",
+    newChats,
+    "\nMemory Data:",
+    data
+  );
+
   return {
     currentTokens,
-    chats: [
-      {
-        role: "system",
-        content: memory,
-        memo: "supaMemory",
-      },
-      ...chats.slice(startIdx),
-    ],
+    chats: newChats,
     memory: toSerializableHypaV3Data(data),
   };
 }
