@@ -8,7 +8,7 @@
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
+    import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert, showHypaV3Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
@@ -1098,14 +1098,27 @@
             <Button
                 onclick={() => {
                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data ??= {
+                        lastMainChunkID: 0,
+                        mainChunks: [],
                         chunks: [],
-                        mainChunks: []
                     }
                     showHypaV2Alert()
                 }}
                 className="mt-4"
             >
                 {language.HypaMemory} V2 Data
+            </Button>
+        {:else if DBState.db.supaModelType !== 'none' && DBState.db.hypaV3}
+            <Button
+                onclick={() => {
+                    DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data ??= {
+                        summaries: [],
+                    }
+                    showHypaV3Alert()
+                }}
+                className="mt-4"
+            >
+                {language.HypaMemory} V3 Data
             </Button>
         {:else if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData.length > 4 || DBState.db.characters[$selectedCharID].supaMemory}
             <span class="text-textcolor mt-4">{language.SuperMemory}</span>

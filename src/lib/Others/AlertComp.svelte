@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { alertGenerationInfoStore } from "../../ts/alert";
+    import { alertGenerationInfoStore, alertConfirm } from "../../ts/alert";
     
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser.svelte';
     import BarIcon from '../SideBars/BarIcon.svelte';
-    import { ChevronRightIcon, User } from 'lucide-svelte';
+    import { ChevronRightIcon, User, RefreshCw } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon, Trash2Icon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -24,6 +24,7 @@
     import { getChatBranches } from "src/ts/gui/branches";
   import { getCurrentCharacter } from "src/ts/storage/database.svelte";
   import { message } from "@tauri-apps/plugin-dialog";
+  import { summarize as hypaV3Summarize } from "src/ts/process/memory/hypav3";
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -67,6 +68,8 @@
     let {
         onclick
     }:Props = $props()
+
+    let hypaV3Resummarizing = $state(false)
 </script>
 
 <svelte:window onmessage={async (e) => {
@@ -316,6 +319,117 @@
                         </div>
                     {/each}
                 {/if}
+            {:else if $alertStore.type === 'hypaV3'}
+                <div class="fixed inset-0 z-50 bg-black bg-opacity-50 p-4">
+                    <div class="h-full w-full flex justify-center">
+                        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col w-full max-w-3xl {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0 ? 'h-48' : 'max-h-full'}">
+                            <div class="flex justify-between items-center w-full mb-4">
+                                <h1 class="text-xl font-bold">HypaV3 Data</h1>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 hover:text-red-500 transition-colors" onclick={async () => {
+                                        const confirmed = await alertConfirm('This action cannot be undone. Do you want to reset HypaV3 data?')
+
+                                        if (confirmed) {
+                                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data = {
+                                                summaries: []
+                                            }
+                                        }
+                                    }}>
+                                        <Trash2Icon size={24}/>
+                                    </button>
+                                    <button class="p-2 hover:text-red-500 transition-colors" onclick={() => {
+                                        alertStore.set({
+                                            type: 'none',
+                                            msg: ''
+                                        })
+                                    }}>
+                                        <XIcon size={24}/>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-4 w-full overflow-y-auto">
+                                {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries as summary, i}
+                                    <div class="flex flex-col p-4 rounded-md border-darkborderc border bg-bgcolor">
+                                        <!-- Summary Text -->
+                                        <div class="mb-4">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="text-sm text-textcolor2">Summary #{i + 1}</span>
+                                                <button 
+                                                    class="p-1 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    onclick={async () => {
+                                                        hypaV3Resummarizing = true
+
+                                                        try {
+                                                            const char = DBState.db.characters[$selectedCharID]
+                                                            const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage]
+                                                            const firstMessage = chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings?.[chat.fmIndex ?? 0]
+                                                            const toSummarize = summary.chatMemos.map(chatMemo => {
+                                                                if (chatMemo == null) {
+                                                                    return {
+                                                                        role: "assistant",
+                                                                        data: firstMessage
+                                                                    }
+                                                                }
+
+                                                                const msg = chat.message.find(m => m.chatId === chatMemo)
+                                                                return msg ? {
+                                                                    role: msg.role === "char" ? "assistant" : msg.role,
+                                                                    data: msg.data
+                                                                } : null
+                                                            })                                                     
+                                                            const stringifiedChats = toSummarize
+                                                                .map((m) => `${m.role}: ${m.data}`)
+                                                                .join("\n")
+                                                            const summarizeResult = await hypaV3Summarize(stringifiedChats)
+                                                            
+                                                            if (summarizeResult.success) {
+                                                                summary.text = summarizeResult.data
+                                                            }
+                                                        } finally {
+                                                            hypaV3Resummarizing = false
+                                                        }
+                                                    }}
+                                                    disabled={hypaV3Resummarizing}
+                                                >
+                                                    <RefreshCw size={16}/>
+                                                </button>
+                                            </div>
+                                            <TextAreaInput
+                                                bind:value={summary.text}
+                                                className="bg-darkbg"
+                                            />
+                                        </div>
+                                       
+                                        <!-- Connected Messages -->
+                                        <div class="mt-2">
+                                            <span class="text-sm text-textcolor2 mb-2 block">
+                                                Connected Messages ({summary.chatMemos.length})
+                                            </span>
+                                            <div class="flex flex-wrap gap-1">
+                                                {#each summary.chatMemos as chatMemo}
+                                                    <div class="text-xs px-2 py-1 bg-darkbg rounded-full text-textcolor2 hover:bg-opacity-80 cursor-help"
+                                                    title={(() => {
+                                                        const char = DBState.db.characters[$selectedCharID]
+                                                        const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage]
+                                                        const firstMessage = chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings?.[chat.fmIndex ?? 0]
+                                                        const message = chatMemo == null ? firstMessage : chat.message.find(m => m.chatId === chatMemo)?.data
+                                                        return message ? (message.length > 100 ? message.slice(0, 100).trim() + "..." : message.trim()) : "Message not found"
+                                                    })()}
+                                                    >
+                                                        {chatMemo == null ? "First message" : chatMemo}
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/each}
+                                {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0}
+                                    <span class="text-textcolor2 text-center p-4">No summaries yet</span>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
