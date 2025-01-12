@@ -283,26 +283,14 @@ export async function hypaMemoryV3(
     };
   }
 
-  const emptyMemoryTokens = await tokenizer.tokenizeChat({
-    role: "system",
-    content: encapsulateMemoryPrompt(""),
-  });
-  const memoryTokens = maxContextTokens * db.hypaV3Settings.memoryTokensRatio;
-  const availableMemoryTokens = memoryTokens - emptyMemoryTokens;
-  const recentMemoryRatio =
-    1 -
-    db.hypaV3Settings.similarMemoryRatio -
-    db.hypaV3Settings.randomMemoryRatio;
-
-  let startIdx = 0;
-  let data: HypaV3Data = {
-    summaries: [],
-  };
-
   // Initial token correction
   currentTokens -= db.maxResponse;
 
   // Load existing hypa data if available
+  let data: HypaV3Data = {
+    summaries: [],
+  };
+
   if (room.hypaV3Data) {
     data = toHypaV3Data(room.hypaV3Data);
   }
@@ -313,6 +301,8 @@ export async function hypaMemoryV3(
   }
 
   // Determine starting index
+  let startIdx = 0;
+
   if (data.summaries.length > 0) {
     const lastSummary = data.summaries.at(-1);
     const lastChatIndex = chats.findIndex(
@@ -331,14 +321,34 @@ export async function hypaMemoryV3(
   }
 
   // Reserve memory tokens
+  const emptyMemoryTokens = await tokenizer.tokenizeChat({
+    role: "system",
+    content: encapsulateMemoryPrompt(""),
+  });
+  const memoryTokens = Math.floor(
+    maxContextTokens * db.hypaV3Settings.memoryTokensRatio
+  );
   const shouldReserveEmptyMemoryTokens =
     data.summaries.length === 0 &&
     currentTokens + emptyMemoryTokens <= maxContextTokens;
+  const availableMemoryTokens = shouldReserveEmptyMemoryTokens
+    ? 0
+    : memoryTokens - emptyMemoryTokens;
 
   if (shouldReserveEmptyMemoryTokens) {
     currentTokens += emptyMemoryTokens;
+    console.log(
+      "[HypaV3] Reserved empty memory tokens:",
+      "\nTokens:",
+      emptyMemoryTokens
+    );
   } else {
     currentTokens += memoryTokens;
+    console.log(
+      "[HypaV3] Reserved max memory tokens:",
+      "\nTokens:",
+      memoryTokens
+    );
   }
 
   // If summarization is needed
@@ -383,6 +393,8 @@ export async function hypaMemoryV3(
       startIdx,
       "\nEnd Index:",
       endIdx,
+      "\nChat Count:",
+      endIdx - startIdx,
       "\nMax Chats Per Summary:",
       db.hypaV3Settings.maxChatsPerSummary
     );
@@ -429,8 +441,8 @@ export async function hypaMemoryV3(
         "[HypaV3] Attempting summarization:",
         "\nAttempt:",
         summarizationFailures + 1,
-        "\nChat Count:",
-        toSummarize.length
+        "\nTarget:",
+        toSummarize
       );
 
       const summaryResult = await summary(stringifiedChats);
@@ -468,14 +480,21 @@ export async function hypaMemoryV3(
     currentTokens,
     "\nMax Context Tokens:",
     maxContextTokens,
-    "\nMax Memory Tokens:",
-    memoryTokens
+    "\nAvailable Memory Tokens:",
+    availableMemoryTokens
   );
 
   const selectedSummaries: Summary[] = [];
 
   // Select recent summaries
-  let availableRecentMemoryTokens = availableMemoryTokens * recentMemoryRatio;
+  const recentMemoryRatio =
+    1 -
+    db.hypaV3Settings.similarMemoryRatio -
+    db.hypaV3Settings.randomMemoryRatio;
+  const reservedRecentMemoryTokens = Math.floor(
+    availableMemoryTokens * recentMemoryRatio
+  );
+  let consumedRecentMemoryTokens = 0;
 
   if (recentMemoryRatio > 0) {
     const selectedRecentSummaries: Summary[] = [];
@@ -488,12 +507,15 @@ export async function hypaMemoryV3(
         content: summary.text + summarySeparator,
       });
 
-      if (summaryTokens > availableRecentMemoryTokens) {
+      if (
+        summaryTokens + consumedRecentMemoryTokens >
+        reservedRecentMemoryTokens
+      ) {
         break;
       }
 
       selectedRecentSummaries.push(summary);
-      availableRecentMemoryTokens -= summaryTokens;
+      consumedRecentMemoryTokens += summaryTokens;
     }
 
     selectedSummaries.push(...selectedRecentSummaries);
@@ -504,21 +526,33 @@ export async function hypaMemoryV3(
       selectedRecentSummaries.length,
       "\nSummaries:",
       selectedRecentSummaries,
-      "\nTokens:",
-      availableMemoryTokens * recentMemoryRatio - availableRecentMemoryTokens
+      "\nReserved Recent Memory Tokens:",
+      reservedRecentMemoryTokens,
+      "\nConsumed Recent Memory Tokens:",
+      consumedRecentMemoryTokens
     );
   }
 
   // Select random summaries
-  let availableRandomMemoryTokens =
-    availableMemoryTokens * db.hypaV3Settings.randomMemoryRatio;
+  let reservedRandomMemoryTokens = Math.floor(
+    availableMemoryTokens * db.hypaV3Settings.randomMemoryRatio
+  );
+  let consumedRandomMemoryTokens = 0;
 
   if (db.hypaV3Settings.randomMemoryRatio > 0) {
     const selectedRandomSummaries: Summary[] = [];
 
-    // Utilize available tokens
+    // Utilize unused token space from recent selection
     if (db.hypaV3Settings.similarMemoryRatio === 0) {
-      availableRandomMemoryTokens += availableRecentMemoryTokens;
+      const unusedRecentTokens =
+        reservedRecentMemoryTokens - consumedRecentMemoryTokens;
+
+      reservedRandomMemoryTokens += unusedRecentTokens;
+      console.log(
+        "[HypaV3] Additional available token space for random memory:",
+        "\nFrom recent:",
+        unusedRecentTokens
+      );
     }
 
     // Target only summaries that haven't been selected yet
@@ -532,13 +566,16 @@ export async function hypaMemoryV3(
         content: summary.text + summarySeparator,
       });
 
-      if (summaryTokens > availableRandomMemoryTokens) {
+      if (
+        summaryTokens + consumedRandomMemoryTokens >
+        reservedRandomMemoryTokens
+      ) {
         // Trying to select more random memory
         continue;
       }
 
       selectedRandomSummaries.push(summary);
-      availableRandomMemoryTokens -= summaryTokens;
+      consumedRandomMemoryTokens += summaryTokens;
     }
 
     selectedSummaries.push(...selectedRandomSummaries);
@@ -549,21 +586,37 @@ export async function hypaMemoryV3(
       selectedRandomSummaries.length,
       "\nSummaries:",
       selectedRandomSummaries,
-      "\nTokens:",
-      availableMemoryTokens * db.hypaV3Settings.randomMemoryRatio -
-        availableRandomMemoryTokens
+      "\nReserved Random Memory Tokens:",
+      reservedRandomMemoryTokens,
+      "\nConsumed Random Memory Tokens:",
+      consumedRandomMemoryTokens
     );
   }
 
   // Select similar summaries
   if (db.hypaV3Settings.similarMemoryRatio > 0) {
+    let reservedSimilarMemoryTokens = Math.floor(
+      availableMemoryTokens * db.hypaV3Settings.similarMemoryRatio
+    );
+    let consumedSimilarMemoryTokens = 0;
     const selectedSimilarSummaries: Summary[] = [];
-    let availableSimilarMemoryTokens =
-      availableMemoryTokens * db.hypaV3Settings.similarMemoryRatio;
 
-    // Utilize available tokens
-    availableSimilarMemoryTokens +=
-      availableRecentMemoryTokens + availableRandomMemoryTokens;
+    // Utilize unused token space from recent and random selection
+    const unusedRecentTokens =
+      reservedRecentMemoryTokens - consumedRecentMemoryTokens;
+    const unusedRandomTokens =
+      reservedRandomMemoryTokens - consumedRandomMemoryTokens;
+
+    reservedSimilarMemoryTokens += unusedRecentTokens + unusedRandomTokens;
+    console.log(
+      "[HypaV3] Additional available token space for similar memory:",
+      "\nFrom recent:",
+      unusedRecentTokens,
+      "\nFrom random:",
+      unusedRandomTokens,
+      "\nTotal added:",
+      unusedRecentTokens + unusedRandomTokens
+    );
 
     // Target only summaries that haven't been selected yet
     const unusedSummaries = data.summaries.filter(
@@ -626,8 +679,8 @@ export async function hypaMemoryV3(
           "[HypaV3] Attempting summarization:",
           "\nAttempt:",
           summarizationFailures + 1,
-          "\nChat Count:",
-          recentChats.length
+          "\nTarget:",
+          recentChats
         );
 
         const summaryResult = await summary(stringifiedRecentChats);
@@ -691,12 +744,15 @@ export async function hypaMemoryV3(
       );
       */
 
-      if (summaryTokens > availableSimilarMemoryTokens) {
+      if (
+        summaryTokens + consumedSimilarMemoryTokens >
+        reservedSimilarMemoryTokens
+      ) {
         break;
       }
 
       selectedSimilarSummaries.push(summary);
-      availableSimilarMemoryTokens -= summaryTokens;
+      consumedSimilarMemoryTokens += summaryTokens;
     }
 
     selectedSummaries.push(...selectedSimilarSummaries);
@@ -707,9 +763,10 @@ export async function hypaMemoryV3(
       selectedSimilarSummaries.length,
       "\nSummaries:",
       selectedSimilarSummaries,
-      "\nTokens:",
-      availableMemoryTokens * db.hypaV3Settings.similarMemoryRatio -
-        availableSimilarMemoryTokens
+      "\nReserved Similar Memory Tokens:",
+      reservedSimilarMemoryTokens,
+      "\nConsumed Similar Memory Tokens:",
+      consumedSimilarMemoryTokens
     );
   }
 
