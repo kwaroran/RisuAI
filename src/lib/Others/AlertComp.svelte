@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { alertGenerationInfoStore } from "../../ts/alert";
+    import { alertGenerationInfoStore, alertConfirm } from "../../ts/alert";
     
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from '../../ts/characters';
@@ -10,7 +10,7 @@
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon, Trash2Icon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -322,14 +322,26 @@
                         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col w-full max-w-3xl {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0 ? 'h-48' : 'max-h-full'}">
                             <div class="flex justify-between items-center w-full mb-4">
                                 <h1 class="text-xl font-bold">HypaV3 Data</h1>
-                                <button class="p-2 hover:text-red-500 transition-colors" onclick={() => {
-                                    alertStore.set({
-                                        type: 'none',
-                                        msg: ''
-                                    })
-                                }}>
-                                    <XIcon size={24}/>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 hover:text-red-500 transition-colors" onclick={async () => {
+                                        const confirmed = await alertConfirm('This action cannot be undone. Do you want to reset HypaV3 data?')
+                                        if (confirmed) {
+                                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data = {
+                                                summaries: []
+                                            };
+                                        }
+                                    }}>
+                                        <Trash2Icon size={24}/>
+                                    </button>
+                                    <button class="p-2 hover:text-red-500 transition-colors" onclick={() => {
+                                        alertStore.set({
+                                            type: 'none',
+                                            msg: ''
+                                        })
+                                    }}>
+                                        <XIcon size={24}/>
+                                    </button>
+                                </div>
                             </div>
                             <div class="flex flex-col gap-4 w-full overflow-y-auto">
                                 {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries as summary, i}
