@@ -19,6 +19,7 @@ import type { ChatTokenizer } from "src/ts/tokenizer";
 interface Summary {
   text: string;
   chatMemos: Set<string>;
+  isImportant: boolean;
 }
 
 interface HypaV3Data {
@@ -29,6 +30,7 @@ export interface SerializableHypaV3Data {
   summaries: {
     text: string;
     chatMemos: string[];
+    isImportant: boolean;
   }[];
 }
 
@@ -50,7 +52,7 @@ function isSubset(subset: Set<string>, superset: Set<string>): boolean {
 function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
   return {
     summaries: data.summaries.map((summary) => ({
-      text: summary.text,
+      ...summary,
       chatMemos: [...summary.chatMemos],
     })),
   };
@@ -59,9 +61,11 @@ function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
 function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
   return {
     summaries: serialData.summaries.map((summary) => ({
-      text: summary.text,
+      ...summary,
       // Convert null back to undefined (JSON serialization converts undefined to null)
-      chatMemos: new Set(summary.chatMemos.map(memo => memo === null ? undefined : memo)),
+      chatMemos: new Set(
+        summary.chatMemos.map((memo) => (memo === null ? undefined : memo))
+      ),
     })),
   };
 }
@@ -288,7 +292,7 @@ export async function hypaMemoryV3(
   const shouldReserveEmptyMemoryTokens =
     data.summaries.length === 0 &&
     currentTokens + emptyMemoryTokens <= maxContextTokens;
-  const availableMemoryTokens = shouldReserveEmptyMemoryTokens
+  let availableMemoryTokens = shouldReserveEmptyMemoryTokens
     ? 0
     : memoryTokens - emptyMemoryTokens;
 
@@ -424,6 +428,7 @@ export async function hypaMemoryV3(
       data.summaries.push({
         text: summarizeResult.data,
         chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
+        isImportant: false,
       });
 
       break;
@@ -451,6 +456,38 @@ export async function hypaMemoryV3(
     db.hypaV3Settings.recentMemoryRatio -
     db.hypaV3Settings.similarMemoryRatio;
 
+  // Select important summaries
+  const selectedImportantSummaries: Summary[] = [];
+
+  for (const summary of data.summaries) {
+    if (summary.isImportant) {
+      const summaryTokens = await tokenizer.tokenizeChat({
+        role: "system",
+        content: summary.text + summarySeparator,
+      });
+
+      if (summaryTokens > availableMemoryTokens) {
+        break;
+      }
+
+      selectedImportantSummaries.push(summary);
+
+      availableMemoryTokens -= summaryTokens;
+    }
+  }
+
+  selectedSummaries.push(...selectedImportantSummaries);
+
+  console.log(
+    "[HypaV3] After important memory selection:",
+    "\nSummary Count:",
+    selectedImportantSummaries.length,
+    "\nSummaries:",
+    selectedImportantSummaries,
+    "\nAvailable Memory Tokens:",
+    availableMemoryTokens
+  );
+
   // Select recent summaries
   const reservedRecentMemoryTokens = Math.floor(
     availableMemoryTokens * db.hypaV3Settings.recentMemoryRatio
@@ -460,9 +497,14 @@ export async function hypaMemoryV3(
   if (db.hypaV3Settings.recentMemoryRatio > 0) {
     const selectedRecentSummaries: Summary[] = [];
 
+    // Target only summaries that haven't been selected yet
+    const unusedSummaries = data.summaries.filter(
+      (e) => !selectedSummaries.includes(e)
+    );
+
     // Add one by one from the end
-    for (let i = data.summaries.length - 1; i >= 0; i--) {
-      const summary = data.summaries[i];
+    for (let i = unusedSummaries.length - 1; i >= 0; i--) {
+      const summary = unusedSummaries[i];
       const summaryTokens = await tokenizer.tokenizeChat({
         role: "system",
         content: summary.text + summarySeparator,

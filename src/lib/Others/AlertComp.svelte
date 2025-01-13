@@ -5,7 +5,7 @@
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser.svelte';
     import BarIcon from '../SideBars/BarIcon.svelte';
-    import { ChevronRightIcon, User, RefreshCw } from 'lucide-svelte';
+    import { ChevronRightIcon, User, RefreshCw, StarIcon } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/globalApi.svelte';
@@ -364,46 +364,57 @@
                                         <div class="mb-4">
                                             <div class="flex justify-between items-center mb-2">
                                                 <span class="text-sm text-textcolor2">Summary #{i + 1}</span>
-                                                <!-- Resummarize Button -->
-                                                <button 
-                                                    class="p-1 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    onclick={async () => {
-                                                        hypaV3IsResummarizing = true
+                                                <div class="flex items-center gap-4">
+                                                    <!-- Important Button -->
+                                                    <button 
+                                                        class="p-1 hover:text-yellow-500 transition-colors {summary.isImportant ? "text-yellow-500" : "text-textcolor2"}"
+                                                        onclick={() => {
+                                                            summary.isImportant = !summary.isImportant
+                                                        }}
+                                                    >
+                                                        <StarIcon size={16}/>
+                                                    </button>
+                                                    <!-- Resummarize Button -->
+                                                    <button 
+                                                        class="p-1 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        onclick={async () => {
+                                                            hypaV3IsResummarizing = true
 
-                                                        try {
-                                                            const char = DBState.db.characters[$selectedCharID]
-                                                            const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage]
-                                                            const firstMessage = chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings?.[chat.fmIndex ?? 0]
-                                                            const toSummarize = summary.chatMemos.map(chatMemo => {
-                                                                if (chatMemo == null) {
-                                                                    return {
-                                                                        role: "assistant",
-                                                                        data: firstMessage
+                                                            try {
+                                                                const char = DBState.db.characters[$selectedCharID]
+                                                                const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage]
+                                                                const firstMessage = chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings?.[chat.fmIndex ?? 0]
+                                                                const toSummarize = summary.chatMemos.map(chatMemo => {
+                                                                    if (chatMemo == null) {
+                                                                        return {
+                                                                            role: "assistant",
+                                                                            data: firstMessage
+                                                                        }
                                                                     }
-                                                                }
 
-                                                                const msg = chat.message.find(m => m.chatId === chatMemo)
-                                                                return msg ? {
-                                                                    role: msg.role === "char" ? "assistant" : msg.role,
-                                                                    data: msg.data
-                                                                } : null
-                                                            })                                                     
-                                                            const stringifiedChats = toSummarize
-                                                                .map((m) => `${m.role}: ${m.data}`)
-                                                                .join("\n")
-                                                            const summarizeResult = await hypaV3Summarize(stringifiedChats)
-                                                            
-                                                            if (summarizeResult.success) {
-                                                                summary.text = summarizeResult.data
+                                                                    const msg = chat.message.find(m => m.chatId === chatMemo)
+                                                                    return msg ? {
+                                                                        role: msg.role === "char" ? "assistant" : msg.role,
+                                                                        data: msg.data
+                                                                    } : null
+                                                                })                                                     
+                                                                const stringifiedChats = toSummarize
+                                                                    .map((m) => `${m.role}: ${m.data}`)
+                                                                    .join("\n")
+                                                                const summarizeResult = await hypaV3Summarize(stringifiedChats)
+                                                                
+                                                                if (summarizeResult.success) {
+                                                                    summary.text = summarizeResult.data
+                                                                }
+                                                            } finally {
+                                                                hypaV3IsResummarizing = false
                                                             }
-                                                        } finally {
-                                                            hypaV3IsResummarizing = false
-                                                        }
-                                                    }}
-                                                    disabled={hypaV3IsResummarizing}
-                                                >
-                                                    <RefreshCw size={16}/>
-                                                </button>
+                                                        }}
+                                                        disabled={hypaV3IsResummarizing}
+                                                    >
+                                                        <RefreshCw size={16}/>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <!-- Editable Summary -->
                                             <TextAreaInput
@@ -450,7 +461,7 @@
                                                                     const displayRole = targetMessage.role === "char" ? char.name : targetMessage.role
                                                                     return `${displayRole}: ${targetMessage.data}`
                                                                 }
-                                                                
+
                                                                 return "Message not found"
                                                             })()}
                                                         </div>
