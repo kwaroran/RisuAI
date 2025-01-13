@@ -51,7 +51,7 @@ function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
   return {
     summaries: data.summaries.map((summary) => ({
       text: summary.text,
-      chatMemos: Array.from(summary.chatMemos),
+      chatMemos: [...summary.chatMemos],
     })),
   };
 }
@@ -725,8 +725,8 @@ export async function hypaMemoryV3(
     }
 
     // Sort in descending order
-    const scoredArray = Array.from(scoredSummaries.entries()).sort(
-      (a, b) => b[1] - a[1]
+    const scoredArray = [...scoredSummaries.entries()].sort(
+      ([, scoreA], [, scoreB]) => scoreB - scoreA
     );
 
     while (scoredArray.length > 0) {
