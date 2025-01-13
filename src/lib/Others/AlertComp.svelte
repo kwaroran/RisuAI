@@ -450,7 +450,7 @@
                                                 <!-- Message Content Area -->
                                                 {#if hypaV3ExpandedChatMemo.summaryChatMemos === summary.chatMemos && hypaV3ExpandedChatMemo.summaryChatMemo !== ""}
                                                     <div class="text-sm bg-darkbg/50 rounded border border-darkborderc">
-                                                        <div class="p-2 max-h-48 overflow-y-auto">
+                                                        <div class="p-2 max-h-48 overflow-y-auto" style="white-space: pre-wrap;">
                                                             {(() => {
                                                                 const char = DBState.db.characters[$selectedCharID]
                                                                 const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage]
@@ -459,7 +459,7 @@
                                                                 
                                                                 if (targetMessage) {
                                                                     const displayRole = targetMessage.role === "char" ? char.name : targetMessage.role
-                                                                    return `${displayRole}: ${targetMessage.data}`
+                                                                    return `${displayRole}:\n${targetMessage.data}`
                                                                 }
 
                                                                 return "Message not found"
