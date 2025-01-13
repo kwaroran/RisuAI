@@ -60,7 +60,8 @@ function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
   return {
     summaries: serialData.summaries.map((summary) => ({
       text: summary.text,
-      chatMemos: new Set(summary.chatMemos),
+      // Convert null back to undefined (JSON serialization converts undefined to null)
+      chatMemos: new Set(summary.chatMemos.map(memo => memo === null ? undefined : memo)),
     })),
   };
 }

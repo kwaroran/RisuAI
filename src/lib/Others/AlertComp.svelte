@@ -319,15 +319,16 @@
                         </div>
                     {/each}
                 {/if}
-            {:else if $alertStore.type === 'hypaV3'}
+            {:else if $alertStore.type === "hypaV3"}
                 <div class="fixed inset-0 z-50 bg-black bg-opacity-50 p-4">
                     <div class="h-full w-full flex justify-center">
-                        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col w-full max-w-3xl {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0 ? 'h-48' : 'max-h-full'}">
+                        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col w-full max-w-3xl {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data.summaries.length === 0 ? "h-48" : "max-h-full"}">
                             <div class="flex justify-between items-center w-full mb-4">
                                 <h1 class="text-xl font-bold">HypaV3 Data</h1>
+                                <!-- Reset Button -->
                                 <div class="flex items-center gap-2">
                                     <button class="p-2 hover:text-red-500 transition-colors" onclick={async () => {
-                                        const confirmed = await alertConfirm('This action cannot be undone. Do you want to reset HypaV3 data?')
+                                        const confirmed = await alertConfirm("This action cannot be undone. Do you want to reset HypaV3 data?")
 
                                         if (confirmed) {
                                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data = {
@@ -339,8 +340,8 @@
                                     </button>
                                     <button class="p-2 hover:text-red-500 transition-colors" onclick={() => {
                                         alertStore.set({
-                                            type: 'none',
-                                            msg: ''
+                                            type: "none",
+                                            msg: ""
                                         })
                                     }}>
                                         <XIcon size={24}/>
