@@ -478,15 +478,15 @@
             <span class="text-textcolor">Memory Tokens Ratio</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio}/>
             <span class="text-textcolor">Extra Summarization Ratio</span>
-            <SliderInput marginBottom min={0} max={1-DBState.db.hypaV3Settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.extraSummarizationRatio}/>
+            <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.extraSummarizationRatio}/>
             <span class="text-textcolor">Max Chats Per Summary</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaV3Settings.maxChatsPerSummary} min={1} />
             <span class="text-textcolor">Recent Memory Ratio</span>
-            <NumberInput size="sm" marginBottom value={parseFloat((1 - DBState.db.hypaV3Settings.similarMemoryRatio - DBState.db.hypaV3Settings.randomMemoryRatio).toFixed(2))} disabled/>
+            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.recentMemoryRatio}/>
             <span class="text-textcolor">Similar Memory Ratio</span>
-            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.similarMemoryRatio}/>
+            <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.recentMemoryRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.similarMemoryRatio}/>
             <span class="text-textcolor">Random Memory Ratio</span>
-            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.randomMemoryRatio}/>
+            <NumberInput size="sm" marginBottom value={parseFloat((1 - DBState.db.hypaV3Settings.recentMemoryRatio - DBState.db.hypaV3Settings.similarMemoryRatio).toFixed(2))} disabled/>
             <div class="flex mb-2">
                 <Check bind:check={DBState.db.hypaV3Settings.enableSimilarityCorrection} name="Enable Similarity Correction"/>
             </div>

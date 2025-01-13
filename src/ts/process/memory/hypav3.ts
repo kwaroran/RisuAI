@@ -228,14 +228,14 @@ export async function hypaMemoryV3(
 
   // Validate settings
   if (
-    db.hypaV3Settings.similarMemoryRatio + db.hypaV3Settings.randomMemoryRatio >
+    db.hypaV3Settings.recentMemoryRatio + db.hypaV3Settings.similarMemoryRatio >
     1
   ) {
     return {
       currentTokens,
       chats,
       error:
-        "[HypaV3] The sum of Similar Memory Ratio and Random Memory Ratio is greater than 1.",
+        "[HypaV3] The sum of Recent Memory Ratio and Similar Memory Ratio is greater than 1.",
     };
   }
 
@@ -445,18 +445,18 @@ export async function hypaMemoryV3(
   );
 
   const selectedSummaries: Summary[] = [];
+  const randomMemoryRatio =
+    1 -
+    db.hypaV3Settings.recentMemoryRatio -
+    db.hypaV3Settings.similarMemoryRatio;
 
   // Select recent summaries
-  const recentMemoryRatio =
-    1 -
-    db.hypaV3Settings.similarMemoryRatio -
-    db.hypaV3Settings.randomMemoryRatio;
   const reservedRecentMemoryTokens = Math.floor(
-    availableMemoryTokens * recentMemoryRatio
+    availableMemoryTokens * db.hypaV3Settings.recentMemoryRatio
   );
   let consumedRecentMemoryTokens = 0;
 
-  if (recentMemoryRatio > 0) {
+  if (db.hypaV3Settings.recentMemoryRatio > 0) {
     const selectedRecentSummaries: Summary[] = [];
 
     // Add one by one from the end
@@ -493,90 +493,27 @@ export async function hypaMemoryV3(
     );
   }
 
-  // Select random summaries
-  let reservedRandomMemoryTokens = Math.floor(
-    availableMemoryTokens * db.hypaV3Settings.randomMemoryRatio
+  // Select similar summaries
+  let reservedSimilarMemoryTokens = Math.floor(
+    availableMemoryTokens * db.hypaV3Settings.similarMemoryRatio
   );
-  let consumedRandomMemoryTokens = 0;
+  let consumedSimilarMemoryTokens = 0;
 
-  if (db.hypaV3Settings.randomMemoryRatio > 0) {
-    const selectedRandomSummaries: Summary[] = [];
+  if (db.hypaV3Settings.similarMemoryRatio > 0) {
+    const selectedSimilarSummaries: Summary[] = [];
 
     // Utilize unused token space from recent selection
-    if (db.hypaV3Settings.similarMemoryRatio === 0) {
+    if (randomMemoryRatio <= 0) {
       const unusedRecentTokens =
         reservedRecentMemoryTokens - consumedRecentMemoryTokens;
 
-      reservedRandomMemoryTokens += unusedRecentTokens;
+      reservedSimilarMemoryTokens += unusedRecentTokens;
       console.log(
-        "[HypaV3] Additional available token space for random memory:",
+        "[HypaV3] Additional available token space for similar memory:",
         "\nFrom recent:",
         unusedRecentTokens
       );
     }
-
-    // Target only summaries that haven't been selected yet
-    const unusedSummaries = data.summaries
-      .filter((e) => !selectedSummaries.includes(e))
-      .sort(() => Math.random() - 0.5); // Random shuffle
-
-    for (const summary of unusedSummaries) {
-      const summaryTokens = await tokenizer.tokenizeChat({
-        role: "system",
-        content: summary.text + summarySeparator,
-      });
-
-      if (
-        summaryTokens + consumedRandomMemoryTokens >
-        reservedRandomMemoryTokens
-      ) {
-        // Trying to select more random memory
-        continue;
-      }
-
-      selectedRandomSummaries.push(summary);
-      consumedRandomMemoryTokens += summaryTokens;
-    }
-
-    selectedSummaries.push(...selectedRandomSummaries);
-
-    console.log(
-      "[HypaV3] After random memory selection:",
-      "\nSummary Count:",
-      selectedRandomSummaries.length,
-      "\nSummaries:",
-      selectedRandomSummaries,
-      "\nReserved Random Memory Tokens:",
-      reservedRandomMemoryTokens,
-      "\nConsumed Random Memory Tokens:",
-      consumedRandomMemoryTokens
-    );
-  }
-
-  // Select similar summaries
-  if (db.hypaV3Settings.similarMemoryRatio > 0) {
-    let reservedSimilarMemoryTokens = Math.floor(
-      availableMemoryTokens * db.hypaV3Settings.similarMemoryRatio
-    );
-    let consumedSimilarMemoryTokens = 0;
-    const selectedSimilarSummaries: Summary[] = [];
-
-    // Utilize unused token space from recent and random selection
-    const unusedRecentTokens =
-      reservedRecentMemoryTokens - consumedRecentMemoryTokens;
-    const unusedRandomTokens =
-      reservedRandomMemoryTokens - consumedRandomMemoryTokens;
-
-    reservedSimilarMemoryTokens += unusedRecentTokens + unusedRandomTokens;
-    console.log(
-      "[HypaV3] Additional available token space for similar memory:",
-      "\nFrom recent:",
-      unusedRecentTokens,
-      "\nFrom random:",
-      unusedRandomTokens,
-      "\nTotal added:",
-      unusedRecentTokens + unusedRandomTokens
-    );
 
     // Target only summaries that haven't been selected yet
     const unusedSummaries = data.summaries.filter(
@@ -697,10 +634,10 @@ export async function hypaMemoryV3(
         "[HypaV3] Trying to add similar summary:",
         "\nSummary Tokens:",
         summaryTokens,
-        "\nAvailable Tokens:",
-        availableSimilarMemoryTokens,
+        "\nReserved Tokens:",
+        reservedSimilarMemoryTokens,
         "\nWould exceed:",
-        summaryTokens > availableSimilarMemoryTokens
+        summaryTokens + consumedSimilarMemoryTokens > reservedSimilarMemoryTokens
       );
       */
 
@@ -730,6 +667,70 @@ export async function hypaMemoryV3(
       reservedSimilarMemoryTokens,
       "\nConsumed Similar Memory Tokens:",
       consumedSimilarMemoryTokens
+    );
+  }
+
+  // Select random summaries
+  let reservedRandomMemoryTokens = Math.floor(
+    availableMemoryTokens * randomMemoryRatio
+  );
+  let consumedRandomMemoryTokens = 0;
+
+  if (randomMemoryRatio > 0) {
+    const selectedRandomSummaries: Summary[] = [];
+
+    // Utilize unused token space from recent and similar selection
+    const unusedRecentTokens =
+      reservedRecentMemoryTokens - consumedRecentMemoryTokens;
+    const unusedSimilarTokens =
+      reservedSimilarMemoryTokens - consumedSimilarMemoryTokens;
+
+    reservedRandomMemoryTokens += unusedRecentTokens + unusedSimilarTokens;
+    console.log(
+      "[HypaV3] Additional available token space for random memory:",
+      "\nFrom recent:",
+      unusedRecentTokens,
+      "\nFrom similar:",
+      unusedSimilarTokens,
+      "\nTotal added:",
+      unusedRecentTokens + unusedSimilarTokens
+    );
+
+    // Target only summaries that haven't been selected yet
+    const unusedSummaries = data.summaries
+      .filter((e) => !selectedSummaries.includes(e))
+      .sort(() => Math.random() - 0.5); // Random shuffle
+
+    for (const summary of unusedSummaries) {
+      const summaryTokens = await tokenizer.tokenizeChat({
+        role: "system",
+        content: summary.text + summarySeparator,
+      });
+
+      if (
+        summaryTokens + consumedRandomMemoryTokens >
+        reservedRandomMemoryTokens
+      ) {
+        // Trying to select more random memory
+        continue;
+      }
+
+      selectedRandomSummaries.push(summary);
+      consumedRandomMemoryTokens += summaryTokens;
+    }
+
+    selectedSummaries.push(...selectedRandomSummaries);
+
+    console.log(
+      "[HypaV3] After random memory selection:",
+      "\nSummary Count:",
+      selectedRandomSummaries.length,
+      "\nSummaries:",
+      selectedRandomSummaries,
+      "\nReserved Random Memory Tokens:",
+      reservedRandomMemoryTokens,
+      "\nConsumed Random Memory Tokens:",
+      consumedRandomMemoryTokens
     );
   }
 
