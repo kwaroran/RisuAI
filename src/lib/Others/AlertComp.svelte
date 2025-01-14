@@ -22,9 +22,9 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
-  import { getCurrentCharacter } from "src/ts/storage/database.svelte";
-  import { message } from "@tauri-apps/plugin-dialog";
-  import HypaV3Modal from './HypaV3Modal.svelte';
+    import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { message } from "@tauri-apps/plugin-dialog";
+    import HypaV3Modal from './HypaV3Modal.svelte';
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
