@@ -1,20 +1,20 @@
 import {
-  getDatabase,
-  type Chat,
-  type character,
-  type groupChat,
-} from "src/ts/storage/database.svelte";
-import {
   type VectorArray,
   type memoryVector,
   HypaProcesser,
 } from "./hypamemory";
-import type { OpenAIChat } from "../index.svelte";
+import {
+  type Chat,
+  type character,
+  type groupChat,
+  getDatabase,
+} from "src/ts/storage/database.svelte";
+import { type OpenAIChat } from "../index.svelte";
 import { requestChatData } from "../request";
 import { runSummarizer } from "../transformers";
 import { globalFetch } from "src/ts/globalApi.svelte";
 import { parseChatML } from "src/ts/parser.svelte";
-import type { ChatTokenizer } from "src/ts/tokenizer";
+import { type ChatTokenizer } from "src/ts/tokenizer";
 
 interface Summary {
   text: string;
