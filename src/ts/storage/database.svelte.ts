@@ -474,8 +474,8 @@ export function setDatabase(data:Database){
         memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
         extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0.2,
         maxChatsPerSummary: data.hypaV3Settings?.maxChatsPerSummary ?? 4,
+        recentMemoryRatio: data.hypaV3Settings?.recentMemoryRatio ?? 0.4,
         similarMemoryRatio: data.hypaV3Settings?.similarMemoryRatio ?? 0.4,
-        randomMemoryRatio: data.hypaV3Settings?.randomMemoryRatio ?? 0.2,
         enableSimilarityCorrection: data.hypaV3Settings?.enableSimilarityCorrection ?? false,
         preserveOrphanedMemory: data.hypaV3Settings?.preserveOrphanedMemory ?? false
     }
@@ -886,8 +886,8 @@ export interface Database{
         memoryTokensRatio: number
         extraSummarizationRatio: number
         maxChatsPerSummary: number
+        recentMemoryRatio: number
         similarMemoryRatio: number
-        randomMemoryRatio: number
         enableSimilarityCorrection: boolean
         preserveOrphanedMemory: boolean
     }
