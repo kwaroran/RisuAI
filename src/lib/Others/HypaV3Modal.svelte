@@ -29,13 +29,16 @@
     translation?: string | null;
   }
 
-  const hypaV3DataState = $state(
+  const hypaV3DataState = $derived(
     DBState.db.characters[$selectedCharID].chats[
       DBState.db.characters[$selectedCharID].chatPage
     ].hypaV3Data
   );
-  const summaryUIStates = $state<SummaryUI[]>(
-    hypaV3DataState.summaries.map(() => ({
+
+  let summaryUIStates = $state(
+    DBState.db.characters[$selectedCharID].chats[
+      DBState.db.characters[$selectedCharID].chatPage
+    ].hypaV3Data.summaries.map(() => ({
       isTranslating: false,
       translation: null,
       isRerolling: false,
@@ -47,8 +50,18 @@
   let expandedMessageUIState = $state<ExpandedMessageUI | null>(null);
 
   $effect(() => {
-    // Detects changes in all nested properties including summaries
     hypaV3DataState.summaries;
+    hypaV3DataState.summaries.length;
+
+    summaryUIStates = hypaV3DataState.summaries.map(() => ({
+      isTranslating: false,
+      translation: null,
+      isRerolling: false,
+      rerolledText: null,
+      isRerolledTranslating: false,
+      rerolledTranslation: null,
+    }));
+
     expandedMessageUIState = null;
   });
 
@@ -354,204 +367,208 @@
       <!-- Summaries List -->
       <div class="flex flex-col gap-3 w-full overflow-y-auto">
         {#each hypaV3DataState.summaries as summary, i}
-          <div
-            class="flex flex-col p-4 rounded-lg border border-zinc-700 bg-zinc-800/50"
-          >
-            <!-- Summary Header -->
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-sm text-textcolor2">Summary #{i + 1}</span>
-              <div class="flex items-center gap-4">
-                <!-- Translate Button -->
-                <button
-                  class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                  use:handleDualAction={{
-                    onMainAction: () => toggleTranslate(i, false),
-                    onAlternativeAction: () => toggleTranslate(i, true),
-                  }}
-                >
-                  <LanguagesIcon size={16} />
-                </button>
-
-                <!-- Important Button -->
-                <button
-                  class="p-2 hover:text-zinc-200 hover:text-amber-300 transition-colors {summary.isImportant
-                    ? 'text-yellow-500'
-                    : 'text-zinc-400'}"
-                  onclick={() => {
-                    summary.isImportant = !summary.isImportant;
-                  }}
-                >
-                  <StarIcon size={16} />
-                </button>
-
-                <!-- Reroll Button -->
-                <button
-                  class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                  onclick={async () => await toggleReroll(i)}
-                  disabled={!isRerollable(i)}
-                >
-                  <RefreshCw size={16} />
-                </button>
-              </div>
-            </div>
-
-            <!-- Original Summary -->
-            <TextAreaInput
-              bind:value={summary.text}
-              className="w-full bg-zinc-900 text-zinc-200 rounded-md p-3 min-h-[100px] resize-y"
-            />
-
-            <!-- Translation (if exists) -->
-            {#if summaryUIStates[i].translation}
-              <div class="mt-4">
-                <span class="text-sm text-textcolor2 mb-2 block"
-                  >Translation</span
-                >
-                <div
-                  class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
-                >
-                  {summaryUIStates[i].translation}
-                </div>
-              </div>
-            {/if}
-
-            <!-- Rerolled Summary (if exists) -->
-            {#if summaryUIStates[i].rerolledText}
-              <div class="mt-4">
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm text-textcolor2">Rerolled Summary</span>
-                  <div class="flex items-center gap-2">
-                    <!-- Translate Rerolled Button -->
-                    <button
-                      class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                      use:handleDualAction={{
-                        onMainAction: () => toggleTranslateRerolled(i, false),
-                        onAlternativeAction: () =>
-                          toggleTranslateRerolled(i, true),
-                      }}
-                    >
-                      <LanguagesIcon size={16} />
-                    </button>
-
-                    <!-- Cancel Button -->
-                    <button
-                      class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
-                      onclick={() => {
-                        summaryUIStates[i].rerolledText = null;
-                        summaryUIStates[i].rerolledTranslation = null;
-                      }}
-                    >
-                      <XIcon size={16} />
-                    </button>
-
-                    <!-- Apply Button -->
-                    <button
-                      class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                      onclick={() => {
-                        summary.text = summaryUIStates[i].rerolledText!;
-                        summaryUIStates[i].rerolledText = null;
-                        summaryUIStates[i].rerolledTranslation = null;
-                      }}
-                    >
-                      <CheckIcon size={16} />
-                    </button>
-                  </div>
-                </div>
-                <TextAreaInput
-                  bind:value={summaryUIStates[i].rerolledText}
-                  className="w-full bg-zinc-900 text-zinc-200 rounded-md p-3 min-h-[100px] resize-y"
-                />
-
-                <!-- Rerolled Translation (if exists) -->
-                {#if summaryUIStates[i].rerolledTranslation}
-                  <div class="mt-4">
-                    <span class="text-sm text-textcolor2 mb-2 block"
-                      >Rerolled Translation</span
-                    >
-                    <div
-                      class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
-                    >
-                      {summaryUIStates[i].rerolledTranslation}
-                    </div>
-                  </div>
-                {/if}
-              </div>
-            {/if}
-
-            <!-- Connected Messages -->
-            <div class="mt-4">
+          {#if summaryUIStates[i]}
+            <div
+              class="flex flex-col p-4 rounded-lg border border-zinc-700 bg-zinc-800/50"
+            >
+              <!-- Summary Header -->
               <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-textcolor2">
-                  Connected Messages ({summary.chatMemos.length})
-                </span>
-                <!-- Translate Message Button -->
-                <button
-                  class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                  use:handleDualAction={{
-                    onMainAction: () => toggleTranslateExpandedMessage(false),
-                    onAlternativeAction: () =>
-                      toggleTranslateExpandedMessage(true),
-                  }}
-                >
-                  <LanguagesIcon size={16} />
-                </button>
-              </div>
-
-              <!-- Message IDs -->
-              <div class="flex flex-wrap gap-1">
-                {#each summary.chatMemos as chatMemo}
+                <span class="text-sm text-textcolor2">Summary #{i + 1}</span>
+                <div class="flex items-center gap-4">
+                  <!-- Translate Button -->
                   <button
-                    class="text-xs px-3 py-1.5 bg-zinc-900 text-zinc-300 rounded-full hover:bg-zinc-800 transition-colors {isMessageExpanded(
-                      i,
-                      chatMemo
-                    )
-                      ? 'ring-1 ring-blue-500'
-                      : ''}"
-                    onclick={() => toggleExpandMessage(i, chatMemo)}
+                    class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                    use:handleDualAction={{
+                      onMainAction: () => toggleTranslate(i, false),
+                      onAlternativeAction: () => toggleTranslate(i, true),
+                    }}
                   >
-                    {chatMemo == null ? "First Message" : chatMemo}
+                    <LanguagesIcon size={16} />
                   </button>
-                {/each}
+
+                  <!-- Important Button -->
+                  <button
+                    class="p-2 hover:text-zinc-200 hover:text-amber-300 transition-colors {summary.isImportant
+                      ? 'text-yellow-500'
+                      : 'text-zinc-400'}"
+                    onclick={() => {
+                      summary.isImportant = !summary.isImportant;
+                    }}
+                  >
+                    <StarIcon size={16} />
+                  </button>
+
+                  <!-- Reroll Button -->
+                  <button
+                    class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                    onclick={async () => await toggleReroll(i)}
+                    disabled={!isRerollable(i)}
+                  >
+                    <RefreshCw size={16} />
+                  </button>
+                </div>
               </div>
 
-              <!-- Selected Message Content -->
-              {#if expandedMessageUIState?.summaryIndex === i}
-                {@const message = getMessageFromChatMemo(
-                  expandedMessageUIState.selectedChatMemo
-                )}
-                <div class="mt-4">
-                  {#if message}
-                    <!-- Role -->
-                    <div class="text-sm text-textcolor2 mb-2 block">
-                      {message.role}'s Message
-                    </div>
-                    <!-- Content -->
-                    <div
-                      class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
-                    >
-                      {message.data}
-                    </div>
-                  {:else}
-                    <div class="text-sm text-red-500">Message not found</div>
-                  {/if}
+              <!-- Original Summary -->
+              <TextAreaInput
+                bind:value={summary.text}
+                className="w-full bg-zinc-900 text-zinc-200 rounded-md p-3 min-h-[100px] resize-y"
+              />
 
-                  <!-- Message Translation -->
-                  {#if expandedMessageUIState.translation}
+              <!-- Translation (if exists) -->
+              {#if summaryUIStates[i].translation}
+                <div class="mt-4">
+                  <span class="text-sm text-textcolor2 mb-2 block"
+                    >Translation</span
+                  >
+                  <div
+                    class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                  >
+                    {summaryUIStates[i].translation}
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Rerolled Summary (if exists) -->
+              {#if summaryUIStates[i].rerolledText}
+                <div class="mt-4">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-textcolor2">Rerolled Summary</span
+                    >
+                    <div class="flex items-center gap-2">
+                      <!-- Translate Rerolled Button -->
+                      <button
+                        class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                        use:handleDualAction={{
+                          onMainAction: () => toggleTranslateRerolled(i, false),
+                          onAlternativeAction: () =>
+                            toggleTranslateRerolled(i, true),
+                        }}
+                      >
+                        <LanguagesIcon size={16} />
+                      </button>
+
+                      <!-- Cancel Button -->
+                      <button
+                        class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
+                        onclick={() => {
+                          summaryUIStates[i].rerolledText = null;
+                          summaryUIStates[i].rerolledTranslation = null;
+                        }}
+                      >
+                        <XIcon size={16} />
+                      </button>
+
+                      <!-- Apply Button -->
+                      <button
+                        class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                        onclick={() => {
+                          summary.text = summaryUIStates[i].rerolledText!;
+                          summaryUIStates[i].translation = null;
+                          summaryUIStates[i].rerolledText = null;
+                          summaryUIStates[i].rerolledTranslation = null;
+                        }}
+                      >
+                        <CheckIcon size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <TextAreaInput
+                    bind:value={summaryUIStates[i].rerolledText}
+                    className="w-full bg-zinc-900 text-zinc-200 rounded-md p-3 min-h-[100px] resize-y"
+                  />
+
+                  <!-- Rerolled Translation (if exists) -->
+                  {#if summaryUIStates[i].rerolledTranslation}
                     <div class="mt-4">
                       <span class="text-sm text-textcolor2 mb-2 block"
-                        >Translation</span
+                        >Rerolled Translation</span
                       >
                       <div
                         class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
                       >
-                        {expandedMessageUIState.translation}
+                        {summaryUIStates[i].rerolledTranslation}
                       </div>
                     </div>
                   {/if}
                 </div>
               {/if}
+
+              <!-- Connected Messages -->
+              <div class="mt-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm text-textcolor2">
+                    Connected Messages ({summary.chatMemos.length})
+                  </span>
+                  <!-- Translate Message Button -->
+                  <button
+                    class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                    use:handleDualAction={{
+                      onMainAction: () => toggleTranslateExpandedMessage(false),
+                      onAlternativeAction: () =>
+                        toggleTranslateExpandedMessage(true),
+                    }}
+                  >
+                    <LanguagesIcon size={16} />
+                  </button>
+                </div>
+
+                <!-- Message IDs -->
+                <div class="flex flex-wrap gap-1">
+                  {#each summary.chatMemos as chatMemo}
+                    <button
+                      class="text-xs px-3 py-1.5 bg-zinc-900 text-zinc-300 rounded-full hover:bg-zinc-800 transition-colors {isMessageExpanded(
+                        i,
+                        chatMemo
+                      )
+                        ? 'ring-1 ring-blue-500'
+                        : ''}"
+                      onclick={() => toggleExpandMessage(i, chatMemo)}
+                    >
+                      {chatMemo == null ? "First Message" : chatMemo}
+                    </button>
+                  {/each}
+                </div>
+
+                <!-- Selected Message Content -->
+                {#if expandedMessageUIState?.summaryIndex === i}
+                  {@const message = getMessageFromChatMemo(
+                    expandedMessageUIState.selectedChatMemo
+                  )}
+                  <div class="mt-4">
+                    {#if message}
+                      <!-- Role -->
+                      <div class="text-sm text-textcolor2 mb-2 block">
+                        {message.role}'s Message
+                      </div>
+                      <!-- Content -->
+                      <div
+                        class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                      >
+                        {message.data}
+                      </div>
+                    {:else}
+                      <div class="text-sm text-red-500">Message not found</div>
+                    {/if}
+
+                    <!-- Message Translation -->
+                    {#if expandedMessageUIState.translation}
+                      <div class="mt-4">
+                        <span class="text-sm text-textcolor2 mb-2 block"
+                          >Translation</span
+                        >
+                        <div
+                          class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                        >
+                          {expandedMessageUIState.translation}
+                        </div>
+                      </div>
+                    {/if}
+                  </div>
+                {/if}
+              </div>
             </div>
-          </div>
+          {/if}
         {/each}
 
         {#if hypaV3DataState.summaries.length === 0}
