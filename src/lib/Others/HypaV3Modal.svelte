@@ -61,7 +61,10 @@
     expandedMessage: null,
   });
 
-  async function toggleTranslate(summary: ExtendedSummary): Promise<void> {
+  async function toggleTranslate(
+    summary: ExtendedSummary,
+    regenerate?: boolean
+  ): Promise<void> {
     if (summary.state.isTranslating) return;
 
     if (summary.state.translation) {
@@ -72,7 +75,7 @@
     summary.state.isTranslating = true;
     summary.state.translation = "Loading...";
 
-    const result = await translate(summary.text);
+    const result = await translate(summary.text, regenerate);
 
     summary.state.translation = result;
     summary.state.isTranslating = false;
@@ -144,7 +147,8 @@
   }
 
   async function toggleTranslateRerolled(
-    summary: ExtendedSummary
+    summary: ExtendedSummary,
+    regenerate?: boolean
   ): Promise<void> {
     if (summary.state.isRerolledTranslating) return;
 
@@ -158,13 +162,15 @@
     summary.state.isRerolledTranslating = true;
     summary.state.rerolledTranslation = "Loading...";
 
-    const result = await translate(summary.state.rerolledText);
+    const result = await translate(summary.state.rerolledText, regenerate);
 
     summary.state.rerolledTranslation = result;
     summary.state.isRerolledTranslating = false;
   }
 
-  async function toggleTranslateExpandedMessage(): Promise<void> {
+  async function toggleTranslateExpandedMessage(
+    regenerate?: boolean
+  ): Promise<void> {
     if (!modalState.expandedMessage || modalState.expandedMessage.isTranslating)
       return;
 
@@ -180,7 +186,7 @@
     modalState.expandedMessage.isTranslating = true;
     modalState.expandedMessage.translation = "Loading...";
 
-    const result = await translate(messageData.data);
+    const result = await translate(messageData.data, regenerate);
 
     modalState.expandedMessage.translation = result;
     modalState.expandedMessage.isTranslating = false;
@@ -235,12 +241,77 @@
     };
   }
 
-  async function translate(text) {
+  async function translate(
+    text: string,
+    regenerate?: boolean
+  ): Promise<string> {
     try {
-      return await translateHTML(text, false, "", -1);
+      return await translateHTML(text, false, "", -1, regenerate);
     } catch (error) {
       return `Translation failed: ${error}`;
     }
+  }
+
+  type DualActionParams = {
+    onMainAction?: () => void;
+    onAlternativeAction?: () => void;
+  };
+
+  function handleDualAction(node: HTMLElement, params: DualActionParams = {}) {
+    const state = {
+      lastTap: 0,
+      tapTimeout: null as any,
+    };
+
+    const DOUBLE_TAP_DELAY = 300;
+
+    function handleInteraction(event: Event) {
+      if ("ontouchend" in window) {
+        // Mobile environment
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - state.lastTap;
+
+        if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+          // Double tap detected
+          event.preventDefault();
+          clearTimeout(state.tapTimeout); // Cancel the first tap timeout
+          params.onAlternativeAction?.();
+          state.lastTap = 0; // Reset state
+        } else {
+          // First tap
+          state.lastTap = currentTime;
+
+          // Delayed single tap execution
+          state.tapTimeout = setTimeout(() => {
+            if (state.lastTap === currentTime) {
+              // If no double tap occurred
+              params.onMainAction?.();
+            }
+          }, DOUBLE_TAP_DELAY);
+        }
+      } else {
+        // Desktop environment
+        if ((event as MouseEvent).shiftKey) {
+          params.onAlternativeAction?.();
+        } else {
+          params.onMainAction?.();
+        }
+      }
+    }
+
+    node.addEventListener("click", handleInteraction);
+    node.addEventListener("touchend", handleInteraction);
+
+    return {
+      destroy() {
+        node.removeEventListener("click", handleInteraction);
+        node.removeEventListener("touchend", handleInteraction);
+        clearTimeout(state.tapTimeout); // Cleanup timeout
+      },
+      update(newParams: DualActionParams) {
+        params = newParams;
+      },
+    };
   }
 </script>
 
@@ -310,7 +381,10 @@
                 <!-- Translate Button -->
                 <button
                   class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                  onclick={async () => await toggleTranslate(summary)}
+                  use:handleDualAction={{
+                    onMainAction: () => toggleTranslate(summary, false),
+                    onAlternativeAction: () => toggleTranslate(summary, true),
+                  }}
                 >
                   <LanguagesIcon size={16} />
                 </button>
@@ -367,8 +441,12 @@
                     <!-- Translate Rerolled Button -->
                     <button
                       class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                      onclick={async () =>
-                        await toggleTranslateRerolled(summary)}
+                      use:handleDualAction={{
+                        onMainAction: () =>
+                          toggleTranslateRerolled(summary, false),
+                        onAlternativeAction: () =>
+                          toggleTranslateRerolled(summary, true),
+                      }}
                     >
                       <LanguagesIcon size={16} />
                     </button>
@@ -427,7 +505,11 @@
                 <!-- Translate Message Button -->
                 <button
                   class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                  onclick={async () => await toggleTranslateExpandedMessage()}
+                  use:handleDualAction={{
+                    onMainAction: () => toggleTranslateExpandedMessage(false),
+                    onAlternativeAction: () =>
+                      toggleTranslateExpandedMessage(true),
+                  }}
                 >
                   <LanguagesIcon size={16} />
                 </button>

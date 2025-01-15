@@ -854,7 +854,7 @@ class HypaProcesserEx extends HypaProcesser {
   summaryChunkVectors: SummaryChunkVector[] = [];
 
   // Calculate dot product similarity between two vectors
-  similarity(a: VectorArray, b: VectorArray) {
+  similarity(a: VectorArray, b: VectorArray): number {
     let dot = 0;
 
     for (let i = 0; i < a.length; i++) {
@@ -864,7 +864,7 @@ class HypaProcesserEx extends HypaProcesser {
     return dot;
   }
 
-  async addSummaryChunks(chunks: SummaryChunk[]) {
+  async addSummaryChunks(chunks: SummaryChunk[]): Promise<void> {
     // Maintain the superclass's caching structure by adding texts
     const texts = chunks.map((chunk) => chunk.text);
 
