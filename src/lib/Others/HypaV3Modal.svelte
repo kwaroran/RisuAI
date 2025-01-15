@@ -8,7 +8,7 @@
     CheckIcon,
   } from "lucide-svelte";
   import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
-  import { alertConfirm } from "../../ts/alert";
+  import { alertConfirm, showHypaV3Alert } from "../../ts/alert";
   import { DBState, alertStore, selectedCharID } from "src/ts/stores.svelte";
   import { summarize } from "src/ts/process/memory/hypav3";
   import { translateHTML } from "src/ts/translator/translator";
@@ -64,6 +64,21 @@
 
     expandedMessageUIState = null;
   });
+
+  async function confirmTwice(
+    firstMessage: string,
+    secondMessage: string
+  ): Promise<boolean> {
+    let confirmed = await alertConfirm(firstMessage);
+
+    if (confirmed) {
+      confirmed = await alertConfirm(secondMessage);
+
+      if (confirmed) {
+        return true;
+      }
+    }
+  }
 
   function getMessageFromChatMemo(
     chatMemo: string | null
@@ -327,22 +342,19 @@
           <button
             class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
             onclick={async () => {
-              let confirmed = await alertConfirm(
-                "This action cannot be undone. Do you want to reset HypaV3 data?"
-              );
-
-              if (confirmed) {
-                confirmed = await alertConfirm(
+              if (
+                await confirmTwice(
+                  "This action cannot be undone. Do you want to reset HypaV3 data?",
                   "This action is irreversible. Do you really, really want to reset HypaV3 data?"
-                );
-
-                if (confirmed) {
-                  DBState.db.characters[$selectedCharID].chats[
-                    DBState.db.characters[$selectedCharID].chatPage
-                  ].hypaV3Data = {
-                    summaries: [],
-                  };
-                }
+                )
+              ) {
+                DBState.db.characters[$selectedCharID].chats[
+                  DBState.db.characters[$selectedCharID].chatPage
+                ].hypaV3Data = {
+                  summaries: [],
+                };
+              } else {
+                showHypaV3Alert();
               }
             }}
           >
