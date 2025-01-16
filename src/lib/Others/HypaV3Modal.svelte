@@ -35,24 +35,10 @@
     ].hypaV3Data
   );
 
-  let summaryUIStates = $state(
-    DBState.db.characters[$selectedCharID].chats[
-      DBState.db.characters[$selectedCharID].chatPage
-    ].hypaV3Data.summaries.map(() => ({
-      isTranslating: false,
-      translation: null,
-      isRerolling: false,
-      rerolledText: null,
-      isRerolledTranslating: false,
-      rerolledTranslation: null,
-    }))
-  );
+  let summaryUIStates = $state<SummaryUI[]>([]);
   let expandedMessageUIState = $state<ExpandedMessageUI | null>(null);
 
-  $effect(() => {
-    hypaV3DataState.summaries;
-    hypaV3DataState.summaries.length;
-
+  $effect.pre(() => {
     summaryUIStates = hypaV3DataState.summaries.map(() => ({
       isTranslating: false,
       translation: null,
@@ -65,19 +51,13 @@
     expandedMessageUIState = null;
   });
 
-  async function confirmTwice(
+  async function alertConfirmTwice(
     firstMessage: string,
     secondMessage: string
   ): Promise<boolean> {
-    let confirmed = await alertConfirm(firstMessage);
-
-    if (confirmed) {
-      confirmed = await alertConfirm(secondMessage);
-
-      if (confirmed) {
-        return true;
-      }
-    }
+    return (
+      (await alertConfirm(firstMessage)) && (await alertConfirm(secondMessage))
+    );
   }
 
   function getMessageFromChatMemo(
@@ -343,7 +323,7 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
             onclick={async () => {
               if (
-                await confirmTwice(
+                await alertConfirmTwice(
                   "This action cannot be undone. Do you want to reset HypaV3 data?",
                   "This action is irreversible. Do you really, really want to reset HypaV3 data?"
                 )
