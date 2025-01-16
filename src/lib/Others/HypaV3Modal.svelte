@@ -11,6 +11,7 @@
   import { alertConfirm, showHypaV3Alert } from "../../ts/alert";
   import { DBState, alertStore, selectedCharID } from "src/ts/stores.svelte";
   import { summarize } from "src/ts/process/memory/hypav3";
+  import { type OpenAIChat } from "src/ts/process/index.svelte";
   import { translateHTML } from "src/ts/translator/translator";
 
   interface SummaryUI {
@@ -131,19 +132,18 @@
 
     try {
       const summary = hypaV3DataState.summaries[summaryIndex];
-      const toSummarize = summary.chatMemos.map((chatMemo) => {
+      const toSummarize: OpenAIChat[] = summary.chatMemos.map((chatMemo) => {
         const message = getMessageFromChatMemo(chatMemo);
 
         return {
-          ...message,
-          role: message.role === "char" ? "assistant" : message.role,
+          role: (message.role === "char"
+            ? "assistant"
+            : message.role) as OpenAIChat["role"],
+          content: message.data,
         };
       });
 
-      const stringifiedChats = toSummarize
-        .map((m) => `${m.role}: ${m.data}`)
-        .join("\n");
-      const summarizeResult = await summarize(stringifiedChats);
+      const summarizeResult = await summarize(toSummarize);
 
       if (summarizeResult.success) {
         summaryUIState.rerolledText = summarizeResult.data;
