@@ -1113,6 +1113,7 @@
                 onclick={() => {
                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data ??= {
                         summaries: [],
+                        lastSelectedSummaries: [],
                     }
                     showHypaV3Alert()
                 }}

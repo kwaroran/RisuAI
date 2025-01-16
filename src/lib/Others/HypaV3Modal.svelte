@@ -332,6 +332,7 @@
                   DBState.db.characters[$selectedCharID].chatPage
                 ].hypaV3Data = {
                   summaries: [],
+                  lastSelectedSummaries: [],
                 };
               } else {
                 showHypaV3Alert();

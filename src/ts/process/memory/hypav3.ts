@@ -24,6 +24,7 @@ interface Summary {
 
 interface HypaV3Data {
   summaries: Summary[];
+  lastSelectedSummaries?: number[];
 }
 
 export interface SerializableHypaV3Data {
@@ -32,6 +33,7 @@ export interface SerializableHypaV3Data {
     chatMemos: string[];
     isImportant: boolean;
   }[];
+  lastSelectedSummaries?: number[];
 }
 
 interface SummaryChunk {
@@ -55,6 +57,7 @@ function isSubset(subset: Set<string>, superset: Set<string>): boolean {
 
 function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
   return {
+    ...data,
     summaries: data.summaries.map((summary) => ({
       ...summary,
       chatMemos: [...summary.chatMemos],
@@ -64,6 +67,7 @@ function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
 
 function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
   return {
+    ...serialData,
     summaries: serialData.summaries.map((summary) => ({
       ...summary,
       // Convert null back to undefined (JSON serialization converts undefined to null)
@@ -231,16 +235,16 @@ async function retryableSummarize(
   while (summarizationFailures < maxSummarizationFailures) {
     console.log(
       "[HypaV3] Attempting summarization:",
-      "\nAttempt: ",
+      "\nAttempt:",
       summarizationFailures + 1,
-      "\nTarget: ",
+      "\nTarget:",
       oaiChats
     );
 
     const summarizeResult = await summarize(oaiChats);
 
     if (!summarizeResult.success) {
-      console.log("[HypaV3] Summarization failed: ", summarizeResult.data);
+      console.log("[HypaV3] Summarization failed:", summarizeResult.data);
       summarizationFailures++;
 
       if (summarizationFailures >= maxSummarizationFailures) {
@@ -288,6 +292,7 @@ export async function hypaMemoryV3(
   // Load existing hypa data if available
   let data: HypaV3Data = {
     summaries: [],
+    lastSelectedSummaries: [],
   };
 
   if (room.hypaV3Data) {
@@ -336,10 +341,10 @@ export async function hypaMemoryV3(
 
   if (shouldReserveEmptyMemoryTokens) {
     currentTokens += emptyMemoryTokens;
-    console.log("[HypaV3] Reserved empty memory tokens: ", emptyMemoryTokens);
+    console.log("[HypaV3] Reserved empty memory tokens:", emptyMemoryTokens);
   } else {
     currentTokens += memoryTokens;
-    console.log("[HypaV3] Reserved max memory tokens: ", memoryTokens);
+    console.log("[HypaV3] Reserved max memory tokens:", memoryTokens);
   }
 
   // If summarization is needed
@@ -374,17 +379,17 @@ export async function hypaMemoryV3(
 
     console.log(
       "[HypaV3] Evaluating summarization batch:",
-      "\nCurrent Tokens: ",
+      "\nCurrent Tokens:",
       currentTokens,
-      "\nMax Context Tokens: ",
+      "\nMax Context Tokens:",
       maxContextTokens,
-      "\nStart Index: ",
+      "\nStart Index:",
       startIdx,
-      "\nEnd Index: ",
+      "\nEnd Index:",
       endIdx,
-      "\nChat Count: ",
+      "\nChat Count:",
       endIdx - startIdx,
-      "\nMax Chats Per Summary: ",
+      "\nMax Chats Per Summary:",
       db.hypaV3Settings.maxChatsPerSummary
     );
 
@@ -394,13 +399,13 @@ export async function hypaMemoryV3(
 
       console.log(
         "[HypaV3] Evaluating chat:",
-        "\nIndex: ",
+        "\nIndex:",
         i,
-        "\nRole: ",
+        "\nRole:",
         chat.role,
-        "\nContent:\n",
-        chat.content,
-        "\nTokens: ",
+        "\nContent:",
+        "\n" + chat.content,
+        "\nTokens:",
         chatTokens
       );
 
@@ -456,11 +461,11 @@ export async function hypaMemoryV3(
     `[HypaV3] ${
       summarizationMode ? "Completed" : "Skipped"
     } summarization phase:`,
-    "\nCurrent Tokens: ",
+    "\nCurrent Tokens:",
     currentTokens,
-    "\nMax Context Tokens: ",
+    "\nMax Context Tokens:",
     maxContextTokens,
-    "\nAvailable Memory Tokens: ",
+    "\nAvailable Memory Tokens:",
     availableMemoryTokens
   );
 
@@ -494,11 +499,11 @@ export async function hypaMemoryV3(
 
   console.log(
     "[HypaV3] After important memory selection:",
-    "\nSummary Count: ",
+    "\nSummary Count:",
     selectedImportantSummaries.length,
-    "\nSummaries: ",
+    "\nSummaries:",
     selectedImportantSummaries,
-    "\nAvailable Memory Tokens: ",
+    "\nAvailable Memory Tokens:",
     availableMemoryTokens
   );
 
@@ -539,13 +544,13 @@ export async function hypaMemoryV3(
 
     console.log(
       "[HypaV3] After recent memory selection:",
-      "\nSummary Count: ",
+      "\nSummary Count:",
       selectedRecentSummaries.length,
-      "\nSummaries: ",
+      "\nSummaries:",
       selectedRecentSummaries,
-      "\nReserved Recent Memory Tokens: ",
+      "\nReserved Tokens:",
       reservedRecentMemoryTokens,
-      "\nConsumed Recent Memory Tokens: ",
+      "\nConsumed Tokens:",
       consumedRecentMemoryTokens
     );
   }
@@ -567,7 +572,7 @@ export async function hypaMemoryV3(
       reservedSimilarMemoryTokens += unusedRecentTokens;
       console.log(
         "[HypaV3] Additional available token space for similar memory:",
-        "\nFrom recent: ",
+        "\nFrom recent:",
         unusedRecentTokens
       );
     }
@@ -666,13 +671,13 @@ export async function hypaMemoryV3(
       /*
       console.log(
         "[HypaV3] Trying to add similar summary:",
-        "\nSummary Tokens: ",
+        "\nSummary Tokens:",
         summaryTokens,
-        "\nConsumed Similar Memory Tokens: ",
+        "\nConsumed Similar Memory Tokens:",
         consumedSimilarMemoryTokens,
-        "\nReserved Tokens: ",
+        "\nReserved Tokens:",
         reservedSimilarMemoryTokens,
-        "\nWould exceed: ",
+        "\nWould exceed:",
         summaryTokens + consumedSimilarMemoryTokens > reservedSimilarMemoryTokens
       );
       */
@@ -695,13 +700,13 @@ export async function hypaMemoryV3(
 
     console.log(
       "[HypaV3] After similar memory selection:",
-      "\nSummary Count: ",
+      "\nSummary Count:",
       selectedSimilarSummaries.length,
-      "\nSummaries: ",
+      "\nSummaries:",
       selectedSimilarSummaries,
-      "\nReserved Similar Memory Tokens: ",
+      "\nReserved Tokens:",
       reservedSimilarMemoryTokens,
-      "\nConsumed Similar Memory Tokens: ",
+      "\nConsumed Tokens:",
       consumedSimilarMemoryTokens
     );
   }
@@ -724,11 +729,11 @@ export async function hypaMemoryV3(
     reservedRandomMemoryTokens += unusedRecentTokens + unusedSimilarTokens;
     console.log(
       "[HypaV3] Additional available token space for random memory:",
-      "\nFrom recent: ",
+      "\nFrom recent:",
       unusedRecentTokens,
-      "\nFrom similar: ",
+      "\nFrom similar:",
       unusedSimilarTokens,
-      "\nTotal added: ",
+      "\nTotal added:",
       unusedRecentTokens + unusedSimilarTokens
     );
 
@@ -759,13 +764,13 @@ export async function hypaMemoryV3(
 
     console.log(
       "[HypaV3] After random memory selection:",
-      "\nSummary Count: ",
+      "\nSummary Count:",
       selectedRandomSummaries.length,
-      "\nSummaries: ",
+      "\nSummaries:",
       selectedRandomSummaries,
-      "\nReserved Random Memory Tokens: ",
+      "\nReserved Tokens:",
       reservedRandomMemoryTokens,
-      "\nConsumed Random Memory Tokens: ",
+      "\nConsumed Tokens:",
       consumedRandomMemoryTokens
     );
   }
@@ -795,13 +800,13 @@ export async function hypaMemoryV3(
 
   console.log(
     "[HypaV3] Final memory selection:",
-    "\nSummary Count: ",
+    "\nSummary Count:",
     selectedSummaries.length,
-    "\nSummaries: ",
+    "\nSummaries:",
     selectedSummaries,
-    "\nReal Memory Tokens: ",
+    "\nReal Memory Tokens:",
     realMemoryTokens,
-    "\nAvailable Memory Tokens: ",
+    "\nAvailable Memory Tokens:",
     availableMemoryTokens
   );
 
@@ -810,6 +815,11 @@ export async function hypaMemoryV3(
       `[HypaV3] Unexpected error: input token count (${currentTokens}) exceeds max context size (${maxContextTokens})`
     );
   }
+
+  // Save last selected summaries
+  data.lastSelectedSummaries = selectedSummaries.map((selectedSummary) =>
+    data.summaries.findIndex((summary) => summary === selectedSummary)
+  );
 
   const newChats: OpenAIChat[] = [
     {
@@ -822,11 +832,11 @@ export async function hypaMemoryV3(
 
   console.log(
     "[HypaV3] Exiting function:",
-    "\nCurrent Tokens: ",
+    "\nCurrent Tokens:",
     currentTokens,
-    "\nAll chats, including memory prompt: ",
+    "\nAll chats, including memory prompt:",
     newChats,
-    "\nMemory Data: ",
+    "\nMemory Data:",
     data
   );
 
