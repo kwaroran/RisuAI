@@ -12,6 +12,7 @@
   import { DBState, alertStore, selectedCharID } from "src/ts/stores.svelte";
   import { summarize } from "src/ts/process/memory/hypav3";
   import { type OpenAIChat } from "src/ts/process/index.svelte";
+  import { type Message } from "src/ts/storage/database.svelte";
   import { translateHTML } from "src/ts/translator/translator";
 
   interface SummaryUI {
@@ -61,9 +62,7 @@
     );
   }
 
-  function getMessageFromChatMemo(
-    chatMemo: string | null
-  ): { role: string; data: string } | null {
+  function getMessageFromChatMemo(chatMemo: string | null): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const firstMessage =
@@ -71,10 +70,11 @@
         ? char.firstMessage
         : char.alternateGreetings?.[chat.fmIndex ?? 0];
 
-    const targetMessage =
+    const targetMessage = (
       chatMemo == null
         ? { role: "char", data: firstMessage }
-        : chat.message.find((m) => m.chatId === chatMemo);
+        : chat.message.find((m) => m.chatId === chatMemo)
+    ) as Message;
 
     return targetMessage;
   }
@@ -232,6 +232,36 @@
         };
   }
 
+  function getNextMessageToSummarize(): Message {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const firstMessage =
+      chat.fmIndex === -1
+        ? char.firstMessage
+        : char.alternateGreetings?.[chat.fmIndex ?? 0];
+
+    if (hypaV3DataState.summaries.length > 0) {
+      const lastSummary = hypaV3DataState.summaries.at(-1);
+      const lastMessageIndex = chat.message.findIndex(
+        (msg) => msg.chatId === lastSummary.chatMemos.at(-1)
+      );
+
+      if (lastMessageIndex !== -1) {
+        const nextMessage = chat.message[lastMessageIndex + 1];
+
+        if (nextMessage) {
+          return nextMessage;
+        }
+      }
+    }
+
+    if (firstMessage?.trim() === "") {
+      return chat.message[0];
+    }
+
+    return { role: "char", chatId: "first message", data: firstMessage };
+  }
+
   async function translate(
     text: string,
     regenerate?: boolean
@@ -311,7 +341,7 @@
     <div
       class="bg-zinc-900 p-6 rounded-lg flex flex-col w-full max-w-3xl {hypaV3DataState
         .summaries.length === 0
-        ? 'h-48'
+        ? 'max-h-[26rem]'
         : 'max-h-full'}"
     >
       <!-- Header -->
@@ -359,6 +389,10 @@
 
       <!-- Summaries List -->
       <div class="flex flex-col gap-3 w-full overflow-y-auto">
+        {#if hypaV3DataState.summaries.length === 0}
+          <span class="text-textcolor2 text-center p-4">No summaries yet</span>
+        {/if}
+
         {#each hypaV3DataState.summaries as summary, i}
           {#if summaryUIStates[i]}
             <div
@@ -564,8 +598,19 @@
           {/if}
         {/each}
 
-        {#if hypaV3DataState.summaries.length === 0}
-          <span class="text-textcolor2 text-center p-4">No summaries yet</span>
+        {#if true}
+          <!-- Next message to summarize -->
+          {@const nextMessage = getNextMessageToSummarize()}
+          <div class="mt-4">
+            <span class="text-sm text-textcolor2 mb-2 block">
+              HypaV3 will summarize {nextMessage.chatId}
+            </span>
+            <div
+              class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+            >
+              {nextMessage.data}
+            </div>
+          </div>
         {/if}
       </div>
     </div>
