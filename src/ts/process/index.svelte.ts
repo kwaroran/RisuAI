@@ -551,7 +551,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let content = positionParser(card.text)
 
                     if(card.type2 === 'globalNote'){
-                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara: currentChar, role: card.role}))
+                        if(currentChar.replaceGlobalNote){
+                            content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
+                        }
+                        content = (risuChatParser(content, {chara: currentChar, role: card.role}))
                     }
                     else if(card.type2 === 'main'){
                         content = (risuChatParser(content, {chara: currentChar, role: card.role}))
@@ -1050,7 +1053,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let content = positionParser(card.text)
 
                     if(card.type2 === 'globalNote'){
-                        content = (risuChatParser(currentChar.replaceGlobalNote?.replaceAll('{{original}}', content) || content, {chara:currentChar, role: card.role}))
+                        if(currentChar.replaceGlobalNote){
+                            content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
+                        }
+                        content = (risuChatParser(content, {chara: currentChar, role: card.role}))
                     }
                     else if(card.type2 === 'main'){
                         content = (risuChatParser(content, {chara: currentChar, role: card.role}))
