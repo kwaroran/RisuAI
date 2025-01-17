@@ -121,6 +121,14 @@
         let addedLinesCount = 0
         let removedLinesCount = 0
 
+        const forTooltip = (line: string, idx: number): string => {
+            return line.replace('<div', `<div class="prompt-diff-hover" data-line-id="prompt-diff-line-${idx}"`)
+        }
+
+        const withId = (line: string, idx: number): string => {
+            return line.replace('<div', `<div id="prompt-diff-line-${idx}"`)
+        }
+
         for (let i = 0; i < lineDiffs.length; i++) {
             const linePart = lineDiffs[i]
 
@@ -128,22 +136,22 @@
                 const nextPart = lineDiffs[i + 1]
                 if(nextPart?.added){
                     const modifiedLine = `<div style="border-left: 4px solid blue; padding-left: 8px;">${await highlightChanges(linePart.value, nextPart.value)}</div>`
-                    changedLines.push(modifiedLine)
-                    resultHtml += modifiedLine
+                    changedLines.push(forTooltip(modifiedLine, i))
+                    resultHtml += withId(modifiedLine, i)
                     i++;
                     modifiedLinesCount += 1
                 }
                 else{
                     const removedLine = `<div style="color: red; background-color: #ffe6e6; border-left: 4px solid red; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
-                    changedLines.push(removedLine)
-                    resultHtml += removedLine
+                    changedLines.push(forTooltip(removedLine, i))
+                    resultHtml += withId(removedLine, i)
                     removedLinesCount += 1
                 }
             }
             else if(linePart.added){
                 const addedLine = `<div style="color: green; background-color: #e6ffe6; border-left: 4px solid green; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
-                changedLines.push(addedLine)
-                resultHtml += addedLine
+                changedLines.push(forTooltip(addedLine, i))
+                resultHtml += withId(addedLine, i)
                 addedLinesCount += 1
             }
             else{
@@ -225,6 +233,26 @@
 
             tooltip.innerHTML = tooltipContent;
             tooltip.style.display = 'block'
+        })
+
+        tooltip.addEventListener('click', (e) => {
+            const target = (e.target as HTMLElement).closest('.prompt-diff-hover')
+            const lineId = target?.getAttribute('data-line-id')
+            if(!lineId){
+                return
+            }
+
+            const targetElement = document.getElementById(lineId)
+            if(!targetElement){
+                return
+            }
+
+            targetElement.classList.add('prompt-diff-highlight')
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+            setTimeout(() => {
+                targetElement.classList.remove('prompt-diff-highlight')
+            }, 1000)
         })
 
         differencesDetected.addEventListener('mouseleave', () => {
@@ -392,5 +420,20 @@
     .break-any{
         word-break: normal;
         overflow-wrap: anywhere;
+    }
+
+    :global(.prompt-diff-hover){
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    :global(.prompt-diff-hover:hover){
+        transform: translateY(-4px);
+        box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    :global(.prompt-diff-highlight){
+        background-color: yellow !important;
     }
 </style>
