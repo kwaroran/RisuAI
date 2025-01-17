@@ -15,8 +15,9 @@
     import { getCharImage } from "src/ts/characters";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import { hypaMemoryV3 } from "src/ts/process/memory/hypav3";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import { untrack } from "svelte";
+
     $effect.pre(() => {
         DBState.db.NAIImgConfig ??= {
             width: 512,
@@ -40,6 +41,32 @@
     });
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
+
+    // HypaV3
+    $effect(() => {
+        const newValue = Math.min(DBState.db.hypaV3Settings.recentMemoryRatio, 1);
+
+        untrack(() => {
+            DBState.db.hypaV3Settings.recentMemoryRatio = newValue;
+            
+            if (newValue + DBState.db.hypaV3Settings.similarMemoryRatio > 1) {
+                DBState.db.hypaV3Settings.similarMemoryRatio = 1 - newValue;
+            }
+        })
+    })
+
+    $effect(() => {
+        const newValue = Math.min(DBState.db.hypaV3Settings.similarMemoryRatio, 1);
+
+        untrack(() => {
+            DBState.db.hypaV3Settings.similarMemoryRatio = newValue;
+
+            if (newValue + DBState.db.hypaV3Settings.recentMemoryRatio > 1) {
+                DBState.db.hypaV3Settings.recentMemoryRatio = 1 - newValue;
+            }
+        })
+    });
+    // End HypaV3
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
 
@@ -467,31 +494,31 @@
                 <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
                 <OptionInput value="subModel">{language.submodel}</OptionInput>
             </SelectInput>
-            {#if DBState.db.supaModelType === 'instruct35'}
+            {#if DBState.db.supaModelType === "instruct35"}
                 <span class="text-textcolor">OpenAI API Key</span>
-                <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryKey}/>
+                <TextInput marginBottom size="sm" bind:value={DBState.db.supaMemoryKey} />
             {/if}
             <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt"/></span>
             <div class="mb-2">
-            <TextAreaInput size="sm" bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
+                <TextAreaInput size="sm" placeholder="Leave it blank to use default" bind:value={DBState.db.supaMemoryPrompt} />
             </div> 
             <span class="text-textcolor">Memory Tokens Ratio</span>
-            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio}/>
+            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio} />
             <span class="text-textcolor">Extra Summarization Ratio</span>
-            <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.extraSummarizationRatio}/>
+            <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.extraSummarizationRatio} />
             <span class="text-textcolor">Max Chats Per Summary</span>
-            <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaV3Settings.maxChatsPerSummary} min={1} />
+            <NumberInput marginBottom size="sm" min={1} bind:value={DBState.db.hypaV3Settings.maxChatsPerSummary} />
             <span class="text-textcolor">Recent Memory Ratio</span>
-            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.recentMemoryRatio}/>
+            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.recentMemoryRatio} />
             <span class="text-textcolor">Similar Memory Ratio</span>
-            <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.recentMemoryRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.similarMemoryRatio}/>
+            <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.similarMemoryRatio} />
             <span class="text-textcolor">Random Memory Ratio</span>
-            <NumberInput size="sm" marginBottom value={parseFloat((1 - DBState.db.hypaV3Settings.recentMemoryRatio - DBState.db.hypaV3Settings.similarMemoryRatio).toFixed(2))} disabled/>
+            <NumberInput marginBottom disabled size="sm" value={parseFloat((1 - DBState.db.hypaV3Settings.recentMemoryRatio - DBState.db.hypaV3Settings.similarMemoryRatio).toFixed(2))} />
             <div class="flex mb-2">
-                <Check bind:check={DBState.db.hypaV3Settings.enableSimilarityCorrection} name="Enable Similarity Correction"/>
+                <Check name="Enable Similarity Correction" bind:check={DBState.db.hypaV3Settings.enableSimilarityCorrection} />
             </div>
             <div class="flex mb-2">
-                <Check bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} name="Preserve Orphaned Memory"/>
+                <Check name="Preserve Orphaned Memory" bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
             </div>        
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
             <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>

@@ -24,6 +24,7 @@ interface Summary {
 
 interface HypaV3Data {
   summaries: Summary[];
+  lastSelectedSummaries?: number[];
 }
 
 export interface SerializableHypaV3Data {
@@ -32,12 +33,17 @@ export interface SerializableHypaV3Data {
     chatMemos: string[];
     isImportant: boolean;
   }[];
+  lastSelectedSummaries?: number[];
 }
 
 interface SummaryChunk {
   text: string;
   summary: Summary;
 }
+
+const minChatsForSimilarity = 3;
+const maxSummarizationFailures = 3;
+const summarySeparator = "\n\n";
 
 // Helper function to check if one Set is a subset of another
 function isSubset(subset: Set<string>, superset: Set<string>): boolean {
@@ -51,6 +57,7 @@ function isSubset(subset: Set<string>, superset: Set<string>): boolean {
 
 function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
   return {
+    ...data,
     summaries: data.summaries.map((summary) => ({
       ...summary,
       chatMemos: [...summary.chatMemos],
@@ -60,6 +67,7 @@ function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
 
 function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
   return {
+    ...serialData,
     summaries: serialData.summaries.map((summary) => ({
       ...summary,
       // Convert null back to undefined (JSON serialization converts undefined to null)
@@ -87,14 +95,17 @@ function cleanOrphanedSummary(chats: OpenAIChat[], data: HypaV3Data): void {
   const removedCount = originalLength - data.summaries.length;
 
   if (removedCount > 0) {
-    console.log(`[HypaV3] Cleaned ${removedCount} orphaned summaries`);
+    console.log(`[HypaV3] Cleaned ${removedCount} orphaned summaries.`);
   }
 }
 
 export async function summarize(
-  stringifiedChats: string
+  oaiChats: OpenAIChat[]
 ): Promise<{ success: boolean; data: string }> {
   const db = getDatabase();
+  const stringifiedChats = oaiChats
+    .map((chat) => `${chat.role}: ${chat.content}`)
+    .join("\n");
 
   if (db.supaModelType === "distilbart") {
     try {
@@ -103,7 +114,7 @@ export async function summarize(
     } catch (error) {
       return {
         success: false,
-        data: "[HypaV3] " + error,
+        data: error,
       };
     }
   }
@@ -116,7 +127,7 @@ export async function summarize(
   switch (db.supaModelType) {
     case "instruct35": {
       console.log(
-        "[HypaV3] Using openAI gpt-3.5-turbo-instruct for summarization"
+        "[HypaV3] Using openAI gpt-3.5-turbo-instruct for summarization."
       );
 
       const requestPrompt = `${stringifiedChats}\n\n${summarizePrompt}\n\nOutput:`;
@@ -165,7 +176,7 @@ export async function summarize(
     }
 
     case "subModel": {
-      console.log(`[HypaV3] Using ax model ${db.subModel} for summarization`);
+      console.log(`[HypaV3] Using ax model ${db.subModel} for summarization.`);
 
       const requestMessages: OpenAIChat[] = parseChatML(
         summarizePrompt.replaceAll("{{slot}}", stringifiedChats)
@@ -190,14 +201,17 @@ export async function summarize(
         "memory"
       );
 
-      if (
-        response.type === "fail" ||
-        response.type === "streaming" ||
-        response.type === "multiline"
-      ) {
+      if (response.type === "streaming" || response.type === "multiline") {
         return {
           success: false,
-          data: "Unexpected response type",
+          data: "unexpected response type",
+        };
+      }
+
+      if (response.type === "fail") {
+        return {
+          success: false,
+          data: response.result,
         };
       }
 
@@ -207,9 +221,40 @@ export async function summarize(
     default: {
       return {
         success: false,
-        data: `Unsupported model ${db.supaModelType} for summarization`,
+        data: `unsupported model ${db.supaModelType} for summarization`,
       };
     }
+  }
+}
+
+async function retryableSummarize(
+  oaiChats: OpenAIChat[]
+): Promise<{ success: boolean; data: string }> {
+  let summarizationFailures = 0;
+
+  while (summarizationFailures < maxSummarizationFailures) {
+    console.log(
+      "[HypaV3] Attempting summarization:",
+      "\nAttempt:",
+      summarizationFailures + 1,
+      "\nTarget:",
+      oaiChats
+    );
+
+    const summarizeResult = await summarize(oaiChats);
+
+    if (!summarizeResult.success) {
+      console.log("[HypaV3] Summarization failed:", summarizeResult.data);
+      summarizationFailures++;
+
+      if (summarizationFailures >= maxSummarizationFailures) {
+        return summarizeResult;
+      }
+
+      continue;
+    }
+
+    return summarizeResult;
   }
 }
 
@@ -226,9 +271,6 @@ export async function hypaMemoryV3(
   error?: string;
   memory?: SerializableHypaV3Data;
 }> {
-  const minChatsForSimilarity = 3;
-  const maxSummarizationFailures = 3;
-  const summarySeparator = "\n\n";
   const db = getDatabase();
 
   // Validate settings
@@ -250,6 +292,7 @@ export async function hypaMemoryV3(
   // Load existing hypa data if available
   let data: HypaV3Data = {
     summaries: [],
+    lastSelectedSummaries: [],
   };
 
   if (room.hypaV3Data) {
@@ -360,8 +403,8 @@ export async function hypaMemoryV3(
         i,
         "\nRole:",
         chat.role,
-        "\nContent:\n",
-        chat.content,
+        "\nContent:",
+        "\n" + chat.content,
         "\nTokens:",
         chatTokens
       );
@@ -387,52 +430,28 @@ export async function hypaMemoryV3(
       currentTokens - toSummarizeTokens < targetTokens
     ) {
       console.log(
-        `[HypaV3] Stopping summarization: would reduce below target tokens (${currentTokens} - ${toSummarizeTokens} < ${targetTokens})`
+        `[HypaV3] Stopping summarization: currentTokens(${currentTokens}) - toSummarizeTokens(${toSummarizeTokens}) < targetTokens(${targetTokens})`
       );
       break;
     }
 
     // Attempt summarization
-    let summarizationFailures = 0;
-    const stringifiedChats = toSummarize
-      .map((chat) => `${chat.role}: ${chat.content}`)
-      .join("\n");
+    const summarizeResult = await retryableSummarize(toSummarize);
 
-    while (summarizationFailures < maxSummarizationFailures) {
-      console.log(
-        "[HypaV3] Attempting summarization:",
-        "\nAttempt:",
-        summarizationFailures + 1,
-        "\nTarget:",
-        toSummarize
-      );
-
-      const summarizeResult = await summarize(stringifiedChats);
-
-      if (!summarizeResult.success) {
-        console.log("[HypaV3] Summarization failed:", summarizeResult.data);
-        summarizationFailures++;
-
-        if (summarizationFailures >= maxSummarizationFailures) {
-          return {
-            currentTokens,
-            chats,
-            error: "[HypaV3] Summarization failed after maximum retries",
-            memory: toSerializableHypaV3Data(data),
-          };
-        }
-
-        continue;
-      }
-
-      data.summaries.push({
-        text: summarizeResult.data,
-        chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
-        isImportant: false,
-      });
-
-      break;
+    if (!summarizeResult.success) {
+      return {
+        currentTokens,
+        chats,
+        error: `[HypaV3] Summarization failed after maximum retries: ${summarizeResult.data}`,
+        memory: toSerializableHypaV3Data(data),
+      };
     }
+
+    data.summaries.push({
+      text: summarizeResult.data,
+      chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
+      isImportant: false,
+    });
 
     currentTokens -= toSummarizeTokens;
     startIdx = endIdx;
@@ -529,9 +548,9 @@ export async function hypaMemoryV3(
       selectedRecentSummaries.length,
       "\nSummaries:",
       selectedRecentSummaries,
-      "\nReserved Recent Memory Tokens:",
+      "\nReserved Tokens:",
       reservedRecentMemoryTokens,
-      "\nConsumed Recent Memory Tokens:",
+      "\nConsumed Tokens:",
       consumedRecentMemoryTokens
     );
   }
@@ -608,56 +627,33 @@ export async function hypaMemoryV3(
 
     // (2) Summarized recent chat search
     if (db.hypaV3Settings.enableSimilarityCorrection) {
-      let summarizationFailures = 0;
+      // Attempt summarization
       const recentChats = chats.slice(-minChatsForSimilarity);
-      const stringifiedRecentChats = recentChats
-        .map((chat) => `${chat.role}: ${chat.content}`)
-        .join("\n");
+      const summarizeResult = await retryableSummarize(recentChats);
 
-      while (summarizationFailures < maxSummarizationFailures) {
-        console.log(
-          "[HypaV3] Attempting summarization:",
-          "\nAttempt:",
-          summarizationFailures + 1,
-          "\nTarget:",
-          recentChats
-        );
-
-        const summarizeResult = await summarize(stringifiedRecentChats);
-
-        if (!summarizeResult.success) {
-          console.log("[HypaV3] Summarization failed:", summarizeResult.data);
-          summarizationFailures++;
-
-          if (summarizationFailures >= maxSummarizationFailures) {
-            return {
-              currentTokens,
-              chats,
-              error: "[HypaV3] Summarization failed after maximum retries",
-              memory: toSerializableHypaV3Data(data),
-            };
-          }
-
-          continue;
-        }
-
-        const searched = await processor.similaritySearchScoredEx(
-          summarizeResult.data
-        );
-
-        for (const [chunk, similarity] of searched) {
-          const summary = chunk.summary;
-
-          scoredSummaries.set(
-            summary,
-            (scoredSummaries.get(summary) || 0) + similarity
-          );
-        }
-
-        console.log("[HypaV3] Similarity corrected");
-
-        break;
+      if (!summarizeResult.success) {
+        return {
+          currentTokens,
+          chats,
+          error: `[HypaV3] Summarization failed after maximum retries: ${summarizeResult.data}`,
+          memory: toSerializableHypaV3Data(data),
+        };
       }
+
+      const searched = await processor.similaritySearchScoredEx(
+        summarizeResult.data
+      );
+
+      for (const [chunk, similarity] of searched) {
+        const summary = chunk.summary;
+
+        scoredSummaries.set(
+          summary,
+          (scoredSummaries.get(summary) || 0) + similarity
+        );
+      }
+
+      console.log("[HypaV3] Similarity corrected.");
     }
 
     // Sort in descending order
@@ -677,6 +673,8 @@ export async function hypaMemoryV3(
         "[HypaV3] Trying to add similar summary:",
         "\nSummary Tokens:",
         summaryTokens,
+        "\nConsumed Similar Memory Tokens:",
+        consumedSimilarMemoryTokens,
         "\nReserved Tokens:",
         reservedSimilarMemoryTokens,
         "\nWould exceed:",
@@ -689,7 +687,7 @@ export async function hypaMemoryV3(
         reservedSimilarMemoryTokens
       ) {
         console.log(
-          `[HypaV3] Stopping similar memory selection: would exceed reserved tokens (${consumedSimilarMemoryTokens} + ${summaryTokens} > ${reservedSimilarMemoryTokens})`
+          `[HypaV3] Stopping similar memory selection: consumedSimilarMemoryTokens(${consumedSimilarMemoryTokens}) + summaryTokens(${summaryTokens}) > reservedSimilarMemoryTokens(${reservedSimilarMemoryTokens})`
         );
         break;
       }
@@ -706,9 +704,9 @@ export async function hypaMemoryV3(
       selectedSimilarSummaries.length,
       "\nSummaries:",
       selectedSimilarSummaries,
-      "\nReserved Similar Memory Tokens:",
+      "\nReserved Tokens:",
       reservedSimilarMemoryTokens,
-      "\nConsumed Similar Memory Tokens:",
+      "\nConsumed Tokens:",
       consumedSimilarMemoryTokens
     );
   }
@@ -770,9 +768,9 @@ export async function hypaMemoryV3(
       selectedRandomSummaries.length,
       "\nSummaries:",
       selectedRandomSummaries,
-      "\nReserved Random Memory Tokens:",
+      "\nReserved Tokens:",
       reservedRandomMemoryTokens,
-      "\nConsumed Random Memory Tokens:",
+      "\nConsumed Tokens:",
       consumedRandomMemoryTokens
     );
   }
@@ -814,9 +812,14 @@ export async function hypaMemoryV3(
 
   if (currentTokens > maxContextTokens) {
     throw new Error(
-      `[HypaV3] Unexpected input token count:\nCurrent Tokens:${currentTokens}\nMax Context Tokens:${maxContextTokens}`
+      `[HypaV3] Unexpected error: input token count (${currentTokens}) exceeds max context size (${maxContextTokens})`
     );
   }
+
+  // Save last selected summaries
+  data.lastSelectedSummaries = selectedSummaries.map((selectedSummary) =>
+    data.summaries.findIndex((summary) => summary === selectedSummary)
+  );
 
   const newChats: OpenAIChat[] = [
     {
@@ -854,7 +857,7 @@ class HypaProcesserEx extends HypaProcesser {
   summaryChunkVectors: SummaryChunkVector[] = [];
 
   // Calculate dot product similarity between two vectors
-  similarity(a: VectorArray, b: VectorArray) {
+  similarity(a: VectorArray, b: VectorArray): number {
     let dot = 0;
 
     for (let i = 0; i < a.length; i++) {
@@ -864,7 +867,7 @@ class HypaProcesserEx extends HypaProcesser {
     return dot;
   }
 
-  async addSummaryChunks(chunks: SummaryChunk[]) {
+  async addSummaryChunks(chunks: SummaryChunk[]): Promise<void> {
     // Maintain the superclass's caching structure by adding texts
     const texts = chunks.map((chunk) => chunk.text);
 
