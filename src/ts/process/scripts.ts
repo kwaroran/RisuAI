@@ -277,7 +277,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 for(const m of meta){
                     if(m.startsWith('order ')){
                         order = parseInt(m.substring(6))
-                        orderChanged = true
                     }
                     else{
                         actions.push(m)

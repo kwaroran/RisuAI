@@ -2172,7 +2172,7 @@ export function getChatVar(key:string){
         return 'null'
     }
     const chat = char.chats[char.chatPage]
-    chat.scriptstate ??= {}
+    chat.scriptstate = chat.scriptstate ?? {}
     const state = (chat.scriptstate['$' + key])
     if(state === undefined || state === null){
         const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(DBState.db.templateDefaultVariables))
