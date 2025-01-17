@@ -232,7 +232,7 @@
         };
   }
 
-  function getNextMessageToSummarize(): Message {
+  function getNextMessageToSummarize(): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const firstMessage =
@@ -256,7 +256,11 @@
     }
 
     if (firstMessage?.trim() === "") {
-      return chat.message[0];
+      if (chat.message.length > 0) {
+        return chat.message[0];
+      }
+
+      return null;
     }
 
     return { role: "char", chatId: "first message", data: firstMessage };
@@ -601,16 +605,18 @@
         {#if true}
           <!-- Next message to summarize -->
           {@const nextMessage = getNextMessageToSummarize()}
-          <div class="mt-4">
-            <span class="text-sm text-textcolor2 mb-2 block">
-              HypaV3 will summarize {nextMessage.chatId}
-            </span>
-            <div
-              class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
-            >
-              {nextMessage.data}
+          {#if nextMessage}
+            <div class="mt-4">
+              <span class="text-sm text-textcolor2 mb-2 block">
+                HypaV3 will summarize [{nextMessage.chatId}]
+              </span>
+              <div
+                class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+              >
+                {nextMessage.data}
+              </div>
             </div>
-          </div>
+          {/if}
         {/if}
       </div>
     </div>
