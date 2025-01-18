@@ -62,21 +62,31 @@
     );
   }
 
+  function getFirstMessage(): string | null {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+
+    return chat.fmIndex === -1
+      ? char.firstMessage
+      : char.alternateGreetings?.[chat.fmIndex]
+        ? char.alternateGreetings[chat.fmIndex]
+        : null;
+  }
+
   function getMessageFromChatMemo(chatMemo: string | null): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const firstMessage =
-      chat.fmIndex === -1
-        ? char.firstMessage
-        : char.alternateGreetings?.[chat.fmIndex ?? 0];
+    const firstMessage = getFirstMessage();
 
-    const targetMessage = (
-      chatMemo == null
-        ? { role: "char", data: firstMessage }
-        : chat.message.find((m) => m.chatId === chatMemo)
-    ) as Message;
+    if (!firstMessage) {
+      return null;
+    }
 
-    return targetMessage;
+    if (chatMemo == null) {
+      return { role: "char", data: firstMessage };
+    }
+
+    return chat.message.find((m) => m.chatId === chatMemo) || null;
   }
 
   async function toggleTranslate(
@@ -108,16 +118,11 @@
     const summary = hypaV3DataState.summaries[summaryIndex];
 
     for (const chatMemo of summary.chatMemos) {
-      if (typeof chatMemo === "string") {
-        const char = DBState.db.characters[$selectedCharID];
-        const chat =
-          char.chats[DBState.db.characters[$selectedCharID].chatPage];
-
-        if (!chat.message.find((m) => m.chatId === chatMemo)) {
-          return false;
-        }
+      if (!getMessageFromChatMemo(chatMemo)) {
+        return false;
       }
     }
+
     return true;
   }
 
@@ -235,11 +240,13 @@
   function getNextMessageToSummarize(): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const firstMessage =
-      chat.fmIndex === -1
-        ? char.firstMessage
-        : char.alternateGreetings?.[chat.fmIndex ?? 0];
+    const firstMessage = getFirstMessage();
 
+    if (!firstMessage) {
+      return null;
+    }
+
+    // Summaries exist
     if (hypaV3DataState.summaries.length > 0) {
       const lastSummary = hypaV3DataState.summaries.at(-1);
       const lastMessageIndex = chat.message.findIndex(
@@ -255,6 +262,7 @@
       }
     }
 
+    // No summaries
     if (firstMessage?.trim() === "") {
       if (chat.message.length > 0) {
         return chat.message[0];
@@ -263,6 +271,7 @@
       return null;
     }
 
+    // will summarize first message
     return { role: "char", chatId: "first message", data: firstMessage };
   }
 
