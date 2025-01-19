@@ -24,10 +24,7 @@
     SettingsMenuIndex,
   } from "../../ts/stores.svelte";
   import { type OpenAIChat } from "../../ts/process/index.svelte";
-  import {
-    processScriptFull,
-    risuChatParser,
-  } from "../../ts/process/scripts";
+  import { processScriptFull, risuChatParser } from "../../ts/process/scripts";
   import { summarize } from "../../ts/process/memory/hypav3";
   import { type Message } from "../../ts/storage/database.svelte";
   import { translateHTML } from "../../ts/translator/translator";
@@ -536,13 +533,14 @@
 <!-- Modal backdrop -->
 <div class="fixed inset-0 z-50 bg-black/50 p-4">
   <!-- Modal wrapper -->
-  <div class="h-full w-full flex justify-center">
+  <div
+    class="w-full flex justify-center {hypaV3DataState.summaries.length === 0
+      ? 'h-fit'
+      : 'h-full'}"
+  >
     <!-- Modal window -->
     <div
-      class="bg-zinc-900 p-6 rounded-lg flex flex-col w-full max-w-3xl {hypaV3DataState
-        .summaries.length === 0
-        ? 'h-fit'
-        : 'max-h-full'}"
+      class="bg-zinc-900 p-6 rounded-lg flex flex-col w-full max-w-3xl max-h-full"
     >
       <!-- Header -->
       <div class="flex justify-between items-center w-full mb-4">
