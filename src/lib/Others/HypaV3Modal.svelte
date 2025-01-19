@@ -292,54 +292,59 @@
   };
 
   function handleDualAction(node: HTMLElement, params: DualActionParams = {}) {
-    const state = {
-      lastTap: 0,
-      tapTimeout: null as any,
-    };
-
     const DOUBLE_TAP_DELAY = 300;
 
-    function handleInteraction(event: Event) {
-      if ("ontouchend" in window) {
-        // Mobile environment
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - state.lastTap;
+    const state = {
+      lastTap: 0,
+      tapTimeout: null,
+    };
 
-        if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-          // Double tap detected
-          event.preventDefault();
-          clearTimeout(state.tapTimeout); // Cancel the first tap timeout
-          params.onAlternativeAction?.();
-          state.lastTap = 0; // Reset state
-        } else {
-          // First tap
-          state.lastTap = currentTime;
+    const handleTouch = (event: TouchEvent) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - state.lastTap;
 
-          // Delayed single tap execution
-          state.tapTimeout = setTimeout(() => {
-            if (state.lastTap === currentTime) {
-              // If no double tap occurred
-              params.onMainAction?.();
-            }
-          }, DOUBLE_TAP_DELAY);
-        }
+      if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+        // Double tap detected
+        event.preventDefault();
+        clearTimeout(state.tapTimeout); // Cancel the first tap timeout
+        params.onAlternativeAction?.();
+        state.lastTap = 0; // Reset state
       } else {
-        // Desktop environment
-        if ((event as MouseEvent).shiftKey) {
-          params.onAlternativeAction?.();
-        } else {
-          params.onMainAction?.();
-        }
+        state.lastTap = currentTime; // First tap
+        // Delayed single tap execution
+        state.tapTimeout = setTimeout(() => {
+          if (state.lastTap === currentTime) {
+            // If no double tap occurred
+            params.onMainAction?.();
+          }
+        }, DOUBLE_TAP_DELAY);
       }
-    }
+    };
 
-    node.addEventListener("click", handleInteraction);
-    node.addEventListener("touchend", handleInteraction);
+    const handleClick = (event: MouseEvent) => {
+      if (event.shiftKey) {
+        params.onAlternativeAction?.();
+      } else {
+        params.onMainAction?.();
+``      }
+    };
+
+    if ("ontouchend" in window) {
+      // Mobile environment
+      node.addEventListener("touchend", handleTouch);
+    } else {
+      // Desktop environment
+      node.addEventListener("click", handleClick);
+    }
 
     return {
       destroy() {
-        node.removeEventListener("click", handleInteraction);
-        node.removeEventListener("touchend", handleInteraction);
+        if ("ontouchend" in window) {
+          node.removeEventListener("touchend", handleTouch);
+        } else {
+          node.removeEventListener("click", handleClick);
+        }
+
         clearTimeout(state.tapTimeout); // Cleanup timeout
       },
       update(newParams: DualActionParams) {
