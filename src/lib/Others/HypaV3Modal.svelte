@@ -25,7 +25,6 @@
   } from "../../ts/stores.svelte";
   import { type OpenAIChat } from "../../ts/process/index.svelte";
   import {
-    processScript,
     processScriptFull,
     risuChatParser,
   } from "../../ts/process/scripts";
