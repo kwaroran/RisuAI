@@ -7,6 +7,7 @@
     RefreshCw,
     CheckIcon,
   } from "lucide-svelte";
+  import { tick } from "svelte";
   import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
   import { alertConfirm, showHypaV3Alert } from "../../ts/alert";
   import { DBState, alertStore, selectedCharID } from "src/ts/stores.svelte";
@@ -18,17 +19,20 @@
   interface SummaryUI {
     isTranslating: boolean;
     translation: string | null;
+    translationRef: HTMLDivElement;
     isRerolling: boolean;
     rerolledText: string | null;
     isRerolledTranslating: boolean;
     rerolledTranslation: string | null;
+    rerolledTranslationRef: HTMLDivElement;
   }
 
   interface ExpandedMessageUI {
     summaryIndex: number;
     selectedChatMemo: string;
     isTranslating: boolean;
-    translation?: string | null;
+    translation: string | null;
+    translationRef: HTMLDivElement;
   }
 
   const hypaV3DataState = $derived(
@@ -44,10 +48,12 @@
     summaryUIStates = hypaV3DataState.summaries.map(() => ({
       isTranslating: false,
       translation: null,
+      translationRef: null,
       isRerolling: false,
       rerolledText: null,
       isRerolledTranslating: false,
       rerolledTranslation: null,
+      rerolledTranslationRef: null,
     }));
 
     expandedMessageUIState = null;
@@ -105,6 +111,18 @@
     summaryUIState.isTranslating = true;
     summaryUIState.translation = "Loading...";
 
+    // Focus on translation element after it's rendered
+    await tick();
+
+    if (summaryUIState.translationRef) {
+      summaryUIState.translationRef.focus();
+      summaryUIState.translationRef.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+
+    // Translate
     const result = await translate(
       hypaV3DataState.summaries[summaryIndex].text,
       regenerate
@@ -178,35 +196,22 @@
     summaryUIState.isRerolledTranslating = true;
     summaryUIState.rerolledTranslation = "Loading...";
 
+    // Focus on rerolled translation element after it's rendered
+    await tick();
+
+    if (summaryUIState.rerolledTranslationRef) {
+      summaryUIState.rerolledTranslationRef.focus();
+      summaryUIState.rerolledTranslationRef.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+
+    // Translate
     const result = await translate(summaryUIState.rerolledText, regenerate);
 
     summaryUIState.rerolledTranslation = result;
     summaryUIState.isRerolledTranslating = false;
-  }
-
-  async function toggleTranslateExpandedMessage(
-    regenerate?: boolean
-  ): Promise<void> {
-    if (!expandedMessageUIState || expandedMessageUIState.isTranslating) return;
-
-    if (expandedMessageUIState.translation) {
-      expandedMessageUIState.translation = null;
-      return;
-    }
-
-    const message = getMessageFromChatMemo(
-      expandedMessageUIState.selectedChatMemo
-    );
-
-    if (!message) return;
-
-    expandedMessageUIState.isTranslating = true;
-    expandedMessageUIState.translation = "Loading...";
-
-    const result = await translate(message.data, regenerate);
-
-    expandedMessageUIState.translation = result;
-    expandedMessageUIState.isTranslating = false;
   }
 
   function isMessageExpanded(
@@ -234,7 +239,45 @@
           selectedChatMemo: chatMemo,
           isTranslating: false,
           translation: null,
+          translationRef: null,
         };
+  }
+
+  async function toggleTranslateExpandedMessage(
+    regenerate?: boolean
+  ): Promise<void> {
+    if (!expandedMessageUIState || expandedMessageUIState.isTranslating) return;
+
+    if (expandedMessageUIState.translation) {
+      expandedMessageUIState.translation = null;
+      return;
+    }
+
+    const message = getMessageFromChatMemo(
+      expandedMessageUIState.selectedChatMemo
+    );
+
+    if (!message) return;
+
+    expandedMessageUIState.isTranslating = true;
+    expandedMessageUIState.translation = "Loading...";
+
+    // Focus on translation element after it's rendered
+    await tick();
+
+    if (expandedMessageUIState.translationRef) {
+      expandedMessageUIState.translationRef.focus();
+      expandedMessageUIState.translationRef.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+
+    // Translate
+    const result = await translate(message.data, regenerate);
+
+    expandedMessageUIState.translation = result;
+    expandedMessageUIState.isTranslating = false;
   }
 
   function getNextMessageToSummarize(): Message | null {
@@ -326,7 +369,7 @@
         params.onAlternativeAction?.();
       } else {
         params.onMainAction?.();
-``      }
+      }
     };
 
     if ("ontouchend" in window) {
@@ -354,17 +397,21 @@
   }
 </script>
 
+<!-- Modal backdrop -->
 <div class="fixed inset-0 z-50 bg-black/50 p-4">
+  <!-- Modal wrapper -->
   <div class="h-full w-full flex justify-center">
+    <!-- Modal window -->
     <div
       class="bg-zinc-900 p-6 rounded-lg flex flex-col w-full max-w-3xl {hypaV3DataState
         .summaries.length === 0
-        ? 'max-h-[26rem]'
+        ? 'h-fit'
         : 'max-h-full'}"
     >
       <!-- Header -->
       <div class="flex justify-between items-center w-full mb-4">
         <h1 class="text-2xl font-semibold text-zinc-100">HypaV3 Data</h1>
+        <!-- Button Container -->
         <div class="flex items-center gap-2">
           <!-- Reset Button -->
           <button
@@ -405,14 +452,16 @@
         </div>
       </div>
 
-      <!-- Summaries List -->
+      <!-- Scrollable Container -->
       <div class="flex flex-col gap-3 w-full overflow-y-auto">
         {#if hypaV3DataState.summaries.length === 0}
           <span class="text-textcolor2 text-center p-4">No summaries yet</span>
         {/if}
 
+        <!-- Summaries List -->
         {#each hypaV3DataState.summaries as summary, i}
           {#if summaryUIStates[i]}
+            <!-- Summary Item  -->
             <div
               class="flex flex-col p-4 rounded-lg border border-zinc-700 bg-zinc-800/50"
             >
@@ -468,6 +517,8 @@
                   >
                   <div
                     class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                    bind:this={summaryUIStates[i].translationRef}
+                    tabindex="-1"
                   >
                     {summaryUIStates[i].translation}
                   </div>
@@ -531,6 +582,8 @@
                       >
                       <div
                         class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                        bind:this={summaryUIStates[i].rerolledTranslationRef}
+                        tabindex="-1"
                       >
                         {summaryUIStates[i].rerolledTranslation}
                       </div>
@@ -575,7 +628,7 @@
                   {/each}
                 </div>
 
-                <!-- Selected Message Content -->
+                <!-- Selected Message Content (if selected) -->
                 {#if expandedMessageUIState?.summaryIndex === i}
                   {@const message = getMessageFromChatMemo(
                     expandedMessageUIState.selectedChatMemo
@@ -604,6 +657,8 @@
                         >
                         <div
                           class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                          bind:this={expandedMessageUIState.translationRef}
+                          tabindex="-1"
                         >
                           {expandedMessageUIState.translation}
                         </div>
@@ -616,13 +671,15 @@
           {/if}
         {/each}
 
+        <!-- Next message to be summarized -->
         {#if true}
-          <!-- Next message to summarize -->
           {@const nextMessage = getNextMessageToSummarize()}
           {#if nextMessage}
             <div class="mt-4">
               <span class="text-sm text-textcolor2 mb-2 block">
-                HypaV3 will summarize [{nextMessage.chatId}]
+                HypaV3 will summarize [{nextMessage.chatId
+                  ? nextMessage.chatId
+                  : "no message id"}]
               </span>
               <div
                 class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
