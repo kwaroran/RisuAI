@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    SettingsIcon,
     Trash2Icon,
     XIcon,
     LanguagesIcon,
@@ -8,13 +9,19 @@
     CheckIcon,
   } from "lucide-svelte";
   import { tick } from "svelte";
-  import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
+  import TextAreaInput from "../../lib/UI/GUI/TextAreaInput.svelte";
   import { alertConfirm, showHypaV3Alert } from "../../ts/alert";
-  import { DBState, alertStore, selectedCharID } from "src/ts/stores.svelte";
-  import { summarize } from "src/ts/process/memory/hypav3";
-  import { type OpenAIChat } from "src/ts/process/index.svelte";
-  import { type Message } from "src/ts/storage/database.svelte";
-  import { translateHTML } from "src/ts/translator/translator";
+  import {
+    DBState,
+    alertStore,
+    selectedCharID,
+    settingsOpen,
+    SettingsMenuIndex,
+  } from "../../ts/stores.svelte";
+  import { summarize } from "../../ts/process/memory/hypav3";
+  import { type OpenAIChat } from "../../ts/process/index.svelte";
+  import { type Message } from "../../ts/storage/database.svelte";
+  import { translateHTML } from "../../ts/translator/translator";
 
   interface SummaryUI {
     isTranslating: boolean;
@@ -413,6 +420,22 @@
         <h1 class="text-2xl font-semibold text-zinc-100">HypaV3 Data</h1>
         <!-- Button Container -->
         <div class="flex items-center gap-2">
+          <!-- Settings Button -->
+          <button
+            class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+            onclick={() => {
+              alertStore.set({
+                type: "none",
+                msg: "",
+              });
+
+              settingsOpen.set(true);
+              SettingsMenuIndex.set(2); // Other bot settings
+            }}
+          >
+            <SettingsIcon size={24} />
+          </button>
+
           <!-- Reset Button -->
           <button
             class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
