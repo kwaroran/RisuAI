@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import {
     SettingsIcon,
     Trash2Icon,
@@ -9,7 +10,6 @@
     ScissorsLineDashed,
     CheckIcon,
   } from "lucide-svelte";
-  import { tick } from "svelte";
   import TextAreaInput from "../../lib/UI/GUI/TextAreaInput.svelte";
   import {
     alertConfirm,
@@ -23,8 +23,13 @@
     settingsOpen,
     SettingsMenuIndex,
   } from "../../ts/stores.svelte";
-  import { summarize } from "../../ts/process/memory/hypav3";
   import { type OpenAIChat } from "../../ts/process/index.svelte";
+  import {
+    processScript,
+    processScriptFull,
+    risuChatParser,
+  } from "../../ts/process/scripts";
+  import { summarize } from "../../ts/process/memory/hypav3";
   import { type Message } from "../../ts/storage/database.svelte";
   import { translateHTML } from "../../ts/translator/translator";
 
@@ -78,33 +83,6 @@
     return (
       (await alertConfirm(firstMessage)) && (await alertConfirm(secondMessage))
     );
-  }
-
-  function getFirstMessage(): string | null {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-
-    return chat.fmIndex === -1
-      ? char.firstMessage
-      : char.alternateGreetings?.[chat.fmIndex]
-        ? char.alternateGreetings[chat.fmIndex]
-        : null;
-  }
-
-  function getMessageFromChatMemo(chatMemo: string | null): Message | null {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const firstMessage = getFirstMessage();
-
-    if (!firstMessage) {
-      return null;
-    }
-
-    if (chatMemo == null) {
-      return { role: "char", data: firstMessage };
-    }
-
-    return chat.message.find((m) => m.chatId === chatMemo) || null;
   }
 
   async function toggleTranslate(
@@ -167,16 +145,19 @@
 
     try {
       const summary = hypaV3DataState.summaries[summaryIndex];
-      const toSummarize: OpenAIChat[] = summary.chatMemos.map((chatMemo) => {
-        const message = getMessageFromChatMemo(chatMemo);
+      const toSummarize: OpenAIChat[] = await Promise.all(
+        summary.chatMemos.map(async (chatMemo) => {
+          // Processed message
+          const message = await getProcessedMessageFromChatMemo(chatMemo);
 
-        return {
-          role: (message.role === "char"
-            ? "assistant"
-            : message.role) as OpenAIChat["role"],
-          content: message.data,
-        };
-      });
+          return {
+            role: (message.role === "char"
+              ? "assistant"
+              : message.role) as OpenAIChat["role"],
+            content: message.data,
+          };
+        })
+      );
 
       const summarizeResult = await summarize(toSummarize);
 
@@ -226,6 +207,65 @@
     summaryUIState.isRerolledTranslating = false;
   }
 
+  async function getProcessedMessageFromChatMemo(
+    chatMemo: string | null
+  ): Promise<Message | null> {
+    const unprocessed = getMessageFromChatMemo(chatMemo);
+
+    if (!unprocessed) {
+      return null;
+    }
+
+    return DBState.db.hypaV3Settings.processRegexScript
+      ? await processRegexScript(unprocessed)
+      : unprocessed;
+  }
+
+  function getMessageFromChatMemo(chatMemo: string | null): Message | null {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+
+    if (chatMemo == null) {
+      const firstMessage = getFirstMessage();
+
+      return firstMessage ? { role: "char", data: firstMessage } : null;
+    }
+
+    return chat.message.find((m) => m.chatId === chatMemo) || null;
+  }
+
+  function getFirstMessage(): string | null {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+
+    return chat.fmIndex === -1
+      ? char.firstMessage
+      : char.alternateGreetings?.[chat.fmIndex]
+        ? char.alternateGreetings[chat.fmIndex]
+        : null;
+  }
+
+  async function processRegexScript(msg: Message): Promise<Message> {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const newData: string = (
+      await processScriptFull(
+        char,
+        risuChatParser(msg.data, { chara: char, role: msg.role }),
+        "editprocess",
+        -1,
+        {
+          chatRole: msg.role,
+        }
+      )
+    ).data;
+
+    return {
+      ...msg,
+      data: newData,
+    };
+  }
+
   function isMessageExpanded(
     summaryIndex: number,
     chatMemo: string | null
@@ -265,7 +305,8 @@
       return;
     }
 
-    const message = getMessageFromChatMemo(
+    // Processed message
+    const message = await getProcessedMessageFromChatMemo(
       expandedMessageUIState.selectedChatMemo
     );
 
@@ -292,14 +333,32 @@
     expandedMessageUIState.isTranslating = false;
   }
 
-  function getNextMessageToSummarize(): Message | null {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const firstMessage = getFirstMessage();
+  async function translate(
+    text: string,
+    regenerate?: boolean
+  ): Promise<string> {
+    try {
+      return await translateHTML(text, false, "", -1, regenerate);
+    } catch (error) {
+      return `Translation failed: ${error}`;
+    }
+  }
 
-    if (!firstMessage) {
+  async function getProcessedNextSummarizationTarget(): Promise<Message | null> {
+    const unprocessed = getNextSummarizationTarget();
+
+    if (!unprocessed) {
       return null;
     }
+
+    return DBState.db.hypaV3Settings.processRegexScript
+      ? await processRegexScript(unprocessed)
+      : unprocessed;
+  }
+
+  function getNextSummarizationTarget(): Message | null {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
 
     // Summaries exist
     if (hypaV3DataState.summaries.length > 0) {
@@ -317,8 +376,11 @@
       }
     }
 
-    // No summaries
-    if (firstMessage?.trim() === "") {
+    const firstMessage = getFirstMessage();
+
+    // When no summaries exist OR couldn't find last connected message
+    // Check if first message is available
+    if (!firstMessage || firstMessage.trim() === "") {
       if (chat.message.length > 0) {
         return chat.message[0];
       }
@@ -327,25 +389,14 @@
     }
 
     // will summarize first message
-    return { role: "char", chatId: "first message", data: firstMessage };
-  }
-
-  async function translate(
-    text: string,
-    regenerate?: boolean
-  ): Promise<string> {
-    try {
-      return await translateHTML(text, false, "", -1, regenerate);
-    } catch (error) {
-      return `Translation failed: ${error}`;
-    }
+    return { role: "char", chatId: "first", data: firstMessage };
   }
 
   function isHypaV2ConversionPossible(): boolean {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
 
-    return chat.hypaV3Data?.summaries?.length === 0 && chat.hypaV2Data !== null;
+    return chat.hypaV3Data?.summaries?.length === 0 && chat.hypaV2Data != null;
   }
 
   function convertHypaV2ToV3(): { success: boolean; error?: string } {
@@ -559,30 +610,34 @@
         {#if hypaV3DataState.summaries.length === 0}
           <!-- Conversion Section -->
           {#if isHypaV2ConversionPossible()}
-            <div class="mt-4 flex flex-col items-center gap-2">
-              <span class="text-textcolor2 text-center p-4"
-                >No summaries yet, but you can convert HypaV2 data to V3.</span
-              >
-              <button
-                class="px-4 py-2 bg-zinc-800 text-zinc-200 rounded-md hover:bg-zinc-700 transition-colors"
-                onclick={async () => {
-                  const conversionResult = convertHypaV2ToV3();
+            <div
+              class="flex flex-col p-4 rounded-lg border border-zinc-700 bg-zinc-800/50"
+            >
+              <div class="mt-4 flex flex-col items-center gap-2">
+                <span class="text-textcolor2 text-center p-4"
+                  >No summaries yet, but you may convert HypaV2 data to V3.</span
+                >
+                <button
+                  class="px-4 py-2 bg-zinc-800 text-zinc-200 rounded-md hover:bg-zinc-700 transition-colors"
+                  onclick={async () => {
+                    const conversionResult = convertHypaV2ToV3();
 
-                  if (conversionResult.success) {
-                    await alertNormalWait(
-                      "Successfully converted HypaV2 data to V3"
-                    );
-                  } else {
-                    await alertNormalWait(
-                      `Failed to convert HypaV2 data to V3: ${conversionResult.error}`
-                    );
-                  }
+                    if (conversionResult.success) {
+                      await alertNormalWait(
+                        "Successfully converted HypaV2 data to V3"
+                      );
+                    } else {
+                      await alertNormalWait(
+                        `Failed to convert HypaV2 data to V3: ${conversionResult.error}`
+                      );
+                    }
 
-                  showHypaV3Alert();
-                }}
-              >
-                Convert to V3
-              </button>
+                    showHypaV3Alert();
+                  }}
+                >
+                  Convert to V3
+                </button>
+              </div>
             </div>
           {:else}
             <span class="text-textcolor2 text-center p-4">No summaries yet</span
@@ -779,26 +834,32 @@
                   {/each}
                 </div>
 
-                <!-- Selected Message Content (if selected) -->
+                <!-- Selected Message (if selected) -->
                 {#if expandedMessageUIState?.summaryIndex === i}
-                  {@const message = getMessageFromChatMemo(
-                    expandedMessageUIState.selectedChatMemo
-                  )}
                   <div class="mt-4">
-                    {#if message}
-                      <!-- Role -->
-                      <div class="text-sm text-textcolor2 mb-2 block">
-                        {message.role}'s Message
+                    <!-- Processed Message -->
+                    {#await getProcessedMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
+                      {#if expandedMessage}
+                        <!-- Role -->
+                        <div class="text-sm text-textcolor2 mb-2 block">
+                          {expandedMessage.role}'s Message
+                        </div>
+                        <!-- Content -->
+                        <div
+                          class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
+                        >
+                          {expandedMessage.data}
+                        </div>
+                      {:else}
+                        <div class="text-sm text-red-500">
+                          Message not found
+                        </div>
+                      {/if}
+                    {:catch error}
+                      <div class="text-sm text-red-500 mb-2">
+                        Error loading expanded message: {error.message}
                       </div>
-                      <!-- Content -->
-                      <div
-                        class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
-                      >
-                        {message.data}
-                      </div>
-                    {:else}
-                      <div class="text-sm text-red-500">Message not found</div>
-                    {/if}
+                    {/await}
 
                     <!-- Message Translation -->
                     {#if expandedMessageUIState.translation}
@@ -822,15 +883,18 @@
           {/if}
         {/each}
 
-        <!-- Next message to be summarized -->
-        {#if true}
-          {@const nextMessage = getNextMessageToSummarize()}
+        <!-- Next Summarization Target -->
+        {#await getProcessedNextSummarizationTarget() then nextMessage}
           {#if nextMessage}
+            {@const chatId =
+              nextMessage.chatId === "first"
+                ? "First Message"
+                : nextMessage.chatId == null
+                  ? "No Message ID"
+                  : nextMessage.chatId}
             <div class="mt-4">
               <span class="text-sm text-textcolor2 mb-2 block">
-                HypaV3 will summarize [{nextMessage.chatId
-                  ? nextMessage.chatId
-                  : "no message id"}]
+                HypaV3 will summarize [{chatId}]
               </span>
               <div
                 class="p-2 max-h-48 overflow-y-auto bg-zinc-800 rounded-md whitespace-pre-wrap"
@@ -838,11 +902,20 @@
                 {nextMessage.data}
               </div>
             </div>
-          {:else if !getFirstMessage()}
-            <div class="text-sm text-red-500">
-              WARN: Selected first message is null
-            </div>
           {/if}
+        {:catch error}
+          <div class="text-sm text-red-500 mb-2">
+            Error loading next message: {error.message}
+          </div>
+        {/await}
+
+        <!-- No First Message -->
+        {#if !getFirstMessage()}
+          <div class="mt-4">
+            <div class="text-sm text-red-500 mb-2">
+              WARN: Selected first message is empty
+            </div>
+          </div>
         {/if}
       </div>
     </div>

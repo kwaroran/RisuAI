@@ -519,7 +519,10 @@
             </div>
             <div class="flex mb-2">
                 <Check name="Preserve Orphaned Memory" bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
-            </div>        
+            </div>
+            <div class="flex mb-2">
+                <Check name="Process Regex Script (Modify Request Data)" bind:check={DBState.db.hypaV3Settings.processRegexScript} />
+            </div> 
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
             <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
