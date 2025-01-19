@@ -6,6 +6,7 @@
     LanguagesIcon,
     StarIcon,
     RefreshCw,
+    ScissorsLineDashed,
     CheckIcon,
   } from "lucide-svelte";
   import { tick } from "svelte";
@@ -523,6 +524,25 @@
                   >
                     <RefreshCw size={16} />
                   </button>
+
+                  <!-- Delete After Button -->
+                  <button
+                    class="p-2 text-zinc-400 hover:text-zinc-200 hover:text-rose-300 transition-colors"
+                    onclick={async () => {
+                      if (
+                        await alertConfirmTwice(
+                          "Delete all summaries after this one?",
+                          "This action cannot be undone. Are you really sure?"
+                        )
+                      ) {
+                        hypaV3DataState.summaries.splice(i + 1);
+                      }
+
+                      showHypaV3Alert();
+                    }}
+                  >
+                    <ScissorsLineDashed size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -709,6 +729,10 @@
               >
                 {nextMessage.data}
               </div>
+            </div>
+          {:else if !getFirstMessage()}
+            <div class="text-sm text-red-500">
+              WARN: Selected first message is null
             </div>
           {/if}
         {/if}
