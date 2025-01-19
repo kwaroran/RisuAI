@@ -11,7 +11,11 @@
   } from "lucide-svelte";
   import { tick } from "svelte";
   import TextAreaInput from "../../lib/UI/GUI/TextAreaInput.svelte";
-  import { alertConfirm, showHypaV3Alert } from "../../ts/alert";
+  import {
+    alertConfirm,
+    alertNormalWait,
+    showHypaV3Alert,
+  } from "../../ts/alert";
   import {
     DBState,
     alertStore,
@@ -337,6 +341,80 @@
     }
   }
 
+  function isHypaV2ConversionPossible(): boolean {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+
+    return chat.hypaV3Data?.summaries?.length === 0 && chat.hypaV2Data !== null;
+  }
+
+  function convertHypaV2ToV3(): { success: boolean; error?: string } {
+    try {
+      const char = DBState.db.characters[$selectedCharID];
+      const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+      const hypaV2Data = chat.hypaV2Data;
+
+      if (chat.hypaV3Data?.summaries?.length > 0) {
+        return {
+          success: false,
+          error: "HypaV3 data already exists.",
+        };
+      }
+
+      if (!hypaV2Data) {
+        return {
+          success: false,
+          error: "HypaV2 data not found.",
+        };
+      }
+
+      if (hypaV2Data.mainChunks.length === 0) {
+        return {
+          success: false,
+          error: "No main chunks found.",
+        };
+      }
+
+      for (let i = 0; i < hypaV2Data.mainChunks.length; i++) {
+        const mainChunk = hypaV2Data.mainChunks[i];
+
+        if (!Array.isArray(mainChunk.chatMemos)) {
+          return {
+            success: false,
+            error: `Chunk ${i}'s chatMemos is not an array.`,
+          };
+        }
+
+        if (mainChunk.chatMemos.length === 0) {
+          return {
+            success: false,
+            error: `Chunk ${i}'s chatMemos is empty.`,
+          };
+        }
+      }
+
+      const newHypaV3Data = {
+        summaries: hypaV2Data.mainChunks.map((mainChunk) => ({
+          text: mainChunk.text,
+          chatMemos: [...mainChunk.chatMemos],
+          isImportant: false,
+        })),
+        lastSelectedSummaries: [],
+      };
+
+      chat.hypaV3Data = newHypaV3Data;
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error occurred: ${error.message}`,
+      };
+    }
+  }
+
   type DualActionParams = {
     onMainAction?: () => void;
     onAlternativeAction?: () => void;
@@ -479,7 +557,37 @@
       <!-- Scrollable Container -->
       <div class="flex flex-col gap-3 w-full overflow-y-auto">
         {#if hypaV3DataState.summaries.length === 0}
-          <span class="text-textcolor2 text-center p-4">No summaries yet</span>
+          <!-- Conversion Section -->
+          {#if isHypaV2ConversionPossible()}
+            <div class="mt-4 flex flex-col items-center gap-2">
+              <span class="text-textcolor2 text-center p-4"
+                >No summaries yet, but you can convert HypaV2 data to V3.</span
+              >
+              <button
+                class="px-4 py-2 bg-zinc-800 text-zinc-200 rounded-md hover:bg-zinc-700 transition-colors"
+                onclick={async () => {
+                  const conversionResult = convertHypaV2ToV3();
+
+                  if (conversionResult.success) {
+                    await alertNormalWait(
+                      "Successfully converted HypaV2 data to V3"
+                    );
+                  } else {
+                    await alertNormalWait(
+                      `Failed to convert HypaV2 data to V3: ${conversionResult.error}`
+                    );
+                  }
+
+                  showHypaV3Alert();
+                }}
+              >
+                Convert to V3
+              </button>
+            </div>
+          {:else}
+            <span class="text-textcolor2 text-center p-4">No summaries yet</span
+            >
+          {/if}
         {/if}
 
         <!-- Summaries List -->
