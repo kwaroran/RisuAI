@@ -317,8 +317,6 @@
                         </div>
                     {/each}
                 {/if}
-            {:else if $alertStore.type === "hypaV3"}
-                <HypaV3Modal />
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
@@ -637,6 +635,10 @@
             {/if}
         {/each}
     </div>
+{/if}
+
+{#if $alertStore.type === "hypaV3"}
+    <HypaV3Modal />
 {/if}
 
 <style>
