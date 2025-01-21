@@ -10,7 +10,6 @@
     ScissorsLineDashed,
     CheckIcon,
   } from "lucide-svelte";
-  import TextAreaInput from "../../lib/UI/GUI/TextAreaInput.svelte";
   import {
     alertConfirm,
     alertNormalWait,
@@ -617,7 +616,7 @@
                   No summaries yet, but you may convert HypaV2 data to V3.
                 </div>
                 <button
-                  class="my-1 sm:my-2 px-4 py-2 rounded-md text-zinc-300 font-semibold bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                  class="my-1 sm:my-2 px-4 py-2 rounded-md text-zinc-300 font-semibold bg-zinc-700 hover:bg-zinc-500 transition-colors"
                   onclick={async () => {
                     const conversionResult = convertHypaV2ToV3();
 
@@ -671,7 +670,7 @@
                   <!-- Important Button -->
                   <button
                     class="p-2 hover:text-zinc-200 transition-colors {summary.isImportant
-                      ? 'text-yellow-500'
+                      ? 'text-yellow-400'
                       : 'text-zinc-400'}"
                     onclick={() => {
                       summary.isImportant = !summary.isImportant;
@@ -713,7 +712,7 @@
               <!-- Original Summary -->
               <div class="mt-2 sm:mt-4">
                 <textarea
-                  class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 transition-colors text-zinc-200 bg-zinc-900"
+                  class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-900"
                   bind:value={summary.text}
                 >
                 </textarea>
@@ -784,7 +783,7 @@
                 <!-- Rerolled Summary -->
                 <div class="mt-2 sm:mt-4">
                   <textarea
-                    class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 transition-colors text-zinc-200 bg-zinc-900"
+                    class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-900"
                     bind:value={summaryUIStates[i].rerolledText}
                   >
                   </textarea>
@@ -836,7 +835,7 @@
               <div class="flex flex-wrap mt-2 sm:mt-4 gap-2">
                 {#each summary.chatMemos as chatMemo}
                   <button
-                    class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-800 transition-colors bg-zinc-900 {isMessageExpanded(
+                    class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
                       i,
                       chatMemo
                     )
@@ -867,11 +866,11 @@
                         value={expandedMessage.data}
                       ></textarea>
                     {:else}
-                      <span class="text-sm text-red-500">Message not found</span
+                      <span class="text-sm text-red-400">Message not found</span
                       >
                     {/if}
                   {:catch error}
-                    <span class="text-sm text-red-500"
+                    <span class="text-sm text-red-400"
                       >Error loading expanded message: {error.message}</span
                     >
                   {/await}
@@ -918,10 +917,10 @@
                 value={nextMessage.data}
               ></textarea>
             {:else}
-              <span class="text-sm text-red-500">WARN: No messages found</span>
+              <span class="text-sm text-red-400">WARN: No messages found</span>
             {/if}
           {:catch error}
-            <span class="text-sm text-red-500"
+            <span class="text-sm text-red-400"
               >Error loading next message: {error.message}</span
             >
           {/await}
@@ -930,7 +929,7 @@
         <!-- No First Message -->
         {#if !getFirstMessage()}
           <div class="mt-2 sm:mt-4">
-            <span class="text-sm text-red-500"
+            <span class="text-sm text-red-400"
               >WARN: Selected first message is empty</span
             >
           </div>
