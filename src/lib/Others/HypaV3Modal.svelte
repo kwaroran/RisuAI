@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { untrack, tick } from "svelte";
   import {
+    SearchIcon,
     SettingsIcon,
     Trash2Icon,
     XIcon,
@@ -29,6 +30,7 @@
   import { translateHTML } from "../../ts/translator/translator";
 
   interface SummaryUI {
+    originalRef: HTMLTextAreaElement;
     isTranslating: boolean;
     translation: string | null;
     translationRef: HTMLTextAreaElement;
@@ -37,6 +39,7 @@
     isRerolledTranslating: boolean;
     rerolledTranslation: string | null;
     rerolledTranslationRef: HTMLTextAreaElement;
+    chatMemoRefs: HTMLButtonElement[];
   }
 
   interface ExpandedMessageUI {
@@ -47,6 +50,18 @@
     translationRef: HTMLTextAreaElement;
   }
 
+  interface SearchResult {
+    element: HTMLElement;
+    matchType: "chatMemo" | "summary";
+  }
+
+  interface SearchUI {
+    ref: HTMLInputElement;
+    query: string;
+    currentIndex: number;
+    results: SearchResult[];
+  }
+
   const hypaV3DataState = $derived(
     DBState.db.characters[$selectedCharID].chats[
       DBState.db.characters[$selectedCharID].chatPage
@@ -54,10 +69,12 @@
   );
 
   let summaryUIStates = $state<SummaryUI[]>([]);
-  let expandedMessageUIState = $state<ExpandedMessageUI | null>(null);
+  let expandedMessageUIState = $state<ExpandedMessageUI>(null);
+  let searchUIState = $state<SearchUI>(null);
 
   $effect.pre(() => {
-    summaryUIStates = hypaV3DataState.summaries.map(() => ({
+    summaryUIStates = hypaV3DataState.summaries.map((summary) => ({
+      originalRef: null,
       isTranslating: false,
       translation: null,
       translationRef: null,
@@ -66,9 +83,13 @@
       isRerolledTranslating: false,
       rerolledTranslation: null,
       rerolledTranslationRef: null,
+      chatMemoRefs: new Array(summary.chatMemos.length).fill(null),
     }));
 
-    expandedMessageUIState = null;
+    untrack(() => {
+      expandedMessageUIState = null;
+      searchUIState = null;
+    });
   });
 
   async function alertConfirmTwice(
@@ -78,6 +99,155 @@
     return (
       (await alertConfirm(firstMessage)) && (await alertConfirm(secondMessage))
     );
+  }
+
+  async function toggleSearch() {
+    if (searchUIState === null) {
+      searchUIState = {
+        ref: null,
+        query: "",
+        currentIndex: -1,
+        results: [],
+      };
+
+      // Focus on search element after it's rendered
+      await tick();
+
+      if (searchUIState.ref) {
+        searchUIState.ref.focus();
+      }
+    } else {
+      searchUIState = null;
+    }
+  }
+
+  function onSearch(e: KeyboardEvent) {
+    if (!searchUIState) return;
+
+    if (e.key === "Escape") {
+      searchUIState = null;
+      return;
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent event default action
+
+      const query = searchUIState.query.trim();
+
+      if (!query) return;
+
+      // Search summary index
+      if (query.match(/^#\d+$/)) {
+        const summaryNumber = parseInt(query.substring(1)) - 1;
+
+        if (
+          summaryNumber >= 0 &&
+          summaryNumber < hypaV3DataState.summaries.length
+        ) {
+          summaryUIStates[summaryNumber].originalRef.scrollIntoView({
+            behavior: "instant",
+            block: "center",
+          });
+        }
+
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase();
+
+      if (searchUIState.currentIndex === -1) {
+        const results: SearchResult[] = [];
+
+        if (isGuidLike(query)) {
+          // Search chatMemo
+          summaryUIStates.forEach((summaryUI) => {
+            summaryUI.chatMemoRefs.forEach((buttonRef) => {
+              const buttonText = buttonRef.textContent?.toLowerCase() || "";
+
+              if (buttonText.includes(normalizedQuery)) {
+                results.push({
+                  element: buttonRef as HTMLButtonElement,
+                  matchType: "chatMemo",
+                });
+              }
+            });
+          });
+        } else {
+          // Search summary
+          summaryUIStates.forEach((summaryUI) => {
+            const textAreaText = summaryUI.originalRef.value?.toLowerCase();
+
+            if (textAreaText.includes(normalizedQuery)) {
+              results.push({
+                element: summaryUI.originalRef as HTMLTextAreaElement,
+                matchType: "summary",
+              });
+            }
+          });
+        }
+
+        searchUIState.results = results;
+        searchUIState.currentIndex = -1;
+      }
+
+      // Rotate search results
+      if (searchUIState.results.length > 0) {
+        searchUIState.currentIndex =
+          (searchUIState.currentIndex + 1) % searchUIState.results.length;
+
+        const currentResult = searchUIState.results[searchUIState.currentIndex];
+
+        // Scroll to element
+        currentResult.element.scrollIntoView({
+          behavior: "instant",
+          block: "center",
+        });
+
+        if (currentResult.matchType === "chatMemo") {
+          // Simulate focus effect
+          currentResult.element.classList.add("ring-2", "ring-zinc-500");
+
+          // Remove focus effect after a short delay
+          window.setTimeout(() => {
+            currentResult.element.classList.remove("ring-2", "ring-zinc-500");
+          }, 1000);
+        } else {
+          const textarea = currentResult.element as HTMLTextAreaElement;
+          const startIndex = textarea.value
+            .toLowerCase()
+            .indexOf(normalizedQuery);
+          const lineHeight = parseInt(
+            window.getComputedStyle(textarea).lineHeight,
+            10
+          );
+
+          if (startIndex !== -1) {
+            // Select query
+            textarea.setSelectionRange(
+              startIndex,
+              startIndex + normalizedQuery.length
+            );
+
+            // Scroll to the bottom
+            textarea.scrollTop = textarea.scrollHeight;
+
+            textarea.blur(); // Collapse selection
+            textarea.focus(); // This scrolls the textarea
+
+            searchUIState.ref.focus(); // Restore focus to search bar
+          }
+        }
+      }
+    }
+  }
+
+  function isGuidLike(str: string): boolean {
+    const strTrimed = str.trim();
+
+    // Exclude too short inputs
+    if (strTrimed.length < 4) return false;
+
+    return /^[0-9a-f]{4,12}(-[0-9a-f]{4,12}){0,4}-?$/i.test(strTrimed);
   }
 
   async function toggleTranslate(
@@ -481,13 +651,13 @@
       if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
         // Double tap detected
         event.preventDefault();
-        clearTimeout(state.tapTimeout); // Cancel the first tap timeout
+        window.clearTimeout(state.tapTimeout); // Cancel the first tap timeout
         params.onAlternativeAction?.();
         state.lastTap = 0; // Reset state
       } else {
         state.lastTap = currentTime; // First tap
         // Delayed single tap execution
-        state.tapTimeout = setTimeout(() => {
+        state.tapTimeout = window.setTimeout(() => {
           if (state.lastTap === currentTime) {
             // If no double tap occurred
             params.onMainAction?.();
@@ -520,7 +690,7 @@
           node.removeEventListener("click", handleClick);
         }
 
-        clearTimeout(state.tapTimeout); // Cleanup timeout
+        window.clearTimeout(state.tapTimeout); // Cleanup timeout
       },
       update(newParams: DualActionParams) {
         params = newParams;
@@ -548,6 +718,14 @@
         </h1>
         <!-- Buttons Container -->
         <div class="flex items-center gap-2">
+          <!-- Search Button -->
+          <button
+            class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+            onclick={async () => toggleSearch()}
+          >
+            <SearchIcon class="w-6 h-6" />
+          </button>
+
           <!-- Settings Button -->
           <button
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
@@ -642,6 +820,43 @@
               No summaries yet
             </div>
           {/if}
+
+          <!-- Search Bar -->
+        {:else if searchUIState}
+          <div class="sticky top-0 z-50 p-2 sm:p-3 bg-zinc-800">
+            <div class="flex items-center gap-2">
+              <div class="relative flex flex-1 items-center">
+                <input
+                  class="w-full px-2 sm:px-4 py-2 sm:py-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+                  placeholder="Enter #N, ID, or search query"
+                  bind:this={searchUIState.ref}
+                  bind:value={searchUIState.query}
+                  oninput={() => {
+                    if (searchUIState) {
+                      searchUIState.currentIndex = -1;
+                      searchUIState.results = [];
+                    }
+                  }}
+                  onkeydown={(e) => onSearch(e)}
+                />
+
+                {#if searchUIState.results.length > 0}
+                  <span
+                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:py-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
+                  >
+                    {searchUIState.currentIndex + 1}/{searchUIState.results
+                      .length}
+                  </span>
+                {/if}
+              </div>
+              <button
+                class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                onclick={async () => toggleSearch()}
+              >
+                <XIcon class="w-6 h-6" />
+              </button>
+            </div>
+          </div>
         {/if}
 
         <!-- Summaries List -->
@@ -713,6 +928,7 @@
               <div class="mt-2 sm:mt-4">
                 <textarea
                   class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-900"
+                  bind:this={summaryUIStates[i].originalRef}
                   bind:value={summary.text}
                 >
                 </textarea>
@@ -833,7 +1049,7 @@
 
               <!-- Connected Message IDs -->
               <div class="flex flex-wrap mt-2 sm:mt-4 gap-2">
-                {#each summary.chatMemos as chatMemo}
+                {#each summary.chatMemos as chatMemo, memoIndex}
                   <button
                     class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
                       i,
@@ -841,6 +1057,7 @@
                     )
                       ? 'ring-2 ring-zinc-500'
                       : ''}"
+                    bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
                     onclick={() => toggleExpandMessage(i, chatMemo)}
                   >
                     {chatMemo == null ? "First Message" : chatMemo}
