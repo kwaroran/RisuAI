@@ -53,6 +53,10 @@
   interface SearchResult {
     element: HTMLElement;
     matchType: "chatMemo" | "summary";
+    summaryPosition?: {
+      start: number;
+      end: number;
+    };
   }
 
   interface SearchUI {
@@ -177,66 +181,69 @@
           summaryUIStates.forEach((summaryUI) => {
             const textAreaText = summaryUI.originalRef.value?.toLowerCase();
 
-            if (textAreaText.includes(normalizedQuery)) {
+            let pos = -1;
+            while (
+              (pos = textAreaText.indexOf(normalizedQuery, pos + 1)) !== -1
+            ) {
               results.push({
                 element: summaryUI.originalRef as HTMLTextAreaElement,
                 matchType: "summary",
+                summaryPosition: {
+                  start: pos,
+                  end: pos + normalizedQuery.length,
+                },
               });
             }
           });
         }
 
         searchUIState.results = results;
-        searchUIState.currentIndex = -1;
       }
 
-      // Rotate search results
-      if (searchUIState.results.length > 0) {
-        searchUIState.currentIndex =
-          (searchUIState.currentIndex + 1) % searchUIState.results.length;
+      if (searchUIState.results.length === 0) return;
 
-        const currentResult = searchUIState.results[searchUIState.currentIndex];
+      // Move to next result
+      searchUIState.currentIndex =
+        (searchUIState.currentIndex + 1) % searchUIState.results.length;
 
-        // Scroll to element
-        currentResult.element.scrollIntoView({
-          behavior: "instant",
-          block: "center",
-        });
+      const result = searchUIState.results[searchUIState.currentIndex];
 
-        if (currentResult.matchType === "chatMemo") {
-          // Simulate focus effect
-          currentResult.element.classList.add("ring-2", "ring-zinc-500");
+      // Scroll to element
+      result.element.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+      });
 
-          // Remove focus effect after a short delay
-          window.setTimeout(() => {
-            currentResult.element.classList.remove("ring-2", "ring-zinc-500");
-          }, 1000);
-        } else {
-          const textarea = currentResult.element as HTMLTextAreaElement;
-          const startIndex = textarea.value
-            .toLowerCase()
-            .indexOf(normalizedQuery);
-          const lineHeight = parseInt(
-            window.getComputedStyle(textarea).lineHeight,
-            10
-          );
+      if (result.matchType === "chatMemo") {
+        // Highlight chatMemo result
+        result.element.classList.add("ring-2", "ring-zinc-500");
 
-          if (startIndex !== -1) {
-            // Select query
-            textarea.setSelectionRange(
-              startIndex,
-              startIndex + normalizedQuery.length
-            );
+        // Remove highlight after a short delay
+        window.setTimeout(() => {
+          result.element.classList.remove("ring-2", "ring-zinc-500");
+        }, 1000);
+      } else {
+        // Handle summary text selection
+        const textarea = result.element as HTMLTextAreaElement;
 
-            // Scroll to the bottom
-            textarea.scrollTop = textarea.scrollHeight;
+        // Make readonly temporarily
+        textarea.readOnly = true;
 
-            textarea.blur(); // Collapse selection
-            textarea.focus(); // This scrolls the textarea
+        // Select query
+        textarea.setSelectionRange(
+          result.summaryPosition.start,
+          result.summaryPosition.end
+        );
 
-            searchUIState.ref.focus(); // Restore focus to search bar
-          }
-        }
+        textarea.scrollTop = textarea.scrollHeight; // Scroll to the bottom
+        textarea.blur(); // Collapse selection
+        textarea.focus(); // This scrolls the textarea
+
+        // Highlight textarea
+        window.setTimeout(() => {
+          searchUIState.ref.focus(); // Restore focus to search bar
+          textarea.readOnly = false; // Remove readonly after focus moved
+        }, 300);
       }
     }
   }
@@ -842,7 +849,7 @@
 
                 {#if searchUIState.results.length > 0}
                   <span
-                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:py-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
                   >
                     {searchUIState.currentIndex + 1}/{searchUIState.results
                       .length}
