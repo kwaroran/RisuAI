@@ -491,7 +491,6 @@
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
-                <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
                 <OptionInput value="subModel">{language.submodel}</OptionInput>
             </SelectInput>
             {#if DBState.db.supaModelType === "instruct35"}
