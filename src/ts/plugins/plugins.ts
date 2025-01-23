@@ -230,6 +230,15 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
         },
         onUnload: (func:() => void|Promise<void>) => {
             pluginV2.unload.add(func)
+        },
+        setArg: (arg: string, value: string | number) => {
+            const db = getDatabase();
+            const [name, realArg] = arg.split("::");
+            for (const plug of db.plugins) {
+              if (plug.name === name) {
+                plug.realArg[realArg] = value;
+              }
+            }
         }
     }
 
@@ -249,6 +258,7 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
             const addRisuReplacer = globalThis.__pluginApis__.addRisuReplacer
             const removeRisuReplacer = globalThis.__pluginApis__.removeRisuReplacer
             const onUnload = globalThis.__pluginApis__.onUnload
+            const setArg = globalThis.__pluginApis__.setArg
 
             ${data}
         })();`
