@@ -491,7 +491,6 @@
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
-                <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
                 <OptionInput value="subModel">{language.submodel}</OptionInput>
             </SelectInput>
             {#if DBState.db.supaModelType === "instruct35"}
@@ -519,7 +518,10 @@
             </div>
             <div class="flex mb-2">
                 <Check name="Preserve Orphaned Memory" bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
-            </div>        
+            </div>
+            <div class="flex mb-2">
+                <Check name="Process Regex Script (Reroll Only)" bind:check={DBState.db.hypaV3Settings.processRegexScript} />
+            </div> 
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
             <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
