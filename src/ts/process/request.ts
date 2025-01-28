@@ -287,6 +287,8 @@ export interface OpenAIChatExtra {
     attr?:string[]
     multimodals?:MultiModal[]
     thoughts?:string[]
+    prefix?:boolean
+    reasoning_content?:string
 }
 
 function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
@@ -475,6 +477,12 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
             if(db.newOAIHandle && formatedChat[i].memo && formatedChat[i].memo.startsWith('NewChat')){
                 formatedChat[i].content = ''
+            }
+            if(arg.modelInfo.flags.includes(LLMFlags.deepSeekPrefix) && i === formatedChat.length-1 && formatedChat[i].role === 'assistant'){
+                formatedChat[i].prefix = true
+            }
+            if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingInput) && i === formatedChat.length-1 && formatedChat[i].thoughts && formatedChat[i].thoughts.length > 0 && formatedChat[i].role === 'assistant'){
+                formatedChat[i].reasoning_content = formatedChat[i].thoughts.join('\n')
             }
             delete formatedChat[i].memo
             delete formatedChat[i].removable
@@ -796,6 +804,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
         (aiModel === 'reverse_proxy') ? (arg.customURL) : ('https://api.openai.com/v1/chat/completions')
 
+    if(arg.modelInfo?.endpoint){
+        replacerURL = arg.modelInfo.endpoint
+    }
+
     let risuIdentify = false
     if(replacerURL.startsWith("risu::")){
         risuIdentify = true
@@ -824,6 +836,9 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         "Content-Type": "application/json"
     }
 
+    if(arg.modelInfo?.keyIdentifier){
+        headers["Authorization"] = "Bearer " + db.OaiCompAPIKeys[arg.modelInfo.keyIdentifier]
+    }
     if(aiModel === 'openrouter'){
         headers["X-Title"] = 'RisuAI'
         headers["HTTP-Referer"] = 'https://risuai.xyz'
@@ -881,6 +896,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         })
 
         let dataUint:Uint8Array|Buffer = new Uint8Array([])
+        let reasoningContent = ""
 
         const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
             async transform(chunk, control) {
@@ -894,6 +910,16 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                             try {
                                 const rawChunk = data.replace("data: ", "")
                                 if(rawChunk === "[DONE]"){
+                                    if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+                                        readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                                            reasoningContent = p1
+                                            return ""
+                                        })
+                    
+                                        if(reasoningContent){
+                                            reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
+                                        }
+                                    }                
                                     if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                                         for(const key in readed){
                                             const extracted = extractJSON(readed[key], arg.extractJson)
@@ -901,6 +927,11 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                                         }
                                         console.log(JSONreaded)
                                         control.enqueue(JSONreaded)
+                                    }
+                                    else if(reasoningContent){
+                                        control.enqueue({
+                                            "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
+                                        })
                                     }
                                     else{
                                         control.enqueue(readed)
@@ -925,10 +956,27 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                                             readed["0"] += chunk
                                         }
                                     }
+
+                                    if(choice?.delta?.reasoning_content){
+                                        reasoningContent += choice.delta.reasoning_content
+                                    }
                                 }
                             } catch (error) {}
                         }
                     }
+
+                    
+                    if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+                        readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                            reasoningContent = p1
+                            return ""
+                        })
+    
+                        if(reasoningContent){
+                            reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
+                        }
+                    }
+
                     if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                         for(const key in readed){
                             const extracted = extractJSON(readed[key], arg.extractJson)
@@ -936,6 +984,11 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                         }
                         console.log(JSONreaded)
                         control.enqueue(JSONreaded)
+                    }
+                    else if(reasoningContent){
+                        control.enqueue({
+                            "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
+                        })
                     }
                     else{
                         control.enqueue(readed)
@@ -1031,9 +1084,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             }
 
             if(dat?.choices[0]?.text){
+                let text = dat.choices[0].text as string
                 if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
                     try {
-                        const parsed = JSON.parse(dat.choices[0].text)
+                        const parsed = JSON.parse(text)
                         const extracted = extractJSON(parsed, arg.extractJson)
                         return {
                             type: 'success',
@@ -1043,13 +1097,13 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                         console.log(error)
                         return {
                             type: 'success',
-                            result: dat.choices[0].text
+                            result: text
                         }
                     }
                 }
                 return {
                     type: 'success',
-                    result: dat.choices[0].text
+                    result: text
                 }
             }
             if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
@@ -1059,9 +1113,30 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                 }
             }
             const msg:OpenAIChatFull = (dat.choices[0].message)
+            let result = msg.content
+
+            if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+                console.log("Checking for reasoning content")
+                let reasoningContent = ""
+                result = result.replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                    reasoningContent = p1
+                    return ""
+                })
+                console.log(`Reasoning Content: ${reasoningContent}`)
+
+                if(reasoningContent){
+                    reasoningContent = reasoningContent.replace(/\<think\>/gms, '')
+                    result = `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${result}`
+                }
+            }
+
+            if(dat?.choices[0]?.reasoning_content){
+                result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
+            }
+            
             return {
                 type: 'success',
-                result: msg.content
+                result: result
             }
         } catch (error) {                    
             return {

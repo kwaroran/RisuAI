@@ -18,7 +18,10 @@ export enum LLMFlags{
     OAICompletionTokens,
     DeveloperRole,
     geminiThinking,
-    geminiBlockOff
+    geminiBlockOff,
+    deepSeekPrefix,
+    deepSeekThinkingInput,
+    deepSeekThinkingOutput,
 }
 
 export enum LLMProvider{
@@ -34,7 +37,9 @@ export enum LLMProvider{
     WebLLM,
     Horde,
     AWS,
-    AI21
+    AI21,
+    DeepSeek,
+    DeepInfra
 }
 
 export enum LLMFormat{
@@ -71,7 +76,8 @@ export enum LLMTokenizer{
     Gemma,
     GoogleCloud,
     Cohere,
-    Local
+    Local,
+    DeepSeek
 }
 
 export interface LLMModel{
@@ -86,6 +92,8 @@ export interface LLMModel{
     parameters: Parameter[],
     tokenizer: LLMTokenizer
     recommended?: boolean
+    keyIdentifier?: string
+    endpoint?: string
 }
 
 const ProviderNames = new Map<LLMProvider, string>([
@@ -101,10 +109,30 @@ const ProviderNames = new Map<LLMProvider, string>([
     [LLMProvider.WebLLM, 'WebLLM'],
     [LLMProvider.Horde, 'Horde'],
     [LLMProvider.AWS, 'AWS'],
+    [LLMProvider.DeepSeek, 'DeepSeek'],
+    [LLMProvider.DeepInfra, 'DeepInfra']
 ])
 
 const OpenAIParameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
 const ClaudeParameters:Parameter[] = ['temperature', 'top_k', 'top_p']
+
+function makeDeepInfraModels(id:string[]):LLMModel[]{
+    return id.map((id) => {
+        return {
+            id: 'deepinfra_' + id,
+            name: id,
+            internalID: id,
+            provider: LLMProvider.DeepInfra,
+            format: LLMFormat.OpenAICompatible,
+            parameters: ['frequency_penalty', 'presence_penalty','temperature', 'top_p'],
+            flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekThinkingOutput, LLMFlags.hasStreaming],
+            tokenizer: LLMTokenizer.DeepSeek,
+            endpoint: 'https://api.deepinfra.com/v1/openai/chat/completions',
+            keyIdentifier: 'deepinfra',
+            recommended: true
+        } as LLMModel
+    })
+}
 
 export const LLMModels: LLMModel[] = [
     {
@@ -809,11 +837,39 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
     {
         name: "Gemini Flash 2.0 Thinking 1219",
         id: 'gemini-2.0-flash-thinking-exp-1219',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+    },
+    {
+        name: "Gemini Flash 2.0",
+        id: 'gemini-2.0-flash',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
+        name: "Gemini Pro 2.0 Exp 0128",
+        id: 'gemini-2.0-pro-exp-01-28',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
+        name: "Gemini Flash 2.0 Thinking 0121",
+        id: 'gemini-2.0-flash-thinking-exp-01-21',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
@@ -1103,6 +1159,59 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Local
     },
     {
+        id: 'deepseek-chat',
+        name: 'Deepseek Chat',
+        provider: LLMProvider.DeepSeek,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.hasStreaming],
+        parameters: ['frequency_penalty', 'presence_penalty','temperature', 'top_p'],
+        tokenizer: LLMTokenizer.DeepSeek,
+        endpoint: 'https://api.deepseek.com/beta',
+        keyIdentifier: 'deepseek',
+        recommended: true
+    },
+    {
+        id: 'deepseek-reasoner',
+        name: 'Deepseek Reasoner',
+        provider: LLMProvider.DeepSeek,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.deepSeekThinkingInput, LLMFlags.hasStreaming],
+        parameters: [],
+        tokenizer: LLMTokenizer.DeepSeek,
+        endpoint: 'https://api.deepseek.com/beta/chat/completions',
+        keyIdentifier: 'deepseek',
+        recommended: true
+    },
+    ...makeDeepInfraModels([
+        'deepseek-ai/DeepSeek-R1',
+        'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
+        'deepseek-ai/DeepSeek-V3',
+        'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        'meta-llama/Llama-3.3-70B-Instruct',
+        'microsoft/phi-4',
+        'meta-llama/Meta-Llama-3.1-70B-Instruct',
+        'meta-llama/Meta-Llama-3.1-8B-Instruct',
+        'meta-llama/Meta-Llama-3.1-405B-Instruct',
+        'Qwen/QwQ-32B-Preview',
+        'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+        'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+        'Qwen/Qwen2.5-Coder-32B-Instruct',
+        'nvidia/Llama-3.1-Nemotron-70B-Instruct',
+        'Qwen/Qwen2.5-72B-Instruct',
+        'meta-llama/Llama-3.2-90B-Vision-Instruct',
+        'meta-llama/Llama-3.2-11B-Vision-Instruct',
+        'microsoft/WizardLM-2-8x22B',
+        '01-ai/Yi-34B-Chat',
+        'Austism/chronos-hermes-13b-v2',
+        'Gryphe/MythoMax-L2-13b',
+        'Gryphe/MythoMax-L2-13b-turbo',
+        'Sao10K/L3.3-70B-Euryale-v2.3',
+        'Sao10K/L3.1-70B-Euryale-v2.2',
+        'Sao10K/L3-70B-Euryale-v2.1',
+        'google/gemma-2-27b-it',
+        'google/gemma-2-9b-it'
+    ]),
+    {
         id: 'custom',
         name: "Plugin",
         provider: LLMProvider.AsIs,
@@ -1121,7 +1230,7 @@ export const LLMModels: LLMModel[] = [
         recommended: true,
         parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'],
         tokenizer: LLMTokenizer.Unknown
-    }
+    },
 ]
 
 for(let model of LLMModels){

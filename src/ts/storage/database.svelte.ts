@@ -470,6 +470,7 @@ export function setDatabase(data:Database){
     data.banCharacterset ??= []
     data.showPromptComparison ??= false
     data.checkCorruption ??= true
+    data.OaiCompAPIKeys ??= {}
     data.hypaV3Settings = {
         memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
         extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0.2,
@@ -892,7 +893,8 @@ export interface Database{
         enableSimilarityCorrection: boolean
         preserveOrphanedMemory: boolean
         processRegexScript: boolean
-    }
+    },
+    OaiCompAPIKeys: {[key:string]:string}
 }
 
 interface SeparateParameters{

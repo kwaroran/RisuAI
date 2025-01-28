@@ -210,7 +210,16 @@
     {#if modelInfo.provider === LLMProvider.OpenAI || subModelInfo.provider === LLMProvider.OpenAI}
         <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
+    {/if}
 
+    {#if modelInfo.keyIdentifier}
+        <span class="text-textcolor">{modelInfo.name} {language.apiKey}</span>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.OaiCompAPIKeys[modelInfo.keyIdentifier]} placeholder="..."/>
+    {/if}
+
+    {#if subModelInfo.keyIdentifier && subModelInfo.keyIdentifier !== modelInfo.keyIdentifier}
+        <span class="text-textcolor">{subModelInfo.name} {language.apiKey}</span>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.OaiCompAPIKeys[subModelInfo.keyIdentifier]} placeholder="..."/>
     {/if}
 
     <div class="py-2 flex flex-col gap-2 mb-4">

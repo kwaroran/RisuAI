@@ -21,6 +21,7 @@ export const tokenizerList = [
     ['novellist', 'Novellist'],
     ['gemma', 'Gemma'],
     ['cohere', 'Cohere'],
+    ['deepseek', 'DeepSeek'],
 ] as const
 
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
@@ -43,6 +44,8 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
                 return await gemmaTokenize(data)
             case 'cohere':
                 return await tokenizeWebTokenizers(data, 'cohere')
+            case 'deepseek':
+                return await tokenizeWebTokenizers(data, 'DeepSeek')
             default:
                 return await tikJS(data, 'o200k_base')
         }
@@ -108,6 +111,9 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
     if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
         return await gemmaTokenize(data)
     }
+    if(modelInfo.tokenizer === LLMTokenizer.DeepSeek){
+        return await tokenizeWebTokenizers(data, 'DeepSeek')
+    }
     if(modelInfo.tokenizer === LLMTokenizer.Cohere){
         return await tokenizeWebTokenizers(data, 'cohere')
     }
@@ -115,7 +121,7 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
     return await tikJS(data)
 }
 
-type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'|'googleCloud'
+type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'|'googleCloud'|'DeepSeek'
 
 let tikParser:Tiktoken = null
 let tokenizersTokenizer:Tokenizer = null
@@ -264,6 +270,11 @@ async function tokenizeWebTokenizers(text:string, type:tokenizerType) {
             case 'gemma':
                 tokenizersTokenizer = await webTokenizer.Tokenizer.fromSentencePiece(
                     await (await fetch("/token/gemma/tokenizer.model")
+                ).arrayBuffer())
+                break
+            case 'DeepSeek':
+                tokenizersTokenizer = await webTokenizer.Tokenizer.fromJSON(
+                    await (await fetch("/token/deepseek/tokenizer.json")
                 ).arrayBuffer())
                 break
 
