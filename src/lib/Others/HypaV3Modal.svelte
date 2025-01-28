@@ -235,9 +235,13 @@
           result.summaryPosition.end
         );
 
-        textarea.scrollTop = textarea.scrollHeight; // Scroll to the bottom
-        textarea.blur(); // Collapse selection
-        textarea.focus(); // This scrolls the textarea
+        textarea.focus();
+        scrollToSelection(textarea);
+
+        // This only works on firefox
+        //textarea.scrollTop = textarea.scrollHeight; // Scroll to the bottom
+        //textarea.blur(); // Collapse selection
+        //textarea.focus(); // This scrolls the textarea
 
         // Highlight textarea
         window.setTimeout(() => {
@@ -246,6 +250,40 @@
         }, 300);
       }
     }
+  }
+
+  function scrollToSelection(textarea: HTMLTextAreaElement) {
+    const { selectionStart, selectionEnd } = textarea;
+
+    if (
+      selectionStart === null ||
+      selectionEnd === null ||
+      selectionStart === selectionEnd
+    ) {
+      return; // Exit if there is no selected text
+    }
+
+    // Calculate the text before the selected position based on the textarea's text
+    const textBeforeSelection = textarea.value.substring(0, selectionStart);
+
+    // Use a temporary DOM element to calculate the exact position of the selected text
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "absolute";
+    tempDiv.style.whiteSpace = "pre-wrap";
+    tempDiv.style.overflowWrap = "break-word";
+    tempDiv.style.font = window.getComputedStyle(textarea).font;
+    tempDiv.style.width = `${textarea.offsetWidth}px`;
+    tempDiv.style.visibility = "hidden"; // Set it to be invisible
+
+    tempDiv.textContent = textBeforeSelection;
+    document.body.appendChild(tempDiv);
+
+    // Calculate the position of the selected text within the textarea
+    const selectionTop = tempDiv.offsetHeight;
+    document.body.removeChild(tempDiv);
+
+    // Adjust the scroll so that the selected text is centered on the screen
+    textarea.scrollTop = selectionTop - textarea.clientHeight / 2;
   }
 
   function isGuidLike(str: string): boolean {
