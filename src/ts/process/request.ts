@@ -713,6 +713,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     })
 
+    if(Object.keys(body.logit_bias).length === 0){
+        delete body.logit_bias
+    }
+
     if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
         body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
