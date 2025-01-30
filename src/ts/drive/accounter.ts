@@ -1,8 +1,9 @@
 import { hubURL } from "../characterCards"
 import { getDatabase, setDatabase } from "../storage/database.svelte"
-import { alertError, alertMd, alertNormal, alertSelect, alertWait } from "../alert"
+import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertWait } from "../alert"
 import { AppendableBuffer } from "../globalApi.svelte"
 import { decodeRisuSave } from "../storage/risuSave"
+import { language } from "src/lang"
 
 export async function risuLogin() {
     const win = window.open(hubURL + '/hub/login')
@@ -97,6 +98,13 @@ export async function loadRisuAccountBackup() {
         alertError("Invalid backup id")
         return
     }
+    if(!await alertConfirm(language.backupLoadConfirm)){
+        return
+    }
+    if(!await alertConfirm(language.backupLoadConfirm2)){
+        return
+    }
+
     const backupId = backups[backupIdNum]
 
     const backup = await fetch(hubURL + '/hub/backup/get', {
