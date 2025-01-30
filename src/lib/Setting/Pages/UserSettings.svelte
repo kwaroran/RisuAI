@@ -1,7 +1,7 @@
 <script lang="ts">
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
-    import { loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
+    import { loadRisuAccountBackup, loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
     
     import { DBState } from 'src/ts/stores.svelte';
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
@@ -68,6 +68,13 @@
             }
         }} className="mt-2">
         {language.loadInternalBackup}
+    </Button>
+{:else}
+    <Button
+        onclick={async () => {
+            loadRisuAccountBackup()
+        }} className="mt-2">
+        {language.loadAutoServerBackup}
     </Button>
 {/if}
 

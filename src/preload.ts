@@ -29,12 +29,5 @@ export function preLoadCheck(){
         })
     }
     
-    
-    // Redirect to the main page if the user has not visited the main page
-    if(localStorage.getItem('mainpage') !== 'visited') {
-        localStorage.setItem('mainpage', 'visited');
-        location.replace('https://risuai.net');
-        return false;
-    }
     return true;
 }

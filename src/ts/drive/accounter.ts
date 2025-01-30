@@ -1,6 +1,8 @@
 import { hubURL } from "../characterCards"
-import { getDatabase } from "../storage/database.svelte"
-import { alertError, alertSelect } from "../alert"
+import { getDatabase, setDatabase } from "../storage/database.svelte"
+import { alertError, alertMd, alertNormal, alertSelect, alertWait } from "../alert"
+import { AppendableBuffer } from "../globalApi.svelte"
+import { decodeRisuSave } from "../storage/risuSave"
 
 export async function risuLogin() {
     const win = window.open(hubURL + '/hub/login')
@@ -63,19 +65,72 @@ export async function loadRisuAccountBackup() {
         }
     })
     if(s.status !== 200){
-        alertError(await s.text())
+        alertMd(await s.text())
         return
     }
-    const backups = await s.json()
+    const backups = await s.json() as string[]
     if(!backups.length){
         alertError("No backups found")
         return
     }
-    const backupIdStr = await alertSelect(backups)
+    const backupIdStr = await alertSelect([...backups.map((v) => {
+        const int = parseInt(v)
+
+        if(!isNaN(int)){
+            const intl = new Intl.DateTimeFormat([
+                navigator.language,
+                'en-US'
+            ], {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            }).format(new Date(int))
+            return intl
+        }
+
+        return v
+    }), "Cancel"])
     const backupIdNum = parseInt(backupIdStr)
+    if(backupIdNum === backups.length){
+        return
+    }
     if(isNaN(backupIdNum)){
         alertError("Invalid backup id")
         return
     }
     const backupId = backups[backupIdNum]
+
+    const backup = await fetch(hubURL + '/hub/backup/get', {
+        method: "GET",
+        headers: {
+            "x-risu-auth": db.account.token,
+            'x-risu-key': backupId
+        }
+    })
+
+    if(backup.status !== 200){
+        alertError(await backup.text())
+        return
+    }
+    else{
+        const buf = new AppendableBuffer()
+        const reader = backup.body.getReader()
+
+        while(true){
+            const {done, value} = await reader.read()
+            if(done){
+                break
+            }
+            alertWait("Downloading backup: " + buf.buffer.byteLength)
+            buf.append(value)
+        }
+
+        alertWait("Loading backup")
+
+        setDatabase(
+            await decodeRisuSave(buf.buffer)
+        )
+    
+        await alertNormal('Loaded backup')
+    }
+
 }
