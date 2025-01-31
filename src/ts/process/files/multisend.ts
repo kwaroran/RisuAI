@@ -194,8 +194,11 @@ type postFileResultText = {
     type: 'text',
     name: string
 }
-export async function postChatFile(query:string):Promise<postFileResult>{
-    const file = await selectSingleFile([
+export async function postChatFile(query:string|{
+    name:string,
+    data:Uint8Array<ArrayBufferLike>
+}):Promise<postFileResult>{
+    const file = typeof(query) === 'string' ? (await selectSingleFile([
         //image format
         'jpg',
         'jpeg',
@@ -220,12 +223,13 @@ export async function postChatFile(query:string):Promise<postFileResult>{
         'po',
         // 'pdf',
         'txt'
-    ])
+    ])) : query
 
     if(!file){
         return null
     }
 
+    const xquery = typeof(query) === 'string' ? query : ''
     const extention = file.name.split('.').at(-1)
     console.log(extention)
 
@@ -233,7 +237,7 @@ export async function postChatFile(query:string):Promise<postFileResult>{
         case 'po':{
             await sendPofile({
                 file: BufferToText(file.data),
-                query: query
+                query: xquery
             })
             return {
                 type: 'void'
@@ -244,7 +248,7 @@ export async function postChatFile(query:string):Promise<postFileResult>{
                 type: 'text',
                 data: await sendPDFFile({
                     file: BufferToText(file.data),
-                    query: query
+                    query: xquery
                 }),
                 name: file.name
             }
@@ -254,7 +258,7 @@ export async function postChatFile(query:string):Promise<postFileResult>{
                 type: 'text',
                 data: await sendXMLFile({
                     file: BufferToText(file.data),
-                    query: query
+                    query: xquery
                 }),
                 name: file.name
             }
@@ -293,7 +297,7 @@ export async function postChatFile(query:string):Promise<postFileResult>{
                 type: 'text',
                 data: await sendTxtFile({
                     file: BufferToText(file.data),
-                    query: query
+                    query: xquery
                 }),
                 name: file.name
             }

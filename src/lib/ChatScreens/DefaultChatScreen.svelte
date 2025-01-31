@@ -28,6 +28,7 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
+  import { preventDefault } from 'svelte/legacy';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -460,6 +461,43 @@
                         if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
                             reroll()
                             e.preventDefault()
+                        }
+                    }}
+                    onpaste={(e) => {
+                        const items = e.clipboardData?.items
+                        if(!items){
+                            return
+                        }
+                        let canceled = false
+
+                        for(const item of items){
+                            if(item.kind === 'file' && item.type.startsWith('image')){
+                                if(!canceled){
+                                    e.preventDefault()
+                                    canceled = true
+                                }
+                                const file = item.getAsFile()
+                                if(file){
+                                    const reader = new FileReader()
+                                    reader.onload = async (e) => {
+                                        const buf = e.target?.result as ArrayBuffer
+                                        const uint8 = new Uint8Array(buf)
+                                        const res = await postChatFile({
+                                            name: file.name,
+                                            data: uint8
+                                        })
+                                        if(res?.type === 'asset'){
+                                            fileInput.push(res.data)
+                                            updateInputSizeAll()
+                                        }
+                                        if(res?.type === 'text'){
+                                            messageInput += `{{file::${res.name}::${res.data}}}`
+                                            updateInputSizeAll()
+                                        }
+                                    }
+                                    reader.readAsArrayBuffer(file)
+                                }
+                            }
                         }
                     }}
                     oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
