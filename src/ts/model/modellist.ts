@@ -489,6 +489,23 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
     {
+        id: 'o3-mini',
+        internalID: 'o3-mini',
+        name: 'o3-mini',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+
+    {
         name: "Claude 3.5 Sonnet",
         id: 'claude-3-5-sonnet-latest',
         shortName: "3.5 Sonnet",
