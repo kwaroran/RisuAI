@@ -260,6 +260,14 @@ html, body{
   @apply rounded-lg focus:outline-none max-w-80 w-full
 }
 
+.x-risu-risu-error {
+  @apply border-2 border-red-700 bg-red-500 text-white rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0 break-words
+}
+
+.x-risu-risu-error h1 {
+  @apply text-xl mb-2
+}
+
 .z-100{
   z-index: 100;
 }

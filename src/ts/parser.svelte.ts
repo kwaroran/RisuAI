@@ -255,6 +255,11 @@ async function renderHighlightableMarkdown(data:string) {
                     }
                     break
                 }
+                case 'risuerror':{
+                    lang = 'error'
+                    shotLang = 'error'
+                    break
+                }
                 default:{
                     lang = 'none'
                     shotLang = 'none'
@@ -265,6 +270,9 @@ async function renderHighlightableMarkdown(data:string) {
             }
             if(lang === 'none'){
                 rendered = rendered.replace(placeholder, `<pre><code>${md.utils.escapeHtml(code)}</code></pre>`)
+            }
+            else if(lang === 'error'){
+                rendered = rendered.replace(placeholder, `<div class="risu-error"><h1>${language.error}</h1>${md.utils.escapeHtml(code)}</div>`)
             }
             else{
                 const highlighted = hljs.highlight(code, {
@@ -285,7 +293,7 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 
-export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/g
+export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''

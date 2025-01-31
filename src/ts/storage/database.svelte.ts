@@ -895,6 +895,7 @@ export interface Database{
         processRegexScript: boolean
     },
     OaiCompAPIKeys: {[key:string]:string}
+    inlayErrorResponse:boolean
 }
 
 interface SeparateParameters{

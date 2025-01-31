@@ -51,3 +51,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={DBState.db.requestInfoInsideChat} name={language.requestInfoInsideChat}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.inlayErrorResponse} name={language.inlayErrorResponse}/>
+</div>

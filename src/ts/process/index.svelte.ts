@@ -102,6 +102,24 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return data.trim()
     }
 
+    function throwError(error:string){
+
+        if(DBState.db.inlayErrorResponse){
+            DBState.db.characters[selectedChar].chats[selectedChat].message.push({
+                role: 'char',
+                data: `\`\`\`risuerror\n${error}\n\`\`\``,
+                saying: currentChar.chaId,
+                time: Date.now(),
+                generationInfo,
+            })
+
+            return
+        }
+
+        alertError(error)
+        return
+    }
+
     let isDoing = get(doingChat)
 
     if(isDoing){
@@ -134,7 +152,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         if(!peerSafe){
             peerRevertChat()
             doingChat.set(false)
-            alertError(language.otherUserRequesting)
+            throwError(language.otherUserRequesting)
             return false
         }
         await peerSync()
@@ -198,7 +216,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         else{
             currentChar = findCharacterbyIdwithCache(nowChatroom.characters[chatProcessIndex])
             if(!currentChar){
-                alertError(`cannot find character: ${nowChatroom.characters[chatProcessIndex]}`)
+                throwError(`cannot find character: ${nowChatroom.characters[chatProcessIndex]}`)
                 return false
             }
         }
@@ -815,7 +833,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             const sp = await hypaMemoryV2(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
             if(sp.error){
                 console.log(sp)
-                alertError(sp.error)
+                throwError(sp.error)
                 return false
             }
             chats = sp.chats
@@ -836,7 +854,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     DBState.db.characters[selectedChar].chats[selectedChat].hypaV3Data = currentChat.hypaV3Data
                 }
                 console.log(sp)
-                alertError(sp.error)
+                throwError(sp.error)
                 return false
             }
             chats = sp.chats
@@ -852,7 +870,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 asHyper: DBState.db.hypaMemory
             })
             if(sp.error){
-                alertError(sp.error)
+                throwError(sp.error)
                 return false
             }
             chats = sp.chats
@@ -867,7 +885,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     else{
         while(currentTokens > maxContextTokens){
             if(chats.length <= 1){
-                alertError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + currentTokens)
+                throwError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + currentTokens)
 
                 return false
             }
@@ -1158,7 +1176,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         let pointer = 0
         while(inputTokens > maxContextTokens){
             if(pointer >= formated.length){
-                alertError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + inputTokens)
+                throwError(language.errors.toomuchtoken + "\n\nAt token rechecking. Required Tokens: " + inputTokens)
                 return false
             }
             if(formated[pointer].removable){
@@ -1212,7 +1230,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return false
     }
     if(req.type === 'fail'){
-        alertError(req.result)
+        throwError(req.result)
         return false
     }
     else if(req.type === 'streaming'){
@@ -1553,7 +1571,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 if(abortSignal.aborted){
                     return true
                 }
-                alertError(`${rq.result}`)
+                throwError(`${rq.result}`)
                 return true
             }
             else{
@@ -1594,7 +1612,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         emotionSelected = true
                     }
                 } catch (error) {
-                    alertError(language.errors.httpError + `${error}`)
+                    throwError(language.errors.httpError + `${error}`)
                     return true
                 }
             }
@@ -1605,7 +1623,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         else if(currentChar.viewScreen === 'imggen'){
             if(chatProcessIndex !== -1){
-                alertError("Stable diffusion in group chat is not supported")
+                throwError("Stable diffusion in group chat is not supported")
             }
 
             const msgs = DBState.db.characters[selectedChar].chats[selectedChat].message
