@@ -489,7 +489,7 @@
                     {/if}
                 {:else}
                     <span class="text-textcolor2 text-sm">{language.ccv3Desc}</span>
-                    {#if cardExportType2 !== 'charx' && isCharacterHasAssets(DBState.db.characters[$selectedCharID])}
+                    {#if cardExportType2 !== 'charx' && cardExportType2 !== 'charxJpeg' && isCharacterHasAssets(DBState.db.characters[$selectedCharID])}
                         <span class="text-red-500 text-sm">{language.notCharxWarn}</span>
                     {/if}
                 {/if}
@@ -512,7 +512,7 @@
                     <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {
                         cardExportType = ''
-                        cardExportType2 = isCharacterHasAssets(DBState.db.characters[$selectedCharID]) ? 'charx' : ''
+                        cardExportType2 = 'charxJpeg'
                     }}>Character Card V3</button>
                     <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} onclick={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
                 {/if}
@@ -520,9 +520,10 @@
             {#if $alertStore.submsg === '' && cardExportType === ''}
                 <span class="text-textcolor mt-4">{language.format}</span>
                 <SelectInput bind:value={cardExportType2} className="mt-2">
+                    <OptionInput value="charx">CHARX</OptionInput>
+                    <OptionInput value="charxJpeg">CHARX-JPEG</OptionInput>
                     <OptionInput value="">PNG</OptionInput>
                     <OptionInput value="json">JSON</OptionInput>
-                    <OptionInput value="charx">CHARX</OptionInput>
                 </SelectInput>
             {/if}
             <Button className="mt-4" onclick={() => {

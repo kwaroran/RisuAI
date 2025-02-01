@@ -33,12 +33,34 @@ export class CharXWriter{
             }
         }
 
-
         this.zip = new fflate.Zip()
         this.zip.ondata = handlerAsync
     }
     async init(){
         //do nothing, just to make compatible with other writer
+    }
+
+    async writeJpeg(img:Uint8Array<ArrayBufferLike>){
+        console.log('writeJpeg')
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if(!ctx){
+            return
+        }
+        const imgBlob = new Blob([img], {type: 'image/jpeg'})
+        const imgURL = URL.createObjectURL(imgBlob)
+        const imgElement = document.createElement('img')
+        imgElement.src = imgURL
+        await imgElement.decode()
+        canvas.width = imgElement.width
+        canvas.height = imgElement.height
+        ctx.drawImage(imgElement, 0, 0)
+        const blob = await (new Promise((res:BlobCallback, rej) => {
+            canvas.toBlob(res, 'image/jpeg')
+        }))
+        const buf = await blob.arrayBuffer()
+        this.apb.append(new Uint8Array(buf))
+        console.log('writeJpeg done')
     }
 
     async write(key:string,data:Uint8Array|string, level?:0|1|2|3|4|5|6|7|8|9){

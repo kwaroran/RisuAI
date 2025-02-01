@@ -72,7 +72,7 @@ export async function importCharacterProcess(f:{
     let db = getDatabase()
     db.statics.imports += 1
 
-    if(f.name.endsWith('charx')){
+    if(f.name.endsWith('charx') || f.name.endsWith('jpg') || f.name.endsWith('jpeg')){
         console.log('reading charx')
         alertStore.set({
             type: 'wait',
@@ -474,7 +474,7 @@ export async function characterURLImport() {
     }
 
     async function importFile(name:string, data:Uint8Array) {
-        if(name.endsWith('.charx') || name.endsWith('.png')){
+        if(name.endsWith('.charx') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png')){
             await importCharacterProcess({
                 name: name,
                 data: data
@@ -609,7 +609,7 @@ export async function exportChar(charaID:number):Promise<string> {
 
     const option = await alertCardExport()
     if(option.type === ''){
-        exportCharacterCard(char, option.type2 === 'json' ? 'json' : (option.type2 === 'charx' ? 'charx' : 'png'), {spec: 'v3'})
+        exportCharacterCard(char, option.type2 === 'json' ? 'json' : (option.type2 === 'charx' ? 'charx' : option.type2 === 'charxJpeg' ? 'charxJpeg' : 'png'), {spec: 'v3'})
     }
     else if(option.type === 'ccv2'){
         exportCharacterCard(char,'png', {spec: 'v2'})
@@ -1131,7 +1131,7 @@ async function createBaseV2(char:character) {
 }
 
 
-export async function exportCharacterCard(char:character, type:'png'|'json'|'charx' = 'png', arg:{
+export async function exportCharacterCard(char:character, type:'png'|'json'|'charx'|'charxJpeg' = 'png', arg:{
     password?:string
     writer?:LocalWriter|VirtualWriter,
     spec?:'v2'|'v3'
@@ -1146,14 +1146,18 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
             const nameExt = {
                 'png': ['Image File', 'png'],
                 'json': ['JSON File', 'json'],
-                'charx': ['CharX File', 'charx']
+                'charx': ['CharX File', 'charx'],
+                'charxJpeg': ['CharX Embeded Jpeg', 'jpeg']
             }
             const ext = nameExt[type]
             console.log(ext)
             await (localWriter as LocalWriter).init(ext[0], [ext[1]])
         }
-        const writer = type === 'charx' ? (new CharXWriter(localWriter)) : type === 'json' ? (new BlankWriter()) : (new PngChunk.streamWriter(img, localWriter))
+        const writer = (type === 'charx' || type === 'charxJpeg') ? (new CharXWriter(localWriter)) : type === 'json' ? (new BlankWriter()) : (new PngChunk.streamWriter(img, localWriter))
         await writer.init()
+        if(writer instanceof CharXWriter && type === 'charxJpeg'){
+            await writer.writeJpeg(img)
+        }
         let assetIndex = 0
         if(spec === 'v2'){
             const card = await createBaseV2(char)
@@ -1347,7 +1351,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                 msg: 'Loading... (Writing)'
             })
     
-            if(type === 'charx'){
+            if(type === 'charx' || type === 'charxJpeg'){
                 const md:RisuModule = {
                     name: `${char.name} Module`,
                     description: "Module for " + char.name,
