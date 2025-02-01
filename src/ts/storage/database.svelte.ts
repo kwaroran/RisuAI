@@ -471,6 +471,7 @@ export function setDatabase(data:Database){
     data.showPromptComparison ??= false
     data.checkCorruption ??= true
     data.OaiCompAPIKeys ??= {}
+    data.reasoningEffort ??= 0
     data.hypaV3Settings = {
         memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
         extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0.2,
@@ -896,6 +897,7 @@ export interface Database{
     },
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
+    reasoningEffort:number
 }
 
 interface SeparateParameters{
@@ -907,6 +909,7 @@ interface SeparateParameters{
     top_p?:number
     frequency_penalty?:number
     presence_penalty?:number
+    reasoning_effort?:number
 }
 
 export interface customscript{
@@ -1219,6 +1222,7 @@ export interface botPreset{
     customFlags?: LLMFlags[]
     image?:string
     regex?:customscript[]
+    reasonEffort?:number
 }
 
 
@@ -1524,6 +1528,7 @@ export function saveCurrentPreset(){
         enableCustomFlags: db.enableCustomFlags,
         regex: db.presetRegex,
         image: pres?.[db.botPresetsId]?.image ?? '',
+        reasonEffort: db.reasoningEffort ?? 0,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1633,6 +1638,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.customFlags = safeStructuredClone(newPres.customFlags) ?? []
     db.enableCustomFlags = newPres.enableCustomFlags ?? false
     db.presetRegex = newPres.regex ?? []
+    db.reasoningEffort = newPres.reasonEffort ?? 0
     return db
 }
 
@@ -1659,11 +1665,6 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
     pres.proxyKey = ''
     pres.textgenWebUIStreamURL=  ''
     pres.textgenWebUIBlockingURL=  ''
-
-    if((pres.image || pres.regex?.length > 0) && type !== 'return'){
-        alertError("Preset with image or regexes cannot be exported for now. use RisuRealm to share the preset.")
-        return
-    }
 
     if(type === 'json'){
         downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))

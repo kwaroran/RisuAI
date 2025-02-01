@@ -91,7 +91,7 @@ interface OaiFunctions {
 }
 
 
-export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'
+export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'|'reasoning_effort'
 export type ModelModeExtended = 'model'|'submodel'|'memory'|'emotion'|'otherAx'|'translate'
 type ParameterMap = {
     [key in Parameter]?: string;
@@ -101,6 +101,24 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
     ignoreTopKIfZero?:boolean
 } = {}): { [key: string]: any } {
     const db = getDatabase()
+
+    function getEffort(effort:number){
+        switch(effort){
+            case 0:{
+                return 'low'
+            }
+            case 1:{
+                return 'medium'
+            }
+            case 2:{
+                return 'high'
+            }
+            default:{
+                return 'medium'
+            }
+        }
+    }
+
     if(db.seperateParametersEnabled && ModelMode !== 'model'){
         if(ModelMode === 'submodel'){
             ModelMode = 'otherAx'
@@ -108,7 +126,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
         for(const parameter of parameters){
             
-            let value = 0
+            let value:number|string = 0
             if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.seperateParameters[ModelMode][parameter] === 0){
                 continue
             }
@@ -146,6 +164,10 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
                     value = db.seperateParameters[ModelMode].presence_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].presence_penalty / 100)
                     break
                 }
+                case 'reasoning_effort':{
+                    value = getEffort(db.seperateParameters[ModelMode].reasoning_effort)
+                    break
+                }
             }
 
             if(value === -1000 || value === undefined){
@@ -159,7 +181,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
 
     for(const parameter of parameters){
-        let value = 0
+        let value:number|string = 0
         if(parameter === 'top_k' && arg.ignoreTopKIfZero && db.top_k === 0){
             continue
         }
@@ -186,6 +208,10 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
             }
             case 'top_p':{
                 value = db.top_p
+                break
+            }
+            case 'reasoning_effort':{
+                value = getEffort(db.reasoningEffort)
                 break
             }
             case 'frequency_penalty':{
@@ -769,7 +795,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     body = applyParameters(
         body,
-        aiModel === 'openrouter' ? ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'] : ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty'],
+        arg.modelInfo.parameters,
         {},
         arg.mode
     )

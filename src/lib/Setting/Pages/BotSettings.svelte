@@ -312,6 +312,11 @@
         <SliderInput min={0} max={2} marginBottom step={0.01} fixed={2} bind:value={DBState.db.repetition_penalty} disableable/>
 
     {/if}
+    {#if modelInfo.parameters.includes('reasoning_effort')}
+        <span class="text-textcolor">Reasoning Effort</span>
+        <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
+
+    {/if}
     {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.aiModel === 'mancer' || DBState.db.aiModel.startsWith('local_') || DBState.db.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
         <SliderInput min={1} max={1.5} step={0.01} fixed={2} marginBottom bind:value={DBState.db.ooba.repetition_penalty}/>
@@ -631,6 +636,10 @@
             {@render CustomFlagButton('DeveloperRole', 14)}
             {@render CustomFlagButton('geminiThinking', 15)}
             {@render CustomFlagButton('geminiBlockOff', 16)}
+            {@render CustomFlagButton('deepSeekPrefix', 17)}
+            {@render CustomFlagButton('deepSeekThinkingInput', 18)}
+            {@render CustomFlagButton('deepSeekThinkingOutput', 19)}
+
         {/if}
     </Arcodion>
 

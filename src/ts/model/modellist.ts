@@ -501,7 +501,7 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasImageInput,
             LLMFlags.DeveloperRole
         ],
-        parameters: OpenAIParameters,
+        parameters: ['reasoning_effort'],
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
 
