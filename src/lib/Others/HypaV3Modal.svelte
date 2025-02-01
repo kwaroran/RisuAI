@@ -871,19 +871,27 @@
           <div class="sticky top-0 z-50 p-2 sm:p-3 bg-zinc-800">
             <div class="flex items-center gap-2">
               <div class="relative flex flex-1 items-center">
-                <input
-                  class="w-full px-2 sm:px-4 py-2 sm:py-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
-                  placeholder="Enter #N, ID, or search query"
-                  bind:this={searchUIState.ref}
-                  bind:value={searchUIState.query}
-                  oninput={() => {
-                    if (searchUIState) {
-                      searchUIState.currentIndex = -1;
-                      searchUIState.results = [];
-                    }
+                <form
+                  class="w-full"
+                  onsubmit={(e) => {
+                    e.preventDefault();
+                    onSearch({ key: "Enter" } as KeyboardEvent);
                   }}
-                  onkeydown={(e) => onSearch(e)}
-                />
+                >
+                  <input
+                    class="w-full px-2 sm:px-4 py-2 sm:py-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+                    placeholder="Enter #N, ID, or search query"
+                    bind:this={searchUIState.ref}
+                    bind:value={searchUIState.query}
+                    oninput={() => {
+                      if (searchUIState) {
+                        searchUIState.currentIndex = -1;
+                        searchUIState.results = [];
+                      }
+                    }}
+                    onkeydown={(e) => onSearch(e)}
+                  />
+                </form>
 
                 {#if searchUIState.results.length > 0}
                   <span
