@@ -631,6 +631,9 @@
             {@render CustomFlagButton('DeveloperRole', 14)}
             {@render CustomFlagButton('geminiThinking', 15)}
             {@render CustomFlagButton('geminiBlockOff', 16)}
+            {@render CustomFlagButton('deepSeekPrefix', 17)}
+            {@render CustomFlagButton('deepSeekThinkingInput', 18)}
+            {@render CustomFlagButton('deepSeekThinkingOutput', 19)}
         {/if}
     </Arcodion>
 
