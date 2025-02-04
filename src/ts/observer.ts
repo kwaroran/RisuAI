@@ -41,12 +41,7 @@ function nodeObserve(node:HTMLElement){
             if(currentChar.type === 'group'){
                 return;
             }
-            const triggerResult = await runLuaButtonTrigger(currentChar, btnEvent);
-
-            if(triggerResult){
-               setCurrentChat(triggerResult.chat);
-            }
-            
+            await runLuaButtonTrigger(currentChar, btnEvent);
         }, {
             passive: true,
         });
