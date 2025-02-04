@@ -1,6 +1,7 @@
 import { runTrigger } from "./process/triggers";
 import { sleep } from "./util";
 import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database.svelte";
+import { runLuaButtonTrigger } from "./process/lua";
 
 
 function nodeObserve(node:HTMLElement){
@@ -35,6 +36,15 @@ function nodeObserve(node:HTMLElement){
     }
 
     if(btnEvent){
+        node.addEventListener('click', async () => {
+            const currentChar = getCurrentCharacter()
+            if(currentChar.type === 'group'){
+                return;
+            }
+            await runLuaButtonTrigger(currentChar, btnEvent);
+        }, {
+            passive: true,
+        });
         node.setAttribute('risu-observer', 'true');
         return
     }

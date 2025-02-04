@@ -457,6 +457,13 @@ export async function runLua(code:string, arg:{
                     }
                     break
                 }
+                case 'onButtonClick':{
+                    const func = luaEngine.global.get('onButtonClick')
+                    if(func){
+                        res = await func(accessKey, data)
+                    }
+                    break
+                }
                 case 'editRequest':
                 case 'editDisplay':
                 case 'editInput':
@@ -675,4 +682,25 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
     } catch (error) {
         return content
     }
+}
+
+export async function runLuaButtonTrigger(char:character|groupChat|simpleCharacterArgument, data:string):Promise<T>{
+    let runResult
+    try {
+        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.concat(getModuleTriggers())
+        const lowLevelAccess = char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        for(let trigger of triggers){
+            if(trigger?.effect?.[0]?.type === 'triggerlua'){
+                runResult = await runLua(trigger.effect[0].code, {
+                    char: char,
+                    lowLevelAccess: lowLevelAccess,
+                    mode: 'onButtonClick',
+                    data: data
+                })
+            }
+        }
+    } catch (error) {
+        throw(error)
+    }
+    return runResult   
 }
