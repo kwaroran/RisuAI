@@ -295,6 +295,14 @@ async function renderHighlightableMarkdown(data:string) {
 
 export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
+async function replaceAsync(string, regexp, replacerFunction) {
+    const replacements = await Promise.all(
+        Array.from(string.matchAll(regexp),
+            match => replacerFunction(...match as any)));
+    let i = 0;
+    return string.replace(regexp, () => replacements[i++]);
+}
+
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''
 
@@ -306,15 +314,6 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         path:string
     }} = {}
 
-    if(char.additionalAssets){
-        for(const asset of char.additionalAssets){
-            const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0].toLocaleLowerCase()] = {
-                path: assetPath,
-                ext: asset[2]
-            }
-        }
-    }
     if(char.emotionImages){
         for(const emo of char.emotionImages){
             const emoPath = await getFileSrc(emo[1])
@@ -335,8 +334,23 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     }
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
-    data = data.replaceAll(assetRegex, (full:string, type:string, name:string) => {
+    data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
         name = name.toLocaleLowerCase()
+        if(char.additionalAssets){
+            for(const asset of char.additionalAssets){
+                if (trimmer(asset[0].toLocaleLowerCase()) === trimmer(name)){
+                    console.log("In parseAdditionalAssets() > Catch Asset : " + asset[0] + "\nIn parseAdditionalAssets() > Asset Path : " + asset[1])
+                    const assetPath = await getFileSrc(asset[1])
+                    assetPaths[name] = {
+                        path: assetPath,
+                        ext: asset[2]
+                    }
+                }
+            }
+        }
+        console.log("In parseAdditionalAssets() > Name: " + name)
+        console.log("In parseAdditionalAssets() > Char Obj: ", char)
+        console.log("In parseAdditionalAssets() > Char Type: " + char.type)
         if(type === 'emotion'){
             const path = emoPaths[name]?.path
             if(!path){
@@ -361,7 +375,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 return ''
             }
 
-            path = getClosestMatch(name, assetPaths)
+            path = await getClosestMatch(char, name, assetPaths)
 
             if(!path){
                 return ''
@@ -411,61 +425,82 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     return data
 }
 
-function getClosestMatch(name:string, assetPaths:{[key:string]:{path:string, ext?:string}}){
-    
-    if(Object.keys(assetPaths).length === 0){
-        return null
-    }
-
-    //Levenshtein distance, new with 1d array
-    const dest = (a:string, b:string) => {
-        const h = a.length + 1
-        const w = b.length + 1
-        let d = new Int16Array(h * w)
-        for(let i=0;i<h;i++){
-            d[i * w] = i
-        }
-        for(let i=0;i<w;i++){
-            d[i] = i
-        }
-        for(let i=1; i<h; i++){
-            for(let j=1;j<w;j++){
-                d[i * w + j] = Math.min(
-                    d[(i-1) * w + j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
-                    d[(i-1) * w + j]+1, d[i * w + j-1]+1
-                )
-            }
-        }
-        return d[h * w - 1]
-
-    }
-
-    function trimmer(str:string){
-        const ext = ['webp', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'avi', 'm4p', 'm4v', 'mp3', 'wav', 'ogg']
-        for(const e of ext){
-            if(str.endsWith('.' + e)){
-                str = str.substring(0, str.length - e.length - 1)
-            }
-        }
-
-
-        return str.trim().replace(/[_ -.]/g, '')
-    }
+async function getClosestMatch(char: simpleCharacterArgument|character, name:string, assetPaths:{[key:string]:{path:string, ext?:string}}){   
+    if(!char.additionalAssets) return null
 
     let closest = ''
     let closestDist = 999999
+    let targetPath = ''
+    let targetExt = ''
+
     const trimmedName = trimmer(name)
-    for(const key in assetPaths){
-        const dist = dest(trimmedName, trimmer(key))
+    for(const asset of char.additionalAssets) {
+        const key = asset[0].toLocaleLowerCase()
+        const dist = getDistance(trimmedName, trimmer(key))
         if(dist < closestDist){
             closest = key
             closestDist = dist
+            targetPath = asset[1]
+            targetExt = asset[2]
         }
     }
+
+    // for(const key in assetPaths){
+    //     const dist = getDistance(trimmedName, trimmer(key))
+    //     if(dist < closestDist){
+    //         closest = key
+    //         closestDist = dist
+    //     }
+    // }
+    
     if(closestDist > DBState.db.assetMaxDifference){
         return null
     }
+
+    const assetPath = await getFileSrc(targetPath)
+    assetPaths[closest] = {
+        path: assetPath,
+        ext: targetExt
+    }
+    
+    console.log("In getClosestMatch() > assetPaths[closest]: " + assetPaths[closest])
+    console.log("In getClosestMatch() > closet, closetDist:  " + closest, closestDist)
+
     return assetPaths[closest]
+}
+
+//Levenshtein distance, new with 1d array
+function getDistance(a:string, b:string) {
+    const h = a.length + 1
+    const w = b.length + 1
+    let d = new Int16Array(h * w)
+    for(let i=0;i<h;i++){
+        d[i * w] = i
+    }
+    for(let i=0;i<w;i++){
+        d[i] = i
+    }
+    for(let i=1; i<h; i++){
+        for(let j=1;j<w;j++){
+            d[i * w + j] = Math.min(
+                d[(i-1) * w + j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1),
+                d[(i-1) * w + j]+1, d[i * w + j-1]+1
+            )
+        }
+    }
+    return d[h * w - 1]
+}
+
+function trimmer(str:string){
+    const ext = ['webp', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'avi', 'm4p', 'm4v', 'mp3', 'wav', 'ogg']
+    for(const e of ext){
+        if(str.endsWith('.' + e)){
+            str = str.substring(0, str.length - e.length - 1)
+        }
+    }
+
+
+    return str.trim().replace(/[_ -.]/g, '')
 }
 
 async function parseInlayAssets(data:string){
@@ -605,7 +640,6 @@ function decodeStyleRule(rule:CssAtRuleAST){
 }
 
 function decodeStyle(text:string){
-
     return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
         try {
             let text = Buffer.from(txt, 'hex').toString('utf-8')
