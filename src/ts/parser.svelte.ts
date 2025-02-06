@@ -293,7 +293,6 @@ async function renderHighlightableMarkdown(data:string) {
 
 }
 
-
 export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
 async function replaceAsync(string, regexp, replacerFunction) {
@@ -304,29 +303,24 @@ async function replaceAsync(string, regexp, replacerFunction) {
     return string.replace(regexp, () => replacements[i++]);
 }
 
-async function getAssetSrc(assetArr: string[][], name: string, assetPaths?: {[key: string]:{path: string, ext?: string}}, emoPaths?: {[key: string]:{path: string, ext?: string}}) {
+async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string, ext?: string}}) {
     name = name.toLocaleLowerCase()
-    if (assetPaths) {
-        for(const asset of assetArr){
-            if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue;
-            console.log("In getAssets() > Catch Asset : " + asset[0])
-            console.log("In getAssets() > Asset Path : " + asset[1])
-            const assetPath = await getFileSrc(asset[1])
-            assetPaths[name] = {
-                path: assetPath,
-                ext: asset[2]
-            }
+    for (const asset of assetArr) {
+        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue;
+        const assetPath = await getFileSrc(asset[1])
+        assetPaths[asset[0].toLocaleLowerCase()] = {
+            path: assetPath,
+            ext: asset[2]
         }
+        return;
     }
-    if (emoPaths) {
-        for(const emo of assetArr){
-            if (trimmer(emo[0].toLocaleLowerCase()) !== trimmer(name)) continue;
-            console.log("In getAssets() > Catch Asset(emo) : " + emo[0])
-            console.log("In getAssets() > Asset Path(emo) : " + emo[1])
-            const emoPath = await getFileSrc(emo[1])
-            emoPaths[name] = {
-                path: emoPath,
-            }
+}
+
+async function getEmoSrc(emoArr: string[][], emoPaths: {[key: string]:{path: string}}) {
+    for (const emo of emoArr) {
+        const emoPath = await getFileSrc(emo[1])
+        emoPaths[emo[0].toLocaleLowerCase()] = {
+            path: emoPath,
         }
     }
 }
@@ -342,6 +336,8 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         path:string
     }} = {}
 
+    if (char.emotionImages) getEmoSrc(char.emotionImages, emoPaths)
+
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
 
@@ -350,15 +346,10 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         if (char.additionalAssets) {
             await getAssetSrc(char.additionalAssets, name, assetPaths);
         }
-        if (char.emotionImages) {
-            await getAssetSrc(char.emotionImages, name, assetPaths, emoPaths);
-        }
         if (moduleAssets.length > 0) {
             await getAssetSrc(moduleAssets, name, assetPaths);
         }
-        console.log("In parseAdditionalAssets() > Name: " + name)
-        console.log("In parseAdditionalAssets() > Char Obj: ", char)
-        console.log("In parseAdditionalAssets() > Char Type: " + char.type)
+
         if(type === 'emotion'){
             const path = emoPaths[name]?.path
             if(!path){
@@ -366,6 +357,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
             return `<img src="${path}" alt="${path}" style="${assetWidthString} "/>`
         }
+
         if(type === 'source'){
             needsSourceAccess = true
             switch(name){
@@ -377,7 +369,9 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 }
             }
         }
+
         let path = assetPaths[name]
+
         if(!path){
             if(DBState.db.legacyMediaFindings){
                 return ''
@@ -462,9 +456,6 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
         path: assetPath,
         ext: targetExt
     }
-    
-    console.log("In getClosestMatch() > assetPaths[closest]: ", assetPaths[closest])
-    console.log("In getClosestMatch() > closet, closetDist:  " + closest, closestDist)
 
     return assetPaths[closest]
 }
