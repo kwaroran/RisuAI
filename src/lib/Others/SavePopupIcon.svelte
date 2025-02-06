@@ -21,22 +21,3 @@
       <AlertOctagon size={24} />
   </button>
 {/if}
-
-<style>
-  .saving-animation {
-    animation: saving-anime 1s infinite;
-    background-size: 200% auto;
-  }
-
-  @keyframes saving-anime {
-    0% {
-      background-position: 0 0;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    100% {
-      background-position: 0 0;
-    }
-  }
-</style>

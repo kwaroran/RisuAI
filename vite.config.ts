@@ -4,9 +4,10 @@ import {sveltePreprocess} from "svelte-preprocess";
 import wasm from "vite-plugin-wasm";
 import { internalIpV4 } from 'internal-ip'
 import topLevelAwait from "vite-plugin-top-level-await";
-
+import strip from '@rollup/plugin-strip';
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({command, mode}) => {
+  return {
     plugins: [
       svelte({
         preprocess: [
@@ -22,6 +23,9 @@ export default defineConfig({
       }),
       wasm(),
       topLevelAwait(),
+      command === 'build' ? strip({
+        include: '**/*.(mjs|js|svelte|ts)'
+      }) : null
     ],
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
@@ -44,7 +48,7 @@ export default defineConfig({
       minify: process.env.TAURI_DEBUG ? false : 'esbuild',
       // produce sourcemaps for debug builds
       sourcemap: !!process.env.TAURI_DEBUG,
-      chunkSizeWarningLimit: 2000
+      chunkSizeWarningLimit: 2000,
     },
     
     optimizeDeps:{
@@ -59,4 +63,5 @@ export default defineConfig({
         'modules': '/modules'
       }
     }
+}
 });

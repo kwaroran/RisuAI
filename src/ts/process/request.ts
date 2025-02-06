@@ -1738,6 +1738,10 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     ]
 
+    if(arg.modelInfo.flags.includes(LLMFlags.noCivilIntegrity)){
+        uncensoredCatagory.splice(4, 1)
+    }
+
     if(arg.modelInfo.flags.includes(LLMFlags.geminiBlockOff)){
         for(let i=0;i<uncensoredCatagory.length;i++){
             uncensoredCatagory[i].threshold = "OFF"

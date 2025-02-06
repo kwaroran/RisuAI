@@ -18,7 +18,6 @@
     import MobileFooter from './lib/Mobile/MobileFooter.svelte';
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
     import { checkCharOrder } from './ts/globalApi.svelte';
-    import Googli from './lib/UI/Googli.svelte';
 
   
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
@@ -51,9 +50,6 @@
             </div>
 
             <span class="text-sm mt-2 text-textcolor2">{LoadingStatusState.text}</span>
-
-            <Googli className="mt-4" />
-
         </div>
     {:else if $CustomGUISettingMenuStore}
         <CustomGUISettingMenu />

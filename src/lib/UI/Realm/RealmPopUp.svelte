@@ -8,6 +8,7 @@
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
     import { tooltip } from "src/ts/gui/tooltip";
+  import Googli from "../Googli.svelte";
 
     interface Props {
         openedData: hubType;
@@ -50,6 +51,7 @@
                 <span class="text-textcolor2" use:tooltip={language.popularityLevelDesc}>
                     {language.popularityLevel.replace('{}', openedData.download.toString())}
                 </span>
+                
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
                 {#if openedData.hasEmotion}
                     <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
@@ -69,6 +71,9 @@
             </div>
 
         </div>
+
+        <Googli />
+
         <div class="flex flex-row-reverse gap-2">
             <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {
                 e.stopPropagation()

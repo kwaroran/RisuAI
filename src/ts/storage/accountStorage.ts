@@ -114,7 +114,6 @@ export class AccountStorage{
             }
         }
         if(da.status === 303){
-            console.log(performance.now() - perf)
             const data = await da.json()
             if(data.match){
                 const c = Buffer.from(await cachedForage.getItem(key))
@@ -144,19 +143,12 @@ export class AccountStorage{
         const appendable = new Uint8Array(size)
         const reader = da.body.getReader()
 
-        //log all headers
-        console.log('logging headers')
-        for(const [key, value] of da.headers.entries()){
-            console.log(key, value)
-        }
-
         let i = 0
         while(true){
             const {done, value} = await reader.read()
             if(done){
                 break
             }
-            console.log(value, size)
             appendable.set(value, i)
             i += value.length
             callback(i/size)

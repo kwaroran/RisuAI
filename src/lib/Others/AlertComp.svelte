@@ -25,6 +25,7 @@
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
     import { message } from "@tauri-apps/plugin-dialog";
     import HypaV3Modal from './HypaV3Modal.svelte';
+  import Googli from "../UI/Googli.svelte";
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -107,10 +108,22 @@
                 }}>Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
-                {#if $alertStore.submsg}
+                {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
                 {/if}
             {/if}
+            {#if $alertStore.type === 'progress'}
+                <div class="w-full min-w-64 md:min-w-138 h-2 bg-darkbg border border-darkborderc rounded-md mt-6">
+                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-800 saving-animation transition-[width]" style:width={$alertStore.submsg + '%'}></div>
+                </div>
+                <div class="w-full flex justify-center mt-6">
+                    <span class="text-gray-500 text-sm">{$alertStore.submsg + '%'}</span>
+                </div>
+                <div class="w-full flex justify-center">
+                    <Googli className="mt-14" />                    
+                </div>
+            {/if}
+
             {#if $alertStore.type === 'ask'}
                 <div class="flex gap-2 w-full">
                     <Button className="mt-4 flex-grow" onclick={() => {

@@ -205,9 +205,10 @@ export class CharXReader{
 
         const alertInfo = () => {
             if(arg.alertInfo){
-                alertStore.set({
-                    type: 'wait',
-                    msg: `Loading... (Getting Data: ${Math.floor(pointer / getLength() * 100)}%)`
+                alertStore.set({ 
+                    type: 'progress',
+                    msg: `Loading...`,
+                    submsg: (pointer / getLength() * 100).toFixed(2)
                 })
             }
         }
