@@ -15,6 +15,7 @@ import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
+import type { key } from 'localforage';
 
 const markdownItOptions = {
     html: true,
@@ -303,6 +304,33 @@ async function replaceAsync(string, regexp, replacerFunction) {
     return string.replace(regexp, () => replacements[i++]);
 }
 
+async function getAssetSrc(assetArr: string[][], name: string, assetPaths?: {[key: string]:{path: string, ext?: string}}, emoPaths?: {[key: string]:{path: string, ext?: string}}) {
+    name = name.toLocaleLowerCase()
+    if (assetPaths) {
+        for(const asset of assetArr){
+            if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue;
+            console.log("In getAssets() > Catch Asset : " + asset[0])
+            console.log("In getAssets() > Asset Path : " + asset[1])
+            const assetPath = await getFileSrc(asset[1])
+            assetPaths[name] = {
+                path: assetPath,
+                ext: asset[2]
+            }
+        }
+    }
+    if (emoPaths) {
+        for(const emo of assetArr){
+            if (trimmer(emo[0].toLocaleLowerCase()) !== trimmer(name)) continue;
+            console.log("In getAssets() > Catch Asset(emo) : " + emo[0])
+            console.log("In getAssets() > Asset Path(emo) : " + emo[1])
+            const emoPath = await getFileSrc(emo[1])
+            emoPaths[name] = {
+                path: emoPath,
+            }
+        }
+    }
+}
+
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', mode2:'unset'|'pre'|'post' = 'unset'){
     const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''
 
@@ -314,39 +342,19 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         path:string
     }} = {}
 
-    if(char.emotionImages){
-        for(const emo of char.emotionImages){
-            const emoPath = await getFileSrc(emo[1])
-            emoPaths[emo[0].toLocaleLowerCase()] = {
-                path: emoPath,
-            }
-        }
-    }
-    const moduleAssets = getModuleAssets()
-    if(moduleAssets.length > 0){
-        for(const asset of moduleAssets){
-            const assetPath = await getFileSrc(asset[1])
-            assetPaths[asset[0].toLocaleLowerCase()] = {
-                path: assetPath,
-                ext: asset[2]
-            }
-        }
-    }
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
+
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
-        name = name.toLocaleLowerCase()
-        if(char.additionalAssets){
-            for(const asset of char.additionalAssets){
-                if (trimmer(asset[0].toLocaleLowerCase()) === trimmer(name)){
-                    console.log("In parseAdditionalAssets() > Catch Asset : " + asset[0] + "\nIn parseAdditionalAssets() > Asset Path : " + asset[1])
-                    const assetPath = await getFileSrc(asset[1])
-                    assetPaths[name] = {
-                        path: assetPath,
-                        ext: asset[2]
-                    }
-                }
-            }
+        const moduleAssets = getModuleAssets()
+        if (char.additionalAssets) {
+            await getAssetSrc(char.additionalAssets, name, assetPaths);
+        }
+        if (char.emotionImages) {
+            await getAssetSrc(char.emotionImages, name, assetPaths, emoPaths);
+        }
+        if (moduleAssets.length > 0) {
+            await getAssetSrc(moduleAssets, name, assetPaths);
         }
         console.log("In parseAdditionalAssets() > Name: " + name)
         console.log("In parseAdditionalAssets() > Char Obj: ", char)
@@ -444,14 +452,6 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
             targetExt = asset[2]
         }
     }
-
-    // for(const key in assetPaths){
-    //     const dist = getDistance(trimmedName, trimmer(key))
-    //     if(dist < closestDist){
-    //         closest = key
-    //         closestDist = dist
-    //     }
-    // }
     
     if(closestDist > DBState.db.assetMaxDifference){
         return null
@@ -463,7 +463,7 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
         ext: targetExt
     }
     
-    console.log("In getClosestMatch() > assetPaths[closest]: " + assetPaths[closest])
+    console.log("In getClosestMatch() > assetPaths[closest]: ", assetPaths[closest])
     console.log("In getClosestMatch() > closet, closetDist:  " + closest, closestDist)
 
     return assetPaths[closest]
@@ -498,7 +498,6 @@ function trimmer(str:string){
             str = str.substring(0, str.length - e.length - 1)
         }
     }
-
 
     return str.trim().replace(/[_ -.]/g, '')
 }
