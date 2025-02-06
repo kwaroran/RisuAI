@@ -17,6 +17,9 @@
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { untrack } from "svelte";
+    import { tokenizePreset } from "src/ts/process/prompt";
+    import { getCharToken } from "src/ts/tokenizer";
+    import { selectedCharID } from "src/ts/stores.svelte";
 
     $effect.pre(() => {
         DBState.db.NAIImgConfig ??= {
@@ -53,7 +56,7 @@
                 DBState.db.hypaV3Settings.similarMemoryRatio = 1 - newValue;
             }
         })
-    })
+    });
 
     $effect(() => {
         const newValue = Math.min(DBState.db.hypaV3Settings.similarMemoryRatio, 1);
@@ -66,6 +69,24 @@
             }
         })
     });
+
+    async function getMaxMemoryRatio(): Promise<number> {
+        const promptTemplateToken = await tokenizePreset(DBState.db.promptTemplate);
+        const char = DBState.db.characters[$selectedCharID];
+        const charToken = await getCharToken(char);
+        const maxLoreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken;
+        const maxResponse = DBState.db.maxResponse;
+        const requiredToken = promptTemplateToken + charToken.persistant + Math.min(charToken.dynamic, maxLoreToken) + maxResponse * 3;
+        const maxContext = DBState.db.maxContext;
+
+        if (maxContext === 0) {
+            return 0;
+        }
+
+        const maxMemoryRatio = Math.max((maxContext - requiredToken) / maxContext, 0);
+
+        return parseFloat(maxMemoryRatio.toFixed(2));
+    }
     // End HypaV3
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
@@ -500,7 +521,13 @@
             <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt"/></span>
             <div class="mb-2">
                 <TextAreaInput size="sm" placeholder="Leave it blank to use default" bind:value={DBState.db.supaMemoryPrompt} />
-            </div> 
+            </div>
+            <span class="text-textcolor">Max Memory Tokens Ratio (Estimated)</span>
+            {#await getMaxMemoryRatio() then maxMemoryRatio}
+            <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
+            {:catch error}
+            <span class="text-textcolor">{error}</span>
+            {/await}
             <span class="text-textcolor">Memory Tokens Ratio</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio} />
             <span class="text-textcolor">Extra Summarization Ratio</span>
