@@ -421,6 +421,12 @@ export async function hypaMemoryV3(
         continue;
       }
 
+      if (db.hypaV3Settings.doNotSummarizeUserChat && chat.role === "user") {
+        console.log(`[HypaV3] Skipping user role at index ${i}`);
+
+        continue;
+      }
+
       toSummarize.push(chat);
     }
 
@@ -468,6 +474,37 @@ export async function hypaMemoryV3(
     "\nAvailable Memory Tokens:",
     availableMemoryTokens
   );
+
+  // Early return if no summaries
+  if (data.summaries.length === 0) {
+    // Generate final memory prompt
+    const memory = encapsulateMemoryPrompt("");
+
+    const newChats: OpenAIChat[] = [
+      {
+        role: "system",
+        content: memory,
+        memo: "supaMemory",
+      },
+      ...chats.slice(startIdx),
+    ];
+
+    console.log(
+      "[HypaV3] Exiting function:",
+      "\nCurrent Tokens:",
+      currentTokens,
+      "\nAll chats, including memory prompt:",
+      newChats,
+      "\nMemory Data:",
+      data
+    );
+
+    return {
+      currentTokens,
+      chats: newChats,
+      memory: toSerializableHypaV3Data(data),
+    };
+  }
 
   const selectedSummaries: Summary[] = [];
   const randomMemoryRatio =

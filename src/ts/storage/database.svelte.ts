@@ -480,7 +480,8 @@ export function setDatabase(data:Database){
         similarMemoryRatio: data.hypaV3Settings?.similarMemoryRatio ?? 0.4,
         enableSimilarityCorrection: data.hypaV3Settings?.enableSimilarityCorrection ?? false,
         preserveOrphanedMemory: data.hypaV3Settings?.preserveOrphanedMemory ?? false,
-        processRegexScript: data.hypaV3Settings?.processRegexScript ?? false
+        processRegexScript: data.hypaV3Settings?.processRegexScript ?? false,
+        doNotSummarizeUserChat: data.hypaV3Settings?.doNotSummarizeUserChat ?? false
     }
     changeLanguage(data.language)
     setDatabaseLite(data)
@@ -894,6 +895,7 @@ export interface Database{
         enableSimilarityCorrection: boolean
         preserveOrphanedMemory: boolean
         processRegexScript: boolean
+        doNotSummarizeUserChat: boolean
     },
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean

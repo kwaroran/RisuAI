@@ -522,11 +522,11 @@
             <div class="mb-2">
                 <TextAreaInput size="sm" placeholder="Leave it blank to use default" bind:value={DBState.db.supaMemoryPrompt} />
             </div>
-            <span class="text-textcolor">Max Memory Tokens Ratio (Estimated)</span>
             {#await getMaxMemoryRatio() then maxMemoryRatio}
+            <span class="text-textcolor">Max Memory Tokens Ratio (Estimated)</span>
             <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
             {:catch error}
-            <span class="text-textcolor">{error}</span>
+            <span class="text-red-400">Unable to calculate Max Memory Tokens Ratio</span>
             {/await}
             <span class="text-textcolor">Memory Tokens Ratio</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio} />
@@ -547,8 +547,11 @@
                 <Check name="Preserve Orphaned Memory" bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
             </div>
             <div class="flex mb-2">
-                <Check name="Process Regex Script (Reroll Only)" bind:check={DBState.db.hypaV3Settings.processRegexScript} />
-            </div> 
+                <Check name="Apply Regex Script When Rerolling" bind:check={DBState.db.hypaV3Settings.processRegexScript} />
+            </div>
+            <div class="flex mb-2">
+                <Check name="Do Not Summarize User Chat" bind:check={DBState.db.hypaV3Settings.doNotSummarizeUserChat} />
+            </div>
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
             <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
