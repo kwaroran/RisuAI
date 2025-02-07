@@ -15,7 +15,6 @@ import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
-import type { key } from 'localforage';
 
 const markdownItOptions = {
     html: true,
