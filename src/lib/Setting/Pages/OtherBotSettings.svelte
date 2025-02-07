@@ -475,7 +475,7 @@
                 DBState.db.hypaV3Settings.enableSimilarityCorrection = false
                 DBState.db.hypaV3Settings.preserveOrphanedMemory = false
                 DBState.db.hypaV3Settings.processRegexScript = false
-                DBState.db.hypaV3Settings.doNotSummarizeUserChat = false
+                DBState.db.hypaV3Settings.doNotSummarizeUserMessage = false
             } else {
                 DBState.db.supaModelType = 'none'
                 DBState.db.memoryAlgorithmType = 'none'
@@ -517,7 +517,7 @@
             <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaAllocatedTokens} min={100} />
         {:else if DBState.db.hypaV3}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV3Desc}</span>
+            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV3Settings.descriptionLabel}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
@@ -525,37 +525,37 @@
             </SelectInput>
             <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt"/></span>
             <div class="mb-2">
-                <TextAreaInput size="sm" placeholder="Leave it blank to use default" bind:value={DBState.db.supaMemoryPrompt} />
+                <TextAreaInput size="sm" placeholder={language.hypaV3Settings.supaMemoryPromptPlaceHolder} bind:value={DBState.db.supaMemoryPrompt} />
             </div>
             {#await getMaxMemoryRatio() then maxMemoryRatio}
-            <span class="text-textcolor">Max Memory Tokens Ratio (Estimated)</span>
+            <span class="text-textcolor">{language.hypaV3Settings.maxMemoryTokensRatioLabel}</span>
             <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
             {:catch error}
-            <span class="text-red-400">Unable to calculate Max Memory Tokens Ratio</span>
+            <span class="text-red-400">{language.hypaV3Settings.maxMemoryTokensRatioError}</span>
             {/await}
-            <span class="text-textcolor">Memory Tokens Ratio</span>
+            <span class="text-textcolor">{language.hypaV3Settings.memoryTokensRatioLabel}</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.memoryTokensRatio} />
-            <span class="text-textcolor">Extra Summarization Ratio</span>
+            <span class="text-textcolor">{language.hypaV3Settings.extraSummarizationRatioLabel}</span>
             <SliderInput marginBottom min={0} max={1 - DBState.db.hypaV3Settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.extraSummarizationRatio} />
-            <span class="text-textcolor">Max Chats Per Summary</span>
+            <span class="text-textcolor">{language.hypaV3Settings.maxChatsPerSummaryLabel}</span>
             <NumberInput marginBottom size="sm" min={1} bind:value={DBState.db.hypaV3Settings.maxChatsPerSummary} />
-            <span class="text-textcolor">Recent Memory Ratio</span>
+            <span class="text-textcolor">{language.hypaV3Settings.recentMemoryRatioLabel}</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.recentMemoryRatio} />
-            <span class="text-textcolor">Similar Memory Ratio</span>
+            <span class="text-textcolor">{language.hypaV3Settings.similarMemoryRatioLabel}</span>
             <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={DBState.db.hypaV3Settings.similarMemoryRatio} />
-            <span class="text-textcolor">Random Memory Ratio</span>
+            <span class="text-textcolor">{language.hypaV3Settings.randomMemoryRatioLabel}</span>
             <NumberInput marginBottom disabled size="sm" value={parseFloat((1 - DBState.db.hypaV3Settings.recentMemoryRatio - DBState.db.hypaV3Settings.similarMemoryRatio).toFixed(2))} />
             <div class="flex mb-2">
-                <Check name="Enable Similarity Correction" bind:check={DBState.db.hypaV3Settings.enableSimilarityCorrection} />
+                <Check name={language.hypaV3Settings.enableSimilarityCorrectionLabel} bind:check={DBState.db.hypaV3Settings.enableSimilarityCorrection} />
             </div>
             <div class="flex mb-2">
-                <Check name="Preserve Orphaned Memory" bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
+                <Check name={language.hypaV3Settings.preserveOrphanedMemoryLabel} bind:check={DBState.db.hypaV3Settings.preserveOrphanedMemory} />
             </div>
             <div class="flex mb-2">
-                <Check name="Apply Regex Script When Rerolling" bind:check={DBState.db.hypaV3Settings.processRegexScript} />
+                <Check name={language.hypaV3Settings.applyRegexScriptWhenRerollingLabel} bind:check={DBState.db.hypaV3Settings.processRegexScript} />
             </div>
             <div class="flex mb-2">
-                <Check name="Do Not Summarize User Chat" bind:check={DBState.db.hypaV3Settings.doNotSummarizeUserChat} />
+                <Check name={language.hypaV3Settings.doNotSummarizeUserMessageLabel} bind:check={DBState.db.hypaV3Settings.doNotSummarizeUserMessage} />
             </div>
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
             <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>

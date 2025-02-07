@@ -421,7 +421,7 @@ export async function hypaMemoryV3(
         continue;
       }
 
-      if (db.hypaV3Settings.doNotSummarizeUserChat && chat.role === "user") {
+      if (db.hypaV3Settings.doNotSummarizeUserMessage && chat.role === "user") {
         console.log(`[HypaV3] Skipping user role at index ${i}`);
 
         continue;

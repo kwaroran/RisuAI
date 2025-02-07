@@ -28,6 +28,7 @@
   import { summarize } from "../../ts/process/memory/hypav3";
   import { type Message } from "../../ts/storage/database.svelte";
   import { translateHTML } from "../../ts/translator/translator";
+  import { language } from "../../lang";
 
   interface SummaryUI {
     originalRef: HTMLTextAreaElement;
@@ -759,7 +760,7 @@
       <div class="flex justify-between items-center mb-2 sm:mb-4">
         <!-- Modal Title -->
         <h1 class="text-lg sm:text-2xl font-semibold text-zinc-300">
-          HypaV3 Data
+          {language.hypaV3Modal.titleLabel}
         </h1>
         <!-- Buttons Container -->
         <div class="flex items-center gap-2">
@@ -793,8 +794,8 @@
             onclick={async () => {
               if (
                 await alertConfirmTwice(
-                  "This action cannot be undone. Do you want to reset HypaV3 data?",
-                  "This action is irreversible. Do you really, really want to reset HypaV3 data?"
+                  language.hypaV3Modal.resetConfirmMessage,
+                  language.hypaV3Modal.resetConfirmSecondMessage
                 )
               ) {
                 DBState.db.characters[$selectedCharID].chats[
@@ -836,7 +837,7 @@
             >
               <div class="flex flex-col items-center">
                 <div class="my-1 sm:my-2 text-center text-zinc-300">
-                  No summaries yet, but you may convert HypaV2 data to V3.
+                  {language.hypaV3Modal.convertLabel}
                 </div>
                 <button
                   class="my-1 sm:my-2 px-4 py-2 rounded-md text-zinc-300 font-semibold bg-zinc-700 hover:bg-zinc-500 transition-colors"
@@ -845,24 +846,27 @@
 
                     if (conversionResult.success) {
                       await alertNormalWait(
-                        "Successfully converted HypaV2 data to V3"
+                        language.hypaV3Modal.convertSuccessMessage
                       );
                     } else {
                       await alertNormalWait(
-                        `Failed to convert HypaV2 data to V3: ${conversionResult.error}`
+                        language.hypaV3Modal.convertErrorMessage.replace(
+                          "{0}",
+                          conversionResult.error
+                        )
                       );
                     }
 
                     showHypaV3Alert();
                   }}
                 >
-                  Convert to V3
+                  {language.hypaV3Modal.convertButton}
                 </button>
               </div>
             </div>
           {:else}
             <div class="p-4 sm:p-3 md:p-4 text-center text-zinc-400">
-              No summaries yet
+              {language.hypaV3Modal.noSummariesLabel}
             </div>
           {/if}
 
@@ -880,7 +884,7 @@
                 >
                   <input
                     class="w-full px-2 sm:px-4 py-2 sm:py-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
-                    placeholder="Enter #N, ID, or search query"
+                    placeholder={language.hypaV3Modal.searchPlaceholder}
                     bind:this={searchUIState.ref}
                     bind:value={searchUIState.query}
                     oninput={() => {
@@ -921,7 +925,12 @@
             >
               <!-- Original Summary Header -->
               <div class="flex justify-between items-center">
-                <span class="text-sm text-zinc-400">Summary #{i + 1}</span>
+                <span class="text-sm text-zinc-400"
+                  >{language.hypaV3Modal.summaryNumberLabel.replace(
+                    "{0}",
+                    (i + 1).toString()
+                  )}</span
+                >
 
                 <div class="flex items-center gap-2">
                   <!-- Translate Button -->
@@ -962,8 +971,8 @@
                     onclick={async () => {
                       if (
                         await alertConfirmTwice(
-                          "Delete all summaries after this one?",
-                          "This action cannot be undone. Are you really sure?"
+                          language.hypaV3Modal.deleteAfterConfirmMessage,
+                          language.hypaV3Modal.deleteAfterConfirmSecondMessage
                         )
                       ) {
                         hypaV3DataState.summaries.splice(i + 1);
@@ -991,7 +1000,7 @@
               {#if summaryUIStates[i].translation}
                 <div class="mt-2 sm:mt-4">
                   <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                    Translation
+                    {language.hypaV3Modal.translationLabel}
                   </div>
 
                   <textarea
@@ -1008,7 +1017,9 @@
                 <!-- Rerolled Summary Header -->
                 <div class="mt-2 sm:mt-4">
                   <div class="flex justify-between items-center">
-                    <span class="text-sm text-zinc-400">Rerolled Summary</span>
+                    <span class="text-sm text-zinc-400"
+                      >{language.hypaV3Modal.rerolledSummaryLabel}</span
+                    >
                     <div class="flex items-center gap-2">
                       <!-- Translate Rerolled Button -->
                       <button
@@ -1062,7 +1073,7 @@
                 {#if summaryUIStates[i].rerolledTranslation}
                   <div class="mt-2 sm:mt-4">
                     <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                      Rerolled Translation
+                      {language.hypaV3Modal.rerolledTranslationLabel}
                     </div>
 
                     <textarea
@@ -1080,7 +1091,10 @@
               <div class="mt-2 sm:mt-4">
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-zinc-400"
-                    >Connected Messages ({summary.chatMemos.length})</span
+                    >{language.hypaV3Modal.connectedMessageCountLabel.replace(
+                      "{0}",
+                      summary.chatMemos.length.toString()
+                    )}</span
                   >
 
                   <div class="flex items-center gap-2">
@@ -1113,7 +1127,9 @@
                     bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
                     onclick={() => toggleExpandMessage(i, chatMemo)}
                   >
-                    {chatMemo == null ? "First Message" : chatMemo}
+                    {chatMemo == null
+                      ? language.hypaV3Modal.connectedFirstMessageLabel
+                      : chatMemo}
                   </button>
                 {/each}
               </div>
@@ -1126,7 +1142,10 @@
                     {#if expandedMessage}
                       <!-- Role -->
                       <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                        {expandedMessage.role}'s Message
+                        {language.hypaV3Modal.connectedMessageRoleLabel.replace(
+                          "{0}",
+                          expandedMessage.role
+                        )}
                       </div>
 
                       <!-- Content -->
@@ -1136,12 +1155,17 @@
                         value={expandedMessage.data}
                       ></textarea>
                     {:else}
-                      <span class="text-sm text-red-400">Message not found</span
+                      <span class="text-sm text-red-400"
+                        >{language.hypaV3Modal
+                          .connectedMessageNotFoundLabel}</span
                       >
                     {/if}
                   {:catch error}
                     <span class="text-sm text-red-400"
-                      >Error loading expanded message: {error.message}</span
+                      >{language.hypaV3Modal.connectedMessageLoadingError.replace(
+                        "{0}",
+                        error.message
+                      )}</span
                     >
                   {/await}
                 </div>
@@ -1150,7 +1174,7 @@
                 {#if expandedMessageUIState.translation}
                   <div class="mt-2 sm:mt-4">
                     <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                      Translation
+                      {language.hypaV3Modal.connectedMessageTranslationLabel}
                     </div>
 
                     <textarea
@@ -1173,12 +1197,15 @@
             {#if nextMessage}
               {@const chatId =
                 nextMessage.chatId === "first"
-                  ? "First Message"
+                  ? language.hypaV3Modal.nextSummarizationFirstMessageLabel
                   : nextMessage.chatId == null
-                    ? "No Message ID"
+                    ? language.hypaV3Modal.nextSummarizationNoMessageIdLabel
                     : nextMessage.chatId}
               <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                HypaV3 will summarize [{chatId}]
+                {language.hypaV3Modal.nextSummarizationLabel.replace(
+                  "{0}",
+                  chatId
+                )}
               </div>
 
               <textarea
@@ -1187,11 +1214,17 @@
                 value={nextMessage.data}
               ></textarea>
             {:else}
-              <span class="text-sm text-red-400">WARN: No messages found</span>
+              <span class="text-sm text-red-400"
+                >{language.hypaV3Modal
+                  .nextSummarizationNoMessagesFoundLabel}</span
+              >
             {/if}
           {:catch error}
             <span class="text-sm text-red-400"
-              >Error loading next message: {error.message}</span
+              >{language.hypaV3Modal.nextSummarizationLoadingError.replace(
+                "{0}",
+                error.message
+              )}</span
             >
           {/await}
         </div>
@@ -1200,7 +1233,7 @@
         {#if !getFirstMessage()}
           <div class="mt-2 sm:mt-4">
             <span class="text-sm text-red-400"
-              >WARN: Selected first message is empty</span
+              >{language.hypaV3Modal.emptySelectedFirstMessageLabel}</span
             >
           </div>
         {/if}
