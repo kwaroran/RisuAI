@@ -467,6 +467,15 @@
                 DBState.db.hypav2 = false
                 DBState.db.hanuraiEnable = false
                 DBState.db.hypaV3 = true
+                DBState.db.hypaV3Settings.memoryTokensRatio = 0.2
+                DBState.db.hypaV3Settings.extraSummarizationRatio = 0
+                DBState.db.hypaV3Settings.maxChatsPerSummary = 4
+                DBState.db.hypaV3Settings.recentMemoryRatio = 0.4
+                DBState.db.hypaV3Settings.similarMemoryRatio = 0.4
+                DBState.db.hypaV3Settings.enableSimilarityCorrection = false
+                DBState.db.hypaV3Settings.preserveOrphanedMemory = false
+                DBState.db.hypaV3Settings.processRegexScript = false
+                DBState.db.hypaV3Settings.doNotSummarizeUserChat = false
             } else {
                 DBState.db.supaModelType = 'none'
                 DBState.db.memoryAlgorithmType = 'none'
@@ -514,10 +523,6 @@
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
                 <OptionInput value="subModel">{language.submodel}</OptionInput>
             </SelectInput>
-            {#if DBState.db.supaModelType === "instruct35"}
-                <span class="text-textcolor">OpenAI API Key</span>
-                <TextInput marginBottom size="sm" bind:value={DBState.db.supaMemoryKey} />
-            {/if}
             <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt"/></span>
             <div class="mb-2">
                 <TextAreaInput size="sm" placeholder="Leave it blank to use default" bind:value={DBState.db.supaMemoryPrompt} />

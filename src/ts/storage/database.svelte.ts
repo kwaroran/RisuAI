@@ -474,7 +474,7 @@ export function setDatabase(data:Database){
     data.reasoningEffort ??= 0
     data.hypaV3Settings = {
         memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
-        extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0.2,
+        extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0,
         maxChatsPerSummary: data.hypaV3Settings?.maxChatsPerSummary ?? 4,
         recentMemoryRatio: data.hypaV3Settings?.recentMemoryRatio ?? 0.4,
         similarMemoryRatio: data.hypaV3Settings?.similarMemoryRatio ?? 0.4,
