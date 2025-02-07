@@ -298,21 +298,21 @@ export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|vi
 async function replaceAsync(string, regexp, replacerFunction) {
     const replacements = await Promise.all(
         Array.from(string.matchAll(regexp),
-            match => replacerFunction(...match as any)));
+            match => replacerFunction(...match as any)))
     let i = 0;
-    return string.replace(regexp, () => replacements[i++]);
+    return string.replace(regexp, () => replacements[i++])
 }
 
 async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string, ext?: string}}) {
     name = name.toLocaleLowerCase()
     for (const asset of assetArr) {
-        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue;
+        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
         const assetPath = await getFileSrc(asset[1])
         assetPaths[asset[0].toLocaleLowerCase()] = {
             path: assetPath,
             ext: asset[2]
         }
-        return;
+        return
     }
 }
 
@@ -336,7 +336,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         path:string
     }} = {}
 
-    if (char.emotionImages) getEmoSrc(char.emotionImages, emoPaths)
+    if (char.emotionImages) await getEmoSrc(char.emotionImages, emoPaths)
 
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
@@ -344,10 +344,10 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
         const moduleAssets = getModuleAssets()
         if (char.additionalAssets) {
-            await getAssetSrc(char.additionalAssets, name, assetPaths);
+            await getAssetSrc(char.additionalAssets, name, assetPaths)
         }
         if (moduleAssets.length > 0) {
-            await getAssetSrc(moduleAssets, name, assetPaths);
+            await getAssetSrc(moduleAssets, name, assetPaths)
         }
 
         if(type === 'emotion'){
