@@ -442,22 +442,24 @@ export async function hypaMemoryV3(
     }
 
     // Attempt summarization
-    const summarizeResult = await retryableSummarize(toSummarize);
+    if (toSummarize.length > 0) {
+      const summarizeResult = await retryableSummarize(toSummarize);
 
-    if (!summarizeResult.success) {
-      return {
-        currentTokens,
-        chats,
-        error: `[HypaV3] Summarization failed after maximum retries: ${summarizeResult.data}`,
-        memory: toSerializableHypaV3Data(data),
-      };
+      if (!summarizeResult.success) {
+        return {
+          currentTokens,
+          chats,
+          error: `[HypaV3] Summarization failed after maximum retries: ${summarizeResult.data}`,
+          memory: toSerializableHypaV3Data(data),
+        };
+      }
+
+      data.summaries.push({
+        text: summarizeResult.data,
+        chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
+        isImportant: false,
+      });
     }
-
-    data.summaries.push({
-      text: summarizeResult.data,
-      chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
-      isImportant: false,
-    });
 
     currentTokens -= toSummarizeTokens;
     startIdx = endIdx;
