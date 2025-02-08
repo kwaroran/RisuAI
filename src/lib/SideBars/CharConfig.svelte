@@ -30,7 +30,7 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-    import { applyModule } from "src/ts/process/modules";
+    import { applyModule, getModuleToggles } from "src/ts/process/modules";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
@@ -293,7 +293,7 @@
             <Check bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
         </div>
 
-        {#each parseKeyValue(DBState.db.customPromptTemplateToggle) as toggle}
+        {#each parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()) as toggle}
             <div class="flex mt-2 items-center">
                 <Check check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
                     DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'

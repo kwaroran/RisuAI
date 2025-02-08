@@ -24,6 +24,7 @@ export interface RisuModule{
     backgroundEmbedding?:string
     assets?:[string,string,string][]
     namespace?:string
+    customModuleToggle?:string
 }
 
 export async function exportModule(module:RisuModule, arg:{
@@ -350,6 +351,20 @@ export function getModuleRegexScripts() {
         }
     }
     return customscripts
+}
+
+export function getModuleToggles() {
+    const modules = getModules()
+    let costomModuleToggles: string = ''
+    for (const module of modules) {
+        if(!module){
+            continue
+        }
+        if (module.customModuleToggle) {
+            costomModuleToggles += '\n' + module.customModuleToggle + '\n'
+        }
+    }
+    return costomModuleToggles
 }
 
 export async function applyModule() {
