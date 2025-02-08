@@ -141,7 +141,7 @@
         {:else}
             <LinkIcon />
         {/if}
-        <span class="text-xs">Char</span>
+        <span class="text-xs">CHAR</span>
     </button>
     <button onclick={() => {
         toggleChatLoreAlwaysActive()
@@ -151,7 +151,7 @@
         {:else}
             <LinkIcon />
         {/if}
-        <span class="text-xs">Chat</span>
+        <span class="text-xs">CHAT</span>
     </button>
 </div>
 {/if}
