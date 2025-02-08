@@ -16,6 +16,7 @@
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
   import { getChatBranches } from "src/ts/gui/branches";
+  import { getModuleToggles } from "src/ts/process/modules";
 
   interface Props {
     chara: character|groupChat;
@@ -221,12 +222,12 @@
         {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
 
             
-            {#if parseKeyValue(DBState.db.customPromptTemplateToggle).length > 4}
+            {#if parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()).length > 4}
                 <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
                     <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
                         <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
                     </div>
-                    {#each parseKeyValue(DBState.db.customPromptTemplateToggle) as toggle}
+                    {#each parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()) as toggle}
                         <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
                             <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
                                 DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
@@ -239,11 +240,11 @@
                         </div>
                     {/if}
                 </div>
-            {:else if parseKeyValue(DBState.db.customPromptTemplateToggle).length > 0}
+            {:else if parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()).length > 0}
                 <div class="flex mt-2 items-center">
                     <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse/>
                 </div>
-                {#each parseKeyValue(DBState.db.customPromptTemplateToggle) as toggle}
+                {#each parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()) as toggle}
                     <div class="flex mt-2 items-center">
                         <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} reverse name={toggle[1]} onChange={() => {
                             DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'

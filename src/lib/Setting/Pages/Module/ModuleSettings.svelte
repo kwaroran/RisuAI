@@ -82,6 +82,10 @@
                             e.stopPropagation()
                             const d = await alertConfirm(`${language.removeConfirm}` + rmodule.name)
                             if(d){
+                                if(DBState.db.enabledModules.includes(rmodule.id)){
+                                    DBState.db.enabledModules.splice(DBState.db.enabledModules.indexOf(rmodule.id), 1)
+                                    DBState.db.enabledModules = DBState.db.enabledModules
+                                }
                                 const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
                                 DBState.db.modules.splice(index, 1)
                                 DBState.db.modules = DBState.db.modules
