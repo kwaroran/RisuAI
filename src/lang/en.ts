@@ -843,4 +843,5 @@ export const languageEnglish = {
     showPromptComparison: "Show Prompt Comparison",
     hypaV3Desc: "HypaMemory V3 is a long-term memory system that use both summarized data and vector search.",
     inlayErrorResponse: "Inlay Error Response",
+    triggerEffRunAxLLM: "Run Auxiliary Model",
 }

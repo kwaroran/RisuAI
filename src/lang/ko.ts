@@ -767,4 +767,5 @@ export const languageKorean = {
     "translateBeforeHTMLFormatting": "HTML 포맷 전 번역",
     "retranslate": "다시 번역",
     "loading": "로딩중",
+    "triggerEffRunAxLLM": "보조 모델 실행",
 }
