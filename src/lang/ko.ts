@@ -123,7 +123,8 @@ export const languageKorean = {
         "translatorNote": "여기에서 캐릭터마다 별도의 번역 프롬프트를 넣을 수 있습니다. 해당 옵션은  Ax. model 번역을 사용할 때만 적용됩니다. 언어 설정에서 `{{slot::tnote}}`를 넣으세요. 그룹챗에서는 작동하지 않습니다.",
         "groupInnerFormat": "This defines a format that is used in group chat for characters that isn't speaker. if it is not blank, it will use this format instead of the default format. if `Group Other Bot Role` is `assistant`, it will also be applied to the speaker.",
         "groupOtherBotRole": "This defines a role that is used in group chat for characters that isn't speaker.",
-        "chatHTML": "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button."
+        "chatHTML": "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button.",
+        "autoTranslateCachedOnly": "자동 번역 옵션이 켜진 상태에서 활성화하면, 사용자가 이전에 번역한 메시지만 자동으로 번역됩니다.",
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
@@ -767,4 +768,5 @@ export const languageKorean = {
     "translateBeforeHTMLFormatting": "HTML 포맷 전 번역",
     "retranslate": "다시 번역",
     "loading": "로딩중",
+    "autoTranslateCachedOnly": "캐시된 메시지만 자동 번역",
 }
