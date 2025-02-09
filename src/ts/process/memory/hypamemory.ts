@@ -106,7 +106,7 @@ export class HypaProcesser{
     
     
         if(!gf.ok){
-            throw gf.data
+            throw JSON.stringify(gf.data)
         }
     
         const result:number[][] = []
