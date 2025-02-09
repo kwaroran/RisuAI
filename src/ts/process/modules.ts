@@ -172,6 +172,7 @@ export async function importModule(){
     if(!f){
         return
     }
+    refreshModules()
     let fileData = f.data
     const db = getDatabase()
     if(f.name.endsWith('.risum')){
@@ -282,6 +283,11 @@ function deduplicateModuleById(modules:RisuModule[]){
         newModules.push(modules[i])
     }
     return newModules
+}
+
+function refreshModules(){
+    lastModules = ''
+    lastModuleData = []
 }
 
 let lastModules = ''
