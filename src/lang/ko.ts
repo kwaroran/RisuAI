@@ -768,6 +768,7 @@ export const languageKorean = {
     "translateBeforeHTMLFormatting": "HTML 포맷 전 번역",
     "retranslate": "다시 번역",
     "loading": "로딩중",
+    "triggerEffRunAxLLM": "보조 모델 실행",
     "autoTranslateCachedOnly": "캐시된 메시지만 자동 번역",
     "hypaV3Settings": {
         "descriptionLabel": "HypaMemory V3는 요약과 벡터 검색을 모두 사용하는 장기 기억 시스템입니다.",

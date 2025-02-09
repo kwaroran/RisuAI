@@ -842,6 +842,7 @@ export const languageEnglish = {
     checkCorruption: "Check Corruption",
     showPromptComparison: "Show Prompt Comparison",
     inlayErrorResponse: "Inlay Error Response",
+    triggerEffRunAxLLM: "Run Auxiliary Model",
     hypaV3Settings: {
         descriptionLabel: "HypaMemory V3 is a long-term memory system that uses both summarization and vector search.",
         supaMemoryPromptPlaceHolder: "Leave it blank to use default",
