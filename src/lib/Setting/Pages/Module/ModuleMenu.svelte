@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
-    import type { RisuModule } from "src/ts/process/modules";
+    import { refreshModules, type RisuModule } from "src/ts/process/modules";
     import { DownloadIcon, FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
@@ -128,7 +128,7 @@
     <span class="mt-4">{language.description}</span>
     <TextInput bind:value={currentModule.description} className="mt-1" size="sm"/>
     <span class="mt-4">{language.namespace} <Help key="namespace" /></span>
-    <TextInput bind:value={currentModule.namespace} className="mt-1" size="sm"/>
+    <TextInput bind:value={currentModule.namespace} onchange={()=>refreshModules()} className="mt-1" size="sm"/>
     <div class="flex items-center mt-4">
         <Check bind:check={currentModule.hideIcon} name={language.hideChatIcon}/>
     </div>

@@ -285,11 +285,6 @@ function deduplicateModuleById(modules:RisuModule[]){
     return newModules
 }
 
-function refreshModules(){
-    lastModules = ''
-    lastModuleData = []
-}
-
 let lastModules = ''
 let lastModuleData:RisuModule[] = []
 export function getModules(){
@@ -463,4 +458,9 @@ export function moduleUpdate(){
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
         lastModuleIds = ids
     }
+}
+
+export function refreshModules(){
+    lastModules = ''
+    lastModuleData = []
 }
