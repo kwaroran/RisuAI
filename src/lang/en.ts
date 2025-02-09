@@ -859,7 +859,7 @@ export const languageEnglish = {
         doNotSummarizeUserMessageLabel: "Do Not Summarize User Message",
     },
     hypaV3Modal: {
-        titleLabel: "HypaV3 Data",
+        titleLabel: "HypaV3",
         resetConfirmMessage: "This action cannot be undone. Do you want to reset HypaV3 data?",
         resetConfirmSecondMessage: "This action is irreversible. Do you really, really want to reset HypaV3 data?",
         convertLabel: "No summaries yet, but you may convert HypaV2 data to V3.",

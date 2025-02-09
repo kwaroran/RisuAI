@@ -426,7 +426,7 @@ export const LanguageVietnamese = {
         "doNotSummarizeUserMessageLabel": "Không Tóm tắt Tin nhắn Người dùng",
     },
     "hypaV3Modal": {
-        "titleLabel": "Dữ liệu HypaV3",
+        "titleLabel": "HypaV3",
         "resetConfirmMessage": "Hành động này không thể hoàn tác. Bạn có muốn đặt lại dữ liệu HypaV3 không?",
         "resetConfirmSecondMessage": "Hành động này không thể khôi phục. Bạn có thực sự chắc chắn muốn đặt lại dữ liệu HypaV3 không?",
         "convertLabel": "Chưa có tóm tắt nào, nhưng bạn có thể chuyển đổi dữ liệu HypaV2 sang V3.",

@@ -784,7 +784,7 @@ export const languageKorean = {
         "doNotSummarizeUserMessageLabel": "유저 메시지 요약하지 않기",
     },
     "hypaV3Modal": {
-        "titleLabel": "HypaV3 데이터",
+        "titleLabel": "HypaV3",
         "resetConfirmMessage": "이 작업은 되돌릴 수 없습니다. HypaV3 데이터를 초기화하시겠습니까?",
         "resetConfirmSecondMessage": "이 작업은 복구할 수 없습니다. 정말로, 정말로 HypaV3 데이터를 초기화하시겠습니까?",
         "convertLabel": "아직 요약이 없지만, HypaV2 데이터를 V3로 변환할 수 있습니다.",

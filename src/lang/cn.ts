@@ -788,7 +788,7 @@ export const languageChinese = {
         "doNotSummarizeUserMessageLabel": "不要总结用户消息",
     },
     "hypaV3Modal": {
-        "titleLabel": "HypaV3 数据",
+        "titleLabel": "HypaV3",
         "resetConfirmMessage": "此操作无法撤销。您要重置 HypaV3 数据吗？",
         "resetConfirmSecondMessage": "此操作不可逆。您确实要重置 HypaV3 数据吗？",
         "convertLabel": "尚无总结，但您可以将 HypaV2 数据转换为 V3。",

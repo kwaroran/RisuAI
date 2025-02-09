@@ -452,7 +452,7 @@ export const languageGerman = {
         "doNotSummarizeUserMessageLabel": "Benutzernachrichten nicht zusammenfassen",
     },
     "hypaV3Modal": {
-        "titleLabel": "HypaV3 Daten",
+        "titleLabel": "HypaV3",
         "resetConfirmMessage": "Diese Aktion kann nicht rückgängig gemacht werden. Möchten Sie die HypaV3-Daten zurücksetzen?",
         "resetConfirmSecondMessage": "Diese Aktion ist unwiderruflich. Möchten Sie die HypaV3-Daten wirklich zurücksetzen?",
         "convertLabel": "Noch keine Zusammenfassungen, aber Sie können HypaV2-Daten zu V3 konvertieren.",
