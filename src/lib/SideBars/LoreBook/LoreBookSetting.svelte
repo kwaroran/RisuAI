@@ -2,13 +2,13 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { language } from "../../../lang";
-    import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon } from "lucide-svelte";
+    import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon, SunIcon, LinkIcon } from "lucide-svelte";
     import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
     import Help from "src/lib/Others/Help.svelte";
-  import { selectedCharID } from "src/ts/stores.svelte";
+    import { selectedCharID } from "src/ts/stores.svelte";
 
     let submenu = $state(0)
     interface Props {
@@ -16,6 +16,40 @@
     }
 
     let { globalMode = $bindable(false) }: Props = $props();
+
+    function isAllCharacterLoreAlwaysActive() {
+        const globalLore = DBState.db.characters[$selectedCharID].globalLore;
+        return globalLore && globalLore.every((book) => book.alwaysActive);
+    }
+
+    function isAllChatLoreAlwaysActive() {
+        const localLore = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore;
+        return localLore && localLore.every((book) => book.alwaysActive);
+    }
+
+    function toggleCharacterLoreAlwaysActive() {
+        const globalLore = DBState.db.characters[$selectedCharID].globalLore;
+
+        if (!globalLore) return;
+        
+        const allActive = globalLore.every((book) => book.alwaysActive);
+        
+        globalLore.forEach((book) => {
+            book.alwaysActive = !allActive;
+        });
+    }
+
+    function toggleChatLoreAlwaysActive() {
+        const localLore = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore;
+
+        if (!localLore) return;
+
+        const allActive = localLore.every((book) => book.alwaysActive);
+
+        localLore.forEach((book) => {
+            book.alwaysActive = !allActive;
+        });
+    }
 </script>
 
 {#if !globalMode}
@@ -98,6 +132,26 @@
         importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-textcolor ml-2  cursor-pointer">
         <FolderUpIcon />
+    </button>
+    <button onclick={() => {
+        toggleCharacterLoreAlwaysActive()
+    }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
+        {#if isAllCharacterLoreAlwaysActive()}
+            <SunIcon />
+        {:else}
+            <LinkIcon />
+        {/if}
+        <span class="text-xs">CHAR</span>
+    </button>
+    <button onclick={() => {
+        toggleChatLoreAlwaysActive()
+    }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
+        {#if isAllChatLoreAlwaysActive()}
+            <SunIcon />
+        {:else}
+            <LinkIcon />
+        {/if}
+        <span class="text-xs">CHAT</span>
     </button>
 </div>
 {/if}
