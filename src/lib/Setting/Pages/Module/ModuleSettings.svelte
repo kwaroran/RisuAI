@@ -4,7 +4,7 @@
     import { DBState } from 'src/ts/stores.svelte';
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
-    import { exportModule, importModule, type RisuModule } from "src/ts/process/modules";
+    import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
     import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
@@ -88,6 +88,9 @@
                                 if(DBState.db.enabledModules.includes(rmodule.id)){
                                     DBState.db.enabledModules.splice(DBState.db.enabledModules.indexOf(rmodule.id), 1)
                                     DBState.db.enabledModules = DBState.db.enabledModules
+                                }
+                                if(rmodule.namespace && DBState.db.moduleIntergration.includes(rmodule.namespace)){
+                                    refreshModules()
                                 }
                                 const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
                                 DBState.db.modules.splice(index, 1)
