@@ -48,9 +48,11 @@
                 <div class="pl-3 pt-3 text-left flex">
                     <span class="text-lg">{rmodule.name}</span>
                     <div class="flex-grow flex justify-end">
-                        <button class={(!DBState.db.enabledModules.includes(rmodule.id)) ?
-                                "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" :
-                                "mr-2 cursor-pointer text-blue-500"
+                        <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
+                                "mr-2 cursor-pointer text-blue-500" :
+                                rmodule.namespace && DBState.db.moduleIntergration.split(',').includes(rmodule.namespace) ?
+                                "text-amber-500 hover:text-green-500 mr-2 cursor-pointer" :
+                                "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
                             } use:tooltip={language.enableGlobal} onclick={async (e) => {
                             e.stopPropagation()
                             if(DBState.db.enabledModules.includes(rmodule.id)){

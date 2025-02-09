@@ -643,6 +643,10 @@
         {/if}
     </Arcodion>
 
+    <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
+        <TextAreaInput bind:value={DBState.db.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
+    </Arcodion>
+    
     <Arcodion styled name={language.regexScript}>
         <RegexList bind:value={DBState.db.presetRegex} buttons />
     </Arcodion>

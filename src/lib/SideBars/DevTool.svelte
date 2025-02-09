@@ -18,6 +18,7 @@
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
   import { loadLoreBookV3Prompt } from "src/ts/process/lorebook.svelte";
+  import { getModules } from "src/ts/process/modules";
 
     let previewMode = $state('chat')
     let previewJoin = $state('yes')
@@ -280,6 +281,16 @@
         alertMd(html)
     }}>Match Sources</Button>
 </Arcodion>
+
+<Button className="mt-2" onclick={() => {
+    const modules = getModules()
+    const html = `
+    ${modules.map((v) => {
+        return `## ${v.name}\n\n\`\`\`\n${v.description}\n\`\`\`\n`
+    }).join('\n')}
+    `.trim()
+    alertMd(html)
+}}>Preview Module</Button>
 
 <Button className="mt-2" onclick={() => {
     alertMd(getRequestLog())
