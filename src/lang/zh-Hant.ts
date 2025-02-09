@@ -829,7 +829,7 @@ export const languageChineseTraditional = {
         "convertSuccessMessage": "成功將 HypaV2 數據轉換為 V3",
         "convertErrorMessage": "無法將 HypaV2 數據轉換為 V3：{0}",
         "noSummariesLabel": "尚無摘要",
-        "searchPlaceholder": "輸入 #N、ID 或搜索查詢",
+        "searchPlaceholder": "輸入 #N、ID 或搜尋關鍵字",
         "summaryNumberLabel": "摘要 #{0}",
         "deleteAfterConfirmMessage": "刪除此摘要之後的所有摘要？",
         "deleteAfterConfirmSecondMessage": "此操作無法撤銷。您確定要這樣做嗎？",

@@ -796,7 +796,7 @@ export const languageChinese = {
         "convertSuccessMessage": "成功将 HypaV2 数据转换为 V3",
         "convertErrorMessage": "将 HypaV2 数据转换为 V3 失败：{0}",
         "noSummariesLabel": "尚无总结",
-        "searchPlaceholder": "输入 #N、ID 或搜索查询",
+        "searchPlaceholder": "输入 #N、ID 或搜索关键词",
         "summaryNumberLabel": "总结 #{0}",
         "deleteAfterConfirmMessage": "删除此后的所有总结？",
         "deleteAfterConfirmSecondMessage": "此操作无法撤销。您确定吗？",

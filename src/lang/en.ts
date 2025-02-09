@@ -867,7 +867,7 @@ export const languageEnglish = {
         convertSuccessMessage: "Successfully converted HypaV2 data to V3",
         convertErrorMessage: "Failed to convert HypaV2 data to V3: {0}",
         noSummariesLabel: "No summaries yet",
-        searchPlaceholder: "Enter #N, ID, or search query",
+        searchPlaceholder: "Enter #N, ID, or query",
         summaryNumberLabel: "Summary #{0}",
         deleteAfterConfirmMessage: "Delete all summaries after this one?",
         deleteAfterConfirmSecondMessage: "This action cannot be undone. Are you really sure?",

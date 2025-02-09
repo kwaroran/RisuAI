@@ -705,7 +705,7 @@ export const languageSpanish = {
         "convertSuccessMessage": "Datos de HypaV2 convertidos exitosamente a V3",
         "convertErrorMessage": "Error al convertir datos de HypaV2 a V3: {0}",
         "noSummariesLabel": "Aún no hay resúmenes",
-        "searchPlaceholder": "Ingrese #N, ID o consulta de búsqueda",
+        "searchPlaceholder": "Ingrese #N, ID o búsqueda",
         "summaryNumberLabel": "Resumen #{0}",
         "deleteAfterConfirmMessage": "¿Eliminar todos los resúmenes después de este?",
         "deleteAfterConfirmSecondMessage": "Esta acción no se puede deshacer. ¿Está realmente seguro?",

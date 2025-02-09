@@ -434,7 +434,7 @@ export const LanguageVietnamese = {
         "convertSuccessMessage": "Đã chuyển đổi thành công dữ liệu HypaV2 sang V3",
         "convertErrorMessage": "Chuyển đổi dữ liệu HypaV2 sang V3 thất bại: {0}",
         "noSummariesLabel": "Chưa có tóm tắt nào",
-        "searchPlaceholder": "Nhập #N, ID, hoặc từ khóa tìm kiếm",
+        "searchPlaceholder": "Nhập #N, ID hoặc từ khóa",
         "summaryNumberLabel": "Tóm tắt #{0}",
         "deleteAfterConfirmMessage": "Xóa tất cả các tóm tắt sau tóm tắt này?",
         "deleteAfterConfirmSecondMessage": "Hành động này không thể hoàn tác. Bạn có chắc chắn không?",

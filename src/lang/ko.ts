@@ -792,7 +792,7 @@ export const languageKorean = {
         "convertSuccessMessage": "HypaV2 데이터를 V3로 성공적으로 변환했습니다",
         "convertErrorMessage": "HypaV2 데이터를 V3로 변환하는데 실패했습니다: {0}",
         "noSummariesLabel": "아직 요약이 없습니다",
-        "searchPlaceholder": "#N, ID 또는 검색어를 입력하세요",
+        "searchPlaceholder": "#N, ID 또는 검색어 입력",
         "summaryNumberLabel": "요약 #{0}",
         "deleteAfterConfirmMessage": "이 요약 이후의 모든 요약을 삭제하시겠습니까?",
         "deleteAfterConfirmSecondMessage": "이 작업은 되돌릴 수 없습니다. 정말 삭제하시겠습니까?",
