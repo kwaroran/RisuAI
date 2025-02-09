@@ -87,6 +87,13 @@ self.addEventListener('fetch', (event) => {
 async function checkCache(url){
     const cache = await caches.open('risuCache')
 
+    if(url.pathname.startsWith("/sw/check")) {
+        url.pathname = "/sw/img" + url.pathname.slice(9);
+        return new Response(JSON.stringify({
+            "able": !!(await cache.match(url))
+        }))
+    }
+
     return new Response(JSON.stringify({
         "able": !!(await cache.match(url))
     }))
