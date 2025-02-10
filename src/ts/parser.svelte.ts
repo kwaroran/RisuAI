@@ -10,7 +10,7 @@ import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
 import { getInlayAsset } from './process/files/inlays';
-import { getModuleAssets, getModuleLorebooks } from './process/modules';
+import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
@@ -1531,16 +1531,13 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     return dateTimeFormat(arra[1],t)
                 }
                 case 'module_enabled':{
-                    const selchar = db.characters[get(selectedCharID)]
-                    let enabledChatModules:string[] = []
-                    if(!selchar){
-                        enabledChatModules = selchar.chats[selchar.chatPage].modules ?? []
-
+                    const modules = getModules()
+                    for(const module of modules){
+                        if(module.namespace === arra[1]){
+                            return '1'
+                        }
                     }
-                    const moduleId = db.modules.find((f) => {
-                        return f.name === arra[1]
-                    }).id
-                    return (db.enabledModules.includes(moduleId) || enabledChatModules.includes(moduleId)) ? '1' : '0'
+                    return '0'
                 }
                 case 'filter':{
                     const array = parseArray(arra[1])
