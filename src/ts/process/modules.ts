@@ -268,7 +268,20 @@ function getModuleByIds(ids:string[]){
             modules.push(module)
         }
     }
-    return modules
+    return deduplicateModuleById(modules)
+}
+
+function deduplicateModuleById(modules:RisuModule[]){
+    let ids:string[] = []
+    let newModules:RisuModule[] = []
+    for(let i=0;i<modules.length;i++){
+        if(ids.includes(modules[i].id)){
+            continue
+        }
+        ids.push(modules[i].id)
+        newModules.push(modules[i])
+    }
+    return newModules
 }
 
 let lastModules = ''
@@ -279,6 +292,10 @@ export function getModules(){
     let ids = db.enabledModules ?? []
     if (currentChat){
         ids = ids.concat(currentChat.modules ?? [])
+    }
+    if(db.moduleIntergration){
+        const intList = db.moduleIntergration.split(',').map((s) => s.trim())
+        ids = ids.concat(intList)
     }
     const idsJoined = ids.join('-')
     if(lastModules === idsJoined){
@@ -440,4 +457,9 @@ export function moduleUpdate(){
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
         lastModuleIds = ids
     }
+}
+
+export function refreshModules(){
+    lastModules = ''
+    lastModuleData = []
 }
