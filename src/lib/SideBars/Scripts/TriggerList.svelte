@@ -1,24 +1,23 @@
 <script lang="ts">
-  import { stopPropagation } from 'svelte/legacy';
 
     import type { triggerscript } from "src/ts/storage/database.svelte";
     import TriggerData from "./TriggerData.svelte";
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
-  import { language } from "src/lang";
-  import { alertConfirm } from "src/ts/alert";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import Button from "src/lib/UI/GUI/Button.svelte";
-  import { openURL } from "src/ts/globalApi.svelte";
-  import { hubURL } from "src/ts/characterCards";
-  import { PlusIcon } from "lucide-svelte";
-  interface Props {
-    value?: triggerscript[];
-    lowLevelAble?: boolean;
-  }
+    import { language } from "src/lang";
+    import { alertConfirm } from "src/ts/alert";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { openURL } from "src/ts/globalApi.svelte";
+    import { hubURL } from "src/ts/characterCards";
+    import { PlusIcon } from "lucide-svelte";
+    interface Props {
+        value?: triggerscript[];
+        lowLevelAble?: boolean;
+    }
 
-  let { value = $bindable([]), lowLevelAble = false }: Props = $props();
+    let { value = $bindable([]), lowLevelAble = false }: Props = $props();
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
@@ -80,7 +79,8 @@
     <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
         value?.[0]?.effect?.[0]?.type !== 'triggercode' &&
         value?.[0]?.effect?.[0]?.type !== 'triggerlua'
-    } onclick={stopPropagation(async () => {
+    } onclick={(async (e) => {
+        e.stopPropagation()
         const codeType = value?.[0]?.effect?.[0]?.type
         if(codeType === 'triggercode' || codeType === 'triggerlua'){
             const codeTrigger = value?.[0]?.effect?.[0]?.code
@@ -93,7 +93,8 @@
             value = []
         }
     })}>{language.blockMode}</button>
-    <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={value?.[0]?.effect?.[0]?.type === 'triggerlua'} onclick={stopPropagation(async () => {
+    <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={value?.[0]?.effect?.[0]?.type === 'triggerlua'} onclick={(async (e) => {
+        e.stopPropagation()
         if(value?.[0]?.effect?.[0]?.type !== 'triggerlua'){
             if(value && value.length > 0){
                 const t = await alertConfirm(language.triggerSwitchWarn)
