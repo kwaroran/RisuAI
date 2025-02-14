@@ -268,7 +268,10 @@ function getModuleByIds(ids:string[]){
             modules.push(module)
         }
     }
-    return deduplicateModuleById(modules)
+    if(db.moduleIntergration){
+        modules = deduplicateModuleById(modules)
+    }
+    return modules
 }
 
 function deduplicateModuleById(modules:RisuModule[]){
