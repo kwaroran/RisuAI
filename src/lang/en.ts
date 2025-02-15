@@ -361,6 +361,10 @@ export const languageEnglish = {
         v2GetDisplayStateDesc: "Get Display State => {{outputVar}}",
         v2SetDisplayState: "Set Display State",
         v2SetDisplayStateDesc: "Set Display State to {{value}}",
+        v2UpdateGUI: "Update GUI",
+        v2UpdateGUIDesc: "Update GUI",
+        v2Wait: "Wait",
+        v2WaitDesc: "Wait {{value}} seconds",
     },
 
     confirm: "Confirm",

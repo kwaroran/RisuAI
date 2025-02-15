@@ -37,7 +37,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2SetCharacterDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
-                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState
+                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2Wait
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -620,6 +620,18 @@ export type triggerV2GetDisplayState = {
 
 export type triggerV2SetDisplayState = {
     type: 'v2SetDisplayState',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2UpdateGUI = {
+    type: 'v2UpdateGUI',
+    indent: number
+}
+
+export type triggerV2Wait = {
+    type: 'v2Wait',
     value: string,
     valueType: 'var'|'value',
     indent: number
@@ -1681,6 +1693,15 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         return
                     }
                     arg.displayData = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    break
+                }
+                case 'v2UpdateGUI':{
+                    ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+                    break
+                }
+                case 'v2Wait':{
+                    let value = effect.valueType === 'value' ? Number(risuChatParser(effect.value,{chara:char})) : Number(getVar(risuChatParser(effect.value,{chara:char})))
+                    await sleep(value * 1000)
                     break
                 }
             }

@@ -31,6 +31,8 @@
         'v2ConsoleLog',
         'v2StopTrigger',
         'v2Random',
+        'v2UpdateGUI',
+        'v2Wait',
 
         //Chat
         'v2CutChat',
@@ -642,6 +644,22 @@
                 editTrigger = {
                     type: 'v2SetDisplayState',
                     value: '',
+                    valueType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2UpdateGUI':{
+                editTrigger = {
+                    type: 'v2UpdateGUI',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2Wait':{
+                editTrigger = {
+                    type: 'v2Wait',
+                    value: '1',
                     valueType: 'value',
                     indent: 0
                 }
@@ -1453,6 +1471,13 @@
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else if editTrigger.type === 'v2SetDisplayState'}
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2Wait'}
                         <span class="block text-textcolor">{language.value}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
                             <OptionInput value="value">{language.value}</OptionInput>
