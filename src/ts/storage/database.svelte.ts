@@ -474,13 +474,14 @@ export function setDatabase(data:Database){
     data.reasoningEffort ??= 0
     data.hypaV3Settings = {
         memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
-        extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0.2,
+        extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0,
         maxChatsPerSummary: data.hypaV3Settings?.maxChatsPerSummary ?? 4,
         recentMemoryRatio: data.hypaV3Settings?.recentMemoryRatio ?? 0.4,
         similarMemoryRatio: data.hypaV3Settings?.similarMemoryRatio ?? 0.4,
         enableSimilarityCorrection: data.hypaV3Settings?.enableSimilarityCorrection ?? false,
         preserveOrphanedMemory: data.hypaV3Settings?.preserveOrphanedMemory ?? false,
-        processRegexScript: data.hypaV3Settings?.processRegexScript ?? false
+        processRegexScript: data.hypaV3Settings?.processRegexScript ?? false,
+        doNotSummarizeUserMessage: data.hypaV3Settings?.doNotSummarizeUserMessage ?? false
     }
     changeLanguage(data.language)
     setDatabaseLite(data)
@@ -894,6 +895,7 @@ export interface Database{
         enableSimilarityCorrection: boolean
         preserveOrphanedMemory: boolean
         processRegexScript: boolean
+        doNotSummarizeUserMessage: boolean
     },
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean

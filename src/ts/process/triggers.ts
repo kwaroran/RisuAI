@@ -152,6 +152,12 @@ export interface triggerEffectRunLLM{
     inputVar: string
 }
 
+export interface triggerEffectRunAxLLM{
+    type: 'runAxLLM',
+    value: string,
+    inputVar: string
+}
+
 export type additonalSysPrompt = {
     start:string,
     historyend: string,
@@ -1033,6 +1039,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(effect.inputVar, res)
                     break
                 }
+
                 case 'triggerlua':{
                     const triggerCodeResult = await runLua(effect.code,{
                         lowLevelAccess: trigger.lowLevelAccess,

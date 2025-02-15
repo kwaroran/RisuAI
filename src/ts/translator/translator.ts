@@ -231,7 +231,9 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     let DoingChat = get(doingChat)
     if(DoingChat){
         if(isExpTranslator()){
-            return html
+            if(!(db.translatorType === 'llm' && await getLLMCache(html) !== null)){
+                return html
+            }
         }
     }
     if(db.translatorType === 'llm'){
