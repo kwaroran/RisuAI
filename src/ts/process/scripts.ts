@@ -1,15 +1,16 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores.svelte";
-import { type character, type customscript, type groupChat, type Database, getDatabase } from "../storage/database.svelte";
+import { type character, type customscript, type groupChat, type Database, getDatabase, getCurrentCharacter, getCurrentChat } from "../storage/database.svelte";
 import { downloadFile } from "../globalApi.svelte";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser.svelte";
-import { getModuleAssets, getModuleRegexScripts } from "./modules";
+import { getModuleAssets, getModuleRegexScripts, getModuleTriggers } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 import { runLuaEditTrigger } from "./lua";
 import { pluginV2 } from "../plugins/plugins";
+import { runTrigger } from "./triggers";
 
 const dreg = /{{data}}/g
 const randomness = /\|\|\|/g
@@ -104,6 +105,22 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     let emoChanged = false
     const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runLuaEditTrigger(char, mode, data)
+
+    if(mode === 'editdisplay'){
+        const currentChar = getCurrentCharacter()
+        if(currentChar.type !== 'group'){
+            const perf = performance.now()
+            const d = await runTrigger(currentChar, 'display', {
+                chat: getCurrentChat(),
+                displayMode: true,
+                displayData: data
+            })
+
+            data = d.displayData
+            console.log('Trigger time', performance.now() - perf)
+        }
+    }
+
     if(pluginV2[mode].size > 0){
         for(const plugin of pluginV2[mode]){
             const res = await plugin(data)

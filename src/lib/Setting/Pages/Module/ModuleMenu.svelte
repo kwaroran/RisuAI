@@ -103,7 +103,21 @@
         <span>{language.regexScript}</span>
     </button>
     <button onclick={() => {
-        currentModule.trigger ??= []
+        currentModule.trigger ??= [{
+            comment: "",
+            type: "manual",
+            conditions: [],
+            effect: [{
+                type: "v2Header",
+                code: "",
+                indent: 0
+            }]
+        }, {
+            comment: "New Event",
+            type: 'manual',
+            conditions: [],
+            effect: []
+        }]
         submenu = 3
     }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 3}>
         <span>{language.triggerScript}</span>

@@ -46,6 +46,8 @@ export default {
       width: {
         '2xl': '48rem',
         '3xl': '72rem',
+        '4xl': 'var(--container-4xl);',
+        '7xl': '1280px',
         '110': '28rem',
         '124': '32rem',
         '138': '36rem',

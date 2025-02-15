@@ -12,6 +12,7 @@
     import { openURL } from "src/ts/globalApi.svelte";
     import { hubURL } from "src/ts/characterCards";
     import { PlusIcon } from "lucide-svelte";
+    import TriggerV2List from "./TriggerList2.svelte";
     interface Props {
         value?: triggerscript[];
         lowLevelAble?: boolean;
@@ -76,23 +77,49 @@
 </script>
 
 <div class="flex items-start mt-2 gap-2">
+    {#if value?.[0]?.effect?.[0]?.type !== 'triggercode' && value?.[0]?.effect?.[0]?.type !== 'triggerlua' && value?.[0]?.effect?.[0]?.type !== 'v2Header' }
+        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={true} onclick={(async (e) => {
+            e.stopPropagation()
+            const codeType = value?.[0]?.effect?.[0]?.type
+            if(codeType === 'triggercode' || codeType === 'triggerlua' || codeType === 'v2Header'){
+                const codeTrigger = value?.[0]?.effect?.[0]?.code
+                if(codeTrigger){
+                    const t = await alertConfirm(language.triggerSwitchWarn)
+                    if(!t){
+                        return
+                    }
+                }
+                value = []
+            }
+        })}>V1</button>
+    {/if}
     <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={
-        value?.[0]?.effect?.[0]?.type !== 'triggercode' &&
-        value?.[0]?.effect?.[0]?.type !== 'triggerlua'
+        value?.[0]?.effect?.[0]?.type === 'v2Header'
     } onclick={(async (e) => {
         e.stopPropagation()
         const codeType = value?.[0]?.effect?.[0]?.type
-        if(codeType === 'triggercode' || codeType === 'triggerlua'){
-            const codeTrigger = value?.[0]?.effect?.[0]?.code
-            if(codeTrigger){
-                const t = await alertConfirm(language.triggerSwitchWarn)
-                if(!t){
-                    return
-                }
+        if(codeType !== 'v2Header'){
+            const t = await alertConfirm(language.triggerSwitchWarn)
+            if(!t){
+                return
             }
-            value = []
+            value = [{
+                comment: "",
+                type: "manual",
+                conditions: [],
+                effect: [{
+                    type: "v2Header",
+                    code: "",
+                    indent: 0
+                }]
+            }, {
+                comment: "New Event",
+                type: 'manual',
+                conditions: [],
+                effect: []
+            }]
         }
-    })}>{language.blockMode}</button>
+    })}>V2</button>
     <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={value?.[0]?.effect?.[0]?.type === 'triggerlua'} onclick={(async (e) => {
         e.stopPropagation()
         if(value?.[0]?.effect?.[0]?.type !== 'triggerlua'){
@@ -119,19 +146,23 @@
     <Button onclick={() => {
         openURL(hubURL + '/redirect/docs/lua')
     }}>{language.helpBlock}</Button>
+{:else if value?.[0]?.effect?.[0]?.type === 'v2Header'}
+    <TriggerV2List bind:value={value} lowLevelAble={lowLevelAble}/>
 {:else}
     {#key sorted}
-        <div class="contain w-full max-w-full mt-2 flex flex-col p-3 border-selected border-1 bg-darkbg rounded-md" bind:this={ele}>
+        <div
+            class="contain w-full max-w-full mt-2 flex flex-col border-selected border-1 bg-darkbg rounded-md p-3" bind:this={ele}
+        >
             {#if value.length === 0}
-                    <div class="text-textcolor2">No Scripts</div>
+                <div class="text-textcolor2">No Scripts</div>
             {/if}
-                {#each value as triggerscript, i}
-                    <TriggerData idx={i} bind:value={value[i]} lowLevelAble={lowLevelAble} onOpen={onOpen} onClose={onClose} onRemove={() => {
-                        let triggerscript = value
-                        triggerscript.splice(i, 1)
-                        value = triggerscript
-                    }}/>
-                {/each}
+            {#each value as triggerscript, i}
+                <TriggerData idx={i} bind:value={value[i]} lowLevelAble={lowLevelAble} onOpen={onOpen} onClose={onClose} onRemove={() => {
+                    let triggerscript = value
+                    triggerscript.splice(i, 1)
+                    value = triggerscript
+                }}/>
+            {/each}
         </div>
         <button class="font-medium cursor-pointer hover:text-textcolor mb-2 text-textcolor2" onclick={() => {
             value.push({

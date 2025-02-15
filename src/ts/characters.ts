@@ -607,7 +607,21 @@ export function createBlankChar():character{
         scenario:"",
         firstMsgIndex: -1,
         replaceGlobalNote: "",
-        triggerscript: [],
+        triggerscript: [{
+            comment: "",
+            type: "manual",
+            conditions: [],
+            effect: [{
+                type: "v2Header",
+                code: "",
+                indent: 0
+            }]
+        }, {
+            comment: "New Event",
+            type: 'manual',
+            conditions: [],
+            effect: []
+        }],
         additionalText: ''
     }
 }
