@@ -303,11 +303,11 @@ async function replaceAsync(string, regexp, replacerFunction) {
 }
 
 async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string, ext?: string}}) {
-    name = name.toLocaleLowerCase()
+    const lowerName = name.toLocaleLowerCase()
     for (const asset of assetArr) {
-        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
+        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(lowerName)) continue
         const assetPath = await getFileSrc(asset[1])
-        assetPaths[asset[0].toLocaleLowerCase()] = {
+        assetPaths[name] = {
             path: assetPath,
             ext: asset[2]
         }
