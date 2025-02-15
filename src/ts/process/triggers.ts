@@ -1460,11 +1460,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(effect.outputVar, source.length.toString())
                     break
                 }
-                case 'v2GetCharCount':{
-                    let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
-                    setVar(effect.outputVar, source.length.toString())
-                    break
-                }
                 case 'v2ToLowerCase':{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                     setVar(effect.outputVar, source.toLowerCase())
