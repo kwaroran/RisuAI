@@ -1,5 +1,5 @@
 import type { MultiModal, OpenAIChat, OpenAIChatFull } from "./index.svelte";
-import { getCurrentCharacter, getDatabase, setDatabase, type character } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type character } from "../storage/database.svelte";
 import { pluginProcess, pluginV2 } from "../plugins/plugins";
 import { language } from "../../lang";
 import { stringlizeAINChat, getStopStrings, unstringlizeAIN, unstringlizeChat } from "./stringlize";
@@ -21,6 +21,7 @@ import { applyChatTemplate } from "./templates/chatTemplate";
 import { OobaParams } from "./prompt";
 import { extractJSON, getGeneralJSONSchema, getOpenAIJSONSchema } from "./templates/jsonSchema";
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/modellist";
+import { runTrigger } from "./triggers";
 
 
 
@@ -243,6 +244,29 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                 arg.formated = await replacer(arg.formated, model)
             }
         }
+        
+        try{
+            const currentChar = getCurrentCharacter()
+            if(currentChar.type !== 'group'){
+                const perf = performance.now()
+                const d = await runTrigger(currentChar, 'request', {
+                    chat: getCurrentChat(),
+                    displayMode: true,
+                    displayData: JSON.stringify(arg.formated)
+                })
+    
+                const got = JSON.parse(d.displayData)
+                if(!got || !Array.isArray(got)){
+                    throw new Error('Invalid return')
+                }
+                arg.formated = got
+                console.log('Trigger time', performance.now() - perf)
+            }
+        }
+        catch(e){
+            console.error(e)
+        }
+        
 
         const da = await requestChatDataMain(arg, model, abortSignal)
 

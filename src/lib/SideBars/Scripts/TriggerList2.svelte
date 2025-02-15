@@ -7,7 +7,7 @@
   import Portal from "src/lib/UI/GUI/Portal.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList } from "src/ts/process/triggers";
+    import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList } from "src/ts/process/triggers";
     import { sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
@@ -20,6 +20,11 @@
         //Special
         'v2GetDisplayState',
         'v2SetDisplayState',
+        'v2GetRequestState',
+        'v2SetRequestState',
+        'v2GetRequestStateRole',
+        'v2SetRequestStateRole',
+        'v2GetRequestStateLength',
 
         //Control
         'v2SetVar',
@@ -102,6 +107,16 @@
         'v2RunImgGen'
 
     ]
+
+    const specialTypes = [
+        'v2GetDisplayState',
+        'v2SetDisplayState',
+        'v2GetRequestState',
+        'v2SetRequestState',
+        'v2GetRequestStateRole',
+        'v2SetRequestStateRole',
+        'v2GetRequestStateLength',
+    ]
     
     let lastClickTime = 0
     let { value = $bindable([]), lowLevelAble = false }: Props = $props();
@@ -123,11 +138,14 @@
     }
 
     const checkSupported = (e:string) => {
-        if(e === 'v2SetDisplayState' || e === 'v2GetDisplayState'){
-            return value[selectedIndex].type === 'display'
-        }
         if(value[selectedIndex].type === 'display'){
             return displayAllowList.includes(e)
+        }
+        if(value[selectedIndex].type === 'request'){
+            return requestAllowList.includes(e)
+        }
+        if(specialTypes.includes(e)){
+            return false
         }
 
         if(lowLevelAble){
@@ -665,6 +683,56 @@
                 }
                 break;
             }
+            case 'v2GetRequestState':{
+                editTrigger = {
+                    type: 'v2GetRequestState',
+                    outputVar: '',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetRequestState':{
+                editTrigger = {
+                    type: 'v2SetRequestState',
+                    value: '',
+                    valueType: 'value',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetRequestStateRole':{
+                editTrigger = {
+                    type: 'v2GetRequestStateRole',
+                    outputVar: '',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetRequestStateRole':{
+                editTrigger = {
+                    type: 'v2SetRequestStateRole',
+                    value: '',
+                    valueType: 'value',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetRequestStateLength':{
+                editTrigger = {
+                    type: 'v2GetRequestStateLength',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
         }
     }
 
@@ -863,6 +931,7 @@
                                 <OptionInput value="input">{language.triggerInput}</OptionInput>
                                 <OptionInput value="manual">{language.triggerManual}</OptionInput>
                                 <OptionInput value="display">{language.editDisplay}</OptionInput>
+                                <OptionInput value="request">{language.editProcess}</OptionInput>
 
                             </SelectInput>
                         </div>
@@ -1513,6 +1582,57 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2GetRequestState'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetRequestStateRole'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2SetRequestState'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2SetRequestStateRole'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2GetRequestStateLength'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

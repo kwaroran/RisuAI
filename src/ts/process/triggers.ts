@@ -9,7 +9,7 @@ import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
 import type { OpenAIChat } from "./index.svelte";
 import { HypaProcesser } from "./memory/hypamemory";
-import { requestChatData } from "./request";
+import { requestChatData, type OpenAIChatExtra } from "./request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import { runLua } from "./lua";
@@ -17,7 +17,7 @@ import { runLua } from "./lua";
 
 export interface triggerscript{
     comment: string;
-    type: 'start'|'manual'|'output'|'input'|'display'
+    type: 'start'|'manual'|'output'|'input'|'display'|'request'
     conditions: triggerCondition[]
     effect:triggerEffect[]
     lowLevelAccess?: boolean
@@ -37,7 +37,8 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2SetCharacterDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
-                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2Wait
+                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2Wait|
+                                triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -95,7 +96,7 @@ export interface triggerEffectImpersonate{
     value:string
 }
 
-type triggerMode = 'start'|'manual'|'output'|'input'|'display'
+type triggerMode = 'start'|'manual'|'output'|'input'|'display'|'request'
 
 export interface triggerEffectCommand{
     type: 'command',
@@ -625,6 +626,46 @@ export type triggerV2SetDisplayState = {
     indent: number
 }
 
+export type triggerV2GetRequestState = {
+    type: 'v2GetRequestState',
+    outputVar: string,
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetRequestStateRole = {
+    type: 'v2GetRequestStateRole',
+    outputVar: string,
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2SetRequestState = {
+    type: 'v2SetRequestState',
+    value: string,
+    valueType: 'var'|'value',
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2SetRequestStateRole = {
+    type: 'v2SetRequestStateRole',
+    value: string,
+    valueType: 'var'|'value',
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetReuqestStateLength = {
+    type: 'v2GetRequestStateLength',
+    outputVar: string,
+    indent: number
+}
+
 export type triggerV2UpdateGUI = {
     type: 'v2UpdateGUI',
     indent: number
@@ -637,9 +678,7 @@ export type triggerV2Wait = {
     indent: number
 }
 
-export const displayAllowList = [
-    'v2GetDisplayState',
-    'v2SetDisplayState',
+const safeSubset = [
     'v2SetVar',
     'v2If',
     'v2Else',
@@ -669,6 +708,21 @@ export const displayAllowList = [
     'v2SliceArrayVar',
     'v2GetIndexOfValueInArrayVar',
     'v2RemoveIndexFromArrayVar'
+]
+
+export const displayAllowList = [
+    'v2GetDisplayState',
+    'v2SetDisplayState',
+    ...safeSubset
+]
+
+export const requestAllowList = [
+    'v2GetRequestState',
+    'v2SetRequestState',
+    'v2GetRequestStateRole',
+    'v2SetRequestStateRole',
+    'v2GetRequestStateLength',
+    ...safeSubset
 ]
 
 export async function runTrigger(char:character,mode:triggerMode, arg:{
@@ -838,7 +892,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
 
         for(let index = 0; index < trigger.effect.length; index++){
             const effect = trigger.effect[index]
-            if(arg.displayMode && !displayAllowList.includes(effect.type)){
+            if(mode === 'display' && !displayAllowList.includes(effect.type)){
+                continue
+            }
+            if(mode === 'request' && !requestAllowList.includes(effect.type)){
                 continue
             }
             switch(effect.type){
@@ -1702,6 +1759,59 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case 'v2Wait':{
                     let value = effect.valueType === 'value' ? Number(risuChatParser(effect.value,{chara:char})) : Number(getVar(risuChatParser(effect.value,{chara:char})))
                     await sleep(value * 1000)
+                    break
+                }
+                case 'v2GetRequestState':{
+                    if(!arg.displayMode){
+                        return
+                    }
+                    const json = JSON.parse(arg.displayData) as OpenAIChat[]
+                    const index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    const content = json?.[index]?.content ?? 'null'
+                    setVar(effect.outputVar, content)
+                    break
+                }
+                case 'v2SetRequestState':{
+                    if(!arg.displayMode){
+                        return
+                    }
+                    const json = JSON.parse(arg.displayData) as OpenAIChat[]
+                    const index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    json[index].content = value
+                    arg.displayData = JSON.stringify(json)
+                    break
+                }
+                case 'v2GetRequestStateRole':{
+                    if(!arg.displayMode){
+                        return
+                    }
+                    const json = JSON.parse(arg.displayData) as OpenAIChat[]
+                    const index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    const content = json?.[index]?.role ?? 'null'
+                    setVar(effect.outputVar, content)
+                    break
+                }
+                case 'v2SetRequestStateRole':{
+                    if(!arg.displayMode){
+                        return
+                    }
+                    const json = JSON.parse(arg.displayData) as OpenAIChat[]
+                    const index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    if(value === 'user' || value === 'assistant' || value === 'system'){
+                        json[index].role = value
+                    }
+                    arg.displayData = JSON.stringify(json)
+                    break
+                }
+
+                case 'v2GetRequestStateLength':{
+                    if(!arg.displayMode){
+                        return
+                    }
+                    const json = JSON.parse(arg.displayData) as OpenAIChat[]
+                    setVar(effect.outputVar, json.length.toString())
                     break
                 }
             }
