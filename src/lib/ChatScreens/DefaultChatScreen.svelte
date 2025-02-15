@@ -28,7 +28,6 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
-  import { preventDefault } from 'svelte/legacy';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')

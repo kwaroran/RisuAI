@@ -888,4 +888,5 @@ export const languageEnglish = {
         nextSummarizationLoadingError: "Error loading next summarization target: {0}",
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
     },
+    showTranslationLoading: "Show Translation Loading",
 }

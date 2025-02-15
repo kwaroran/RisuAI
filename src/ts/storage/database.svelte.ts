@@ -900,6 +900,7 @@ export interface Database{
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
+    showTranslationLoading: boolean
 }
 
 interface SeparateParameters{

@@ -154,14 +154,26 @@
                         }
                     }
 
+                    const lastTranslated = translated
+
                     setTimeout(() => {
                             translated = translateText
                     }, 10)
+
+                    // State change of `translated` triggers markParsing again,
+                    // causing redundant translation attempts
+                    if (lastTranslated !== translateText) {
+                        return;
+                    }
                 } catch (error) {
                     console.error(error)
                 }
             }
             if(translateText){
+                if (!retranslate && DBState.db.showTranslationLoading) {
+                    lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
+                }
+
                 let doRetranslate = retranslate
                 retranslate = false
                 if(DBState.db.translatorType === 'llm' && DBState.db.translateBeforeHTMLFormatting){
