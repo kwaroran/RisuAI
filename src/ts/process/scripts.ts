@@ -116,7 +116,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 displayData: data
             })
 
-            data = d.displayData
+            data = d.displayData ?? data
             console.log('Trigger time', performance.now() - perf)
         }
     }
