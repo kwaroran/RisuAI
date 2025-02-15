@@ -1187,6 +1187,7 @@
                         <TextInput bind:value={editTrigger.index} />
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    
 
                     {:else if editTrigger.type === 'v2GetCharCount'}
                         <span>{language.source}</span>
@@ -1196,6 +1197,24 @@
                         </SelectInput>
                         <TextInput bind:value={editTrigger.source} />
                         <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    
+                    {:else if editTrigger.type === 'v2ImgGen'}
+                        <span>{language.prompt}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+
+                        <span>{language.negPrompt}</span>
+                        <SelectInput bind:value={editTrigger.negValueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.negValue} />
+
+                        <span>{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 
                     {:else if editTrigger.type === 'v2ToLowerCase'}
