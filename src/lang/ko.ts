@@ -966,4 +966,5 @@ export const languageKorean = {
         "emptySelectedFirstMessageLabel": "경고: 선택된 첫 메시지가 비어있습니다"
     },
     "bulkEnabling": "한번에 로어북 활성화 버튼",
+    "showTranslationLoading": "번역 로딩 보이기",
 }

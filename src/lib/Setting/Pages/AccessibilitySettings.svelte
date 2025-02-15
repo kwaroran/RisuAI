@@ -59,3 +59,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={DBState.db.bulkEnabling} name={language.bulkEnabling}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.showTranslationLoading} name={language.showTranslationLoading}/>
+</div>

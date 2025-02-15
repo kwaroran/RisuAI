@@ -1044,4 +1044,5 @@ export const languageEnglish = {
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
     },
     bulkEnabling: "Lorebook Bulk Enabling",
+    showTranslationLoading: "Show Translation Loading",
 }
