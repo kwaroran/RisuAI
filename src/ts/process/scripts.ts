@@ -109,15 +109,20 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     if(mode === 'editdisplay'){
         const currentChar = getCurrentCharacter()
         if(currentChar.type !== 'group'){
-            const perf = performance.now()
-            const d = await runTrigger(currentChar, 'display', {
-                chat: getCurrentChat(),
-                displayMode: true,
-                displayData: data
-            })
-
-            data = d.displayData ?? data
-            console.log('Trigger time', performance.now() - perf)
+            try{
+                const perf = performance.now()
+                const d = await runTrigger(currentChar, 'display', {
+                    chat: getCurrentChat(),
+                    displayMode: true,
+                    displayData: data
+                })
+    
+                data = d.displayData ?? data
+                console.log('Trigger time', performance.now() - perf)
+            }
+            catch(e){
+                console.error(e)
+            }
         }
     }
 
