@@ -1304,7 +1304,36 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2ExtractRegex'}
+                        <span>{language.input}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                        <span>Regex: IN</span>
+                        <SelectInput bind:value={editTrigger.regexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.regex} />
 
+                        <span>Regex: OUT</span>
+                        <SelectInput bind:value={editTrigger.resultType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.result} />
+
+                        <span>Regex: FLAG</span>
+                        <SelectInput bind:value={editTrigger.flagsType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.flags} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else if editTrigger.type === 'v2MakeArrayVar'}
                         <span class="block text-textcolor">{language.var}</span>
                         <TextInput bind:value={editTrigger.var} />
