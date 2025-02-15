@@ -154,9 +154,17 @@
                         }
                     }
 
+                    const lastTranslated = translated
+
                     setTimeout(() => {
                             translated = translateText
                     }, 10)
+
+                    // State change of `translated` triggers markParsing again,
+                    // causing redundant translation attempts
+                    if (lastTranslated !== translateText) {
+                        return;
+                    }
                 } catch (error) {
                     console.error(error)
                 }
