@@ -951,4 +951,5 @@ export const languageKorean = {
         "nextSummarizationLoadingError": "다음 요약 대상을 불러오는 동안 오류 발생: {0}",
         "emptySelectedFirstMessageLabel": "경고: 선택된 첫 메시지가 비어있습니다"
     },
+    "bulkEnabling": "한번에 로어북 활성화 버튼",
 }

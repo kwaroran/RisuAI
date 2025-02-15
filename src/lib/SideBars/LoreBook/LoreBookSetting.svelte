@@ -133,25 +133,27 @@
     }} class="hover:text-textcolor ml-2  cursor-pointer">
         <FolderUpIcon />
     </button>
-    <button onclick={() => {
-        toggleCharacterLoreAlwaysActive()
-    }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
-        {#if isAllCharacterLoreAlwaysActive()}
-            <SunIcon />
-        {:else}
-            <LinkIcon />
-        {/if}
-        <span class="text-xs">CHAR</span>
-    </button>
-    <button onclick={() => {
-        toggleChatLoreAlwaysActive()
-    }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
-        {#if isAllChatLoreAlwaysActive()}
-            <SunIcon />
-        {:else}
-            <LinkIcon />
-        {/if}
-        <span class="text-xs">CHAT</span>
-    </button>
+    {#if DBState.db.bulkEnabling}
+        <button onclick={() => {
+            toggleCharacterLoreAlwaysActive()
+        }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
+            {#if isAllCharacterLoreAlwaysActive()}
+                <SunIcon />
+            {:else}
+                <LinkIcon />
+            {/if}
+            <span class="text-xs">CHAR</span>
+        </button>
+        <button onclick={() => {
+            toggleChatLoreAlwaysActive()
+        }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
+            {#if isAllChatLoreAlwaysActive()}
+                <SunIcon />
+            {:else}
+                <LinkIcon />
+            {/if}
+            <span class="text-xs">CHAT</span>
+        </button>
+    {/if}
 </div>
 {/if}

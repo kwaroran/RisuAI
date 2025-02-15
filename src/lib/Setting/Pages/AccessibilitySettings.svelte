@@ -55,3 +55,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={DBState.db.inlayErrorResponse} name={language.inlayErrorResponse}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.bulkEnabling} name={language.bulkEnabling}/>
+</div>
