@@ -282,7 +282,8 @@
                     value: '',
                     valueType: 'value',
                     outputVar: '',
-                    indent: 0
+                    indent: 0,
+                    model: 'model'
                 }
                 break;
             case 'v2ShowAlert':
@@ -988,6 +989,13 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.value} />
+
+                        <span>{language.model}</span>
+                        <SelectInput bind:value={editTrigger.model}>
+                            <OptionInput value="model">{language.model}</OptionInput>
+                            <OptionInput value="submodel">{language.submodel}</OptionInput>
+                        </SelectInput>
+
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 

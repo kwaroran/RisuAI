@@ -304,6 +304,7 @@ export type triggerV2RunLLM = {
     type: 'v2RunLLM',
     value: string,
     valueType: 'var'|'value',
+    model: 'model'|'submodel',
     outputVar: string,
     indent: number
 }
@@ -1340,7 +1341,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         bias: {},
                         useStreaming: false,
                         noMultiGen: true,
-                    }, 'model')
+                    }, effect.model)
 
                     if(result.type === 'fail' || result.type === 'streaming' || result.type === 'multiline'){
                         setVar(varName, 'null')
