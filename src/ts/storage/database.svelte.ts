@@ -901,6 +901,7 @@ export interface Database{
     inlayErrorResponse:boolean
     reasoningEffort:number
     bulkEnabling:boolean
+    showDeprecatedTriggerV1:boolean
 }
 
 interface SeparateParameters{

@@ -1044,4 +1044,6 @@ export const languageEnglish = {
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
     },
     bulkEnabling: "Lorebook Bulk Enabling",
+    showDeprecatedTriggerV1: "Show Deprecated Trigger V1",
+    triggerV1Warning: "Trigger V1 is deprecated. it might be removed in the future.",
 }

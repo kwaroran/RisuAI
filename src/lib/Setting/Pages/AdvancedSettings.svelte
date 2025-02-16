@@ -214,6 +214,9 @@
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.usePlainFetch} name={language.forcePlainFetch}> <Help key="forcePlainFetch" unrecommended/></Check>
     </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.showDeprecatedTriggerV1} name={language.showDeprecatedTriggerV1}> <Help key='unrecommended' unrecommended/></Check>
+    </div>
 {/if}
 
 <Arcodion styled name={language.banCharacterset}>
