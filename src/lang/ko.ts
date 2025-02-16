@@ -972,6 +972,7 @@ export const languageKorean = {
         "emptySelectedFirstMessageLabel": "경고: 선택된 첫 메시지가 비어있습니다"
     },
     "bulkEnabling": "한번에 로어북 활성화 버튼",
+    "showTranslationLoading": "번역 로딩 보이기",
     "showDeprecatedTriggerV1": "비권장 트리거 V1 보이기",
     "triggerV1Warning": "트리거 V1은 비권장입니다. 추후에 제거될 수 있습니다.",
     "copy": "복사",
