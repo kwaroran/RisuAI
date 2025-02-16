@@ -375,6 +375,12 @@ export const languageEnglish = {
         v2SetRequestStateRoleDesc: "Set Request Data Role at {{index}} to {{value}}",
         v2GetRequestStateLength: "Get Request Data Length",
         v2GetRequestStateLengthDesc: "Get Request Data Length => {{outputVar}}",
+        v2IfAdvanced: "If (Advanced)",
+        v2IfAdvancedDesc: "If {{source}} {{condition}} {{target}}",
+        v2QuickSearchChat: "Quick Search Chat",
+        v2QuickSearchChatDesc: "Search {{value}} {{condition}} at depth {{depth}} => {{outputVar}}",
+        v2StopPromptSending: "Stop Prompt Sending",
+        v2StopPromptSendingDesc: "Stop Prompt Sending",
     },
 
     confirm: "Confirm",
@@ -1045,4 +1051,9 @@ export const languageEnglish = {
     },
     bulkEnabling: "Lorebook Bulk Enabling",
     showTranslationLoading: "Show Translation Loading",
+    showDeprecatedTriggerV1: "Show Deprecated Trigger V1",
+    triggerV1Warning: "Trigger V1 is deprecated. it might be removed in the future.",
+    copy: "Copy",
+    paste: "Paste",
+    depth: "Depth",
 }

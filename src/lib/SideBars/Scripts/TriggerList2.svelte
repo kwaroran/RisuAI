@@ -4,11 +4,10 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-  import Portal from "src/lib/UI/GUI/Portal.svelte";
+    import Portal from "src/lib/UI/GUI/Portal.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList } from "src/ts/process/triggers";
-    import { sleep } from "src/ts/util";
+    import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
 
     interface Props {
@@ -29,15 +28,13 @@
         //Control
         'v2SetVar',
         'v2If',
+        'v2IfAdvanced',
         'v2LoopNTimes',
         'v2Loop',
         'v2BreakLoop',
         'v2RunTrigger',
         'v2ConsoleLog',
         'v2StopTrigger',
-        'v2Random',
-        'v2UpdateGUI',
-        'v2Wait',
 
         //Chat
         'v2CutChat',
@@ -51,6 +48,7 @@
         'v2GetMessageAtIndex',
         'v2GetMessageCount',
         'v2GetFirstMessage',
+        'v2QuickSearchChat',
 
         //Low Level
         'v2SendAIprompt',
@@ -96,7 +94,13 @@
         'v2SpliceArrayVar',
         'v2SliceArrayVar',
         'v2GetIndexOfValueInArrayVar',
-        'v2RemoveIndexFromArrayVar'
+        'v2RemoveIndexFromArrayVar',
+
+        //Others
+        'v2Random',
+        'v2UpdateGUI',
+        'v2Wait',
+        "v2StopPromptSending",
     ]
 
 
@@ -125,7 +129,19 @@
     let menuMode = $state(0)
     let editTrigger:triggerEffectV2 = $state(null as triggerEffectV2)
     let addElse = $state(false)
-    
+    let selectMode = $state(0) //0 = trigger 1 = effect
+    let contextMenu = $state(false)
+    let contextMenuLoc = $state({x: 0, y: 0})
+
+    type VirtualClipboard = {
+        type: 'trigger',
+        value: triggerscript[]
+    }|{
+        type: 'effect',
+        value: triggerEffect[]
+    }
+    let clipboard:VirtualClipboard = $state(null)
+
     
     $effect(() => {
         if(menuMode === 0){
@@ -173,6 +189,17 @@
                     targetType: 'value',
                     target: '',
                     source: ''
+                }
+                break;
+            case 'v2IfAdvanced':
+                editTrigger = {
+                    type: 'v2IfAdvanced',
+                    indent: 0,
+                    condition: '=',
+                    targetType: 'value',
+                    target: '',
+                    sourceType: 'value',
+                    source: '',
                 }
                 break;
             case 'v2Else':
@@ -733,13 +760,33 @@
                 }
                 break;
             }
+            case 'v2StopPromptSending':{
+                editTrigger = {
+                    type: 'v2StopPromptSending',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2QuickSearchChat':{
+                editTrigger = {
+                    type: 'v2QuickSearchChat',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0,
+                    condition: 'loose',
+                    depth: '3',
+                    depthType: 'value',
+                    outputVar: ''
+                }
+                break;
+            }
         }
     }
 
     const deleteEffect = () => {
         const type = value[selectedIndex].effect[selectedEffectIndex]
         value[selectedIndex].effect.splice(selectedEffectIndex, 1)
-        if(type.type === 'v2If' || type.type === 'v2Loop' || type.type === 'v2Else' || type.type === 'v2LoopNTimes'){
+        if(type.type === 'v2If' || type.type === 'v2IfAdvanced' || type.type === 'v2Loop' || type.type === 'v2Else' || type.type === 'v2LoopNTimes'){
             let pointer = selectedEffectIndex
             let indent = (type as triggerEffectV2).indent
             while(pointer < value[selectedIndex].effect.length){
@@ -763,52 +810,164 @@
         if(selectedEffectIndex < 0){
             selectedEffectIndex = 0
         }
-}
+    }
+
+    const copyEffect = () => {
+        const type = value[selectedIndex].effect[selectedEffectIndex]
+        if(type.type === 'v2If' || type.type === 'v2IfAdvanced' || type.type === 'v2Loop' || type.type === 'v2Else' || type.type === 'v2LoopNTimes'){
+            return
+        }
+        clipboard = {
+            type: 'effect',
+            value: safeStructuredClone([type])
+        }
+    }
+
+    const pasteEffect = async () => {
+        if(clipboard?.type !== 'effect'){
+            return
+        }
+
+        for(const effect of clipboard.value){
+            value[selectedIndex].effect.splice(selectedEffectIndex, 0, effect)
+            selectedEffectIndex += 1
+        }
+    }
+
+    const copyTrigger = () => {
+        clipboard = {
+            type: 'trigger',
+            value: safeStructuredClone([value[selectedIndex]])
+        }
+    }
+
+    const pasteTrigger = async () => {
+        if(clipboard?.type !== 'trigger'){
+            return
+        }
+
+        for(const trigger of clipboard.value){
+            value.splice(selectedIndex, 0, trigger)
+            selectedIndex += 1
+        }
+    }
+
+    const deleteTrigger = () => {
+        if(value.length <= 2){
+            return
+        }
+        value.splice(selectedIndex, 1)
+        selectedIndex -= 1
+        if(selectedIndex < 1){
+            selectedIndex = 1
+        }
+    }
 
     const handleKeydown = (e:KeyboardEvent) => {
         console.log(e.key)
         if(e.key === 'Escape'){
-            close();
+            if(menuMode === 0){
+                close()
+            }
+            else{
+                menuMode = 0
+            }
         }
-        if(selectedIndex > 0 && selectedEffectIndex !== -1 && menuMode === 0){
+        if(selectedIndex > 0 && selectedEffectIndex !== -1 && menuMode === 0 && selectMode === 1){
             if(e.key === 'ArrowUp'){
                 if(selectedEffectIndex > 0){
                     selectedEffectIndex -= 1
+
+                    if(e.altKey){
+                        const before = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
+                        const after = value[selectedIndex].effect[selectedEffectIndex + 1] as triggerEffectV2
+                        if(
+                            before.type !== 'v2EndIndent' && after.type !== 'v2EndIndent'
+                            && before.type !== 'v2If' && after.type !== 'v2If'
+                            && before.type !== 'v2IfAdvanced' && after.type !== 'v2IfAdvanced'
+                            && before.type !== 'v2Loop' && after.type !== 'v2Loop'
+                            && before.type !== 'v2LoopNTimes' && after.type !== 'v2LoopNTimes'
+                            && before.indent === after.indent
+                        ){
+                            value[selectedIndex].effect[selectedEffectIndex] = after
+                            value[selectedIndex].effect[selectedEffectIndex + 1] = before
+                        }
+                    }
                 }
                 e.preventDefault()
             }
             if(e.key === 'ArrowDown'){
                 if(selectedEffectIndex < value[selectedIndex].effect.length - 1){
                     selectedEffectIndex += 1
+
+                    if(e.altKey){
+                        const before = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
+                        const after = value[selectedIndex].effect[selectedEffectIndex - 1] as triggerEffectV2
+                        if(
+                            before.type !== 'v2EndIndent' && after.type !== 'v2EndIndent'
+                            && before.type !== 'v2If' && after.type !== 'v2If'
+                            && before.type !== 'v2IfAdvanced' && after.type !== 'v2IfAdvanced'
+                            && before.type !== 'v2Loop' && after.type !== 'v2Loop'
+                            && before.type !== 'v2LoopNTimes' && after.type !== 'v2LoopNTimes'
+                            && before.indent === after.indent
+                        ){
+                            value[selectedIndex].effect[selectedEffectIndex] = after
+                            value[selectedIndex].effect[selectedEffectIndex - 1] = before
+                        }
+                    }
                 }
                 e.preventDefault()
             }
             if(e.key === 'c' && e.ctrlKey){
-                const type = value[selectedIndex].effect[selectedEffectIndex]
-                if(type.type === 'v2If' || type.type === 'v2Loop' || type.type === 'v2Else' || type.type === 'v2LoopNTimes'){
-                    return
-                }
-
-                //copy
-                navigator.clipboard.writeText(JSON.stringify(value[selectedIndex].effect[selectedEffectIndex]))
+                copyEffect()
                 e.preventDefault()
             }
             if(e.key === 'v' && e.ctrlKey){
                 //paste
-                navigator.clipboard.readText().then((text) => {
-                    try {
-                        value[selectedIndex].effect.splice(selectedEffectIndex, 0, JSON.parse(text))
-
-                    } catch (error) {
-                        console.error(error)
-                    }
-                })
+                pasteEffect()
                 e.preventDefault()
             }
             if(e.key === 'Delete'){
                 deleteEffect()
                 e.preventDefault()
             }
+        }
+        if(selectedIndex > 0 && menuMode === 0 && selectMode === 0){
+            if(e.key === 'ArrowUp'){
+                if(selectedIndex > 1){
+                    selectedIndex -= 1
+
+                    if(e.altKey){
+                        const before = value[selectedIndex]
+                        const after = value[selectedIndex + 1]
+                        value[selectedIndex] = after
+                        value[selectedIndex + 1] = before
+                    }
+                }
+                e.preventDefault()
+            }
+            if(e.key === 'ArrowDown'){
+                if(selectedIndex < value.length - 1){
+                    selectedIndex += 1
+
+                    if(e.altKey){
+                        const before = value[selectedIndex]
+                        const after = value[selectedIndex - 1]
+                        value[selectedIndex] = after
+                        value[selectedIndex - 1] = before
+                    }
+                }
+                e.preventDefault()
+            }
+            if(e.key === 'c' && e.ctrlKey){
+                copyTrigger()
+                e.preventDefault()
+            }
+            if(e.key === 'v' && e.ctrlKey){
+                pasteTrigger()
+                e.preventDefault()
+            }
+            //Delete is forrbidden due to the fact that misclicks can cause huge data loss
         }
     }
 
@@ -862,16 +1021,65 @@
 </div>
 
 
-<svelte:body onclick={(e) => {
-    close()
-}} />
+
 
 {#if selectedIndex > 0}
 <Portal>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="text-textcolor absolute top-0 bottom-0 bg-black bg-opacity-50 max-w-full w-full h-full z-40 flex justify-center items-center">
-        <div class="max-w-full p-2 border border-darkborderc bg-bgcolor flex max-h-full flex-col-reverse md:flex-row overflow-y-auto md:overflow-y-visible" onclick={e => e.stopPropagation()} class:w-7xl={menuMode === 0} class:w-3xl={menuMode !== 0} class:h-full={menuMode!==2}>
+    <div class="text-textcolor absolute top-0 bottom-0 bg-black bg-opacity-50 max-w-full w-full h-full z-40 flex justify-center items-center" onclick={(e) => {
+        e.stopPropagation()
+        contextMenu = false
+    }}>
+        {#if contextMenu}
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style:top={`${contextMenuLoc.y}px`} style:left={`${contextMenuLoc.x}px`}>
+                {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                        menuMode = 3
+                    }}>
+                        {language.edit}
+                    </button>
+                {/if}
+
+                {#if (selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent') || selectMode === 0}
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                        if(selectMode === 1){
+                            copyEffect()
+                        }
+                        else{
+                            copyTrigger()
+                        }
+                    }}>
+                        {language.copy}
+                    </button>
+                {/if}
+
+                <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                    if(selectMode === 1){
+                        pasteEffect()
+                    }
+                    else{
+                        pasteTrigger()
+                    }
+                }}>
+                    {language.paste}
+                </button>
+
+                {#if (selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent') || selectMode === 0}
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                        if(selectMode === 1){
+                            deleteEffect()
+                        }
+                        else{
+                            deleteTrigger()
+                        }
+                    }}>
+                        {language.remove}
+                    </button>
+                {/if}
+            </div>
+        {/if}
+        <div class="max-w-full p-2 border border-darkborderc bg-bgcolor flex max-h-full flex-col-reverse md:flex-row overflow-y-auto md:overflow-y-visible" class:w-7xl={menuMode === 0} class:w-3xl={menuMode !== 0} class:h-full={menuMode!==2}>
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
                     <div class="flex-1 flex flex-col overflow-y-auto">
@@ -882,7 +1090,17 @@
                                 <button
                                     class="p-2 text-start text-textcolor2 hover:text-textcolor"
                                     class:bg-darkbg={selectedIndex === i}
-                                    onclick={() => selectedIndex = i}
+                                    onclick={() => {
+                                        selectMode = 0
+                                        selectedIndex = i
+                                    }}
+                                    oncontextmenu={(e) => {
+                                        contextMenu = true
+                                        selectMode = 0
+                                        contextMenuLoc = {x: e.clientX, y: e.clientY}
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                    }}
                                 >
                                     {trigger.comment || 'Unnamed Trigger'}
                                 </button>
@@ -906,7 +1124,10 @@
                 </div>
 
                 <div class="md:flex-1 bg-darkbg flex-col flex h-svh min-h-svh md:h-auto md:min-h-0">
-                    <div class="pb-2 grid grid-cols-2">
+                    <div class="pb-2 grid grid-cols-2" onclick={() => {
+                        selectMode = 1
+                        selectedEffectIndex = -1
+                    }}>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.name}</span>
                             <TextInput value={value[selectedIndex].comment} onchange={(e) => {
@@ -938,38 +1159,34 @@
                     </div>
                     <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto">
                         {#each value[selectedIndex].effect as effect, i}
-                            {#if effect.type === 'v2EndIndent'}
-                                <button class="p-2 w-full text-start hover:bg-selected" onclick={() => {
+                            <button class="p-2 w-full text-start text-purple-500"
+                                class:hover:bg-selected={selectedEffectIndex !== i}
+                                class:bg-selected={selectedEffectIndex === i}
+                                onclick={() => {
                                     if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
                                         menuMode = 1
                                     }
+
+                                    selectMode = 1
                                     lastClickTime = Date.now()
                                     selectedEffectIndex = i
-                                }}>
-                                    <span style:margin-left={`${effect.indent}rem`}>...</span>
-                                </button>
-                            {:else}
-                                <button class="p-2 w-full text-start text-purple-500"
-                                    class:hover:bg-selected={selectedEffectIndex !== i}
-                                    class:bg-selected={selectedEffectIndex === i}
-                                    onclick={() => {
-                                        if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
-                                            menuMode = 1
-                                        }
-
-                                        lastClickTime = Date.now()
-                                        selectedEffectIndex = i
-                                    }}
-                                    oncontextmenu ={(e) => {
-                                        selectedEffectIndex = i
-                                        editTrigger = effect as triggerEffectV2
-                                        menuMode = 3
-                                        e.preventDefault()
-                                    }}
-                                >
+                                }}
+                                oncontextmenu ={(e) => {
+                                    selectMode = 1
+                                    contextMenu = true
+                                    selectedEffectIndex = i
+                                    editTrigger = effect as triggerEffectV2
+                                    contextMenuLoc = {x: e.clientX, y: e.clientY}
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                }}
+                            >
+                                {#if effect.type === 'v2EndIndent'}
+                                    <span class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</span>
+                                {:else}
                                     {@html formatEffectDisplay(effect)}
-                                </button>
-                            {/if}
+                                {/if}
+                            </button>
                         {/each}
                         <button class="p-2 w-full text-start hover:bg-selected" onclick={() => {
                             //add effect
@@ -978,6 +1195,13 @@
                                 menuMode = 1
                             }
                             lastClickTime = Date.now()
+                        }} oncontextmenu={(e) => {
+                            selectMode = 1
+                            selectedEffectIndex = -1
+                            contextMenu = true
+                            contextMenuLoc = {x: e.clientX, y: e.clientY}
+                            e.preventDefault()
+                            e.stopPropagation()
                         }}>
                             ...
                         </button>
@@ -1019,27 +1243,56 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.value} />
-                    {:else if editTrigger.type === 'v2If'}
+                    {:else if editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced'}
                         
                         <span class="block text-textcolor">{language.varName}</span>
+                        {#if editTrigger.type === 'v2IfAdvanced'}
+                            <SelectInput bind:value={editTrigger.sourceType}>
+                                <OptionInput value="value">{language.value}</OptionInput>
+                                <OptionInput value="var">{language.var}</OptionInput>
+                            </SelectInput>
+                        {/if}
                         <TextInput bind:value={editTrigger.source} />
 
                         <span class="block text text-textcolor">{language.condition}</span>
-                        <SelectInput bind:value={editTrigger.condition}>
+                        <SelectInput bind:value={editTrigger.condition} onchange={(e) => {
+                            if(e.currentTarget.value === '≡'){
+                                const trg = editTrigger as triggerV2IfAdvanced
+                                trg.condition = '≡'
+                                trg.target = 'true'
+                                trg.targetType = 'value'
+                            }
+                        }}>
                             <OptionInput value="="> = </OptionInput>
                             <OptionInput value="!="> ≠ </OptionInput>
                             <OptionInput value=">"> {">"} </OptionInput>
                             <OptionInput value="<"> {"<"} </OptionInput>
                             <OptionInput value=">="> {"≥"} </OptionInput>
                             <OptionInput value="<="> {"≤"} </OptionInput>
+                            {#if editTrigger.type === 'v2IfAdvanced'}
+                                <OptionInput value="≒"> ≒ </OptionInput>
+                                <OptionInput value="∋"> ∋ </OptionInput>
+                                <OptionInput value="∈"> ∈ </OptionInput>
+                                <OptionInput value="∌"> ∌ </OptionInput>
+                                <OptionInput value="∉"> ∉ </OptionInput>
+                                <OptionInput value="≡"> ≡ </OptionInput>
+                            {/if}
                         </SelectInput>
 
                         <span class="block text-textcolor">{language.value}</span>
-                        <SelectInput bind:value={editTrigger.targetType}>
-                            <OptionInput value="value">{language.value}</OptionInput>
-                            <OptionInput value="var">{language.var}</OptionInput>
-                        </SelectInput>
-                        <TextInput bind:value={editTrigger.target} />
+                        {#if editTrigger.condition === '≡'}
+                            <SelectInput bind:value={editTrigger.target}>
+                                <OptionInput value="true">true</OptionInput>
+                                <OptionInput value="false">false</OptionInput>
+                                <OptionInput value="null">null</OptionInput>
+                            </SelectInput>
+                        {:else}
+                            <SelectInput bind:value={editTrigger.targetType}>
+                                <OptionInput value="value">{language.value}</OptionInput>
+                                <OptionInput value="var">{language.var}</OptionInput>
+                            </SelectInput>
+                            <TextInput bind:value={editTrigger.target} />
+                        {/if}
 
                         <CheckInput bind:check={addElse} name={language.addElse} className="mt-4"/>
                     {:else if editTrigger.type === 'v2RunTrigger'}
@@ -1633,6 +1886,31 @@
                     {:else if editTrigger.type === 'v2GetRequestStateLength'}
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2QuickSearchChat'}
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+
+                        <span class="block text-textcolor">{language.condition}</span>
+                        <SelectInput bind:value={editTrigger.condition}>
+                            <OptionInput value="loose">loose</OptionInput>
+                            <OptionInput value="strict">strict</OptionInput>
+                            <OptionInput value="regex">regex</OptionInput>
+                        </SelectInput>
+
+                        <span class="block text-textcolor">{language.depth}</span>
+                        <SelectInput bind:value={editTrigger.depthType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.depth} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}
@@ -1641,7 +1919,7 @@
                         if(selectedEffectIndex === -1){
                             value[selectedIndex].effect.push(editTrigger)
 
-                            if(editTrigger.type === 'v2If' || editTrigger.type === 'v2Loop' || editTrigger.type === 'v2Else' || editTrigger.type === 'v2LoopNTimes'){
+                            if(editTrigger.type === 'v2If'  || editTrigger.type === 'v2IfAdvanced' || editTrigger.type === 'v2Loop' || editTrigger.type === 'v2Else' || editTrigger.type === 'v2LoopNTimes'){
                                 value[selectedIndex].effect.push({
                                     type: 'v2EndIndent',
                                     indent: editTrigger.indent + 1,
@@ -1662,7 +1940,7 @@
                         }
                         else if(menuMode === 2){
                             editTrigger.indent = (value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2).indent
-                            if(editTrigger.type === 'v2If' || editTrigger.type === 'v2Loop' || editTrigger.type === 'v2LoopNTimes' || editTrigger.type === 'v2Else'){
+                            if(editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced' || editTrigger.type === 'v2Loop' || editTrigger.type === 'v2LoopNTimes' || editTrigger.type === 'v2Else'){
                                 if(addElse){
                                     value[selectedIndex].effect.splice(selectedEffectIndex, 0, {
                                         type: 'v2Else',

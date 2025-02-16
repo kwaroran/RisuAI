@@ -38,7 +38,8 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
                                 triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2Wait|
-                                triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength
+                                triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -173,7 +174,7 @@ export type triggerV2Header = {
 
 export type triggerV2IfVar = {
     type: 'v2If',
-    condition: '='|'!='|'>'|'<'|'>='|'<='|'null'|'true'|'false',
+    condition: '='|'!='|'>'|'<'|'>='|'<=',
     targetType: 'var'|'value',
     target: string,
     source: string,
@@ -678,9 +679,36 @@ export type triggerV2Wait = {
     indent: number
 }
 
+export type triggerV2IfAdvanced = {
+    type: 'v2IfAdvanced',
+    condition: '='|'!='|'>'|'<'|'>='|'<='|'≒'|'∋'|'∈'|'∌'|'∉'|'≡'
+    targetType: 'var'|'value',
+    target: string,
+    sourceType: 'var'|'value',
+    source: string,
+    indent: number
+}
+
+export type triggerV2QuickSearchChat = {
+    type: 'v2QuickSearchChat',
+    value: string,
+    valueType: 'var'|'value',
+    condition: 'loose'|'strict'|'regex',
+    depth: string,
+    depthType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2StopPromptSending = {
+    type: 'v2StopPromptSending',
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
+    'v2IfAdvanced',
     'v2Else',
     'v2EndIndent',
     'v2LoopNTimes',
@@ -1169,8 +1197,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(varKey, resultValue)
                     break
                 }
-                case 'v2If':{
-                    const sourceValue = getVar(risuChatParser(effect.source,{chara:char}))
+                case 'v2If':
+                case 'v2IfAdvanced':{
+                    const sourceValue = (effect.type === 'v2If' || effect.sourceType === 'var') ? getVar(risuChatParser(effect.source,{chara:char})) : risuChatParser(effect.source,{chara:char})
                     const targetValue = effect.targetType === 'value' ? risuChatParser(effect.target,{chara:char}) : getVar(risuChatParser(effect.target,{chara:char}))
                     let pass = false
                     switch(effect.condition){
@@ -1207,6 +1236,60 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         case '<=':{
                             pass = Number(sourceValue) <= Number(targetValue)
                             break
+                        }
+                        case '∈':{
+                            try {
+                                pass = JSON.parse(targetValue).includes(sourceValue)
+                            } catch (error) {
+                                pass = false
+                            }
+                            break
+                        }
+                        case '∋':{
+                            try {
+                                pass = JSON.parse(sourceValue).includes(targetValue)
+                            } catch (error) {
+                                pass = false
+                            }
+                            break
+                        }
+                        case '∉':{
+                            try {
+                                pass = !JSON.parse(targetValue).includes(sourceValue)
+                            } catch (error) {
+                                pass = true
+                            }
+                            break
+                        }
+                        case '∌':{
+                            try {
+                                pass = !JSON.parse(sourceValue).includes(targetValue)
+                            } catch (error) {
+                                pass = true
+                            }
+                            break
+                        }
+                        case '≒':{
+                            const num1 = Number(sourceValue)
+                            const num2 = Number(targetValue)
+                            if(Number.isNaN(num1) || Number.isNaN(num2)){
+                                pass = sourceValue.toLocaleLowerCase().replace(/ /g,'') === targetValue.toLocaleLowerCase().replace(/ /g,'')
+                            }
+                            else{
+                                pass = Math.abs(num1 - num2) < 0.0001
+                            }
+                            break
+                        }
+                        case '≡':{
+                            if(targetValue === 'true'){
+                                pass = sourceValue === 'true' || sourceValue === '1'
+                            }
+                            else if(targetValue === 'false'){
+                                pass = !(sourceValue === 'true' || sourceValue === '1')
+                            }
+                            else{
+                                pass = sourceValue === targetValue
+                            }
                         }
                     }
 
@@ -1812,6 +1895,29 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     }
                     const json = JSON.parse(arg.displayData) as OpenAIChat[]
                     setVar(effect.outputVar, json.length.toString())
+                    break
+                }
+                case 'v2QuickSearchChat':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    const depth = effect.depthType === 'value' ? Number(risuChatParser(effect.depth,{chara:char})) : Number(getVar(risuChatParser(effect.depth,{chara:char})))
+                    const condition = effect.condition
+
+                    if(isNaN(depth)){
+                        setVar(effect.outputVar, '0')
+                        break
+                    }
+                    let pass = false
+                    let da =  chat.message.slice(0-depth).map((v)=>v.data).join(' ')
+                    if(condition === 'strict'){
+                        pass = da.split(' ').includes(value)
+                    }
+                    else if(condition === 'loose'){
+                        pass = da.toLowerCase().includes(value.toLowerCase())
+                    }
+                    else if(condition === 'regex'){
+                        pass = new RegExp(value).test(da)
+                    }
+                    setVar(effect.outputVar, pass ? '1' : '0')
                     break
                 }
             }

@@ -13,6 +13,7 @@
     import { hubURL } from "src/ts/characterCards";
     import { PlusIcon } from "lucide-svelte";
     import TriggerV2List from "./TriggerList2.svelte";
+    import { DBState } from "src/ts/stores.svelte";
     interface Props {
         value?: triggerscript[];
         lowLevelAble?: boolean;
@@ -22,6 +23,7 @@
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
+    let v1Enabled = $derived(value?.[0]?.effect?.[0]?.type !== 'triggercode' && value?.[0]?.effect?.[0]?.type !== 'triggerlua' && value?.[0]?.effect?.[0]?.type !== 'v2Header')
     let opened = 0
     const createStb = () => {
         if (!ele) {
@@ -77,17 +79,14 @@
 </script>
 
 <div class="flex items-start mt-2 gap-2">
-    {#if value?.[0]?.effect?.[0]?.type !== 'triggercode' && value?.[0]?.effect?.[0]?.type !== 'triggerlua' && value?.[0]?.effect?.[0]?.type !== 'v2Header' }
-        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={true} onclick={(async (e) => {
+    {#if v1Enabled || DBState.db.showDeprecatedTriggerV1 }
+        <button class="bg-bgcolor py-1 rounded-md text-sm px-2" class:ring-1={v1Enabled} onclick={(async (e) => {
             e.stopPropagation()
             const codeType = value?.[0]?.effect?.[0]?.type
             if(codeType === 'triggercode' || codeType === 'triggerlua' || codeType === 'v2Header'){
-                const codeTrigger = value?.[0]?.effect?.[0]?.code
-                if(codeTrigger){
-                    const t = await alertConfirm(language.triggerSwitchWarn)
-                    if(!t){
-                        return
-                    }
+                const t = await alertConfirm(language.triggerSwitchWarn)
+                if(!t){
+                    return
                 }
                 value = []
             }
@@ -141,6 +140,9 @@
         }
     })}>Lua</button>
 </div>
+{#if v1Enabled}
+    <span class="text-draculared">{language.triggerV1Warning}</span>
+{/if}
 {#if value?.[0]?.effect?.[0]?.type === 'triggerlua'}
     <TextAreaInput margin="both" autocomplete="off" bind:value={value[0].effect[0].code}></TextAreaInput>
     <Button onclick={() => {
