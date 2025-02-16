@@ -303,7 +303,6 @@ async function replaceAsync(string, regexp, replacerFunction) {
 }
 
 async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string, ext?: string}}) {
-    name = name.toLocaleLowerCase()
     for (const asset of assetArr) {
         if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
         const assetPath = await getFileSrc(asset[1])
@@ -341,6 +340,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     let needsSourceAccess = false
 
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
+        name = name.toLocaleLowerCase()
         const moduleAssets = getModuleAssets()
         if (char.additionalAssets) {
             await getAssetSrc(char.additionalAssets, name, assetPaths)
