@@ -1245,7 +1245,7 @@
                         <TextInput bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced'}
                         
-                        <span class="block text-textcolor">{language.varName}</span>
+                        <span class="block text-textcolor">{editTrigger.type === 'v2If' ? language.varName : 'A'}</span>
                         {#if editTrigger.type === 'v2IfAdvanced'}
                             <SelectInput bind:value={editTrigger.sourceType}>
                                 <OptionInput value="value">{language.value}</OptionInput>
@@ -1279,7 +1279,7 @@
                             {/if}
                         </SelectInput>
 
-                        <span class="block text-textcolor">{language.value}</span>
+                        <span class="block text-textcolor">{editTrigger.type === 'v2If' ? language.value : 'B'}</span>
                         {#if editTrigger.condition === '≡'}
                             <SelectInput bind:value={editTrigger.target}>
                                 <OptionInput value="true">true</OptionInput>
