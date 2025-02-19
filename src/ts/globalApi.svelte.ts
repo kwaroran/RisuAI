@@ -815,9 +815,12 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
       return { ok: false, headers: {}, data: 'You are trying local request on web version. This is not allowed due to browser security policy. Use the desktop version instead, or use a tunneling service like ngrok and set the CORS to allow all.' };
     }
 
-    // Simplify the globalFetch function: Detach built-in functions
     if (forcePlainFetch) {
       return await fetchWithPlainFetch(url, arg);
+    }
+    //userScriptFetch is provided by userscript
+    if(window.userScriptFetch){
+        return await fetchWithUSFetch(url, arg);
     }
     if (isTauri) {
       return await fetchWithTauri(url, arg);
@@ -889,6 +892,26 @@ async function fetchWithPlainFetch(url: string, arg: GlobalFetchArgs): Promise<G
     return { ok: false, data: `${error}`, headers: {} };
   }
 }
+
+/**
+ * Performs a fetch request using userscript provided fetch.
+ * 
+ * @param {string} url - The URL to fetch.
+ * @param {GlobalFetchArgs} arg - The arguments for the fetch request.
+ * @returns {Promise<GlobalFetchResult>} - The result of the fetch request.
+ */
+async function fetchWithUSFetch(url: string, arg: GlobalFetchArgs): Promise<GlobalFetchResult> {
+    try {
+      const headers = { 'Content-Type': 'application/json', ...arg.headers };
+      const response = await userScriptFetch(url, { body: JSON.stringify(arg.body), headers, method: arg.method ?? "POST", signal: arg.abortSignal });
+      const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
+      const ok = response.ok && response.status >= 200 && response.status < 300;
+      addFetchLogInGlobalFetch(data, ok, url, arg);
+      return { ok, data, headers: Object.fromEntries(response.headers) };
+    } catch (error) {
+      return { ok: false, data: `${error}`, headers: {} };
+    }
+  }
 
 /**
  * Performs a fetch request using Tauri.
@@ -1866,40 +1889,6 @@ export async function fetchNative(url:string, arg:{
         throw new Error('Body is required for POST and PUT requests')
     }
 
-    const jsonizer = (body:ReadableStream<Uint8Array>) => {
-        return async () => {
-            const text = await textifyReadableStream(body)
-            return JSON.parse(text)
-        }
-    }
-    const textizer = (body:ReadableStream<Uint8Array>) => {
-        return async () => {
-            const text = await textifyReadableStream(body)
-            return text
-        }
-    }
-    const arrayBufferizer = (body:ReadableStream<Uint8Array>) => {
-        return async () => {
-            const chunks:Uint8Array[] = []
-            const reader = body.getReader()
-            while(true){
-                const {done, value} = await reader.read()
-                if(done){
-                    break
-                }
-                chunks.push(value)
-            }
-            const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
-            const arrayBuffer = new Uint8Array(totalLength)
-            let offset = 0
-            for(const chunk of chunks){
-                arrayBuffer.set(chunk, offset)
-                offset += chunk.length
-            }
-            return arrayBuffer.buffer
-        }
-    }
-
     arg.method = arg.method ?? 'POST'
 
     let headers = arg.headers ?? {}
@@ -1932,7 +1921,15 @@ export async function fetchNative(url:string, arg:{
         resType: 'stream',
         chatId: arg.chatId,
     })
-    if(isTauri){
+    if(window.userScriptFetch){
+        return await window.userScriptFetch(url,{
+            body: realBody,
+            headers: headers,
+            method: arg.method,
+            signal: arg.signal
+        })
+    }
+    else if(isTauri){
         fetchIndex++
         if(arg.signal && arg.signal.aborted){
             throw new Error('aborted')
