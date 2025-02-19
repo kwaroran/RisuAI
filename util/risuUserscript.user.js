@@ -8,4 +8,4 @@
 // @connect     *
 // ==/UserScript==
 
-window.fetchWithUSFetch = GM_fetch
+unsafeWindow.fetchWithUSFetch = GM_fetch
