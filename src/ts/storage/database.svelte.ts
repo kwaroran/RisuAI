@@ -483,6 +483,7 @@ export function setDatabase(data:Database){
         processRegexScript: data.hypaV3Settings?.processRegexScript ?? false,
         doNotSummarizeUserMessage: data.hypaV3Settings?.doNotSummarizeUserMessage ?? false
     }
+    data.returnCSSError ??= true
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -903,6 +904,7 @@ export interface Database{
     bulkEnabling:boolean
     showTranslationLoading: boolean
     showDeprecatedTriggerV1:boolean
+    returnCSSError:boolean
 }
 
 interface SeparateParameters{

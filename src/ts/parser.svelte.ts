@@ -644,7 +644,10 @@ function decodeStyle(text:string){
             return `<style>${css.stringify(ast)}</style>`
 
         } catch (error) {
-            return `CSS ERROR: ${error}`;
+            if(DBState.db.returnCSSError){
+                return `CSS ERROR: ${error}`
+            }
+            return ""
         }
     })
 }

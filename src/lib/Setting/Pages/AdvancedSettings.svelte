@@ -196,6 +196,10 @@
     <Check bind:check={DBState.db.checkCorruption} name={language.checkCorruption}>
     </Check>
 </div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.returnCSSError} name={language.returnCSSError}>
+    </Check>
+</div>
 {#if DBState.db?.account?.useSync}
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.lightningRealmImport} name={"Lightning Realm Import"}>
