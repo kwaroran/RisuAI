@@ -484,6 +484,7 @@ export function setDatabase(data:Database){
         doNotSummarizeUserMessage: data.hypaV3Settings?.doNotSummarizeUserMessage ?? false
     }
     data.returnCSSError ??= true
+    data.useExperimentalGoogleTranslator ??= false
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -905,6 +906,7 @@ export interface Database{
     showTranslationLoading: boolean
     showDeprecatedTriggerV1:boolean
     returnCSSError:boolean
+    useExperimentalGoogleTranslator:boolean
 }
 
 interface SeparateParameters{
