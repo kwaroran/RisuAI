@@ -11,6 +11,8 @@
 // @icon        https://risuai.xyz/favicon.ico
 // @author      risuai
 // @connect     *
+// @downloadURL https://github.com/kwaroran/RisuAI/raw/refs/heads/main/util/risuUserscript.user.js
+// @updateURL https://github.com/kwaroran/RisuAI/raw/refs/heads/main/util/risuUserscript.user.js
 // ==/UserScript==
 
 unsafeWindow.userScriptFetch = GM_fetch
