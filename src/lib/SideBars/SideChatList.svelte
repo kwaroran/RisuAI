@@ -162,7 +162,8 @@
         <div class="flex flex-col" bind:this={folderEles}>
             <!-- chat folder -->
             {#each chara.chatFolders as folder, i}
-            <div data-risu-chat-folder-idx={i} class="flex flex-col mb-2 border-solid border-1 border-darkborderc cursor-pointer rounded-md">
+            <div data-risu-chat-folder-idx={i}
+                class="flex flex-col mb-2 border-solid border-1 border-darkborderc cursor-pointer rounded-md">
                 <!-- folder header -->
                 <button 
                     onclick={() => {
@@ -172,13 +173,13 @@
                         }
                     }}
                     class="flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"
-                    class:bg-red-700={folder.color === 'red'}
-                    class:bg-yellow-700={folder.color === 'yellow'}
-                    class:bg-green-700={folder.color === 'green'}
-                    class:bg-blue-700={folder.color === 'blue'}
-                    class:bg-indigo-700={folder.color === 'indigo'}
-                    class:bg-purple-700={folder.color === 'purple'}
-                    class:bg-pink-700={folder.color === 'pink'}
+                    class:bg-red-900={folder.color === 'red'}
+                    class:bg-yellow-900={folder.color === 'yellow'}
+                    class:bg-green-900={folder.color === 'green'}
+                    class:bg-blue-900={folder.color === 'blue'}
+                    class:bg-indigo-900={folder.color === 'indigo'}
+                    class:bg-purple-900={folder.color === 'purple'}
+                    class:bg-pink-900={folder.color === 'pink'}
                 >
                     {#if editMode}
                         <TextInput bind:value={chara.chatFolders[i].name} className="flex-grow min-w-0" padding={false}/>
@@ -192,7 +193,7 @@
                             }
                         }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                             e.stopPropagation()
-                            const sel = parseInt(await alertSelect(['색상']))
+                            const sel = parseInt(await alertSelect([language.changeFolderColor, language.cancel]))
                             switch (sel) {
                                 case 0:
                                     const colors = ["red","green","blue","yellow","indigo","purple","pink","default"]

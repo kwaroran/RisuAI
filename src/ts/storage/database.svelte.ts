@@ -1311,7 +1311,6 @@ export interface ChatFolder{
     id:string
     name?:string
     color?:string
-    icon?:string
     folded:boolean
 }
 
