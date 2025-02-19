@@ -32,7 +32,9 @@ export function createNewGroup(){
             note: '',
             name: 'Chat 1',
             localLore: []
-        }],        chatPage: 0,
+        }],
+        chatFolders: [],
+        chatPage: 0,
         viewScreen: 'none',
         globalLore: [],
         characters: [],
@@ -585,6 +587,7 @@ export function createBlankChar():character{
             name: 'Chat 1',
             localLore: []
         }],
+        chatFolders: [],
         chatPage: 0,
         emotionImages: [],
         bias: [],
