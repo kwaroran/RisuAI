@@ -1056,4 +1056,5 @@ export const languageEnglish = {
     copy: "Copy",
     paste: "Paste",
     depth: "Depth",
+    alwaysActiveInChat: "Always Active (Current Chat)",
 }

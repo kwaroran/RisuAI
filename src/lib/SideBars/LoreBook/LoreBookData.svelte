@@ -1,7 +1,7 @@
 <script lang="ts">
     import { XIcon, LinkIcon, SunIcon } from "lucide-svelte";
     import { language } from "../../../lang";
-    import type { loreBook } from "../../../ts/storage/database.svelte";
+    import { getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";
     import { alertConfirm } from "../../../ts/alert";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";
@@ -34,6 +34,45 @@
         return tokens
     }
     let tokens = $state(0)
+
+    function isLocallyActivated(book: loreBook){
+        return getCurrentChat()?.localLore.some(e => 
+            e.comment === book.comment &&
+            e.content === book.content &&
+            e.alwaysActive
+        )
+    }
+    function ActivateLocally(book: loreBook){
+        const chat = getCurrentChat()
+        let cloneLore = chat.localLore.find(e => 
+            e.comment === book.comment && e.content === book.content)
+        if(cloneLore){
+            cloneLore.alwaysActive = true
+        }else{
+            cloneLore = safeStructuredClone(book)
+            cloneLore.alwaysActive = true
+            cloneLore.key = ''
+            chat.localLore.push(cloneLore)
+        }
+    }
+    function DeactivateLocally(book: loreBook){
+        const chat = getCurrentChat()
+        let activatedCloneLore = chat.localLore.find(e => 
+            e.comment === book.comment &&
+            e.content === book.content &&
+            e.alwaysActive
+        )
+        if(activatedCloneLore){
+            activatedCloneLore.alwaysActive = false
+        }
+    }
+    function toggleLocalActive(check: boolean, book: loreBook){
+        if(check){
+            ActivateLocally(book)
+        }else{
+            DeactivateLocally(book)
+        }
+    }
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
@@ -117,9 +156,22 @@
             {:then e}
                 <span class="text-textcolor2 mt-2 mb-2 text-sm">{e} {language.tokens}</span>
             {/await}
-            <div class="flex items-center mt-4">
-                <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
-            </div>
+            {#if value.alwaysActive || !isLocallyActivated(value)}
+                <div class="flex items-center mt-4">
+                    <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
+                </div>
+            {/if}
+            {#if !value.alwaysActive && getCurrentChat()}
+                {#if isLocallyActivated(value)}
+                    <div class="flex items-center mt-4">
+                        <Check check={true} onChange={(check: boolean) => toggleLocalActive(check, value)} name={language.alwaysActiveInChat}/>
+                    </div>
+                {:else}
+                    <div class="flex items-center mt-2">
+                        <Check check={false} onChange={(check: boolean) => toggleLocalActive(check, value)} name={language.alwaysActiveInChat}/>
+                    </div>
+                {/if}
+            {/if}
             {#if !lorePlus && !value.useRegex}
                 <div class="flex items-center mt-2">
                     <Check bind:check={value.selective} name={language.selective}/>

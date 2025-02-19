@@ -978,4 +978,5 @@ export const languageKorean = {
     "copy": "복사",
     "paste": "붙여넣기",
     "depth": "깊이",
+    "alwaysActiveInChat": "언제나 활성화 (현재 챗)",
 }
