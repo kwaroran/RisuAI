@@ -1310,7 +1310,8 @@ export interface Chat{
 export interface ChatFolder{
     id:string
     name?:string
-    color?:number
+    color?:string
+    icon?:string
     folded:boolean
 }
 

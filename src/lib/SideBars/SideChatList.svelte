@@ -13,7 +13,7 @@
     import TextInput from "../UI/GUI/TextInput.svelte";
 
     import { exportChat, importChat } from "src/ts/characters";
-    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "src/ts/alert";
+    import { alertChatOptions, alertConfirm, alertError, alertInput, alertNormal, alertSelect, alertStore } from "src/ts/alert";
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { getChatBranches } from "src/ts/gui/branches";
@@ -164,18 +164,45 @@
             {#each chara.chatFolders as folder, i}
             <div data-risu-chat-folder-idx={i} class="flex flex-col mb-2 border-solid border-1 border-darkborderc cursor-pointer rounded-md">
                 <!-- folder header -->
-                <button onclick={() => {
-                    if(!editMode) {
-                        chara.chatFolders[i].folded = !folder.folded
-                        $ReloadGUIPointer += 1
-                    }
-                }} class="flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md">
+                <button 
+                    onclick={() => {
+                        if(!editMode) {
+                            chara.chatFolders[i].folded = !folder.folded
+                            $ReloadGUIPointer += 1
+                        }
+                    }}
+                    class="flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"
+                    class:bg-red-700={folder.color === 'red'}
+                    class:bg-yellow-700={folder.color === 'yellow'}
+                    class:bg-green-700={folder.color === 'green'}
+                    class:bg-blue-700={folder.color === 'blue'}
+                    class:bg-indigo-700={folder.color === 'indigo'}
+                    class:bg-purple-700={folder.color === 'purple'}
+                    class:bg-pink-700={folder.color === 'pink'}
+                >
                     {#if editMode}
                         <TextInput bind:value={chara.chatFolders[i].name} className="flex-grow min-w-0" padding={false}/>
                     {:else}
                         <span>{folder.name}</span>
                     {/if}
                     <div class="flex-grow flex justify-end">
+                        <div role="button" tabindex="0" onkeydown={(e) => {
+                            if(e.key === 'Enter'){
+                                e.currentTarget.click()
+                            }
+                        }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
+                            e.stopPropagation()
+                            const sel = parseInt(await alertSelect(['색상']))
+                            switch (sel) {
+                                case 0:
+                                    const colors = ["red","green","blue","yellow","indigo","purple","pink","default"]
+                                    const sel = parseInt(await alertSelect(colors))
+                                    folder.color = colors[sel]
+                                    break
+                            }
+                        }}>
+                            <MenuIcon size={18}/>
+                        </div>
                         <div role="button" tabindex="0" onkeydown={(e) => {
                             if(e.key === 'Enter'){
                                 e.currentTarget.click()
