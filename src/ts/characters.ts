@@ -404,6 +404,11 @@ export async function importChat(){
                 return
             }
 
+            if(db.characters[selectedID].chatFolders
+                .filter(folder => folder.id === newChat.folderId).length === 0) {
+                newChat.folderId = null
+            }
+
             db.characters[selectedID].chats.unshift(newChat)
             setDatabase(db)
             alertNormal(language.successImport)
