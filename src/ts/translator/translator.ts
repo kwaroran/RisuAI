@@ -174,7 +174,8 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
                     headers: {
                         "User-Agent": ua,
                         "Accept": "*/*",
-                    }
+                    },
+                    method: "GET",
                 })
                 const parser = new DOMParser()
                 const dom = parser.parseFromString(d.data, 'text/html')
