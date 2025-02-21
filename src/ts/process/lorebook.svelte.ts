@@ -218,6 +218,21 @@ export async function loadLoreBookV3Prompt(){
                 all?:boolean
             }[] = []
             let fullWordMatching = fullWordMatchingSetting
+            
+            if(fullLore[i].mode === 'child'){
+                activated = false
+                for(let j=0;j<i;j++){
+                    if(fullLore[j].id === fullLore[i].id){
+                        if(!activatedIndexes.includes(j)){
+                            fullLore[i].comment = fullLore[j].comment
+                            fullLore[i].content = fullLore[j].content
+                            fullLore[i].alwaysActive = true
+                            activated = true
+                        }
+                        break
+                    }
+                }
+            }
             const content = CCardLib.decorator.parse(fullLore[i].content, (name, arg) => {
                 switch(name){
                     case 'end':{
