@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { XIcon, LinkIcon, SunIcon } from "lucide-svelte";
+    import { XIcon, LinkIcon, SunIcon, BookCopyIcon } from "lucide-svelte";
+    import { v4 } from "uuid";
     import { language } from "../../../lang";
-    import { getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";
-    import { alertConfirm } from "../../../ts/alert";
+    import { getCurrentCharacter, getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";
+    import { alertConfirm, alertMd } from "../../../ts/alert";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
@@ -37,33 +38,42 @@
 
     function isLocallyActivated(book: loreBook){
         return getCurrentChat()?.localLore.some(e => 
-            e.comment === book.comment &&
-            e.content === book.content &&
+            e.id === book.id &&
             e.alwaysActive
         )
     }
     function ActivateLocally(book: loreBook){
         const chat = getCurrentChat()
-        let cloneLore = chat.localLore.find(e => 
-            e.comment === book.comment && e.content === book.content)
-        if(cloneLore){
-            cloneLore.alwaysActive = true
+        let childLore: loreBook | undefined
+        
+        if(!book.id){
+            book.id = v4()
         }else{
-            cloneLore = safeStructuredClone(book)
-            cloneLore.alwaysActive = true
-            cloneLore.key = ''
-            chat.localLore.push(cloneLore)
+            childLore = chat.localLore.find(e => e.id === book.id)
+        }
+        
+        if(childLore){
+            childLore.alwaysActive = true
+        }else{
+            childLore = {
+                key: '',
+                comment: '',
+                content: '',
+                mode: 'child',
+                insertorder: 100,
+                alwaysActive: true,
+                secondkey: '',
+                selective: false,
+                id: book.id,
+            }
+            chat.localLore.push(childLore)
         }
     }
     function DeactivateLocally(book: loreBook){
         const chat = getCurrentChat()
-        let activatedCloneLore = chat.localLore.find(e => 
-            e.comment === book.comment &&
-            e.content === book.content &&
-            e.alwaysActive
-        )
-        if(activatedCloneLore){
-            activatedCloneLore.alwaysActive = false
+        const childLore = chat?.localLore?.find(e => e.id === book.id)
+        if(childLore){
+            chat.localLore = chat.localLore.filter(e => e.id !== book.id)
         }
     }
     function toggleLocalActive(check: boolean, book: loreBook){
@@ -73,10 +83,19 @@
             DeactivateLocally(book)
         }
     }
+    function getParentLoreName(book: loreBook){
+        if(book.mode === 'child'){
+            const value = getCurrentCharacter()?.globalLore.find(e => e.id === book.id)
+            if(value){
+                return value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment
+            }
+        }
+    }
 </script>
 
 <div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
     <div class="flex items-center transition-colors w-full p-1">
+    {#if value.mode !== 'child'}
         <button class="endflex valuer border-darkborderc" onclick={() => {
             value.secondkey = value.secondkey ?? ''
             open = !open
@@ -109,11 +128,29 @@
                 if(!open){
                     onClose()
                 }
+                DeactivateLocally(value)
                 onRemove()
             }
         }}>
             <XIcon size={20} />
         </button>
+    {:else}
+        <button class="endflex valuer border-darkborderc" onclick={() => alertMd(language.childLoreDesc)}>
+            <BookCopyIcon size={20} class="mr-1" />
+            <span>{getParentLoreName(value)}</span>
+        </button>
+        <button class="valuer" onclick={async () => {
+            const d = await alertConfirm(language.removeConfirm + getParentLoreName(value))
+            if(d){
+                if(!open){
+                    onClose()
+                }
+                onRemove()
+            }
+        }}>
+            <XIcon size={20} />
+        </button>
+    {/if}
     </div>
     {#if open}
         <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
@@ -156,21 +193,13 @@
             {:then e}
                 <span class="text-textcolor2 mt-2 mb-2 text-sm">{e} {language.tokens}</span>
             {/await}
-            {#if value.alwaysActive || !isLocallyActivated(value)}
-                <div class="flex items-center mt-4">
-                    <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
+            <div class="flex items-center mt-4">
+                <Check bind:check={value.alwaysActive} name={language.alwaysActive}/>
+            </div>
+            {#if !value.alwaysActive && getCurrentCharacter()?.globalLore?.includes(value)}
+                <div class="flex items-center mt-2">
+                    <Check check={isLocallyActivated(value)} onChange={(check: boolean) => toggleLocalActive(check, value)} name={language.alwaysActiveInChat}/>
                 </div>
-            {/if}
-            {#if !value.alwaysActive && getCurrentChat()}
-                {#if isLocallyActivated(value)}
-                    <div class="flex items-center mt-4">
-                        <Check check={true} onChange={(check: boolean) => toggleLocalActive(check, value)} name={language.alwaysActiveInChat}/>
-                    </div>
-                {:else}
-                    <div class="flex items-center mt-2">
-                        <Check check={false} onChange={(check: boolean) => toggleLocalActive(check, value)} name={language.alwaysActiveInChat}/>
-                    </div>
-                {/if}
             {/if}
             {#if !lorePlus && !value.useRegex}
                 <div class="flex items-center mt-2">

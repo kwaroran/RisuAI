@@ -1056,5 +1056,7 @@ export const languageEnglish = {
     copy: "Copy",
     paste: "Paste",
     depth: "Depth",
+    returnCSSError: "Return CSS Error",
     alwaysActiveInChat: "Always Active (Current Chat)",
+    childLoreDesc: "This is a copy of Character lore that remains 'Always Active' until removed or manually deactivated in the original.",
 }
