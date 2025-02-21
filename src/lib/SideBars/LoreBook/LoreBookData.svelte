@@ -42,7 +42,7 @@
             e.alwaysActive
         )
     }
-    function ActivateLocally(book: loreBook){
+    function activateLocally(book: loreBook){
         const chat = getCurrentChat()
         let childLore: loreBook | undefined
         
@@ -69,7 +69,7 @@
             chat.localLore.push(childLore)
         }
     }
-    function DeactivateLocally(book: loreBook){
+    function deactivateLocally(book: loreBook){
         if(!book.id) return
         const chat = getCurrentChat()
         const childLore = chat?.localLore?.find(e => e.id === book.id)
@@ -79,9 +79,9 @@
     }
     function toggleLocalActive(check: boolean, book: loreBook){
         if(check){
-            ActivateLocally(book)
+            activateLocally(book)
         }else{
-            DeactivateLocally(book)
+            deactivateLocally(book)
         }
     }
     function getParentLoreName(book: loreBook){
@@ -129,7 +129,7 @@
                 if(!open){
                     onClose()
                 }
-                DeactivateLocally(value)
+                deactivateLocally(value)
                 onRemove()
             }
         }}>
