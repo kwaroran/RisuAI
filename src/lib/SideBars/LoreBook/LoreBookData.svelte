@@ -70,6 +70,7 @@
         }
     }
     function DeactivateLocally(book: loreBook){
+        if(!book.id) return
         const chat = getCurrentChat()
         const childLore = chat?.localLore?.find(e => e.id === book.id)
         if(childLore){
