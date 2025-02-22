@@ -739,6 +739,43 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 3 Sonnet (20240229) v1',
+        id: 'anthropic.claude-3-sonnet-20240229-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt
+        ],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 2.1',
+        id: 'anthropic.claude-v2:1',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasFirstSystemPrompt
+        ],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 2',
+        id: 'anthropic.claude-v2',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasFirstSystemPrompt
+        ],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Ooba',
         id: 'ooba',
         provider: LLMProvider.AsIs,

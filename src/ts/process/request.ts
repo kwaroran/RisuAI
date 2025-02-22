@@ -2572,7 +2572,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         const host = AMZ_HOST.replace("%REGION%", region);
         const stream = false;   // todo?
         
-        const awsModel = "us." + arg.modelInfo.internalID;
+        const awsModel = !arg.modelInfo.internalID.includes("v2") ? "us." + arg.modelInfo.internalID : arg.modelInfo.internalID;
         const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
         const params = {
