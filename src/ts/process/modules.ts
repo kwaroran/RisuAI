@@ -268,9 +268,7 @@ function getModuleByIds(ids:string[]){
             modules.push(module)
         }
     }
-    if(db.moduleIntergration){
-        modules = deduplicateModuleById(modules)
-    }
+    modules = deduplicateModuleById(modules)
     return modules
 }
 
