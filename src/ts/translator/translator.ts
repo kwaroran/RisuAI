@@ -41,7 +41,7 @@ export async function translate(text:string, reverse:boolean) {
     return runTranslator(text, reverse, db.translator,db.aiModel.startsWith('novellist') ? 'ja' : 'en')
 }
 
-export async function runTranslator(text:string, reverse:boolean, from:string,target:string) {
+export async function runTranslator(text:string, reverse:boolean, from:string,target:string, exarg?:{translatorNote?:string}) {
     const arg = {
 
         from: reverse ? from : target,
@@ -50,6 +50,7 @@ export async function runTranslator(text:string, reverse:boolean, from:string,ta
 
         host: 'translate.googleapis.com',
 
+        translatorNote: exarg?.translatorNote
     }
     const texts = text.split('\n')
     let chunks:[string,boolean][] = [['', true]]
@@ -104,11 +105,11 @@ export async function runTranslator(text:string, reverse:boolean, from:string,ta
 
 }
 
-async function translateMain(text:string, arg:{from:string, to:string, host:string}){
+async function translateMain(text:string, arg:{from:string, to:string, host:string, translatorNote?:string}){
     let db = getDatabase()
     if(db.translatorType === 'llm'){
         const tr = arg.to || 'en'
-        return translateLLM(text, {to: tr, from: arg.from})
+        return translateLLM(text, {to: tr, from: arg.from, translatorNote: arg.translatorNote})
     }
     if(db.translatorType === 'deepl'){
         const body = {
@@ -473,7 +474,7 @@ function needSuperChunkedTranslate(){
     return getDatabase().translatorType === 'deeplX'
 }
 
-async function translateLLM(text:string, arg:{to:string, from:string, regenerate?:boolean}):Promise<string>{
+async function translateLLM(text:string, arg:{to:string, from:string, regenerate?:boolean,translatorNote?:string}):Promise<string>{
     if(!arg.regenerate){
         const cacheMatch = await LLMCacheStorage.getItem(text)
         if(cacheMatch){
@@ -490,12 +491,17 @@ async function translateLLM(text:string, arg:{to:string, from:string, regenerate
     const db = getDatabase()
     const charIndex = get(selectedCharID)
     const currentChar = db.characters[charIndex]
-    let translatorNote
-    if (currentChar?.type === "character") {
+    let translatorNote = ""
+    console.log(arg.translatorNote)
+    if(arg.translatorNote){
+        translatorNote = arg.translatorNote
+    }
+    else if (currentChar?.type === "character") {
         translatorNote = currentChar.translatorNote ?? ""
     } else {
         translatorNote = ""
     }
+    console.log(translatorNote)
 
     let formated:OpenAIChat[] = []
     let prompt = db.translatorPrompt || `You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation.`

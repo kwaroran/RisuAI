@@ -1371,6 +1371,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                         }
                         card.data.assets[i].uri = 'embeded://' + path
                         const imageType = checkImageType(rData)
+                        const metaPath = `x_meta/${name}.json`
                         if(imageType === 'PNG' && writer instanceof CharXWriter){
                             const metadatas:Record<string,string> = {}
                             const gen = PngChunk.readGenerator(rData)
@@ -1380,10 +1381,20 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                                 }
                                 metadatas[chunk.key] = chunk.value
                             }
+                            console.log(metadatas)
                             if(Object.keys(metadatas).length > 0){
-                                const metaPath = `x_meta/${name}.json`
                                 await writer.write(metaPath, Buffer.from(JSON.stringify(metadatas, null, 4)), 6)
                             }
+                            else{
+                                await writer.write(metaPath, Buffer.from(JSON.stringify({
+                                    'type': imageType
+                                }), 'utf-8'), 6)
+                            }
+                        }
+                        else{
+                            await writer.write(metaPath, Buffer.from(JSON.stringify({
+                                'type': imageType
+                            }), 'utf-8'), 6)
                         }
                         await writer.write(path, Buffer.from(await convertImage(rData)))
                     }
