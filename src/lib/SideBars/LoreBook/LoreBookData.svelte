@@ -37,37 +37,25 @@
     let tokens = $state(0)
 
     function isLocallyActivated(book: loreBook){
-        return getCurrentChat()?.localLore.some(e => 
-            e.id === book.id &&
-            e.alwaysActive
-        )
+        return book.id ? getCurrentChat()?.localLore.some(e => e.id === book.id) : false
     }
     function activateLocally(book: loreBook){
-        const chat = getCurrentChat()
-        let childLore: loreBook | undefined
-        
         if(!book.id){
             book.id = v4()
-        }else{
-            childLore = chat.localLore.find(e => e.id === book.id)
         }
         
-        if(childLore){
-            childLore.alwaysActive = true
-        }else{
-            childLore = {
-                key: '',
-                comment: '',
-                content: '',
-                mode: 'child',
-                insertorder: 100,
-                alwaysActive: true,
-                secondkey: '',
-                selective: false,
-                id: book.id,
-            }
-            chat.localLore.push(childLore)
+        const childLore: loreBook = {
+            key: '',
+            comment: '',
+            content: '',
+            mode: 'child',
+            insertorder: 100,
+            alwaysActive: true,
+            secondkey: '',
+            selective: false,
+            id: book.id,
         }
+        getCurrentChat().localLore.push(childLore)
     }
     function deactivateLocally(book: loreBook){
         if(!book.id) return
