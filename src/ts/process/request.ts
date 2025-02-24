@@ -1710,17 +1710,6 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 })
             }
         }
-        else if(chat.role === 'assistant' && arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
-            reformatedChat.push({
-                role: 'MODEL',
-                parts: [chat.thoughts?.length > 0 ? {
-                    text: chat.thoughts.join('\n\n')
-                } : null, {
-                    text: chat.content
-                }]
-            })
-        }
-
         else if(chat.role === 'assistant' || chat.role === 'user'){
             reformatedChat.push({
                 role: chat.role === 'user' ? 'USER' : 'MODEL',
