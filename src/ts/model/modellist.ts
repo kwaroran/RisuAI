@@ -22,7 +22,8 @@ export enum LLMFlags{
     deepSeekPrefix,
     deepSeekThinkingInput,
     deepSeekThinkingOutput,
-    noCivilIntegrity
+    noCivilIntegrity,
+    claudeThinking,
 }
 
 export enum LLMProvider{
@@ -523,6 +524,23 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: "Claude 3.7 Sonnet",
+        id: 'claude-3-7-sonnet-latest',
+        shortName: "3.7 Sonnet",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
+        recommended: true,
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: "Claude 3.5 Haiku",
         id: 'claude-3-5-haiku-latest',
         shortName: "3.5 Haiku",
@@ -596,6 +614,22 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming
         ],
         parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: "Claude 3.7 Sonnet (20250219)",
+        id: 'claude-3-7-sonnet-20250219',
+        shortName: "3.7 Sonnet",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
         tokenizer: LLMTokenizer.Claude
     },
     {

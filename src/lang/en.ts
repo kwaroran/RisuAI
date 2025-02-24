@@ -1057,4 +1057,5 @@ export const languageEnglish = {
     paste: "Paste",
     depth: "Depth",
     returnCSSError: "Return CSS Error",
+    thinkingTokens: "Thinking Tokens",
 }

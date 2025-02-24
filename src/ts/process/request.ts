@@ -92,11 +92,27 @@ interface OaiFunctions {
 }
 
 
-export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'|'reasoning_effort'
+export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'|'reasoning_effort'|'thinking_tokens'
 export type ModelModeExtended = 'model'|'submodel'|'memory'|'emotion'|'otherAx'|'translate'
 type ParameterMap = {
     [key in Parameter]?: string;
 };
+
+function setObjectValue<T>(obj: T, key: string, value: any): T {
+
+    const splitKey = key.split('.');
+    if(splitKey.length > 1){
+        const firstKey = splitKey.shift()
+        if(!obj[firstKey]){
+            obj[firstKey] = {};
+        }
+        obj[firstKey] = setObjectValue(obj[firstKey], splitKey.join('.'), value);
+        return obj;
+    }
+
+    obj[key] = value;
+    return obj;
+}
 
 function applyParameters(data: { [key: string]: any }, parameters: Parameter[], rename: ParameterMap, ModelMode:ModelModeExtended, arg:{
     ignoreTopKIfZero?:boolean
@@ -157,6 +173,10 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
                     value = db.seperateParameters[ModelMode].top_p
                     break
                 }
+                case 'thinking_tokens':{
+                    value = db.seperateParameters[ModelMode].thinking_tokens
+                    break
+                }
                 case 'frequency_penalty':{
                     value = db.seperateParameters[ModelMode].frequency_penalty === -1000 ? -1000 : (db.seperateParameters[ModelMode].frequency_penalty / 100)
                     break
@@ -175,7 +195,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
                 continue
             }
 
-            data[rename[parameter] ?? parameter] = value
+            data = setObjectValue(data, rename[parameter] ?? parameter, value)
         }
         return data
     }
@@ -223,13 +243,17 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
                 value = db.PresensePenalty === -1000 ? -1000 : (db.PresensePenalty / 100)
                 break
             }
+            case 'thinking_tokens':{
+                value = db.thinkingTokens
+                break
+            }
         }
 
         if(value === -1000){
             continue
         }
 
-        data[rename[parameter] ?? parameter] = value
+        data = setObjectValue(data, rename[parameter] ?? parameter, value)
     }
     return data
 }
@@ -2530,14 +2554,23 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         })
     }
 
-
+    console.log(arg.modelInfo.parameters)
     let body = applyParameters({
         model: arg.modelInfo.internalID,
         messages: finalChat,
         system: systemPrompt.trim(),
         max_tokens: maxTokens,
         stream: useStreaming ?? false
-    }, ['temperature', 'top_k', 'top_p'], {}, arg.mode)
+    }, arg.modelInfo.parameters, {
+        'thinking_tokens': 'thinking.budget_tokens'
+    }, arg.mode)
+
+    if(body?.thinking?.budget_tokens === 0){
+        delete body.thinking
+    }
+    else if(body?.thinking?.budget_tokens && body?.thinking?.budget_tokens > 0){
+        body.thinking.type = 'enabled'
+    }
 
     if(systemPrompt === ''){
         delete body.system
@@ -2634,8 +2667,18 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         "accept": "application/json",
     }
 
+    let betas:string[] = []
+
     if(db.claudeCachingExperimental){
-        headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
+        betas.push('prompt-caching-2024-07-31')
+    }
+
+    if(body.max_tokens > 8192){
+        betas.push('output-128k-2025-02-19')
+    }
+
+    if(betas.length > 0){
+        headers['anthropic-beta'] = betas.join(',')
     }
 
     if(db.usePlainFetch){
@@ -2659,7 +2702,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         }
         let rerequesting = false
         let breakError = ''
-
+        let thinking = false
 
         const stream = new ReadableStream<StreamResponseChunk>({
             async start(controller){
@@ -2672,10 +2715,39 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                             switch(e.event){
                                 case 'content_block_delta': {
                                     if(e.data){
-                                        text += JSON.parse(e.data).delta?.text
-                                        controller.enqueue({
-                                            "0": text
-                                        })
+                                        const parsedData = JSON.parse(e.data)
+                                        if(parsedData.delta?.type === 'text' || parsedData.delta?.type === 'text_delta'){
+                                            if(thinking){
+                                                text += "</Thoughts>\n\n"
+                                                thinking = false
+                                            }
+                                            text += parsedData.delta?.text ?? ''
+                                            controller.enqueue({
+                                                "0": text
+                                            })
+                                        }
+
+                                        if(parsedData.delta?.type === 'thinking' || parsedData.delta?.type === 'thinking_delta'){
+                                            if(!thinking){
+                                                text += "<Thoughts>\n"
+                                                thinking = true
+                                            }
+                                            text += parsedData.delta?.thinking ?? ''
+                                            controller.enqueue({
+                                                "0": text
+                                            })
+                                        }
+
+                                        if(parsedData?.delta?.type === 'redacted_thinking'){
+                                            if(!thinking){
+                                                text += "<Thoughts>\n"
+                                                thinking = true
+                                            }
+                                            text += '\n{{redacted_thinking}}\n'
+                                            controller.enqueue({
+                                                "0": text
+                                            })
+                                        }
                                     }
                                     break
                                 }
@@ -2799,13 +2871,40 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             result: JSON.stringify(res.data.error)
         }
     }
-    const resText = res?.data?.content?.[0]?.text
-    if(!resText){
+    const contents = res?.data?.content
+    if(!contents || contents.length === 0){
         return {
             type: 'fail',
             result: JSON.stringify(res.data)
         }
     }
+    let resText = ''
+    let thinking = false
+    for(const content of contents){
+        if(content.type === 'text'){
+            if(thinking){
+                resText += "</Thoughts>\n\n"
+                thinking = false
+            }
+            resText += content.text
+        }
+        if(content.type === 'thinking'){
+            if(!thinking){
+                resText += "<Thoughts>\n"
+                thinking = true
+            }
+            resText += content.thinking ?? ''
+        }
+        if(content.type === 'redacted_thinking'){
+            if(!thinking){
+                resText += "<Thoughts>\n"
+                thinking = true
+            }
+            resText += '\n{{redacted_thinking}}\n'
+        }
+    }
+
+
     if(arg.extractJson && db.jsonSchemaEnabled){
         return {
             type: 'success',

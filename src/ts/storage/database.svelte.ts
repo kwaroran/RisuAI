@@ -907,6 +907,7 @@ export interface Database{
     showDeprecatedTriggerV1:boolean
     returnCSSError:boolean
     useExperimentalGoogleTranslator:boolean
+    thinkingTokens: number
 }
 
 interface SeparateParameters{
@@ -919,6 +920,7 @@ interface SeparateParameters{
     frequency_penalty?:number
     presence_penalty?:number
     reasoning_effort?:number
+    thinking_tokens?:number
 }
 
 export interface customscript{
