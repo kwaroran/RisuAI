@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/logo_32.png" />
     <link rel="icon" type="image/png" sizes="256x256" href="/logo_256.png" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="/src/styles.css" />
     <meta name="description" content="An AI frontend for both light and core users.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Tilt+Prism&family=Yellowtail&display=swap" rel="stylesheet">
@@ -20,6 +21,17 @@
           <p>Please enable JavaScript to use this website.</p>
         </div>
       </noscript>
+    </div>
+    <!-- Loading screen, will be removed when /src/main.ts is loaded -->
+    <div id="preloading" class="w-full h-full flex justify-center items-center text-textcolor text-xl bg-gray-900 flex-col absolute top-0 left-0 z-50">
+      <div class="flex flex-row items-center">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-textcolor" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Loading...</span>
+      </div>
+      <span class="text-sm mt-2 text-textcolor2">Loading RisuAI...</span>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
