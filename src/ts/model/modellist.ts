@@ -746,6 +746,20 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 3.7 Sonnet (20250219) v1',
+        id: 'anthropic.claude-3-7-sonnet-20250219-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Claude 3.5 Sonnet (20241022) v2',
         id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
         provider: LLMProvider.AWS,
@@ -769,6 +783,43 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.AWS,
         format: LLMFormat.AWSBedrockClaude,
         flags: [LLMFlags.hasPrefill, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 3 Sonnet (20240229) v1',
+        id: 'anthropic.claude-3-sonnet-20240229-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt
+        ],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 2.1',
+        id: 'anthropic.claude-v2:1',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasFirstSystemPrompt
+        ],
+        parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 2',
+        id: 'anthropic.claude-v2',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasFirstSystemPrompt
+        ],
         parameters: ClaudeParameters,
         tokenizer: LLMTokenizer.Claude
     },
