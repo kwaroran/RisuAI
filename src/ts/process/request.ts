@@ -2831,9 +2831,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                     thinking = false
                                 }
                                 text += parsedData.delta?.text ?? ''
-                                controller.enqueue({
-                                    "0": text
-                                })
                             }
     
                             if(parsedData?.delta?.type === 'thinking' || parsedData.delta?.type === 'thinking_delta'){
@@ -2842,9 +2839,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                     thinking = true
                                 }
                                 text += parsedData.delta?.thinking ?? ''
-                                controller.enqueue({
-                                    "0": text
-                                })
                             }
     
                             if(parsedData?.delta?.type === 'redacted_thinking'){
@@ -2853,9 +2847,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                     thinking = true
                                 }
                                 text += '\n{{redacted_thinking}}\n'
-                                controller.enqueue({
-                                    "0": text
-                                })
                             }
                         }
 
@@ -2870,16 +2861,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                 return 'overload'
                             }
                             text += "Error:" + parsedData?.error?.message
-                            if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                                controller.enqueue({
-                                    "0": extractJSON(text, db.jsonSchema)
-                                })
-                            }
-                            else{
-                                controller.enqueue({
-                                    "0": text
-                                })
-                            }
 
                         }
                         
@@ -2891,6 +2872,8 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                         
                 })
                 let breakWhile = false
+                let i = 0;
+                let prevText = ''
                 while(true){
                     try {
                         if(arg?.abortSignal?.aborted || breakWhile){
@@ -2902,7 +2885,8 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                         }
                         parserData += (decoder.decode(value))
                         let parts = parserData.split('\n')
-                        for(let i=0;i<parts.length-1;i++){
+                        for(;i<parts.length-1;i++){
+                            prevText = text
                             if(parts[i].startsWith('data: ')){
                                 const d = await parseEvent(parts[i].slice(6))
                                 if(d === 'overload'){
@@ -2928,6 +2912,12 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                                 }
                             }
                         }
+                        i--;
+                        text = prevText
+
+                        controller.enqueue({
+                            "0": text
+                        })
 
                     } catch (error) {
                         await sleep(1)
