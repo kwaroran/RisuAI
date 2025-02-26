@@ -2887,10 +2887,12 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                         let parts = parserData.split('\n')
                         for(;i<parts.length-1;i++){
                             prevText = text
-                            if(parts[i].startsWith('data: ')){
+                            if(parts?.[i]?.startsWith('data: ')){
                                 const d = await parseEvent(parts[i].slice(6))
                                 if(d === 'overload'){
                                     parserData = ''
+                                    prevText = ''
+                                    text = ''
                                     reader.cancel()
                                     const res = await fetchNative(replacerURL, {
                                         body: JSON.stringify(body),
