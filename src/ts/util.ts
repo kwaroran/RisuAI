@@ -16,26 +16,70 @@ export interface Messagec extends Message{
     index: number
 }
 
+// Map to store message caches for each character
+const messageFormCacheMap = new Map<number, Map<string, Messagec>>();
+
+// Function to initialize the cache (called when changing characters)
+export function clearMessageFormCache(charId?: number) {
+    if (charId !== undefined) {
+        messageFormCacheMap.delete(charId);
+    } else {
+        messageFormCacheMap.clear();
+    }
+}
+
 export function messageForm(arg:Message[], loadPages:number){
     let db = getDatabase()
     let selectedChar = get(selectedCharID)
+    
+    // Map for message caching (maintained as a static variable)
+    const messageCache = messageFormCacheMap.get(selectedChar) || new Map<string, Messagec>();
+    
     function reformatContent(data:string){
         return data.trim()
     }
 
     let a:Messagec[] = []
-    for(let i=0;i<arg.length;i++){
-        const m = arg[i]
-        a.unshift({
+    const startIndex = Math.max(0, arg.length - loadPages);
+    
+    // Process only necessary messages (up to loadPages)
+    for(let i = arg.length - 1; i >= startIndex; i--){
+        const m = arg[i];
+        const cacheKey = `${m.role}-${i}-${m.chatId || 'none'}-${m.data.length}`;
+        
+        // Use cached result if available
+        if (messageCache.has(cacheKey)) {
+            a.push(messageCache.get(cacheKey));
+            continue;
+        }
+        
+        // Create new if not cached
+        const processed: Messagec = {
             role: m.role,
             data: reformatContent(m.data),
             index: i,
             saying: m.saying,
             chatId: m.chatId ?? 'none',
             generationInfo: m.generationInfo,
-        })
+        };
+        
+        // Store in cache
+        messageCache.set(cacheKey, processed);
+        a.push(processed);
     }
-    return a.slice(0, loadPages)
+    
+    // Update cache map
+    messageFormCacheMap.set(selectedChar, messageCache);
+    
+    // Limit cache size (maximum 1000 entries)
+    if (messageCache.size > 1000) {
+        const keys = Array.from(messageCache.keys());
+        for (let i = 0; i < keys.length - 1000; i++) {
+            messageCache.delete(keys[i]);
+        }
+    }
+    
+    return a;
 }
 
 export function sleep(ms: number) {
