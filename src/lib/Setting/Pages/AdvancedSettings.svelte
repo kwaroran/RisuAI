@@ -151,11 +151,6 @@
 </div>
 {#if DBState.db.useExperimental}
     <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.antiClaudeOverload} name={language.antiClaudeOverload}>
-            <Help key="experimental"/><Help key="antiClaudeOverload"/>
-        </Check>
-    </div>
-    <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.claudeCachingExperimental} name={language.claudeCachingExperimental}>
             <Help key="experimental"/><Help key="claudeCachingExperimental"/>
         </Check>
@@ -198,6 +193,10 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.returnCSSError} name={language.returnCSSError}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.antiServerOverloads} name={language.antiServerOverload}>
     </Check>
 </div>
 {#if DBState.db.useExperimental}

@@ -485,6 +485,10 @@ export function setDatabase(data:Database){
     }
     data.returnCSSError ??= true
     data.useExperimentalGoogleTranslator ??= false
+    if(data.antiClaudeOverload){ //migration
+        data.antiClaudeOverload = false
+        data.antiServerOverloads = true
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -908,6 +912,7 @@ export interface Database{
     returnCSSError:boolean
     useExperimentalGoogleTranslator:boolean
     thinkingTokens: number
+    antiServerOverloads: boolean
 }
 
 interface SeparateParameters{
