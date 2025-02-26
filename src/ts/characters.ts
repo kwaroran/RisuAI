@@ -32,7 +32,9 @@ export function createNewGroup(){
             note: '',
             name: 'Chat 1',
             localLore: []
-        }],        chatPage: 0,
+        }],
+        chatFolders: [],
+        chatPage: 0,
         viewScreen: 'none',
         globalLore: [],
         characters: [],
@@ -402,6 +404,11 @@ export async function importChat(){
                 return
             }
 
+            if(db.characters[selectedID].chatFolders
+                .filter(folder => folder.id === newChat.folderId).length === 0) {
+                newChat.folderId = null
+            }
+
             db.characters[selectedID].chats.unshift(newChat)
             setDatabase(db)
             alertNormal(language.successImport)
@@ -585,6 +592,7 @@ export function createBlankChar():character{
             name: 'Chat 1',
             localLore: []
         }],
+        chatFolders: [],
         chatPage: 0,
         emotionImages: [],
         bias: [],
