@@ -37,14 +37,14 @@ export class HypaProcesser{
             name: "hypaVector"
         })
         this.vectors = []
+        const db = getDatabase()
         if(model === 'auto'){
-            const db = getDatabase()
             this.model = db.hypaModel || 'MiniLM'
         }
         else{
             this.model = model
         }
-        this.customEmbeddingUrl = customEmbeddingUrl
+        this.customEmbeddingUrl = customEmbeddingUrl || db.hypaCustomSettings.url
     }
 
     async embedDocuments(texts: string[]): Promise<VectorArray[]> {
@@ -77,12 +77,17 @@ export class HypaProcesser{
             }
             const {customEmbeddingUrl} = this
             const replaceUrl = customEmbeddingUrl.endsWith('/embeddings')?customEmbeddingUrl:appendLastPath(customEmbeddingUrl,'embeddings')
-            
-            gf = await globalFetch(replaceUrl.toString(), {
-                body:{
-                    "input": input
-                },
-            })
+
+            const db = getDatabase()
+            const fetchArgs = {
+                ...(db.hypaCustomSettings.key ? {headers: {"Authorization": "Bearer " + db.hypaCustomSettings.key}} : {}),
+                body: {
+                    "input": input,
+                    ...(db.hypaCustomSettings.model ? {"model": db.hypaCustomSettings.model} : {})
+                }
+            };
+ 
+            gf = await globalFetch(replaceUrl.toString(), fetchArgs)
         }
         if(this.model === 'ada' || this.model === 'openai3small' || this.model === 'openai3large'){
             const db = getDatabase()

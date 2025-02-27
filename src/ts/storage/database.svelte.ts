@@ -489,6 +489,11 @@ export function setDatabase(data:Database){
         data.antiClaudeOverload = false
         data.antiServerOverloads = true
     }
+    data.hypaCustomSettings = {
+        url: data.hypaCustomSettings?.url ?? "",
+        key: data.hypaCustomSettings?.key ?? "",
+        model: data.hypaCustomSettings?.model ?? "",       
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -902,7 +907,7 @@ export interface Database{
         preserveOrphanedMemory: boolean
         processRegexScript: boolean
         doNotSummarizeUserMessage: boolean
-    },
+    }
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -913,6 +918,11 @@ export interface Database{
     useExperimentalGoogleTranslator:boolean
     thinkingTokens: number
     antiServerOverloads: boolean
+    hypaCustomSettings: {
+        url: string,
+        key: string,
+        model: string,       
+    }
 }
 
 interface SeparateParameters{
