@@ -183,6 +183,38 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
     {
+        id: 'gpt-4.5-preview-2025-02-27',
+        internalID: 'gpt-4.5-preview-2025-02-27',
+        name: 'GPT-4.5 (20250227)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens
+        ],
+        recommended: true,
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-4.5-preview',
+        internalID: 'gpt-4.5-preview',
+        name: 'GPT-4.5 (preview)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens
+        ],
+        recommended: false,
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
         id: 'gpt4om',
         internalID: 'gpt-4o-mini',
         name: 'GPT-4o Mini',
