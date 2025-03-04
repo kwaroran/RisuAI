@@ -5,6 +5,7 @@
     import { CharEmotion, ShowVN, selectedCharID } from "../../ts/stores.svelte";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
+    import { clearMessageFormCache } from "../../ts/util";
     import defaultWallpaper from '../../etc/bg.jpg'
     import ChatList from "../Others/ChatList.svelte";
     import TransitionImage from "./TransitionImage.svelte";
@@ -14,6 +15,7 @@
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
     let openChatList = $state(false)
     let openModuleList = $state(false)
+    let lastCharacterId = $state(-1);
 
     const wallPaper = `background: url(${defaultWallpaper})`
     const externalStyles = 
@@ -30,6 +32,25 @@
                 bgImg = await getCustomBackground(DBState.db.customBackground)
             }
         })()
+    });
+    
+    $effect.pre(() => {
+        if ($selectedCharID !== lastCharacterId) {
+            if (lastCharacterId >= 0) {
+                clearMessageFormCache(lastCharacterId);
+                
+                setTimeout(() => {
+                    if (window.gc) {
+                        try {
+                            window.gc();
+                        } catch (e) {
+                            console.log("GC not available");
+                        }
+                    }
+                }, 100);
+            }
+            lastCharacterId = $selectedCharID;
+        }
     });
 </script>
 

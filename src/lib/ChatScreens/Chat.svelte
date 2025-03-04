@@ -130,9 +130,22 @@
     $effect.pre(() => {
         blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     });
+    // Static map for caching markdown parsing results
+    const markdownCache = new Map<string, string>();
+    
     const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
         let lastParsedQueue = ''
         try {
+            // Create cache key
+            const cacheKey = `${data}-${JSON.stringify(charArg)}-${mode}-${chatID}-${translateText}`;
+            
+            // Use cached result if available and not retranslating
+            if (markdownCache.has(cacheKey) && !retranslate) {
+                lastParsedQueue = markdownCache.get(cacheKey);
+                lastCharArg = charArg;
+                lastChatId = chatID;
+                return lastParsedQueue;
+            }
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
                 lastParsedQueue = ''
                 lastCharArg = charArg
@@ -184,6 +197,7 @@
                     const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     lastParsedQueue = marked
                     lastCharArg = charArg
+                    markdownCache.set(cacheKey, marked);
                     return marked
                 }
                 else if(!DBState.db.legacyTranslation){
@@ -193,6 +207,7 @@
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
+                    markdownCache.set(cacheKey, translated);
                     return translated
                 }
                 else{
@@ -202,6 +217,7 @@
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
+                    markdownCache.set(cacheKey, translated);
                     return translated
                 }
             }
@@ -209,12 +225,12 @@
                 const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                 lastParsedQueue = marked
                 lastCharArg = charArg
+                markdownCache.set(cacheKey, marked);
                 return marked
             }   
         } catch (error) {
             //retry
             if(tries > 2){
-
                 alertError(`Error while parsing chat message: ${translateText}, ${error.message}, ${error.stack}`)
                 return data
             }
@@ -222,6 +238,17 @@
         }
         finally{
             lastParsed = lastParsedQueue
+        }
+    }
+
+    // Limit cache size (runs periodically)
+    function cleanupMarkdownCache() {
+        if (markdownCache.size > 100) {
+            const keys = Array.from(markdownCache.keys());
+            // Delete the oldest 50 items
+            for (let i = 0; i < 50; i++) {
+                markdownCache.delete(keys[i]);
+            }
         }
     }
 
@@ -235,6 +262,10 @@
         unsubscribers.push(ReloadGUIPointer.subscribe((v) => {
             displaya(message)
         }))
+        
+        // Clean up cache every 3 minutes
+        const cacheCleanupInterval = setInterval(cleanupMarkdownCache, 180000);
+        return () => clearInterval(cacheCleanupInterval);
     })
 
     onDestroy(()=>{
@@ -313,11 +344,22 @@
             style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
         >
             {#key $ReloadGUIPointer}
-                {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                    {@html lastParsed}
-                {:then md}
-                    {@html md}
-                {/await}
+                {#if message && message.length > 10000}
+                    <!-- Delayed rendering for long messages -->
+                    {#await new Promise(resolve => setTimeout(() => resolve(true), 10)) then _}
+                        {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                            {@html lastParsed}
+                        {:then md}
+                            {@html md}
+                        {/await}
+                    {/await}
+                {:else}
+                    {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                        {@html lastParsed}
+                    {:then md}
+                        {@html md}
+                    {/await}
+                {/if}
             {/key}
         </span>
     {/if}
