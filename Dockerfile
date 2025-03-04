@@ -1,6 +1,7 @@
 FROM node:20
 WORKDIR /app
 COPY . .
+RUN npm install -g corepack@latest
 RUN corepack enable && \
     corepack install --global pnpm@latest
 RUN pnpm install --frozen-lockfile
