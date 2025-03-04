@@ -1061,4 +1061,5 @@ export const languageEnglish = {
     childLoreDesc: "This is a copy of Character lore that remains 'Always Active' until removed or manually deactivated in the original.",
     thinkingTokens: "Thinking Tokens",
     antiServerOverload: "Anti-Server Overload",
+    localActivationInGlobalLorebook: "Local Activation in Global Lorebook",
 }

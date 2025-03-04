@@ -922,7 +922,8 @@ export interface Database{
         url: string,
         key: string,
         model: string,       
-    }
+    },
+    localActivationInGlobalLorebook: boolean
 }
 
 interface SeparateParameters{
