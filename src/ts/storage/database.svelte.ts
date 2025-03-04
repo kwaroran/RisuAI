@@ -979,6 +979,7 @@ export interface character{
     desc:string
     notes:string
     chats:Chat[]
+    chatFolders: ChatFolder[]
     chatPage: number
     viewScreen: 'emotion'|'none'|'imggen'|'vn',
     bias: [string, number][]
@@ -1117,6 +1118,7 @@ export interface groupChat{
     image?:string
     firstMessage:string
     chats:Chat[]
+    chatFolders: ChatFolder[]
     chatPage: number
     name:string
     viewScreen: 'single'|'multiple'|'none'|'emp',
@@ -1324,6 +1326,14 @@ export interface Chat{
     bindedPersona?:string
     fmIndex?:number
     hypaV3Data?:SerializableHypaV3Data
+    folderId?:string
+}
+
+export interface ChatFolder{
+    id:string
+    name?:string
+    color?:string
+    folded:boolean
 }
 
 export interface Message{
