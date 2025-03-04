@@ -956,7 +956,7 @@ export interface loreBook{
     insertorder: number
     comment: string
     content: string
-    mode: 'multiple'|'constant'|'normal',
+    mode: 'multiple'|'constant'|'normal'|'child',
     alwaysActive: boolean
     selective:boolean
     extentions?:{
@@ -969,6 +969,7 @@ export interface loreBook{
     },
     useRegex?:boolean
     bookVersion?:number
+    id?:string
 }
 
 export interface character{
