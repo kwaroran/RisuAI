@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "150.2.0"
+export let appVer = "150.4.1"
 export let webAppSubVer = ''
 
 
@@ -484,6 +484,16 @@ export function setDatabase(data:Database){
         doNotSummarizeUserMessage: data.hypaV3Settings?.doNotSummarizeUserMessage ?? false
     }
     data.returnCSSError ??= true
+    data.useExperimentalGoogleTranslator ??= false
+    if(data.antiClaudeOverload){ //migration
+        data.antiClaudeOverload = false
+        data.antiServerOverloads = true
+    }
+    data.hypaCustomSettings = {
+        url: data.hypaCustomSettings?.url ?? "",
+        key: data.hypaCustomSettings?.key ?? "",
+        model: data.hypaCustomSettings?.model ?? "",       
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -897,7 +907,7 @@ export interface Database{
         preserveOrphanedMemory: boolean
         processRegexScript: boolean
         doNotSummarizeUserMessage: boolean
-    },
+    }
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -905,6 +915,14 @@ export interface Database{
     showTranslationLoading: boolean
     showDeprecatedTriggerV1:boolean
     returnCSSError:boolean
+    useExperimentalGoogleTranslator:boolean
+    thinkingTokens: number
+    antiServerOverloads: boolean
+    hypaCustomSettings: {
+        url: string,
+        key: string,
+        model: string,       
+    }
 }
 
 interface SeparateParameters{
@@ -917,6 +935,7 @@ interface SeparateParameters{
     frequency_penalty?:number
     presence_penalty?:number
     reasoning_effort?:number
+    thinking_tokens?:number
 }
 
 export interface customscript{
@@ -961,6 +980,7 @@ export interface character{
     desc:string
     notes:string
     chats:Chat[]
+    chatFolders: ChatFolder[]
     chatPage: number
     viewScreen: 'emotion'|'none'|'imggen'|'vn',
     bias: [string, number][]
@@ -1099,6 +1119,7 @@ export interface groupChat{
     image?:string
     firstMessage:string
     chats:Chat[]
+    chatFolders: ChatFolder[]
     chatPage: number
     name:string
     viewScreen: 'single'|'multiple'|'none'|'emp',
@@ -1231,6 +1252,7 @@ export interface botPreset{
     image?:string
     regex?:customscript[]
     reasonEffort?:number
+    thinkingTokens?:number
 }
 
 
@@ -1305,6 +1327,14 @@ export interface Chat{
     bindedPersona?:string
     fmIndex?:number
     hypaV3Data?:SerializableHypaV3Data
+    folderId?:string
+}
+
+export interface ChatFolder{
+    id:string
+    name?:string
+    color?:string
+    folded:boolean
 }
 
 export interface Message{
@@ -1537,6 +1567,7 @@ export function saveCurrentPreset(){
         regex: db.presetRegex,
         image: pres?.[db.botPresetsId]?.image ?? '',
         reasonEffort: db.reasoningEffort ?? 0,
+        thinkingTokens: db.thinkingTokens ?? null,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1647,6 +1678,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.enableCustomFlags = newPres.enableCustomFlags ?? false
     db.presetRegex = newPres.regex ?? []
     db.reasoningEffort = newPres.reasonEffort ?? 0
+    db.thinkingTokens = newPres.thinkingTokens ?? null
     return db
 }
 

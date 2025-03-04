@@ -1,4 +1,3 @@
-import "./styles.css";
 import "./ts/polyfill";
 import "core-js/actual"
 import "./ts/storage/database.svelte"
@@ -14,5 +13,6 @@ let app = mount(App, {
 });
 loadData()
 initHotkey()
+document.getElementById('preloading').remove()
 
 export default app;

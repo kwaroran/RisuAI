@@ -313,7 +313,9 @@ export class ChatTokenizer {
         this.chatAdditionalTokens = chatAdditionalTokens
         this.useName = useName
     }
-    async tokenizeChat(data:OpenAIChat) {
+    async tokenizeChat(data:OpenAIChat, args:{
+        countThoughts?:boolean,
+    } = {}) {
         let encoded = (await encode(data.content)).length + this.chatAdditionalTokens
         if(data.name && this.useName ==='name'){
             encoded += (await encode(data.name)).length + 1
@@ -323,7 +325,7 @@ export class ChatTokenizer {
                 encoded += await this.tokenizeMultiModal(multimodal)
             }
         }
-        if(data.thoughts && data.thoughts.length > 0){
+        if(data.thoughts && data.thoughts.length > 0 && args.countThoughts){
             for(const thought of data.thoughts){
                 encoded += (await encode(thought)).length + 1
             }

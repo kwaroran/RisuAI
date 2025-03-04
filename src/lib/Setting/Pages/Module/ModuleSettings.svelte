@@ -33,9 +33,7 @@
     }
 
     onDestroy(() => {
-        if(DBState.db.moduleIntergration){
-            refreshModules()
-        }
+        refreshModules()
     })
 </script>
 {#if mode === 0}

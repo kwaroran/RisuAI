@@ -288,9 +288,15 @@
     <NumberInput min={0} max={2048} marginBottom={true} bind:value={DBState.db.maxResponse}/>
 
     {#if DBState.db.aiModel.startsWith('gpt') || DBState.db.aiModel === 'reverse_proxy' || DBState.db.aiModel === 'openrouter'}
-    <span class="text-textcolor">{language.seed}</span>
+        <span class="text-textcolor">{language.seed}</span>
 
-    <NumberInput bind:value={DBState.db.generationSeed} marginBottom={true}/>
+        <NumberInput bind:value={DBState.db.generationSeed} marginBottom={true}/>
+    {/if}
+
+    {#if modelInfo.parameters.includes('thinking_tokens')}
+        <span class="text-textcolor">{language.thinkingTokens}</span>
+        <SliderInput min={0} max={64000} marginBottom step={200} bind:value={DBState.db.thinkingTokens} disableable/>
+
     {/if}
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
     <SliderInput min={0} max={200} marginBottom bind:value={DBState.db.temperature} multiple={0.01} fixed={2} disableable/>
@@ -315,7 +321,6 @@
     {#if modelInfo.parameters.includes('reasoning_effort')}
         <span class="text-textcolor">Reasoning Effort</span>
         <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
-
     {/if}
     {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.aiModel === 'mancer' || DBState.db.aiModel.startsWith('local_') || DBState.db.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
@@ -485,6 +490,8 @@
                     <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].frequency_penalty} disableable/>
                     <span class="text-textcolor">Presence Penalty</span>
                     <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].presence_penalty} disableable/>
+                    <span class="text-textcolor">{language.thinkingTokens}</span>
+                    <SliderInput min={0} max={64000} marginBottom step={200} fixed={0} bind:value={DBState.db.seperateParameters[param].thinking_tokens} disableable/>
                 </Arcodion>
             {/each}
 

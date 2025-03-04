@@ -66,6 +66,7 @@ async fn native_request(url: String, body: String, header: String, method: Strin
         Ok(resp) => {
             let headers = resp.headers();
             let header_json = header_map_to_json(headers);
+            let status = resp.status().as_u16().to_string();
             let bytes = match resp.bytes().await {
                 Ok(b) => b,
                 Err(e) => return format!(r#"{{"success":false,"body":"{}"}}"#, e.to_string()),
@@ -73,11 +74,12 @@ async fn native_request(url: String, body: String, header: String, method: Strin
             let encoded = general_purpose::STANDARD.encode(&bytes);
 
             format!(
-                r#"{{"success":true,"body":"{}","headers":{}}}"#,
-                encoded, header_json
+                // r#"{{"success":true,"body":"{}","headers":{}}}"#,
+                r#"{{"success":true,"body":"{}","headers":{},"status":{}}}"#,
+                encoded, header_json, status
             )
         }
-        Err(e) => format!(r#"{{"success":false,"body":"{}"}}"#, e.to_string()),
+        Err(e) => format!(r#"{{"success":false,"body":"{}","status":400}}"#, e.to_string()),
     }
 }
 

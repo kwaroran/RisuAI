@@ -594,11 +594,21 @@
             <OptionInput value="openai3small">OpenAI text-embedding-3-small</OptionInput>
             <OptionInput value="openai3large">OpenAI text-embedding-3-large</OptionInput>
             <OptionInput value="ada">OpenAI Ada</OptionInput>
+            <OptionInput value="custom">Custom (OpenAI-compatible)</OptionInput>
         </SelectInput>
 
         {#if DBState.db.hypaModel === 'openai3small' || DBState.db.hypaModel === 'openai3large' || DBState.db.hypaModel === 'ada'}
             <span class="text-textcolor">OpenAI API Key</span>
             <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryKey}/>
+        {/if}
+
+        {#if DBState.db.hypaModel === 'custom'}
+        <span class="text-textcolor">URL</span>
+        <TextInput size="sm" marginBottom bind:value={DBState.db.hypaCustomSettings.url}/>
+        <span class="text-textcolor">Key/Password</span>
+        <TextInput size="sm" marginBottom bind:value={DBState.db.hypaCustomSettings.key}/>
+        <span class="text-textcolor">Request Model</span>
+        <TextInput size="sm" marginBottom bind:value={DBState.db.hypaCustomSettings.model}/>
         {/if}
 
     </Arcodion>
