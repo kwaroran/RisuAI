@@ -2705,18 +2705,17 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         const host = AMZ_HOST.replace("%REGION%", region);
         const stream = false;   // todo?
         
-        const awsModel = "us." + arg.modelInfo.internalID;
+        const awsModel = !arg.modelInfo.internalID.includes("claude-v2") ? "us." + arg.modelInfo.internalID : arg.modelInfo.internalID;
         const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
-        const params = {
-            messages : claudeChat,
-            system: systemPrompt.trim(),
-            max_tokens: maxTokens,
-            // stop_sequences: null,
-            temperature: arg.temperature,
-            top_p: db.top_p,
-            top_k: db.top_k,
-            anthropic_version: "bedrock-2023-05-31",
+        let params = {...body}
+        params.anthropic_version = "bedrock-2023-05-31"
+        delete params.model
+        delete params.stream
+        if (params.thinking?.type === "enabled"){
+            params.temperature = 1.0
+            delete params.top_k
+            delete params.top_p
         }
 
         const rq = new HttpRequest({
@@ -2761,10 +2760,49 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 result: JSON.stringify(res.data.error)
             }
         }
+        const contents = res?.data?.content
+        if(!contents || contents.length === 0){
+            return {
+                type: 'fail',
+                result: JSON.stringify(res.data)
+            }
+        }
+        let resText = ''
+        let thinking = false
+        for(const content of contents){
+            if(content.type === 'text'){
+                if(thinking){
+                    resText += "</Thoughts>\n\n"
+                    thinking = false
+                }
+                resText += content.text
+            }
+            if(content.type === 'thinking'){
+                if(!thinking){
+                    resText += "<Thoughts>\n"
+                    thinking = true
+                }
+                resText += content.thinking ?? ''
+            }
+            if(content.type === 'redacted_thinking'){
+                if(!thinking){
+                    resText += "<Thoughts>\n"
+                    thinking = true
+                }
+                resText += '\n{{redacted_thinking}}\n'
+            }
+        }
+    
+    
+        if(arg.extractJson && db.jsonSchemaEnabled){
+            return {
+                type: 'success',
+                result: extractJSON(resText, db.jsonSchema)
+            }
+        }
         return {
             type: 'success',
-            result: res.data.content[0].text
-        
+            result: resText
         }
     }
 
