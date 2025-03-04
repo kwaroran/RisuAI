@@ -28,10 +28,6 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
-    import { onMount, onDestroy } from "svelte";
-    import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertConfirm, alertClear } from "../../ts/alert";
-    import { clearMessageFormCache } from "../../ts/util";
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -45,107 +41,6 @@
     let currentCharacter:character|groupChat = $state(DBState.db.characters[$selectedCharID])
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
-    
-    // Virtual scroll related states
-    let visibleStartIndex = $state(0);
-    let visibleEndIndex = $state(30);
-    let chatContainerRef: HTMLElement = $state(null);
-    let scrollPosition = $state(0);
-    let isScrolling = $state(false);
-    let scrollingTimeoutId: number;
-    
-    // Data loading state
-    let isInitialLoading = $state(true);
-    
-    // Function for optimization
-    function updateVisibleMessages(e?: Event) {
-        if (!chatContainerRef) return;
-        
-        const el = chatContainerRef;
-        const scrollTop = el.scrollTop;
-        const containerHeight = el.clientHeight;
-        
-        // Save scroll position
-        scrollPosition = scrollTop;
-        
-        // Update scrolling state
-        isScrolling = true;
-        clearTimeout(scrollingTimeoutId);
-        scrollingTimeoutId = window.setTimeout(() => {
-            isScrolling = false;
-        }, 200);
-        
-        // Optimized infinite scroll logic
-        const scrolled = el.scrollHeight - containerHeight + scrollTop;
-        if (scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages) {
-            loadPages += 15;
-        }
-        
-        // Limit maximum number of messages to display if there are many
-        if (DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > 200) {
-            // Load only the most recent 200 messages in memory
-            const messageCount = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length;
-            visibleStartIndex = Math.max(0, messageCount - loadPages);
-            visibleEndIndex = messageCount;
-        } else {
-            visibleStartIndex = 0;
-            visibleEndIndex = loadPages;
-        }
-    }
-
-    // Asynchronous chat data loading function
-    async function loadChatDataAsync() {
-        isInitialLoading = true;
-        
-        // Small delay to allow UI rendering
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
-        // Check character change and clear cache
-        if(lastCharId !== $selectedCharID) {
-            clearMessageFormCache(lastCharId);
-            lastCharId = $selectedCharID;
-            rerolls = [];
-            rerollid = -1;
-        }
-        
-        // Process bulk data loading in background
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
-        // Process chat data asynchronously by chunks
-        const messages = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message;
-        
-        if (messages.length > 100) {
-            // Process large message sets in chunks asynchronously
-            const chunkSize = 30;
-            let processedChunks = 0;
-            
-            for (let i = 0; i < messages.length; i += chunkSize) {
-                const chunk = messages.slice(i, i + chunkSize);
-                // Process each chunk
-                await new Promise(resolve => {
-                    setTimeout(() => {
-                        // Only prepare work here
-                        // Actual rendering will be done later in messageForm
-                        processedChunks++;
-                        resolve(null);
-                    }, 0);
-                });
-                
-                // Determine initial load message count based on progress
-                loadPages = Math.min(messages.length, Math.max(30, processedChunks * chunkSize));
-                
-                // Show all of the last 30 messages
-                if (i >= Math.max(0, messages.length - 30)) {
-                    loadPages = messages.length;
-                }
-            }
-        } else {
-            loadPages = messages.length;
-        }
-        
-        isInitialLoading = false;
-        updateVisibleMessages();
-    }
 
     async function send(){
         return sendMain(false)
@@ -523,16 +418,6 @@
     $effect.pre(() => {
         currentCharacter = DBState.db.characters[$selectedCharID]
     });
-    
-    // Load chat data when character or chat page changes
-    $effect.pre(() => {
-        const charId = $selectedCharID;
-        const chatPage = DBState.db.characters[$selectedCharID]?.chatPage;
-        
-        if (charId >= 0) {
-            loadChatDataAsync();
-        }
-    });
 </script>
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -546,20 +431,13 @@
             <PlaygroundMenu />
         {/if}
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"
-             bind:this={chatContainerRef}
-             onscroll={updateVisibleMessages}>
-             
-            <!-- Add loading screen -->
-            {#if isInitialLoading}
-                <div class="absolute inset-0 flex items-center justify-center bg-darkbg bg-opacity-30 z-10">
-                    <div class="flex flex-col items-center">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-textcolor"></div>
-                        <p class="text-textcolor mt-4">{language.loading}</p>
-                    </div>
-                </div>
-            {/if}
-             
+        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
+            //@ts-ignore  
+            const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
+            if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
+                loadPages += 15
+            }
+        }}>
             <div class="flex items-stretch mt-2 mb-2 w-full">
                 {#if DBState.db.useChatSticker && currentCharacter.type !== 'group'}
                     <div onclick={()=>{toggleStickers = !toggleStickers}}
@@ -761,66 +639,50 @@
                 )} {send}/>
             {/if}
             
-            {#key loadPages}
-                {#each messageForm(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
-                    {#if !isScrolling || i < 20}
-                        {#if chat.role === 'char'}
-                            {#if DBState.db.characters[$selectedCharID].type !== 'group'}
-                                <Chat
-                                    idx={chat.index}
-                                    name={DBState.db.characters[$selectedCharID].name} 
-                                    message={chat.data}
-                                    img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                                    rerollIcon={i === 0}
-                                    onReroll={reroll}
-                                    unReroll={unReroll}
-                                    isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                                    character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                                    largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
-                                    messageGenerationInfo={chat.generationInfo}
-                                />
-                            {:else}
-                                <Chat
-                                    idx={chat.index}
-                                    name={findCharacterbyId(chat.saying).name} 
-                                    rerollIcon={i === 0}
-                                    message={chat.data}
-                                    onReroll={reroll}
-                                    unReroll={unReroll}
-                                    img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                                    isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                                    character={chat.saying}
-                                    largePortrait={findCharacterbyId(chat.saying).largePortrait}
-                                    messageGenerationInfo={chat.generationInfo}
-                                />
-                            {/if}
-                        {:else}
-                            <Chat
-                                character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                                idx={chat.index}
-                                name={chat.name ?? currentUsername} 
-                                message={chat.data}
-                                img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
-                                isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                                largePortrait={userIconProtrait}
-                                messageGenerationInfo={chat.generationInfo}
-                            />
-                        {/if}
+            {#each messageForm(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
+                {#if chat.role === 'char'}
+                    {#if DBState.db.characters[$selectedCharID].type !== 'group'}
+                        <Chat
+                            idx={chat.index}
+                            name={DBState.db.characters[$selectedCharID].name} 
+                            message={chat.data}
+                            img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
+                            rerollIcon={i === 0}
+                            onReroll={reroll}
+                            unReroll={unReroll}
+                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                            character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                            largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
+                            messageGenerationInfo={chat.generationInfo}
+                        />
                     {:else}
-                        <!-- Simplified message placeholder for when scrolling -->
-                        <div class="flex max-w-full justify-center opacity-30">
-                            <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full">
-                                <div class="h-8 w-8 bg-textcolor2 rounded-full opacity-30"></div>
-                                <span class="flex flex-col ml-4 w-full max-w-full min-w-0">
-                                    <div class="h-6 w-32 bg-textcolor2 rounded-md opacity-30 mb-2"></div>
-                                    <div class="h-4 w-full bg-textcolor2 rounded-md opacity-30"></div>
-                                </span>
-                            </div>
-                        </div>
+                        <Chat
+                            idx={chat.index}
+                            name={findCharacterbyId(chat.saying).name} 
+                            rerollIcon={i === 0}
+                            message={chat.data}
+                            onReroll={reroll}
+                            unReroll={unReroll}
+                            img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
+                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                            character={chat.saying}
+                            largePortrait={findCharacterbyId(chat.saying).largePortrait}
+                            messageGenerationInfo={chat.generationInfo}
+                        />
                     {/if}
-                {/each}
-            {/key}
-            
+                {:else}
+                    <Chat
+                        character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                        idx={chat.index}
+                        name={chat.name ?? currentUsername} 
+                        message={chat.data}
+                        img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
+                        isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                        largePortrait={userIconProtrait}
+                        messageGenerationInfo={chat.generationInfo}
+                    />
+                {/if}
+            {/each}
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
                 {#if DBState.db.characters[$selectedCharID].type !== 'group' }
                     <Chat
