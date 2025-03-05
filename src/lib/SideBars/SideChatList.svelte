@@ -479,6 +479,9 @@
                 <SplitIcon size={18}/>
             </button>
             <button class="ml-auto text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
+                if (!chara.chatFolders) {
+                    chara.chatFolders = []
+                }
                 const folders = chara.chatFolders
                 const length = chara.chatFolders.length
                 folders.unshift({
