@@ -63,7 +63,7 @@
         "Hyperbolic 2",
         "Lynn 2",
         "Lynn",
-        "Reflection"
+        "Reflection",
     ].sort((a, b) => a.localeCompare(b));
 </script>
 
