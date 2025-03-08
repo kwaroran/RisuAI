@@ -34,6 +34,7 @@
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
+  import Toggles from "./Toggles.svelte";
 
     let iconRemoveMode = $state(false)
     let emos:[string, string][] = $state([])
@@ -289,34 +290,7 @@
     <span class="text-textcolor2 mb-6 text-sm">{tokens.localNote} {language.tokens}</span>
 
     {#if !$MobileGUI}
-        <div class="flex mt-6 items-center">
-            <Check bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
-        </div>
-
-        {#each parseKeyValue(DBState.db.customPromptTemplateToggle + getModuleToggles()) as toggle}
-            <div class="flex mt-2 items-center">
-                <Check check={DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1'} name={toggle[1]} onChange={() => {
-                    DBState.db.globalChatVariables[`toggle_${toggle[0]}`] = DBState.db.globalChatVariables[`toggle_${toggle[0]}`] === '1' ? '0' : '1'
-                }} />
-            </div>
-        {/each}
-
-        
-        {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable}
-            {#if DBState.db.hanuraiEnable}
-                <div class="flex mt-2 items-center">
-                    <Check bind:check={DBState.db.characters[$selectedCharID].supaMemory} name={ language.hanuraiMemory}/>
-                </div>
-            {:else if DBState.db.hypaMemory}
-                <div class="flex mt-2 items-center">
-                    <Check bind:check={DBState.db.characters[$selectedCharID].supaMemory} name={ language.ToggleHypaMemory}/>
-                </div>
-            {:else}
-                <div class="flex mt-2 items-center">
-                    <Check bind:check={DBState.db.characters[$selectedCharID].supaMemory} name={ language.ToggleSuperMemory}/>
-                </div>
-            {/if}
-        {/if}
+        <Toggles bind:chara={DBState.db.characters[$selectedCharID]} noContainer />
 
         {#if DBState.db.characters[$selectedCharID].type === 'group'}
             <div class="flex mt-2 items-center">

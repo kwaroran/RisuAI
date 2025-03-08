@@ -1009,6 +1009,40 @@ export function parseKeyValue(template:string){
     }
 }
 
+export function parseToggleSyntax(template:string){
+    try {
+        console.log(template)
+        if(!template){
+            return []
+        }
+    
+        const keyValue:{
+            key:string,
+            value:string,
+            type?:string,
+            options?:string[]
+        }[] = []
+    
+        const splited = template.split('\n')
+
+        for(const line of splited){
+            const [key, value, type, option] = line.split('=')
+            if(key && value){
+                keyValue.push({
+                    key, value, type, options: option ? option.split(',') : []
+                })
+            }
+        }
+
+        console.log(keyValue)
+    
+        return keyValue   
+    } catch (error) {
+        console.error(error)
+        return []
+    }
+}
+
 export const sortableOptions = {
 	delay: 300, // time in milliseconds to define when the sorting should start
 	delayOnTouchOnly: true,
