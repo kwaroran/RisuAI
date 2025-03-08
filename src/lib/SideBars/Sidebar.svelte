@@ -709,7 +709,7 @@
     {#if $selectedCharID < 0 || $settingsOpen}
       <div>
         <h1 class="text-xl">Welcome to RisuAI!</h1>
-        <span class="text-xs text-textcolor2">Select a bot to start chating</span>
+        <span class="text-xs text-textcolor2">Select a bot to start chatting</span>
       </div>
     {:else if DBState.db.characters[$selectedCharID]?.chaId === '§playground'}
       <SideChatList bind:chara={ DBState.db.characters[$selectedCharID]} />
