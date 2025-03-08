@@ -40,7 +40,7 @@
         {:else}
             <div class="flex mt-2 items-center">
                 <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse={reverse} name={toggle.value} onChange={() => {
-                    DBState.db.globalChatVariables[`toggle_${toggle.value}`] = DBState.db.globalChatVariables[`toggle_${toggle.value}`] === '1' ? '0' : '1'
+                    DBState.db.globalChatVariables[`toggle_${toggle.key}`] = DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1' ? '0' : '1'
                 }} />
             </div>
         {/if}
