@@ -1120,10 +1120,10 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                 } catch (error) {}
             }
             else if(isNaN(parseFloat(value))){
-                body[key] = value
+                body = setObjectValue(body, key, value)
             }
             else{
-                body[key] = parseFloat(value)
+                body = setObjectValue(body, key, parseFloat(value))
             }
         }
     }
