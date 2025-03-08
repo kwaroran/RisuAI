@@ -20,7 +20,7 @@
 
 </script>
 
-{#snippet toggles()}
+{#snippet toggles(reverse: boolean = false)}
     {#each parsedKv as toggle}
         {#if toggle.type === 'select'}
             <div class="flex mt-2 items-center">
@@ -39,7 +39,7 @@
             </div>
         {:else}
             <div class="flex mt-2 items-center">
-                <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse name={toggle.value} onChange={() => {
+                <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse={reverse} name={toggle.value} onChange={() => {
                     DBState.db.globalChatVariables[`toggle_${toggle.value}`] = DBState.db.globalChatVariables[`toggle_${toggle.value}`] === '1' ? '0' : '1'
                 }} />
             </div>
@@ -52,7 +52,7 @@
         <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
             <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
         </div>
-        {@render toggles()}
+        {@render toggles(true)}
         {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable}
             <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
                 <CheckInput bind:check={chara.supaMemory} reverse name={DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
