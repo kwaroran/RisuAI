@@ -1370,7 +1370,7 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.Plugin,
         flags: [LLMFlags.hasFullSystemPrompt],
         recommended: true,
-        parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'],
+        parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens', 'reasoning_effort'],
         tokenizer: LLMTokenizer.Unknown
     },
     {
@@ -1380,7 +1380,7 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.OpenAICompatible,
         flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
         recommended: true,
-        parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k'],
+        parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens', 'reasoning_effort'],
         tokenizer: LLMTokenizer.Unknown
     },
 ]
