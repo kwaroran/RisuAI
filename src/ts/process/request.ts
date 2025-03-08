@@ -2644,29 +2644,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             }]
         })
     }
-    if(db.claudeCachingExperimental){
-        for(let i = 0;i<4;i++){
-            const ind = claudeChat.findLastIndex((v) => {
-                if(v.role !== 'user'){
-                    return false
-                }
-                if(v.content.length === 0){
-                    return false
-                }
-                if(v.content[0].cache_control){ // if it already has cache control, skip
-                    return false
-                }
-                return true
-            })
-            console.log(ind)
-            if(ind === -1){
-                break
-            }
-            claudeChat[ind].content[0].cache_control = {
-                type: 'ephemeral'
-            }
-        }
-    }
 
     let finalChat:Claude3ExtendedChat[] = claudeChat
 
@@ -2833,10 +2810,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
     let betas:string[] = []
-
-    if(db.claudeCachingExperimental){
-        betas.push('prompt-caching-2024-07-31')
-    }
 
     if(body.max_tokens > 8192){
         betas.push('output-128k-2025-02-19')

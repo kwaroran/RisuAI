@@ -151,11 +151,6 @@
 </div>
 {#if DBState.db.useExperimental}
     <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.claudeCachingExperimental} name={language.claudeCachingExperimental}>
-            <Help key="experimental"/><Help key="claudeCachingExperimental"/>
-        </Check>
-    </div>
-    <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.putUserOpen} name={language.oaiRandomUser}>
             <Help key="experimental"/><Help key="oaiRandomUser"/>
         </Check>
