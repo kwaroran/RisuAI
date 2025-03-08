@@ -183,6 +183,10 @@
                 promptItem.text = ""
                 promptItem.role = "system"
             }
+            if(promptItem.type === 'cache'){
+                promptItem.depth = 1
+                promptItem.role = 'all'
+            }
             if(promptItem.type === 'chat'){
                 promptItem.rangeStart = -1000
                 promptItem.rangeEnd = 'end'
@@ -198,6 +202,7 @@
             <OptionInput value="memory">{language.formating.memory}</OptionInput>
             <OptionInput value="postEverything">{language.formating.postEverything}</OptionInput>
             <OptionInput value="chatML">{"chatML"}</OptionInput>
+            <OptionInput value="cache">{language.cachePoint}</OptionInput>
 
             {#if DBState.db.promptSettings.customChainOfThought}
                 <OptionInput value="cot">{language.cot}</OptionInput>
@@ -223,6 +228,17 @@
         {#if promptItem.type === 'chatML'}
             <span>{language.prompt}</span>
             <TextAreaInput highlight bind:value={promptItem.text} />
+        {/if}
+        {#if promptItem.type === 'cache'}
+            <span>{language.depth}</span>
+            <NumberInput bind:value={promptItem.depth} />
+            <span>{language.role}</span>
+            <SelectInput bind:value={promptItem.role}>
+                <OptionInput value="all">{language.all}</OptionInput>
+                <OptionInput value="user">{language.user}</OptionInput>
+                <OptionInput value="bot">{language.character}</OptionInput>
+                <OptionInput value="system">{language.systemPrompt}</OptionInput>
+            </SelectInput>
         {/if}
         {#if promptItem.type === 'chat'}
             {#if promptItem.rangeStart !== -1000}

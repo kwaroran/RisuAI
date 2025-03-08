@@ -40,6 +40,7 @@ export interface OpenAIChat{
     attr?:string[]
     multimodals?: MultiModal[]
     thoughts?: string[]
+    cachePoint?: boolean
 }
 
 export interface MultiModal{
@@ -635,6 +636,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     supaMemoryCardUsed = true
                     break
                 }
+                case 'cache':{
+                    break
+                }
             }
         }
     }
@@ -1142,6 +1146,22 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     }
 
                     pushPrompts(pmt)
+                    break
+                }
+                case 'cache':{
+                    let pointer = formated.length - 1
+                    let depthRemaining = card.depth
+                    while(pointer >= 0){
+                        if(depthRemaining === 0){
+                            break
+                        }
+                        if(formated[pointer].role === card.role || card.role === 'all'){
+                            formated[pointer].cachePoint = true
+                            depthRemaining--
+                        }
+                    }
+
+                    break
                 }
             }
         }

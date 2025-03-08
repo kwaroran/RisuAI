@@ -979,5 +979,7 @@ export const languageKorean = {
     "paste": "붙여넣기",
     "depth": "깊이",
     "alwaysActiveInChat": "언제나 활성화 (현재 챗)",
-    "childLoreDesc": "이것은 캐릭터 로어의 복사본이며, 삭제하거나 원본 로어에서 직접 비활성화하기 전에는 '언제나 활성화' 상태로 유지됩니다."
+    "childLoreDesc": "이것은 캐릭터 로어의 복사본이며, 삭제하거나 원본 로어에서 직접 비활성화하기 전에는 '언제나 활성화' 상태로 유지됩니다.",
+    "cachePoint": "캐시 포인트",
+    "all": "모두",
 }

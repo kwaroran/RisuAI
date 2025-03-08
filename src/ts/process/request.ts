@@ -370,6 +370,7 @@ export interface OpenAIChatExtra {
     thoughts?:string[]
     prefix?:boolean
     reasoning_content?:string
+    cachePoint?:boolean
 }
 
 function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
@@ -570,6 +571,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
             delete formatedChat[i].attr
             delete formatedChat[i].multimodals
             delete formatedChat[i].thoughts
+            delete formatedChat[i].cachePoint
         }
         if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
             const cont = formatedChat[i].content
@@ -2490,7 +2492,8 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
 
     const addClaudeChat = (chat:{
         role: 'user'|'assistant'
-        content: string
+        content: string,
+        cache: boolean
     }, multimodals?:MultiModal[]) => {
         if(claudeChat.length > 0 && claudeChat[claudeChat.length-1].role === chat.role){
             let content = claudeChat[claudeChat.length-1].content
@@ -2533,6 +2536,11 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                     }
                 }
             }
+            if(chat.cache){
+                content[content.length-1].cache_control = {
+                    type: 'ephemeral'
+                }
+            }
             claudeChat[claudeChat.length-1].content = content
         }
         else{
@@ -2566,6 +2574,11 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 }
 
             }
+            if(chat.cache){
+                formatedChat.content[0].cache_control = {
+                    type: 'ephemeral'
+                }
+            }
             claudeChat.push(formatedChat)
         }
     }
@@ -2574,14 +2587,16 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             case 'user':{
                 addClaudeChat({
                     role: 'user',
-                    content: chat.content
+                    content: chat.content,
+                    cache: chat.cachePoint
                 }, chat.multimodals)
                 break
             }
             case 'assistant':{
                 addClaudeChat({
                     role: 'assistant',
-                    content: chat.content
+                    content: chat.content,
+                    cache: chat.cachePoint
                 }, chat.multimodals)
                 break
             }
@@ -2592,7 +2607,8 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 else{
                     addClaudeChat({
                         role: 'user',
-                        content: "System: " + chat.content
+                        content: "System: " + chat.content,
+                        cache: chat.cachePoint
                     })
                 }
                 break

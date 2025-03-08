@@ -1062,4 +1062,6 @@ export const languageEnglish = {
     thinkingTokens: "Thinking Tokens",
     antiServerOverload: "Anti-Server Overload",
     localActivationInGlobalLorebook: "Local Activation in Global Lorebook",
+    cachePoint: "Cache Point",
+    all: "All",
 }
