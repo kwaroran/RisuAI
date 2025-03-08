@@ -24,7 +24,7 @@
     {#each parsedKv as toggle}
         {#if toggle.type === 'select'}
             <div class="flex mt-2 items-center">
-                <span class="text-sm mr-2">{toggle.value}</span>
+                <span class="mr-2">{toggle.value}</span>
 
                 <SelectInput bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
                     {#each toggle.options as option, i}
@@ -34,7 +34,7 @@
             </div>
         {:else if toggle.type === 'text'}
             <div class="flex mt-2 items-center">
-                <span class="text-sm mr-2">{toggle.value}</span>
+                <span class="mr-2">{toggle.value}</span>
                 <TextInput bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
         {:else}
