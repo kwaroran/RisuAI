@@ -292,7 +292,7 @@ async function renderHighlightableMarkdown(data:string) {
 
 }
 
-export const assetRegex = /{{(raw|path|img|image|video|audio|bg|emotion|asset|video-img|source)::(.+?)}}/gms
+export const assetRegex = /{{(raw|path|img|image|video|audio|bgm|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
 async function replaceAsync(string, regexp, replacerFunction) {
     const replacements = await Promise.all(
@@ -407,6 +407,8 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 }
                 return `<img src="${path.path}" alt="${path.path}" style="${assetWidthString} "/>\n`
             }
+            case 'bgm':
+                return `<div risu-ctrl="bgm___auto___${path.path}" style="display:none;"></div>\n`
         }
         return ''
     })
@@ -568,7 +570,7 @@ export async function ParseMarkdown(
     }
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em",],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
     }))
 }
 

@@ -3,12 +3,14 @@ import { sleep } from "./util";
 import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database.svelte";
 import { runLuaButtonTrigger } from "./process/lua";
 
+let bgmElement:HTMLAudioElement|null = null;
 
 function nodeObserve(node:HTMLElement){
     const triggerName = node.getAttribute('risu-trigger');
     const btnEvent = node.getAttribute('risu-btn');
     const observerAdded = node.getAttribute('risu-observer');
     const hlLang = node.getAttribute('x-hl-lang');
+    const ctrlName = node.getAttribute('risu-ctrl');
 
     if(observerAdded){
         return
@@ -87,6 +89,27 @@ function nodeObserve(node:HTMLElement){
             }, {once: true})
         })
     }
+
+    if(ctrlName){
+        const split = ctrlName.split('___');
+
+        switch(split[0]){
+            case 'bgm':{
+                const volume = split[1] === 'auto' ? 0.5 : parseFloat(split[1]);
+                if(!bgmElement){
+                    bgmElement = new Audio(split[2]);
+                    bgmElement.volume = volume
+                    bgmElement.addEventListener('ended', ()=>{
+                        bgmElement.remove();
+                        bgmElement = null;
+                    })
+                    bgmElement.play();
+                }
+                break
+            }
+        }
+    }
+
 }
 
 export async function startObserveDom(){
@@ -102,11 +125,8 @@ export async function startObserveDom(){
         })
     })
 
-    //We are using a while loop intead of MutationObserver because MutationObserver is expensive for just a few elements
     while(true){
-        document.querySelectorAll('[risu-trigger]').forEach(nodeObserve);
-        document.querySelectorAll('[risu-btn]').forEach(nodeObserve);
-        document.querySelectorAll('[x-hl-lang]').forEach(nodeObserve);
+        document.querySelectorAll('[risu-trigger], [risu-btn], [x-hl-lang], [risu-ctrl]').forEach(nodeObserve);
         await sleep(100);
     }
 }

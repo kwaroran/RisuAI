@@ -35,7 +35,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { listen } from '@tauri-apps/api/event'
 import { registerPlugin } from '@capacitor/core';
 import { language } from "src/lang";
-import { startObserveDom } from "./observer";
+import { startObserveDom } from "./observer.svelte";
 import { updateGuisize } from "./gui/guisize";
 import { encodeCapKeySafe } from "./storage/mobileStorage";
 import { updateLorebooks } from "./characters";
