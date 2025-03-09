@@ -22,6 +22,7 @@ interface LuaEngineState {
     code: string;
     engine: LuaEngine;
     mutex: Mutex;
+    chat: Chat;
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
@@ -53,10 +54,13 @@ export async function runLua(code:string, arg:{
         luaEngineState = {
             code,
             engine: await luaFactory.createEngine({injectObjects: true}),
-            mutex: new Mutex()
+            mutex: new Mutex(),
+            chat
         }
         LuaEngines.set(mode, luaEngineState)
         wasEmpty = true
+    } else {
+        luaEngineState.chat = chat
     }
     return await luaEngineState.mutex.runExclusive(async () => {
         if (wasEmpty || code !== luaEngineState.code) {
@@ -104,79 +108,58 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                const message = chat.message?.at(index)
+                const message = luaEngineState.chat.message?.at(index)
                 if(message){
                     message.data = value
                 }
-                setCurrentChat(chat)
             })
             luaEngine.global.set('setChatRole', (id:string, index:number, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                const message = chat.message?.at(index)
+                const message = luaEngineState.chat.message?.at(index)
                 if(message){
                     message.role = value === 'user' ? 'user' : 'char'
                 }
-                setCurrentChat(chat)
             })
             luaEngine.global.set('cutChat', (id:string, start:number, end:number) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                chat.message = chat.message.slice(start,end)
-                setCurrentChat(chat)
+                luaEngineState.chat.message = luaEngineState.chat.message.slice(start,end)
             })
             luaEngine.global.set('removeChat', (id:string, index:number) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                chat.message.splice(index, 1)
-                setCurrentChat(chat)
+                luaEngineState.chat.message.splice(index, 1)
             })
             luaEngine.global.set('addChat', (id:string, role:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                chat.message.push({role: roleData, data: value})
-                setCurrentChat(chat)
+                luaEngineState.chat.message.push({role: roleData, data: value})
             })
             luaEngine.global.set('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                chat.message.splice(index, 0, {role: roleData, data: value})
-                setCurrentChat(chat)
-            })
-            luaEngine.global.set('removeChat', (id:string, index:number) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-                chat = getCurrentChat()
-                chat.message.splice(index, 1)
-                setCurrentChat(chat)
+                luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
             })
             luaEngine.global.set('getChatLength', (id:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                return chat.message.length
+                return luaEngineState.chat.message.length
             })
             luaEngine.global.set('getFullChatMain', (id:string) => {
-                chat = getCurrentChat()
-                const data = JSON.stringify(chat.message.map((v) => {
+                const data = JSON.stringify(luaEngineState.chat.message.map((v) => {
                     return {
                         role: v.role,
-                        data: v.data
+                        data: v.data,
+                        time: v.time ?? 0
                     }
                 }))
                 return data
@@ -187,14 +170,12 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id)){
                     return
                 }
-                chat = getCurrentChat()
-                chat.message = realValue.map((v) => {
+                luaEngineState.chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
                         data: v.data
                     }
                 })
-                setCurrentChat(chat)
             })
 
             luaEngine.global.set('logMain', (value:string) => {
@@ -550,6 +531,7 @@ export async function runLua(code:string, arg:{
 
         LuaSafeIds.delete(accessKey)
         LuaLowLevelIds.delete(accessKey)
+        chat = luaEngineState.chat
 
         return {
             stopSending, chat, res
