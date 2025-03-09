@@ -317,6 +317,9 @@
     });
 
     async function updateInputTransateMessage(reverse: boolean) {
+        if(!DBState.db.useAutoTranslateInput){
+            return
+        }
         if(isExpTranslator()){
             if(!reverse){
                 messageInputTranslate = ''
