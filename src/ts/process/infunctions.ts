@@ -27,7 +27,11 @@ function toRPN(expression:string) {
     let lastToken = ''
 
     for(let i = 0; i < expression.length; i++) {
-        if(operatorsKeys.includes(expression[i])) {
+        const char = expression[i]
+        if (char === '-' && (i === 0 || operatorsKeys.includes(expression[i - 1]) || expression[i - 1] === '(')) {
+            lastToken += char
+        }
+        else if (operatorsKeys.includes(char)) {
             if(lastToken !== '') {
                 expression2.push(lastToken)
             }
@@ -35,10 +39,10 @@ function toRPN(expression:string) {
                 expression2.push('0')
             }
             lastToken = ''
-            expression2.push(expression[i])
+            expression2.push(char)
         }
         else{
-            lastToken += expression[i]
+            lastToken += char
         }
     }
 
