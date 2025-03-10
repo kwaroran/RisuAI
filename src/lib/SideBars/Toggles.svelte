@@ -5,9 +5,9 @@
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import type { character, groupChat } from "src/ts/storage/database.svelte";
-  import SelectInput from "../UI/GUI/SelectInput.svelte";
-  import OptionInput from "../UI/GUI/OptionInput.svelte";
-  import TextInput from "../UI/GUI/TextInput.svelte";
+    import SelectInput from "../UI/GUI/SelectInput.svelte";
+    import OptionInput from "../UI/GUI/OptionInput.svelte";
+    import TextInput from "../UI/GUI/TextInput.svelte";
 
     interface Props {
         chara?: character|groupChat

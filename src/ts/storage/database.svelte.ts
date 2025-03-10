@@ -924,6 +924,7 @@ export interface Database{
         model: string,       
     },
     localActivationInGlobalLorebook: boolean
+    showFolderName: boolean
 }
 
 interface SeparateParameters{

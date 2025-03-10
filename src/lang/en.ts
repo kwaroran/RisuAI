@@ -1064,4 +1064,5 @@ export const languageEnglish = {
     localActivationInGlobalLorebook: "Local Activation in Global Lorebook",
     cachePoint: "Cache Point",
     all: "All",
+    showFolderNameInIcon: "Show Folder Name in Icon",
 }

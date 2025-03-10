@@ -549,7 +549,11 @@
                 }
                 openFolders = openFolders
               }}>
-                {#if openFolders.includes(char.id)}
+                {#if DBState.db.showFolderName}
+                  <div class="h-full w-full flex justify-center items-center">
+                    <span class="hyphens-auto truncate font-bold">{char.name}</span>
+                  </div>
+                {:else if openFolders.includes(char.id)}
                   <FolderOpenIcon />
                 {:else}
                   <FolderIcon />
