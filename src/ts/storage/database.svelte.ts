@@ -1332,6 +1332,7 @@ export interface Chat{
     fmIndex?:number
     hypaV3Data?:SerializableHypaV3Data
     folderId?:string
+    lastDate?:number
 }
 
 export interface ChatFolder{

@@ -164,7 +164,7 @@ export async function makeColdData(){
         for(let j=0;j<DBState.db.characters[i].chats.length;j++){
             
             const chat = DBState.db.characters[i].chats[j]
-            let greatestTime = 0
+            let greatestTime = chat.lastDate ?? 0
 
             if(chat.message.length < 4){
                 //it is inefficient to store small data
@@ -215,6 +215,7 @@ export async function preLoadChat(characterIndex:number, chatIndex:number){
         const coldData = await getColdStorageItem(coldDataKey)
         if(coldData){
             chat.message = coldData
+            chat.lastDate = Date.now()
         }
         await setColdStorageItem(coldDataKey + '_accessMeta', {
             lastAccess: Date.now()
