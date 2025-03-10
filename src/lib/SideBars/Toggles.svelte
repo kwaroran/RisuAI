@@ -23,19 +23,19 @@
 {#snippet toggles(reverse: boolean = false)}
     {#each parsedKv as toggle}
         {#if toggle.type === 'select'}
-            <div class="flex mt-2 items-center">
-                <span class="mr-2">{toggle.value}</span>
+            <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+                <span>{toggle.value}</span>
 
-                <SelectInput bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
+                <SelectInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
                     {#each toggle.options as option, i}
                         <OptionInput value={i.toString()}>{option}</OptionInput>
                     {/each}
                 </SelectInput>
             </div>
         {:else if toggle.type === 'text'}
-            <div class="flex mt-2 items-center">
-                <span class="mr-2">{toggle.value}</span>
-                <TextInput bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
+            <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+                <span>{toggle.value}</span>
+                <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
         {:else}
             <div class="flex mt-2 items-center">
