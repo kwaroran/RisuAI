@@ -7,10 +7,11 @@ import {
     readDir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { forageStorage, isTauri } from "../globalApi.svelte"
+import { forageStorage, isNodeServer, isTauri } from "../globalApi.svelte"
 import { DBState } from "../stores.svelte"
 import { hubURL } from "../characterCards"
 import type { AccountStorage } from "../storage/accountStorage"
+import type { NodeStorage } from "../storage/nodeStorage"
 
 export const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
 
@@ -44,7 +45,20 @@ async function getColdStorageItem(key:string) {
         }
         return null
     }
-
+    else if(isNodeServer){
+        try {
+            const storage = forageStorage.realStorage as NodeStorage
+            const f = await storage.getItem('coldstorage/' + key)
+            if(!f){
+                return null
+            }
+            const text = new TextDecoder().decode(await decompress(new Uint8Array(f)))
+            return JSON.parse(text)
+        }
+        catch (error) {
+            return null
+        }
+    }
     else if(isTauri){
         try {
             const f = await readFile('./coldstorage/'+key+'.json', {
@@ -108,6 +122,16 @@ async function setColdStorageItem(key:string, value:any) {
         }
         return
     }
+    else if(isNodeServer){
+        try {
+            const storage = forageStorage.realStorage as NodeStorage
+            await storage.setItem('coldstorage/' + key, compressed)
+            return
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     else if(isTauri){
         try {
             if(!(await exists('./coldstorage'))){
