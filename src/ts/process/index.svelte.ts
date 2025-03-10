@@ -1159,8 +1159,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                             formated[pointer].cachePoint = true
                             depthRemaining--
                         }
+                        pointer--
                     }
-
                     break
                 }
             }
