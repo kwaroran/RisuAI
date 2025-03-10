@@ -28,6 +28,7 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
+  import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -639,6 +640,15 @@
                 )} {send}/>
             {/if}
             
+            {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
+                {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
+                    <div class="w-full flex justify-center text-textcolor2 italic mb-12">
+                        {language.loadingChatData}
+                    </div>
+                {:then a} 
+                    <div></div>
+                {/await}
+            {:else}
             {#each messageForm(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
                     {#if DBState.db.characters[$selectedCharID].type !== 'group'}
@@ -683,6 +693,7 @@
                     />
                 {/if}
             {/each}
+
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
                 {#if DBState.db.characters[$selectedCharID].type !== 'group' }
                     <Chat
@@ -734,6 +745,8 @@
                         }} />
                     {/if}
                 {/if}
+            {/if}
+
             {/if}
 
             {#if openMenu}

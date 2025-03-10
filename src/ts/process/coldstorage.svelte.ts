@@ -12,7 +12,7 @@ import { DBState } from "../stores.svelte"
 import { hubURL } from "../characterCards"
 import type { AccountStorage } from "../storage/accountStorage"
 
-const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
+export const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
 
 async function decompress(data:Uint8Array) {
     const fflate = await import('fflate')
