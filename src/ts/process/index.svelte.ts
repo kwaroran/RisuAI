@@ -498,6 +498,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         })
     }
 
+    let hasCachePoint = false
     if(promptTemplate){
         const template = promptTemplate
 
@@ -637,6 +638,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     break
                 }
                 case 'cache':{
+                    hasCachePoint = true
                     break
                 }
             }
@@ -1135,6 +1137,21 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         chats = systemizeChat(chats)
                     }
                     pushPrompts(chats)
+
+                    if(DBState.db.automaticCachePoint && !hasCachePoint){
+                        let pointer = formated.length - 1
+                        let depthRemaining = 3
+                        while(pointer >= 0){
+                            if(depthRemaining === 0){
+                                break
+                            }
+                            if(formated[pointer].role === 'user'){
+                                formated[pointer].cachePoint = true
+                                depthRemaining--
+                            }
+                            pointer--
+                        }
+                    }
                     break
                 }
                 case 'memory':{

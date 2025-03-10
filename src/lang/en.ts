@@ -1065,4 +1065,10 @@ export const languageEnglish = {
     cachePoint: "Cache Point",
     all: "All",
     showFolderNameInIcon: "Show Folder Name in Icon",
+    claudeCachingRetrival: "Claude Caching Retrival",
+    claudeCachingRetrivalDesc: "Extends the cache time for Claude Caching, by requesting every 4 minutes. this can reduce the cache miss rate, but it can increase the cost if its not used properly.",
+    automaticCachePoint: "Automatic Cache Point",
+    automaticCachePointDesc: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
+    experimentalChatCompression: "Experimental Chat Data Handling",
+    experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file.",
 }

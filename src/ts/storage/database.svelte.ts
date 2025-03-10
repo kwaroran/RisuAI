@@ -925,6 +925,8 @@ export interface Database{
     },
     localActivationInGlobalLorebook: boolean
     showFolderName: boolean
+    automaticCachePoint: boolean
+    chatCompression: boolean
 }
 
 interface SeparateParameters{

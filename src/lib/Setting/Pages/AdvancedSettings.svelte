@@ -160,6 +160,16 @@
             <Help key="experimental"/>
         </Check>
     </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.automaticCachePoint} name={language.automaticCachePoint}>
+            <Help key="experimental"/><Help key="experimental"/>
+        </Check>
+    </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.chatCompression} name={language.experimentalChatCompression}>
+            <Help key="experimental"/><Help key="experimental"/>
+        </Check>
+    </div>
 {/if}
 {#if DBState.db.showUnrecommended}
     <div class="flex items-center mt-4">
