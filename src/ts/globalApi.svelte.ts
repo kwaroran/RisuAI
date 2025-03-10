@@ -43,6 +43,7 @@ import { initMobileGesture } from "./hotkey";
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
 import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
+import { makeColdData } from "./process/coldstorage.svelte";
 
 //@ts-ignore
 export const isTauri = !!window.__TAURI_INTERNALS__
@@ -675,6 +676,7 @@ export async function loadData() {
             loadedStore.set(true)
             selectedCharID.set(-1)
             startObserveDom()
+            makeColdData()
             saveDb()
             moduleUpdate()
             if(import.meta.env.VITE_RISU_TOS === 'TRUE'){

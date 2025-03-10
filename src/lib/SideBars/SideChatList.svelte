@@ -20,6 +20,7 @@
     import { getModuleToggles } from "src/ts/process/modules";
     import { language } from "src/lang";
   import Toggles from "./Toggles.svelte";
+    import { preLoadChat } from "src/ts/process/coldstorage.svelte";
 
     interface Props {
         chara: character|groupChat;
@@ -67,7 +68,6 @@
                         }
                     })
 
-                    chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
                     chara.chats = newChats
 
                     try {
@@ -76,6 +76,10 @@
                     sorted += 1
                     await sleep(1)
                     createStb()
+
+                    await preLoadChat($selectedCharID, newChats.indexOf(chara.chats[currentChatPage]))
+                    chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
+
                 },
                 ...sortableOptions
             }))
@@ -107,14 +111,17 @@
                 })
                 
                 chara.chatFolders = newFolders
-                chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
                 chara.chats = newChats
+
                 try {
                     folderStb.destroy()
                 } catch (e) {}
                 sorted += 1
                 await sleep(1)
                 createStb()
+
+                await preLoadChat($selectedCharID, newChats.indexOf(chara.chats[currentChatPage]))
+                chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
             },
             ...sortableOptions
         })
@@ -244,8 +251,9 @@
                     <div></div>
                     {:else}
                     {#each chara.chats.filter(chat => chat.folderId == chara.chatFolders[i].id) as chat}
-                    <button data-risu-chat-idx={chara.chats.indexOf(chat)} onclick={() => {
+                    <button data-risu-chat-idx={chara.chats.indexOf(chat)} onclick={async () => {
                         if(!editMode){
+                            await preLoadChat($selectedCharID, chara.chats.indexOf(chat))
                             chara.chatPage = chara.chats.indexOf(chat)
                             $ReloadGUIPointer += 1
                         }
@@ -267,6 +275,7 @@
                                         const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
                                         newChat.name = `Copy of ${newChat.name}`
                                         chara.chats.unshift(newChat)
+                                        await preLoadChat($selectedCharID, 0)
                                         chara.chatPage = 0
                                         chara.chats = chara.chats
                                         break
@@ -293,6 +302,7 @@
                                         break
                                     }
                                     case 2:{
+                                        await preLoadChat($selectedCharID, chara.chats.indexOf(chat))
                                         chara.chatPage = chara.chats.indexOf(chat)
                                         createMultiuserRoom()
                                     }
@@ -315,6 +325,7 @@
                                 }
                             }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                                 e.stopPropagation()
+                                await preLoadChat($selectedCharID, chara.chats.indexOf(chat))
                                 exportChat(chara.chats.indexOf(chat))
                             }}>
                                 <DownloadIcon size={18}/>
@@ -331,6 +342,7 @@
                                 }
                                 const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                                 if(d){
+                                    await preLoadChat($selectedCharID, 0)
                                     chara.chatPage = 0
                                     $ReloadGUIPointer += 1
                                     let chats = chara.chats
@@ -352,8 +364,9 @@
         <div class="risu-chat flex flex-col">
             {#each chara.chats as chat, i}
             {#if chat.folderId == null}
-            <button data-risu-chat-idx={i} onclick={() => {
+            <button data-risu-chat-idx={i} onclick={async () => {
                 if(!editMode){
+                    await preLoadChat($selectedCharID, i)
                     chara.chatPage = i
                     $ReloadGUIPointer += 1
                 }
@@ -377,6 +390,7 @@
                                 const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
                                 newChat.name = `Copy of ${newChat.name}`
                                 chara.chats.unshift(newChat)
+                                await preLoadChat($selectedCharID, 0)
                                 chara.chatPage = 0
                                 chara.chats = chara.chats
                                 break
@@ -404,6 +418,7 @@
                                 break
                             }
                             case 2:{
+                                await preLoadChat($selectedCharID, i)
                                 chara.chatPage = i
                                 createMultiuserRoom()
                             }
@@ -442,6 +457,7 @@
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
+                            await preLoadChat($selectedCharID, 0)
                             chara.chatPage = 0
                             $ReloadGUIPointer += 1
                             let chats = chara.chats
