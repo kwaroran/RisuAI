@@ -927,6 +927,7 @@ export interface Database{
     showFolderName: boolean
     automaticCachePoint: boolean
     chatCompression: boolean
+    claudeRetrivalCaching: boolean
 }
 
 interface SeparateParameters{

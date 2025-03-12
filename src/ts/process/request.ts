@@ -21,6 +21,7 @@ import { OobaParams } from "./prompt";
 import { extractJSON, getGeneralJSONSchema, getOpenAIJSONSchema } from "./templates/jsonSchema";
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/modellist";
 import { runTrigger } from "./triggers";
+import { registerClaudeObserver } from "../observer.svelte";
 
 
 
@@ -2821,6 +2822,15 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
 
     if(db.usePlainFetch){
         headers['anthropic-dangerous-direct-browser-access'] = 'true'
+    }
+
+    
+    if(db.claudeRetrivalCaching){
+        registerClaudeObserver({
+            url: replacerURL,
+            body: body,
+            headers: headers
+        })
     }
 
     if(useStreaming){

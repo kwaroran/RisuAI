@@ -2,6 +2,7 @@ import { runTrigger } from "./process/triggers";
 import { sleep } from "./util";
 import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database.svelte";
 import { runLuaButtonTrigger } from "./process/lua";
+import { globalFetch } from "./globalApi.svelte";
 
 let bgmElement:HTMLAudioElement|null = null;
 
@@ -129,4 +130,52 @@ export async function startObserveDom(){
         document.querySelectorAll('[risu-trigger], [risu-btn], [x-hl-lang], [risu-ctrl]').forEach(nodeObserve);
         await sleep(100);
     }
+}
+
+
+let claudeObserverRunning = false;
+let lastClaudeObserverLoad = 0;
+let lastClaudeRequestTimes = 0;
+let lastClaudeObserverPayload:any = null;
+let lastClaudeObserverHeaders:any = null;
+let lastClaudeObserverURL:any = null;
+
+export async function registerClaudeObserver(arg:{
+    url:string,
+    body:any,
+    headers:any,
+}) {
+    lastClaudeRequestTimes = 0;
+    lastClaudeObserverLoad = Date.now();
+    lastClaudeObserverPayload = safeStructuredClone(arg.body)
+    lastClaudeObserverHeaders = arg.headers;
+    lastClaudeObserverURL = arg.url;
+    lastClaudeObserverPayload.max_tokens = 10;
+    claudeObserver()
+}
+
+async function claudeObserver(){
+    if(claudeObserverRunning){
+        return
+    }
+    claudeObserverRunning = true;
+    const func = async ()=>{       
+        //request every 4 minutes and 30 seconds
+        if(lastClaudeObserverLoad > Date.now() - 1000 * 60 * 4.5){
+            return
+        }
+        
+        if(lastClaudeRequestTimes > 4){
+            return
+        }
+        const res = globalFetch(lastClaudeObserverURL, {
+            body: lastClaudeObserverPayload,
+            headers: lastClaudeObserverHeaders,
+            method: "POST"
+        })
+        lastClaudeObserverLoad = Date.now();
+        lastClaudeRequestTimes += 1;
+    }
+    
+    setInterval(func, 20000)
 }
