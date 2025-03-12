@@ -17,6 +17,7 @@ function toRPN(expression:string) {
         '≤': {precedence: 1, associativity: 'Left'},
         '≥': {precedence: 1, associativity: 'Left'},
         '=': {precedence: 1, associativity: 'Left'},
+        '≠': {precedence: 1, associativity: 'Left'},
         '!': {precedence: 5, associativity: 'Right'},
     };
     const operatorsKeys = Object.keys(operators);
@@ -98,6 +99,7 @@ function calculateRPN(expression:string) {
                 case '≤': stack.push(a <= b ? 1 : 0); break;
                 case '≥': stack.push(a >= b ? 1 : 0); break;
                 case '=': stack.push(a === b ? 1 : 0); break;
+                case '≠': stack.push(a !== b ? 1 : 0); break;
                 case '!': stack.push(b ? 0 : 1); break;
             }
         }
@@ -125,7 +127,14 @@ function executeRPNCalculation(text:string) {
             return "0"
         }
         return parsed.toString()
-    }).replace(/&&/g, '&').replace(/\|\|/g, '|').replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/==/g, '=').replace(/null/gi, '0')
+    })
+    .replace(/&&/g, '&')
+    .replace(/\|\|/g, '|')
+    .replace(/<=/g, '≤')
+    .replace(/>=/g, '≥')
+    .replace(/==/g, '=')
+    .replace(/!=/g, '≠')
+    .replace(/null/gi, '0')
     const expression = toRPN(text);
     const evaluated = calculateRPN(expression);
     return evaluated
