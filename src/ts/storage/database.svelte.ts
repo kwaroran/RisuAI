@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "152.0.1"
+export let appVer = "153.0.0"
 export let webAppSubVer = ''
 
 
@@ -1333,6 +1333,7 @@ export interface Chat{
     fmIndex?:number
     hypaV3Data?:SerializableHypaV3Data
     folderId?:string
+    lastDate?:number
 }
 
 export interface ChatFolder{

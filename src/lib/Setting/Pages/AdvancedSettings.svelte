@@ -4,7 +4,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { alertMd } from "src/ts/alert";
-    import { getRequestLog, isTauri } from "src/ts/globalApi.svelte";
+    import { getRequestLog, isNodeServer, isTauri } from "src/ts/globalApi.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
@@ -162,12 +162,13 @@
     </div>
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.automaticCachePoint} name={language.automaticCachePoint}>
-            <Help key="experimental"/><Help key="experimental"/>
+            <Help key="automaticCachePoint"/><Help key="experimental"/>
         </Check>
     </div>
+
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.chatCompression} name={language.experimentalChatCompression}>
-            <Help key="experimental"/><Help key="experimental"/>
+            <Help key="experimentalChatCompressionDesc"/><Help key="experimental"/>
         </Check>
     </div>
 {/if}

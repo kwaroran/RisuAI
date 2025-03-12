@@ -174,6 +174,8 @@ export const languageEnglish = {
         presetChain: "If it is not blank, the preset will be changed and applied randomly every time when user sends a message in the preset list in this input. preset list should be seperated by comma, for example, `preset1,preset2`.",
         legacyMediaFindings: "If enabled, it will use the old method to find media assets, without using the additional search algorithm.",
         comfyWorkflow: "Put the API workflow of comfy UI. you can get your API workflow in comfy UI by pressing the 'Workflow > Export (API)' button. you must also put {{risu_prompt}} in you workflow text. the {{risu_prompt}} will be replaced with the prompt provided by the Risu.",
+        automaticCachePoint: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
+        experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file. this greatly reduces the size of the chat data, and greatly improves the performance, however its experimental and can be unstable, causing issues in backup feature and more.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -1068,7 +1070,6 @@ export const languageEnglish = {
     claudeCachingRetrival: "Claude Caching Retrival",
     claudeCachingRetrivalDesc: "Extends the cache time for Claude Caching, by requesting every 4 minutes. this can reduce the cache miss rate, but it can increase the cost if its not used properly.",
     automaticCachePoint: "Automatic Cache Point",
-    automaticCachePointDesc: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
     experimentalChatCompression: "Experimental Chat Data Handling",
-    experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file.",
+    loadingChatData: "Loading Chat Data",
 }

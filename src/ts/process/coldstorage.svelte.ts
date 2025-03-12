@@ -7,17 +7,64 @@ import {
     readDir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { isTauri } from "../globalApi.svelte"
+import { forageStorage, isNodeServer, isTauri } from "../globalApi.svelte"
 import { DBState } from "../stores.svelte"
+import { hubURL } from "../characterCards"
+import type { AccountStorage } from "../storage/accountStorage"
+import type { NodeStorage } from "../storage/nodeStorage"
 
-const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
+export const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
+
+async function decompress(data:Uint8Array) {
+    const fflate = await import('fflate')
+    return new Promise<Uint8Array>((resolve, reject) => {
+        fflate.decompress(data, (err, decompressed) => {
+            if (err) {
+                reject(err)
+            }
+            resolve(decompressed)
+        })
+    })
+}
 
 async function getColdStorageItem(key:string) {
-    
-    if(isTauri){
+
+    if(forageStorage.isAccount){
+        const d = await fetch(hubURL + '/hub/account/coldstorage', {
+            method: 'GET',
+            headers: {
+                'x-risu-key': key,
+                'x-risu-auth': (forageStorage.realStorage as AccountStorage).auth
+            }
+        })
+
+        if(d.status === 200){
+            const buf = await d.arrayBuffer()
+            const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
+            return JSON.parse(text)
+        }
+        return null
+    }
+    else if(isNodeServer){
         try {
-            const f = await readFile('./coldstorage/'+key+'.json')
-            const text = new TextDecoder().decode(f)
+            const storage = forageStorage.realStorage as NodeStorage
+            const f = await storage.getItem('coldstorage/' + key)
+            if(!f){
+                return null
+            }
+            const text = new TextDecoder().decode(await decompress(new Uint8Array(f)))
+            return JSON.parse(text)
+        }
+        catch (error) {
+            return null
+        }
+    }
+    else if(isTauri){
+        try {
+            const f = await readFile('./coldstorage/'+key+'.json', {
+                baseDir: BaseDirectory.AppData
+            })
+            const text = new TextDecoder().decode(await decompress(new Uint8Array(f)))
             return JSON.parse(text)
         } catch (error) {
             return null
@@ -36,7 +83,7 @@ async function getColdStorageItem(key:string) {
                 return null
             }
             const buf = await d.arrayBuffer()
-            const text = new TextDecoder().decode(buf)
+            const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
             return JSON.parse(text)
         } catch (error) {
             return null
@@ -45,13 +92,52 @@ async function getColdStorageItem(key:string) {
 }
 
 async function setColdStorageItem(key:string, value:any) {
-    if(isTauri){
+
+    const fflate = await import('fflate')
+    const json = JSON.stringify(value)
+    const compressed = await (new Promise<Uint8Array>((resolve, reject) => {   
+        fflate.compress(new TextEncoder().encode(json), (err, compressed) => {
+            if (err) {
+                reject(err)
+            }
+            resolve(compressed)
+        })
+    }))
+    
+    if(forageStorage.isAccount){
+        const res = await fetch(hubURL + '/hub/account/coldstorage', {
+            method: 'POST',
+            headers: {
+                'x-risu-key': key,
+                'x-risu-auth': (forageStorage.realStorage as AccountStorage).auth,
+                'content-type': 'application/json'
+            },
+            body: compressed
+        })
+        if(res.status !== 200){
+            try {
+                console.error('Error setting cold storage item')
+                console.error(await res.text())   
+            } catch (error) {}
+        }
+        return
+    }
+    else if(isNodeServer){
+        try {
+            const storage = forageStorage.realStorage as NodeStorage
+            await storage.setItem('coldstorage/' + key, compressed)
+            return
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    else if(isTauri){
         try {
             if(!(await exists('./coldstorage'))){
-                await mkdir('./coldstorage', { recursive: true })
+                await mkdir('./coldstorage', { recursive: true, baseDir: BaseDirectory.AppData })
             }
-            const text = JSON.stringify(value)
-            await writeFile('./coldstorage/'+key+'.json', new TextEncoder().encode(text))
+            await writeFile('./coldstorage/'+key+'.json', compressed, { baseDir: BaseDirectory.AppData })
         } catch (error) {
             console.error(error)
         }
@@ -62,8 +148,7 @@ async function setColdStorageItem(key:string, value:any) {
             const opfs = await navigator.storage.getDirectory()
             const file = await opfs.getFileHandle('coldstorage_' + key+'.json', { create: true })
             const writable = await file.createWritable()
-            const text = JSON.stringify(value)
-            await writable.write(new TextEncoder().encode(text))
+            await writable.write(compressed)
             await writable.close()
         } catch (error) {
             console.error(error)
@@ -92,6 +177,10 @@ async function removeColdStorageItem(key:string) {
 
 export async function makeColdData(){
 
+    if(!DBState.db.chatCompression){
+        return
+    }
+
     const currentTime = Date.now()
     const coldTime = currentTime - 1000 * 60 * 60 * 24 * 30 //30 days before now
 
@@ -99,7 +188,7 @@ export async function makeColdData(){
         for(let j=0;j<DBState.db.characters[i].chats.length;j++){
             
             const chat = DBState.db.characters[i].chats[j]
-            let greatestTime = 0
+            let greatestTime = chat.lastDate ?? 0
 
             if(chat.message.length < 4){
                 //it is inefficient to store small data
@@ -150,6 +239,7 @@ export async function preLoadChat(characterIndex:number, chatIndex:number){
         const coldData = await getColdStorageItem(coldDataKey)
         if(coldData){
             chat.message = coldData
+            chat.lastDate = Date.now()
         }
         await setColdStorageItem(coldDataKey + '_accessMeta', {
             lastAccess: Date.now()
