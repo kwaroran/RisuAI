@@ -1544,6 +1544,17 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     }
                     return '0'
                 }
+                case 'module_assetlist':{
+                    const module = getModules()?.find((f) => {
+                        return f.namespace === arra[1]
+                    })
+                    if(!module){
+                        return ''
+                    }
+                    return makeArray(module.assets?.map((f) => {
+                        return f[0]
+                    }))
+                }
                 case 'filter':{
                     const array = parseArray(arra[1])
                     const filterTypes = [
