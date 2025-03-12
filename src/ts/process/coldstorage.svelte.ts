@@ -215,12 +215,29 @@ export async function makeColdData(){
 
             if(greatestTime < coldTime){
                 const id = crypto.randomUUID()
-                await setColdStorageItem(id, chat.message)
+                await setColdStorageItem(id, {
+                    message: chat.message,
+                    hypaV2Data: chat.hypaV2Data,
+                    hypaV3Data: chat.hypaV3Data,
+                    scriptstate: chat.scriptstate,
+                    localLore: chat.localLore
+                })
                 chat.message = [{
                     time: currentTime,
                     data: coldStorageHeader + id,
                     role: 'char'
                 }]
+                chat.hypaV2Data = {
+                    chunks:[],
+                    mainChunks: [],
+                    lastMainChunkID: 0,
+                }
+                chat.hypaV3Data = {
+                    summaries:[]
+                }
+                chat.scriptstate = {}
+                chat.localLore = []
+
             }
         }
     }
@@ -237,9 +254,16 @@ export async function preLoadChat(characterIndex:number, chatIndex:number){
         //bring back from cold storage
         const coldDataKey = chat.message[0].data.slice(coldStorageHeader.length)
         const coldData = await getColdStorageItem(coldDataKey)
-        if(coldData){
+        if(coldData && Array.isArray(coldData)){
             chat.message = coldData
             chat.lastDate = Date.now()
+        }
+        else if(coldData){
+            chat.message = coldData.message
+            chat.hypaV2Data = coldData.hypaV2Data
+            chat.hypaV3Data = coldData.hypaV3Data
+            chat.scriptstate = coldData.scriptstate
+            chat.localLore = coldData.localLore
         }
         await setColdStorageItem(coldDataKey + '_accessMeta', {
             lastAccess: Date.now()
