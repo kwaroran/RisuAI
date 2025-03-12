@@ -159,6 +159,20 @@ async function claudeObserver(){
         return
     }
     claudeObserverRunning = true;
+
+    const fetchIt = async (tries = 0)=>{
+        const res = await globalFetch(lastClaudeObserverURL, {
+            body: lastClaudeObserverPayload,
+            headers: lastClaudeObserverHeaders,
+            method: "POST"
+        })
+        if(res.status >= 400){
+            if(tries < 3){
+                fetchIt(tries + 1)
+            }
+        }
+    }
+
     const func = async ()=>{       
         //request every 4 minutes and 30 seconds
         if(lastClaudeObserverLoad > Date.now() - 1000 * 60 * 4.5){
@@ -168,11 +182,7 @@ async function claudeObserver(){
         if(lastClaudeRequestTimes > 4){
             return
         }
-        const res = globalFetch(lastClaudeObserverURL, {
-            body: lastClaudeObserverPayload,
-            headers: lastClaudeObserverHeaders,
-            method: "POST"
-        })
+        fetchIt()
         lastClaudeObserverLoad = Date.now();
         lastClaudeRequestTimes += 1;
     }
