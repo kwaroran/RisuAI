@@ -1687,7 +1687,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             chat.role === 'assistant' ? 'MODEL' :
             chat.role
 
-        if (chat.multimodals && chat.multimodals.length > 0 && chat.role === "user") {
+        if (chat.multimodals && chat.multimodals.length > 0) {
             let geminiParts: GeminiPart[] = [];
             
             geminiParts.push({
@@ -1714,7 +1714,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             }
     
             reformatedChat.push({
-                role: "USER",
+                role: chat.role === 'user' ? 'USER' : 'MODEL',
                 parts: geminiParts,
             });
         } else if (prevChat?.role === qRole) {
