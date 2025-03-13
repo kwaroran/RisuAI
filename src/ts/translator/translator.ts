@@ -11,6 +11,7 @@ import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
 import { processScriptFull } from "../process/scripts"
 import localforage from "localforage"
+import sendSound from '../../etc/send.mp3'
 
 let cache={
     origin: [''],
@@ -265,7 +266,13 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
         const from = db.translatorInputLanguage
-        return translateLLM(html, {to: tr, from: from, regenerate})
+        const r = translateLLM(html, {to: tr, from: from, regenerate})
+        if(db.playMessageOnTranslateEnd){
+            const audio = new Audio(sendSound);
+            audio.play();
+        }
+
+        return r
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)

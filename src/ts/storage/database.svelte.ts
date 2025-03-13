@@ -929,6 +929,7 @@ export interface Database{
     chatCompression: boolean
     claudeRetrivalCaching: boolean
     outputImageModal: boolean
+    playMessageOnTranslateEnd:boolean
 
 }
 

@@ -274,6 +274,10 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.playMessageOnTranslateEnd } name={language.playMessageOnTranslateEnd}/>
+    </div>
+
+    <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.roundIcons} name={language.roundIcons}/>
     </div>
 

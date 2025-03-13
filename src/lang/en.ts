@@ -1073,4 +1073,5 @@ export const languageEnglish = {
     experimentalChatCompression: "Experimental Chat Data Handling",
     loadingChatData: "Loading Chat Data",
     outputImageModal: "Output Image Modal",
+    playMessageOnTranslateEnd: "Play Audio on Translate Completion",
 }
