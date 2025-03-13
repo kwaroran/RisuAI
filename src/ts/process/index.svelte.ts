@@ -30,6 +30,8 @@ import { runLuaEditTrigger } from "./lua";
 import { parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
+import { getModuleAssets } from "./modules";
+import { getFileSrc, readImage } from "../globalApi.svelte";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -794,6 +796,35 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             }
             return ''
         })
+
+        const assetPromises:Promise<void>[] = []
+        formatedChat = formatedChat.replace(/\{\{asset_?prompt::(.+?)\}\}/gmsiu, (match, p1) => {
+            const moduleAssets = getModuleAssets()
+            const assets = (currentChar.additionalAssets ?? []).concat(moduleAssets)
+            const asset = assets.find(v => {
+                return v[0] === p1
+            })
+            if(asset){
+                assetPromises.push((async () => {
+                    const assetDataBuf = await readImage(asset[1])
+                    multimodal.push({
+                        type: "image",
+                        base64: `data:image/png;base64,${Buffer.from(assetDataBuf).toString('base64')}`
+                    })
+                })())
+            }
+            else if(p1 === 'icon'){
+                assetPromises.push((async () => {
+                    const assetDataBuf = await readImage(currentChar.image ?? '')
+                    multimodal.push({
+                        type: "image",
+                        base64: `data:image/png;base64,${Buffer.from(assetDataBuf).toString('base64')}`
+                    })
+                })())
+            }
+            return ''          
+        })
+        await Promise.all(assetPromises)
 
         const chat:OpenAIChat = {
             role: role,
