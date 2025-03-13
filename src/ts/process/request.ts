@@ -1836,10 +1836,11 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         delete body.systemInstruction
     }
 
-    if(!arg.imageResponse){
+    if(arg.imageResponse){
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
         ]
+        arg.useStreaming = false
     }
 
     let headers:{[key:string]:string} = {}
@@ -2079,14 +2080,15 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                                 rDatas.push('')
                             }
 
-                            rDatas[rDatas.length-1] += part.text ?? ''
-                            if(part.inlineData){
-                                const imgHTML = new Image()
-                                const id = crypto.randomUUID()
-                                imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
-                                writeInlayImage(imgHTML)
-                                rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
-                            }
+                            // Due to error, do not use this
+                            // rDatas[rDatas.length-1] += part.text ?? ''
+                            // if(part.inlineData){
+                            //     const imgHTML = new Image()
+                            //     const id = crypto.randomUUID()
+                            //     imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                            //     writeInlayImage(imgHTML)
+                            //     rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+                            // }
                         }
                     }
 
@@ -2107,12 +2109,15 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                         }
                     }
 
+                    console.log(rDatas[rDatas.length-1])
+
                     control.enqueue({
                         '0': rDatas[rDatas.length-1],
                     })
                 } catch (error) {
                     console.log(error)
                 }
+                
             }
         },)
 
