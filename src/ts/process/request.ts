@@ -2162,15 +2162,10 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     const imgHTML = new Image()
                     const id = crypto.randomUUID()
                     imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
-                    console.log('decoding', part.inlineData.mimeType, part.inlineData.data, id)
-                    console.log('writing')
                     await writeInlayImage(imgHTML, {
                         id: id
                     })
-                    console.log(JSON.stringify(rDatas))
                     rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
-                    console.log(JSON.stringify(rDatas))
-                    console.log('done', id)
                 }
             }   
         }
