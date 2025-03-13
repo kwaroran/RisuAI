@@ -928,6 +928,8 @@ export interface Database{
     automaticCachePoint: boolean
     chatCompression: boolean
     claudeRetrivalCaching: boolean
+    outputImageModal: boolean
+
 }
 
 interface SeparateParameters{
@@ -941,7 +943,10 @@ interface SeparateParameters{
     presence_penalty?:number
     reasoning_effort?:number
     thinking_tokens?:number
+    outputImageModal?:boolean
 }
+
+type OutputModal = 'image'|'audio'|'video'
 
 export interface customscript{
     comment: string;
@@ -1258,6 +1263,7 @@ export interface botPreset{
     regex?:customscript[]
     reasonEffort?:number
     thinkingTokens?:number
+    outputImageModal?:boolean
 }
 
 
@@ -1574,6 +1580,7 @@ export function saveCurrentPreset(){
         image: pres?.[db.botPresetsId]?.image ?? '',
         reasonEffort: db.reasoningEffort ?? 0,
         thinkingTokens: db.thinkingTokens ?? null,
+        outputImageModal: db.outputImageModal ?? false
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1685,6 +1692,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.presetRegex = newPres.regex ?? []
     db.reasoningEffort = newPres.reasonEffort ?? 0
     db.thinkingTokens = newPres.thinkingTokens ?? null
+    db.outputImageModal = newPres.outputImageModal ?? false
     return db
 }
 

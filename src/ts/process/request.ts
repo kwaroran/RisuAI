@@ -11,7 +11,7 @@ import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { supportsInlayImage } from "./files/inlays";
+import { supportsInlayImage, writeInlayImage } from "./files/inlays";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -42,6 +42,7 @@ interface requestDataArgument{
     noMultiGen?:boolean
     schema?:string
     extractJson?:string
+    imageResponse?:boolean
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -374,13 +375,15 @@ export interface OpenAIChatExtra {
     cachePoint?:boolean
 }
 
-function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
+export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
+
+    const flags = Array.isArray(modelInfo) ? modelInfo : modelInfo.flags
     
     const db = getDatabase()
     let systemPrompt:OpenAIChat|null = null
 
-    if(!modelInfo.flags.includes(LLMFlags.hasFullSystemPrompt)){
-        if(modelInfo.flags.includes(LLMFlags.hasFirstSystemPrompt)){
+    if(!flags.includes(LLMFlags.hasFullSystemPrompt)){
+        if(flags.includes(LLMFlags.hasFirstSystemPrompt)){
             while(formated[0].role === 'system'){
                 if(systemPrompt){
                     systemPrompt.content += '\n\n' + formated[0].content
@@ -400,7 +403,7 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
         }
     }
     
-    if(modelInfo.flags.includes(LLMFlags.requiresAlternateRole)){
+    if(flags.includes(LLMFlags.requiresAlternateRole)){
         let newFormated:OpenAIChat[] = []
         for(let i=0;i<formated.length;i++){
             const m = formated[i]
@@ -427,6 +430,12 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
                     newFormated[newFormated.length-1].thoughts.push(...m.thoughts)
                 }
 
+                if(m.cachePoint){
+                    if(!newFormated[newFormated.length-1].cachePoint){
+                        newFormated[newFormated.length-1].cachePoint = true
+                    }
+                }
+
                 continue
             }
             else{
@@ -436,7 +445,7 @@ function reformater(formated:OpenAIChat[],modelInfo:LLMModel){
         formated = newFormated
     }
 
-    if(modelInfo.flags.includes(LLMFlags.mustStartWithUserInput)){
+    if(flags.includes(LLMFlags.mustStartWithUserInput)){
         if(formated.length === 0 || formated[0].role !== 'user'){
             formated.unshift({
                 role: 'user',
@@ -1804,7 +1813,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     const body = {
         contents: reformatedChat,
         generation_config: applyParameters({
-            "maxOutputTokens": maxTokens,
+            "maxOutputTokens": maxTokens
         }, para, {
             'top_p': "topP",
             'top_k': "topK",
@@ -1821,6 +1830,16 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 }
             ]
         },
+    }
+
+    if(systemPrompt === ''){
+        delete body.systemInstruction
+    }
+
+    if(!arg.imageResponse){
+        body.generation_config.responseModalities = [
+            'TEXT', 'IMAGE'
+        ]
     }
 
     let headers:{[key:string]:string} = {}
@@ -2060,7 +2079,14 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                                 rDatas.push('')
                             }
 
-                            rDatas[rDatas.length-1] += part.text
+                            rDatas[rDatas.length-1] += part.text ?? ''
+                            if(part.inlineData){
+                                const imgHTML = new Image()
+                                const id = crypto.randomUUID()
+                                imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                                writeInlayImage(imgHTML)
+                                rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+                            }
                         }
                     }
 
@@ -2072,9 +2098,15 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     }
 
                     if(rDatas.length > 1){
-                        const thought = rDatas.splice(rDatas.length-2, 1)[0]
-                        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
+                        if(arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
+                            const thought = rDatas.splice(rDatas.length-2, 1)[0]
+                            rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
+                        }
+                        else{
+                            rDatas[rDatas.length-1] = rDatas.join('\n\n')
+                        }
                     }
+
                     control.enqueue({
                         '0': rDatas[rDatas.length-1],
                     })
@@ -2110,7 +2142,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     }
 
     let rDatas:string[] = ['']
-    const processDataItem = (data:any) => {
+    const processDataItem = async (data:any) => {
         const parts = data?.candidates?.[0]?.content?.parts
         if(parts){
          
@@ -2120,7 +2152,21 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                     rDatas.push('')
                 }
 
-                rDatas[rDatas.length-1] += part.text
+                rDatas[rDatas.length-1] += part.text ?? ''
+                if(part.inlineData){
+                    const imgHTML = new Image()
+                    const id = crypto.randomUUID()
+                    imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                    console.log('decoding', part.inlineData.mimeType, part.inlineData.data, id)
+                    console.log('writing')
+                    await writeInlayImage(imgHTML, {
+                        id: id
+                    })
+                    console.log(JSON.stringify(rDatas))
+                    rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+                    console.log(JSON.stringify(rDatas))
+                    console.log('done', id)
+                }
             }   
         }
         
@@ -2141,10 +2187,10 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
     // traverse responded data if it contains multipart contents
     if (typeof (res.data)[Symbol.iterator] === 'function') {
         for(const data of res.data){
-            processDataItem(data)
+            await processDataItem(data)
         }
     } else {
-        processDataItem(res.data)
+        await processDataItem(res.data)
     }
 
     if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
@@ -2154,9 +2200,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         }
     }
     
-    if(rDatas.length > 1){
+    if(rDatas.length > 1 && arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
         const thought = rDatas.splice(rDatas.length-2, 1)[0]
         rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
+    }
+    else if(rDatas.length > 1){
+        rDatas[rDatas.length-1] = rDatas.join('\n\n')
     }
 
     return {

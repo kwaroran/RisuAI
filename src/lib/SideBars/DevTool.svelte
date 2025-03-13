@@ -81,6 +81,14 @@
                 md += `> ${modals.length} non-text content(s) included\n` 
             }
 
+            if(formated[i].thoughts && formated[i].thoughts.length > 0){
+                md += `> ${formated[i].thoughts.length} thought(s) included\n`
+            }
+
+            if(formated[i].cachePoint){
+                md += `> Cache point\n`
+            }
+
             md += '```\n' + formated[i].content.replaceAll('```', '\\`\\`\\`') + '\n```\n'
         }
         $doingChat = false

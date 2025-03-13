@@ -71,7 +71,7 @@ export async function postInlayAsset(img:{
     return null
 }
 
-export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string, ext?:string} = {}) {
+export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string, ext?:string, id?:string} = {}) {
 
     let drawHeight = 0
     let drawWidth = 0
@@ -103,7 +103,7 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
     const dataURI = canvas.toDataURL('image/png')
 
 
-    const imgid = v4()
+    const imgid = arg.id ?? v4()
 
     await inlayStorage.setItem(imgid, {
         name: arg.name ?? imgid,
@@ -130,6 +130,17 @@ export async function getInlayAsset(id: string){
         return null
     }
     return img
+}
+
+export async function setInlayAsset(id: string, img:{
+    name: string,
+    data: string,
+    ext: string,
+    height: number,
+    width: number,
+    type: 'image'|'video'|'audio'
+}){
+    await inlayStorage.setItem(id, img)
 }
 
 export function supportsInlayImage(){

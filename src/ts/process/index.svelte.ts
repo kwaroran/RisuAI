@@ -724,10 +724,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         let inlays:string[] = []
         if(msg.role === 'char'){
-            formatedChat = formatedChat.replace(/{{(inlay|inlayed)::(.+?)}}/g, '')
+            formatedChat = formatedChat.replace(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g, (
+                match: string,
+                p1: string,
+                p2: string
+            ) => {
+                if(p2 && p1 === 'inlayeddata'){
+                    inlays.push(p2)
+                }
+                return ''
+            })
         }
         else{
-            const inlayMatch = formatedChat.match(/{{(inlay|inlayed)::(.+?)}}/g)
+            const inlayMatch = formatedChat.match(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g)
             if(inlayMatch){
                 for(const inlay of inlayMatch){
                     inlays.push(inlay)
@@ -1293,7 +1302,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         isGroupChat: nowChatroom.type === 'group',
         bias: {},
         continue: arg.continue,
-        chatId: generationId
+        chatId: generationId,
+        imageResponse: DBState.db.outputImageModal
     }, 'model', abortSignal)
 
     let result = ''

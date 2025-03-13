@@ -1072,4 +1072,5 @@ export const languageEnglish = {
     automaticCachePoint: "Automatic Cache Point",
     experimentalChatCompression: "Experimental Chat Data Handling",
     loadingChatData: "Loading Chat Data",
+    outputImageModal: "Output Image Modal",
 }

@@ -126,6 +126,8 @@
     <Check bind:check={DBState.db.promptSettings.sendName} name={language.formatGroupInSingle} className="mt-4"/>
     <Check bind:check={DBState.db.promptSettings.utilOverride} name={language.utilOverride} className="mt-4"/>
     <Check bind:check={DBState.db.jsonSchemaEnabled} name={language.enableJsonSchema} className="mt-4"/>
+    <Check bind:check={DBState.db.outputImageModal} name={language.outputImageModal} className="mt-4"/>
+
     <Check bind:check={DBState.db.strictJsonSchema} name={language.strictJsonSchema} className="mt-4"/>
 
     {#if DBState.db.showUnrecommended}
