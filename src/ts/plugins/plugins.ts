@@ -120,7 +120,7 @@ export async function loadPlugins() {
 }
 
 type PluginV2ProviderArgument = {
-    prompt_chat: OpenAIChat[],
+    prompt_chat: OpenAIChat[]
     frequency_penalty: number
     min_p: number
     presence_penalty: number
@@ -129,6 +129,7 @@ type PluginV2ProviderArgument = {
     top_p: number
     temperature: number
     mode: string
+    max_tokens: number
 }
 
 type PluginV2ProviderOptions = {
@@ -140,7 +141,7 @@ type EditFunction = (content:string) => string|null|undefined|Promise<string|nul
 type ReplacerFunction = (content:OpenAIChat[], type:string) => OpenAIChat[]|Promise<OpenAIChat[]>
 
 export const pluginV2 = {
-    providers: new Map<string, (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string|ReadableStream<string>}> >(),
+    providers: new Map<string, (arg:PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{success:boolean,content:string|ReadableStream<string>}> >(),
     providerOptions: new Map<string, PluginV2ProviderOptions>(),
     editdisplay: new Set<EditFunction>(),
     editoutput: new Set<EditFunction>(),
@@ -189,7 +190,7 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
             db.characters[charid] = char
             setDatabaseLite(db)
         },
-        addProvider: (name:string, func:(arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>, options?:PluginV2ProviderOptions) => {
+        addProvider: (name:string, func:(arg:PluginV2ProviderArgument, abortSignal?:AbortSignal) => Promise<{success:boolean,content:string}>, options?:PluginV2ProviderOptions) => {
             let provs = get(customProviderStore)
             provs.push(name)
             pluginV2.providers.set(name, func)
