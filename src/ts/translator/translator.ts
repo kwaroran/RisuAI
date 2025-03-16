@@ -10,6 +10,7 @@ import { selectedCharID } from "../stores.svelte"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
 import { processScriptFull } from "../process/scripts"
+import { bergamotTranslate } from "./bergamotTranslator"
 import localforage from "localforage"
 import sendSound from '../../etc/send.mp3'
 
@@ -165,6 +166,9 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
         return f.data.data;
     }
+    if(db.translatorType == "bergamot") {
+        return bergamotTranslate(text, arg.from, arg.to, false);
+    }
     if(db.useExperimentalGoogleTranslator){
 
         const hqAvailable = isTauri || isNodeServer || userScriptFetch
@@ -273,6 +277,11 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
         }
 
         return r
+    }
+    if(db.translatorType == "bergamot" && db.htmlTranslation) {
+        const from = db.aiModel.startsWith('novellist') ? 'ja' : 'en'
+        const to = db.translator || 'en'
+        return bergamotTranslate(html, from, to, true)
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
