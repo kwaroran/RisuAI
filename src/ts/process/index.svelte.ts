@@ -63,6 +63,7 @@ export const doingChat = writable(false)
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 export let previewFormated:OpenAIChat[] = []
+export let previewBody:string = ''
 
 export async function sendChat(chatProcessIndex = -1,arg:{
     chatAdditonalTokens?:number,
@@ -70,6 +71,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     continue?:boolean,
     usedContinueTokens?:number,
     preview?:boolean
+    previewPrompt?:boolean
 } = {}):Promise<boolean> {
 
     chatProcessStage.set(0)
@@ -1303,8 +1305,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         bias: {},
         continue: arg.continue,
         chatId: generationId,
-        imageResponse: DBState.db.outputImageModal
+        imageResponse: DBState.db.outputImageModal,
+        previewBody: arg.previewPrompt
     }, 'model', abortSignal)
+
+    if(arg.previewPrompt && req.type === 'success'){
+        previewBody = req.result
+        return true
+    }
 
     let result = ''
     let emoChanged = false
