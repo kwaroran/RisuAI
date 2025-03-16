@@ -27,7 +27,7 @@
                 <button class="bg-bgcolor py-2 rounded-lg px-4" class:ring-1={selectedLang === lang} onclick={((e) => {
                     e.stopPropagation()
                     selectedLang = lang
-                })}>{toLangName(lang)}</button>
+                })} aria-label={`${toLangName(lang)} 언어 선택`}>{toLangName(lang)}</button>
             {/if}
         {/each}
     </div>

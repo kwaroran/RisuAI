@@ -46,26 +46,26 @@
             {#each providers as provider}
                 {#if provider.providerName === '@as-is'}
                     {#each provider.models as model}
-                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name}</button>
+                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`${model.name} 모델 선택`}>{model.name}</button>
                     {/each}
                 {:else}
                     <Arcodion name={provider.providerName}>
                         {#each provider.models as model}
-                            <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name}</button>
+                            <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`${model.name} 모델 선택`}>{model.name}</button>
                         {/each}
                     </Arcodion>
                 {/if}
             {/each}
             <Arcodion name="Horde">
                 {#await getHordeModels()}
-                    <button class="p-2">Loading...</button>
+                    <button class="p-2" aria-label="로딩 중">Loading...</button>
                 {:then models}
-                    <button onclick={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500">
+                    <button onclick={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500" aria-label="자동 모델 선택">
                         Auto Model
                         <br><span class="text-textcolor2 text-sm">Performace: Auto</span>
                     </button>
                     {#each models as model}
-                        <button onclick={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500">
+                        <button onclick={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500" aria-label={`${model.name.trim()} 모델 선택`}>
                             {model.name.trim()}
                             <br><span class="text-textcolor2 text-sm">Performace: {model.performance.toFixed(1)}</span>
                         </button>
@@ -81,7 +81,8 @@
 {/if}
 
 <button onclick={() => {openOptions = true}}
-    class="mt-4 drop-shadow-lg p-3 flex justify-center items-center ml-2 mr-2 rounded-lg bg-darkbutton mb-4 border-darkborderc border">
+    class="mt-4 drop-shadow-lg p-3 flex justify-center items-center ml-2 mr-2 rounded-lg bg-darkbutton mb-4 border-darkborderc border"
+    aria-label="모델 선택 메뉴 열기">
         {getModelInfo(value).fullName}
 </button>
 

@@ -48,14 +48,14 @@
                 currentCharacter = currentCharacter
             }
         }
-    }}>
+    }} aria-label="에셋 추가">
         <PlusIcon />
     </button>
     {#if currentCharacter.additionalAssets}
         {#each currentCharacter.additionalAssets as additionalAsset, i}
                 <button onclick={()=>{
                     onSelect(additionalAsset)
-                }}>
+                }} aria-label={`${additionalAsset[0]} 에셋 선택`}>
                     {#if assetFilePath[i]}
                         {#if assetFileExtensions[i] === 'mp4'}
                             <!-- svelte-ignore a11y_media_has_caption -->

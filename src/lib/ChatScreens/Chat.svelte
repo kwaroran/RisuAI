@@ -454,7 +454,7 @@
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
                     setStatusMessage(language.copied)
                 })
-            }}>
+            }} aria-label="메시지 복사">
                 <CopyIcon size={20}/>
             </button>    
         {/if}
@@ -462,7 +462,7 @@
             {#if DBState.db.characters[selIdState.selId].type !== 'group' && DBState.db.characters[selIdState.selId].ttsMode !== 'none' && (DBState.db.characters[selIdState.selId].ttsMode)}
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-tts" onclick={()=>{
                     return sayTTS(null, message)
-                }}>
+                }} aria-label="TTS 재생">
                     <Volume2Icon size={20}/>
                 </button>
             {/if}
@@ -476,11 +476,11 @@
                         editMode = false
                         edit()
                     }
-                }}>
+                }} aria-label="메시지 편집">
                     <PencilIcon size={20}/>
                 </button>
                 <!-- 이 버튼이 수정 버튼. edit() 함수를 주목할 것-->
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)} aria-label="메시지 삭제">
                     <TrashIcon size={20}/>
                 </button>
             {/if}
@@ -488,20 +488,20 @@
         {#if DBState.db.translator !== '' && !blankMessage}
             <button class={"ml-2 cursor-pointer hover:text-blue-500 transition-colors button-icon-translate " + (translated ? 'text-blue-400':'')} class:translating={translating} onclick={async () => {
                 translated = !translated
-            }}>
+            }} aria-label="번역">
                 <LanguagesIcon />
             </button>
         {/if}
         {#if rerollIcon || altGreeting}
             {#if DBState.db.swipe || altGreeting}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll} aria-label="이전 응답">
                     <ArrowLeft size={22}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll} aria-label="다음 응답">
                     <ArrowRight size={22}/>
                 </button>
             {:else}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll} aria-label="응답 재생성">
                     <RefreshCcwIcon size={20}/>
                 </button>
             {/if}

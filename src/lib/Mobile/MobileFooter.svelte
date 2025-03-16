@@ -7,22 +7,37 @@
 </script>
 {#if $selectedCharID === -1}
 
-    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2">
-        <button class="flex justify-center items-center flex-col gap-2 w-20" class:text-textcolor={$MobileGUIStack === 0} onclick={() => {
-            MobileGUIStack.set(0)
-        }}>
+    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2" role="navigation" aria-label="모바일 메뉴">
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-20" 
+            class:text-textcolor={$MobileGUIStack === 0} 
+            onclick={() => {
+                MobileGUIStack.set(0)
+            }}
+            aria-label="RisuRealm"
+        >
             <GlobeIcon size={24} />
             <span class="text-xs">RisuRealm</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-20" class:text-textcolor={$MobileGUIStack === 1} onclick={() => {
-            MobileGUIStack.set(1)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-20" 
+            class:text-textcolor={$MobileGUIStack === 1} 
+            onclick={() => {
+                MobileGUIStack.set(1)
+            }}
+            aria-label={language.character}
+        >
             <HomeIcon size={24} />
             <span class="text-xs">{language.character}</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-20" class:text-textcolor={$MobileGUIStack === 2} onclick={() => {
-            MobileGUIStack.set(2)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-20" 
+            class:text-textcolor={$MobileGUIStack === 2} 
+            onclick={() => {
+                MobileGUIStack.set(2)
+            }}
+            aria-label={language.settings}
+        >
             <SettingsIcon size={24} />
             <span class="text-xs">{language.settings}</span>
         </button>
@@ -31,40 +46,70 @@
 {/if}
 
 {#if $selectedCharID !== -1 && $MobileSideBar === 2}
-    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2 truncate">
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 0} onclick={() => {
-            CharConfigSubMenu.set(0)
-        }}>
+    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2 truncate" role="navigation" aria-label="캐릭터 설정 메뉴">
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 0} 
+            onclick={() => {
+                CharConfigSubMenu.set(0)
+            }}
+            aria-label={language.basicInfo}
+        >
             <UserIcon size={24} />
             <span class="text-xs truncate max-w-16">{language.basicInfo}</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 1} onclick={() => {
-            CharConfigSubMenu.set(1)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 1} 
+            onclick={() => {
+                CharConfigSubMenu.set(1)
+            }}
+            aria-label={language.characterDisplay}
+        >
             <SmileIcon size={24} />
             <span class="text-xs truncate max-w-16">{language.characterDisplay}</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 3} onclick={() => {
-            CharConfigSubMenu.set(3)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 3} 
+            onclick={() => {
+                CharConfigSubMenu.set(3)
+            }}
+            aria-label={language.loreBook}
+        >
             <BookIcon size={24} />
             <span class="text-xs truncate max-w-16">{language.loreBook}</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 5} onclick={() => {
-            CharConfigSubMenu.set(5)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 5} 
+            onclick={() => {
+                CharConfigSubMenu.set(5)
+            }}
+            aria-label="TTS"
+        >
             <Volume2Icon size={24} />
             <span class="text-xs truncate max-w-16">TTS</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 4} onclick={() => {
-            CharConfigSubMenu.set(4)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 4} 
+            onclick={() => {
+                CharConfigSubMenu.set(4)
+            }}
+            aria-label={language.scripts}
+        >
             <CurlyBraces size={24} />
             <span class="text-xs truncate max-w-16">{language.scripts}</span>
         </button>
-        <button class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" class:text-textcolor={$CharConfigSubMenu === 2} onclick={() => {
-            CharConfigSubMenu.set(2)
-        }}>
+        <button 
+            class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
+            class:text-textcolor={$CharConfigSubMenu === 2} 
+            onclick={() => {
+                CharConfigSubMenu.set(2)
+            }}
+            aria-label={language.advanced}
+        >
             <ActivityIcon size={24} />
             <span class="text-xs truncate max-w-16">{language.advanced}</span>
         </button>

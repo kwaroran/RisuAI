@@ -34,7 +34,7 @@
                     const original = openedData.original
                     openedData = null
                     getRealmInfo(original)
-                }}>Forked</button>
+                }} aria-label="원본 캐릭터 보기">Forked</button>
             {/if}
             <div class="flex justify-start gap-4 mt-4">
                 <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
@@ -56,17 +56,17 @@
                 {#if openedData.hasEmotion}
                     <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
                         alertNormal("This character includes emotion images")
-                    })}><SmileIcon /></button>
+                    })} aria-label="감정 이미지 정보"><SmileIcon /></button>
                 {/if}
                 {#if openedData.hasAsset}
                     <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
                         alertNormal("This character includes additional Assets")
-                    })}><ImageIcon /></button>
+                    })} aria-label="추가 에셋 정보"><ImageIcon /></button>
                 {/if}
                 {#if openedData.hasLore}
                     <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
                         alertNormal("This character includes lorebook")
-                    })}><BookIcon /></button>
+                    })} aria-label="로어북 정보"><BookIcon /></button>
                 {/if}
             </div>
 
@@ -89,7 +89,7 @@
                     })
                     alertNormal(await da.text())
                 }
-            })}>
+            })} aria-label="캐릭터 신고하기">
                 <FlagIcon />
             </button>
             {#if (DBState.db.account?.token?.split('-') ?? [])[1] === openedData.creator}
@@ -106,7 +106,7 @@
                         })
                         alertNormal(await da.text())
                     }
-                })}>
+                })} aria-label="캐릭터 삭제하기">
                     <TrashIcon />
                 </button>
             {/if}
@@ -114,13 +114,13 @@
                 e.stopPropagation()
                 await navigator.clipboard.writeText(`https://realm.risuai.net/character/${openedData.id}`)
                 alertNormal(language.clipboardSuccess)
-            })}>
+            })} aria-label="링크 복사">
                 <PaperclipIcon />
             </button>
             <button class="bg-selected hover:ring flex-grow p-2 font-bold rounded-md mr-2" onclick={() => {
                 downloadRisuHub(openedData.id)
                 openedData = null
-            }}>
+            }} aria-label="캐릭터와 채팅하기">
                 Chat
             </button>
             

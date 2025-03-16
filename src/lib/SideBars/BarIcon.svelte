@@ -5,15 +5,16 @@
     onClick?: any;
     additionalStyle?: string | Promise<string>;
     children?: import('svelte').Snippet;
+    ariaLabel?: string;
   }
 
-  let { onClick = () => {}, additionalStyle = "", children }: Props = $props();
+  let { onClick = () => {}, additionalStyle = "", children, ariaLabel = "" }: Props = $props();
 </script>
 
 {#await additionalStyle}
-  <button onclick={onClick} class="ico">{@render children?.()}</button>
+  <button onclick={onClick} class="ico" aria-label={ariaLabel}>{@render children?.()}</button>
 {:then as}
-  <button onclick={onClick} class="ico" style={as}>{@render children?.()}</button>
+  <button onclick={onClick} class="ico" style={as} aria-label={ariaLabel}>{@render children?.()}</button>
 {/await}
 
 <style>

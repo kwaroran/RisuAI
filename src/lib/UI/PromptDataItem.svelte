@@ -161,15 +161,15 @@
             <button onclick={(e) => {
                 e.stopPropagation()
                 onRemove()
-            }}><XIcon /></button>
+            }} aria-label="항목 제거"><XIcon /></button>
             <button onclick={(e) => {
                 e.stopPropagation()
                 moveDown()
-            }}><ArrowDown /></button>
+            }} aria-label="항목 아래로 이동"><ArrowDown /></button>
             <button onclick={(e) => {
                 e.stopPropagation()
                 moveUp()
-            }}><ArrowUp /></button>
+            }} aria-label="항목 위로 이동"><ArrowUp /></button>
         </div>
     </div>
     {#if opened}

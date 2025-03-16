@@ -15,7 +15,7 @@
 </script>
 
 
-<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" onclick={onClick}>
+<button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" onclick={onClick} aria-label={`${chara.name} 캐릭터 선택`}>
     <div class="flex gap-2 w-full">
     <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
     <div class="flex flex-col flex-grow min-w-0">
@@ -36,19 +36,25 @@
                 <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
                     e.stopPropagation()
                     alertNormal("This character includes emotion images")
-                })} onkeydown={(e) => {}}><SmileIcon /></div>
+                })} onkeydown={(e) => {}} aria-label="감정 이미지 정보">
+                    <SmileIcon />
+                </div>
             {/if}
             {#if chara.hasAsset}
                 <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
                     e.stopPropagation()
                     alertNormal("This character includes additional assets")
-                })} onkeydown={(e) => {}}><ImageIcon /></div>
+                })} onkeydown={(e) => {}} aria-label="추가 에셋 정보">
+                    <ImageIcon />
+                </div>
             {/if}
             {#if chara.hasLore}
                 <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
                     e.stopPropagation()
                     alertNormal("This character includes lorebook")
-                })} onkeydown={(e) => {}}><BookIcon /></div>
+                })} onkeydown={(e) => {}} aria-label="로어북 정보">
+                    <BookIcon />
+                </div>
             {/if}
         </div>
     </div>

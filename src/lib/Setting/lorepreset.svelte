@@ -15,7 +15,7 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.loreBook}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="닫기">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -25,7 +25,7 @@
                 if(!editMode){
                     DBState.db.loreBookPage = ind
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === DBState.db.loreBookPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={ind === DBState.db.loreBookPage} aria-label={`${lore.name} 로어북 선택`}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.loreBook[ind].name} placeholder="string" padding={false}/>
                 {:else}
@@ -64,12 +64,12 @@
                 loreBooks.push(newLoreBook)
 
                 DBState.db.loreBook = loreBooks
-            }}>
+            }} aria-label="새 로어북 추가">
                 <PlusIcon/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }}>
+            }} aria-label="편집 모드 전환">
                 <EditIcon size={18}/>
             </button>
         </div>

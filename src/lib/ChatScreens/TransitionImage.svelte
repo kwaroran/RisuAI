@@ -8,9 +8,10 @@
     interface Props {
         src?: string[]|Promise<string[]>;
         classType: 'waifu'|'risu'|'mobile';
+        altText?: string;
     }
 
-    let { src = [], classType }: Props = $props();
+    let { src = [], classType, altText = '캐릭터 이미지' }: Props = $props();
 
     async function processSrc(src:string[]|Promise<string[]>) {
         const resultSrc = await src
@@ -114,13 +115,16 @@
     <div class="image-container"
         class:img-waifu={classType === 'waifu'}
         class:img-risu={classType === 'risu'}
-        class:img-mobile={classType === 'mobile'}>
+        class:img-mobile={classType === 'mobile'}
+        role="img"
+        aria-label={altText}
+    >
         {#if !showOldImage}
             {#each currentSrc as img, i}
                 {#if styleType === 'normal'}
                     <img
                         src={img}
-                        alt="img"
+                        alt={`${altText} ${i+1}`}
                         style:width={`${100 / currentSrc.length}%`}
                         style:left={`${100 / currentSrc.length * i}%`}
                     />
@@ -128,7 +132,7 @@
                     {#if i <= 1}
                         <img
                             src={img}
-                            alt="img"
+                            alt={`${altText} ${i+1}`}
                             style:width={`${80 - (i*10)}%`}
                             style:left={`${30-(i*30)}%`}
                             style:z-index={9 - i}
@@ -141,7 +145,7 @@
                 {#each oldSrc as img2, i}
                     <img
                         src={oldSrc[i]}
-                        alt="img"
+                        alt={`이전 ${altText} ${i+1}`}
                         class="old-image"
                         onanimationend={handleTransitionEnd}
                         style:width={`${100 / oldSrc.length}%`}
@@ -154,7 +158,7 @@
                     {#if i <= 1}
                         <img
                             src={oldSrc[i]}
-                            alt="img"
+                            alt={`이전 ${altText} ${i+1}`}
                             class="old-image"
                             onanimationend={handleTransitionEnd}
                             style:width={`${80 - (i*10)}%`}
@@ -168,7 +172,7 @@
                 {#each currentSrc as img3, i}
                     <img
                         src={currentSrc[i]}
-                        alt="img"
+                        alt={`${altText} ${i+1}`}
                         class="new-image"
                         style:width={`${100 / currentSrc.length}%`}
                         style:left={`${100 / currentSrc.length * i}%`}
@@ -180,7 +184,7 @@
                     {#if i <= 1}
                         <img
                             src={currentSrc[i]}
-                            alt="img"
+                            alt={`${altText} ${i+1}`}
                             class="new-image"
                             style:width={`${80 - (i*10)}%`}
                             style:left={`${30-(i*30)}%`}

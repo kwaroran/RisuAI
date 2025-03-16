@@ -316,6 +316,7 @@
     PlaygroundStore.set(0)
     OpenRealmStore.set(false)
   }}
+  aria-label={language.home || "홈"}
 >
   <HomeIcon />
   <span class="text-xs">{language.home}</span>
@@ -332,6 +333,7 @@
       settingsOpen.set(true);
     }
   }}
+  aria-label={language.settings || "설정"}
 >
   <Settings />
   <span class="text-xs">{language.settings}</span>
@@ -346,6 +348,7 @@
     openGrid();
 
   }}
+  aria-label={language.character || "캐릭터"}
 >
   <User2Icon />
   <span class="text-xs">{language.character}</span>
@@ -361,6 +364,7 @@
     selectedCharID.set(-1)
     PlaygroundStore.set(1)
   }}
+  aria-label={language.playground || "플레이그라운드"}
 >
   <ShellIcon />
   <span class="text-xs">{language.playground}</span>
@@ -379,7 +383,8 @@
     class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer text-white mt-2 items-center justify-center rounded-md bg-textcolor2 transition-colors hover:bg-green-500"
     onclick={() => {
       menuMode = 1 - menuMode;
-    }}><ListIcon />
+    }}
+    aria-label={language.menu || "메뉴"}><ListIcon />
   </button>
   <div class="mt-2 border-b border-b-selected w-full relative text-white ">
     {#if menuMode === 1}
@@ -393,7 +398,8 @@
             reseter();
             settingsOpen.set(true);
           }
-        }}><Settings /></BarIcon
+        }}
+        ariaLabel={language.settings || "설정"}><Settings /></BarIcon
       >
       <div class="mt-2"></div>
       <BarIcon
@@ -402,7 +408,8 @@
           selectedCharID.set(-1)
           PlaygroundStore.set(0)
           OpenRealmStore.set(false)
-        }}><HomeIcon /></BarIcon>
+        }}
+        ariaLabel={language.home || "홈"}><HomeIcon /></BarIcon>
       <div class="mt-2"></div>
       <BarIcon
         onClick={() => {
@@ -414,13 +421,15 @@
           selectedCharID.set(-1)
           PlaygroundStore.set(1)
         }}
+        ariaLabel={language.playground || "플레이그라운드"}
       ><ShellIcon /></BarIcon>
       <div class="mt-2"></div>
       <BarIcon
         onClick={() => {
           reseter();
           openGrid();
-        }}><LayoutGridIcon /></BarIcon
+        }}
+        ariaLabel={language.character || "캐릭터"}><LayoutGridIcon /></BarIcon
       >
     </div>
     {/if}
@@ -467,6 +476,7 @@
                 }
               }
             }}
+            aria-label={char.type === "normal" ? `${char.name} 캐릭터 선택` : `${char.name} 폴더 ${openFolders.includes(char.id) ? "닫기" : "열기"}`}
           >
           {#if char.type === 'normal'}
             <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char.name} />
@@ -617,6 +627,7 @@
                       }
                     }
                   }}
+                  aria-label={`${char2.name} 캐릭터 선택`}
                 >
                 <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char2.name}/>
               </div>
@@ -659,6 +670,7 @@
         onClick={async () => {
           addCharacter({reseter}) 
         }}
+        aria-label="캐릭터 추가"
         ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
           ><path
             fill="none"
@@ -706,6 +718,7 @@
       }
       $sideBarClosing = true;
     }}
+    aria-label="사이드바 닫기"
   >
     <!-- <button class="border-none bg-transparent p-0 text-textcolor"><X /></button> -->
   </button>
@@ -738,15 +751,15 @@
         <button onclick={() => {
           devTool = false
           botMakerMode.set(false)
-        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool}>{language.Chat}</button>
+        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool} aria-label={language.Chat || "채팅"}>{language.Chat}</button>
         <button onclick={() => {
           devTool = false
           botMakerMode.set(true)
-        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
+        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool} aria-label={language.character || "캐릭터"}>{language.character}</button>
         {#if DBState.db.enableDevTools}
           <button onclick={() => {
             devTool = true
-          }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool}>
+          }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool} aria-label={language.devTools || "개발자 도구"}>
             <WrenchIcon size={18} />
           </button>
         {/if}
@@ -774,6 +787,7 @@
             e.currentTarget.click()
         }
       }}
+      aria-label="사이드바 닫기"
       class:sidebar-dark-animation={!$sideBarClosing}
       class:sidebar-dark-close-animation={$sideBarClosing}>
 

@@ -39,6 +39,7 @@
       onclick={onClick} use:tooltipRight={name}
       role="button"
       tabindex="0"
+      aria-label={name}
 >
   {#if src}
     {#if src === "slot"}
@@ -61,6 +62,7 @@
         style:background-size={backgroundimg ? "cover" : undefined}
         style:background-position={backgroundimg ? "center" : undefined}
         class:rounded-md={!rounded} class:rounded-full={rounded} 
+        aria-hidden="true"
       >
       {#if !backgroundimg}
         {@render children?.()}
@@ -74,6 +76,7 @@
           style:height={size + "px"}
           style:minWidth={size + "px"}
           class:rounded-md={!rounded} class:rounded-full={rounded} 
+          aria-hidden="true"
 ></div>
       {:then img}
         <img
@@ -83,7 +86,7 @@
           style:height={size + "px"}
           style:minWidth={size + "px"}
           class:rounded-md={!rounded} class:rounded-full={rounded} 
-          alt="avatar"
+          alt="{name} 아바타"
         />
       {/await}
     {/if}
@@ -94,6 +97,7 @@
       style:height={size + "px"}
       style:minWidth={size + "px"}
       class:rounded-md={!rounded} class:rounded-full={rounded} 
+      aria-hidden="true"
 ></div>
   {/if}
 </span>

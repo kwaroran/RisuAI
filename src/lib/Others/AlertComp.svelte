@@ -83,16 +83,18 @@
 }}></svelte:window>
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit'}
-    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
+    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" 
+        class:vis={ $alertStore.type === 'wait2'}
+    >
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
-                <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
+                <h2 id="alert-title" class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
             {:else if $alertStore.type === 'selectChar'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
             {:else if $alertStore.type === 'input'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
                 <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
@@ -126,59 +128,88 @@
 
             {#if $alertStore.type === 'ask'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'yes'
-                        })
-                    }}>YES</Button>
-                    <Button className="mt-4 flex-grow" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'no'
-                        })
-                    }}>NO</Button>
+                    <Button 
+                        className="mt-4 flex-grow" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'yes'
+                            })
+                        }}
+                        ariaLabel="예"
+                    >YES</Button>
+                    <Button 
+                        className="mt-4 flex-grow" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'no'
+                            })
+                        }}
+                        ariaLabel="아니오"
+                    >NO</Button>
                 </div>
             {:else if $alertStore.type === 'tos'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'yes'
-                        })
-                    }}>Accept</Button>
-                    <Button styled={'outlined'} className="mt-4 flex-grow" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'no'
-                        })
-                    }}>Do not Accept</Button>
+                    <Button 
+                        className="mt-4 flex-grow" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'yes'
+                            })
+                        }}
+                        ariaLabel="약관 동의"
+                    >Accept</Button>
+                    <Button 
+                        styled={'outlined'} 
+                        className="mt-4 flex-grow" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'no'
+                            })
+                        }}
+                        ariaLabel="약관 거부"
+                    >Do not Accept</Button>
                 </div>
             {:else if $alertStore.type === 'select'}
                 {#each $alertStore.msg.split('||') as n, i}
-                    <Button className="mt-4" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: i.toString()
-                        })
-                    }}>{n}</Button>
+                    <Button 
+                        className="mt-4" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: i.toString()
+                            })
+                        }}
+                        ariaLabel={n}
+                    >{n}</Button>
                 {/each}
             {:else if $alertStore.type === 'error' || $alertStore.type === 'normal' || $alertStore.type === 'markdown'}
-               <Button className="mt-4" onclick={() => {
-                    alertStore.set({
-                        type: 'none',
-                        msg: ''
-                    })
-                }}>OK</Button>
+               <Button 
+                    className="mt-4" 
+                    onclick={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: ''
+                        })
+                    }}
+                    ariaLabel="확인"
+                >OK</Button>
             {:else if $alertStore.type === 'input'}
-                <TextInput value="" id="alert-input" autocomplete="off" marginTop />
-                <Button className="mt-4" onclick={() => {
-                    alertStore.set({
-                        type: 'none',
-                        //@ts-ignore
-                        msg: document.querySelector('#alert-input')?.value
-                    })
-                }}>OK</Button>
+                <TextInput value="" id="alert-input" autocomplete="off" marginTop ariaLabel="입력" />
+                <Button 
+                    className="mt-4" 
+                    onclick={() => {
+                        alertStore.set({
+                            type: 'none',
+                            //@ts-ignore
+                            msg: document.querySelector('#alert-input')?.value
+                        })
+                    }}
+                    ariaLabel="확인"
+                >OK</Button>
             {:else if $alertStore.type === 'login'}
                 <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
                     <iframe src={hubURL + '/hub/login'} title="login" class="w-full h-full">
@@ -190,24 +221,34 @@
                         {#if char.type !== 'group'}
                             {#if char.image}
                                 {#await getCharImage(DBState.db.characters[i].image, 'css')}
-                                    <BarIcon onClick={() => {
-                                        //@ts-ignore
-                                        alertStore.set({type: 'none',msg: char.chaId})
-                                    }}>
+                                    <BarIcon 
+                                        onClick={() => {
+                                            //@ts-ignore
+                                            alertStore.set({type: 'none',msg: char.chaId})
+                                        }}
+                                        ariaLabel={char.name}
+                                    >
                                         <User/>
                                     </BarIcon>
                                 {:then im} 
-                                    <BarIcon onClick={() => {
-                                        //@ts-ignore
-                                        alertStore.set({type: 'none',msg: char.chaId})
-                                    }} additionalStyle={im} />
+                                    <BarIcon 
+                                        onClick={() => {
+                                            //@ts-ignore
+                                            alertStore.set({type: 'none',msg: char.chaId})
+                                        }} 
+                                        additionalStyle={im} 
+                                        ariaLabel={char.name}
+                                    />
                                     
                                 {/await}
                             {:else}
-                                <BarIcon onClick={() => {
-                                    //@ts-ignore
-                                    alertStore.set({type: 'none',msg: char.chaId})
-                                }}>
+                                <BarIcon 
+                                    onClick={() => {
+                                        //@ts-ignore
+                                        alertStore.set({type: 'none',msg: char.chaId})
+                                    }}
+                                    ariaLabel={char.name}
+                                >
                                 <User/>
                                 </BarIcon>
                             {/if}
@@ -216,21 +257,40 @@
                 </div>
             {:else if $alertStore.type === 'requestdata'}
                 <div class="flex flex-wrap gap-2">
-                    <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
+                    <Button 
+                        selected={generationInfoMenuIndex === 0} 
+                        size="sm" 
+                        onclick={() => {generationInfoMenuIndex = 0}}
+                        ariaLabel={language.tokens || "토큰"}
+                    >
                         {language.tokens}
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 1} size="sm" onclick={() => {generationInfoMenuIndex = 1}}>
+                    <Button 
+                        selected={generationInfoMenuIndex === 1} 
+                        size="sm" 
+                        onclick={() => {generationInfoMenuIndex = 1}}
+                        ariaLabel={language.metaData || "메타데이터"}
+                    >
                         {language.metaData}
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 2} size="sm" onclick={() => {generationInfoMenuIndex = 2}}>
+                    <Button 
+                        selected={generationInfoMenuIndex === 2} 
+                        size="sm" 
+                        onclick={() => {generationInfoMenuIndex = 2}}
+                        ariaLabel={language.log || "로그"}
+                    >
                         {language.log}
                     </Button>
-                    <button class="ml-auto" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: ''
-                        })
-                    }}>✖</button>
+                    <button 
+                        class="ml-auto" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: ''
+                            })
+                        }}
+                        aria-label={language.close || "닫기"}
+                    >✖</button>
                 </div>
                 {#if generationInfoMenuIndex === 0}
                     <div class="mt-4 flex justify-center w-full">
@@ -297,18 +357,32 @@
                 {/if}
             {:else if $alertStore.type === 'hypaV2'}
                 <div class="flex flex-wrap gap-2 mb-4 max-w-full w-124">
-                    <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
+                    <Button 
+                        selected={generationInfoMenuIndex === 0} 
+                        size="sm" 
+                        onclick={() => {generationInfoMenuIndex = 0}}
+                        ariaLabel="Chunks"
+                    >
                         Chunks
                     </Button>
-                    <Button selected={generationInfoMenuIndex === 1} size="sm" onclick={() => {generationInfoMenuIndex = 1}}>
+                    <Button 
+                        selected={generationInfoMenuIndex === 1} 
+                        size="sm" 
+                        onclick={() => {generationInfoMenuIndex = 1}}
+                        ariaLabel="Summarized"
+                    >
                         Summarized
                     </Button>
-                    <button class="ml-auto" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: ''
-                        })
-                    }}>✖</button>
+                    <button 
+                        class="ml-auto" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: ''
+                            })
+                        }}
+                        aria-label={language.close || "닫기"}
+                    >✖</button>
                 </div>
                 {#if generationInfoMenuIndex === 0}
                     <div class="flex flex-col gap-2 w-full">
@@ -333,14 +407,18 @@
             {:else if $alertStore.type === 'addchar'}
                 <div class="w-2xl flex flex-col max-w-full">
 
-                    <button class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" onclick={(e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'importFromRealm'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-12 px-8 flex rounded-md hover:ring-2 justify-center items-center" 
+                        onclick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'importFromRealm'
+                            })
+                        }}
+                        aria-label={language.importFromRealm || "Realm에서 가져오기"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span class="text-2xl font-bold">{language.importFromRealm}</span>
                             <span class="text-textcolor2">{language.importFromRealmDesc}</span>
@@ -349,14 +427,18 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={((e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'importCharacter'
-                        })
-                    })}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={((e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'importCharacter'
+                            })
+                        })}
+                        aria-label={language.importCharacter || "캐릭터 가져오기"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.importCharacter}</span>
                         </div>
@@ -364,14 +446,18 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'createfromScratch'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'createfromScratch'
+                            })
+                        }}
+                        aria-label={language.createfromScratch || "처음부터 만들기"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createfromScratch}</span>
                         </div>
@@ -379,14 +465,18 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'createGroup'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'createGroup'
+                            })
+                        }}
+                        aria-label={language.createGroup || "그룹 만들기"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createGroup}</span>
                         </div>
@@ -394,14 +484,18 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={(e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'cancel'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'cancel'
+                            })
+                        }}
+                        aria-label={language.cancel || "취소"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
                         </div>
@@ -412,12 +506,16 @@
                     <h1 class="text-xl mb-4 font-bold">
                         {language.chatOptions}
                     </h1>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: '0'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: '0'
+                            })
+                        }}
+                        aria-label={language.createCopy || "복사본 만들기"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createCopy}</span>
                         </div>
@@ -425,12 +523,16 @@
                             <ChevronRightIcon />
                         </div>
                     </button>
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: '1'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: '1'
+                            })
+                        }}
+                        aria-label={language.bindPersona || "페르소나 연결"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.bindPersona}</span>
                         </div>
@@ -439,12 +541,16 @@
                         </div>
                     </button>
                     {#if DBState.db.useExperimental}
-                        <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
-                            alertStore.set({
-                                type: 'none',
-                                msg: '2'
-                            })
-                        }}>
+                        <button 
+                            class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                            onclick={() => {
+                                alertStore.set({
+                                    type: 'none',
+                                    msg: '2'
+                                })
+                            }}
+                            aria-label={language.createMultiuserRoom || "다중 사용자 방 만들기"}
+                        >
                             <div class="flex flex-col justify-start items-start">
                                 <span>{language.createMultiuserRoom} <Help key="experimental"/></span>
                             </div>
@@ -453,12 +559,16 @@
                             </div>
                         </button>
                     {/if}
-                    <button class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: 'cancel'
-                        })
-                    }}>
+                    <button 
+                        class="border-darkborderc border py-2 px-8 flex rounded-md hover:ring-2 items-center mt-2" 
+                        onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: 'cancel'
+                            })
+                        }}
+                        aria-label={language.cancel || "취소"}
+                    >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
                         </div>
@@ -479,15 +589,19 @@
                 <span>
                     {language.shareExport}
                 </span>
-                <button class="float-right text-textcolor2 hover:text-green-500" onclick={() => {
-                    alertStore.set({
-                        type: 'none',
-                        msg: JSON.stringify({
-                            type: 'cancel',
-                            type2: cardExportType2
+                <button 
+                    class="float-right text-textcolor2 hover:text-green-500" 
+                    onclick={() => {
+                        alertStore.set({
+                            type: 'none',
+                            msg: JSON.stringify({
+                                type: 'cancel',
+                                type2: cardExportType2
+                            })
                         })
-                    })
-                }}>
+                    }}
+                    aria-label={language.close || "닫기"}
+                >
                     <XIcon />
                 </button>
             </h1>
@@ -516,18 +630,53 @@
             {/if}
             <div class="flex items-center flex-wrap mt-2">
                 {#if $alertStore.submsg === 'preset'}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {cardExportType = ''}}>Risupreset</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg flex-1" 
+                        class:ring-1={cardExportType === 'realm'} 
+                        onclick={() => {cardExportType = 'realm'}}
+                        aria-label="RisuRealm"
+                    >RisuRealm</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" 
+                        class:ring-1={cardExportType === ''} 
+                        onclick={() => {cardExportType = ''}}
+                        aria-label="Risupreset"
+                    >Risupreset</button>
                 {:else if $alertStore.submsg === 'module'}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === ''} onclick={() => {cardExportType = ''}}>RisuM</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" 
+                        class:ring-1={cardExportType === 'realm'} 
+                        onclick={() => {cardExportType = 'realm'}}
+                        aria-label="RisuRealm"
+                    >RisuRealm</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg flex-1" 
+                        class:ring-1={cardExportType === ''} 
+                        onclick={() => {cardExportType = ''}}
+                        aria-label="RisuM"
+                    >RisuM</button>
                 {:else}
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg flex-1" class:ring-1={cardExportType === 'realm'} onclick={() => {cardExportType = 'realm'}}>RisuRealm</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === ''} onclick={() => {
-                        cardExportType = ''
-                        cardExportType2 = 'charxJpeg'
-                    }}>Character Card V3</button>
-                    <button class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" class:ring-1={cardExportType === 'ccv2'} onclick={() => {cardExportType = 'ccv2'}}>Character Card V2</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg flex-1" 
+                        class:ring-1={cardExportType === 'realm'} 
+                        onclick={() => {cardExportType = 'realm'}}
+                        aria-label="RisuRealm"
+                    >RisuRealm</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" 
+                        class:ring-1={cardExportType === ''} 
+                        onclick={() => {
+                            cardExportType = ''
+                            cardExportType2 = 'charxJpeg'
+                        }}
+                        aria-label="Character Card V3"
+                    >Character Card V3</button>
+                    <button 
+                        class="bg-bgcolor px-2 py-4 rounded-lg ml-2 flex-1" 
+                        class:ring-1={cardExportType === 'ccv2'} 
+                        onclick={() => {cardExportType = 'ccv2'}}
+                        aria-label="Character Card V2"
+                    >Character Card V2</button>
                 {/if}
             </div>
             {#if $alertStore.submsg === '' && cardExportType === ''}
@@ -539,15 +688,19 @@
                     <OptionInput value="json">JSON</OptionInput>
                 </SelectInput>
             {/if}
-            <Button className="mt-4" onclick={() => {
-                alertStore.set({
-                    type: 'none',
-                    msg: JSON.stringify({
-                        type: cardExportType,
-                        type2: cardExportType2
+            <Button 
+                className="mt-4" 
+                onclick={() => {
+                    alertStore.set({
+                        type: 'none',
+                        msg: JSON.stringify({
+                            type: cardExportType,
+                            type2: cardExportType2
+                        })
                     })
-                })
-            }}>{cardExportType === 'realm' ? language.shareCloud : language.export}</Button>
+                }}
+                ariaLabel={cardExportType === 'realm' ? language.shareCloud || "클라우드에 공유" : language.export || "내보내기"}
+            >{cardExportType === 'realm' ? language.shareCloud : language.export}</Button>
         </div>
     </div>
 
@@ -586,12 +739,16 @@
         {/if}
 
         <div class="x-50 right-2 top-2 absolute">
-            <button class="bg-darkbg border-darkborderc border p-2 rounded-md" onclick={() => {
-                alertStore.set({
-                    type: 'none',
-                    msg: ''
-                })
-            }}>
+            <button 
+                class="bg-darkbg border-darkborderc border p-2 rounded-md" 
+                onclick={() => {
+                    alertStore.set({
+                        type: 'none',
+                        msg: ''
+                    })
+                }}
+                aria-label={language.close || "닫기"}
+            >
                 <XIcon />
             </button>
         </div>

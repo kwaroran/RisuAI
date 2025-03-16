@@ -13,29 +13,29 @@
   {:else}
     <button onclick={() => {
       openURL("https://github.com/kwaroran/risuAI")
-    }}>
+    }} aria-label="GitHub 방문하기">
       <img src="/icon/github-mark-white.svg" width="24" alt="github" />
     </button>
   {/if}
   <button class="text-textcolor" onclick={() => {
     openURL("https://risuai.net/")
-  }}>
+  }} aria-label="홈페이지 방문하기">
     <HomeIcon size={24} />
   </button>
   <button class="text-textcolor" onclick={() => {
     openURL("https://www.patreon.com/RisuAI")
-  }}>
+  }} aria-label="Patreon 후원하기">
     <WalletIcon size={24} />
   </button>
   <button class="text-textcolor" onclick={() => {
     openURL("mailto:risuai@proton.me")
-  }}>
+  }} aria-label="이메일 보내기">
     <MailIcon size={24} />
   </button>
   {#if !isTauri}
     <button class="text-textcolor" onclick={() => {
       toggleFullscreen()
-    }}>
+    }} aria-label="전체 화면 전환">
       <MaximizeIcon size={24} />
     </button>
   {/if}

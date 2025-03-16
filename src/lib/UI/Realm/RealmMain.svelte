@@ -108,28 +108,28 @@
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} onclick={() => {
             nsfw = !nsfw
             getHub()
-        }}>
+        }} aria-label="NSFW 필터 토글">
             NSFW
         </button>
         <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} onclick={() => {
             changeSort('')
-        }}>
+        }} aria-label="최근 항목으로 정렬">
             {language.recent}
         </button>
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} onclick={() => {
             changeSort('trending')
-        }}>
+        }} aria-label="인기 항목으로 정렬">
             {language.trending}
         </button>
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} onclick={() => {
             changeSort('downloads')
-        }}>
+        }} aria-label="다운로드 순으로 정렬">
             {language.downloads}
         </button>
         <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} onclick={() => {
             changeSort('random')
-        }}>
+        }} aria-label="무작위 정렬">
             {language.random}
         </button>
     </div>
@@ -150,16 +150,16 @@
                     page -= 1
                     getHub()
                 }
-            }}>
+            }} aria-label="이전 페이지">
                 <ArrowLeft />
             </button>
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow" aria-label={`현재 페이지 ${page + 1}`}>
                 <span>{page + 1}</span>
             </button>
             <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" onclick={() => {
                 page += 1
                 getHub()
-            }}>
+            }} aria-label="다음 페이지">
                 <ArrowRight />
             </button>
         </div>
@@ -181,7 +181,7 @@
                 <span>
                     Menu
                 </span>
-                <button class="float-right text-textcolor2 hover:text-green-500" onclick={() => {menuOpen = false}}>
+                <button class="float-right text-textcolor2 hover:text-green-500" onclick={() => {menuOpen = false}} aria-label="메뉴 닫기">
                     <XIcon />
                 </button>
             </h1>
@@ -201,7 +201,7 @@
                 const id = input.split("?").at(-1)
                 downloadRisuHub(id)
 
-            })}>Import Character from URL or ID</button>
+            })} aria-label="URL 또는 ID로 다운로드">Import Character from URL or ID</button>
         </div>
     </div>
 {/if}

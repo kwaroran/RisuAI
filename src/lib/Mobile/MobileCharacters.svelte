@@ -63,7 +63,7 @@
             <button class="flex p-2 border-t-darkborderc gap-2 w-full" class:border-t={i !== 0} onclick={() => {
                 changeChar(char.i)
                 endGrid()
-            }}>
+            }} aria-label={`${char.name} 캐릭터 선택`}>
                 <BarIcon additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
                 <div class="flex flex-1 w-full flex-col justify-start items-start text-start">
                     <span>{char.name}</span>
@@ -82,7 +82,7 @@
 {#if gridMode}
     <button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" onclick={() => {
         addCharacter()
-    }}>
+    }} aria-label="새 캐릭터 추가">
         <PlusIcon size={24} />
     </button>
 {/if}
