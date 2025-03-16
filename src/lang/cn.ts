@@ -512,6 +512,7 @@ export const languageChinese = {
     "showMenuChatList": "在菜单中显示聊天列表",
     "translatorLanguage": "翻译目标语言",
     "translatorType": "翻译器类型",
+    "htmlTranslation": "HTML 翻译",
     "deeplKey": "DeepL API 密钥",
     "deeplFreeKey": "DeepL 免费 API 密钥",
     "deeplXUrl": "DeepLX URL",

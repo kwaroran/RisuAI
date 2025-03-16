@@ -419,6 +419,7 @@ export const languageGerman = {
     showMenuChatList: "Menü-Chatliste anzeigen",
     translatorLanguage: "Übersetzer-Sprache",
     translatorType: "Übersetzer-Typ",
+    htmlTranslation: "HTML-Übersetzung",
     deeplKey: "DeepL API-Schlüssel",
     deeplFreeKey: "DeepL Gratis API-Schlüssel",
     deeplXUrl: "deepLX URL",

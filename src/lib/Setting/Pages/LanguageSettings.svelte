@@ -90,6 +90,7 @@
         <OptionInput value="deepl" >DeepL</OptionInput>
         <OptionInput value="llm" >Ax. Model</OptionInput>
         <OptionInput value="deeplX" >DeepL X</OptionInput>
+        <OptionInput value="bergamot" >Firefox</OptionInput>
     </SelectInput>
 
     {#if DBState.db.translatorType === 'deepl'}
@@ -135,6 +136,11 @@
         </SelectInput>
     {/if}
 
+    {#if $DataBase.translatorType === 'bergamot'}
+        <div class="flex items-center mt-4">
+            <Check bind:check={$DataBase.htmlTranslation} name={language.htmlTranslation}/>
+        </div>
+    {/if}
 
     <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.autoTranslate} name={language.autoTranslation}/>
