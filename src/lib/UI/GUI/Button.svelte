@@ -13,7 +13,9 @@
     class:py-3 = {size == "lg"}
     class:text-md = {size == "md"}
     class:text-sm = {size == "sm"}
-    class:text-lg = {size == "lg"}>
+    class:text-lg = {size == "lg"}
+    aria-label={ariaLabel}
+>
     {@render children?.()}
 </button>
 <script lang="ts">
@@ -24,6 +26,7 @@
         className?: string;
         size?: "sm" | "md" | "lg";
         children?: import('svelte').Snippet;
+        ariaLabel?: string;
         onclick?: (event: MouseEvent & {
             currentTarget: EventTarget & HTMLButtonElement;
         }) => any
@@ -35,6 +38,7 @@
         className = "",
         size = "md",
         children,
+        ariaLabel = "",
         onclick
     }: Props = $props();
 </script>

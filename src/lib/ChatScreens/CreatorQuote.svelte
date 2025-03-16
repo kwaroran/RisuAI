@@ -1,7 +1,7 @@
 <div class="flex w-full justify-center mt-4 max-w-100vw">
     <div class="w-5/6 max-w-80vw bg-darkbg rounded-md p-3 text-textcolor text-sm">
         <h1 class="font-bold mb-2">{language.creatorNotes}
-            <button class="float-right" onclick={onRemove}>
+            <button class="float-right" onclick={onRemove} aria-label="제작자 노트 닫기">
                 <XIcon />
             </button>
         </h1>

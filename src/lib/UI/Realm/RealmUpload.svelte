@@ -59,17 +59,17 @@
         {/if}
         {#if !char.realmId}
             <div class="flex items-center flex-wrap mt-4">
-                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} onclick={() => {privateMode = false}}>🌏 Show Author ID</button>
-                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} onclick={() => {privateMode = true}}>🔒 Anonymized</button>
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!privateMode} onclick={() => {privateMode = false}} aria-label="작성자 ID 표시">🌏 Show Author ID</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={privateMode} onclick={() => {privateMode = true}} aria-label="익명으로 표시">🔒 Anonymized</button>
             </div>
             <div class="flex items-center flex-wrap mt-2">
-                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} onclick={() => {nsfwMode = false}}>🎖️ Safe</button>
-                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} onclick={() => {nsfwMode = true}}>🔞 NSFW</button>
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!nsfwMode} onclick={() => {nsfwMode = false}} aria-label="안전한 콘텐츠로 설정">🎖️ Safe</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={nsfwMode} onclick={() => {nsfwMode = true}} aria-label="성인 콘텐츠로 설정">🔞 NSFW</button>
             </div>
         {:else}
             <div class="flex items-center flex-wrap mt-2">
-                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!update} onclick={() => {nsfwMode = false}}>🚀 Update</button>
-                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={update} onclick={() => {nsfwMode = true}}>⭐ Upload Newly</button>
+                <button class="bg-bgcolor p-2 rounded-lg" class:ring-1={!update} onclick={() => {nsfwMode = false}} aria-label="업데이트">🚀 Update</button>
+                <button class="bg-bgcolor p-2 rounded-lg ml-2" class:ring-1={update} onclick={() => {nsfwMode = true}} aria-label="새로 업로드">⭐ Upload Newly</button>
             </div>
         {/if}
         {#if nsfwMode}

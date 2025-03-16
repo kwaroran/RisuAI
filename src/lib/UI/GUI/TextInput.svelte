@@ -31,6 +31,7 @@
         disabled={disabled}
         oninput={oninput}
         onchange={onchange}
+        aria-label={ariaLabel || placeholder}
     />
 {:else}
 
@@ -63,6 +64,7 @@
         disabled={disabled}
         oninput={oninput}
         onchange={onchange}
+        aria-label={ariaLabel || placeholder}
     />
 {/if}
 
@@ -87,6 +89,7 @@
         className?: string;
         disabled?: boolean;
         hideText?: boolean;
+        ariaLabel?: string;
     }
 
     let {
@@ -105,7 +108,7 @@
         className = '',
         disabled = false,
         hideText = false,
-        
+        ariaLabel = '',
     }: Props = $props();
 </script>
 

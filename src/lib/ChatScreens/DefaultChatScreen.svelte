@@ -527,6 +527,7 @@
                         onclick={send}
                         class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
                         style:height={inputHeight}
+                        aria-label="메시지 전송"
                     >
                         <Send />
                     </button>
@@ -539,6 +540,7 @@
                         }}
                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
                         style:height={inputHeight}
+                        aria-label="메뉴 열기"
                     >
                         <MenuIcon />
                     </button>
@@ -608,7 +610,7 @@
                                 <button class="absolute -right-1 -top-1 p-1 bg-darkbg text-textcolor rounded-md transition-colors hover:text-draculared focus:text-draculared" onclick={() => {
                                     fileInput.splice(i, 1)
                                     updateInputSizeAll()
-                                }}>
+                                }} aria-label="파일 제거">
                                     <XIcon size={18} />
                                 </button>
                             </div>

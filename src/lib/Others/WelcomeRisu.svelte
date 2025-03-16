@@ -178,32 +178,32 @@
                             changeLanguage('de')
                             DBState.db.language='de'
                             step = 1
-                        }}>• Deutsch</button>
+                        }} aria-label="Deutsch 언어 선택">• Deutsch</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('en')
                             DBState.db.language='en'
                             step = 1
-                        }}>• English</button>
+                        }} aria-label="English 언어 선택">• English</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('ko')
                             DBState.db.language='ko'
                             step = 1
-                        }}>• 한국어</button>
+                        }} aria-label="한국어 언어 선택">• 한국어</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('cn')
                             DBState.db.language='cn'
                             step = 1
-                        }}>• 中文</button>
+                        }} aria-label="中文 언어 선택">• 中文</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('zh-Hant')
                             DBState.db.language='zh-Hant'
                             step = 1
-                        }}>• 中文(繁體)</button>
+                        }} aria-label="中文(繁體) 언어 선택">• 中文(繁體)</button>
                         <button class="hover:text-green-500 transition-colors" onclick={() => {
                             changeLanguage('vi')
                             DBState.db.language='vi'
                             step = 1
-                        }}>• Tiếng Việt</button>
+                        }} aria-label="Tiếng Việt 언어 선택">• Tiếng Việt</button>
                     </div>
 
                 {:else}
@@ -216,14 +216,14 @@
                         <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1 col-span-2" onclick={() => {
                                 step = 3
-                            }}>
+                            }} aria-label="AI 제공자 설정하기">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.setupMessageOption1}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.setupMessageOption1Desc}</span>
                             </button>
                             <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'later'
                                 step = 10
-                            }}>
+                            }} aria-label="나중에 설정하기">
                                 <h1 class="text-md font-bold text-start text-gray-500">{language.setup.setupMessageOption2}</h1>
                             </button>
                         </div>
@@ -237,28 +237,28 @@
                             <button class="border-l-gray-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'claude'
                                 step = 4
-                            }}>
+                            }} aria-label="Claude 제공자 선택">
                                 <h1 class="text-2xl font-bold text-start">Claude <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.claudeDesc}</span>
                             </button>
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openai'
                                 step = 4
-                            }}>
+                            }} aria-label="OpenAI 제공자 선택">
                                 <h1 class="text-2xl font-bold text-start">OpenAI</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openAIDesc}</span>
                             </button>
                             <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'horde'
                                 step = 10
-                            }}>
+                            }} aria-label="Horde 제공자 선택">
                                 <h1 class="text-2xl font-bold text-start">Horde</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.hordeProvider}</span>
                             </button>
                             <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 provider = 'openrouter'
                                 step = 4
-                            }}>
+                            }} aria-label="OpenRouter 제공자 선택">
                                 <h1 class="text-2xl font-bold text-start">OpenRouter</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.openrouterProvider}</span>
                             </button>
@@ -290,21 +290,21 @@
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatLang = 0
                                 step = 6
-                            }}>
+                            }} aria-label="영어 채팅 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption1}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption1Desc}</span>
                             </button>
                             <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatLang = 1
                                 step = 6
-                            }}>
+                            }} aria-label="한국어 채팅 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption2}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption2Desc}</span>
                             </button>
                             <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatLang = 2
                                 step = 6
-                            }}>
+                            }} aria-label="중국어 채팅 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseChatTypeOption3}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseChatTypeOption3Desc}</span>
                             </button>
@@ -321,28 +321,28 @@
                             <button class="border-l-red-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 2
                                 step = 10
-                            }}>
+                            }} aria-label="균형 메모리 옵션 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption3} <span class="text-sm p-1 rounded bg-blue-500 text-white">{language.recommended}</span></h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption3Desc}</span>
                             </button>
                             <button class="border-l-blue-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 0
                                 step = 10
-                            }}>
+                            }} aria-label="저비용 메모리 옵션 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption1}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption1Desc}</span>
                             </button>
                             <button class="border-l-green-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 1
                                 step = 10
-                            }}>
+                            }} aria-label="고품질 메모리 옵션 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption2}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption2Desc}</span>
                             </button>
                             <button class="border-l-yellow-500 border-l-4 p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                                 chatMemorySelection = 3
                                 step = 10
-                            }}>
+                            }} aria-label="사용자 정의 메모리 옵션 선택">
                                 <h1 class="text-2xl font-bold text-start">{language.setup.chooseCheapOrMemoryOption4}</h1>
                                 <span class="mt-2 text-textcolor2 text-start">{language.setup.chooseCheapOrMemoryOption4Desc}</span>
                             </button>
@@ -365,6 +365,7 @@
                         <button
                             onclick={send}
                             class="flex justify-center border-y border-r rounded-r-md border-darkborderc items-center text-gray-100 p-2 peer-focus:border-textcolor hover:bg-blue-500 transition-colors"
+                            aria-label="메시지 전송"
                         >
                             <Send />
                         </button>

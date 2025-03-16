@@ -59,18 +59,48 @@
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
         <div class="mx-4 mb-6 flex flex-col">
-            <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off"/>
+            <div class="flex justify-between items-center mb-2">
+                <h2 id="grid-catalog-title" class="text-textcolor">{language.characters || "캐릭터"}</h2>
+                <button 
+                    class="text-textcolor2 hover:text-green-500 cursor-pointer" 
+                    onclick={endGrid}
+                    aria-label={language.close || "닫기"}
+                >
+                    <ArrowLeft size={24} />
+                </button>
+            </div>
+            <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off" ariaLabel={language.search || "검색"} />
             <div class="flex flex-wrap gap-2 mt-2">
-                <Button styled={selected === 3 ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 3}}>
+                <Button 
+                    styled={selected === 3 ? 'primary' : 'outlined'} 
+                    size="sm" 
+                    onclick={() => {selected = 3}}
+                    ariaLabel={language.simple || "간단한 보기"}
+                >
                     {language.simple}
                 </Button>
-                <Button styled={selected === 0 ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 0}}>
+                <Button 
+                    styled={selected === 0 ? 'primary' : 'outlined'} 
+                    size="sm" 
+                    onclick={() => {selected = 0}}
+                    ariaLabel={language.grid || "그리드 보기"}
+                >
                     {language.grid}
                 </Button>
-                <Button styled={selected === 1  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 1}}>
+                <Button 
+                    styled={selected === 1  ? 'primary' : 'outlined'} 
+                    size="sm" 
+                    onclick={() => {selected = 1}}
+                    ariaLabel={language.list || "목록 보기"}
+                >
                     {language.list}
                 </Button>
-                <Button styled={selected === 2  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 2}}>
+                <Button 
+                    styled={selected === 2  ? 'primary' : 'outlined'} 
+                    size="sm" 
+                    onclick={() => {selected = 2}}
+                    ariaLabel={language.trash || "휴지통"}
+                >
                     {language.trash}
                 </Button>
             </div>
@@ -81,9 +111,9 @@
                     {#each formatChars(search, DBState.db) as char}
                         <div class="flex items-center text-textcolor">
                             {#if char.image}
-                                <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
+                                <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')} ariaLabel={char.name}></BarIcon>
                             {:else}
-                                <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={char.index === $selectedCharID ? 'background:var(--risu-theme-selected)' : ''}>
+                                <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={char.index === $selectedCharID ? 'background:var(--risu-theme-selected)' : ''} ariaLabel={char.name}>
                                     {#if char.type === 'group'}
                                         <Users />
                                     {:else}
@@ -98,19 +128,27 @@
         {:else if selected === 1}
             {#each formatChars(search, DBState.db) as char}
                 <div class="flex p-2 border border-darkborderc rounded-md mb-2">
-                    <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
+                    <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')} ariaLabel={char.name}></BarIcon>
                     <div class="flex-1 flex flex-col ml-2">
                         <h4 class="text-textcolor font-bold text-lg mb-1">{char.name || "Unnamed"}</h4>
                         <span class="text-textcolor2">{parseMultilangString(char.desc)['en'] || parseMultilangString(char.desc)['xx'] || 'No description'}</span>
                         <div class="flex gap-2 justify-end">
-                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                changeChar(char.index)
-                            }}>
+                            <button 
+                                class="hover:text-textcolor text-textcolor2" 
+                                onclick={() => {
+                                    changeChar(char.index)
+                                }}
+                                aria-label={`${char.name} ${language.select || "선택"}`}
+                            >
                                 <Inspect />
                             </button>
-                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                removeChar(char.index, char.name)
-                            }}>
+                            <button 
+                                class="hover:text-textcolor text-textcolor2" 
+                                onclick={() => {
+                                    removeChar(char.index, char.name)
+                                }}
+                                aria-label={`${char.name} ${language.delete || "삭제"}`}
+                            >
                                 <TrashIcon />
                             </button>
                         </div>
@@ -121,20 +159,28 @@
             <span class="text-textcolor2 text-sm mb-2">{language.trashDesc}</span>
             {#each formatChars(search, DBState.db, true) as char}
                 <div class="flex p-2 border border-darkborderc rounded-md mb-2">
-                    <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')}></BarIcon>
+                    <BarIcon onClick={() => {changeChar(char.index)}} additionalStyle={getCharImage(char.image, 'css')} ariaLabel={char.name}></BarIcon>
                     <div class="flex-1 flex flex-col ml-2">
                         <h4 class="text-textcolor font-bold text-lg mb-1">{char.name || "Unnamed"}</h4>
                         <span class="text-textcolor2">{parseMultilangString(char.desc)['en'] || parseMultilangString(char.desc)['xx'] || 'No description'}</span>
                         <div class="flex gap-2 justify-end">
-                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                DBState.db.characters[char.index].trashTime = undefined
-                                checkCharOrder()
-                            }}>
+                            <button 
+                                class="hover:text-textcolor text-textcolor2" 
+                                onclick={() => {
+                                    DBState.db.characters[char.index].trashTime = undefined
+                                    checkCharOrder()
+                                }}
+                                aria-label={`${char.name} ${language.restore || "복원"}`}
+                            >
                                 <Undo2Icon />
                             </button>
-                            <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                removeChar(char.index, char.name, 'permanent')
-                            }}>
+                            <button 
+                                class="hover:text-textcolor text-textcolor2" 
+                                onclick={() => {
+                                    removeChar(char.index, char.name, 'permanent')
+                                }}
+                                aria-label={`${char.name} ${language.permanentDelete || "영구 삭제"}`}
+                            >
                                 <TrashIcon />
                             </button>
                         </div>

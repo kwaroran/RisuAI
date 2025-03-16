@@ -132,6 +132,7 @@
                     onclick={() => {
                         toggleTranslate = !toggleTranslate
                     }}
+                    aria-label="번역 토글"
                 >
                     <LanguagesIcon/>
                 </button>
@@ -150,6 +151,7 @@
                         }
                     })
                 }}
+                aria-label="제안 새로고침"
             >
                 <RefreshCcwIcon/>
             </button>
@@ -160,14 +162,14 @@
                     suggestMessages = []
                     messageInput(suggest)
                     send()
-                }}>
+                }} aria-label="제안 선택 및 전송">
                 {#await ParseMarkdown((DBState.db.translator !== '' && toggleTranslate && suggestMessagesTranslated && suggestMessagesTranslated.length > 0) ? suggestMessagesTranslated[i]??suggest : suggest) then md}
                     {@html md}
                 {/await}
                 </button>
                 <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" onclick={() => {
                     messageInput(suggest)
-                }}>
+                }} aria-label="제안 선택">
                     <CopyIcon/>
                 </button>
             </div>

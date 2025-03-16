@@ -18,17 +18,17 @@
 <div class="w-full px-2 py-1 text-textcolor2 border-b border-b-darkborderc bg-darkbg flex justify-start items-center gap-2">
     <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 1} onclick={() => {
         $MobileSideBar = 1
-    }}>
+    }} aria-label="채팅 탭">
         {language.Chat}
     </button>
     <button class="flex-1 border-r border-r-darkborderc" class:text-textcolor={$MobileSideBar === 2} onclick={() => {
         $MobileSideBar = 2
-    }}>
+    }} aria-label="캐릭터 탭">
         {language.character}
     </button>
     <button class:text-textcolor={$MobileSideBar === 3} onclick={() => {
         $MobileSideBar = 3
-    }}>
+    }} aria-label="설정 탭">
         <WrenchIcon size={18} />
     </button>
 </div>

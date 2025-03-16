@@ -157,21 +157,21 @@
         {/each}
     </div>
     <div class="flex justify-end">
-        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="자동 응답 항목 삭제" onclick={() => {
             autopilot.pop()
             autopilot = autopilot
         }}>
             <TrashIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="자동 응답 항목 추가" onclick={() => {
             autopilot.push('')
             autopilot = autopilot
         }}>
             <PlusIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" onclick={async () => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="파일에서 자동 응답 불러오기" onclick={async () => {
             const selected = await selectSingleFile([
                 'txt', 'csv', 'json'
             ])
@@ -200,7 +200,7 @@
             <FolderUpIcon />
         </button>
     </div>
-    <Button className="mt-2" onclick={async () => {
+    <Button className="mt-2" aria-label="자동 응답 실행" onclick={async () => {
         if($doingChat){
             return
         }
@@ -253,11 +253,11 @@
         <OptionInput value="yes">With Join</OptionInput>
         <OptionInput value="no">Without Join</OptionInput>
     </SelectInput>
-    <Button className="mt-2" onclick={() => {preview()}}>Run</Button>
+    <Button className="mt-2" aria-label="미리보기 실행" onclick={() => {preview()}}>Run</Button>
 </Arcodion>
 
 <Arcodion styled name={"Preview Lorebook"}>
-    <Button className="mt-2" onclick={async () => {
+    <Button className="mt-2" aria-label="로어북 테스트" onclick={async () => {
         const lorebookResult = await loadLoreBookV3Prompt()
         const html = `
         ${lorebookResult.actives.map((v) => {
@@ -266,7 +266,7 @@
         `.trim()
         alertMd(html)
     }}>Test Lore</Button>
-    <Button className="mt-2" onclick={async () => {
+    <Button className="mt-2" aria-label="로어북 매치 로그 보기" onclick={async () => {
         const lorebookResult = await loadLoreBookV3Prompt()
         const html = `
         <table>
@@ -290,7 +290,7 @@
     }}>Match Sources</Button>
 </Arcodion>
 
-<Button className="mt-2" onclick={() => {
+<Button className="mt-2" aria-label="모듈 미리보기" onclick={() => {
     const modules = getModules()
     const html = `
     ${modules.map((v) => {
@@ -300,6 +300,6 @@
     alertMd(html)
 }}>Preview Module</Button>
 
-<Button className="mt-2" onclick={() => {
+<Button className="mt-2" aria-label="요청 로그 보기" onclick={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>

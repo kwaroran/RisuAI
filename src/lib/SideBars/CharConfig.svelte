@@ -194,24 +194,24 @@
 
 {#if licensed !== 'private' && !$MobileGUI}
     <div class="flex gap-2 mb-2">
-        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}} aria-label={language.basicInfo || "기본 정보"}>
             <UserIcon />
         </button>
-        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}} aria-label={language.characterDisplay || "캐릭터 표시"}>
             <SmileIcon />
         </button>
-        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}} aria-label={language.loreBook || "로어북"}>
             <BookIcon />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}
-            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}}>
+            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}} aria-label="TTS">
                 <Volume2Icon />
             </button>
-            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}} aria-label={language.scripts || "스크립트"}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}} aria-label={language.advanced || "고급 설정"}>
             <ActivityIcon />
         </button>
     </div>
@@ -253,7 +253,7 @@
                     <div class="flex items-center px-2 py-3">
                         {#each [1,2,3,4,5,6] as barIndex}
                             <button class="bg-selected h-full flex-1 border-r-bgcolor border-r" 
-                                aria-labelledby="loading"
+                                aria-label={`캐릭터 대화 비율 ${barIndex}/6로 설정`}
                                 class:bg-green-500={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] >= (1 / 6 * barIndex)}
                                 class:bg-selected={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] < (1 / 6 * barIndex)}
                                 class:rounded-l-lg={barIndex === 1}
@@ -273,7 +273,7 @@
             {/if}
         </div>
         <div class="text-textcolor2 mt-1 flex mb-6">
-            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer">
+            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer" aria-label="그룹에 캐릭터 추가">
                 <PlusIcon />
             </button>
         </div>
@@ -327,7 +327,7 @@
     {/if}
     <span class="text-textcolor mt-2 mb-2">{DBState.db.characters[$selectedCharID].type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if DBState.db.characters[$selectedCharID].type === 'group'}
-        <button onclick={async () => {await selectCharImg($selectedCharID)}}>
+        <button onclick={async () => {await selectCharImg($selectedCharID)}} aria-label="그룹 아이콘 선택">
             {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
                 <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
             {:then im}
@@ -350,7 +350,7 @@
                         }
                         iconRemoveMode = false
                     }
-                }}>
+                }} aria-label={iconRemoveMode ? "캐릭터 아이콘 제거" : "캐릭터 아이콘"}>
                     {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                         <div
                             class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"

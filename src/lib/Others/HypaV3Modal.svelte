@@ -840,6 +840,7 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={async () => toggleSearch()}
+            aria-label="검색"
           >
             <SearchIcon class="w-6 h-6" />
           </button>
@@ -859,6 +860,7 @@
 
               showImportantOnly = !showImportantOnly;
             }}
+            aria-label={showImportantOnly ? "모든 요약 보기" : "중요 요약만 보기"}
           >
             <StarIcon class="w-6 h-6" />
           </button>
@@ -876,6 +878,7 @@
               settingsOpen.set(true);
               SettingsMenuIndex.set(2); // Other bot settings
             }}
+            aria-label="설정"
           >
             <SettingsIcon class="w-6 h-6" />
           </button>
@@ -901,6 +904,7 @@
                 showHypaV3Alert();
               }
             }}
+            aria-label="초기화"
           >
             <Trash2Icon class="w-6 h-6" />
           </button>
@@ -915,6 +919,7 @@
                 msg: "",
               });
             }}
+            aria-label="닫기"
           >
             <XIcon class="w-6 h-6" />
           </button>
@@ -1009,6 +1014,7 @@
                 onclick={() => {
                   onSearch({ shiftKey: true, key: "Enter" } as KeyboardEvent);
                 }}
+                aria-label="이전 검색 결과"
               >
                 <ChevronUpIcon class="w-6 h-6" />
               </button>
@@ -1020,6 +1026,7 @@
                 onclick={() => {
                   onSearch({ key: "Enter" } as KeyboardEvent);
                 }}
+                aria-label="다음 검색 결과"
               >
                 <ChevronDownIcon class="w-6 h-6" />
               </button>
@@ -1053,6 +1060,7 @@
                         onMainAction: () => toggleTranslate(i, false),
                         onAlternativeAction: () => toggleTranslate(i, true),
                       }}
+                      aria-label="번역"
                     >
                       <LanguagesIcon class="w-4 h-4" />
                     </button>
@@ -1066,6 +1074,7 @@
                       onclick={() => {
                         summary.isImportant = !summary.isImportant;
                       }}
+                      aria-label={summary.isImportant ? "중요 표시 해제" : "중요 표시"}
                     >
                       <StarIcon class="w-4 h-4" />
                     </button>
@@ -1076,6 +1085,7 @@
                       tabindex="-1"
                       disabled={!isRerollable(i)}
                       onclick={async () => await toggleReroll(i)}
+                      aria-label="다시 생성"
                     >
                       <RefreshCw class="w-4 h-4" />
                     </button>
@@ -1096,6 +1106,7 @@
 
                         showHypaV3Alert();
                       }}
+                      aria-label="이후 삭제"
                     >
                       <ScissorsLineDashed class="w-4 h-4" />
                     </button>
@@ -1152,6 +1163,7 @@
                             onAlternativeAction: () =>
                               toggleTranslateRerolled(i, true),
                           }}
+                          aria-label="번역"
                         >
                           <LanguagesIcon class="w-4 h-4" />
                         </button>
@@ -1164,6 +1176,7 @@
                             summaryUIStates[i].rerolledText = null;
                             summaryUIStates[i].rerolledTranslation = null;
                           }}
+                          aria-label="취소"
                         >
                           <XIcon class="w-4 h-4" />
                         </button>
@@ -1178,6 +1191,7 @@
                             summaryUIStates[i].rerolledText = null;
                             summaryUIStates[i].rerolledTranslation = null;
                           }}
+                          aria-label="적용"
                         >
                           <CheckIcon class="w-4 h-4" />
                         </button>
@@ -1234,6 +1248,7 @@
                           onAlternativeAction: () =>
                             toggleTranslateExpandedMessage(true),
                         }}
+                        aria-label="메시지 번역"
                       >
                         <LanguagesIcon class="w-4 h-4" />
                       </button>

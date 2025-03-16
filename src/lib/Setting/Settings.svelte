@@ -43,7 +43,9 @@
                         onclick={() => {
                             $SettingsMenuIndex = 1
                             
-                    }}>
+                    }}
+                    aria-label="챗봇 설정"
+                    >
                         <BotIcon />
                         <span>{language.chatBot}</span>
                     </button>
@@ -52,7 +54,9 @@
                         class:text-textcolor2={$SettingsMenuIndex !== 12}
                         onclick={() => {
                             $SettingsMenuIndex = 12
-                    }}>
+                    }}
+                    aria-label="페르소나 설정"
+                    >
                         <ContactIcon />
                         <span>{language.persona}</span>
                     </button>
@@ -61,7 +65,9 @@
                         class:text-textcolor2={$SettingsMenuIndex !== 2}
                         onclick={() => {
                             $SettingsMenuIndex = 2
-                    }}>
+                    }}
+                    aria-label="다른 봇 설정"
+                    >
                         <Sailboat />
                         <span>{language.otherBots}</span>
                     </button>
@@ -70,7 +76,9 @@
                         class:text-textcolor2={$SettingsMenuIndex !== 3}
                         onclick={() => {
                             $SettingsMenuIndex = 3
-                    }}>
+                    }}
+                    aria-label="디스플레이 설정"
+                    >
                         <MonitorIcon />
                         <span>{language.display}</span>
                     </button>
@@ -80,7 +88,9 @@
                     class:text-textcolor2={$SettingsMenuIndex !== 10}
                     onclick={() => {
                         $SettingsMenuIndex = 10
-                }}>
+                }}
+                aria-label="언어 설정"
+                >
                     <LanguagesIcon />
                     <span>{language.language}</span>
                 </button>
@@ -145,7 +155,7 @@
                 {#if window.innerWidth < 700 && !$MobileGUI}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
-                    }}> <XCircleIcon /> </button>
+                    }} aria-label="설정 닫기"> <XCircleIcon /> </button>
                 {/if}
             </div>
         {/if}

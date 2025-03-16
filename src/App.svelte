@@ -25,24 +25,28 @@
 
 </script>
 
-<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" ondragover={(e) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'link'
-}} ondrop={async (e) => {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (file) {
-        await importCharacterProcess({
-            name: file.name,
-            data: file
-        })
-        checkCharOrder()
-    }
-}}>
+<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" 
+    aria-label="RisuAI 애플리케이션"
+    ondragover={(e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'link'
+    }} 
+    ondrop={async (e) => {
+        e.preventDefault()
+        const file = e.dataTransfer.files[0]
+        if (file) {
+            await importCharacterProcess({
+                name: file.name,
+                data: file
+            })
+            checkCharOrder()
+        }
+    }}
+>
     {#if !$loadedStore}
-        <div class="w-full h-full flex justify-center items-center text-textcolor text-xl bg-gray-900 flex-col">
+        <div class="w-full h-full flex justify-center items-center text-textcolor text-xl bg-gray-900 flex-col" role="status" aria-live="polite">
             <div class="flex flex-row items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-textcolor" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-textcolor" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                 </svg>
@@ -58,7 +62,7 @@
     {:else if $settingsOpen}
         <Settings />
     {:else if $MobileGUI}
-        <div class="w-full h-full flex flex-col">
+        <div class="w-full h-full flex flex-col" role="main" aria-label="모바일 인터페이스">
             <MobileHeader />
             <MobileBody />
             <MobileFooter />
@@ -70,7 +74,12 @@
             {#if (!$DynamicGUI)}
                 <Sidebar openGrid={() => {gridOpen = true}} hidden={!$sideBarStore} />
             {:else}
-                <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" class:fixed={$sideBarStore} class:hidden={!$sideBarStore} >
+                <div class="top-0 w-full h-full left-0 z-30 flex flex-row items-center" 
+                    class:fixed={$sideBarStore} 
+                    class:hidden={!$sideBarStore}
+                    role="navigation" 
+                    aria-label="사이드바 메뉴"
+                >
                     <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
 

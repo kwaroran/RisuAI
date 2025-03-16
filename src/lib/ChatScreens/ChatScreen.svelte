@@ -36,40 +36,73 @@
 {#if $ShowVN}
     <VisualNovelMain />
 {:else if DBState.db.theme === 'waifu'}
-    <div class="flex-grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
+    <div class="flex-grow h-full flex justify-center relative" 
+        style="{bgImg.length < 4 ? wallPaper : bgImg}"
+        role="main" 
+        aria-label="채팅 화면"
+    >
         <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
             {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
-                <div class="h-full mr-10 flex justify-end halfw" style:width="{42 * (DBState.db.waifuWidth2 / 100)}rem">
-                    <TransitionImage classType="waifu" src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
+                <div class="h-full mr-10 flex justify-end halfw" 
+                    style:width="{42 * (DBState.db.waifuWidth2 / 100)}rem"
+                    role="img" 
+                    aria-label="{DBState.db.characters[$selectedCharID].name} 캐릭터 이미지"
+                >
+                    <TransitionImage 
+                        classType="waifu" 
+                        src={getEmotion(DBState.db, $CharEmotion, 'plain')} 
+                        altText={`${DBState.db.characters[$selectedCharID].name} 캐릭터 이미지`}
+                    />
                 </div>
             {/if}
         {/if}
-        <div class="h-full w-2xl" style:width="{42 * (DBState.db.waifuWidth / 100)}rem" class:halfwp={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}>
+        <div class="h-full w-2xl" 
+            style:width="{42 * (DBState.db.waifuWidth / 100)}rem" 
+            class:halfwp={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
+            role="region" 
+            aria-label="채팅 내용"
+        >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
     </div>
 {:else if DBState.db.theme === 'waifuMobile'}
-    <div class="flex-grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
+    <div class="flex-grow h-full relative" 
+        style={bgImg.length < 4 ? wallPaper : bgImg}
+        role="main" 
+        aria-label="모바일 채팅 화면"
+    >
         <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
             class:per33={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
             class:h-full={!($selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none')}
+            role="region" 
+            aria-label="채팅 내용"
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
         {#if $selectedCharID >= 0}
             {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
-                <div class="h-full w-full absolute bottom-0 left-0 max-w-full">
-                    <TransitionImage classType="mobile" src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
+                <div class="h-full w-full absolute bottom-0 left-0 max-w-full"
+                    role="img" 
+                    aria-label="{DBState.db.characters[$selectedCharID].name} 캐릭터 이미지"
+                >
+                    <TransitionImage 
+                        classType="mobile" 
+                        src={getEmotion(DBState.db, $CharEmotion, 'plain')} 
+                        altText={`${DBState.db.characters[$selectedCharID].name} 캐릭터 이미지`}
+                    />
                 </div>
             {/if}
         {/if}
     </div>
 {:else}
-    <div class="flex-grow h-full min-w-0 relative justify-center flex">
+    <div class="flex-grow h-full min-w-0 relative justify-center flex"
+        role="main" 
+        aria-label="클래식 채팅 화면"
+    >
         <SideBarArrow />
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>

@@ -19,7 +19,7 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.persona}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="닫기">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -28,7 +28,7 @@
             <button onclick={() => {
                 changeUserPersona(i)
                 close()
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.selectedPersona}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.selectedPersona} aria-label={`${persona.name} 페르소나 선택`}>
                 <span>{persona.name}</span>
             </button>
         {/each}

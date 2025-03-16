@@ -301,7 +301,7 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="닫기">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -312,7 +312,7 @@
                     changeToPreset(i)
                     close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.botPresetsId}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.botPresetsId} aria-label={`${preset.name} 프리셋 선택`}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.botPresets[i].name} placeholder="string" padding={false}/>
                 {:else}
@@ -334,7 +334,7 @@
                             if(e.key === 'Enter'){
                                 e.currentTarget.click()
                             }
-                        }}>
+                        }} aria-label={`${preset.name} 프리셋 비교`}>
                             <GitCompare size={18}/>
                         </div>
                     {/if}
@@ -345,7 +345,7 @@
                         if(e.key === 'Enter'){
                             e.currentTarget.click()
                         }
-                    }}>
+                    }} aria-label={`${preset.name} 프리셋 복사`}>
                         <CopyIcon size={18}/>
                     </div>
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2" role="button" tabindex="0" onclick={async (e) => {
@@ -362,7 +362,7 @@
                         if(e.key === 'Enter'){
                             e.currentTarget.click()
                         }
-                    }}>
+                    }} aria-label={`${preset.name} 프리셋 공유`}>
 
                         <Share2Icon size={18} />
                     </div>
@@ -384,7 +384,7 @@
                         if(e.key === 'Enter'){
                             e.currentTarget.click()
                         }
-                    }}>
+                    }} aria-label={`${preset.name} 프리셋 삭제`}>
                         <TrashIcon size={18}/>
                     </div>
                 </div>
@@ -398,17 +398,17 @@
                 botPresets.push(newPreset)
 
                 DBState.db.botPresets = botPresets
-            }}>
+            }} aria-label="새 프리셋 추가">
                 <PlusIcon/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importPreset()
-            }}>
+            }} aria-label="프리셋 가져오기">
                 <FolderUpIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }}>
+            }} aria-label="편집 모드 전환">
                 <PencilIcon size={18}/>
             </button>
         </div>

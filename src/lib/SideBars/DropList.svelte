@@ -25,7 +25,7 @@
                     tempList[i+1] = temp
                     list = tempList
                 }
-            }}><ChevronUp /></button>
+            }} aria-label={`${language.formating[n]} 위로 이동`}><ChevronUp /></button>
             <button class="mr-1" onclick={() => {
                 if(i !== (list.length - 1)){
                     let tempList = list
@@ -41,7 +41,7 @@
                     tempList[i-1] = temp
                     list = tempList
                 }
-            }}><ChevronDown /></button>
+            }} aria-label={`${language.formating[n]} 아래로 이동`}><ChevronDown /></button>
         </div>
         {#if i !== (list.length - 1)}
             <div class="border-t w-full border-selected"></div>

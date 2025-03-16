@@ -100,7 +100,7 @@
         {#each autocompleteContents as content, i}
             <button class="w-full text-left py-1 px-2 bg-bgcolor" class:text-blue-500={selectingAutoComplete === i} onclick={() => {
                 insertContent(content)
-            }}>{content}</button>
+            }} aria-label={`${content} 자동 완성`}>{content}</button>
         {/each}
     </div>
 </div>
