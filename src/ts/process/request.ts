@@ -2882,6 +2882,9 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     else if(body?.thinking?.budget_tokens && body?.thinking?.budget_tokens > 0){
         body.thinking.type = 'enabled'
     }
+    else if(body?.thinking?.budget_tokens === null){
+        delete body.thinking
+    }
 
     if(systemPrompt === ''){
         delete body.system
