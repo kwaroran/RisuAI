@@ -3042,15 +3042,6 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         headers['anthropic-dangerous-direct-browser-access'] = 'true'
     }
 
-    
-    if(db.claudeRetrivalCaching){
-        registerClaudeObserver({
-            url: replacerURL,
-            body: body,
-            headers: headers
-        })
-    }
-
     if(arg.previewBody){
         return {
             type: 'success',
@@ -3060,6 +3051,16 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 headers: headers
             })
         }
+    }
+
+    
+    
+    if(db.claudeRetrivalCaching){
+        registerClaudeObserver({
+            url: replacerURL,
+            body: body,
+            headers: headers
+        })
     }
 
     if(useStreaming){
