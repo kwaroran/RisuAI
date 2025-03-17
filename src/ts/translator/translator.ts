@@ -287,6 +287,12 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     if(db.translatorType == "bergamot" && db.htmlTranslation) {
         const from = db.aiModel.startsWith('novellist') ? 'ja' : 'en'
         const to = db.translator || 'en'
+
+        if(!bergamotTranslate){
+            const bergamotTranslator = await import('./bergamotTranslator')
+            bergamotTranslate = bergamotTranslator.bergamotTranslate
+        }
+        
         return bergamotTranslate(html, from, to, true)
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
