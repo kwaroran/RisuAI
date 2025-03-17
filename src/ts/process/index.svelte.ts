@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, changeToPreset } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, changeToPreset, setCurrentChat } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
@@ -696,6 +696,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
+        setCurrentChat(currentChat)
         ms = currentChat.message
         currentTokens += triggerResult.tokens
         if(triggerResult.stopSending){
