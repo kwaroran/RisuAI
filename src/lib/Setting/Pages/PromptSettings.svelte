@@ -170,7 +170,6 @@
     
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.seperateModelsForAxModels} name={language.seperateModelsForAxModels}>
-            <Help key="experimentalChatCompressionDesc"/><Help key="experimental"/>
         </Check>
     </div>
 
@@ -179,24 +178,24 @@
             <span class="text-textcolor mt-4">
                 Memory
             </span>
-            <ModelList bind:value={DBState.db.seperateModels.memory} />
+            <ModelList bind:value={DBState.db.seperateModels.memory} blankable />
 
             <span class="text-textcolor mt-4">
                 Translations
             </span>
-            <ModelList bind:value={DBState.db.seperateModels.translate} />
+            <ModelList bind:value={DBState.db.seperateModels.translate} blankable />
 
             <span class="text-textcolor mt-4">
                 Emotion
             </span>
 
-            <ModelList bind:value={DBState.db.seperateModels.emotion} />
+            <ModelList bind:value={DBState.db.seperateModels.emotion} blankable />
 
             <span class="text-textcolor mt-4">
                 OtherAx
             </span>
 
-            <ModelList bind:value={DBState.db.seperateModels.otherAx} />
+            <ModelList bind:value={DBState.db.seperateModels.otherAx} blankable />
             
         </Arcodion>
     {/if}

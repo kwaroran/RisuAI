@@ -1598,8 +1598,8 @@ export function saveCurrentPreset(){
         reasonEffort: db.reasoningEffort ?? 0,
         thinkingTokens: db.thinkingTokens ?? null,
         outputImageModal: db.outputImageModal ?? false,
-        seperateModelsForAxModels: db.seperateModelsForAxModels ?? false,
-        seperateModels: safeStructuredClone(db.seperateModels),
+        seperateModelsForAxModels: db.doNotChangeSeperateModels ? false : db.seperateModelsForAxModels ?? false,
+        seperateModels: db.doNotChangeSeperateModels ? null : safeStructuredClone(db.seperateModels),
     }
     db.botPresets = pres
     setDatabase(db)
