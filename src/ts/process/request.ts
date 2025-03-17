@@ -1682,6 +1682,15 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         const maxTokens = arg.maxTokens
         const bias = arg.biasString
         const v2Function = pluginV2.providers.get(db.currentPluginProvider)
+
+        if(arg.previewBody){
+            return {
+                type: 'success',
+                result: JSON.stringify({
+                    error: "Plugin is not supported in preview mode"
+                })
+            }
+        }
     
         const d = v2Function ? (await v2Function(applyParameters({
             prompt_chat: formated,
