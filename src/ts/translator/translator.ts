@@ -10,7 +10,6 @@ import { selectedCharID } from "../stores.svelte"
 import { getModuleRegexScripts } from "../process/modules"
 import { getNodetextToSentence, sleep } from "../util"
 import { processScriptFull } from "../process/scripts"
-import { bergamotTranslate } from "./bergamotTranslator"
 import localforage from "localforage"
 import sendSound from '../../etc/send.mp3'
 
@@ -18,6 +17,8 @@ let cache={
     origin: [''],
     trans: ['']
 }
+
+let bergamotTranslate: (text: string, from: string, to: string, html?: boolean) => Promise<string>|null = null
 
 export const LLMCacheStorage = localforage.createInstance({
     name: "LLMTranslateCache"
@@ -167,6 +168,11 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
         return f.data.data;
     }
     if(db.translatorType == "bergamot") {
+        if(!bergamotTranslate){
+            const bergamotTranslator = await import('./bergamotTranslator')
+            bergamotTranslate = bergamotTranslator.bergamotTranslate
+        }
+
         return bergamotTranslate(text, arg.from, arg.to, false);
     }
     if(db.useExperimentalGoogleTranslator){
