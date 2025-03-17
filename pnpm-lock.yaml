@@ -17,6 +17,9 @@ importers:
       '@breezystack/lamejs':
         specifier: ^1.2.7
         version: 1.2.7
+      '@browsermt/bergamot-translator':
+        specifier: ^0.4.9
+        version: 0.4.9
       '@capacitor/android':
         specifier: ^5.6.0
         version: 5.6.0(@capacitor/core@5.6.0)
@@ -375,6 +378,9 @@ packages:
 
   '@breezystack/lamejs@1.2.7':
     resolution: {integrity: sha512-6wc7ck65ctA75Hq7FYHTtTvGnYs6msgdxiSUICQ+A01nVOWg6rqouZB8IdyteRlfpYYiFovkf67dIeOgWIUzTA==}
+
+  '@browsermt/bergamot-translator@0.4.9':
+    resolution: {integrity: sha512-bNuuCwM/JnsIYQCKXcYKFT4Qc5vLMoB8Nbvz8ReIgs7xzebK8Sa+R8iEK8mLvNBe/WaZ6zrPaUQilLsRT/ea8Q==}
 
   '@capacitor/android@5.6.0':
     resolution: {integrity: sha512-6O7xV6K6c8WvQzKxOe7fnhRyoVpS3TNDXy1FyfhvOvclBvu+1JddSdFvW4e4dSL60s2c00sCzNRgYhm+cn0/dQ==}
@@ -4109,6 +4115,8 @@ snapshots:
       js-tokens: 4.0.0
 
   '@breezystack/lamejs@1.2.7': {}
+
+  '@browsermt/bergamot-translator@0.4.9': {}
 
   '@capacitor/android@5.6.0(@capacitor/core@5.6.0)':
     dependencies:

@@ -335,6 +335,7 @@ export function setDatabase(data:Database){
     data.mancerHeader ??= ''
     data.emotionProcesser ??= 'submodel'
     data.translatorType ??= 'google'
+    data.htmlTranslation ??= false
     data.deeplOptions ??= {
         key:'',
         freeApi: false
@@ -736,8 +737,9 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX',
+    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX'|'bergamot',
     translatorInputLanguage?:string
+    htmlTranslation?:boolean,
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
