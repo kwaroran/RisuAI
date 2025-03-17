@@ -1074,4 +1074,7 @@ export const languageEnglish = {
     loadingChatData: "Loading Chat Data",
     outputImageModal: "Output Image Modal",
     playMessageOnTranslateEnd: "Play Audio on Translate Completion",
+    seperateModelsForAxModels: "Seperate Models for Auxiliary Models",
+    axModelsDef: "Ax Models Definition",
+    doNotChangeSeperateModels: "Do Not Change Seperate Models",
 }

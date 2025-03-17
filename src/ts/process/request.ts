@@ -486,6 +486,13 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.customURL = db.forceReplaceUrl
     }
 
+    if(db.seperateModelsForAxModels){
+        if(db.seperateModels[model]){
+            targ.aiModel = db.seperateModels[model]
+            targ.modelInfo = getModelInfo(targ.aiModel)
+        }
+    }
+
     const format = targ.modelInfo.format
 
     targ.formated = reformater(targ.formated, targ.modelInfo)
