@@ -1690,7 +1690,7 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
             max_tokens: maxTokens,
         }, [
             'frequency_penalty','min_p','presence_penalty','repetition_penalty','top_k','top_p','temperature'
-        ], {}, arg.mode) as any)) : await pluginProcess({
+        ], {}, arg.mode) as any, arg.abortSignal)) : await pluginProcess({
             bias: bias,
             prompt_chat: formated,
             temperature: (db.temperature / 100),
