@@ -1078,4 +1078,5 @@ export const languageEnglish = {
     seperateModelsForAxModels: "Seperate Models for Auxiliary Models",
     axModelsDef: "Ax Models Definition",
     doNotChangeSeperateModels: "Do Not Change Seperate Models",
+    tools: "Tools",
 }

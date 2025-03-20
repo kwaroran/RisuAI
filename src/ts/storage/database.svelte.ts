@@ -496,6 +496,7 @@ export function setDatabase(data:Database){
         model: data.hypaCustomSettings?.model ?? "",       
     }
     data.doNotChangeSeperateModels ??= false
+    data.modelTools ??= []
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -941,6 +942,7 @@ export interface Database{
         otherAx: string
     }
     doNotChangeSeperateModels:boolean
+    modelTools: string[]
 }
 
 interface SeparateParameters{
@@ -1283,6 +1285,7 @@ export interface botPreset{
         translate: string
         otherAx: string
     }
+    modelTools?:string[]
 }
 
 
@@ -1602,6 +1605,7 @@ export function saveCurrentPreset(){
         outputImageModal: db.outputImageModal ?? false,
         seperateModelsForAxModels: db.doNotChangeSeperateModels ? false : db.seperateModelsForAxModels ?? false,
         seperateModels: db.doNotChangeSeperateModels ? null : safeStructuredClone(db.seperateModels),
+        modelTools: safeStructuredClone(db.modelTools),
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1723,6 +1727,7 @@ export function setPreset(db:Database, newPres: botPreset){
             otherAx: ''
         }
     }
+    db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
 
     return db
 }
