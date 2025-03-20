@@ -22,6 +22,7 @@ import { extractJSON, getGeneralJSONSchema, getOpenAIJSONSchema } from "./templa
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/modellist";
 import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
+import { v4 } from "uuid";
 
 
 
@@ -529,6 +530,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
             return requestHorde(targ)
         case LLMFormat.WebLLM:
             return requestWebLLM(targ)
+        case LLMFormat.OpenAIResponseAPI:
+            return requestOpenAIResponseAPI(targ)
     }
 
     return {
@@ -1362,6 +1365,165 @@ async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtended):Prom
     
 }
 
+
+
+interface OAIResponseInputItem {
+    content:({
+        type: 'input_text',
+        text: string
+    }|{
+        detail: 'high'|'low'|'auto'
+        type: 'input_image',
+        image_url: string
+    }|{
+        type: 'input_file',
+        file_data: string
+        filename?: string
+    })[]
+    role:'user'|'system'|'developer'
+}
+
+interface OAIResponseOutputItem {
+    content:({
+        type: 'output_text',
+        text: string,
+        annotations: []
+    })[]
+    type: 'message',
+    status: 'in_progress'|'complete'|'incomplete'
+    role:'assistant'
+}
+
+type OAIResponseItem = OAIResponseInputItem|OAIResponseOutputItem
+
+
+async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):Promise<requestDataResponse>{
+
+    const formated = arg.formated
+    const db = getDatabase()
+    const aiModel = arg.aiModel
+    const maxTokens = arg.maxTokens
+
+    const items:OAIResponseItem[] = []
+
+    for(let i=0;i<formated.length;i++){
+        const content = formated[i]
+        switch(content.role){
+            case 'function':
+                break
+            case 'assistant':{
+                const item:OAIResponseOutputItem = {
+                    content: [],
+                    role: content.role,
+                    status: 'complete',
+                    type: 'message',
+                }
+
+                item.content.push({
+                    type: 'output_text',
+                    text: content.content,
+                    annotations: []
+                })
+
+                items.push(item)
+                break
+            }
+            case 'user':
+            case 'system':{
+                const item:OAIResponseInputItem = {
+                    content: [],
+                    role: content.role
+                }
+
+                item.content.push({
+                    type: 'input_text',
+                    text: content.content
+                })
+
+                content.multimodals ??= []
+                for(const multimodal of content.multimodals){
+                    if(multimodal.type === 'image'){
+                        item.content.push({
+                            type: 'input_image',
+                            detail: 'auto',
+                            image_url: multimodal.base64
+                        })
+                    }
+                    else{
+                        item.content.push({
+                            type: 'input_file',
+                            file_data: multimodal.base64,
+                        })
+                    }
+                }
+
+                items.push(item)
+                break
+            }
+        }
+    }
+
+    if(items[items.length-1].role === 'assistant'){
+        (items[items.length-1] as OAIResponseOutputItem).status = 'incomplete'
+    }
+    
+    const body = applyParameters({
+        model: arg.modelInfo.internalID ?? aiModel,
+        input: items,
+        max_output_tokens: maxTokens,
+        tools: [],
+        store: false
+    }, ['temperature', 'top_p'], {}, arg.mode)
+
+    if(arg.previewBody){
+        return {
+            type: 'success',
+            result: JSON.stringify({
+                url: "https://api.openai.com/v1/responses",
+                body: body,
+                headers: {
+                    "Authorization": "Bearer " + db.openAIKey,
+                    "Content-Type": "application/json"
+                }
+            })
+        }
+    }
+
+    if(db.modelTools.includes('search')){
+        body.tools.push('web_search_preview')
+    }
+
+    const response = await globalFetch("https://api.openai.com/v1/responses", {
+        body: body,
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + db.openAIKey,
+        },
+        chatId: arg.chatId
+    });
+
+    if(!response.ok){
+        return {
+            type: 'fail',
+            result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
+        }
+    }
+
+    const text:string = (response.data.output?.find((m:OAIResponseOutputItem) => m.type === 'message') as OAIResponseOutputItem)?.content?.find(m => m.type === 'output_text')?.text
+
+    if(!text){
+        return {
+            type: 'fail',
+            result: JSON.stringify(response.data)
+        }
+    }
+    return {
+        type: 'success',
+        result: text
+    }
+
+
+}
 async function requestNovelAI(arg:RequestDataArgumentExtended):Promise<requestDataResponse>{
     const formated = arg.formated
     const db = getDatabase()
@@ -1682,6 +1844,15 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         const maxTokens = arg.maxTokens
         const bias = arg.biasString
         const v2Function = pluginV2.providers.get(db.currentPluginProvider)
+
+        if(arg.previewBody){
+            return {
+                type: 'success',
+                result: JSON.stringify({
+                    error: "Plugin is not supported in preview mode"
+                })
+            }
+        }
     
         const d = v2Function ? (await v2Function(applyParameters({
             prompt_chat: formated,

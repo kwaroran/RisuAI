@@ -22,7 +22,6 @@ export default defineConfig(({command, mode}) => {
         },
       }),
       wasm(),
-      topLevelAwait(),
       command === 'build' ? strip({
         include: '**/*.(mjs|js|svelte|ts)'
       }) : null
@@ -43,7 +42,7 @@ export default defineConfig(({command, mode}) => {
     envPrefix: ["VITE_", "TAURI_"],
     build: {
       // Tauri supports es2021
-      target:"modules",
+      target:['safari15','chrome100','firefox100','edge100'],
       // don't minify for debug builds
       minify: process.env.TAURI_DEBUG ? false : 'esbuild',
       // produce sourcemaps for debug builds
