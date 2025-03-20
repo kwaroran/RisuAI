@@ -497,6 +497,7 @@ export function setDatabase(data:Database){
     }
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
+    data.hotkeys ??= structuredClone(defaultHotkeys)
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -943,6 +944,7 @@ export interface Database{
     }
     doNotChangeSeperateModels:boolean
     modelTools: string[]
+    hotkeys:Hotkey[]
 }
 
 interface SeparateParameters{
@@ -1743,6 +1745,7 @@ import { LLMFlags, LLMFormat } from '../model/modellist';
 import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
+import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

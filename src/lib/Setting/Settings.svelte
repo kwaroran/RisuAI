@@ -21,6 +21,7 @@
     import ThanksPage from "./Pages/ThanksPage.svelte";
     import ModuleSettings from "./Pages/Module/ModuleSettings.svelte";
   import { isLite } from "src/ts/lite";
+    import HotkeySettings from "./Pages/HotkeySettings.svelte";
 
     let openLoreList = $state(false)
     if(window.innerWidth >= 900 && $SettingsMenuIndex === -1 && !$MobileGUI){
@@ -122,6 +123,15 @@
                     <UserIcon />
                     <span>{language.account} & {language.files}</span>
                 </button>
+                <button class="flex gap-2 items-center hover:text-textcolor"
+                        class:text-textcolor={$SettingsMenuIndex === 15}
+                        class:text-textcolor2={$SettingsMenuIndex !== 15}
+                        onclick={() => {
+                        $SettingsMenuIndex = 15
+                    }}>
+                        <ActivityIcon />
+                        <span>{language.hotkey}</span>
+                    </button>
                 {#if !$isLite}
                     <button class="flex gap-2 items-center hover:text-textcolor"
                         class:text-textcolor={$SettingsMenuIndex === 6}
@@ -186,6 +196,8 @@
                         <PromptSettings onGoBack={() => {
                             $SettingsMenuIndex = 1
                         }}/>
+                    {:else if $SettingsMenuIndex === 15}
+                        <HotkeySettings/>
                     {:else if $SettingsMenuIndex === 77}
                         <ThanksPage/>
                     {/if}
