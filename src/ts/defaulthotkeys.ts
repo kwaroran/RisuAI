@@ -120,16 +120,6 @@ export const defaultHotkeys: Hotkey[] = [
         action: 'previewRequest'
     },
     {
-        key: 'i',
-        ctrl: true,
-        action: 'import'
-    },
-    {
-        key: 'x',
-        ctrl: true,
-        action: 'export'
-    },
-    {
         key: 'w',
         ctrl: true,
         action: 'webcam'

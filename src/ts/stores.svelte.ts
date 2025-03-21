@@ -98,6 +98,11 @@ export const LoadingStatusState = $state({
     text: '',
 })
 
+export const QuickSettings = $state({
+    open: false,
+    index: 0
+})
+
 export const disableHighlight = writable(true)
 
 ReloadGUIPointer.subscribe(() => {

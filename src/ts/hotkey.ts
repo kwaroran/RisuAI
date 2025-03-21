@@ -1,10 +1,12 @@
 import { get } from "svelte/store"
-import { alertSelect, alertToast, doingAlert } from "./alert"
+import { alertMd, alertSelect, alertToast, alertWait, doingAlert } from "./alert"
 import { changeToPreset as changeToPreset2, getDatabase  } from "./storage/database.svelte"
-import { alertStore, MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, SafeModeStore, selectedCharID, settingsOpen } from "./stores.svelte"
+import { alertStore, MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, OpenRealmStore, PlaygroundStore, QuickSettings, SafeModeStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"
 import { defaultHotkeys } from "./defaulthotkeys"
+import { doingChat, previewBody, sendChat } from "./process/index.svelte"
+import { getRequestLog } from "./globalApi.svelte"
 
 export function initHotkey(){
     document.addEventListener('keydown', (ev) => {
@@ -109,6 +111,67 @@ export function initHotkey(){
                 case 'toggleCSS':{
                     SafeModeStore.set(!get(SafeModeStore))
                     updateTextThemeAndCSS()
+                    break
+                }
+                case 'prevChar':{
+                    const sorted = database.characters.map((v, i) => {
+                        return {name: v.name, i}
+                    }).sort((a, b) => a.name.localeCompare(b.name))
+                    const currentIndex = sorted.findIndex(v => v.i === get(selectedCharID))
+                    if(currentIndex === 0){
+                        return
+                    }
+                    if(currentIndex >= sorted.length - 1){
+                        return
+                    }
+                    selectedCharID.set(sorted[currentIndex - 1].i)
+                    PlaygroundStore.set(0)
+                    OpenRealmStore.set(false)
+                    break
+                }
+                case 'nextChar':{
+                    const sorted = database.characters.map((v, i) => {
+                        return {name: v.name, i}
+                    }).sort((a, b) => a.name.localeCompare(b.name))
+                    const currentIndex = sorted.findIndex(v => v.i === get(selectedCharID))
+                    if(currentIndex === 0){
+                        return
+                    }
+                    if(currentIndex >= sorted.length - 1){
+                        return
+                    }
+                    selectedCharID.set(sorted[currentIndex + 1].i)
+                    PlaygroundStore.set(0)
+                    OpenRealmStore.set(false)
+                    break
+                }
+                case 'quickMenu':{
+                    quickMenu()
+                    break
+                }
+                case 'previewRequest':{
+                    if(get(doingChat) && get(selectedCharID) !== -1){
+                        return false
+                    }
+                    alertWait("Loading...")
+                    sendChat(-1, {
+                        previewPrompt: true
+                    })
+
+                    let md = ''
+                    md += '### Prompt\n'
+                    md += '```json\n' + JSON.stringify(JSON.parse(previewBody), null, 2).replaceAll('```', '\\`\\`\\`') + '\n```\n'
+                    doingChat.set(false)
+                    alertMd(md)
+                    break
+                }
+                case 'toggleLog':{
+                    alertMd(getRequestLog())
+                    break
+                }
+                case 'quickSettings':{
+                    QuickSettings.open = !QuickSettings.open
+                    QuickSettings.index = 0
                     break
                 }
                 default:{
@@ -221,18 +284,7 @@ export function initHotkey(){
             if(doingAlert()){
                 return
             }
-            const selStr = await alertSelect([
-                language.presets,
-                language.persona,
-                language.cancel
-            ])
-            const sel = parseInt(selStr)
-            if(sel === 0){
-                openPresetList.set(!get(openPresetList))
-            }
-            if(sel === 1){
-                openPersonaList.set(!get(openPersonaList))
-            }
+            quickMenu()
         }
         if(touchs === 1){
             touchStartTime = Date.now()
@@ -241,6 +293,21 @@ export function initHotkey(){
     document.addEventListener('touchend', (ev) => {
         touchs = 0
     })
+}
+
+async function quickMenu(){
+    const selStr = await alertSelect([
+        language.presets,
+        language.persona,
+        language.cancel
+    ])
+    const sel = parseInt(selStr)
+    if(sel === 0){
+        openPresetList.set(!get(openPresetList))
+    }
+    if(sel === 1){
+        openPersonaList.set(!get(openPersonaList))
+    }
 }
 
 function clickQuery(query:string){
