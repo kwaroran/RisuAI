@@ -1077,7 +1077,7 @@ export const languageEnglish = {
     playMessageOnTranslateEnd: "Play Audio on Translate Completion",
     seperateModelsForAxModels: "Seperate Models for Auxiliary Models",
     axModelsDef: "Ax Models Definition",
-    doNotChangeSeperateModels: "Do Not Change Seperate Models",
+    doNotChangeSeperateModels: "Do Not Change Seperate Models on Preset Change",
     tools: "Tools",
     action: "Action",
     hotkey: "Hotkey",
@@ -1108,4 +1108,8 @@ export const languageEnglish = {
         focusInput: "Focus Input",
     },
     screenTooSmall: "Screen is too small to show the interface.",
+    advancedModelSettings: "Advanced Model Settings",
+    fallbackModel: "Fallback Model",
+    fallbackWhenBlankResponse: "Fallback When Blank Response",
+    doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
 }

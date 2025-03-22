@@ -45,6 +45,7 @@ interface requestDataArgument{
     extractJson?:string
     imageResponse?:boolean
     previewBody?:boolean
+    staticModel?: string
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -64,18 +65,21 @@ type requestDataResponse = {
         emotion?: string
     },
     failByServerError?: boolean
+    model?: string
 }|{
     type: "streaming",
     result: ReadableStream<StreamResponseChunk>,
     special?: {
         emotion?: string
     }
+    model?: string
 }|{
     type: "multiline",
     result: ['user'|'char',string][],
     special?: {
         emotion?: string
     }
+    model?: string
 }
 
 interface StreamResponseChunk{[key:string]:string}
@@ -264,87 +268,112 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
 export async function requestChatData(arg:requestDataArgument, model:ModelModeExtended, abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
-    let trys = 0
-    while(true){
+    const fallBackModels:string[] = db?.fallbackModels?.[model] ?? []
+    fallBackModels.push('')
 
-        if(pluginV2.replacerbeforeRequest.size > 0){
-            for(const replacer of pluginV2.replacerbeforeRequest){
-                arg.formated = await replacer(arg.formated, model)
-            }
+    const originalFormated = safeStructuredClone(arg.formated)
+    for(let fallbackIndex=0;fallbackIndex<fallBackModels.length;fallbackIndex++){
+        let trys = 0
+        arg.formated = safeStructuredClone(originalFormated)
+
+        if(fallbackIndex !== 0 && !fallBackModels[fallbackIndex]){
+            continue
         }
-        
-        try{
-            const currentChar = getCurrentCharacter()
-            if(currentChar?.type !== 'group'){
-                const perf = performance.now()
-                const d = await runTrigger(currentChar, 'request', {
-                    chat: getCurrentChat(),
-                    displayMode: true,
-                    displayData: JSON.stringify(arg.formated)
-                })
+
+        while(true){
     
-                const got = JSON.parse(d.displayData)
-                if(!got || !Array.isArray(got)){
-                    throw new Error('Invalid return')
+            if(pluginV2.replacerbeforeRequest.size > 0){
+                for(const replacer of pluginV2.replacerbeforeRequest){
+                    arg.formated = await replacer(arg.formated, model)
                 }
-                arg.formated = got
-                console.log('Trigger time', performance.now() - perf)
             }
-        }
-        catch(e){
-            console.error(e)
-        }
+            
+            try{
+                const currentChar = getCurrentCharacter()
+                if(currentChar?.type !== 'group'){
+                    const perf = performance.now()
+                    const d = await runTrigger(currentChar, 'request', {
+                        chat: getCurrentChat(),
+                        displayMode: true,
+                        displayData: JSON.stringify(arg.formated)
+                    })
         
-
-        const da = await requestChatDataMain(arg, model, abortSignal)
-
-        if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
-            for(const replacer of pluginV2.replacerafterRequest){
-                da.result = await replacer(da.result, model)
-            }
-        }
-
-        if(da.type === 'success' && db.banCharacterset?.length > 0){
-            let failed = false
-            for(const set of db.banCharacterset){
-                console.log(set)
-                const checkRegex = new RegExp(`\\p{Script=${set}}`, 'gu')
-
-                if(checkRegex.test(da.result)){
-                    trys += 1
-                    if(trys > db.requestRetrys){
-                        return {
-                            type: 'fail',
-                            result: 'Banned character found, retry limit reached'
-                        }
+                    const got = JSON.parse(d.displayData)
+                    if(!got || !Array.isArray(got)){
+                        throw new Error('Invalid return')
                     }
-                    
-                    failed = true
+                    arg.formated = got
+                    console.log('Trigger time', performance.now() - perf)
+                }
+            }
+            catch(e){
+                console.error(e)
+            }
+            
+    
+            const da = await requestChatDataMain({
+                ...arg,
+                staticModel: fallBackModels[fallbackIndex]
+            }, model, abortSignal)
+    
+            if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
+                for(const replacer of pluginV2.replacerafterRequest){
+                    da.result = await replacer(da.result, model)
+                }
+            }
+    
+            if(da.type === 'success' && db.banCharacterset?.length > 0){
+                let failed = false
+                for(const set of db.banCharacterset){
+                    console.log(set)
+                    const checkRegex = new RegExp(`\\p{Script=${set}}`, 'gu')
+    
+                    if(checkRegex.test(da.result)){
+                        trys += 1
+                        failed = true
+                        break
+                    }
+                }
+    
+                if(failed){
+                    continue
+                }
+            }
+    
+            if(da.type === 'success' && fallbackIndex !== fallBackModels.length-1 && db.fallbackWhenBlankResponse){
+                if(da.result.trim() === ''){
                     break
                 }
             }
-
-            if(failed){
-                continue
+    
+            if(da.type !== 'fail' || da.noRetry){
+                return {
+                    ...da,
+                    model: fallBackModels[fallbackIndex]
+                }
             }
-        }
-
-
-        if(da.type !== 'fail' || da.noRetry){
-            return da
-        }
-
-        if(da.failByServerError){
-            await sleep(1000)
-            if(db.antiServerOverloads){
-                trys -= 0.5 // reduce trys by 0.5, so that it will retry twice as much
+    
+            if(da.failByServerError){
+                await sleep(1000)
+                if(db.antiServerOverloads){
+                    trys -= 0.5 // reduce trys by 0.5, so that it will retry twice as much
+                }
             }
-        }
-        
-        trys += 1
-        if(trys > db.requestRetrys){
-            return da
-        }
+            
+            trys += 1
+            if(trys > db.requestRetrys){
+                if(fallbackIndex === fallBackModels.length-1 || da.model === 'custom'){
+                    return da
+                }
+                break
+            }
+        }   
+    }
+
+
+    return {
+        type: 'fail',
+        result: "All models failed"
     }
 }
 
@@ -475,7 +504,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
     targ.useStreaming = db.useStreaming && arg.useStreaming
     targ.continue = arg.continue ?? false
     targ.biasString = arg.biasString ?? []
-    targ.aiModel = (model === 'model' ? db.aiModel : db.subModel)
+    targ.aiModel = arg.staticModel ? arg.staticModel : (model === 'model' ? db.aiModel : db.subModel)
     targ.multiGen = ((db.genTime > 1 && targ.aiModel.startsWith('gpt') && (!arg.continue)) && (!arg.noMultiGen))
     targ.abortSignal = abortSignal
     targ.modelInfo = getModelInfo(targ.aiModel)
@@ -487,7 +516,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.customURL = db.forceReplaceUrl
     }
 
-    if(db.seperateModelsForAxModels){
+    if(db.seperateModelsForAxModels && !arg.staticModel){
         if(db.seperateModels[model]){
             targ.aiModel = db.seperateModels[model]
             targ.modelInfo = getModelInfo(targ.aiModel)
@@ -1873,13 +1902,15 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
         if(!d){
             return {
                 type: 'fail',
-                result: (language.errors.unknownModel)
+                result: (language.errors.unknownModel),
+                model: 'custom'
             }
         }
         else if(!d.success){
             return {
                 type: 'fail',
-                result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content
+                result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content,
+                model: 'custom'
             }
         }
         else if(d.content instanceof ReadableStream){
@@ -1896,20 +1927,23 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
     
             return {
                 type: 'streaming',
-                result: d.content.pipeThrough(piper)
+                result: d.content.pipeThrough(piper),
+                model: 'custom'
             }
         }
         else{
             return {
                 type: 'success',
-                result: d.content
+                result: d.content,
+                model: 'custom'
             }
         }   
     } catch (error) {
         console.error(error)
         return {
             type: 'fail',
-            result: `Plugin Error from ${db.currentPluginProvider}: ` + JSON.stringify(error)
+            result: `Plugin Error from ${db.currentPluginProvider}: ` + JSON.stringify(error),
+            model: 'custom'
         }
     }
 }

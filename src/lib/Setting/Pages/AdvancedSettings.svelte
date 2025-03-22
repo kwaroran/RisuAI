@@ -212,11 +212,6 @@
         </Check>
     </div>
     <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.doNotChangeSeperateModels} name={language.doNotChangeSeperateModels}>
-            <Help key="unrecommended" unrecommended/>
-        </Check>
-    </div>
-    <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.claudeRetrivalCaching} name={language.claudeCachingRetrival}>
             <Help key="unrecommended" unrecommended/>
         </Check>

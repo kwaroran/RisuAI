@@ -498,6 +498,13 @@ export function setDatabase(data:Database){
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
     data.hotkeys ??= structuredClone(defaultHotkeys)
+    data.fallbackModels ??= {
+        memory: [],
+        emotion: [],
+        translate: [],
+        otherAx: [],
+        model: []
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -945,6 +952,15 @@ export interface Database{
     doNotChangeSeperateModels:boolean
     modelTools: string[]
     hotkeys:Hotkey[]
+    fallbackModels: {
+        memory: string[],
+        emotion: string[],
+        translate: string[],
+        otherAx: string[]
+        model: string[]
+    }
+    doNotChangeFallbackModels: boolean
+    fallbackWhenBlankResponse: boolean
 }
 
 interface SeparateParameters{
@@ -1288,6 +1304,14 @@ export interface botPreset{
         otherAx: string
     }
     modelTools?:string[]
+    fallbackModels?: {
+        memory: string[],
+        emotion: string[],
+        translate: string[],
+        otherAx: string[]
+        model: string[]
+    }
+    fallbackWhenBlankResponse?: boolean
 }
 
 
@@ -1608,6 +1632,8 @@ export function saveCurrentPreset(){
         seperateModelsForAxModels: db.doNotChangeSeperateModels ? false : db.seperateModelsForAxModels ?? false,
         seperateModels: db.doNotChangeSeperateModels ? null : safeStructuredClone(db.seperateModels),
         modelTools: safeStructuredClone(db.modelTools),
+        fallbackModels: safeStructuredClone(db.fallbackModels),
+        fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1728,6 +1754,16 @@ export function setPreset(db:Database, newPres: botPreset){
             translate: '',
             otherAx: ''
         }
+    }
+    if(!db.doNotChangeFallbackModels){
+        db.fallbackModels = safeStructuredClone(newPres.fallbackModels) ?? {
+            memory: [],
+            emotion: [],
+            translate: [],
+            otherAx: [],
+            model: []
+        }
+        db.fallbackWhenBlankResponse = newPres.fallbackWhenBlankResponse ?? false
     }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
 

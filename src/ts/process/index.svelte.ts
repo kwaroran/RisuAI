@@ -1310,6 +1310,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         previewBody: arg.previewPrompt
     }, 'model', abortSignal)
 
+    console.log(req)
+    if(req.model){
+        generationInfo.model = getGenerationModelString(req.model)
+        console.log(generationInfo.model, req.model)
+    }
+
     if(arg.previewPrompt && req.type === 'success'){
         previewBody = req.result
         return true

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, PlusIcon } from "lucide-svelte";
+    import { ArrowLeft, PlusIcon, TrashIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
     import { tokenizePreset, type PromptItem } from "src/ts/process/prompt";
@@ -174,6 +174,7 @@
     </div>
 
     {#if DBState.db.seperateModelsForAxModels}
+        <Check bind:check={DBState.db.doNotChangeSeperateModels} name={language.doNotChangeSeperateModels}></Check>
         <Arcodion name={language.axModelsDef} styled>
             <span class="text-textcolor mt-4">
                 Memory
@@ -199,5 +200,47 @@
             
         </Arcodion>
     {/if}
+
+    {#snippet fallbackModelList(arg:'model'|'memory'|'translate'|'emotion'|'otherAx')}
+        {#each DBState.db.fallbackModels[arg] as model, i}
+            <span class="text-textcolor mt-4">
+                {language.model} {i + 1}
+            </span>
+            <ModelList bind:value={DBState.db.fallbackModels[arg][i]} blankable />
+        {/each}
+        <div class="flex gap-2">
+            <button class="bg-selected text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.fallbackModels[arg] ?? []
+                value.push('')
+                DBState.db.fallbackModels[arg] = value
+            }}><PlusIcon /></button>
+            <button class="bg-red-500 text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.fallbackModels[arg] ?? []
+                value.pop()
+                DBState.db.fallbackModels[arg] = value
+            }}><TrashIcon /></button>
+        </div>
+    {/snippet}
+
+    <Arcodion name={language.fallbackModel} styled>
+        <Check bind:check={DBState.db.fallbackWhenBlankResponse} name={language.fallbackWhenBlankResponse} className="mt-4"/>
+        <Check bind:check={DBState.db.doNotChangeFallbackModels} name={language.doNotChangeFallbackModels} className="mt-4"/>
+
+        <Arcodion name={language.model} styled>
+            {@render fallbackModelList('model')}
+        </Arcodion>
+        <Arcodion name={"Memory"} styled>
+            {@render fallbackModelList('memory')}
+        </Arcodion>
+        <Arcodion name={"Translations"} styled>
+            {@render fallbackModelList('translate')}
+        </Arcodion>
+        <Arcodion name={"Emotion"} styled>
+            {@render fallbackModelList('emotion')}
+        </Arcodion>
+        <Arcodion name={"OtherAx"} styled>
+            {@render fallbackModelList('otherAx')}
+        </Arcodion>
+    </Arcodion>
 
 {/if}
