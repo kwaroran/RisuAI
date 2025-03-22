@@ -133,9 +133,11 @@ export class HypaProcesser{
     }
     
     async addText(texts:string[]) {
+        const db = getDatabase()
+        const suffix = (this.model === 'custom' && db.hypaCustomSettings.model) ? `-${db.hypaCustomSettings.model}` : ""
 
         for(let i=0;i<texts.length;i++){
-            const itm:memoryVector = await this.forage.getItem(texts[i] + '|' + this.model)
+            const itm:memoryVector = await this.forage.getItem(texts[i] + '|' + this.model + suffix)
             if(itm){
                 itm.alreadySaved = true
                 this.vectors.push(itm)
@@ -164,7 +166,7 @@ export class HypaProcesser{
         for(let i=0;i<memoryVectors.length;i++){
             const vec = memoryVectors[i]
             if(!vec.alreadySaved){
-                await this.forage.setItem(texts[i] + '|' + this.model, vec)
+                await this.forage.setItem(texts[i] + '|' + this.model + suffix, vec)
             }
         }
 

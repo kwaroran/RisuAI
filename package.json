@@ -19,6 +19,7 @@
     "@adobe/css-tools": "4.3.2",
     "@aws-crypto/sha256-js": "^5.2.0",
     "@breezystack/lamejs": "^1.2.7",
+    "@browsermt/bergamot-translator": "^0.4.9",
     "@capacitor/android": "^5.6.0",
     "@capacitor/core": "^5.6.0",
     "@capacitor/filesystem": "^5.2.0",

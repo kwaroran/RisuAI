@@ -13,9 +13,10 @@
         onclick?: (event: MouseEvent & {
             currentTarget: EventTarget & HTMLDivElement;
         }) => any
+        blankable?: boolean
     }
 
-    let { value = $bindable(""), onChange = (v) => {}, onclick }: Props = $props();
+    let { value = $bindable(""), onChange = (v) => {}, onclick, blankable }: Props = $props();
     let openOptions = $state(false)
 
     function changeModel(name:string){
@@ -72,6 +73,10 @@
                     {/each}
                 {/await}
             </Arcodion>
+
+            {#if blankable}
+                <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel('')}}>{language.none}</button>
+            {/if}
             <div class="text-textcolor2 text-xs">
                 <CheckInput name={language.showUnrecommended}  grayText bind:check={showUnrec}/>
             </div>
@@ -82,6 +87,6 @@
 
 <button onclick={() => {openOptions = true}}
     class="mt-4 drop-shadow-lg p-3 flex justify-center items-center ml-2 mr-2 rounded-lg bg-darkbutton mb-4 border-darkborderc border">
-        {getModelInfo(value).fullName}
+        {getModelInfo(value)?.fullName || language.none}
 </button>
 

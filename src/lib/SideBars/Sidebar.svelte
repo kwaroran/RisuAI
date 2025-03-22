@@ -8,7 +8,10 @@
     sideBarClosing,
     sideBarStore,
     OpenRealmStore,
-    PlaygroundStore
+    PlaygroundStore,
+
+    QuickSettings
+
   } from "../../ts/stores.svelte";
     import { setDatabase, type folder } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
@@ -45,6 +48,7 @@
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
   import DevTool from "./DevTool.svelte";
+    import QuickSettingsGui from "../Others/QuickSettingsGUI.svelte";
   let sideBarMode = $state(0);
   let editMode = $state(false);
   let menuMode = $state(0);
@@ -751,7 +755,9 @@
           </button>
         {/if}
       </div>
-      {#if devTool}
+      {#if QuickSettings.open}
+        <QuickSettingsGui />
+      {:else if devTool}
         <DevTool />
       {:else if $botMakerMode}
         <CharConfig />

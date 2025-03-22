@@ -4,7 +4,7 @@
     import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon, Share2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -34,10 +34,11 @@
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
-  import Toggles from "./Toggles.svelte";
+    import Toggles from "./Toggles.svelte";
 
     let iconRemoveMode = $state(false)
     let emos:[string, string][] = $state([])
+    let iconButtonSize = window.innerWidth > 360 ? 24 as const : 20 as const
     let tokens = $state({
         desc: 0,
         firstMsg: 0,
@@ -193,27 +194,32 @@
 </script>
 
 {#if licensed !== 'private' && !$MobileGUI}
-    <div class="flex gap-2 mb-2">
+    <div class="flex mb-2" class:gap-2={iconButtonSize === 24} class:gap-1={iconButtonSize < 24}>
         <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
-            <UserIcon />
+            <UserIcon size={iconButtonSize} />
         </button>
         <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}}>
-            <SmileIcon />
+            <SmileIcon size={iconButtonSize} />
         </button>
         <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}}>
-            <BookIcon />
+            <BookIcon size={iconButtonSize} />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}
             <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}}>
-                <Volume2Icon />
+                <Volume2Icon size={iconButtonSize} />
             </button>
             <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}}>
-                <CurlyBraces />
+                <CurlyBraces size={iconButtonSize} />
             </button>
         {/if}
         <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}}>
-            <ActivityIcon />
+            <ActivityIcon size={iconButtonSize} />
         </button>
+        {#if DBState.db.characters[$selectedCharID].type === 'character'}
+            <button class={$CharConfigSubMenu === 6 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 6}}>
+                <Share2Icon size={iconButtonSize} />
+            </button>
+        {/if}
     </div>
 {/if}
 
@@ -297,24 +303,6 @@
                 <Check bind:check={(DBState.db.characters[$selectedCharID] as groupChat).orderByOrder} name={language.orderByOrder}/>
             </div>
         {/if}
-    {/if}
-    {#if licensed === 'private'}
-        <Button onclick={async () => {
-            const conf = await alertConfirm(language.removeConfirm + DBState.db.characters[$selectedCharID].name)
-            if(!conf){
-                return
-            }
-            const conf2 = await alertConfirm(language.removeConfirm2 + DBState.db.characters[$selectedCharID].name)
-            if(!conf2){
-                return
-            }
-            let chars = DBState.db.characters
-            chars.splice($selectedCharID, 1)
-            checkCharOrder()
-            $selectedCharID = -1
-            DBState.db.characters = chars
-
-        }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
     {/if}
 {:else if licensed === 'private'}
     <span>You are not allowed</span>
@@ -620,6 +608,39 @@
             <TextAreaInput margin="both" autocomplete="off" bind:value={DBState.db.characters[$selectedCharID].virtualscript}></TextAreaInput>
         {/if}
     {/if}
+{:else if $CharConfigSubMenu === 6}
+
+    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+    && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
+    }
+        <Button size="lg" onclick={async () => {
+            if(await alertTOS()){
+                $ShowRealmFrameStore = 'character'
+            }
+        }} className="mt-2">
+            {#if DBState.db.characters[$selectedCharID].realmId}
+                {language.updateRealm}
+            {:else}
+                {language.shareCloud}
+            {/if}
+        </Button>
+    {/if}
+
+    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
+        || DBState.db.tpo
+        }
+        <Button size="sm" onclick={async () => {
+            const res = await exportChar($selectedCharID)
+        }} className="mt-2">{language.exportCharacter}</Button>
+    {/if}
+
+    <Button onclick={async () => {
+        removeChar($selectedCharID, DBState.db.characters[$selectedCharID].name)
+    }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
+    
 {:else if $CharConfigSubMenu === 5}
     {#if DBState.db.characters[$selectedCharID].type === 'character'}
         {#if !$MobileGUI}
@@ -1107,32 +1128,6 @@
             {language.applyModule}
         </Button>
 
-        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
-            || DBState.db.tpo
-        }
-            <Button size="lg" onclick={async () => {
-                const res = await exportChar($selectedCharID)
-            }} className="mt-2">{language.exportCharacter}</Button>
-        {/if}
-
-        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-        }
-            <Button size="lg" onclick={async () => {
-                if(await alertTOS()){
-                    $ShowRealmFrameStore = 'character'
-                }
-            }} className="mt-2">
-                {#if DBState.db.characters[$selectedCharID].realmId}
-                    {language.updateRealm}
-                {:else}
-                    {language.shareCloud}
-                {/if}
-            </Button>
-        {/if}
     {:else}
         {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData.length > 4 || DBState.db.characters[$selectedCharID].supaMemory}
             <span class="text-textcolor mt-4">{language.SuperMemory}</span>
@@ -1144,9 +1139,6 @@
             <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
         </div>
     {/if}
-    <Button onclick={async () => {
-        removeChar($selectedCharID, DBState.db.characters[$selectedCharID].name)
-    }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
 {/if}
 
 

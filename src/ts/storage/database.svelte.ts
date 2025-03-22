@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "154.0.0"
+export let appVer = "156.0.0"
 export let webAppSubVer = ''
 
 
@@ -335,6 +335,7 @@ export function setDatabase(data:Database){
     data.mancerHeader ??= ''
     data.emotionProcesser ??= 'submodel'
     data.translatorType ??= 'google'
+    data.htmlTranslation ??= false
     data.deeplOptions ??= {
         key:'',
         freeApi: false
@@ -494,6 +495,9 @@ export function setDatabase(data:Database){
         key: data.hypaCustomSettings?.key ?? "",
         model: data.hypaCustomSettings?.model ?? "",       
     }
+    data.doNotChangeSeperateModels ??= false
+    data.modelTools ??= []
+    data.hotkeys ??= structuredClone(defaultHotkeys)
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -735,8 +739,9 @@ export interface Database{
     mancerHeader:string
     emotionProcesser:'submodel'|'embedding',
     showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX',
+    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX'|'bergamot',
     translatorInputLanguage?:string
+    htmlTranslation?:boolean,
     NAIadventure?:boolean,
     NAIappendName?:boolean,
     deeplOptions:{
@@ -930,7 +935,16 @@ export interface Database{
     claudeRetrivalCaching: boolean
     outputImageModal: boolean
     playMessageOnTranslateEnd:boolean
-
+    seperateModelsForAxModels:boolean
+    seperateModels:{
+        memory: string
+        emotion: string
+        translate: string
+        otherAx: string
+    }
+    doNotChangeSeperateModels:boolean
+    modelTools: string[]
+    hotkeys:Hotkey[]
 }
 
 interface SeparateParameters{
@@ -1114,6 +1128,7 @@ export interface character{
     hideChatIcon?:boolean
     lastInteraction?:number
     translatorNote?:string
+    doNotChangeSeperateModels?:boolean
 }
 
 
@@ -1265,6 +1280,14 @@ export interface botPreset{
     reasonEffort?:number
     thinkingTokens?:number
     outputImageModal?:boolean
+    seperateModelsForAxModels?:boolean
+    seperateModels?:{
+        memory: string
+        emotion: string
+        translate: string
+        otherAx: string
+    }
+    modelTools?:string[]
 }
 
 
@@ -1581,7 +1604,10 @@ export function saveCurrentPreset(){
         image: pres?.[db.botPresetsId]?.image ?? '',
         reasonEffort: db.reasoningEffort ?? 0,
         thinkingTokens: db.thinkingTokens ?? null,
-        outputImageModal: db.outputImageModal ?? false
+        outputImageModal: db.outputImageModal ?? false,
+        seperateModelsForAxModels: db.doNotChangeSeperateModels ? false : db.seperateModelsForAxModels ?? false,
+        seperateModels: db.doNotChangeSeperateModels ? null : safeStructuredClone(db.seperateModels),
+        modelTools: safeStructuredClone(db.modelTools),
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1694,6 +1720,17 @@ export function setPreset(db:Database, newPres: botPreset){
     db.reasoningEffort = newPres.reasonEffort ?? 0
     db.thinkingTokens = newPres.thinkingTokens ?? null
     db.outputImageModal = newPres.outputImageModal ?? false
+    if(!db.doNotChangeSeperateModels){
+        db.seperateModelsForAxModels = newPres.seperateModelsForAxModels ?? false
+        db.seperateModels = safeStructuredClone(newPres.seperateModels) ?? {
+            memory: '',
+            emotion: '',
+            translate: '',
+            otherAx: ''
+        }
+    }
+    db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
+
     return db
 }
 
@@ -1708,6 +1745,7 @@ import { LLMFlags, LLMFormat } from '../model/modellist';
 import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
+import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
