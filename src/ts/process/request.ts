@@ -954,7 +954,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
     let replacerURL = aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
-        (aiModel === 'reverse_proxy') ? (arg.customURL) : ('https://api.openai.com/v1/chat/completions')
+        (arg.customURL) ?? ('https://api.openai.com/v1/chat/completions')
 
     if(arg.modelInfo?.endpoint){
         replacerURL = arg.modelInfo.endpoint
@@ -2867,7 +2867,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     const db = getDatabase()
     const aiModel = arg.aiModel
     const useStreaming = arg.useStreaming
-    let replacerURL = (aiModel === 'reverse_proxy') ? (arg.customURL) : ('https://api.anthropic.com/v1/messages')
+    let replacerURL = arg.customURL ?? ('https://api.anthropic.com/v1/messages')
     let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
     const maxTokens = arg.maxTokens
     if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
