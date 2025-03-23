@@ -22,7 +22,7 @@
   
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
     let gridOpen = $state(false)
-    let aprilFools = new Date().getMonth() === 3 && new Date().getDate() === 1
+    let aprilFools = $state(new Date().getMonth() === 3 && new Date().getDate() === 1)
     let aprilFoolsPage = $state(0)
 </script>
 
