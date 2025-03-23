@@ -1170,8 +1170,23 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
-    if(aiModel === 'reverse_proxy'){
-        const additionalParams = db.additionalParams
+    if(aiModel === 'reverse_proxy' || aiModel.startsWith('xcustom:::')){
+        let additionalParams = aiModel === 'reverse_proxy' ? db.additionalParams : []
+
+        if(aiModel.startsWith('xcustom:::')){
+            const found = db.customModels.find(m => m.id === aiModel)
+            const params = found?.params
+            if(params){
+                const lines = params.split('\n')
+                for(const line of lines){
+                    const split = line.split('=')
+                    if(split.length >= 2){
+                        additionalParams.push([split[0], split.slice(1).join('=')])
+                    }
+                }
+            }
+        }
+
         for(let i=0;i<additionalParams.length;i++){
             let key = additionalParams[i][0]
             let value = additionalParams[i][1]
