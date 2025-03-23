@@ -547,6 +547,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
             return requestPlugin(targ)
         case LLMFormat.Ooba:
             return requestOoba(targ)
+        case LLMFormat.VertexAIGemini:
         case LLMFormat.GoogleCloud:
             return requestGoogleCloudVertex(targ)
         case LLMFormat.Kobold:
