@@ -268,7 +268,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 
 export async function requestChatData(arg:requestDataArgument, model:ModelModeExtended, abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
-    const fallBackModels:string[] = db?.fallbackModels?.[model] ?? []
+    const fallBackModels:string[] = safeStructuredClone(db?.fallbackModels?.[model] ?? [])
     fallBackModels.push('')
 
     const originalFormated = safeStructuredClone(arg.formated)

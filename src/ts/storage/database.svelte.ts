@@ -505,6 +505,13 @@ export function setDatabase(data:Database){
         otherAx: [],
         model: []
     }
+    data.fallbackModels = {
+        model: data.fallbackModels.model.filter((v) => v !== ''),
+        memory: data.fallbackModels.memory.filter((v) => v !== ''),
+        emotion: data.fallbackModels.emotion.filter((v) => v !== ''),
+        translate: data.fallbackModels.translate.filter((v) => v !== ''),
+        otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
