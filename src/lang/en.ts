@@ -1112,4 +1112,5 @@ export const languageEnglish = {
     fallbackModel: "Fallback Model",
     fallbackWhenBlankResponse: "Fallback When Blank Response",
     doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
+    customModels: "Custom Models",
 }

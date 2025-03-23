@@ -1450,6 +1450,24 @@ export function getModelInfo(id: string): LLMModel{
             tokenizer: LLMTokenizer.Unknown
         }
     }
+    if(id.startsWith('xcustom:::')){
+        const customModels = db?.customModels || []
+        const found = customModels.find((model) => model.id === id)
+        if(found){
+            return {
+                id: found.id,
+                name: found.name,
+                shortName: found.name,
+                fullName: found.name,
+                internalID: found.internalId,
+                provider: LLMProvider.AsIs,
+                format: found.format,
+                flags: found.flags,
+                parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens'],
+                tokenizer: found.tokenizer
+            }
+        }
+    }
 
     return {
         id,

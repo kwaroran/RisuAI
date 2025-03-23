@@ -14,6 +14,8 @@
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
+  import { PlusIcon, TrashIcon } from "lucide-svelte";
+  import { v4 } from "uuid";
 
     let estaStorage:{
         key:string,
@@ -252,6 +254,117 @@
             {new Intl.DisplayNames([navigator.language,'en'], { type: 'script' }).of(set)} ({characterSetsPreview[set]})
         </Button>
     {/each}
+</Arcodion>
+
+{#snippet CustomFlagButton(index:number,name:string,flag:number)}
+    <Button className="mt-2" onclick={(e) => {
+        if(DBState.db.customModels[index].flags.includes(flag)){
+            DBState.db.customModels[index].flags = DBState.db.customModels[index].flags.filter((f) => f !== flag)
+        }
+        else{
+            DBState.db.customModels[index].flags.push(flag)
+        }
+    }} styled={DBState.db.customModels[index].flags.includes(flag) ? 'primary' : 'outlined'}>
+        {name}
+    </Button>
+{/snippet}
+
+<Arcodion styled name={language.customModels} className="overflow-x-auto">
+
+    {#each DBState.db.customModels as model, index}
+        <Arcodion styled name={model.name ?? "Unnamed"}>
+            <span class="text-textcolor">{language.name}</span>
+            <TextInput size={"sm"} bind:value={DBState.db.customModels[index].name}/>
+            <span class="text-textcolor">{language.proxyRequestModel}</span>
+            <TextInput size={"sm"} bind:value={DBState.db.customModels[index].internalId}/>
+            <span class="text-textcolor">URL</span>
+            <TextInput size={"sm"} bind:value={DBState.db.customModels[index].url}/>
+            <span class="text-textcolor">{language.tokenizer}</span>
+            <SelectInput size={"sm"} value={DBState.db.customModels[index].tokenizer.toString()} onchange={(e) => {
+                DBState.db.customModels[index].tokenizer = parseInt(e.currentTarget.value)
+            }}>
+                <OptionInput value="0">tiktokenCl100kBase</OptionInput>
+                <OptionInput value="1">tiktokenO200Base</OptionInput>
+                <OptionInput value="2">Mistral</OptionInput>
+                <OptionInput value="3">Llama</OptionInput>
+                <OptionInput value="4">NovelAI</OptionInput>
+                <OptionInput value="5">Claude</OptionInput>
+                <OptionInput value="6">NovelList</OptionInput>
+                <OptionInput value="7">Llama3</OptionInput>
+                <OptionInput value="8">Gemma</OptionInput>
+                <OptionInput value="9">GoogleCloud</OptionInput>
+                <OptionInput value="10">Cohere</OptionInput>
+                <OptionInput value="12">DeepSeek</OptionInput>
+            </SelectInput>
+            <span class="text-textcolor">{language.format}</span>
+            <SelectInput size={"sm"} value={DBState.db.customModels[index].format.toString()} onchange={(e) => {
+                DBState.db.customModels[index].format = parseInt(e.currentTarget.value)
+            }}>
+                <OptionInput value="0">OpenAICompatible</OptionInput>
+                <OptionInput value="1">OpenAILegacyInstruct</OptionInput>
+                <OptionInput value="2">Anthropic</OptionInput>
+                <OptionInput value="3">AnthropicLegacy</OptionInput>
+                <OptionInput value="4">Mistral</OptionInput>
+                <OptionInput value="5">GoogleCloud</OptionInput>
+                <OptionInput value="6">VertexAIGemini</OptionInput>
+                <OptionInput value="7">NovelList</OptionInput>
+                <OptionInput value="8">Cohere</OptionInput>
+                <OptionInput value="9">NovelAI</OptionInput>
+                <OptionInput value="11">OobaLegacy</OptionInput>
+                <OptionInput value="13">Ooba</OptionInput>
+                <OptionInput value="14">Kobold</OptionInput>
+                <OptionInput value="17">AWSBedrockClaude</OptionInput>
+                <OptionInput value="18">OpenAIResponseAPI</OptionInput>
+            </SelectInput>
+            <span class="text-textcolor">{language.proxyAPIKey}</span>
+            <TextInput size={"sm"} bind:value={DBState.db.customModels[index].key}/>
+            <span class="text-textcolor">{language.additionalParams}</span>
+            <TextInput size={"sm"} bind:value={DBState.db.customModels[index].params}/>
+            <Arcodion styled name={language.flags}>
+                {@render CustomFlagButton(index,'hasImageInput', 0)}
+                {@render CustomFlagButton(index,'hasImageOutput', 1)}
+                {@render CustomFlagButton(index,'hasAudioInput', 2)}
+                {@render CustomFlagButton(index,'hasAudioOutput', 3)}
+                {@render CustomFlagButton(index,'hasPrefill', 4)}
+                {@render CustomFlagButton(index,'hasCache', 5)}
+                {@render CustomFlagButton(index,'hasFullSystemPrompt', 6)}
+                {@render CustomFlagButton(index,'hasFirstSystemPrompt', 7)}
+                {@render CustomFlagButton(index,'hasStreaming', 8)}
+                {@render CustomFlagButton(index,'requiresAlternateRole', 9)}
+                {@render CustomFlagButton(index,'mustStartWithUserInput', 10)}
+                {@render CustomFlagButton(index,'hasVideoInput', 12)}
+                {@render CustomFlagButton(index,'OAICompletionTokens', 13)}
+                {@render CustomFlagButton(index,'DeveloperRole', 14)}
+                {@render CustomFlagButton(index,'geminiThinking', 15)}
+                {@render CustomFlagButton(index,'geminiBlockOff', 16)}
+                {@render CustomFlagButton(index,'deepSeekPrefix', 17)}
+                {@render CustomFlagButton(index,'deepSeekThinkingInput', 18)}
+                {@render CustomFlagButton(index,'deepSeekThinkingOutput', 19)}
+            </Arcodion>
+        </Arcodion>
+    {/each}
+    <div class="flex items-center mt-4">
+        <Button onclick={() => {
+            DBState.db.customModels.push({
+                internalId: "",
+                url: "",
+                tokenizer: 0,
+                format: 0,
+                id: 'xcustom:::' + v4(),
+                key: "",
+                name: "",
+                params: "",
+                flags: [],
+            })
+        }}>
+            <PlusIcon />
+        </Button>
+        <Button onclick={() => {
+            DBState.db.customModels.pop()
+        }}>
+            <TrashIcon />
+        </Button>
+    </div>
 </Arcodion>
 
 <Button

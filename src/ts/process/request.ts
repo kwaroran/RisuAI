@@ -55,6 +55,7 @@ interface RequestDataArgumentExtended extends requestDataArgument{
     modelInfo?:LLMModel
     customURL?:string
     mode?:ModelModeExtended
+    key?:string
 }
 
 type requestDataResponse = {
@@ -515,6 +516,11 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.modelInfo.format = db.customAPIFormat
         targ.customURL = db.forceReplaceUrl
     }
+    if(targ.aiModel.startsWith('xcustom:::')){
+        const found = db.customModels.find(m => m.id === targ.aiModel)
+        targ.customURL = found?.url
+        targ.key = found?.key
+    }
 
     if(db.seperateModelsForAxModels && !arg.staticModel){
         if(db.seperateModels[model]){
@@ -775,7 +781,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
                 max_tokens: arg.maxTokens,
             }, ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'], {}, arg.mode ),
             headers: {
-                "Authorization": "Bearer " + db.mistralKey,
+                "Authorization": "Bearer " + (arg.key ?? db.mistralKey),
             },
             abortSignal: arg.abortSignal,
             chatId: arg.chatId
@@ -978,7 +984,7 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
     let headers = {
-        "Authorization": "Bearer " + (aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey)),
+        "Authorization": "Bearer " + (arg.key ?? (aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey))),
         "Content-Type": "application/json"
     }
 
@@ -1375,7 +1381,7 @@ async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtended):Prom
         },
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + db.openAIKey,
+            "Authorization": "Bearer " + (arg.key ?? db.openAIKey)
         },
         chatId: arg.chatId
     });
@@ -1511,7 +1517,7 @@ async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):Promise
                 url: "https://api.openai.com/v1/responses",
                 body: body,
                 headers: {
-                    "Authorization": "Bearer " + db.openAIKey,
+                    "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
                     "Content-Type": "application/json"
                 }
             })
@@ -1526,7 +1532,7 @@ async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):Promise
         body: body,
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + db.openAIKey,
+            "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
         },
         chatId: arg.chatId
     });
@@ -1642,7 +1648,7 @@ async function requestNovelAI(arg:RequestDataArgumentExtended):Promise<requestDa
     const da = await globalFetch(aiModel === 'novelai_kayra' ? "https://text.novelai.net/ai/generate" : "https://api.novelai.net/ai/generate", {
         body: body,
         headers: {
-            "Authorization": "Bearer " + db.novelai.token
+            "Authorization": "Bearer " + (arg.key ?? db.novelai.token)
         },
         abortSignal,
         chatId: arg.chatId
@@ -2803,7 +2809,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
                 url: arg.customURL ?? 'https://api.cohere.com/v1/chat',
                 body: body,
                 headers: {
-                    "Authorization": "Bearer " + db.cohereAPIKey,
+                    "Authorization": "Bearer " + (arg.key ?? db.cohereAPIKey),
                     "Content-Type": "application/json"
                 }
             })
@@ -2813,7 +2819,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
     const res = await globalFetch(arg.customURL ?? 'https://api.cohere.com/v1/chat', {
         method: "POST",
         headers: {
-            "Authorization": "Bearer " + db.cohereAPIKey,
+            "Authorization": "Bearer " + (arg.key ?? db.cohereAPIKey),
             "Content-Type": "application/json"
         },
         body: body

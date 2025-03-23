@@ -512,6 +512,7 @@ export function setDatabase(data:Database){
         translate: data.fallbackModels.translate.filter((v) => v !== ''),
         otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
     }
+    data.customModels ??= []
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -968,6 +969,17 @@ export interface Database{
     }
     doNotChangeFallbackModels: boolean
     fallbackWhenBlankResponse: boolean
+    customModels: {
+        id: string
+        internalId: string
+        url: string
+        format: LLMFormat
+        tokenizer: LLMTokenizer
+        key: string
+        name: string
+        params: string
+        flags: LLMFlags[]
+    }[]
 }
 
 interface SeparateParameters{
@@ -1784,7 +1796,7 @@ import type { RisuModule } from '../process/modules';
 import type { SerializableHypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
-import { LLMFlags, LLMFormat } from '../model/modellist';
+import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
 import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';

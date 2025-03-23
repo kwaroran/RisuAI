@@ -74,6 +74,17 @@
                 {/await}
             </Arcodion>
 
+            {#if DBState?.db.customModels?.length > 0}
+                <Arcodion name={language.customModels}>
+                    {#each DBState.db.customModels as model}
+                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name ?? "Unnamed"}</button>
+                    {/each}
+                </Arcodion>
+
+            {/if}
+
+            
+
             {#if blankable}
                 <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel('')}}>{language.none}</button>
             {/if}

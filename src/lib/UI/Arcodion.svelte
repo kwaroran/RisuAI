@@ -9,6 +9,7 @@
         help?: (keyof (typeof language.help))|'';
         disabled?: boolean;
         children?: import('svelte').Snippet;
+        className?: string;
     }
 
     let {
@@ -16,7 +17,8 @@
         styled = false,
         help = '',
         disabled = false,
-        children
+        children,
+        className = ""
     }: Props = $props();
 </script>
 {#if disabled}
@@ -35,7 +37,7 @@
             <Help key={help} />
         {/if}</button>
         {#if open}
-            <div class="flex flex-col border border-selected p-2 rounded-b-md">
+            <div class={"flex flex-col border border-selected p-2 rounded-b-md " + className}>
                 {@render children?.()}
             </div>
         {/if}
