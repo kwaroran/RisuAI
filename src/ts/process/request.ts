@@ -516,6 +516,7 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.modelInfo.internalID = db.customProxyRequestModel
         targ.modelInfo.format = db.customAPIFormat
         targ.customURL = db.forceReplaceUrl
+        targ.key = db.proxyKey
     }
     if(targ.aiModel.startsWith('xcustom:::')){
         const found = db.customModels.find(m => m.id === targ.aiModel)
