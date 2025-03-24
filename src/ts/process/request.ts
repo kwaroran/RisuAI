@@ -2848,7 +2848,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
-    const result = res.data.text
+    const result = res?.data?.text
     if(!result){
         return {
             type: 'fail',
