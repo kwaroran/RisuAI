@@ -9,7 +9,7 @@ import { doingChat, previewBody, sendChat } from "./process/index.svelte"
 import { getRequestLog } from "./globalApi.svelte"
 
 export function initHotkey(){
-    document.addEventListener('keydown', (ev) => {
+    document.addEventListener('keydown', async (ev) => {
         if(
             !ev.ctrlKey &&
             !ev.altKey &&
@@ -154,7 +154,9 @@ export function initHotkey(){
                         return false
                     }
                     alertWait("Loading...")
-                    sendChat(-1, {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    await sendChat(-1, {
                         previewPrompt: true
                     })
 
@@ -163,7 +165,7 @@ export function initHotkey(){
                     md += '```json\n' + JSON.stringify(JSON.parse(previewBody), null, 2).replaceAll('```', '\\`\\`\\`') + '\n```\n'
                     doingChat.set(false)
                     alertMd(md)
-                    break
+                    return
                 }
                 case 'toggleLog':{
                     alertMd(getRequestLog())
