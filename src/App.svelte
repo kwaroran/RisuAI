@@ -18,6 +18,7 @@
     import MobileFooter from './lib/Mobile/MobileFooter.svelte';
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
     import { checkCharOrder } from './ts/globalApi.svelte';
+    import { ArrowUpIcon, GlobeIcon, PlusIcon } from 'lucide-svelte';
 
   
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
@@ -48,11 +49,27 @@
                 <div class="flex flex-col w-full items-center text-[#bbbbbb]">
                     {#if aprilFoolsPage === 0}
                         <h1 class="text-3xl text-white font-bold mb-6">What can I help you?</h1>
-                        <textarea class="resize-none w-full placeholder-[#bbbbbb] bg-[#303030] rounded-3xl h-[110px] py-4 px-6 mb-6" placeholder="Ask me" onkeydown={(e) => {
+                        <div class="resize-none relative w-full bg-[#303030] rounded-3xl h-[110px] mb-6 text-[#bbbbbb]" placeholder="Ask me" onkeydown={(e) => {
                             if(e.key === 'Enter'){
                                 aprilFoolsPage = 1
                             }
-                        }}></textarea>
+                        }}>
+                            <textarea class="absolute top-0 left-0 w-full placeholder-[#bbbbbb] rounded-3xl h-full p-4 bg-transparent resize-none" placeholder="Ask me"></textarea>
+                            <div class="absolute bottom-2 left-4 flex gap-1.5">
+                                <button class="p-2 rounded-full border border-[#bbbbbb30]">
+                                    <PlusIcon size={18} color="#bbbbbb" />
+                                </button>
+                                <button class="p-2 rounded-full border border-[#bbbbbb30]">
+                                    <GlobeIcon size={18} color="#bbbbbb" />
+                                </button>
+                                
+                            </div>
+                            <div class="absolute bottom-2 right-4 flex">
+                                <button class="p-2 rounded-full bg-[#bbbbbb]">
+                                    <ArrowUpIcon size={18} color="#00000080" />
+                                </button>
+                            </div>
+                        </div>
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
                         <div class="flex gap-1.5" onclick={() => {
                             aprilFoolsPage = 1
@@ -75,16 +92,16 @@
                         </div>
                     {:else}
                     <h1 class="text-3xl text-white font-bold mb-6">
-                        Happy April Fools!
+                        We do not have search results.
                     </h1>
                     <p class="text-[#bbbbbb] mb-6">
                         <!-- svelte-ignore a11y_missing_attribute -->
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        Go <a class="text-blue-500 cursor-pointer" onclick={() => {
+                        Go to <a class="text-blue-500 cursor-pointer" onclick={() => {
                             aprilFoolsPage = 0
                             aprilFools = false
                         }}>
-                            Back to normal    
+                            Risuai  
                         </a>
                     </p>
 
