@@ -283,6 +283,13 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
         }
 
         while(true){
+            
+            if(abortSignal?.aborted){
+                return {
+                    type: 'fail',
+                    result: 'Aborted'
+                }
+            }
     
             if(pluginV2.replacerbeforeRequest.size > 0){
                 for(const replacer of pluginV2.replacerbeforeRequest){
@@ -317,6 +324,13 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                 ...arg,
                 staticModel: fallBackModels[fallbackIndex]
             }, model, abortSignal)
+
+            if(abortSignal.aborted){
+                return {
+                    type: 'fail',
+                    result: 'Aborted'
+                }
+            }
     
             if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
                 for(const replacer of pluginV2.replacerafterRequest){
@@ -1401,7 +1415,8 @@ async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtended):Prom
             "Content-Type": "application/json",
             "Authorization": "Bearer " + (arg.key ?? db.openAIKey)
         },
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        abortSignal: arg.abortSignal
     });
 
     if(!response.ok){
@@ -1552,7 +1567,8 @@ async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):Promise
             "Content-Type": "application/json",
             "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
         },
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        abortSignal: arg.abortSignal
     });
 
     if(!response.ok){
@@ -1669,7 +1685,7 @@ async function requestNovelAI(arg:RequestDataArgumentExtended):Promise<requestDa
             "Authorization": "Bearer " + (arg.key ?? db.novelai.token)
         },
         abortSignal,
-        chatId: arg.chatId
+        chatId: arg.chatId,
     })
 
     if((!da.ok )|| (!da.data.output)){
@@ -1873,7 +1889,8 @@ async function requestOoba(arg:RequestDataArgumentExtended):Promise<requestDataR
 
     const response = await globalFetch(urlStr, {
         body: bodyTemplate,
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        abortSignal: arg.abortSignal
     })
 
     if(!response.ok){
@@ -2366,6 +2383,7 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
             body: JSON.stringify(body),
             method: 'POST',
             chatId: arg.chatId,
+            signal: arg.abortSignal
         })
 
         if(f.status !== 200){
@@ -2668,7 +2686,8 @@ async function requestNovelList(arg:RequestDataArgumentExtended):Promise<request
         method: 'POST',
         headers: headers,
         body: send_body,
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        abortSignal: arg.abortSignal
     });
 
     if(!response.ok){
@@ -2840,7 +2859,8 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
             "Authorization": "Bearer " + (arg.key ?? db.cohereAPIKey),
             "Content-Type": "application/json"
         },
-        body: body
+        body: body,
+        abortSignal: arg.abortSignal
     })
 
     if(!res.ok){
