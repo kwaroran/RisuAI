@@ -271,6 +271,7 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     const db = getDatabase()
     const fallBackModels:string[] = safeStructuredClone(db?.fallbackModels?.[model] ?? [])
     fallBackModels.push('')
+    let da:requestDataResponse
 
     const originalFormated = safeStructuredClone(arg.formated)
     for(let fallbackIndex=0;fallbackIndex<fallBackModels.length;fallbackIndex++){
@@ -312,7 +313,7 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
             }
             
     
-            const da = await requestChatDataMain({
+            da = await requestChatDataMain({
                 ...arg,
                 staticModel: fallBackModels[fallbackIndex]
             }, model, abortSignal)
@@ -372,7 +373,7 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     }
 
 
-    return {
+    return da ?? {
         type: 'fail',
         result: "All models failed"
     }
