@@ -276,7 +276,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
         const from = db.translatorInputLanguage
-        const r = translateLLM(html, {to: tr, from: from, regenerate})
+        const r = await translateLLM(html, {to: tr, from: from, regenerate})
         if(db.playMessageOnTranslateEnd){
             const audio = new Audio(sendSound);
             audio.play();

@@ -1051,36 +1051,6 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.GoogleCloud
     },
     {
-        name: "Gemini Exp 1121",
-        id: 'gemini-exp-1121-vertex',
-        internalID: 'gemini-exp-1121',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
-    },
-    {
-        name: "Gemini Pro 1.5",
-        id: 'gemini-1.5-pro-latest-vertex',
-        internalID: 'gemini-1.5-pro-latest',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
-    },
-    {
-        name: "Gemini Flash 1.5",
-        id: 'gemini-1.5-flash-vertex',
-        internalID: 'gemini-1.5-flash',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
-    },
-    {
         name: "Gemini Exp 1114",
         id: 'gemini-exp-1114',
         provider: LLMProvider.GoogleCloud,
@@ -1405,6 +1375,17 @@ for(let i=0; i<LLMModels.length; i++){
             
         })
     }
+    if(LLMModels[i].provider === LLMProvider.GoogleCloud){
+        LLMModels.push({
+            ...LLMModels[i],
+            id: `${LLMModels[i].id}-vertex`,
+            name: `${LLMModels[i].name} Vertex`,
+            fullName: `${LLMModels[i].fullName ?? LLMModels[i].name} Vertex`,
+            flags: [...LLMModels[i].flags],
+            recommended: false,
+            provider: LLMProvider.VertexAI
+        })
+    }
 }
 
 export function getModelInfo(id: string): LLMModel{
@@ -1448,6 +1429,24 @@ export function getModelInfo(id: string): LLMModel{
             flags: [],
             parameters: OpenAIParameters,
             tokenizer: LLMTokenizer.Unknown
+        }
+    }
+    if(id.startsWith('xcustom:::')){
+        const customModels = db?.customModels || []
+        const found = customModels.find((model) => model.id === id)
+        if(found){
+            return {
+                id: found.id,
+                name: found.name,
+                shortName: found.name,
+                fullName: found.name,
+                internalID: found.internalId,
+                provider: LLMProvider.AsIs,
+                format: found.format,
+                flags: found.flags,
+                parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens'],
+                tokenizer: found.tokenizer
+            }
         }
     }
 

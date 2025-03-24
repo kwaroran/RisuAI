@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "156.0.0"
+export let appVer = "158.1.0"
 export let webAppSubVer = ''
 
 
@@ -498,6 +498,21 @@ export function setDatabase(data:Database){
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
     data.hotkeys ??= structuredClone(defaultHotkeys)
+    data.fallbackModels ??= {
+        memory: [],
+        emotion: [],
+        translate: [],
+        otherAx: [],
+        model: []
+    }
+    data.fallbackModels = {
+        model: data.fallbackModels.model.filter((v) => v !== ''),
+        memory: data.fallbackModels.memory.filter((v) => v !== ''),
+        emotion: data.fallbackModels.emotion.filter((v) => v !== ''),
+        translate: data.fallbackModels.translate.filter((v) => v !== ''),
+        otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
+    }
+    data.customModels ??= []
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -945,6 +960,26 @@ export interface Database{
     doNotChangeSeperateModels:boolean
     modelTools: string[]
     hotkeys:Hotkey[]
+    fallbackModels: {
+        memory: string[],
+        emotion: string[],
+        translate: string[],
+        otherAx: string[]
+        model: string[]
+    }
+    doNotChangeFallbackModels: boolean
+    fallbackWhenBlankResponse: boolean
+    customModels: {
+        id: string
+        internalId: string
+        url: string
+        format: LLMFormat
+        tokenizer: LLMTokenizer
+        key: string
+        name: string
+        params: string
+        flags: LLMFlags[]
+    }[]
 }
 
 interface SeparateParameters{
@@ -1288,6 +1323,14 @@ export interface botPreset{
         otherAx: string
     }
     modelTools?:string[]
+    fallbackModels?: {
+        memory: string[],
+        emotion: string[],
+        translate: string[],
+        otherAx: string[]
+        model: string[]
+    }
+    fallbackWhenBlankResponse?: boolean
 }
 
 
@@ -1608,6 +1651,8 @@ export function saveCurrentPreset(){
         seperateModelsForAxModels: db.doNotChangeSeperateModels ? false : db.seperateModelsForAxModels ?? false,
         seperateModels: db.doNotChangeSeperateModels ? null : safeStructuredClone(db.seperateModels),
         modelTools: safeStructuredClone(db.modelTools),
+        fallbackModels: safeStructuredClone(db.fallbackModels),
+        fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1729,6 +1774,16 @@ export function setPreset(db:Database, newPres: botPreset){
             otherAx: ''
         }
     }
+    if(!db.doNotChangeFallbackModels){
+        db.fallbackModels = safeStructuredClone(newPres.fallbackModels) ?? {
+            memory: [],
+            emotion: [],
+            translate: [],
+            otherAx: [],
+            model: []
+        }
+        db.fallbackWhenBlankResponse = newPres.fallbackWhenBlankResponse ?? false
+    }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
 
     return db
@@ -1741,7 +1796,7 @@ import type { RisuModule } from '../process/modules';
 import type { SerializableHypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
-import { LLMFlags, LLMFormat } from '../model/modellist';
+import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
 import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';

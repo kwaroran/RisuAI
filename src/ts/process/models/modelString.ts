@@ -1,13 +1,13 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
 
-export function getGenerationModelString(){
+export function getGenerationModelString(name?:string){
     const db = getDatabase()
-    switch (db.aiModel){
+    switch (name ?? db.aiModel){
         case 'reverse_proxy':
             return 'custom-' + (db.reverseProxyOobaMode ? 'ooba' : db.customProxyRequestModel)
         case 'openrouter':
             return 'openrouter-' + db.openrouterRequestModel
         default:
-            return db.aiModel
+            return name ?? db.aiModel
     }
 }
