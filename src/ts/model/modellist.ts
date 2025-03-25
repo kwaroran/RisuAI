@@ -1289,7 +1289,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.hasStreaming],
         parameters: ['frequency_penalty', 'presence_penalty','temperature', 'top_p'],
         tokenizer: LLMTokenizer.DeepSeek,
-        endpoint: 'https://api.deepseek.com/beta',
+        endpoint: 'https://api.deepseek.com/beta/chat/completions',
         keyIdentifier: 'deepseek',
         recommended: true
     },
