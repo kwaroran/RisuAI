@@ -325,7 +325,7 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                 staticModel: fallBackModels[fallbackIndex]
             }, model, abortSignal)
 
-            if(abortSignal.aborted){
+            if(abortSignal?.aborted){
                 return {
                     type: 'fail',
                     result: 'Aborted'
@@ -1765,11 +1765,11 @@ async function requestOobaLegacy(arg:RequestDataArgumentExtended):Promise<reques
             oobaboogaSocket.onerror = () => resolve(1001)
             oobaboogaSocket.onclose = ({ code }) => resolve(code)
         })
-        if(abortSignal.aborted || statusCode !== 0) {
+        if(abortSignal?.aborted || statusCode !== 0) {
             oobaboogaSocket.close()
             return ({
                 type: "fail",
-                result: abortSignal.reason || `WebSocket connection failed to '${streamUrl}' failed!`,
+                result: abortSignal?.reason || `WebSocket connection failed to '${streamUrl}' failed!`,
             })
         }
 
@@ -1798,7 +1798,7 @@ async function requestOobaLegacy(arg:RequestDataArgumentExtended):Promise<reques
         })
         oobaboogaSocket.onerror = close
         oobaboogaSocket.onclose = close
-        abortSignal.addEventListener("abort", close)
+        abortSignal?.addEventListener("abort", close)
 
         return {
             type: 'streaming',
