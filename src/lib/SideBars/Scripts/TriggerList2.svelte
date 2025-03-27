@@ -101,6 +101,7 @@
         'v2UpdateGUI',
         'v2Wait',
         "v2StopPromptSending",
+        'v2Tokenize'
     ]
 
 
@@ -556,6 +557,15 @@
                     indent: 0
                 }
                 break;
+            case 'v2Tokenize':{
+                editTrigger = {
+                    type: 'v2Tokenize',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0,
+                    outputVar: ""
+                }
+            }
             case 'v2PushArrayVar':
                 editTrigger = {
                     type: 'v2PushArrayVar',
@@ -1910,7 +1920,16 @@
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2Tokenize'}
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
 
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

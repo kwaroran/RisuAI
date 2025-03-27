@@ -39,7 +39,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
                                 triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2Wait|
                                 triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
-                                triggerV2QuickSearchChat|triggerV2StopPromptSending
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -703,6 +703,14 @@ export type triggerV2QuickSearchChat = {
 export type triggerV2StopPromptSending = {
     type: 'v2StopPromptSending',
     indent: number
+}
+
+export type triggerV2Tokenize = {
+    type: 'v2Tokenize',
+    indent: number,
+    value: string
+    valueType: "var"|"value"
+    outputVar:string
 }
 
 const safeSubset = [
@@ -1918,6 +1926,11 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         pass = new RegExp(value).test(da)
                     }
                     setVar(effect.outputVar, pass ? '1' : '0')
+                    break
+                }
+                case 'v2Tokenize':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    setVar(effect.outputVar, (await tokenize(value)).toString())
                     break
                 }
             }
