@@ -12,6 +12,7 @@ import { requestChatData } from "./request";
 import { v4 } from "uuid";
 import { getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
+import { tokenize } from "../tokenizer";
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -153,6 +154,12 @@ export async function runLua(code:string, arg:{
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+            })
+            luaEngine.global.set('getTokens', async (id:string, value:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                return await tokenize(value)
             })
             luaEngine.global.set('getChatLength', (id:string) => {
                 if(!LuaSafeIds.has(id)){
