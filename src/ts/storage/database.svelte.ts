@@ -980,6 +980,7 @@ export interface Database{
         params: string
         flags: LLMFlags[]
     }[]
+    igpPrompt:string
 }
 
 interface SeparateParameters{

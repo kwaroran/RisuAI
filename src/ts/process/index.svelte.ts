@@ -27,7 +27,7 @@ import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
-import { parseChatML } from "../parser.svelte";
+import { getGlobalChatVar, parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
 import { getModuleAssets } from "./modules";
@@ -1492,6 +1492,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             signal: abortSignal,
             usedContinueTokens: resultTokens
         })
+    }
+
+    const igp = risuChatParser(DBState.db.igpPrompt ?? "")
+
+    if(igp){
+        const igpFormated = parseChatML(igp)
+        const rq = await requestChatData({
+            formated: igpFormated,
+            bias: {}
+        },'emotion', abortSignal)
+
+        DBState.db.characters[selectedChar].chats[selectedChat].message[DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1].data += rq
     }
 
     if(resendChat){

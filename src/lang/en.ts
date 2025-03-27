@@ -241,6 +241,7 @@ export const languageEnglish = {
         finallyOption1Desc: "This will enable advanced tools, but it will make the UI more complex. Recommended for advanced users.",
         finallyOption2: "No",
         finallyOption2Desc: "This will disable advanced tools, and make the UI more simple. Recommended for new users.",
+        igpPrompt: "if IGP Prompt is not a blank, it will be executed after the main model request, after main model execution, as a emotion model, adding the result after the main model response."
     },
     triggerDesc: {
         v2Header: "Header",
@@ -1113,4 +1114,5 @@ export const languageEnglish = {
     fallbackWhenBlankResponse: "Fallback When Blank Response",
     doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
     customModels: "Custom Models",
+    igpPrompt: "IGP Prompt"
 }
