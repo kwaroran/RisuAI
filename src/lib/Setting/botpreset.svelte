@@ -301,7 +301,7 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="닫기">
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="Close">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -398,17 +398,17 @@
                 botPresets.push(newPreset)
 
                 DBState.db.botPresets = botPresets
-            }} aria-label="새 프리셋 추가">
+            }} aria-label="Add new preset">
                 <PlusIcon/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importPreset()
-            }} aria-label="프리셋 가져오기">
+            }} aria-label="Import preset">
                 <FolderUpIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }} aria-label="편집 모드 전환">
+            }} aria-label="Toggle edit mode">
                 <PencilIcon size={18}/>
             </button>
         </div>

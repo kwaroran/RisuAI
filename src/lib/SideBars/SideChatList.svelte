@@ -463,12 +463,12 @@
         <div class="flex mt-2 ml-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
-            }} aria-label="채팅 가져오기">
+            }} aria-label="Import chat">
                 <FolderUpIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }} aria-label="편집 모드 전환">
+            }} aria-label="Toggle edit mode">
                 <PencilIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
@@ -476,7 +476,7 @@
                   type: "branches",
                   msg: ""
                 })
-            }} aria-label="브랜치 보기">
+            }} aria-label="View branches">
                 <SplitIcon size={18}/>
             </button>
             <button class="ml-auto text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
@@ -492,7 +492,7 @@
                 })
                 chara.chatFolders = folders
                 $ReloadGUIPointer += 1
-            }} aria-label="새 폴더 만들기">
+            }} aria-label="Create new folder">
                 <FolderPlusIcon size={18}/>
             </button>
         </div>

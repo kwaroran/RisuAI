@@ -82,7 +82,7 @@
 {#if gridMode}
     <button class="p-4 rounded-full absolute bottom-2 right-2 bg-borderc" onclick={() => {
         addCharacter()
-    }} aria-label="새 캐릭터 추가">
+    }} aria-label="Add new character">
         <PlusIcon size={24} />
     </button>
 {/if}

@@ -167,21 +167,21 @@
         {/each}
     </div>
     <div class="flex justify-end">
-        <button class="text-textcolor2 hover:text-textcolor" aria-label="자동 응답 항목 삭제" onclick={() => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="Delete auto response item" onclick={() => {
             autopilot.pop()
             autopilot = autopilot
         }}>
             <TrashIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" aria-label="자동 응답 항목 추가" onclick={() => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="Add auto response item" onclick={() => {
             autopilot.push('')
             autopilot = autopilot
         }}>
             <PlusIcon />
         </button>
 
-        <button class="text-textcolor2 hover:text-textcolor" aria-label="파일에서 자동 응답 불러오기" onclick={async () => {
+        <button class="text-textcolor2 hover:text-textcolor" aria-label="Load auto responses from file" onclick={async () => {
             const selected = await selectSingleFile([
                 'txt', 'csv', 'json'
             ])
@@ -210,7 +210,7 @@
             <FolderUpIcon />
         </button>
     </div>
-    <Button className="mt-2" aria-label="자동 응답 실행" onclick={async () => {
+    <Button className="mt-2" aria-label="Run auto response" onclick={async () => {
         if($doingChat){
             return
         }
@@ -264,11 +264,11 @@
         <OptionInput value="no">Without Join</OptionInput>
         <OptionInput value="prompt">As Request</OptionInput>
     </SelectInput>
-    <Button className="mt-2" aria-label="미리보기 실행" onclick={() => {preview()}}>Run</Button>
+    <Button className="mt-2" aria-label="Run preview" onclick={() => {preview()}}>Run</Button>
 </Arcodion>
 
 <Arcodion styled name={"Preview Lorebook"}>
-    <Button className="mt-2" aria-label="로어북 테스트" onclick={async () => {
+    <Button className="mt-2" aria-label="Test lorebook" onclick={async () => {
         const lorebookResult = await loadLoreBookV3Prompt()
         const html = `
         ${lorebookResult.actives.map((v) => {
@@ -277,7 +277,7 @@
         `.trim()
         alertMd(html)
     }}>Test Lore</Button>
-    <Button className="mt-2" aria-label="로어북 매치 로그 보기" onclick={async () => {
+    <Button className="mt-2" aria-label="View lorebook match log" onclick={async () => {
         const lorebookResult = await loadLoreBookV3Prompt()
         const html = `
         <table>
@@ -301,7 +301,7 @@
     }}>Match Sources</Button>
 </Arcodion>
 
-<Button className="mt-2" aria-label="모듈 미리보기" onclick={() => {
+<Button className="mt-2" aria-label="Preview module" onclick={() => {
     const modules = getModules()
     const html = `
     ${modules.map((v) => {
@@ -311,6 +311,6 @@
     alertMd(html)
 }}>Preview Module</Button>
 
-<Button className="mt-2" aria-label="요청 로그 보기" onclick={() => {
+<Button className="mt-2" aria-label="View request log" onclick={() => {
     alertMd(getRequestLog())
 }}>Request Log</Button>

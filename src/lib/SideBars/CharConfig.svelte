@@ -195,24 +195,24 @@
 
 {#if licensed !== 'private' && !$MobileGUI}
     <div class="flex gap-2 mb-2">
-        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}} aria-label={language.basicInfo || "기본 정보"}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}} aria-label={language.basicInfo || "Basic Info"}>
             <UserIcon />
         </button>
-        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}} aria-label={language.characterDisplay || "캐릭터 표시"}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}} aria-label={language.characterDisplay || "Character Display"}>
             <SmileIcon />
         </button>
-        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}} aria-label={language.loreBook || "로어북"}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}} aria-label={language.loreBook || "Lore Book"}>
             <BookIcon />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}
             <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}} aria-label="TTS">
                 <Volume2Icon />
             </button>
-            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}} aria-label={language.scripts || "스크립트"}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}} aria-label={language.scripts || "Scripts"}>
                 <CurlyBraces />
             </button>
         {/if}
-        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}} aria-label={language.advanced || "고급 설정"}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}} aria-label={language.advanced || "Advanced Settings"}>
             <ActivityIcon />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}

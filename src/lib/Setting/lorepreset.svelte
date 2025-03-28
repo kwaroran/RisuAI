@@ -15,7 +15,7 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.loreBook}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="닫기">
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="Close">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -64,12 +64,12 @@
                 loreBooks.push(newLoreBook)
 
                 DBState.db.loreBook = loreBooks
-            }} aria-label="새 로어북 추가">
+            }} aria-label="Add new lorebook">
                 <PlusIcon/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }} aria-label="편집 모드 전환">
+            }} aria-label="Toggle edit mode">
                 <EditIcon size={18}/>
             </button>
         </div>
