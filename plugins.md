@@ -75,6 +75,15 @@ Gets the argument value by name.
 
 - `string|number` - The argument value.
 
+### `setArg(name: string, value: string|number): void`
+
+Sets the argument value by name.
+
+#### Arguments
+
+- `name: string` - The argument name. must be format of `<plugin_name>::<arg_name>` like `exampleplugin::arg1`.
+- `value: string|number` - The argument value.
+
 ### `getChar(): character`
 
 Gets the current character.
@@ -83,14 +92,14 @@ Gets the current character.
 
 Sets the current character.
 
-### `addProvider(type: string, func: (arg:PluginV2ProviderArgument, options?:PluginV2ProviderOptions) => Promise<{success:boolean,content:string}>): void`
+### `addProvider(type: string, func: (arg:PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{success:boolean,content:string|ReadableStream<string>}>, options?:PluginV2ProviderOptions): void`
 
 Adds a provider to the plugin.
 
 #### Arguments
 
 - `type: string` - The provider name.
-- `func: (arg:PluginV2ProviderArgument) => Promise<{success:boolean,content:string}>` - The provider function.
+- `func: (arg:PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{success:boolean,content:string}>` - The provider function.
     - `arg: PluginV2ProviderArgument` - The provider argument.
         - `prompt_chat: Chat[]` - The chat prompt.
         - `frequency_penalty?: number` - The frequency penalty.
@@ -102,6 +111,7 @@ Adds a provider to the plugin.
         - `temperature?: number` - The temperature value.
         - `max_tokens?: number` - The max tokens value.
         - `mode: string` - The mode. one of `model`, `submodel`, `memory`, `emotion`, `otherAx`, `translate`
+    - `abortSignal?: AbortSignal` - The signal to use for aborting the request.
     - `Promise<{success:boolean,content:string|ReadableStream<string>}>` - The provider result.
         - `success: boolean` - If the provider was successful.
         - `content: string|ReadableStream<string>` - The provider content. if it's a ReadableStream, it will be streamed to the chat.

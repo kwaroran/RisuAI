@@ -518,6 +518,7 @@ export const languageChineseTraditional = {
     "showMenuChatList": "在選單中顯示聊天列表",
     "translatorLanguage": "翻譯目標語言",
     "translatorType": "翻譯器類型",
+    "htmlTranslation": "HTML 翻譯",
     "deeplKey": "DeepL API 金鑰",
     "deeplFreeKey": "DeepL 免費 API 金鑰",
     "deeplXUrl": "DeepLX URL",

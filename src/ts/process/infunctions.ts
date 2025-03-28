@@ -17,6 +17,7 @@ function toRPN(expression:string) {
         '≤': {precedence: 1, associativity: 'Left'},
         '≥': {precedence: 1, associativity: 'Left'},
         '=': {precedence: 1, associativity: 'Left'},
+        '≠': {precedence: 1, associativity: 'Left'},
         '!': {precedence: 5, associativity: 'Right'},
     };
     const operatorsKeys = Object.keys(operators);
@@ -27,7 +28,11 @@ function toRPN(expression:string) {
     let lastToken = ''
 
     for(let i = 0; i < expression.length; i++) {
-        if(operatorsKeys.includes(expression[i])) {
+        const char = expression[i]
+        if (char === '-' && (i === 0 || operatorsKeys.includes(expression[i - 1]) || expression[i - 1] === '(')) {
+            lastToken += char
+        }
+        else if (operatorsKeys.includes(char)) {
             if(lastToken !== '') {
                 expression2.push(lastToken)
             }
@@ -35,10 +40,10 @@ function toRPN(expression:string) {
                 expression2.push('0')
             }
             lastToken = ''
-            expression2.push(expression[i])
+            expression2.push(char)
         }
         else{
-            lastToken += expression[i]
+            lastToken += char
         }
     }
 
@@ -94,6 +99,7 @@ function calculateRPN(expression:string) {
                 case '≤': stack.push(a <= b ? 1 : 0); break;
                 case '≥': stack.push(a >= b ? 1 : 0); break;
                 case '=': stack.push(a === b ? 1 : 0); break;
+                case '≠': stack.push(a !== b ? 1 : 0); break;
                 case '!': stack.push(b ? 0 : 1); break;
             }
         }
@@ -121,7 +127,14 @@ function executeRPNCalculation(text:string) {
             return "0"
         }
         return parsed.toString()
-    }).replace(/&&/g, '&').replace(/\|\|/g, '|').replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/==/g, '=').replace(/null/gi, '0')
+    })
+    .replace(/&&/g, '&')
+    .replace(/\|\|/g, '|')
+    .replace(/<=/g, '≤')
+    .replace(/>=/g, '≥')
+    .replace(/==/g, '=')
+    .replace(/!=/g, '≠')
+    .replace(/null/gi, '0')
     const expression = toRPN(text);
     const evaluated = calculateRPN(expression);
     return evaluated

@@ -4,7 +4,7 @@
     import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon, Share2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -34,10 +34,11 @@
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
-  import Toggles from "./Toggles.svelte";
+    import Toggles from "./Toggles.svelte";
 
     let iconRemoveMode = $state(false)
     let emos:[string, string][] = $state([])
+    let iconButtonSize = window.innerWidth > 360 ? 24 as const : 20 as const
     let tokens = $state({
         desc: 0,
         firstMsg: 0,
@@ -214,6 +215,11 @@
         <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}} aria-label={language.advanced || "고급 설정"}>
             <ActivityIcon />
         </button>
+        {#if DBState.db.characters[$selectedCharID].type === 'character'}
+            <button class={$CharConfigSubMenu === 6 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 6}}>
+                <Share2Icon size={iconButtonSize} />
+            </button>
+        {/if}
     </div>
 {/if}
 
@@ -253,7 +259,7 @@
                     <div class="flex items-center px-2 py-3">
                         {#each [1,2,3,4,5,6] as barIndex}
                             <button class="bg-selected h-full flex-1 border-r-bgcolor border-r" 
-                                aria-label={`캐릭터 대화 비율 ${barIndex}/6로 설정`}
+                                aria-label={`Set character talk ratio to ${barIndex}/6`}
                                 class:bg-green-500={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] >= (1 / 6 * barIndex)}
                                 class:bg-selected={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] < (1 / 6 * barIndex)}
                                 class:rounded-l-lg={barIndex === 1}
@@ -273,7 +279,7 @@
             {/if}
         </div>
         <div class="text-textcolor2 mt-1 flex mb-6">
-            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer" aria-label="그룹에 캐릭터 추가">
+            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer" aria-label="Add character to group">
                 <PlusIcon />
             </button>
         </div>
@@ -298,24 +304,6 @@
             </div>
         {/if}
     {/if}
-    {#if licensed === 'private'}
-        <Button onclick={async () => {
-            const conf = await alertConfirm(language.removeConfirm + DBState.db.characters[$selectedCharID].name)
-            if(!conf){
-                return
-            }
-            const conf2 = await alertConfirm(language.removeConfirm2 + DBState.db.characters[$selectedCharID].name)
-            if(!conf2){
-                return
-            }
-            let chars = DBState.db.characters
-            chars.splice($selectedCharID, 1)
-            checkCharOrder()
-            $selectedCharID = -1
-            DBState.db.characters = chars
-
-        }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
-    {/if}
 {:else if licensed === 'private'}
     <span>You are not allowed</span>
     {(() => {
@@ -327,7 +315,7 @@
     {/if}
     <span class="text-textcolor mt-2 mb-2">{DBState.db.characters[$selectedCharID].type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if DBState.db.characters[$selectedCharID].type === 'group'}
-        <button onclick={async () => {await selectCharImg($selectedCharID)}} aria-label="그룹 아이콘 선택">
+        <button onclick={async () => {await selectCharImg($selectedCharID)}} aria-label="Select group icon">
             {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
                 <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
             {:then im}
@@ -350,7 +338,7 @@
                         }
                         iconRemoveMode = false
                     }
-                }} aria-label={iconRemoveMode ? "캐릭터 아이콘 제거" : "캐릭터 아이콘"}>
+                }} aria-label={iconRemoveMode ? "Remove character icon" : "Character icon"}>
                     {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                         <div
                             class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
@@ -620,6 +608,39 @@
             <TextAreaInput margin="both" autocomplete="off" bind:value={DBState.db.characters[$selectedCharID].virtualscript}></TextAreaInput>
         {/if}
     {/if}
+{:else if $CharConfigSubMenu === 6}
+
+    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+    && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
+    }
+        <Button size="lg" onclick={async () => {
+            if(await alertTOS()){
+                $ShowRealmFrameStore = 'character'
+            }
+        }} className="mt-2">
+            {#if DBState.db.characters[$selectedCharID].realmId}
+                {language.updateRealm}
+            {:else}
+                {language.shareCloud}
+            {/if}
+        </Button>
+    {/if}
+
+    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
+        && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
+        || DBState.db.tpo
+        }
+        <Button size="sm" onclick={async () => {
+            const res = await exportChar($selectedCharID)
+        }} className="mt-2">{language.exportCharacter}</Button>
+    {/if}
+
+    <Button onclick={async () => {
+        removeChar($selectedCharID, DBState.db.characters[$selectedCharID].name)
+    }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
+    
 {:else if $CharConfigSubMenu === 5}
     {#if DBState.db.characters[$selectedCharID].type === 'character'}
         {#if !$MobileGUI}
@@ -1107,32 +1128,6 @@
             {language.applyModule}
         </Button>
 
-        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
-            || DBState.db.tpo
-        }
-            <Button size="lg" onclick={async () => {
-                const res = await exportChar($selectedCharID)
-            }} className="mt-2">{language.exportCharacter}</Button>
-        {/if}
-
-        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
-            && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-        }
-            <Button size="lg" onclick={async () => {
-                if(await alertTOS()){
-                    $ShowRealmFrameStore = 'character'
-                }
-            }} className="mt-2">
-                {#if DBState.db.characters[$selectedCharID].realmId}
-                    {language.updateRealm}
-                {:else}
-                    {language.shareCloud}
-                {/if}
-            </Button>
-        {/if}
     {:else}
         {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData.length > 4 || DBState.db.characters[$selectedCharID].supaMemory}
             <span class="text-textcolor mt-4">{language.SuperMemory}</span>
@@ -1144,9 +1139,6 @@
             <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
         </div>
     {/if}
-    <Button onclick={async () => {
-        removeChar($selectedCharID, DBState.db.characters[$selectedCharID].name)
-    }} className="mt-2" size="sm">{ DBState.db.characters[$selectedCharID].type === 'group' ? language.removeGroup : language.removeCharacter}</Button>
 {/if}
 
 

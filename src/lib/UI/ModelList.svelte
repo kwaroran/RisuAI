@@ -13,9 +13,10 @@
         onclick?: (event: MouseEvent & {
             currentTarget: EventTarget & HTMLDivElement;
         }) => any
+        blankable?: boolean
     }
 
-    let { value = $bindable(""), onChange = (v) => {}, onclick }: Props = $props();
+    let { value = $bindable(""), onChange = (v) => {}, onclick, blankable }: Props = $props();
     let openOptions = $state(false)
 
     function changeModel(name:string){
@@ -46,32 +47,47 @@
             {#each providers as provider}
                 {#if provider.providerName === '@as-is'}
                     {#each provider.models as model}
-                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`${model.name} 모델 선택`}>{model.name}</button>
+                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`Select ${model.name} model`}>{model.name}</button>
                     {/each}
                 {:else}
                     <Arcodion name={provider.providerName}>
                         {#each provider.models as model}
-                            <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`${model.name} 모델 선택`}>{model.name}</button>
+                            <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}} aria-label={`Select ${model.name} model`}>{model.name}</button>
                         {/each}
                     </Arcodion>
                 {/if}
             {/each}
             <Arcodion name="Horde">
                 {#await getHordeModels()}
-                    <button class="p-2" aria-label="로딩 중">Loading...</button>
+                    <button class="p-2" aria-label="Loading">Loading...</button>
                 {:then models}
-                    <button onclick={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500" aria-label="자동 모델 선택">
+                    <button onclick={() => {changeModel("horde:::" + 'auto')}} class="p-2 hover:text-green-500" aria-label="Select automatic model">
                         Auto Model
                         <br><span class="text-textcolor2 text-sm">Performace: Auto</span>
                     </button>
                     {#each models as model}
-                        <button onclick={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500" aria-label={`${model.name.trim()} 모델 선택`}>
+                        <button onclick={() => {changeModel("horde:::" + model.name)}} class="p-2 hover:text-green-500" aria-label={`Select ${model.name.trim()} model`}>
                             {model.name.trim()}
                             <br><span class="text-textcolor2 text-sm">Performace: {model.performance.toFixed(1)}</span>
                         </button>
                     {/each}
                 {/await}
             </Arcodion>
+
+            {#if DBState?.db.customModels?.length > 0}
+                <Arcodion name={language.customModels}>
+                    {#each DBState.db.customModels as model}
+                        <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name ?? "Unnamed"}</button>
+                    {/each}
+                </Arcodion>
+
+            {/if}
+
+            
+
+            {#if blankable}
+                <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel('')}}>{language.none}</button>
+            {/if}
             <div class="text-textcolor2 text-xs">
                 <CheckInput name={language.showUnrecommended}  grayText bind:check={showUnrec}/>
             </div>
@@ -82,7 +98,7 @@
 
 <button onclick={() => {openOptions = true}}
     class="mt-4 drop-shadow-lg p-3 flex justify-center items-center ml-2 mr-2 rounded-lg bg-darkbutton mb-4 border-darkborderc border"
-    aria-label="모델 선택 메뉴 열기">
-        {getModelInfo(value).fullName}
+    aria-label="Open model selection menu">
+    {getModelInfo(value)?.fullName || language.none}
 </button>
 

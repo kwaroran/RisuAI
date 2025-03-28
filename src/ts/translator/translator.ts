@@ -18,6 +18,8 @@ let cache={
     trans: ['']
 }
 
+let bergamotTranslate: (text: string, from: string, to: string, html?: boolean) => Promise<string>|null = null
+
 export const LLMCacheStorage = localforage.createInstance({
     name: "LLMTranslateCache"
 })
@@ -165,6 +167,14 @@ async function translateMain(text:string, arg:{from:string, to:string, host:stri
 
         return f.data.data;
     }
+    if(db.translatorType == "bergamot") {
+        if(!bergamotTranslate){
+            const bergamotTranslator = await import('./bergamotTranslator')
+            bergamotTranslate = bergamotTranslator.bergamotTranslate
+        }
+
+        return bergamotTranslate(text, arg.from, arg.to, false);
+    }
     if(db.useExperimentalGoogleTranslator){
 
         const hqAvailable = isTauri || isNodeServer || userScriptFetch
@@ -266,13 +276,24 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     if(db.translatorType === 'llm'){
         const tr = db.translator || 'en'
         const from = db.translatorInputLanguage
-        const r = translateLLM(html, {to: tr, from: from, regenerate})
+        const r = await translateLLM(html, {to: tr, from: from, regenerate})
         if(db.playMessageOnTranslateEnd){
             const audio = new Audio(sendSound);
             audio.play();
         }
 
         return r
+    }
+    if(db.translatorType == "bergamot" && db.htmlTranslation) {
+        const from = db.aiModel.startsWith('novellist') ? 'ja' : 'en'
+        const to = db.translator || 'en'
+
+        if(!bergamotTranslate){
+            const bergamotTranslator = await import('./bergamotTranslator')
+            bergamotTranslate = bergamotTranslator.bergamotTranslate
+        }
+        
+        return bergamotTranslate(html, from, to, true)
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)

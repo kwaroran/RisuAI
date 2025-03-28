@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, changeToPreset } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, changeToPreset, setCurrentChat } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
@@ -27,7 +27,7 @@ import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
 import { runLuaEditTrigger } from "./lua";
-import { parseChatML } from "../parser.svelte";
+import { getGlobalChatVar, parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
 import { getModuleAssets } from "./modules";
@@ -63,6 +63,7 @@ export const doingChat = writable(false)
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 export let previewFormated:OpenAIChat[] = []
+export let previewBody:string = ''
 
 export async function sendChat(chatProcessIndex = -1,arg:{
     chatAdditonalTokens?:number,
@@ -70,6 +71,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     continue?:boolean,
     usedContinueTokens?:number,
     preview?:boolean
+    previewPrompt?:boolean
 } = {}):Promise<boolean> {
 
     chatProcessStage.set(0)
@@ -694,6 +696,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
+        setCurrentChat(currentChat)
         ms = currentChat.message
         currentTokens += triggerResult.tokens
         if(triggerResult.stopSending){
@@ -1303,8 +1306,20 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         bias: {},
         continue: arg.continue,
         chatId: generationId,
-        imageResponse: DBState.db.outputImageModal
+        imageResponse: DBState.db.outputImageModal,
+        previewBody: arg.previewPrompt
     }, 'model', abortSignal)
+
+    console.log(req)
+    if(req.model){
+        generationInfo.model = getGenerationModelString(req.model)
+        console.log(generationInfo.model, req.model)
+    }
+
+    if(arg.previewPrompt && req.type === 'success'){
+        previewBody = req.result
+        return true
+    }
 
     let result = ''
     let emoChanged = false
@@ -1477,6 +1492,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             signal: abortSignal,
             usedContinueTokens: resultTokens
         })
+    }
+
+    const igp = risuChatParser(DBState.db.igpPrompt ?? "")
+
+    if(igp){
+        const igpFormated = parseChatML(igp)
+        const rq = await requestChatData({
+            formated: igpFormated,
+            bias: {}
+        },'emotion', abortSignal)
+
+        DBState.db.characters[selectedChar].chats[selectedChat].message[DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1].data += rq
     }
 
     if(resendChat){

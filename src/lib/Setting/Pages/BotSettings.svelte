@@ -30,6 +30,7 @@
   import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
   import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
+    import { includes } from "lodash";
 
     let tokens = $state({
         mainPrompt: 0,
@@ -652,6 +653,17 @@
 
     <Arcodion styled name={language.moduleIntergration} help="moduleIntergration">
         <TextAreaInput bind:value={DBState.db.moduleIntergration} fullwidth height={"32"} autocomplete="off"/>
+    </Arcodion>
+
+    <Arcodion styled name={language.tools}>
+        <Check name={language.search} check={DBState.db.modelTools.includes('search')} onChange={() => {
+            if(DBState.db.modelTools.includes('search')){
+                DBState.db.modelTools = DBState.db.modelTools.filter((tool) => tool !== 'search')
+            }
+            else{
+                DBState.db.modelTools.push('search')
+            }
+        }} />
     </Arcodion>
     
     <Arcodion styled name={language.regexScript}>

@@ -12,6 +12,7 @@ import { requestChatData } from "./request";
 import { v4 } from "uuid";
 import { getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
+import { tokenize } from "../tokenizer";
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -23,6 +24,8 @@ interface LuaEngineState {
     engine: LuaEngine;
     mutex: Mutex;
     chat: Chat;
+    setVar: (key:string, value:string) => void,
+    getVar: (key:string) => string
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
@@ -55,12 +58,16 @@ export async function runLua(code:string, arg:{
             code,
             engine: await luaFactory.createEngine({injectObjects: true}),
             mutex: new Mutex(),
-            chat
+            chat,
+            setVar,
+            getVar
         }
         LuaEngines.set(mode, luaEngineState)
         wasEmpty = true
     } else {
         luaEngineState.chat = chat
+        luaEngineState.setVar = setVar
+        luaEngineState.getVar = getVar
     }
     return await luaEngineState.mutex.runExclusive(async () => {
         if (wasEmpty || code !== luaEngineState.code) {
@@ -72,13 +79,13 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                     return
                 }
-                setVar(key, value)
+                luaEngineState.setVar(key, value)
             })
             luaEngine.global.set('getChatVar', (id:string,key:string) => {
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                     return
                 }
-                return getVar(key)
+                return luaEngineState.getVar(key)
             })
             luaEngine.global.set('stopChat', (id:string) => {
                 if(!LuaSafeIds.has(id)){
@@ -147,6 +154,12 @@ export async function runLua(code:string, arg:{
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+            })
+            luaEngine.global.set('getTokens', async (id:string, value:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                return await tokenize(value)
             })
             luaEngine.global.set('getChatLength', (id:string) => {
                 if(!LuaSafeIds.has(id)){

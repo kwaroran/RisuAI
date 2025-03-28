@@ -62,7 +62,8 @@ export enum LLMFormat{
     Kobold,
     Ollama,
     Horde,
-    AWSBedrockClaude
+    AWSBedrockClaude,
+    OpenAIResponseAPI
 }
 
 export enum LLMTokenizer{
@@ -974,6 +975,25 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
+        name: "Gemini Pro 2.5 Exp",
+        id: 'gemini-2.5-pro-exp',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasImageOutput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+    },
+    {
+        name: "Gemini Pro 2.5 Exp (03/25)",
+        id: 'gemini-2.5-pro-exp-03-25',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
         name: "Gemini Flash 2.0 Thinking 1219",
         id: 'gemini-2.0-flash-thinking-exp-1219',
         provider: LLMProvider.GoogleCloud,
@@ -1048,36 +1068,6 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
         parameters: ['temperature', 'top_k', 'top_p'],
         tokenizer: LLMTokenizer.GoogleCloud
-    },
-    {
-        name: "Gemini Exp 1121",
-        id: 'gemini-exp-1121-vertex',
-        internalID: 'gemini-exp-1121',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
-    },
-    {
-        name: "Gemini Pro 1.5",
-        id: 'gemini-1.5-pro-latest-vertex',
-        internalID: 'gemini-1.5-pro-latest',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
-    },
-    {
-        name: "Gemini Flash 1.5",
-        id: 'gemini-1.5-flash-vertex',
-        internalID: 'gemini-1.5-flash',
-        provider: LLMProvider.VertexAI,
-        format: LLMFormat.VertexAIGemini,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p'],
-        tokenizer: LLMTokenizer.Gemma
     },
     {
         name: "Gemini Exp 1114",
@@ -1318,7 +1308,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.hasStreaming],
         parameters: ['frequency_penalty', 'presence_penalty','temperature', 'top_p'],
         tokenizer: LLMTokenizer.DeepSeek,
-        endpoint: 'https://api.deepseek.com/beta',
+        endpoint: 'https://api.deepseek.com/beta/chat/completions',
         keyIdentifier: 'deepseek',
         recommended: true
     },
@@ -1391,6 +1381,32 @@ for(let model of LLMModels){
     model.fullName ??= model.provider !== LLMProvider.AsIs ? `${ProviderNames.get(model.provider) ?? ''} ${model.name}`.trim() : model.name
 }
 
+for(let i=0; i<LLMModels.length; i++){
+    if(LLMModels[i].provider === LLMProvider.OpenAI && LLMModels[i].format === LLMFormat.OpenAICompatible){
+        LLMModels.push({
+            ...LLMModels[i],
+            format: LLMFormat.OpenAIResponseAPI,
+            flags: [...LLMModels[i].flags, LLMFlags.hasPrefill],
+            id: `${LLMModels[i].id}-response-api`,
+            name: `${LLMModels[i].name} (Response API)`,
+            fullName: `${LLMModels[i].fullName ?? LLMModels[i].name} (Response API)`,
+            recommended: false
+            
+        })
+    }
+    if(LLMModels[i].provider === LLMProvider.GoogleCloud){
+        LLMModels.push({
+            ...LLMModels[i],
+            id: `${LLMModels[i].id}-vertex`,
+            name: `${LLMModels[i].name} Vertex`,
+            fullName: `${LLMModels[i].fullName ?? LLMModels[i].name} Vertex`,
+            flags: [...LLMModels[i].flags],
+            recommended: false,
+            provider: LLMProvider.VertexAI
+        })
+    }
+}
+
 export function getModelInfo(id: string): LLMModel{
 
     const db = getDatabase()
@@ -1432,6 +1448,24 @@ export function getModelInfo(id: string): LLMModel{
             flags: [],
             parameters: OpenAIParameters,
             tokenizer: LLMTokenizer.Unknown
+        }
+    }
+    if(id.startsWith('xcustom:::')){
+        const customModels = db?.customModels || []
+        const found = customModels.find((model) => model.id === id)
+        if(found){
+            return {
+                id: found.id,
+                name: found.name,
+                shortName: found.name,
+                fullName: found.name,
+                internalID: found.internalId,
+                provider: LLMProvider.AsIs,
+                format: found.format,
+                flags: found.flags,
+                parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens'],
+                tokenizer: found.tokenizer
+            }
         }
     }
 

@@ -13,7 +13,7 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import { selectSingleFile } from "src/ts/util";
-    import { doingChat, previewFormated, sendChat } from "src/ts/process/index.svelte";
+    import { doingChat, previewFormated, previewBody, sendChat } from "src/ts/process/index.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
@@ -31,7 +31,8 @@
         }
         alertWait("Loading...")
         await sendChat(-1, {
-            preview: true
+            preview: previewJoin !== 'prompt',
+            previewPrompt: previewJoin === 'prompt'
         })
 
         let md = ''
@@ -41,6 +42,15 @@
             "system": "⚙️ System",
             "assistant": "✨ Assistant",
         }
+
+        if(previewJoin === 'prompt'){
+            md += '### Prompt\n'
+            md += '```json\n' + JSON.stringify(JSON.parse(previewBody), null, 2).replaceAll('```', '\\`\\`\\`') + '\n```\n'
+            $doingChat = false
+            alertMd(md)
+            return
+        }
+
         let formated = safeStructuredClone(previewFormated)
 
         if(previewJoin === 'yes'){
@@ -252,6 +262,7 @@
     <SelectInput bind:value={previewJoin}>
         <OptionInput value="yes">With Join</OptionInput>
         <OptionInput value="no">Without Join</OptionInput>
+        <OptionInput value="prompt">As Request</OptionInput>
     </SelectInput>
     <Button className="mt-2" aria-label="미리보기 실행" onclick={() => {preview()}}>Run</Button>
 </Arcodion>
