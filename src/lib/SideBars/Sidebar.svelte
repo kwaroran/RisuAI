@@ -316,7 +316,7 @@
     PlaygroundStore.set(0)
     OpenRealmStore.set(false)
   }}
-  aria-label={language.home || "홈"}
+  aria-label={language.home || "Home"}
 >
   <HomeIcon />
   <span class="text-xs">{language.home}</span>
@@ -333,7 +333,7 @@
       settingsOpen.set(true);
     }
   }}
-  aria-label={language.settings || "설정"}
+  aria-label={language.settings || "Settings"}
 >
   <Settings />
   <span class="text-xs">{language.settings}</span>
@@ -348,7 +348,7 @@
     openGrid();
 
   }}
-  aria-label={language.character || "캐릭터"}
+  aria-label={language.character || "Character"}
 >
   <User2Icon />
   <span class="text-xs">{language.character}</span>
@@ -364,7 +364,7 @@
     selectedCharID.set(-1)
     PlaygroundStore.set(1)
   }}
-  aria-label={language.playground || "플레이그라운드"}
+  aria-label={language.playground || "Playground"}
 >
   <ShellIcon />
   <span class="text-xs">{language.playground}</span>
@@ -384,7 +384,7 @@
     onclick={() => {
       menuMode = 1 - menuMode;
     }}
-    aria-label={language.menu || "메뉴"}><ListIcon />
+    aria-label={language.menu || "Menu"}><ListIcon />
   </button>
   <div class="mt-2 border-b border-b-selected w-full relative text-white ">
     {#if menuMode === 1}
@@ -399,7 +399,7 @@
             settingsOpen.set(true);
           }
         }}
-        ariaLabel={language.settings || "설정"}><Settings /></BarIcon
+        ariaLabel={language.settings || "Settings"}><Settings /></BarIcon
       >
       <div class="mt-2"></div>
       <BarIcon
@@ -409,7 +409,7 @@
           PlaygroundStore.set(0)
           OpenRealmStore.set(false)
         }}
-        ariaLabel={language.home || "홈"}><HomeIcon /></BarIcon>
+        ariaLabel={language.home || "Home"}><HomeIcon /></BarIcon>
       <div class="mt-2"></div>
       <BarIcon
         onClick={() => {
@@ -421,7 +421,7 @@
           selectedCharID.set(-1)
           PlaygroundStore.set(1)
         }}
-        ariaLabel={language.playground || "플레이그라운드"}
+        ariaLabel={language.playground || "Playground"}
       ><ShellIcon /></BarIcon>
       <div class="mt-2"></div>
       <BarIcon
@@ -429,7 +429,7 @@
           reseter();
           openGrid();
         }}
-        ariaLabel={language.character || "캐릭터"}><LayoutGridIcon /></BarIcon
+        ariaLabel={language.character || "Character"}><LayoutGridIcon /></BarIcon
       >
     </div>
     {/if}
@@ -476,7 +476,7 @@
                 }
               }
             }}
-            aria-label={char.type === "normal" ? `${char.name} 캐릭터 선택` : `${char.name} 폴더 ${openFolders.includes(char.id) ? "닫기" : "열기"}`}
+            aria-label={char.type === "normal" ? `${char.name} Select Character` : `${char.name} Folder ${openFolders.includes(char.id) ? "Close" : "Open"}`}
           >
           {#if char.type === 'normal'}
             <SidebarAvatar src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char.name} />
@@ -627,7 +627,7 @@
                       }
                     }
                   }}
-                  aria-label={`${char2.name} 캐릭터 선택`}
+                  aria-label={`${char2.name} Select Character`}
                 >
                 <SidebarAvatar src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} size="56" rounded={IconRounded} name={char2.name}/>
               </div>
@@ -670,7 +670,7 @@
         onClick={async () => {
           addCharacter({reseter}) 
         }}
-        aria-label="캐릭터 추가"
+        aria-label="Add Character"
         ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
           ><path
             fill="none"
@@ -718,7 +718,7 @@
       }
       $sideBarClosing = true;
     }}
-    aria-label="사이드바 닫기"
+    aria-label="Close Sidebar"
   >
     <!-- <button class="border-none bg-transparent p-0 text-textcolor"><X /></button> -->
   </button>
@@ -751,15 +751,15 @@
         <button onclick={() => {
           devTool = false
           botMakerMode.set(false)
-        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool} aria-label={language.Chat || "채팅"}>{language.Chat}</button>
+        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool} aria-label={language.Chat || "Chat"}>{language.Chat}</button>
         <button onclick={() => {
           devTool = false
           botMakerMode.set(true)
-        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool} aria-label={language.character || "캐릭터"}>{language.character}</button>
+        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool} aria-label={language.character || "Character"}>{language.character}</button>
         {#if DBState.db.enableDevTools}
           <button onclick={() => {
             devTool = true
-          }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool} aria-label={language.devTools || "개발자 도구"}>
+          }} class="border-l border-l-selected rounded-br-md px-1" class:text-textcolor2={!devTool} aria-label={language.devTools || "Developer Tools"}>
             <WrenchIcon size={18} />
           </button>
         {/if}
@@ -787,7 +787,7 @@
             e.currentTarget.click()
         }
       }}
-      aria-label="사이드바 닫기"
+      aria-label="Close Sidebar"
       class:sidebar-dark-animation={!$sideBarClosing}
       class:sidebar-dark-close-animation={$sideBarClosing}>
 

@@ -840,7 +840,7 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={async () => toggleSearch()}
-            aria-label="검색"
+            aria-label="Search"
           >
             <SearchIcon class="w-6 h-6" />
           </button>
@@ -878,7 +878,7 @@
               settingsOpen.set(true);
               SettingsMenuIndex.set(2); // Other bot settings
             }}
-            aria-label="설정"
+            aria-label="Settings"
           >
             <SettingsIcon class="w-6 h-6" />
           </button>
@@ -904,7 +904,7 @@
                 showHypaV3Alert();
               }
             }}
-            aria-label="초기화"
+            aria-label="Reset"
           >
             <Trash2Icon class="w-6 h-6" />
           </button>
@@ -919,7 +919,7 @@
                 msg: "",
               });
             }}
-            aria-label="닫기"
+            aria-label="Close"
           >
             <XIcon class="w-6 h-6" />
           </button>
@@ -1014,7 +1014,7 @@
                 onclick={() => {
                   onSearch({ shiftKey: true, key: "Enter" } as KeyboardEvent);
                 }}
-                aria-label="이전 검색 결과"
+                aria-label="Previous search result"
               >
                 <ChevronUpIcon class="w-6 h-6" />
               </button>
@@ -1026,7 +1026,7 @@
                 onclick={() => {
                   onSearch({ key: "Enter" } as KeyboardEvent);
                 }}
-                aria-label="다음 검색 결과"
+                aria-label="Next search result"
               >
                 <ChevronDownIcon class="w-6 h-6" />
               </button>
@@ -1060,7 +1060,7 @@
                         onMainAction: () => toggleTranslate(i, false),
                         onAlternativeAction: () => toggleTranslate(i, true),
                       }}
-                      aria-label="번역"
+                      aria-label="Translate"
                     >
                       <LanguagesIcon class="w-4 h-4" />
                     </button>
@@ -1106,7 +1106,7 @@
 
                         showHypaV3Alert();
                       }}
-                      aria-label="이후 삭제"
+                      aria-label="Delete after"
                     >
                       <ScissorsLineDashed class="w-4 h-4" />
                     </button>
@@ -1163,7 +1163,7 @@
                             onAlternativeAction: () =>
                               toggleTranslateRerolled(i, true),
                           }}
-                          aria-label="번역"
+                          aria-label="Translate"
                         >
                           <LanguagesIcon class="w-4 h-4" />
                         </button>
@@ -1176,7 +1176,7 @@
                             summaryUIStates[i].rerolledText = null;
                             summaryUIStates[i].rerolledTranslation = null;
                           }}
-                          aria-label="취소"
+                          aria-label="Cancel"
                         >
                           <XIcon class="w-4 h-4" />
                         </button>
@@ -1191,7 +1191,7 @@
                             summaryUIStates[i].rerolledText = null;
                             summaryUIStates[i].rerolledTranslation = null;
                           }}
-                          aria-label="적용"
+                          aria-label="Apply"
                         >
                           <CheckIcon class="w-4 h-4" />
                         </button>
@@ -1248,7 +1248,7 @@
                           onAlternativeAction: () =>
                             toggleTranslateExpandedMessage(true),
                         }}
-                        aria-label="메시지 번역"
+                        aria-label="Translate message"
                       >
                         <LanguagesIcon class="w-4 h-4" />
                       </button>

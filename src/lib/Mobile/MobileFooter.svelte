@@ -7,7 +7,7 @@
 </script>
 {#if $selectedCharID === -1}
 
-    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2" role="navigation" aria-label="모바일 메뉴">
+    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2" role="navigation" aria-label="Mobile Menu">
         <button 
             class="flex justify-center items-center flex-col gap-2 w-20" 
             class:text-textcolor={$MobileGUIStack === 0} 
@@ -46,7 +46,7 @@
 {/if}
 
 {#if $selectedCharID !== -1 && $MobileSideBar === 2}
-    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2 truncate" role="navigation" aria-label="캐릭터 설정 메뉴">
+    <div class="w-full p-4 text-lg border-t border-t-darkborderc bg-darkbg flex items-center justify-center text-textcolor2 truncate" role="navigation" aria-label="Character Settings Menu">
         <button 
             class="flex justify-center items-center flex-col gap-2 w-16 max-w-16" 
             class:text-textcolor={$CharConfigSubMenu === 0} 

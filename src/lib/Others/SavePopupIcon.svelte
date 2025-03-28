@@ -11,7 +11,7 @@
   <div
     class="absolute top-3 right-3 z-10 text-white p-2 rounded bg-gradient-to-br from-blue-500 to-purple-800 saving-animation pointer-events-none opacity-15"
     role="status"
-    aria-label="저장 중"
+    aria-label="Saving"
   >
     <SaveIcon size={24} aria-hidden="true" />
   </div>
@@ -22,7 +22,7 @@
       alertMd($AccountWarning)
       $AccountWarning = ''
     }}
-    aria-label="계정 경고"
+    aria-label="Account warning"
   >
       <AlertOctagon size={24} aria-hidden="true" />
   </button>

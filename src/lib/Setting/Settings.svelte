@@ -44,7 +44,7 @@
                             $SettingsMenuIndex = 1
                             
                     }}
-                    aria-label="챗봇 설정"
+                    aria-label="Bot Settings"
                     >
                         <BotIcon />
                         <span>{language.chatBot}</span>
@@ -55,7 +55,7 @@
                         onclick={() => {
                             $SettingsMenuIndex = 12
                     }}
-                    aria-label="페르소나 설정"
+                    aria-label="Persona Settings"
                     >
                         <ContactIcon />
                         <span>{language.persona}</span>
@@ -66,7 +66,7 @@
                         onclick={() => {
                             $SettingsMenuIndex = 2
                     }}
-                    aria-label="다른 봇 설정"
+                    aria-label="Other Bot Settings"
                     >
                         <Sailboat />
                         <span>{language.otherBots}</span>
@@ -77,7 +77,7 @@
                         onclick={() => {
                             $SettingsMenuIndex = 3
                     }}
-                    aria-label="디스플레이 설정"
+                    aria-label="Display Settings"
                     >
                         <MonitorIcon />
                         <span>{language.display}</span>
@@ -89,7 +89,7 @@
                     onclick={() => {
                         $SettingsMenuIndex = 10
                 }}
-                aria-label="언어 설정"
+                aria-label="Language Settings"
                 >
                     <LanguagesIcon />
                     <span>{language.language}</span>
@@ -155,7 +155,7 @@
                 {#if window.innerWidth < 700 && !$MobileGUI}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
-                    }} aria-label="설정 닫기"> <XCircleIcon /> </button>
+                    }} aria-label="Close Settings"> <XCircleIcon /> </button>
                 {/if}
             </div>
         {/if}
