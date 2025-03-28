@@ -8,6 +8,7 @@
         styled?: boolean;
         help?: (keyof (typeof language.help))|'';
         disabled?: boolean;
+        ariaLabel?: string;
         children?: import('svelte').Snippet;
         className?: string;
     }
@@ -17,6 +18,7 @@
         styled = false,
         help = '',
         disabled = false,
+        ariaLabel,
         children,
         className = ""
     }: Props = $props();
@@ -31,6 +33,8 @@
             onclick={() => {
                 open = !open
             }}
+            aria-label={ariaLabel || `Toggle ${name}`}
+            aria-expanded={open}
         >
             <span class="mr-2">{name}</span>
         {#if help}
@@ -44,9 +48,14 @@
     </div>
 {:else}
     <div class="flex flex-col">
-        <button class="hover:bg-selected px-6 py-2 text-lg" class:bg-selected={open} onclick={() => {
-            open = !open
-        }}>{name}</button>
+        <button class="hover:bg-selected px-6 py-2 text-lg" 
+            class:bg-selected={open} 
+            onclick={() => {
+                open = !open
+            }}
+            aria-label={ariaLabel || `Toggle ${name}`}
+            aria-expanded={open}
+        >{name}</button>
         {#if open}
             <div class="flex flex-col bg-darkbg">
                 {@render children?.()}

@@ -21,6 +21,7 @@
     disabled={disabled}
     bind:value
     onchange={onChange}
+    aria-label={ariaLabel || `Number input ${id ? id : ''}`}
 />
 
 <script lang="ts">
@@ -39,6 +40,7 @@
         }) => any;
         className?: string;
         disabled?: boolean;
+        ariaLabel?: string;
     }
 
     let {
@@ -53,7 +55,8 @@
         fullh = false,
         onChange = () => {},
         className = '',
-        disabled = false
+        disabled = false,
+        ariaLabel = ''
     }: Props = $props();
 </script>
 

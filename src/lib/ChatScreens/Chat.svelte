@@ -267,6 +267,7 @@
                                 idx: idx,
                             })
                         }}
+                        aria-label="View generation information"
                 >
                     <BotIcon size={20} />
                     <span class="ml-1">
@@ -282,6 +283,7 @@
                             retranslate = true
                             $ReloadGUIPointer = $ReloadGUIPointer + 1
                         }}
+                        aria-label="Retranslate message"
                 >
                     <RefreshCcwIcon size={20} />
                     <span class="ml-1">
@@ -311,6 +313,15 @@
         }}
             style:font-size="{0.875 * (DBState.db.zoomsize / 100)}rem"
             style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
+            role="article"
+            aria-label="Message from {name}"
+            tabindex="0"
+            onkeydown={(e) => {
+                if(e.key === 'Enter' && DBState.db.clickToEdit && idx > -1) {
+                    editMode = true
+                    e.preventDefault()
+                }
+            }}
         >
             {#key $ReloadGUIPointer}
                 {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
@@ -327,35 +338,44 @@
     <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
         {#if DBState.db.useChatCopy && !blankMessage}
-            <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
-                if(window.navigator.clipboard.write){
-                    try {
-                        alertWait(language.loading)
-                        const root = document.querySelector(':root') as HTMLElement;
-
+            <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async()=>{
+                if(messageGenerationInfo?.model){
+                    try{
                         const parser = new DOMParser()
-                        const doc = parser.parseFromString(lastParsed, 'text/html')
-                        doc.querySelectorAll('mark').forEach((el) => {
-                            const d = el.getAttribute('risu-mark')
-                            if(d === 'quote1' || d === 'quote2'){
-                                const newEle = document.createElement('div')
-                                newEle.textContent = el.textContent
-                                newEle.setAttribute('style', `background: transparent; color: ${
-                                    root.style.getPropertyValue('--FontColorQuote' + d.slice(-1))
-                                };`)
-                                el.replaceWith(newEle)
-                                return
-                            }
+                        const doc = parser.parseFromString(await ParseMarkdown(msgDisplay, character), 'text/html')
+                        const root = document.documentElement
+
+                        doc.querySelectorAll('img').forEach((el) => {
+                            el.setAttribute('style', `max-width: 100%; height: auto;`)
                         })
-                        doc.querySelectorAll('p').forEach((el) => {
-                            el.setAttribute('style', `color: ${root.style.getPropertyValue('--FontColorStandard')};`)
+
+                        //fix tables
+                        doc.querySelectorAll('table').forEach((el) => {
+                            el.setAttribute('style', `border-collapse: collapse; width: 100%;`)
                         })
+
+                        doc.querySelectorAll('td, th').forEach((el) => {
+                            el.setAttribute('style', `border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')}; padding: 0.5rem;${el.tagName === 'TH' ? 'font-weight: bold;' : ''}`)
+                        })
+
+                        // Fix code blocks
+                        doc.querySelectorAll('pre').forEach((el) => {
+                            el.setAttribute('style', `background: ${root.style.getPropertyValue('--risu-theme-darkbg')}; padding: 0.5rem; overflow-x: auto; border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')}; border-radius: 0.5rem;`)
+                        })
+
+                        //fix blockquotes
+                        doc.querySelectorAll('blockquote').forEach((el) => {
+                            el.setAttribute('style', `border-left: 0.25rem solid ${root.style.getPropertyValue('--risu-theme-darkborderc')}; padding-left: 0.5rem; margin-left: 0.5rem;`)
+                        })
+
                         doc.querySelectorAll('em').forEach((el) => {
                             el.setAttribute('style', `font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalic')};`)
                         })
+
                         doc.querySelectorAll('strong').forEach((el) => {
                             el.setAttribute('style', `font-weight: bold; color: ${root.style.getPropertyValue('--FontColorBold')};`)
                         })
+
                         doc.querySelectorAll('em strong').forEach((el) => {
                             el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
                         })
@@ -454,7 +474,7 @@
                 window.navigator.clipboard.writeText(msgDisplay).then(() => {
                     setStatusMessage(language.copied)
                 })
-            }}>
+            }} aria-label="Copy message">
                 <CopyIcon size={20}/>
             </button>    
         {/if}
@@ -462,46 +482,67 @@
             {#if DBState.db.characters[selIdState.selId].type !== 'group' && DBState.db.characters[selIdState.selId].ttsMode !== 'none' && (DBState.db.characters[selIdState.selId].ttsMode)}
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-tts" onclick={()=>{
                     return sayTTS(null, message)
-                }}>
+                }} aria-label="Read message aloud">
                     <Volume2Icon size={20}/>
                 </button>
             {/if}
 
             {#if !$ConnectionOpenStore}
-                <button class={"ml-2 hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} onclick={() => {
-                    if(!editMode){
-                        editMode = true
-                    }
-                    else{
-                        editMode = false
-                        edit()
-                    }
-                }}>
+                <button class={"ml-2 hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} 
+                    onclick={() => {
+                        if(!editMode){
+                            editMode = true
+                        }
+                        else{
+                            editMode = false
+                            edit()
+                        }
+                    }}
+                    aria-label="Edit message"
+                    aria-pressed={editMode}
+                >
                     <PencilIcon size={20}/>
                 </button>
-                <!-- 이 버튼이 수정 버튼. edit() 함수를 주목할 것-->
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" onclick={(e) => rm(e, false)} use:longpress={(e) => rm(e, true)}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-remove" 
+                    onclick={(e) => rm(e, false)} 
+                    use:longpress={(e) => rm(e, true)}
+                    aria-label="Delete message"
+                >
                     <TrashIcon size={20}/>
                 </button>
             {/if}
         {/if}
         {#if DBState.db.translator !== '' && !blankMessage}
-            <button class={"ml-2 cursor-pointer hover:text-blue-500 transition-colors button-icon-translate " + (translated ? 'text-blue-400':'')} class:translating={translating} onclick={async () => {
-                translated = !translated
-            }}>
+            <button class={"ml-2 cursor-pointer hover:text-blue-500 transition-colors button-icon-translate " + (translated ? 'text-blue-400':'')} 
+                class:translating={translating} 
+                onclick={async () => {
+                    translated = !translated
+                }}
+                aria-label="Translate message"
+                aria-pressed={translated}
+            >
                 <LanguagesIcon />
             </button>
         {/if}
         {#if rerollIcon || altGreeting}
             {#if DBState.db.swipe || altGreeting}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" 
+                    onclick={unReroll}
+                    aria-label="Previous version"
+                >
                     <ArrowLeft size={22}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" 
+                    onclick={onReroll}
+                    aria-label="Next version"
+                >
                     <ArrowRight size={22}/>
                 </button>
             {:else}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" 
+                    onclick={onReroll}
+                    aria-label="Regenerate response"
+                >
                     <RefreshCcwIcon size={20}/>
                 </button>
             {/if}
@@ -683,7 +724,11 @@
     {/each}
 {/snippet}
 
-<div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
+<div class="flex max-w-full justify-center risu-chat" 
+    style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}
+    aria-label={`${name} message`}
+    role="region"
+>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>
@@ -695,7 +740,30 @@
                     class:rounded-tl-none={role !== 'user'}
                     class:rounded-tr-none={role === 'user'}
                 >
-                    <p class="text-gray-800">{@render textBox()}</p>
+                    <p class="text-gray-800"
+                       tabindex="0"
+                       role="article"
+                       aria-label="Message from {name}" 
+                       onkeydown={(e) => {
+                           if(e.key === 'Enter' && DBState.db.clickToEdit && idx > -1) {
+                               editMode = true
+                               e.preventDefault()
+                           }
+                       }}
+                       onclick={() => {
+                           if(DBState.db.clickToEdit && idx > -1){
+                               editMode = true
+                           }
+                       }}
+                    >
+                        {#key $ReloadGUIPointer}
+                            {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                                {@html lastParsed}
+                            {:then md}
+                                {@html md}
+                            {/await}
+                        {/key}
+                    </p>
                     {#if DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.time}
                         <span class="text-xs text-textcolor2 mt-1 block">
                             {new Intl.DateTimeFormat(undefined, {
@@ -725,10 +793,34 @@
 
                         </div>
                         {#if editMode}
-                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none message-edit-area" bind:value={message}></textarea>
+                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none message-edit-area" 
+                                bind:value={message}
+                                aria-label="Edit message content"
+                            ></textarea>
                         {:else}
-                            <div class="flex-grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
-                                {@render textBox()}
+                            <div class="flex-grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0"
+                                tabindex="0"
+                                role="article"
+                                aria-label="Message from {name}" 
+                                onkeydown={(e) => {
+                                    if(e.key === 'Enter' && DBState.db.clickToEdit && idx > -1) {
+                                        editMode = true
+                                        e.preventDefault()
+                                    }
+                                }}
+                                onclick={() => {
+                                    if(DBState.db.clickToEdit && idx > -1){
+                                        editMode = true
+                                    }
+                                }}
+                            >
+                                {#key $ReloadGUIPointer}
+                                    {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
+                                        {@html lastParsed}
+                                    {:then md}
+                                        {@html md}
+                                    {/await}
+                                {/key}
                             </div>
                         {/if}
                     </div>
@@ -746,10 +838,14 @@
                     {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground" && !blankMessage}
                         <span class="chat-width text-xl border-darkborderc flex items-center">
                             <span>{name === 'assistant' ? 'Assistant' : 'User'}</span>
-                            <button class="ml-2 text-textcolor2 hover:text-textcolor" onclick={() => {
-                                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role === 'char' ? 'user' : 'char'
-                                DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage] = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]
-                            }}><ArrowLeftRightIcon size="18" /></button>
+                            <button class="ml-2 text-textcolor2 hover:text-textcolor" 
+                                onclick={() => {
+                                    DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role === 'char' ? 'user' : 'char'
+                                    DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage] = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]
+                                }}
+                                aria-label="Toggle between user and character role"
+                                aria-pressed={DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role === 'char'}
+                            ><ArrowLeftRightIcon size="18" /></button>
                         </span>
                     {:else if !blankMessage && !$HideIconStore}
                         <span class="chat-width text-xl unmargin text-textcolor">{name}</span>

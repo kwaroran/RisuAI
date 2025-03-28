@@ -22,10 +22,12 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center text-textcolor" role="button" tabindex="0" onclick={() => {
     openedData = null
-}}>
-    <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto max-h-full">
+}} aria-label="Close realm popup overlay">
+    <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl max-h-full overflow-y-auto" role="dialog" aria-labelledby="realm-title" onclick={(e)=>{
+        e.stopPropagation()
+    }}>
         <div class="w-full flex flex-col">
-            <h1 class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
+            <h1 id="realm-title" class="text-2xl font-bold max-w-full overflow-hidden whitespace-nowrap text-ellipsis">{openedData.name}</h1>
             {#if openedData.authorname}
                 <span class="text-borderc">Made by {openedData.authorname}</span>
             {/if}
@@ -54,19 +56,25 @@
                 
                 <div class="border-l-selected border-l ml-1 mr-1"></div>
                 {#if openedData.hasEmotion}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
-                        alertNormal("This character includes emotion images")
-                    })}><SmileIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors" 
+                        aria-label="Character has emotion images"
+                        onclick={((e) => {
+                            alertNormal("This character includes emotion images")
+                        })}><SmileIcon /></button>
                 {/if}
                 {#if openedData.hasAsset}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
-                        alertNormal("This character includes additional Assets")
-                    })}><ImageIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors"
+                        aria-label="Character has additional assets" 
+                        onclick={((e) => {
+                            alertNormal("This character includes additional Assets")
+                        })}><ImageIcon /></button>
                 {/if}
                 {#if openedData.hasLore}
-                    <button class="text-textcolor2 hover:text-green-500 transition-colors" onclick={((e) => {
-                        alertNormal("This character includes lorebook")
-                    })}><BookIcon /></button>
+                    <button class="text-textcolor2 hover:text-green-500 transition-colors"
+                        aria-label="Character has lorebook" 
+                        onclick={((e) => {
+                            alertNormal("This character includes lorebook")
+                        })}><BookIcon /></button>
                 {/if}
             </div>
 

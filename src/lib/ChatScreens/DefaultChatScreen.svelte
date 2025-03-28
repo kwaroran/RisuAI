@@ -28,8 +28,22 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
-  import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
+    import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
 
+    interface Props {
+        customStyle?: string;
+        ariaLabel?: string;
+        openChatList?: boolean;
+        openModuleList?: boolean;
+    }
+
+    let { 
+        customStyle = '', 
+        ariaLabel = "Chat interface", 
+        openChatList = $bindable(false), 
+        openModuleList = $bindable(false)
+    }: Props = $props();
+    
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
     let openMenu = $state(false)
@@ -258,16 +272,9 @@
         }
     }
 
-  interface Props {
-    openModuleList?: boolean;
-    openChatList?: boolean;
-    customStyle?: string;
-  }
-  
-  let userIconProtrait = $state(false)
-  let currentUsername = $state(DBState.db.username)
-  let userIcon = $state(DBState.db.userIcon)
-
+    let userIconProtrait = $state(false)
+    let currentUsername = $state(DBState.db.username)
+    let userIcon = $state(DBState.db.userIcon)
 
     $effect.pre(() =>{
         const bindedPersona = DBState?.db?.characters?.[$selectedCharID]?.chats?.[DBState?.db?.characters?.[$selectedCharID]?.chatPage]?.bindedPersona
@@ -287,7 +294,6 @@
         userIcon = DBState.db.personas[DBState.db.selectedPersona].icon
     })
 
-  let { openModuleList = $bindable(false), openChatList = $bindable(false), customStyle = '' }: Props = $props();
     let inputHeight = $state("44px")
     let inputEle:HTMLTextAreaElement = $state()
     let inputTranslateHeight = $state("44px")
@@ -425,7 +431,7 @@
 </script>
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="w-full h-full" style={customStyle} onclick={() => {
+<div class="w-full h-full" style={customStyle} aria-label={ariaLabel} onclick={() => {
     openMenu = false
 }}>
     {#if $selectedCharID < 0}
@@ -445,7 +451,12 @@
             <div class="flex items-stretch mt-2 mb-2 w-full">
                 {#if DBState.db.useChatSticker && currentCharacter.type !== 'group'}
                     <div onclick={()=>{toggleStickers = !toggleStickers}}
-                            class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}>
+                            class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}
+                            role="button"
+                            tabindex="0"
+                            aria-label="Toggle stickers"
+                            aria-pressed={toggleStickers}
+                            >
                             <Laugh/>
                     </div>    
                 {/if}
@@ -454,6 +465,8 @@
                 <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
                     bind:value={messageInput}
                     bind:this={inputEle}
+                    aria-label="Message input"
+                    placeholder={language.enterMessage || "Enter your message"}
                     onkeydown={(e) => {
                         if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
                             if(DBState.db.sendWithEnter){
@@ -510,13 +523,14 @@
                 <AdvancedChatEditor 
                     bind:value={messageInput}
                     bind:translate={messageInputTranslate}
+                    ariaLabel="Advanced message editor"
                  />
                 {/if}
 
                 
                 {#if $doingChat || doingChatInputTranslate} 
                     <button
-                        aria-labelledby="cancel"
+                        aria-label="Cancel message generation"
                         class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" onclick={abortChat}
                         style:height={inputHeight}
                     >
@@ -525,6 +539,7 @@
                 {:else}
                     <button
                         onclick={send}
+                        aria-label="Send message"
                         class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
                         style:height={inputHeight}
                     >
@@ -537,6 +552,7 @@
                             openMenu = !openMenu
                             e.stopPropagation()
                         }}
+                        aria-label="Open options menu"
                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
                         style:height={inputHeight}
                     >
@@ -550,6 +566,7 @@
                         })
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
                     }}
+                        aria-label="Add character message"
                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
                         style:height={inputHeight}
                     >
@@ -562,9 +579,11 @@
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id='messageInputTranslate' 
+                        class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                         bind:value={messageInputTranslate}
                         bind:this={inputTranslateEle}
+                        aria-label="Translation input field"
                         onkeydown={(e) => {
                             if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
                                 if(DBState.db.sendWithEnter){
@@ -580,35 +599,37 @@
                         oninput={()=>{updateInputSizeAll();updateInputTransateMessage(true)}}
                         placeholder={language.enterMessageForTranslateToEnglish}
                         style:height={inputTranslateHeight}
-></textarea>
+                    ></textarea>
                 </div>
             {/if}
 
             {#if fileInput.length > 0}
-                <div class="flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md">
+                <div class="flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md" aria-label="Attached files">
                     {#each fileInput as file, i}
                         {#await getInlayAsset(file) then inlayAsset}
                             <div class="relative">
                                 {#if inlayAsset.type === 'image'}
-                                    <img src={inlayAsset.data} alt="Inlay" class="max-w-48 max-h-48 border border-darkborderc">
+                                    <img src={inlayAsset.data} alt="Attached image" class="max-w-48 max-h-48 border border-darkborderc">
                                 {:else if inlayAsset.type === 'video'}
-                                    <video controls class="max-w-48 max-h-48 border border-darkborderc">
+                                    <video controls class="max-w-48 max-h-48 border border-darkborderc" aria-label="Attached video">
                                         <source src={inlayAsset.data} type="video/mp4" />
                                         <track kind="captions" />
                                         Your browser does not support the video tag.
                                     </video>
                                 {:else if inlayAsset.type === 'audio'}
-                                    <audio controls class="max-w-48 max-h-24 border border-darkborderc">
+                                    <audio controls class="max-w-48 max-h-24 border border-darkborderc" aria-label="Attached audio">
                                         <source src={inlayAsset.data} type="audio/mpeg" />
                                         Your browser does not support the audio tag.
                                     </audio>
                                 {:else}
                                     <div class="max-w-24 max-h-24">{file}</div>
                                 {/if}
-                                <button class="absolute -right-1 -top-1 p-1 bg-darkbg text-textcolor rounded-md transition-colors hover:text-draculared focus:text-draculared" onclick={() => {
-                                    fileInput.splice(i, 1)
-                                    updateInputSizeAll()
-                                }}>
+                                <button class="absolute -right-1 -top-1 p-1 bg-darkbg text-textcolor rounded-md transition-colors hover:text-draculared focus:text-draculared" 
+                                    onclick={() => {
+                                        fileInput.splice(i, 1)
+                                        updateInputSizeAll()
+                                    }}
+                                    aria-label="Remove attachment">
                                     <XIcon size={18} />
                                 </button>
                             </div>
@@ -619,28 +640,36 @@
             {/if}
             
             {#if toggleStickers}
-                <div class="ml-4 flex flex-wrap">
-                    <AssetInput bind:currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
-                        let fileType = 'img'
-                        if(additionalAsset.length > 2 && additionalAsset[2]) {
-                            const fileExtension = additionalAsset[2]
-                            if(fileExtension === 'mp4' || fileExtension === 'webm')
-                                fileType = 'video'
-                            else if(fileExtension === 'mp3' || fileExtension === 'wav')
-                                fileType = 'audio'
-                        }
-                        messageInput += `<span class='notranslate' translate='no'>{{${fileType}::${additionalAsset[0]}}}</span> *${additionalAsset[0]} added*`
-                        updateInputSizeAll()
-                    }}/>
+                <div class="ml-4 flex flex-wrap" aria-label="Stickers and assets panel">
+                    <AssetInput 
+                        bind:currentCharacter={currentCharacter} 
+                        onSelect={(additionalAsset)=>{
+                            let fileType = 'img'
+                            if(additionalAsset.length > 2 && additionalAsset[2]) {
+                                const fileExtension = additionalAsset[2]
+                                if(fileExtension === 'mp4' || fileExtension === 'webm')
+                                    fileType = 'video'
+                                else if(fileExtension === 'mp3' || fileExtension === 'wav')
+                                    fileType = 'audio'
+                            }
+                            messageInput += `<span class='notranslate' translate='no'>{{${fileType}::${additionalAsset[0]}}}</span> *${additionalAsset[0]} added*`
+                            updateInputSizeAll()
+                        }}
+                        ariaLabel="Character stickers and assets"
+                    />
                 </div>    
             {/if}
 
             {#if DBState.db.useAutoSuggestions}
-                <Suggestion messageInput={(msg)=>messageInput=(
-                    (DBState.db.subModel === "textgen_webui" || DBState.db.subModel === "mancer" || DBState.db.subModel.startsWith('local_')) && DBState.db.autoSuggestClean
-                    ? msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')
-                    : msg
-                )} {send}/>
+                <Suggestion 
+                    messageInput={(msg)=>messageInput=(
+                        (DBState.db.subModel === "textgen_webui" || DBState.db.subModel === "mancer" || DBState.db.subModel.startsWith('local_')) && DBState.db.autoSuggestClean
+                        ? msg.replace(/ +\(.+?\) *$| - [^"'*]*?$/, '')
+                        : msg
+                    )} 
+                    {send}
+                    ariaLabel="Suggested responses"
+                />
             {/if}
             
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
@@ -755,9 +784,9 @@
             {#if openMenu}
                 <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" onclick={(e) => {
                     e.stopPropagation()
-                }}>
+                }} role="menu" aria-label="Chat options menu">
                     {#if DBState.db.characters[$selectedCharID].type === 'group'}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={runAutoMode}>
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Toggle auto mode" onclick={runAutoMode}>
                             <DicesIcon />
                             <span class="ml-2">{language.autoMode}</span>
                         </div>
@@ -766,7 +795,7 @@
                     
                     <!-- svelte-ignore block_empty -->
                     {#if DBState.db.characters[$selectedCharID].ttsMode === 'webspeech' || DBState.db.characters[$selectedCharID].ttsMode === 'elevenlab'}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Stop text-to-speech" onclick={() => {
                             stopTTS()
                         }}>
                             <MicOffIcon />
@@ -776,6 +805,7 @@
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors"
                         class:text-textcolor2={(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length < 2) || (DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].role !== 'char')}
+                        role="menuitem" aria-label="Continue response"
                         onclick={() => {
                             if((DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length < 2) || (DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].role !== 'char')){
                                 return
@@ -789,7 +819,7 @@
 
 
                     {#if DBState.db.showMenuChatList}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Open chat list" onclick={() => {
                             openChatList = true
                             openMenu = false
                         }}>
@@ -799,23 +829,27 @@
                     {/if}
                     
                     {#if DBState.db.translator !== ''}
-                        <div class={"flex items-center cursor-pointer "+ (DBState.db.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} onclick={() => {
-                            DBState.db.useAutoTranslateInput = !DBState.db.useAutoTranslateInput
-                        }}>
+                        <div class={"flex items-center cursor-pointer "+ (DBState.db.useAutoTranslateInput ? 'text-green-500':'lg:hover:text-green-500')} 
+                            role="menuitem" 
+                            aria-label="Auto translate input" 
+                            aria-pressed={DBState.db.useAutoTranslateInput}
+                            onclick={() => {
+                                DBState.db.useAutoTranslateInput = !DBState.db.useAutoTranslateInput
+                            }}>
                             <GlobeIcon />
                             <span class="ml-2">{language.autoTranslateInput}</span>
                         </div>
                         
                     {/if}
             
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Take screenshot" onclick={() => {
                         screenShot()
                     }}>
                         <CameraIcon />
                         <span class="ml-2">{language.screenshot}</span>
                     </div>
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Post file" onclick={async () => {
                         const res = await postChatFile(messageInput)
                         if(res?.type === 'asset'){
                             fileInput.push(res.data)
@@ -832,15 +866,19 @@
                     </div>
 
 
-                    <div class={"flex items-center cursor-pointer "+ (DBState.db.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} onclick={async () => {
-                        DBState.db.useAutoSuggestions = !DBState.db.useAutoSuggestions
-                    }}>
+                    <div class={"flex items-center cursor-pointer "+ (DBState.db.useAutoSuggestions ? 'text-green-500':'lg:hover:text-green-500')} 
+                        role="menuitem" 
+                        aria-label="Auto suggest" 
+                        aria-pressed={DBState.db.useAutoSuggestions}
+                        onclick={async () => {
+                            DBState.db.useAutoSuggestions = !DBState.db.useAutoSuggestions
+                        }}>
                         <ReplyIcon />
                         <span class="ml-2">{language.autoSuggest}</span>
                     </div>
 
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Manage modules" onclick={() => {
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules ??= []
                         openModuleList = true
                         openMenu = false
@@ -850,7 +888,7 @@
                     </div>
 
                     {#if DBState.db.sideMenuRerollButton}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={reroll}>
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" role="menuitem" aria-label="Reroll response" onclick={reroll}>
                             <RefreshCcwIcon />
                             <span class="ml-2">{language.reroll}</span>
                         </div>

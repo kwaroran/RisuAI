@@ -10,16 +10,16 @@
     import TextInput from "../UI/GUI/TextInput.svelte";
 
     let editMode = $state(false)
-    /** @type {{close?: any}} */
-    let { close = () => {} } = $props();
+    /** @type {{close?: any, ariaLabel?: string}} */
+    let { close = () => {}, ariaLabel = "Chat history list" } = $props();
 </script>
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
-    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-72 max-h-full overflow-y-auto">
+<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center" aria-label={ariaLabel}>
+    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-72 max-h-full overflow-y-auto" role="dialog" aria-labelledby="chat-list-header">
         <div class="flex items-center text-textcolor mb-4">
-            <h2 class="mt-0 mb-0">{language.chatList}</h2>
+            <h2 id="chat-list-header" class="mt-0 mb-0">{language.chatList}</h2>
             <div class="flex-grow flex justify-end">
-                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
+                <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close} aria-label="Close chat list">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -30,7 +30,7 @@
                     DBState.db.characters[$selectedCharID].chatPage = i
                      close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.characters[$selectedCharID].chatPage}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.characters[$selectedCharID].chatPage} aria-label={`Chat: ${chat.name}${i === DBState.db.characters[$selectedCharID].chatPage ? " (selected)" : ""}`} aria-current={i === DBState.db.characters[$selectedCharID].chatPage}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.characters[$selectedCharID].chats[i].name} padding={false}/>
                 {:else}
@@ -42,7 +42,7 @@
                         exportChat(i)
                     }} onkeydown={() => {
 
-                    }}>
+                    }} aria-label={`Export chat: ${chat.name}`}>
                         <DownloadIcon size={18}/>
                     </div>
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
@@ -60,7 +60,7 @@
                         }
                     }} onkeydown={() => {
                         
-                    }}>
+                    }} aria-label={`Delete chat: ${chat.name}`}>
                         <TrashIcon size={18}/>
                     </div>
                 </div>
@@ -87,17 +87,17 @@
                 $ReloadGUIPointer += 1
                 DBState.db.characters[$selectedCharID].chatPage = len
                 close()
-            }}>
+            }} aria-label="Create new chat">
                 <PlusIcon/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
-            }}>
+            }} aria-label="Import chat">
                 <FolderUpIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }}>
+            }} aria-label="Toggle edit mode">
                 <EditIcon size={18}/>
             </button>
         </div>

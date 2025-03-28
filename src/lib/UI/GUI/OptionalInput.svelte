@@ -47,8 +47,22 @@
     {:else if typeof(value) === 'number'}
         <NumberInput bind:value={value}  className="flex-1"/>
     {:else if typeof(value) === 'boolean'}
-        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={!value} onclick={valToggle}>True</button>
-        <button class="px-2 py-2 border border-darkborderc flex-1" class:text-textcolor2={value} onclick={valToggle}>False</button>
+        <button 
+            class="px-2 py-2 border border-darkborderc flex-1" 
+            class:text-textcolor2={!value} 
+            onclick={valToggle}
+            role="radio"
+            aria-checked={value}
+            aria-label="Set value to true"
+        >True</button>
+        <button 
+            class="px-2 py-2 border border-darkborderc flex-1" 
+            class:text-textcolor2={value} 
+            onclick={valToggle}
+            role="radio"
+            aria-checked={!value}
+            aria-label="Set value to false"
+        >False</button>
     {:else}
         <TextInput value={"Using default"}  className="flex-1" disabled/>
     {/if}

@@ -100,9 +100,14 @@
 {#if specialDay === 'anniversary'}
     <h1>
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" role="button" tabindex="-1" onclick={() => {
-            openURL('https://risuai.net')
-        }}>Happy 1st Anniversary!</span>
+        <span class="text-2xl font-extralight italic text-amber-400 hover:text-amber-600 cursor-pointer transition" 
+            role="button" 
+            tabindex="0" 
+            onclick={() => {
+                openURL('https://risuai.net')
+            }}
+            aria-label="Visit Risuai website - Happy 1st Anniversary!"
+        >Happy 1st Anniversary!</span>
     </h1>
 {/if}
 {#if clicks >= 5}
@@ -139,6 +144,9 @@
                     score++
                 }
             }}
+            role="button"
+            tabindex="0"
+            aria-label="Click to play Santa minigame"
         >
     </div>
 {/if}
