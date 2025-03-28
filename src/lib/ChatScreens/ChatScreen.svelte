@@ -39,7 +39,7 @@
     <div class="flex-grow h-full flex justify-center relative" 
         style="{bgImg.length < 4 ? wallPaper : bgImg}"
         role="main" 
-        aria-label="채팅 화면"
+        aria-label="Chat Screen"
     >
         <SideBarArrow />
         <BackgroundDom />
@@ -48,12 +48,12 @@
                 <div class="h-full mr-10 flex justify-end halfw" 
                     style:width="{42 * (DBState.db.waifuWidth2 / 100)}rem"
                     role="img" 
-                    aria-label="{DBState.db.characters[$selectedCharID].name} 캐릭터 이미지"
+                    aria-label="{DBState.db.characters[$selectedCharID].name} Character Image"
                 >
                     <TransitionImage 
                         classType="waifu" 
                         src={getEmotion(DBState.db, $CharEmotion, 'plain')} 
-                        altText={`${DBState.db.characters[$selectedCharID].name} 캐릭터 이미지`}
+                        altText={`${DBState.db.characters[$selectedCharID].name} Character Image`}
                     />
                 </div>
             {/if}
@@ -62,7 +62,7 @@
             style:width="{42 * (DBState.db.waifuWidth / 100)}rem" 
             class:halfwp={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
             role="region" 
-            aria-label="채팅 내용"
+            aria-label="Chat Content"
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
@@ -71,7 +71,7 @@
     <div class="flex-grow h-full relative" 
         style={bgImg.length < 4 ? wallPaper : bgImg}
         role="main" 
-        aria-label="모바일 채팅 화면"
+        aria-label="Mobile Chat Screen"
     >
         <SideBarArrow />
         <BackgroundDom />
@@ -79,7 +79,7 @@
             class:per33={$selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
             class:h-full={!($selectedCharID >= 0 && DBState.db.characters[$selectedCharID].viewScreen !== 'none')}
             role="region" 
-            aria-label="채팅 내용"
+            aria-label="Chat Content"
         >
             <DefaultChatScreen customStyle={`${externalStyles}backdrop-filter: blur(4px);`} bind:openChatList bind:openModuleList/>
         </div>
@@ -87,12 +87,12 @@
             {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none'}
                 <div class="h-full w-full absolute bottom-0 left-0 max-w-full"
                     role="img" 
-                    aria-label="{DBState.db.characters[$selectedCharID].name} 캐릭터 이미지"
+                    aria-label="{DBState.db.characters[$selectedCharID].name} Character Image"
                 >
                     <TransitionImage 
                         classType="mobile" 
                         src={getEmotion(DBState.db, $CharEmotion, 'plain')} 
-                        altText={`${DBState.db.characters[$selectedCharID].name} 캐릭터 이미지`}
+                        altText={`${DBState.db.characters[$selectedCharID].name} Character Image`}
                     />
                 </div>
             {/if}
@@ -101,7 +101,7 @@
 {:else}
     <div class="flex-grow h-full min-w-0 relative justify-center flex"
         role="main" 
-        aria-label="클래식 채팅 화면"
+        aria-label="Classic Chat Screen"
     >
         <SideBarArrow />
         <BackgroundDom />

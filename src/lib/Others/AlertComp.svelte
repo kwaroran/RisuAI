@@ -136,7 +136,7 @@
                                 msg: 'yes'
                             })
                         }}
-                        ariaLabel="예"
+                        ariaLabel="Yes"
                     >YES</Button>
                     <Button 
                         className="mt-4 flex-grow" 
@@ -146,7 +146,7 @@
                                 msg: 'no'
                             })
                         }}
-                        ariaLabel="아니오"
+                        ariaLabel="No"
                     >NO</Button>
                 </div>
             {:else if $alertStore.type === 'tos'}
@@ -159,7 +159,7 @@
                                 msg: 'yes'
                             })
                         }}
-                        ariaLabel="약관 동의"
+                        ariaLabel="Accept Terms"
                     >Accept</Button>
                     <Button 
                         styled={'outlined'} 
@@ -170,7 +170,7 @@
                                 msg: 'no'
                             })
                         }}
-                        ariaLabel="약관 거부"
+                        ariaLabel="Reject Terms"
                     >Do not Accept</Button>
                 </div>
             {:else if $alertStore.type === 'select'}
@@ -195,10 +195,10 @@
                             msg: ''
                         })
                     }}
-                    ariaLabel="확인"
+                    ariaLabel="OK"
                 >OK</Button>
             {:else if $alertStore.type === 'input'}
-                <TextInput value="" id="alert-input" autocomplete="off" marginTop ariaLabel="입력" />
+                <TextInput value="" id="alert-input" autocomplete="off" marginTop ariaLabel="Input" />
                 <Button 
                     className="mt-4" 
                     onclick={() => {
@@ -208,7 +208,7 @@
                             msg: document.querySelector('#alert-input')?.value
                         })
                     }}
-                    ariaLabel="확인"
+                    ariaLabel="Confirm"
                 >OK</Button>
             {:else if $alertStore.type === 'login'}
                 <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
@@ -261,7 +261,7 @@
                         selected={generationInfoMenuIndex === 0} 
                         size="sm" 
                         onclick={() => {generationInfoMenuIndex = 0}}
-                        ariaLabel={language.tokens || "토큰"}
+                        ariaLabel={language.tokens || "Tokens"}
                     >
                         {language.tokens}
                     </Button>
@@ -269,7 +269,7 @@
                         selected={generationInfoMenuIndex === 1} 
                         size="sm" 
                         onclick={() => {generationInfoMenuIndex = 1}}
-                        ariaLabel={language.metaData || "메타데이터"}
+                        ariaLabel={language.metaData || "Metadata"}
                     >
                         {language.metaData}
                     </Button>
@@ -277,7 +277,7 @@
                         selected={generationInfoMenuIndex === 2} 
                         size="sm" 
                         onclick={() => {generationInfoMenuIndex = 2}}
-                        ariaLabel={language.log || "로그"}
+                        ariaLabel={language.log || "Log"}
                     >
                         {language.log}
                     </Button>
@@ -289,7 +289,7 @@
                                 msg: ''
                             })
                         }}
-                        aria-label={language.close || "닫기"}
+                        aria-label={language.close || "Close"}
                     >✖</button>
                 </div>
                 {#if generationInfoMenuIndex === 0}
@@ -381,7 +381,7 @@
                                 msg: ''
                             })
                         }}
-                        aria-label={language.close || "닫기"}
+                        aria-label={language.close || "Close"}
                     >✖</button>
                 </div>
                 {#if generationInfoMenuIndex === 0}
@@ -417,7 +417,7 @@
                                 msg: 'importFromRealm'
                             })
                         }}
-                        aria-label={language.importFromRealm || "Realm에서 가져오기"}
+                        aria-label={language.importFromRealm || "Import from Realm"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span class="text-2xl font-bold">{language.importFromRealm}</span>
@@ -437,7 +437,7 @@
                                 msg: 'importCharacter'
                             })
                         })}
-                        aria-label={language.importCharacter || "캐릭터 가져오기"}
+                        aria-label={language.importCharacter || "Import Character"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.importCharacter}</span>
@@ -456,7 +456,7 @@
                                 msg: 'createfromScratch'
                             })
                         }}
-                        aria-label={language.createfromScratch || "처음부터 만들기"}
+                        aria-label={language.createfromScratch || "Create from Scratch"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createfromScratch}</span>
@@ -475,7 +475,7 @@
                                 msg: 'createGroup'
                             })
                         }}
-                        aria-label={language.createGroup || "그룹 만들기"}
+                        aria-label={language.createGroup || "Create Group"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createGroup}</span>
@@ -494,7 +494,7 @@
                                 msg: 'cancel'
                             })
                         }}
-                        aria-label={language.cancel || "취소"}
+                        aria-label={language.cancel || "Cancel"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
@@ -514,7 +514,7 @@
                                 msg: '0'
                             })
                         }}
-                        aria-label={language.createCopy || "복사본 만들기"}
+                        aria-label={language.createCopy || "Create Copy"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.createCopy}</span>
@@ -531,7 +531,7 @@
                                 msg: '1'
                             })
                         }}
-                        aria-label={language.bindPersona || "페르소나 연결"}
+                        aria-label={language.bindPersona || "Bind Persona"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.bindPersona}</span>
@@ -549,7 +549,7 @@
                                     msg: '2'
                                 })
                             }}
-                            aria-label={language.createMultiuserRoom || "다중 사용자 방 만들기"}
+                            aria-label={language.createMultiuserRoom || "Create Multiuser Room"}
                         >
                             <div class="flex flex-col justify-start items-start">
                                 <span>{language.createMultiuserRoom} <Help key="experimental"/></span>
@@ -567,7 +567,7 @@
                                 msg: 'cancel'
                             })
                         }}
-                        aria-label={language.cancel || "취소"}
+                        aria-label={language.cancel || "Cancel"}
                     >
                         <div class="flex flex-col justify-start items-start">
                             <span>{language.cancel}</span>
@@ -600,7 +600,7 @@
                             })
                         })
                     }}
-                    aria-label={language.close || "닫기"}
+                    aria-label={language.close || "Close"}
                 >
                     <XIcon />
                 </button>
@@ -699,7 +699,7 @@
                         })
                     })
                 }}
-                ariaLabel={cardExportType === 'realm' ? language.shareCloud || "클라우드에 공유" : language.export || "내보내기"}
+                ariaLabel={cardExportType === 'realm' ? language.shareCloud || "Share on Cloud" : language.export || "Export"}
             >{cardExportType === 'realm' ? language.shareCloud : language.export}</Button>
         </div>
     </div>
@@ -747,7 +747,7 @@
                         msg: ''
                     })
                 }}
-                aria-label={language.close || "닫기"}
+                aria-label={language.close || "Close"}
             >
                 <XIcon />
             </button>

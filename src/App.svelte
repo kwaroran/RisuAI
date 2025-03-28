@@ -26,7 +26,7 @@
 </script>
 
 <main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" 
-    aria-label="RisuAI 애플리케이션"
+    aria-label="RisuAI Application"
     ondragover={(e) => {
         e.preventDefault()
         e.dataTransfer.dropEffect = 'link'
@@ -62,7 +62,7 @@
     {:else if $settingsOpen}
         <Settings />
     {:else if $MobileGUI}
-        <div class="w-full h-full flex flex-col" role="main" aria-label="모바일 인터페이스">
+        <div class="w-full h-full flex flex-col" role="main" aria-label="Mobile Interface">
             <MobileHeader />
             <MobileBody />
             <MobileFooter />
@@ -78,7 +78,7 @@
                     class:fixed={$sideBarStore} 
                     class:hidden={!$sideBarStore}
                     role="navigation" 
-                    aria-label="사이드바 메뉴"
+                    aria-label="Sidebar Menu"
                 >
                     <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <Sidebar openGrid={() => {gridOpen = true}}  hidden={false} />
