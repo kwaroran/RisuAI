@@ -56,17 +56,17 @@
     <div class="flex w-full rounded-md border border-selected">
         <button onclick={() => {
             submenu = 0
-        }} class="p-2 flex-1" class:bg-selected={submenu === 0}>
+        }} class="p-2 flex-1" class:bg-selected={submenu === 0} aria-label="Character lorebook tab">
             <span>{DBState.db.characters[$selectedCharID].type === 'group' ? language.group : language.character}</span>
         </button>
         <button onclick={() => {
             submenu = 1
-        }} class="p2 flex-1 border-r border-l border-selected" class:bg-selected={submenu === 1}>
+        }} class="p2 flex-1 border-r border-l border-selected" class:bg-selected={submenu === 1} aria-label="Chat lorebook tab">
             <span>{language.Chat}</span>
         </button>
         <button onclick={() => {
             submenu = 2
-        }} class="p-2 flex-1" class:bg-selected={submenu === 2}>
+        }} class="p-2 flex-1" class:bg-selected={submenu === 2} aria-label="Settings lorebook tab">
             <span>{language.settings}</span>
         </button>
     </div>
@@ -118,42 +118,41 @@
     </div>
 {/if}
 {#if submenu !== 2}
-
-<div class="text-textcolor2 mt-2 flex">
-    <button onclick={() => {addLorebook(globalMode ? -1 : submenu)}} class="hover:text-textcolor cursor-pointer">
-        <PlusIcon />
-    </button>
-    <button onclick={() => {
-        exportLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
-    }} class="hover:text-textcolor ml-1  cursor-pointer">
-        <DownloadIcon />
-    </button>
-    <button onclick={() => {
-        importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
-    }} class="hover:text-textcolor ml-2  cursor-pointer">
-        <FolderUpIcon />
-    </button>
-    {#if DBState.db.bulkEnabling}
-        <button onclick={() => {
-            toggleCharacterLoreAlwaysActive()
-        }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
-            {#if isAllCharacterLoreAlwaysActive()}
-                <SunIcon />
-            {:else}
-                <LinkIcon />
-            {/if}
-            <span class="text-xs">CHAR</span>
+    <div class="text-textcolor2 mt-2 flex">
+        <button onclick={() => {addLorebook(globalMode ? -1 : submenu)}} class="hover:text-textcolor cursor-pointer" aria-label="Add new lorebook entry">
+            <PlusIcon />
         </button>
         <button onclick={() => {
-            toggleChatLoreAlwaysActive()
-        }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1">
-            {#if isAllChatLoreAlwaysActive()}
-                <SunIcon />
-            {:else}
-                <LinkIcon />
-            {/if}
-            <span class="text-xs">CHAT</span>
+            exportLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
+        }} class="hover:text-textcolor ml-1  cursor-pointer" aria-label="Export lorebook">
+            <DownloadIcon />
         </button>
-    {/if}
-</div>
+        <button onclick={() => {
+            importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
+        }} class="hover:text-textcolor ml-2  cursor-pointer" aria-label="Import lorebook">
+            <FolderUpIcon />
+        </button>
+        {#if DBState.db.bulkEnabling}
+            <button onclick={() => {
+                toggleCharacterLoreAlwaysActive()
+            }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1" aria-label="Toggle all character lorebook entries active status">
+                {#if isAllCharacterLoreAlwaysActive()}
+                    <SunIcon />
+                {:else}
+                    <LinkIcon />
+                {/if}
+                <span class="text-xs">CHAR</span>
+            </button>
+            <button onclick={() => {
+                toggleChatLoreAlwaysActive()
+            }} class="hover:text-textcolor ml-2 cursor-pointer flex items-center gap-1" aria-label="Toggle all chat lorebook entries active status">
+                {#if isAllChatLoreAlwaysActive()}
+                    <SunIcon />
+                {:else}
+                    <LinkIcon />
+                {/if}
+                <span class="text-xs">CHAT</span>
+            </button>
+        {/if}
+    </div>
 {/if}

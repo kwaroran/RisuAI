@@ -202,7 +202,7 @@
                                     folder.color = colors[sel]
                                     break
                             }
-                        }}>
+                        }} aria-label="Folder options">
                             <MenuIcon size={18}/>
                         </div>
                         <div role="button" tabindex="0" onkeydown={(e) => {
@@ -211,7 +211,7 @@
                             }
                         }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
                             editMode = !editMode
-                        }}>
+                        }} aria-label="Edit folder name">
                             <PencilIcon size={18}/>
                         </div>
                         <div role="button" tabindex="0" onkeydown={(e) => {
@@ -232,7 +232,7 @@
                                 })
                                 chara.chatFolders = folders
                             }
-                        }}>
+                        }} aria-label="Delete folder">
                             <TrashIcon size={18}/>
                         </div>
                     </div>
@@ -297,7 +297,7 @@
                                         createMultiuserRoom()
                                     }
                                 }
-                            }}>
+                            }} aria-label="Chat options">
                                 <MenuIcon size={18}/>
                             </div>
                             <div role="button" tabindex="0" onkeydown={(e) => {
@@ -306,7 +306,7 @@
                                 }
                             }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
                                 editMode = !editMode
-                            }}>
+                            }} aria-label="Edit chat name">
                                 <PencilIcon size={18}/>
                             </div>
                             <div role="button" tabindex="0" onkeydown={(e) => {
@@ -316,7 +316,7 @@
                             }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                                 e.stopPropagation()
                                 exportChat(chara.chats.indexOf(chat))
-                            }}>
+                            }} aria-label="Export chat">
                                 <DownloadIcon size={18}/>
                             </div>
                             <div role="button" tabindex="0" onkeydown={(e) => {
@@ -337,7 +337,7 @@
                                     chats.splice(chara.chats.indexOf(chat), 1)
                                     chara.chats = chats
                                 }
-                            }}>
+                            }} aria-label="Delete chat">
                                 <TrashIcon size={18}/>
                             </div>
                         </div>
@@ -408,7 +408,7 @@
                                 createMultiuserRoom()
                             }
                         }
-                    }}>
+                    }} aria-label="Chat options">
                         <MenuIcon size={18}/>
                     </div>
                     <div role="button" tabindex="0" onkeydown={(e) => {
@@ -417,7 +417,7 @@
                         }
                     }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={() => {
                         editMode = !editMode
-                    }}>
+                    }} aria-label="Edit chat name">
                         <PencilIcon size={18}/>
                     </div>
                     <div role="button" tabindex="0" onkeydown={(e) => {
@@ -427,7 +427,7 @@
                     }} class="text-textcolor2 hover:text-green-500 mr-1 cursor-pointer" onclick={async (e) => {
                         e.stopPropagation()
                         exportChat(i)
-                    }}>
+                    }} aria-label="Export chat">
                         <DownloadIcon size={18}/>
                     </div>
                     <div role="button" tabindex="0" onkeydown={(e) => {
@@ -448,7 +448,7 @@
                             chats.splice(i, 1)
                             chara.chats = chats
                         }
-                    }}>
+                    }} aria-label="Delete chat">
                         <TrashIcon size={18}/>
                     </div>
                 </div>
@@ -463,12 +463,12 @@
         <div class="flex mt-2 ml-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
-            }}>
+            }} aria-label="Import chat">
                 <FolderUpIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 editMode = !editMode
-            }}>
+            }} aria-label="Toggle edit mode">
                 <PencilIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
@@ -476,7 +476,7 @@
                   type: "branches",
                   msg: ""
                 })
-            }}>
+            }} aria-label="View chat branches">
                 <SplitIcon size={18}/>
             </button>
             <button class="ml-auto text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
@@ -492,7 +492,7 @@
                 })
                 chara.chatFolders = folders
                 $ReloadGUIPointer += 1
-            }}>
+            }} aria-label="Create new folder">
                 <FolderPlusIcon size={18}/>
             </button>
         </div>

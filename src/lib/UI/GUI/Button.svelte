@@ -1,5 +1,6 @@
 <button
     onclick={onclick}
+    aria-label={ariaLabel}
     class="{
         styled === 'primary' ? ((selected ? 'bg-bg-selected' : 'bg-darkbutton') + " hover:bg-selected focus:ring-selected border-darkborderc")
         : styled === 'outlined' ? 'bg-transparent hover:bg-darkbg focus:ring-selected border-darkborderc text-textcolor2'
@@ -24,6 +25,7 @@
         className?: string;
         size?: "sm" | "md" | "lg";
         children?: import('svelte').Snippet;
+        ariaLabel?: string;
         onclick?: (event: MouseEvent & {
             currentTarget: EventTarget & HTMLButtonElement;
         }) => any
@@ -35,6 +37,7 @@
         className = "",
         size = "md",
         children,
+        ariaLabel,
         onclick
     }: Props = $props();
 </script>

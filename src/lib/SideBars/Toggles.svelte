@@ -24,9 +24,14 @@
     {#each parsedKv as toggle}
         {#if toggle.type === 'select'}
             <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
-                <span>{toggle.value}</span>
+                <span id={`toggle-label-${toggle.key}`}>{toggle.value}</span>
 
-                <SelectInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
+                <SelectInput 
+                    className="w-32" 
+                    bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}
+                    name={toggle.value}
+                    ariaLabel={`Toggle ${toggle.value}`}
+                >
                     {#each toggle.options as option, i}
                         <OptionInput value={i.toString()}>{option}</OptionInput>
                     {/each}
@@ -34,8 +39,12 @@
             </div>
         {:else if toggle.type === 'text'}
             <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
-                <span>{toggle.value}</span>
-                <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
+                <span id={`toggle-label-${toggle.key}`}>{toggle.value}</span>
+                <TextInput 
+                    className="w-32" 
+                    bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}
+                    ariaLabel={`Toggle ${toggle.value} value`}
+                />
             </div>
         {:else}
             <div class="flex mt-2 items-center">

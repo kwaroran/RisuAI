@@ -33,22 +33,40 @@
         <div class="flex-grow"></div>
         <div class="flex flex-wrap w-full flex-row-reverse gap-1">
             {#if chara.hasEmotion}
-                <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
-                    e.stopPropagation()
-                    alertNormal("This character includes emotion images")
-                })} onkeydown={(e) => {}}><SmileIcon /></div>
+                <div class="text-textcolor2 hover:text-green-500 transition-colors" 
+                    role="button" 
+                    tabindex="0" 
+                    onclick={((e) => {
+                        e.stopPropagation()
+                        alertNormal("This character includes emotion images")
+                    })} 
+                    onkeydown={(e) => {}}
+                    aria-label="Character has emotion images"
+                ><SmileIcon /></div>
             {/if}
             {#if chara.hasAsset}
-                <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
-                    e.stopPropagation()
-                    alertNormal("This character includes additional assets")
-                })} onkeydown={(e) => {}}><ImageIcon /></div>
+                <div class="text-textcolor2 hover:text-green-500 transition-colors" 
+                    role="button" 
+                    tabindex="0" 
+                    onclick={((e) => {
+                        e.stopPropagation()
+                        alertNormal("This character includes additional assets")
+                    })} 
+                    onkeydown={(e) => {}}
+                    aria-label="Character has additional assets"
+                ><ImageIcon /></div>
             {/if}
             {#if chara.hasLore}
-                <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {
-                    e.stopPropagation()
-                    alertNormal("This character includes lorebook")
-                })} onkeydown={(e) => {}}><BookIcon /></div>
+                <div class="text-textcolor2 hover:text-green-500 transition-colors" 
+                    role="button" 
+                    tabindex="0" 
+                    onclick={((e) => {
+                        e.stopPropagation()
+                        alertNormal("This character includes lorebook")
+                    })} 
+                    onkeydown={(e) => {}}
+                    aria-label="Character has lorebook"
+                ><BookIcon /></div>
             {/if}
         </div>
     </div>

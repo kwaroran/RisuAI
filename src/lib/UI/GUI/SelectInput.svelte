@@ -12,6 +12,8 @@
     class:py-3={size === 'lg'}
     bind:value
     onchange={onchange}
+    aria-label={ariaLabel || `Select ${name}`}
+    role="combobox"
 >
     {@render children?.()}
 </select>
@@ -20,6 +22,8 @@
         value: string;
         className?: string;
         size?: 'sm'|'md'|'lg'|'xl';
+        ariaLabel?: string;
+        name?: string;
         children?: import('svelte').Snippet;
         onchange?: (event: Event & {
             currentTarget: EventTarget & HTMLSelectElement;
@@ -30,6 +34,8 @@
         value = $bindable(),
         className = "",
         size = 'md',
+        ariaLabel = '',
+        name = '',
         children,
         onchange
     }: Props = $props();

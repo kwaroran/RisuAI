@@ -14,6 +14,8 @@
     let initialX;
     let initialY;
 
+    let { ariaLabel = "Resizable character view box" } = $props();
+
     function handleStart(event) {
         isResizing = true;
         initialWidth = box.clientWidth;
@@ -84,14 +86,15 @@
     }
 </style>
 
-<div class="box bg-darkbg bg-opacity-70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;">
+<div class="box bg-darkbg bg-opacity-70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;" aria-label={ariaLabel}>
     <!-- Your content here -->
-    <TransitionImage classType='risu' src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
+    <TransitionImage classType='risu' src={getEmotion(DBState.db, $CharEmotion, 'plain')} ariaLabel={`Character with ${$CharEmotion} emotion`}/>
     <div role="button" tabindex="0"
       class="resize-handle"
       onmousedown={handleStart}
       onmouseup={handleEnd}
       ontouchstart={handleStart}
       ontouchend={handleEnd}
+      aria-label="Resize handle"
     ></div>
 </div>

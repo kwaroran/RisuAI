@@ -1,6 +1,8 @@
 <button title={name+' '+language.showHelp} class="relative help inline-block cursor-default hover:text-green-500" onclick={() => {
     alertMd(language.help[key])
-}}>
+}}
+aria-label={name ? `Help for ${name}` : `Help for ${key}`}
+>
     
     {#if key === "experimental"}
         <div class="text-red-500 hover:text-green-500">

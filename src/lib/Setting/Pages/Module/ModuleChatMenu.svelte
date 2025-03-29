@@ -11,9 +11,10 @@
     interface Props {
         close?: any;
         alertMode?: boolean;
+        ariaLabel?: string;
     }
 
-    let { close = (i:string) => {}, alertMode = false }: Props = $props();
+    let { close = (i:string) => {}, alertMode = false, ariaLabel = "Module settings menu" }: Props = $props();
     let moduleSearch = $state('')
 
     function sortModules(modules:RisuModule[], search:string){
@@ -31,14 +32,14 @@
 </script>
 
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
-    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-full max-h-full overflow-y-auto">
+<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center" aria-label={ariaLabel}>
+    <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-full max-h-full overflow-y-auto" role="dialog" aria-labelledby="module-menu-header">
         <div class="flex items-center text-textcolor">
-            <h2 class="mt-0 mb-0 text-lg">{language.modules}</h2>
+            <h2 id="module-menu-header" class="mt-0 mb-0 text-lg">{language.modules}</h2>
             <div class="flex-grow flex justify-end">
                 <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={() => {
                     close('')
-                }}>
+                }} aria-label="Close module menu">
                     <XIcon size={24}/>
                 </button>
             </div>
@@ -46,9 +47,9 @@
 
         <span class="text-sm text-textcolor2">{language.chatModulesInfo}</span>
 
-        <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
+        <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} aria-label="Search modules" />
 
-        <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md">
+        <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md" role="list" aria-label="Available modules">
             {#if DBState.db.modules.length === 0}
                 <div class="text-textcolor2 p-3">{language.noModules}</div>
             {:else}
@@ -56,7 +57,7 @@
                     {#if i !== 0}
                         <div class="border-t-1 border-selected"></div>
                     {/if}
-                    <div class="pl-3 py-3 text-left flex">
+                    <div class="pl-3 py-3 text-left flex" role="listitem" aria-label={`Module: ${rmodule.name}`}>
                         {#if !alertMode && DBState.db.enabledModules.includes(rmodule.id)}
                             <span class="text-textcolor2">{rmodule.name}</span>
                         {:else}
@@ -69,11 +70,11 @@
                                     e.stopPropagation()
 
                                     close(rmodule.id)
-                                }}>
+                                }} aria-label={`Select module: ${rmodule.name}`}>
                                     <CheckCircle2Icon size={18}/>
                                 </button>
                             {:else if DBState.db.enabledModules.includes(rmodule.id)}
-                                <button class="mr-2 text-textcolor2 cursor-not-allowed"aria-labelledby="disabled">
+                                <button class="mr-2 text-textcolor2 cursor-not-allowed" aria-labelledby="disabled" aria-label="Module disabled">
                                 </button>
                             {:else}
                                 <button class={(!DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?
@@ -89,7 +90,7 @@
                                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.push(rmodule.id)
                                     }
                                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules
-                                }}>
+                                }} aria-label={`${DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id) ? "Remove" : "Add"} module: ${rmodule.name}`}>
                                     <CheckCircle2Icon size={18}/>
                                 </button>
                             {/if}
@@ -103,7 +104,7 @@
                 $SettingsMenuIndex = 14
                 $settingsOpen = true
                 close('')
-            }}>{language.edit}</Button>
+            }} aria-label="Edit modules">{language.edit}</Button>
         </div>
     </div>
 </div>

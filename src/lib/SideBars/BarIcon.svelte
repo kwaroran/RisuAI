@@ -4,16 +4,28 @@
   interface Props {
     onClick?: any;
     additionalStyle?: string | Promise<string>;
+    ariaLabel?: string;
     children?: import('svelte').Snippet;
   }
 
-  let { onClick = () => {}, additionalStyle = "", children }: Props = $props();
+  let { onClick = () => {}, additionalStyle = "", ariaLabel = "", children }: Props = $props();
 </script>
 
 {#await additionalStyle}
-  <button onclick={onClick} class="ico">{@render children?.()}</button>
+  <button 
+    onclick={onClick} 
+    class="ico" 
+    aria-label={ariaLabel}
+    role="button"
+  >{@render children?.()}</button>
 {:then as}
-  <button onclick={onClick} class="ico" style={as}>{@render children?.()}</button>
+  <button 
+    onclick={onClick} 
+    class="ico" 
+    style={as} 
+    aria-label={ariaLabel}
+    role="button"
+  >{@render children?.()}</button>
 {/await}
 
 <style>

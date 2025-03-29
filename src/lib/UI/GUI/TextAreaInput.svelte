@@ -47,6 +47,7 @@
             {placeholder}
             id={id}
             bind:value={value}
+            aria-label={ariaLabel || placeholder}
             oninput={(e) => {
                 if(optimaizedInput){
                     if(inpa++ > 10){
@@ -79,6 +80,7 @@
         }}
         role="textbox"
         tabindex="0"
+        aria-label={ariaLabel || placeholder}
         oninput={(e) => {
             autoComplete()
         }}
@@ -126,6 +128,7 @@
         optimaizedInput?: boolean;
         highlight?: boolean;
         onchange?: () => void;
+        ariaLabel?: string;
     }
 
     let {
@@ -142,7 +145,8 @@
         className = '',
         optimaizedInput = true,
         highlight = false,
-        onchange = () => {}
+        onchange = () => {},
+        ariaLabel = ''
     }: Props = $props();
     let selectingAutoComplete = $state(0)
     let highlightId = highlight ? getNewHighlightId() : 0

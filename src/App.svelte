@@ -74,19 +74,19 @@
                         <div class="flex gap-1.5" onclick={() => {
                             aprilFoolsPage = 1
                         }}>
-                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2">
+                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2" aria-label="Search">
                                 <span class="text-[#bbbbbb]">🔍</span>
                                 Search
                             </button>
-                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2">
+                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2" aria-label="Games">
                                 <span class="text-[#bbbbbb]">🎮</span>
                                 Games
                             </button>
-                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2">
+                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2" aria-label="Roleplay">
                                 <span class="text-[#bbbbbb]">🎨</span>
                                 Roleplay
                             </button>
-                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2">
+                            <button class="rounded-full border border-[#bbbbbb15] px-4 py-2" aria-label="More options">
                                 More
                             </button>
                         </div>
@@ -97,12 +97,17 @@
                     <p class="text-[#bbbbbb] mb-6">
                         <!-- svelte-ignore a11y_missing_attribute -->
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        Go to <a class="text-blue-500 cursor-pointer" onclick={() => {
-                            aprilFoolsPage = 0
-                            aprilFools = false
-                        }}>
+                        Go to <span class="text-blue-500 cursor-pointer" 
+                            onclick={() => {
+                                aprilFoolsPage = 0
+                                aprilFools = false
+                            }}
+                            role="button"
+                            tabindex="0"
+                            aria-label="Go to Risuai"
+                        >
                             Risuai  
-                        </a>
+                        </span>
                     </p>
 
                     {/if}

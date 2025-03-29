@@ -8,9 +8,10 @@
     interface Props {
         src?: string[]|Promise<string[]>;
         classType: 'waifu'|'risu'|'mobile';
+        ariaLabel?: string;
     }
 
-    let { src = [], classType }: Props = $props();
+    let { src = [], classType, ariaLabel = "Character image" }: Props = $props();
 
     async function processSrc(src:string[]|Promise<string[]>) {
         const resultSrc = await src
@@ -114,13 +115,14 @@
     <div class="image-container"
         class:img-waifu={classType === 'waifu'}
         class:img-risu={classType === 'risu'}
-        class:img-mobile={classType === 'mobile'}>
+        class:img-mobile={classType === 'mobile'}
+        aria-label={ariaLabel}>
         {#if !showOldImage}
             {#each currentSrc as img, i}
                 {#if styleType === 'normal'}
                     <img
                         src={img}
-                        alt="img"
+                        alt={ariaLabel || "Character image"}
                         style:width={`${100 / currentSrc.length}%`}
                         style:left={`${100 / currentSrc.length * i}%`}
                     />
@@ -128,7 +130,7 @@
                     {#if i <= 1}
                         <img
                             src={img}
-                            alt="img"
+                            alt={ariaLabel || "Character image"}
                             style:width={`${80 - (i*10)}%`}
                             style:left={`${30-(i*30)}%`}
                             style:z-index={9 - i}
@@ -141,7 +143,7 @@
                 {#each oldSrc as img2, i}
                     <img
                         src={oldSrc[i]}
-                        alt="img"
+                        alt={ariaLabel || "Character image"}
                         class="old-image"
                         onanimationend={handleTransitionEnd}
                         style:width={`${100 / oldSrc.length}%`}
@@ -154,7 +156,7 @@
                     {#if i <= 1}
                         <img
                             src={oldSrc[i]}
-                            alt="img"
+                            alt={ariaLabel || "Character image"}
                             class="old-image"
                             onanimationend={handleTransitionEnd}
                             style:width={`${80 - (i*10)}%`}
@@ -168,7 +170,7 @@
                 {#each currentSrc as img3, i}
                     <img
                         src={currentSrc[i]}
-                        alt="img"
+                        alt={ariaLabel || "Character image"}
                         class="new-image"
                         style:width={`${100 / currentSrc.length}%`}
                         style:left={`${100 / currentSrc.length * i}%`}
@@ -180,7 +182,7 @@
                     {#if i <= 1}
                         <img
                             src={currentSrc[i]}
-                            alt="img"
+                            alt={ariaLabel || "Character image"}
                             class="new-image"
                             style:width={`${80 - (i*10)}%`}
                             style:left={`${30-(i*30)}%`}
