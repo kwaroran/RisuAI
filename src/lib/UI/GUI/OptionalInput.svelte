@@ -21,7 +21,32 @@
 </script>
 
 <div class="flex items-center justify-center" class:mb-4={marginBottom}>
-    <div class="flex justify-center items-center border-darkborderc rounded-l-md rounded-t-md rounded-b-md border h-full">
+    <div 
+        class="flex justify-center items-center border-darkborderc rounded-l-md rounded-t-md rounded-b-md border h-full"
+        tabindex="0"
+        role="checkbox"
+        aria-checked={!(value === null || value === undefined)}
+        aria-label="Toggle custom value"
+        onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if(value === null || value === undefined){
+                    if(numberMode){
+                        value = 0
+                    }
+                    else if(boolMode){
+                        value = false
+                    }
+                    else{
+                        value = ""
+                    }
+                }
+                else{
+                    value = null
+                }
+            }
+        }}
+    >
         <CheckInput hiddenName check={!(value === null || value === undefined)} onChange={() => {
             if(value === null || value === undefined){
                 if(numberMode){
@@ -54,6 +79,13 @@
             role="radio"
             aria-checked={value}
             aria-label="Set value to true"
+            tabindex="0"
+            onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!value) valToggle();
+                }
+            }}
         >True</button>
         <button 
             class="px-2 py-2 border border-darkborderc flex-1" 
@@ -62,6 +94,13 @@
             role="radio"
             aria-checked={!value}
             aria-label="Set value to false"
+            tabindex="0"
+            onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (value) valToggle();
+                }
+            }}
         >False</button>
     {:else}
         <TextInput value={"Using default"}  className="flex-1" disabled/>

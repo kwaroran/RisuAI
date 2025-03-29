@@ -32,6 +32,14 @@
     role="checkbox"
     aria-checked={check}
     aria-label={name}
+    tabindex="0"
+    onkeydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            check = !check;
+            onChange(check);
+        }
+    }}
 >
     {#if reverse}
         <span id="label-text">{name}{@render children?.()}</span>
