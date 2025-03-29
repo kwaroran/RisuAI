@@ -11,6 +11,7 @@
         ariaLabel?: string;
         children?: import('svelte').Snippet;
         className?: string;
+        onOpen?: (isKeyboardEvent?: boolean) => void;
     }
 
     let {
@@ -20,8 +21,20 @@
         disabled = false,
         ariaLabel,
         children,
-        className = ""
+        className = "",
+        onOpen = () => {}
     }: Props = $props();
+
+    function toggleOpen(isKeyboardEvent = false) {
+        const wasOpen = open;
+        open = !open;
+        
+        // 키보드 이벤트 여부와 상관없이 onOpen 콜백을 호출하되,
+        // isKeyboardEvent 정보를 함께 전달합니다
+        if (open && !wasOpen && onOpen) {
+            onOpen(isKeyboardEvent);
+        }
+    }
 </script>
 {#if disabled}
     {@render children?.()}
@@ -31,7 +44,14 @@
             class:bg-selected={open}
             class:rounded-b-md={!open}
             onclick={() => {
-                open = !open
+                toggleOpen(false);
+            }}
+            tabindex="0"
+            onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleOpen(true);
+                }
             }}
             aria-label={ariaLabel || `Toggle ${name}`}
             aria-expanded={open}
@@ -51,7 +71,14 @@
         <button class="hover:bg-selected px-6 py-2 text-lg" 
             class:bg-selected={open} 
             onclick={() => {
-                open = !open
+                toggleOpen(false);
+            }}
+            tabindex="0"
+            onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleOpen(true);
+                }
             }}
             aria-label={ariaLabel || `Toggle ${name}`}
             aria-expanded={open}

@@ -18,6 +18,15 @@
 
     let { value = $bindable(""), onChange = (v) => {}, onclick, blankable }: Props = $props();
     let openOptions = $state(false)
+    let dialogTitleRef: HTMLHeadingElement | null = null;
+
+    $effect(() => {
+        if (openOptions && dialogTitleRef) {
+            setTimeout(() => {
+                dialogTitleRef?.focus();
+            }, 50);
+        }
+    });
 
     function changeModel(name:string){
         value = name
@@ -41,7 +50,7 @@
             onclick?.(e)
         }}>
             <div class="flex items-center justify-between">
-                <h2 id="model-list-title" class="text-xl">{language.selectModel}</h2>
+                <h2 id="model-list-title" class="text-xl" tabindex="-1" bind:this={dialogTitleRef}>{language.selectModel}</h2>
             </div>
             <div class="border-t-1 border-y-selected mt-1 mb-1"></div>
 
