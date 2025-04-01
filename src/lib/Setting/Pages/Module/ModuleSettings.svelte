@@ -56,7 +56,7 @@
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
                                 "mr-2 cursor-pointer text-blue-500" :
                                 rmodule.namespace && 
-                                DBState.db.moduleIntergration.split(',').map((s) => s.trim()).includes(rmodule.namespace) ?
+                                DBState.db.moduleIntergration?.split(',').map((s) => s.trim()).includes(rmodule.namespace) ?
                                 "text-amber-500 hover:text-green-500 mr-2 cursor-pointer" :
                                 "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
                             } use:tooltip={language.enableGlobal} onclick={async (e) => {
