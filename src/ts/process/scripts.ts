@@ -68,12 +68,20 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 let bestMatchCache = new Map<string, string>()
 let processScriptCache = new Map<string, string>()
 
-function cacheScript(scripts:customscript[], data:string, result:string, mode:ScriptMode){
-    let hash = data + '|||' + mode + '|||'
-    for(const script of scripts){
-        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+function generateScriptCacheKey(scripts: customscript[], data: string, mode: ScriptMode, chatID = -1, cbsConditions: CbsConditions = {}) {
+    let hash = data + '|||' + mode + '|||';
+    for (const script of scripts) {
+        if(script.type !== mode){
+            continue
+        }
+        hash += `${script.flag?.includes('<cbs>') ? 
+            risuChatParser(script.in, { chatID: chatID, cbsConditions }) : 
+            script.in}|||${risuChatParser(script.out, { chatID: chatID, cbsConditions})}|||${script.flag ?? 0}|||${script.ableFlag ? 1 : 0}`;
     }
+    return hash;
+}
 
+function cacheScript(hash:string, result:string){
     processScriptCache.set(hash, result)
 
     if(processScriptCache.size > 500){
@@ -82,12 +90,7 @@ function cacheScript(scripts:customscript[], data:string, result:string, mode:Sc
 
 }
 
-function getScriptCache(scripts:customscript[], data:string, mode:ScriptMode){
-    let hash = data + '|||' + mode + '|||'
-    for(const script of scripts){
-        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
-    }
-
+function getScriptCache(hash:string){
     return processScriptCache.get(hash)
 }
 
@@ -98,12 +101,13 @@ export function resetScriptCache(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
     const originalData = data
-    const cached = getScriptCache((db.presetRegex ?? []).concat(char.customscript), originalData, mode)
+    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
+    const hash = generateScriptCacheKey(scripts, data, mode, chatID, cbsConditions)
+    const cached = getScriptCache(hash)
     if(cached){
         return {data: cached, emoChanged: false}
     }
     let emoChanged = false
-    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runLuaEditTrigger(char, mode, data)
 
     if(mode === 'editdisplay'){
@@ -136,7 +140,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     }
     
     if(scripts.length === 0){
-        cacheScript(scripts, originalData, data, mode)
+        cacheScript(hash, data)
         return {data, emoChanged}
     }
     function executeScript(pscript:pScript){
@@ -372,7 +376,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         }
     }
 
-    cacheScript(scripts, originalData, data, mode)
+    cacheScript(hash, data)
 
     return {data, emoChanged}
 }
