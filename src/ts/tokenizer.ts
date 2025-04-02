@@ -58,7 +58,6 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
         pluginTokenizer
     );
     const cachedResult = encodeCache.get(cacheKey);
-    console.log(encodeCache.size)
     if (cachedResult !== undefined) {
         return cachedResult;
     }
