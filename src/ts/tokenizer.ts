@@ -11,7 +11,7 @@ import { pluginV2 } from "./plugins/plugins";
 import type { GemmaTokenizer } from "@huggingface/transformers";
 import { LRUMap } from 'mnemonist';
 
-const MAX_CACHE_SIZE = 3000;
+const MAX_CACHE_SIZE = 1500;
 
 const encodeCache = new LRUMap<string, number[] | Uint32Array | Int32Array>(MAX_CACHE_SIZE);
 
