@@ -12,6 +12,7 @@
     import { onDestroy, onMount } from "svelte";
     
     let opened = $state(false)
+    let sectionHeaderRef: HTMLDivElement;
     interface Props {
         promptItem: PromptItem;
         onRemove?: () => void;
@@ -161,6 +162,7 @@
         tabindex="0"
         aria-expanded={opened}
         aria-label={`${getName(promptItem)} section`}
+        bind:this={sectionHeaderRef}
         onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
