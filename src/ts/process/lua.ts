@@ -29,6 +29,27 @@ interface LuaEngineState {
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
+let luaFactoryPromise: Promise<void> | null = null;
+
+async function ensureLuaFactory() {
+    if (luaFactory) return;
+    
+    if (luaFactoryPromise) {
+        try {
+            await luaFactoryPromise;
+        } catch (error) {
+            luaFactoryPromise = null;
+        }
+        return;
+    }
+
+    try {
+        luaFactoryPromise = makeLuaFactory();
+        await luaFactoryPromise;
+    } finally {
+        luaFactoryPromise = null;
+    }
+}
 
 export async function runLua(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
@@ -48,9 +69,7 @@ export async function runLua(code:string, arg:{
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
-    if(!luaFactory){
-        await makeLuaFactory()
-    }
+    await ensureLuaFactory()
     let luaEngineState = LuaEngines.get(mode)
     let wasEmpty = false
     if (!luaEngineState) {
@@ -71,9 +90,10 @@ export async function runLua(code:string, arg:{
     }
     return await luaEngineState.mutex.runExclusive(async () => {
         if (wasEmpty || code !== luaEngineState.code) {
-            if (!wasEmpty)
+            if (!wasEmpty){
                 luaEngineState.engine.global.close()
-            luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
+                luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
+            }
             const luaEngine = luaEngineState.engine
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
@@ -553,7 +573,7 @@ export async function runLua(code:string, arg:{
 }
 
 async function makeLuaFactory(){
-    luaFactory = new LuaFactory()
+    const _luaFactory = new LuaFactory()
     async function mountFile(name:string){
         let code = ''
         for(let i = 0; i < 3; i++){
@@ -565,10 +585,11 @@ async function makeLuaFactory(){
                 }
             } catch (error) {}
         }
-        await luaFactory.mountFile(name,code)
+        await _luaFactory.mountFile(name,code)
     }
 
     await mountFile('json.lua')
+    luaFactory = _luaFactory
 }
 
 function luaCodeWarper(code:string){
@@ -676,7 +697,6 @@ callListenMain = async(function(type, id, value)
     if type == 'editDisplay' then
         for _, func in ipairs(editDisplayFuncs) do
             realValue = func(id, realValue)
-            print(realValue)
         end
     end
 
