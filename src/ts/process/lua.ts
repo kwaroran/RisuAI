@@ -20,36 +20,18 @@ let LuaEditDisplayIds = new Set<string>()
 let LuaLowLevelIds = new Set<string>()
 
 interface LuaEngineState {
-    code: string;
-    engine: LuaEngine;
+    code?: string;
+    engine?: LuaEngine;
     mutex: Mutex;
-    chat: Chat;
-    setVar: (key:string, value:string) => void,
-    getVar: (key:string) => string
+    wasEmpty?: boolean;
+    chat?: Chat;
+    setVar?: (key:string, value:string) => void,
+    getVar?: (key:string) => string,
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
 let luaFactoryPromise: Promise<void> | null = null;
-
-async function ensureLuaFactory() {
-    if (luaFactory) return;
-    
-    if (luaFactoryPromise) {
-        try {
-            await luaFactoryPromise;
-        } catch (error) {
-            luaFactoryPromise = null;
-        }
-        return;
-    }
-
-    try {
-        luaFactoryPromise = makeLuaFactory();
-        await luaFactoryPromise;
-    } finally {
-        luaFactoryPromise = null;
-    }
-}
+let pendingEngineCreations = new Map<string, Promise<LuaEngineState>>();
 
 export async function runLua(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
@@ -70,30 +52,19 @@ export async function runLua(code:string, arg:{
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
     await ensureLuaFactory()
-    let luaEngineState = LuaEngines.get(mode)
-    let wasEmpty = false
-    if (!luaEngineState) {
-        luaEngineState = {
-            code,
-            engine: await luaFactory.createEngine({injectObjects: true}),
-            mutex: new Mutex(),
-            chat,
-            setVar,
-            getVar
-        }
-        LuaEngines.set(mode, luaEngineState)
-        wasEmpty = true
-    } else {
+    let luaEngineState = await getOrCreateEngineState(mode);
+    
+    return await luaEngineState.mutex.runExclusive(async () => {
         luaEngineState.chat = chat
         luaEngineState.setVar = setVar
         luaEngineState.getVar = getVar
-    }
-    return await luaEngineState.mutex.runExclusive(async () => {
-        if (wasEmpty || code !== luaEngineState.code) {
-            if (!wasEmpty){
+        if (code !== luaEngineState.code) {
+            if (!luaEngineState.wasEmpty){
                 luaEngineState.engine.global.close()
-                luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             }
+            luaEngineState.code = code
+            luaEngineState.wasEmpty = false
+            luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             const luaEngine = luaEngineState.engine
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
@@ -590,6 +561,56 @@ async function makeLuaFactory(){
 
     await mountFile('json.lua')
     luaFactory = _luaFactory
+}
+
+async function ensureLuaFactory() {
+    if (luaFactory) return;
+    
+    if (luaFactoryPromise) {
+        try {
+            await luaFactoryPromise;
+        } catch (error) {
+            luaFactoryPromise = null;
+        }
+        return;
+    }
+
+    try {
+        luaFactoryPromise = makeLuaFactory();
+        await luaFactoryPromise;
+    } finally {
+        luaFactoryPromise = null;
+    }
+}
+
+async function getOrCreateEngineState(
+    mode: string, 
+): Promise<LuaEngineState> {
+    let engineState = LuaEngines.get(mode);
+    if (engineState) {
+        return engineState;
+    }
+    
+    let pendingCreation = pendingEngineCreations.get(mode);
+    if (pendingCreation) {
+        return pendingCreation;
+    }
+    
+    const creationPromise = (async () => {
+        const engineState: LuaEngineState = {
+            mutex: new Mutex(),
+            wasEmpty: true,
+        };
+        LuaEngines.set(mode, engineState);
+        
+        pendingEngineCreations.delete(mode);
+        
+        return engineState;
+    })();
+    
+    pendingEngineCreations.set(mode, creationPromise);
+    
+    return creationPromise;
 }
 
 function luaCodeWarper(code:string){
