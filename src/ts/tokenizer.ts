@@ -9,7 +9,6 @@ import { globalFetch } from "./globalApi.svelte";
 import { getModelInfo, LLMTokenizer, type LLMModel } from "./model/modellist";
 import { pluginV2 } from "./plugins/plugins";
 import type { GemmaTokenizer } from "@huggingface/transformers";
-import md5 from 'blueimp-md5';
 import { LRUMap } from 'mnemonist';
 
 const MAX_CACHE_SIZE = 3000;
@@ -26,7 +25,7 @@ function getHash(
     pluginTokenizer: string
 ): string {
     const combined = `${data}::${aiModel}::${customTokenizer}::${currentPluginProvider}::${googleClaudeTokenizing ? '1' : '0'}::${modelInfo.tokenizer}::${pluginTokenizer}`;
-    return md5(combined);
+    return combined;
 }
 
 
