@@ -83,7 +83,7 @@
     }
 </script>
 
-<div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
+<div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx} role="listitem" aria-label={value.comment || value.key || "Unnamed Lore"}>
     <div class="flex items-center transition-colors w-full p-1">
     {#if value.mode !== 'child'}
         <button class="endflex valuer border-darkborderc" onclick={() => {
@@ -95,7 +95,7 @@
             else{
                 onClose()
             }
-        }}>
+        }} aria-label={open ? `Collapse ${value.comment || value.key || "Unnamed Lore"}` : `Expand ${value.comment || value.key || "Unnamed Lore"}`} aria-expanded={open}>
             <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
         <button
@@ -105,6 +105,8 @@
             onclick={async () => {
                 value.alwaysActive = !value.alwaysActive
             }}
+            aria-label={value.alwaysActive ? "Set to conditional activation" : "Set to always active"}
+            aria-pressed={value.alwaysActive}
         >
             {#if value.alwaysActive}
                 <SunIcon size={20} />
@@ -121,11 +123,11 @@
                 deactivateLocally(value)
                 onRemove()
             }
-        }}>
+        }} aria-label={`Delete lorebook entry: ${value.comment || value.key || "Unnamed Lore"}`}>
             <XIcon size={20} />
         </button>
     {:else}
-        <button class="endflex valuer border-darkborderc" onclick={() => alertMd(language.childLoreDesc)}>
+        <button class="endflex valuer border-darkborderc" onclick={() => alertMd(language.childLoreDesc)} aria-label="View parent lorebook information">
             <BookCopyIcon size={20} class="mr-1" />
             <span>{getParentLoreName(value)}</span>
         </button>
@@ -137,7 +139,7 @@
                 }
                 onRemove()
             }
-        }}>
+        }} aria-label={`Delete lorebook reference: ${getParentLoreName(value)}`}>
             <XIcon size={20} />
         </button>
     {/if}

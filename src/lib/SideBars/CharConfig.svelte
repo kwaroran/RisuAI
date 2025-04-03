@@ -195,28 +195,28 @@
 
 {#if licensed !== 'private' && !$MobileGUI}
     <div class="flex mb-2" class:gap-2={iconButtonSize === 24} class:gap-1={iconButtonSize < 24}>
-        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}} aria-label="Character profile settings">
             <UserIcon size={iconButtonSize} />
         </button>
-        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}}>
+        <button class={$CharConfigSubMenu === 1 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 1}} aria-label="Character appearance settings">
             <SmileIcon size={iconButtonSize} />
         </button>
-        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}}>
+        <button class={$CharConfigSubMenu === 3 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 3}} aria-label="Lorebook settings">
             <BookIcon size={iconButtonSize} />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}
-            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}}>
+            <button class={$CharConfigSubMenu === 5 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 5}} aria-label="Voice settings">
                 <Volume2Icon size={iconButtonSize} />
             </button>
-            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}}>
+            <button class={$CharConfigSubMenu === 4 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 4}} aria-label="Script settings">
                 <CurlyBraces size={iconButtonSize} />
             </button>
         {/if}
-        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}}>
+        <button class={$CharConfigSubMenu === 2 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 2}} aria-label="Advanced settings">
             <ActivityIcon size={iconButtonSize} />
         </button>
         {#if DBState.db.characters[$selectedCharID].type === 'character'}
-            <button class={$CharConfigSubMenu === 6 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 6}}>
+            <button class={$CharConfigSubMenu === 6 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 6}} aria-label="Share character">
                 <Share2Icon size={iconButtonSize} />
             </button>
         {/if}
@@ -248,18 +248,18 @@
                     {#await getCharImage(findCharacterbyId(char).image, 'css')}
                         <BarIcon onClick={() => {
                             rmCharFromGroup(i)
-                        }}>
+                        }} ariaLabel={`Remove ${findCharacterbyId(char).name} from group`}>
                             <User/>
                         </BarIcon>
                     {:then im} 
                         <BarIcon onClick={() => {
                             rmCharFromGroup(i)
-                        }} additionalStyle={im} />
+                        }} additionalStyle={im} ariaLabel={`Remove ${findCharacterbyId(char).name} from group`} />
                     {/await}
                     <div class="flex items-center px-2 py-3">
                         {#each [1,2,3,4,5,6] as barIndex}
                             <button class="bg-selected h-full flex-1 border-r-bgcolor border-r" 
-                                aria-labelledby="loading"
+                                aria-label={`Set ${findCharacterbyId(char).name} talkness to ${Math.round((1 / 6 * barIndex) * 100)}%`}
                                 class:bg-green-500={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] >= (1 / 6 * barIndex)}
                                 class:bg-selected={(DBState.db.characters[$selectedCharID] as groupChat).characterTalks[i] < (1 / 6 * barIndex)}
                                 class:rounded-l-lg={barIndex === 1}
@@ -279,7 +279,7 @@
             {/if}
         </div>
         <div class="text-textcolor2 mt-1 flex mb-6">
-            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer">
+            <button onclick={addGroupChar} class="hover:text-textcolor cursor-pointer" aria-label="Add character to group">
                 <PlusIcon />
             </button>
         </div>
@@ -315,7 +315,7 @@
     {/if}
     <span class="text-textcolor mt-2 mb-2">{DBState.db.characters[$selectedCharID].type !== 'group' ? language.charIcon : language.groupIcon}</span>
     {#if DBState.db.characters[$selectedCharID].type === 'group'}
-        <button onclick={async () => {await selectCharImg($selectedCharID)}}>
+        <button onclick={async () => {await selectCharImg($selectedCharID)}} aria-label="Select group image">
             {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
                 <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
             {:then im}
@@ -338,7 +338,7 @@
                         }
                         iconRemoveMode = false
                     }
-                }}>
+                }} aria-label="Primary character image">
                     {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                         <div
                             class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
@@ -363,7 +363,7 @@
                             (DBState.db.characters[$selectedCharID] as character).ccAssets.splice(i, 1)
                             iconRemoveMode = false
                         }
-                    }}>
+                    }} aria-label={iconRemoveMode ? `Remove character image ${i+1}` : `Select character image ${i+1}`}>
                         {#await getCharImage(assets.uri, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                             <div
                                 class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
@@ -378,7 +378,7 @@
                     </button>
                 {/each}
             {/if}
-            <button onclick={async () => {await selectCharImg($selectedCharID);}}>
+            <button onclick={async () => {await selectCharImg($selectedCharID);}} aria-label="Add new character image">
                 <div
                     class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500"
                     style={(DBState.db.characters[$selectedCharID] as character).largePortrait ? 'height: 10.66rem;' : ''}
@@ -390,7 +390,7 @@
         <div class="flex w-full items-end justify-end mt-2">
             <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} onclick={() => {
                 iconRemoveMode = !iconRemoveMode
-            }}>
+            }} aria-label="Toggle image delete mode">
                 <TrashIcon size="18" />
             </button>
         </div>

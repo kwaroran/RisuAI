@@ -1,4 +1,3 @@
-
 <!-- Since svelte doesn't allow two-way binding for dynamic types, we use this -->
 
 {#if hideText}
@@ -31,6 +30,7 @@
         disabled={disabled}
         oninput={oninput}
         onchange={onchange}
+        aria-label={ariaLabel || placeholder}
     />
 {:else}
 
@@ -63,6 +63,7 @@
         disabled={disabled}
         oninput={oninput}
         onchange={onchange}
+        aria-label={ariaLabel || placeholder}
     />
 {/if}
 
@@ -87,6 +88,7 @@
         className?: string;
         disabled?: boolean;
         hideText?: boolean;
+        ariaLabel?: string;
     }
 
     let {
@@ -105,7 +107,7 @@
         className = '',
         disabled = false,
         hideText = false,
-        
+        ariaLabel = '',
     }: Props = $props();
 </script>
 

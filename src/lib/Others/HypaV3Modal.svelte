@@ -1130,6 +1130,7 @@
                       tabindex="-1"
                       bind:this={summaryUIStates[i].translationRef}
                       value={summaryUIStates[i].translation}
+                      aria-label="Translated message content"
                     ></textarea>
                   </div>
                 {/if}
@@ -1208,6 +1209,7 @@
                         tabindex="-1"
                         bind:this={summaryUIStates[i].rerolledTranslationRef}
                         value={summaryUIStates[i].rerolledTranslation}
+                        aria-label="Translated message content"
                       ></textarea>
                     </div>
                   {/if}
@@ -1234,6 +1236,8 @@
                           onAlternativeAction: () =>
                             toggleTranslateExpandedMessage(true),
                         }}
+                        aria-label="Toggle message translation"
+                        aria-pressed={expandedMessageUIState?.translation !== undefined}
                       >
                         <LanguagesIcon class="w-4 h-4" />
                       </button>
@@ -1254,6 +1258,8 @@
                       tabindex="-1"
                       bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
                       onclick={() => toggleExpandMessage(i, chatMemo)}
+                      aria-label="Toggle expanded message view for {chatMemo == null ? 'first message' : chatMemo}"
+                      aria-pressed={isMessageExpanded(i, chatMemo)}
                     >
                       {chatMemo == null
                         ? language.hypaV3Modal.connectedFirstMessageLabel
@@ -1282,6 +1288,7 @@
                           readonly
                           tabindex="-1"
                           value={expandedMessage.data}
+                          aria-label={`Message from ${expandedMessage.role}`}
                         ></textarea>
                       {:else}
                         <span class="text-sm text-red-400"
@@ -1312,6 +1319,7 @@
                         tabindex="-1"
                         bind:this={expandedMessageUIState.translationRef}
                         value={expandedMessageUIState.translation}
+                        aria-label="Translated message content"
                       ></textarea>
                     </div>
                   {/if}
@@ -1342,6 +1350,7 @@
                 class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-none overflow-y-auto rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-900"
                 readonly
                 value={nextMessage.data}
+                aria-label="Next summarization target message content"
               ></textarea>
             {:else}
               <span class="text-sm text-red-400"

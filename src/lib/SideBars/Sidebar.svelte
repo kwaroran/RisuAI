@@ -663,6 +663,7 @@
         onClick={async () => {
           addCharacter({reseter}) 
         }}
+        ariaLabel="Add new character"
         ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
           ><path
             fill="none"
@@ -695,6 +696,9 @@
   class:dynamic-sidebar={$DynamicGUI}
   class:hidden={hidden}
   class:flex={!hidden}
+  role="navigation"
+  aria-label="Character and chat sidebar"
+  aria-modal={$DynamicGUI}
   onanimationend={() => {
     if($sideBarClosing){
       $sideBarClosing = false

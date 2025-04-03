@@ -12,6 +12,7 @@
     import { onDestroy, onMount } from "svelte";
     
     let opened = $state(false)
+    let sectionHeaderRef: HTMLDivElement;
     interface Props {
         promptItem: PromptItem;
         onRemove?: () => void;
@@ -153,23 +154,69 @@
     }}
 >
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="flex items-center w-full" onclick={() => {
-        opened = !opened
-    }}>
+    <div class="flex items-center w-full" 
+        onclick={() => {
+            opened = !opened
+        }}
+        role="button"
+        tabindex="0"
+        aria-expanded={opened}
+        aria-label={`${getName(promptItem)} section`}
+        bind:this={sectionHeaderRef}
+        onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                opened = !opened;
+            }
+        }}
+    >
         <span>{getName(promptItem)}</span>
         <div class="flex flex-1 justify-end">
-            <button onclick={(e) => {
-                e.stopPropagation()
-                onRemove()
-            }}><XIcon /></button>
-            <button onclick={(e) => {
-                e.stopPropagation()
-                moveDown()
-            }}><ArrowDown /></button>
-            <button onclick={(e) => {
-                e.stopPropagation()
-                moveUp()
-            }}><ArrowUp /></button>
+            <button 
+                onclick={(e) => {
+                    e.stopPropagation()
+                    onRemove()
+                }}
+                aria-label="Remove prompt section"
+                tabindex="0"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemove();
+                    }
+                }}
+            ><XIcon /></button>
+            <button 
+                onclick={(e) => {
+                    e.stopPropagation()
+                    moveDown()
+                }}
+                aria-label="Move prompt section down"
+                tabindex="0"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moveDown();
+                    }
+                }}
+            ><ArrowDown /></button>
+            <button 
+                onclick={(e) => {
+                    e.stopPropagation()
+                    moveUp()
+                }}
+                aria-label="Move prompt section up"
+                tabindex="0"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moveUp();
+                    }
+                }}
+            ><ArrowUp /></button>
         </div>
     </div>
     {#if opened}

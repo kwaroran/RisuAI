@@ -83,16 +83,16 @@
 }}></svelte:window>
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit'}
-    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
+    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'} role="dialog" aria-labelledby="alert-title" aria-modal="true">
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
-                <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
+                <h2 id="alert-title" class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
             {:else if $alertStore.type === 'selectChar'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
             {:else if $alertStore.type === 'input'}
-                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
+                <h2 id="alert-title" class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
                 <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
@@ -105,7 +105,7 @@
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <div class="text-textcolor">You should accept <a role="button" tabindex="0" class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" onclick={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
-                }}>Terms of Service</a> to continue</div>
+                }} aria-label="View Terms of Service in a new window">Terms of Service</a> to continue</div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
@@ -164,12 +164,12 @@
                     }}>{n}</Button>
                 {/each}
             {:else if $alertStore.type === 'error' || $alertStore.type === 'normal' || $alertStore.type === 'markdown'}
-               <Button className="mt-4" onclick={() => {
-                    alertStore.set({
-                        type: 'none',
-                        msg: ''
-                    })
-                }}>OK</Button>
+                <Button className="mt-4" onclick={() => {
+                     alertStore.set({
+                         type: 'none',
+                         msg: ''
+                     })
+                 }}>OK</Button>
             {:else if $alertStore.type === 'input'}
                 <TextInput value="" id="alert-input" autocomplete="off" marginTop />
                 <Button className="mt-4" onclick={() => {
