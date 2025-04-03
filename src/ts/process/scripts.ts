@@ -76,7 +76,7 @@ function generateScriptCacheKey(scripts: customscript[], data: string, mode: Scr
         }
         hash += `${script.flag?.includes('<cbs>') ? 
             risuChatParser(script.in, { chatID: chatID, cbsConditions }) : 
-            script.in}|||${risuChatParser(script.out, { chatID: chatID, cbsConditions})}|||${script.flag ?? 0}|||${script.ableFlag ? 1 : 0}`;
+            script.in}|||${risuChatParser(script.out, { chatID: chatID, cbsConditions})}|||${script.flag ?? ''}|||${script.ableFlag ? 1 : 0}`;
     }
     return hash;
 }
@@ -84,7 +84,7 @@ function generateScriptCacheKey(scripts: customscript[], data: string, mode: Scr
 function cacheScript(hash:string, result:string){
     processScriptCache.set(hash, result)
 
-    if(processScriptCache.size > 500){
+    if(processScriptCache.size > 1000){
         processScriptCache.delete(processScriptCache.keys().next().value)
     }
 
@@ -121,7 +121,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                     displayData: data
                 })
     
-                data = d.displayData ?? data
+                data = d?.displayData ?? data
                 console.log('Trigger time', performance.now() - perf)
             }
             catch(e){
@@ -341,6 +341,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
 
     if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
         if(!db.dynamicAssetsEditDisplay && mode === 'editdisplay'){
+            cacheScript(hash, data)
             return {data, emoChanged}
         }
         const assetNames = char.additionalAssets.map((v) => v[0])
