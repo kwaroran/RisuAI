@@ -101,7 +101,6 @@ export function resetScriptCache(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
     const originalData = data
-    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     let emoChanged = false
     data = await runLuaEditTrigger(char, mode, data)
 
@@ -135,6 +134,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     }
 
     data = risuChatParser(data, { chatID: chatID, cbsConditions })
+    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     const hash = generateScriptCacheKey(scripts, data, mode, chatID, cbsConditions)
     const cached = getScriptCache(hash)
     if(cached){
@@ -148,7 +148,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     function executeScript(pscript:pScript){
         const script = pscript.script
         
-        if(script.in === '' && script.out !== ''){
+        if(script.in === ''){
             return
         }
 
