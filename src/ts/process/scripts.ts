@@ -68,26 +68,29 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
 let bestMatchCache = new Map<string, string>()
 let processScriptCache = new Map<string, string>()
 
-function cacheScript(scripts:customscript[], data:string, result:string, mode:ScriptMode){
-    let hash = data + '|||' + mode + '|||'
-    for(const script of scripts){
-        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
+function generateScriptCacheKey(scripts: customscript[], data: string, mode: ScriptMode, chatID = -1, cbsConditions: CbsConditions = {}) {
+    let hash = data + '|||' + mode + '|||';
+    for (const script of scripts) {
+        if(script.type !== mode){
+            continue
+        }
+        hash += `${script.flag?.includes('<cbs>') ? 
+            risuChatParser(script.in, { chatID: chatID, cbsConditions }) : 
+            script.in}|||${risuChatParser(script.out, { chatID: chatID, cbsConditions})}|||${script.flag ?? ''}|||${script.ableFlag ? 1 : 0}`;
     }
+    return hash;
+}
 
+function cacheScript(hash:string, result:string){
     processScriptCache.set(hash, result)
 
-    if(processScriptCache.size > 500){
+    if(processScriptCache.size > 1000){
         processScriptCache.delete(processScriptCache.keys().next().value)
     }
 
 }
 
-function getScriptCache(scripts:customscript[], data:string, mode:ScriptMode){
-    let hash = data + '|||' + mode + '|||'
-    for(const script of scripts){
-        hash += `${script.in}|||${script.out}|||${script.flag}|||${script.ableFlag}|||${script.type}`
-    }
-
+function getScriptCache(hash:string){
     return processScriptCache.get(hash)
 }
 
@@ -98,12 +101,7 @@ export function resetScriptCache(){
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
     const originalData = data
-    const cached = getScriptCache((db.presetRegex ?? []).concat(char.customscript), originalData, mode)
-    if(cached){
-        return {data: cached, emoChanged: false}
-    }
     let emoChanged = false
-    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
     data = await runLuaEditTrigger(char, mode, data)
 
     if(mode === 'editdisplay'){
@@ -117,7 +115,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                     displayData: data
                 })
     
-                data = d.displayData ?? data
+                data = d?.displayData ?? data
                 console.log('Trigger time', performance.now() - perf)
             }
             catch(e){
@@ -134,14 +132,26 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    data = risuChatParser(data, { chatID: chatID, cbsConditions })
+    const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
+    const hash = generateScriptCacheKey(scripts, data, mode, chatID, cbsConditions)
+    const cached = getScriptCache(hash)
+    if(cached){
+        return {data: cached, emoChanged: false}
+    }
     
     if(scripts.length === 0){
-        cacheScript(scripts, originalData, data, mode)
+        cacheScript(hash, data)
         return {data, emoChanged}
     }
     function executeScript(pscript:pScript){
         const script = pscript.script
         
+        if(script.in === ''){
+            return
+        }
+
         if(script.type === mode){
 
             let outScript2 = script.out.replaceAll("$n", "\n")
@@ -337,6 +347,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
 
     if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
         if(!db.dynamicAssetsEditDisplay && mode === 'editdisplay'){
+            cacheScript(hash, data)
             return {data, emoChanged}
         }
         const assetNames = char.additionalAssets.map((v) => v[0])
@@ -372,7 +383,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         }
     }
 
-    cacheScript(scripts, originalData, data, mode)
+    cacheScript(hash, data)
 
     return {data, emoChanged}
 }
