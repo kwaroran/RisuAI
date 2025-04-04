@@ -102,11 +102,6 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     let db = getDatabase()
     const originalData = data
     const scripts = (db.presetRegex ?? []).concat(char.customscript).concat(getModuleRegexScripts())
-    const hash = generateScriptCacheKey(scripts, data, mode, chatID, cbsConditions)
-    const cached = getScriptCache(hash)
-    if(cached){
-        return {data: cached, emoChanged: false}
-    }
     let emoChanged = false
     data = await runLuaEditTrigger(char, mode, data)
 
@@ -138,6 +133,13 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
             }
         }
     }
+
+    data = risuChatParser(data, { chatID: chatID, cbsConditions })
+    const hash = generateScriptCacheKey(scripts, data, mode, chatID, cbsConditions)
+    const cached = getScriptCache(hash)
+    if(cached){
+        return {data: cached, emoChanged: false}
+    }
     
     if(scripts.length === 0){
         cacheScript(hash, data)
@@ -146,6 +148,10 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     function executeScript(pscript:pScript){
         const script = pscript.script
         
+        if(script.in === '' && script.out !== ''){
+            return
+        }
+
         if(script.type === mode){
 
             let outScript2 = script.out.replaceAll("$n", "\n")
