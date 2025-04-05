@@ -445,7 +445,11 @@ export async function hypaMemoryV3(
     if (toSummarize.length > 0) {
       const summarizeResult = await retryableSummarize(toSummarize);
 
-      if (!summarizeResult.success) {
+      if (
+        !summarizeResult.success ||
+        !summarizeResult.data ||
+        summarizeResult.data.trim().length === 0
+      ) {
         return {
           currentTokens,
           chats,
@@ -670,7 +674,11 @@ export async function hypaMemoryV3(
       const recentChats = chats.slice(-minChatsForSimilarity);
       const summarizeResult = await retryableSummarize(recentChats);
 
-      if (!summarizeResult.success) {
+      if (
+        !summarizeResult.success ||
+        !summarizeResult.data ||
+        summarizeResult.data.trim().length === 0
+      ) {
         return {
           currentTokens,
           chats,
