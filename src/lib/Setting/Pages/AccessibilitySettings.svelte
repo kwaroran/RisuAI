@@ -1,7 +1,6 @@
 <script lang="ts">
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
-    
     import { DBState } from 'src/ts/stores.svelte';
 
 </script>
@@ -22,6 +21,10 @@
 
 <div class="flex items-center mt-2">
     <Check bind:check={DBState.db.sendWithEnter} name={language.sendWithEnter}/>
+</div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.fixedChatTextarea} name={language.fixedChatTextarea}/>
 </div>
 
 <div class="flex items-center mt-2">
