@@ -2235,8 +2235,8 @@ export function getGlobalChatVar(key:string){
     return DBState.db.globalChatVariables[key] ?? 'null'
 }
 
-export function setGlobalChatVar(key:string, value:bool){ // TODO: check globalChatVariables possible type
-    DBState.db.globalChatVariables[key] = value
+export function setGlobalChatVar(key:string, value:string){ 
+    DBState.db.globalChatVariables[key] = value // String to String Map(dictionary)
 }
 
 export function setChatVar(key:string, value:string){
