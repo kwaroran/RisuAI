@@ -1278,7 +1278,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 }
                 case 'getglobalvar':{
                     return getGlobalChatVar(v)
-                }
+                } // setglobalvar cbs support?
                 case 'button':{
                     return `<button class="button-default" risu-trigger="${arra[2]}">${arra[1]}</button>`
                 }
@@ -2233,6 +2233,10 @@ export function getChatVar(key:string){
 
 export function getGlobalChatVar(key:string){
     return DBState.db.globalChatVariables[key] ?? 'null'
+}
+
+export function setGlobalChatVar(key:string, value:bool){ // TODO: check globalChatVariables possible type
+    DBState.db.globalChatVariables[key] = value
 }
 
 export function setChatVar(key:string, value:string){
