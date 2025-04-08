@@ -694,6 +694,7 @@ export interface Database{
     }
     globalscript: customscript[],
     sendWithEnter:boolean
+    fixedChatTextarea:boolean
     clickToEdit: boolean
     koboldURL:string
     advancedBotSettings:boolean

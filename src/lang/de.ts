@@ -48,33 +48,33 @@ export const languageGerman = {
         loreorder: "Wenn die Insert-Reihenfolge höher ist, wirkt sie sich stärker auf das Modell aus und wird weniger stark beeinträchtigt, wenn viele Lore aktiviert sind",
         bias: "Bias ist ein Schlüssel-Wert Attribut, das die Wahrscheinlichkeit des Vorkommens bestimmter Ausdrücke ändert.\nDas Attribut kann Werte zwischen -100 und 100 annehmen. Ausdrücke mit höheren Werten werden häufiger auftreten, während solche mit niedrigeren Werten seltener auftreten werden.\nAchtung: Stellen Sie sicher, dass der korrekte Tokenizer eingestellt ist, andernfalls kann diese Funktion nicht ordnungsgemäß umgesetzt werden.",
         emotion: "Die Option 'Emotion Images' zeigt ein Bild abhängig von der aktuellen Emotion des Charakters, die anhand seiner/ihrer Antwort analysiert wird. Sie müssen den Emotionsnamen als Wort eingeben (wie z.B. Freude, Glück, Angst usw). Die Emotion mit dem Namen **neutral** wird als Standardemotion verwendet, sofern sie vorhanden ist. Es müssen mindestens 3 Bilder vorhanden sein, damit die Emotionszuweisung ordnungsgemäß funktioniert.",
-        imggen: "Die Option 'Image Generation' generiert und zeigt ein Bild aus einem externen Programm an. Das Bild wird anhand des aktuellen Chats generiert, der durch die Bild-Anweisung analysiert wird.\n\nDie Bildgenerierung basiert auf konfigurierbaren Schlüsselwertargumenten, darunter:" 
-                + "\n\n Der Schlüssel **'always'** gilt immer und ändert sich nicht. Der Schlüssel '**negative**' gilt immer negativ für die Bildgenerierung"
-                + "\n\nObjekte mit dem Wert eines anderen Schlüssels ändern sich entsprechend dem Namen des Schlüssels, während der Chat fortschreitet"
-                + "\n\nWenn ein Schlüssel ein Sonderzeichen am Anfang seines Namens enthält, bekommt dieser eine besondere Wirkung"
-                + "\n- Wenn der Schlüssel mit **|** beginnt, ändert sich der Wert des Schlüssels nicht"
-                + "\n- Wenn der Schlüssel mit **$** beginnt, ändert sich der Wert des Schlüssels höchstwahrscheinlich"
-                + "\n\nWenn das Bild zum ersten Mal generiert wird, können Sie es nur ändern, indem Sie 'Aktuelle Bilddatengenerierung' unten modifizieren",
+        imggen: "Die Option 'Image Generation' generiert und zeigt ein Bild aus einem externen Programm an. Das Bild wird anhand des aktuellen Chats generiert, der durch die Bild-Anweisung analysiert wird.\n\nDie Bildgenerierung basiert auf konfigurierbaren Schlüsselwertargumenten, darunter:"
+            + "\n\n Der Schlüssel **'always'** gilt immer und ändert sich nicht. Der Schlüssel '**negative**' gilt immer negativ für die Bildgenerierung"
+            + "\n\nObjekte mit dem Wert eines anderen Schlüssels ändern sich entsprechend dem Namen des Schlüssels, während der Chat fortschreitet"
+            + "\n\nWenn ein Schlüssel ein Sonderzeichen am Anfang seines Namens enthält, bekommt dieser eine besondere Wirkung"
+            + "\n- Wenn der Schlüssel mit **|** beginnt, ändert sich der Wert des Schlüssels nicht"
+            + "\n- Wenn der Schlüssel mit **$** beginnt, ändert sich der Wert des Schlüssels höchstwahrscheinlich"
+            + "\n\nWenn das Bild zum ersten Mal generiert wird, können Sie es nur ändern, indem Sie 'Aktuelle Bilddatengenerierung' unten modifizieren",
 
         regexScript: "RegEx-Skript ist ein benutzerdefiniertes Skript, das Zeichenfolgen,\n\ndie IN entsprechen, durch OUT ersetzt. Es gibt vier Optionstypen:"
-                + "\n\n- **Eingabe ändern** ändert die Eingabe des Benutzers"
-                + "\n\n- **Ausgabe ändern** ändert die Ausgabe des Charakters"
-                + "\n\n- **Anforderungsdaten ändern** ändert die aktuellen Chat-Daten beim Senden"
-                + "\n\n- **Anzeige ändern** ändert nur den Text bei der Anzeige, ohne Chat-Daten zu ändern"
-                + "\n\nIN muss ein RegEx ohne Flags und ohne Schrägstriche am Anfang und Ende sein.\n\nOUT ist eine Zeichenfolge, die Ersetzungsmuster enthalten kann. Dies sind die Muster:"
-                + "\n\n- $$\n\n    - fügt $ ein"
-                + "\n\n- $&\n\n    - fügt den übereinstimmenden Teilstring ein"
-                + "\n\n- $`\n\n    - fügt den Teil der Zeichenfolge ein, der dem übereinstimmenden Teilstring vorausgeht"
-                + "\n\n- $1\n\n    - fügt die erste übereinstimmende Gruppe ein. funktioniert mit anderen Nummern wie 2, 3..."
-                + "\n\n- $(name)\n\n    - fügt die benannte Gruppe ein\n\nWenn OUT mit **@@** beginnt, ersetzt es nicht die Zeichenfolge, sondern führt stattdessen eine spezielle Wirkung aus, wenn eine übereinstimmende Zeichenfolge gefunden wird"
-                + "\n\n- @@emo (Emotionsname)\n\n    - wenn der Charakter den Emotion Images Modus verwendet, wird (Emotionsname) als Emotion festgelegt und die Standardoption verhindert",
+            + "\n\n- **Eingabe ändern** ändert die Eingabe des Benutzers"
+            + "\n\n- **Ausgabe ändern** ändert die Ausgabe des Charakters"
+            + "\n\n- **Anforderungsdaten ändern** ändert die aktuellen Chat-Daten beim Senden"
+            + "\n\n- **Anzeige ändern** ändert nur den Text bei der Anzeige, ohne Chat-Daten zu ändern"
+            + "\n\nIN muss ein RegEx ohne Flags und ohne Schrägstriche am Anfang und Ende sein.\n\nOUT ist eine Zeichenfolge, die Ersetzungsmuster enthalten kann. Dies sind die Muster:"
+            + "\n\n- $$\n\n    - fügt $ ein"
+            + "\n\n- $&\n\n    - fügt den übereinstimmenden Teilstring ein"
+            + "\n\n- $`\n\n    - fügt den Teil der Zeichenfolge ein, der dem übereinstimmenden Teilstring vorausgeht"
+            + "\n\n- $1\n\n    - fügt die erste übereinstimmende Gruppe ein. funktioniert mit anderen Nummern wie 2, 3..."
+            + "\n\n- $(name)\n\n    - fügt die benannte Gruppe ein\n\nWenn OUT mit **@@** beginnt, ersetzt es nicht die Zeichenfolge, sondern führt stattdessen eine spezielle Wirkung aus, wenn eine übereinstimmende Zeichenfolge gefunden wird"
+            + "\n\n- @@emo (Emotionsname)\n\n    - wenn der Charakter den Emotion Images Modus verwendet, wird (Emotionsname) als Emotion festgelegt und die Standardoption verhindert",
         experimental: "Dies ist ein experimentelles Feature und könnte instabil sein",
         oogaboogaURL: "Wenn Ihre WebUI nur eine ältere Version der API unterstützt, sollte Ihre URL in etwa so aussehen *https:.../run/textgen*"
-                + "\n\nWenn Ihre WebUI die neue Version der API unterstützt, sollte Ihre URL in etwa so aussehen *https://.../api/v1/generate* – und den API-Server als Host verwenden sowie --api als Argument hinzufügen",
+            + "\n\nWenn Ihre WebUI die neue Version der API unterstützt, sollte Ihre URL in etwa so aussehen *https://.../api/v1/generate* – und den API-Server als Host verwenden sowie --api als Argument hinzufügen",
         exampleMessage: "Beispielgespräche, die die Ausgabe des Charakters beeinflussen. Es werden keine Tokens dauerhaft verwendet."
-                + "\n\nBeispielformat von Gesprächen:"
-                + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hallo\n<START>\n{{user}}: hi\nHaruhi: hallo\n```"
-                + "\n\n```<START>``` markiert den Beginn eines neuen Gesprächs",
+            + "\n\nBeispielformat von Gesprächen:"
+            + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hallo\n<START>\n{{user}}: hi\nHaruhi: hallo\n```"
+            + "\n\n```<START>``` markiert den Beginn eines neuen Gesprächs",
 
         creatorQuotes: "Beachten Sie, dass diese Anmkerung oberhalb der ersten Nachricht angezeigt wird. Sie wird verwendet, um den Benutzer über diesen Charakter zu informieren. Diese Anmerkung wird nicht in die Anweisungen eingespielt und hat deshalb keine Auswirkung auf die Antwort der KI.",
         systemPrompt: "Eine Anweisung, mit der die Haupt-Anweisung aus den Einstellungen ersetzt wird, sofern das Feld nicht leer ist",
@@ -85,9 +85,9 @@ export const languageGerman = {
         loreRandomActivation: "Wenn die Bedingung 'Wahrscheinlichkeit verwenden' aktiviert ist, wird der Kontext mit einer festgelegten Wahrscheinlichkeit, die durch 'Wahrscheinlichkeit' festgelegt wird, jedes Mal aktiviert, wenn eine Chat-Nachricht gesendet wird und die anderen Bedingungen der Überlieferung alle erfüllt sind",
         additionalAssets: "Zusätzliche Assets, die in Ihrem Chat angezeigt werden sollen. \n\n - verwenden Sie `{{raw::<asset name>}}` um als Pfad zu verwenden.\n – verwenden Sie `{{image::<asset name>}}` um als Bild zu verwenden\n - verwenden Sie `{{video::<asset name>}}` um als Video zu verwenden\n – verwenden Sie `{{audio::<asset name>}}` um als Audio zu verwenden\n – es wird empfohlen, dies im HTML Backend einzufügen",
         superMemory: "SupaMemory ermöglicht es Ihrem Charakter, sich mehr Informationen zu 'merken', indem der KI zusammengefasste Daten zugeführt werden.\n\n"
-        + "Das SupaMemory-Modell ist ein Modell, das die Zusammenfassung für einen Text erstellt. Davinci  oder GPT-3.5-16k werden empfohlen. Hilfsmodelle hingegen werden nicht empfohlen, es sei denn, es handelt sich um ein ungefiltertes Modell mit mindestens 2000 Tokens Kontextgröße und einer ausgereiften Fähigkeiten, Texte zusammenfassen zu können.\n\n"
-        + "Die SupaMemory-Anweisung entscheidet darüber, welche Anweisung konkret zur Zusammenfassung gesendet werden soll. Wenn Sie das Feld leer lassen, wird die Standard-Anweisung verwendet. Es wird empfohlen, es leer zu lassen.\n\n"
-        + "Nachdem alles eingerichtet ist, können Sie SupaMemory in den Einstellungen eines Charakters aktivieren",
+            + "Das SupaMemory-Modell ist ein Modell, das die Zusammenfassung für einen Text erstellt. Davinci  oder GPT-3.5-16k werden empfohlen. Hilfsmodelle hingegen werden nicht empfohlen, es sei denn, es handelt sich um ein ungefiltertes Modell mit mindestens 2000 Tokens Kontextgröße und einer ausgereiften Fähigkeiten, Texte zusammenfassen zu können.\n\n"
+            + "Die SupaMemory-Anweisung entscheidet darüber, welche Anweisung konkret zur Zusammenfassung gesendet werden soll. Wenn Sie das Feld leer lassen, wird die Standard-Anweisung verwendet. Es wird empfohlen, es leer zu lassen.\n\n"
+            + "Nachdem alles eingerichtet ist, können Sie SupaMemory in den Einstellungen eines Charakters aktivieren",
         replaceGlobalNote: "Sofern dieses Feld ausgefüllt ist, wird es die aktuelle globale Notiz ersetzen",
         backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name}}` für Hintergrundmusik verwenden."
             + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"
@@ -291,7 +291,8 @@ export const languageGerman = {
     globalLoreBook: 'Lore Buch',
     globalRegexScript: "Regex",
     accessibility: "Barrierefreiheit",
-    sendWithEnter: "Mit Enter senden",
+    sendWithEnter: "Mit Enter senden(Umschalt + Enter beim Entpacken zu senden)",
+    fixedChatTextarea: "Unten im Chatfenster fixieren",
     clickToEdit: "Text zum Bearbeiten anklicken",
     setNodePassword: "Legen Sie Ihr Passwort für die Sicherheit fest",
     inputNodePassword: "Geben Sie Ihr Passwort ein. Wenn Sie sich nicht erinnern können, entfernen Sie save/__password.txt in Ihren Serverdateien und starten Sie den Server neu",
