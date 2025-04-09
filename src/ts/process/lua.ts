@@ -23,7 +23,6 @@ interface LuaEngineState {
     code?: string;
     engine?: LuaEngine;
     mutex: Mutex;
-    wasEmpty?: boolean;
     chat?: Chat;
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
@@ -59,11 +58,8 @@ export async function runLua(code:string, arg:{
         luaEngineState.setVar = setVar
         luaEngineState.getVar = getVar
         if (code !== luaEngineState.code) {
-            if (!luaEngineState.wasEmpty){
-                luaEngineState.engine.global.close()
-            }
+            luaEngineState.engine?.global.close()
             luaEngineState.code = code
-            luaEngineState.wasEmpty = false
             luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             const luaEngine = luaEngineState.engine
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
@@ -605,7 +601,6 @@ async function getOrCreateEngineState(
     const creationPromise = (async () => {
         const engineState: LuaEngineState = {
             mutex: new Mutex(),
-            wasEmpty: true,
         };
         LuaEngines.set(mode, engineState);
         
