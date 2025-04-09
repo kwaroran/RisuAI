@@ -20,23 +20,23 @@ let LuaEditDisplayIds = new Set<string>()
 let LuaLowLevelIds = new Set<string>()
 
 interface LuaEngineState {
-    code: string;
-    engine: LuaEngine;
+    code?: string;
+    engine?: LuaEngine;
     mutex: Mutex;
-    chat: Chat;
-    setVar: (key:string, value:string) => void,
-    getVar: (key:string) => string,
-    getGlobalVar: (key:string) => any,
+    chat?: Chat;
+    setVar?: (key:string, value:string) => void,
+    getVar?: (key:string) => string,
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
+let luaFactoryPromise: Promise<void> | null = null;
+let pendingEngineCreations = new Map<string, Promise<LuaEngineState>>();
 
 export async function runLua(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
     chat?:Chat
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
-    getGlobalVar?: (key:string) => any,
     lowLevelAccess?: boolean,
     mode?: string,
     data?: any
@@ -44,40 +44,22 @@ export async function runLua(code:string, arg:{
     const char = arg.char ?? getCurrentCharacter()
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
-    const getGlobalVar = arg.getGlobalVar ?? getGlobalChatVar
     const mode = arg.mode ?? 'manual'
     const data = arg.data ?? {}
     let chat = arg.chat ?? getCurrentChat()
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
-    if(!luaFactory){
-        await makeLuaFactory()
-    }
-    let luaEngineState = LuaEngines.get(mode)
-    let wasEmpty = false
-    if (!luaEngineState) {
-        luaEngineState = {
-            code,
-            engine: await luaFactory.createEngine({injectObjects: true}),
-            mutex: new Mutex(),
-            chat,
-            setVar,
-            getVar,
-            getGlobalVar
-        }
-        LuaEngines.set(mode, luaEngineState)
-        wasEmpty = true
-    } else {
+    await ensureLuaFactory()
+    let luaEngineState = await getOrCreateEngineState(mode);
+    
+    return await luaEngineState.mutex.runExclusive(async () => {
         luaEngineState.chat = chat
         luaEngineState.setVar = setVar
         luaEngineState.getVar = getVar
-        luaEngineState.getGlobalVar = getGlobalVar
-    }
-    return await luaEngineState.mutex.runExclusive(async () => {
-        if (wasEmpty || code !== luaEngineState.code) {
-            if (!wasEmpty)
-                luaEngineState.engine.global.close()
+        if (code !== luaEngineState.code) {
+            luaEngineState.engine?.global.close()
+            luaEngineState.code = code
             luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             const luaEngine = luaEngineState.engine
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
@@ -96,7 +78,7 @@ export async function runLua(code:string, arg:{
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                     return
                 }
-                return luaEngineState.getGlobalVar(key)
+                return getGlobalChatVar(key)
             })
             luaEngine.global.set('stopChat', (id:string) => {
                 if(!LuaSafeIds.has(id)){
@@ -564,7 +546,7 @@ export async function runLua(code:string, arg:{
 }
 
 async function makeLuaFactory(){
-    luaFactory = new LuaFactory()
+    const _luaFactory = new LuaFactory()
     async function mountFile(name:string){
         let code = ''
         for(let i = 0; i < 3; i++){
@@ -576,10 +558,60 @@ async function makeLuaFactory(){
                 }
             } catch (error) {}
         }
-        await luaFactory.mountFile(name,code)
+        await _luaFactory.mountFile(name,code)
     }
 
     await mountFile('json.lua')
+    luaFactory = _luaFactory
+}
+
+async function ensureLuaFactory() {
+    if (luaFactory) return;
+    
+    if (luaFactoryPromise) {
+        try {
+            await luaFactoryPromise;
+        } catch (error) {
+            luaFactoryPromise = null;
+        }
+        return;
+    }
+
+    try {
+        luaFactoryPromise = makeLuaFactory();
+        await luaFactoryPromise;
+    } finally {
+        luaFactoryPromise = null;
+    }
+}
+
+async function getOrCreateEngineState(
+    mode: string, 
+): Promise<LuaEngineState> {
+    let engineState = LuaEngines.get(mode);
+    if (engineState) {
+        return engineState;
+    }
+    
+    let pendingCreation = pendingEngineCreations.get(mode);
+    if (pendingCreation) {
+        return pendingCreation;
+    }
+    
+    const creationPromise = (async () => {
+        const engineState: LuaEngineState = {
+            mutex: new Mutex(),
+        };
+        LuaEngines.set(mode, engineState);
+        
+        pendingEngineCreations.delete(mode);
+        
+        return engineState;
+    })();
+    
+    pendingEngineCreations.set(mode, creationPromise);
+    
+    return creationPromise;
 }
 
 function luaCodeWarper(code:string){
@@ -687,7 +719,6 @@ callListenMain = async(function(type, id, value)
     if type == 'editDisplay' then
         for _, func in ipairs(editDisplayFuncs) do
             realValue = func(id, realValue)
-            print(realValue)
         end
     end
 
