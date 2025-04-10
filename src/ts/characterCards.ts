@@ -18,7 +18,11 @@ import { exportModule, readModule, type RisuModule } from "./process/modules"
 import { readFile } from "@tauri-apps/plugin-fs"
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
-export const hubURL = "https://sv.risuai.xyz"
+
+const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
+export const hubURL = typeof window !== 'undefined' && (window as any).__NODE__ === true
+    ? '/hub-proxy'
+    : EXTERNAL_HUB_URL;
 
 export async function importCharacter() {
     try {
