@@ -240,8 +240,8 @@ async function hubProxyHandler(req, res, next) {
 }
 
 app.get('/hub-proxy/*', hubProxyHandler);
-// app.post('/hub-proxy/*', hubProxyHandler);
-// app.put('/hub-proxy/*', hubProxyHandler);
+app.post('/hub-proxy/*', hubProxyHandler);
+app.put('/hub-proxy/*', hubProxyHandler);
 
 app.get('/proxy', reverseProxyFunc_get);
 app.get('/proxy2', reverseProxyFunc_get);
