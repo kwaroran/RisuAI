@@ -59,31 +59,31 @@ export const languageEnglish = {
         emotion: "Emotion Images option shows image depending at character's emotion which is analized by character's response. you must input emotion name as words *(like joy, happy, fear and etc.)* .emotion named **neutral** will be default emotion if it exists. must be more then 3 images to work properly.",
         imggen: "After analyzing the chat, apply the prompt to {{slot}}.",
         regexScript: "Regex Script is a custom regex that replaces string that matches IN to OUT.\n\nThere four type options."
-                + "\n\n- **Modify Input** modifys user's input"
-                + "\n\n- **Modify Output** modifys character's output"
-                + "\n\n- **Modify Request Data** modifys current chat data when sent."
-                + "\n\n- **Modify Display** just modifies the text when shown without modifying chat data."
-                + "\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a string which can include replacement patterns. these are the patterns:"
-                + "\n\n- $$\n\n    - inserts $"
-                + "\n\n- $&\n\n    - inserts the matched substring."
-                + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
-                + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
-                + "\n\n- $(name)\n\n    - inserts the named group"
-                + "\n\nFor flags, you can not only use native supported flags, but also use these flags, which are designed for advanced users:"
-                + "\n\n- `<inject>` - injects the result to the current string."
-                + "\n- `<move_top>` - moves the result to the top of the string."
-                + "\n- `<move_bottom>` - moves the result to the bottom of the string."
-                + "\n- `<repeat_back>` - if the match is not found, it carries the result from the previous match."
-                + "\n- `<order n>` - sets the order of the result. higher order will be shown first. `n` is a number. (like `<order 1>`) if this flag is not set, it will be set to 0."
-                + "\n- `<cbs>` - parses curly braced synatxes in IN."
-                + "\n\nTo use with native flags, you can use like `gi<cbs><move_top>`.",
+            + "\n\n- **Modify Input** modifys user's input"
+            + "\n\n- **Modify Output** modifys character's output"
+            + "\n\n- **Modify Request Data** modifys current chat data when sent."
+            + "\n\n- **Modify Display** just modifies the text when shown without modifying chat data."
+            + "\n\nIN must be a regex without flags and without slashes in start and end.\n\nOUT is a string which can include replacement patterns. these are the patterns:"
+            + "\n\n- $$\n\n    - inserts $"
+            + "\n\n- $&\n\n    - inserts the matched substring."
+            + "\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring."
+            + "\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3..."
+            + "\n\n- $(name)\n\n    - inserts the named group"
+            + "\n\nFor flags, you can not only use native supported flags, but also use these flags, which are designed for advanced users:"
+            + "\n\n- `<inject>` - injects the result to the current string."
+            + "\n- `<move_top>` - moves the result to the top of the string."
+            + "\n- `<move_bottom>` - moves the result to the bottom of the string."
+            + "\n- `<repeat_back>` - if the match is not found, it carries the result from the previous match."
+            + "\n- `<order n>` - sets the order of the result. higher order will be shown first. `n` is a number. (like `<order 1>`) if this flag is not set, it will be set to 0."
+            + "\n- `<cbs>` - parses curly braced synatxes in IN."
+            + "\n\nTo use with native flags, you can use like `gi<cbs><move_top>`.",
         experimental: "This is a experimental feature. it might be unstable.",
         oogaboogaURL: "If your WebUI supports older version of api, your url should look *like https:.../run/textgen*\n\n"
-                + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
+            + "If your WebUI supports newVersion of api, your url should look like *https://.../api/v1/generate* and use the api server as host, and add --api to arguments.",
         exampleMessage: "Example conversations that effects output of the character. it dosen't uses tokens permanently."
-                + "\n\nExample format of conversations:"
-                + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hello\n<START>\n{{user}}: hi\nHaruhi: hello\n```"
-                + "\n\n```<START>``` Marks the beginning of a new conversation.",
+            + "\n\nExample format of conversations:"
+            + "\n\n```\n<START>\n{{user}}: hi\n{{char}}: hello\n<START>\n{{user}}: hi\nHaruhi: hello\n```"
+            + "\n\n```<START>``` Marks the beginning of a new conversation.",
         creatorQuotes: "Note that appearances on top of first message. Used to inform users about this character. It doesn't go into prompt.",
         systemPrompt: "A prompt that replaces main prompt in settings if its not blank.",
         chatNote: "a note that strongly effects model behavior. embbedded to current chat. also known as memory or ujb.",
@@ -94,9 +94,9 @@ export const languageEnglish = {
         loreRandomActivation: "If Use Probability Condition is abled, if the lore's other conditions are all met, the lore will be activated with a set probability which is set by 'Probability' each time a chat is sent.",
         additionalAssets: "Additional assets to display in your chat. \n\n - use `{{raw::<asset name>}}` to use as path.\n - use `{{image::<asset name>}}` to use as image\n - use `{{video::<asset name>}}` to use as video\n - use `{{audio::<asset name>}}` to use as audio\n    - recommended to put in Background HTML",
         superMemory: "SuperMemory makes your character memorize more by giving summarized data to AI.\n\n"
-        + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
-        + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
-        + "After it is all setup, you can able it in the setting of a character.",
+            + "SuperMemory model is a model that summarizes that text. davinci is recommended, and Auxiliary models are not recommended unless it is an unfiltered model with over 2000 tokens with great summarizing skill.\n\n"
+            + "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.\n\n"
+            + "After it is all setup, you can able it in the setting of a character.",
         replaceGlobalNote: "If its not blank, it replaces current global note to this.",
         backgroundHTML: "A Markdown/HTML Data that would be injected to the background of chat screen.\n\n you can also use additional assets. for example, you can use `{{audio::<asset name}}` for background music."
             + "\n\n Additionaly, you can use these with additional assets:"
@@ -147,17 +147,17 @@ export const languageEnglish = {
         betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.",
         unrecommended: "This is a unrecommended setting. it is not recommended to use this setting.",
         jsonSchema: "This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.\n\nHowever, since JSON Schema is hard to learn, In RisuAI, you can use subset of TypeScript interface instead of JSON Schema. RisuAI will convert it in runtime." +
-        "For example, if you want to send a JSON like this:\n\n```js\n{\n  \"name\": \"RisuAI\", //name must be RisuAI,\n  \"age\": 1, //age must be number,\n  \"icon\": \"slim\", //icon must be \'slim\' or 'rounded'\n  \"thoughts\": [\"Good View!\", \"Lorem\"] //thoughts must be array of strings\n}\n```\n\n" +
-        "You can put this TypeScript interface:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\n" +
-        "Name of the interface doesn't matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below." +
-        "<details><summary>Supported TypeScript Subset</summary>\n\n" +
-        `Supported types are \`boolean\`, \`number\`, \`string\`, \`Array\`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:\n
+            "For example, if you want to send a JSON like this:\n\n```js\n{\n  \"name\": \"RisuAI\", //name must be RisuAI,\n  \"age\": 1, //age must be number,\n  \"icon\": \"slim\", //icon must be \'slim\' or 'rounded'\n  \"thoughts\": [\"Good View!\", \"Lorem\"] //thoughts must be array of strings\n}\n```\n\n" +
+            "You can put this TypeScript interface:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\n" +
+            "Name of the interface doesn't matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below." +
+            "<details><summary>Supported TypeScript Subset</summary>\n\n" +
+            `Supported types are \`boolean\`, \`number\`, \`string\`, \`Array\`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:\n
         - Array of primitive types: (ex. \`string[]\`, \`Array<boolean>)\`
         - Unit types between strings: (ex. \`'slim'|'rounded'\`).
 
         Properties must be one in a line. if there is multiple properties in a line, it will throw an error. Properties and name of the interface must be only in latin characters, in ASCII range. name of the properties must not be surrounded by quotes or double quotes. Nesting inside the interface is not supported. it is not allowed to put \`{\` or \`}\` in the line that properties are defined. If you want to use more advanced types, use JSON Schema instead.
         ` +
-        "</details>"
+            "</details>"
         ,
         strictJsonSchema: "If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.",
         extractJson: "If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{\"response\": {\"text\": [\"hello\"]}}`, you can put `response.text.0`.",
@@ -219,7 +219,7 @@ export const languageEnglish = {
         setupMessageOption1Desc: "Recommended for new users",
         setupMessageOption2: "I will setup myself",
         claudeDesc: "Claude is a AI model made by Antropic, competitor to OpenAI. its better than GPT if you want to use it in other languages than English.",
-        openAIDesc: "OpenAI GPT is a high quality AI model, but it is paid and filtered, and weak in other than English.",  
+        openAIDesc: "OpenAI GPT is a high quality AI model, but it is paid and filtered, and weak in other than English.",
         chooseChatType: "Great! Now select the chat language.",
         chooseChatTypeOption1: "Full English",
         chooseChatTypeOption1Desc: "This will make AI to use English and input/output in English. Recommended for English speakers.",
@@ -570,6 +570,7 @@ export const languageEnglish = {
     globalRegexScript: "Global Regex",
     accessibility: "Accessibility",
     sendWithEnter: "Send with Enter Key",
+    fixedChatTextarea: "Fixed at the bottom of the chat window(When unchecked, Shift + Enter changes to send a message.)",
     clickToEdit: "Click Text to Edit",
     setNodePassword: "Set your password to security",
     inputNodePassword: "Input your password. if you can't remember, remove save/__password.txt in your server files and restart the server.",

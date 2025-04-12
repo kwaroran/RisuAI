@@ -1,4 +1,4 @@
-import { getChatVar, hasher, setChatVar, type simpleCharacterArgument } from "../parser.svelte";
+import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
 import { get } from "svelte/store";
@@ -25,7 +25,8 @@ interface LuaEngineState {
     mutex: Mutex;
     chat: Chat;
     setVar: (key:string, value:string) => void,
-    getVar: (key:string) => string
+    getVar: (key:string) => string,
+    getGlobalVar: (key:string) => any,
 }
 
 let LuaEngines = new Map<string, LuaEngineState>()
@@ -35,6 +36,7 @@ export async function runLua(code:string, arg:{
     chat?:Chat
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
+    getGlobalVar?: (key:string) => any,
     lowLevelAccess?: boolean,
     mode?: string,
     data?: any
@@ -42,6 +44,7 @@ export async function runLua(code:string, arg:{
     const char = arg.char ?? getCurrentCharacter()
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
+    const getGlobalVar = arg.getGlobalVar ?? getGlobalChatVar
     const mode = arg.mode ?? 'manual'
     const data = arg.data ?? {}
     let chat = arg.chat ?? getCurrentChat()
@@ -60,7 +63,8 @@ export async function runLua(code:string, arg:{
             mutex: new Mutex(),
             chat,
             setVar,
-            getVar
+            getVar,
+            getGlobalVar
         }
         LuaEngines.set(mode, luaEngineState)
         wasEmpty = true
@@ -68,6 +72,7 @@ export async function runLua(code:string, arg:{
         luaEngineState.chat = chat
         luaEngineState.setVar = setVar
         luaEngineState.getVar = getVar
+        luaEngineState.getGlobalVar = getGlobalVar
     }
     return await luaEngineState.mutex.runExclusive(async () => {
         if (wasEmpty || code !== luaEngineState.code) {
@@ -86,6 +91,12 @@ export async function runLua(code:string, arg:{
                     return
                 }
                 return luaEngineState.getVar(key)
+            })
+            luaEngine.global.set('getGlobalVar', (id:string, key:string) => {
+                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
+                    return
+                }
+                return luaEngineState.getGlobalVar(key)
             })
             luaEngine.global.set('stopChat', (id:string) => {
                 if(!LuaSafeIds.has(id)){

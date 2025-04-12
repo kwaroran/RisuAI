@@ -1,12 +1,12 @@
 <script lang="ts">
 
-	import Suggestion from './Suggestion.svelte';
-	import AdvancedChatEditor from './AdvancedChatEditor.svelte';
+    import Suggestion from './Suggestion.svelte';
+    import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon } from "lucide-svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
-	import { DBState } from 'src/ts/stores.svelte';
+    import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
     import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
@@ -28,7 +28,7 @@
     import { getInlayAsset } from 'src/ts/process/files/inlays';
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
-  import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
+    import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -168,7 +168,7 @@
                 sayingQu -= 1
                 if(sayingQu === 0){
                     break
-                }   
+                }
             }
             let msg = cha.pop()
             if(!msg){
@@ -258,15 +258,15 @@
         }
     }
 
-  interface Props {
-    openModuleList?: boolean;
-    openChatList?: boolean;
-    customStyle?: string;
-  }
-  
-  let userIconProtrait = $state(false)
-  let currentUsername = $state(DBState.db.username)
-  let userIcon = $state(DBState.db.userIcon)
+    interface Props {
+        openModuleList?: boolean;
+        openChatList?: boolean;
+        customStyle?: string;
+    }
+
+    let userIconProtrait = $state(false)
+    let currentUsername = $state(DBState.db.username)
+    let userIcon = $state(DBState.db.userIcon)
 
 
     $effect.pre(() =>{
@@ -287,7 +287,7 @@
         userIcon = DBState.db.personas[DBState.db.selectedPersona].icon
     })
 
-  let { openModuleList = $bindable(false), openChatList = $bindable(false), customStyle = '' }: Props = $props();
+    let { openModuleList = $bindable(false), openChatList = $bindable(false), customStyle = '' }: Props = $props();
     let inputHeight = $state("44px")
     let inputEle:HTMLTextAreaElement = $state()
     let inputTranslateHeight = $state("44px")
@@ -380,7 +380,7 @@
             canvases.reverse()
 
             alertWait("Merging images...")
-            
+
             let mergedCanvas = document.createElement('canvas');
             mergedCanvas.width = 0;
             mergedCanvas.height = 0;
@@ -442,21 +442,27 @@
                 loadPages += 15
             }
         }}>
-            <div class="flex items-stretch mt-2 mb-2 w-full">
+            <div
+                    class="{DBState.db.fixedChatTextarea ? 'sticky pt-2 pb-2 right-0 bottom-0 bg-bgcolor' : 'mt-2 mb-2'} flex items-stretch w-full"
+                    style="{DBState.db.fixedChatTextarea ? 'z-index:29;' : ''}"
+            >
                 {#if DBState.db.useChatSticker && currentCharacter.type !== 'group'}
                     <div onclick={()=>{toggleStickers = !toggleStickers}}
-                            class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}>
-                            <Laugh/>
-                    </div>    
+                         class={"ml-4 bg-textcolor2 flex justify-center items-center  w-12 h-12 rounded-md hover:bg-green-500 transition-colors "+(toggleStickers ? 'text-green-500':'text-textcolor')}>
+                        <Laugh/>
+                    </div>
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
                 <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
-                    bind:value={messageInput}
-                    bind:this={inputEle}
-                    onkeydown={(e) => {
-                        if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey) && !e.isComposing){
-                            if(DBState.db.sendWithEnter){
+                          bind:value={messageInput}
+                          bind:this={inputEle}
+                          onkeydown={(e) => {
+                        if(e.key.toLocaleLowerCase() === "enter" && !e.isComposing){
+                            if(DBState.db.sendWithEnter && (!e.shiftKey)){
+                                send()
+                                e.preventDefault()
+                            }else if(!DBState.db.sendWithEnter && e.shiftKey){
                                 send()
                                 e.preventDefault()
                             }
@@ -466,7 +472,7 @@
                             e.preventDefault()
                         }
                     }}
-                    onpaste={(e) => {
+                          onpaste={(e) => {
                         const items = e.clipboardData?.items
                         if(!items){
                             return
@@ -503,42 +509,42 @@
                             }
                         }
                     }}
-                    oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
-                    style:height={inputHeight}
+                          oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
+                          style:height={inputHeight}
                 ></textarea>
                 {:else}
-                <AdvancedChatEditor 
-                    bind:value={messageInput}
-                    bind:translate={messageInputTranslate}
-                 />
+                    <AdvancedChatEditor
+                            bind:value={messageInput}
+                            bind:translate={messageInputTranslate}
+                    />
                 {/if}
 
-                
-                {#if $doingChat || doingChatInputTranslate} 
+
+                {#if $doingChat || doingChatInputTranslate}
                     <button
-                        aria-labelledby="cancel"
-                        class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" onclick={abortChat}
-                        style:height={inputHeight}
+                            aria-labelledby="cancel"
+                            class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" onclick={abortChat}
+                            style:height={inputHeight}
                     >
                         <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}></div>
                     </button>
                 {:else}
                     <button
-                        onclick={send}
-                        class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
-                        style:height={inputHeight}
+                            onclick={send}
+                            class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
+                            style:height={inputHeight}
                     >
                         <Send />
                     </button>
                 {/if}
                 {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
                     <button
-                        onclick={(e) => {
+                            onclick={(e) => {
                             openMenu = !openMenu
                             e.stopPropagation()
                         }}
-                        class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
-                        style:height={inputHeight}
+                            class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                            style:height={inputHeight}
                     >
                         <MenuIcon />
                     </button>
@@ -550,8 +556,8 @@
                         })
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
                     }}
-                        class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
-                        style:height={inputHeight}
+                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                         style:height={inputHeight}
                     >
                         <Plus />
                     </div>
@@ -563,9 +569,9 @@
                         <LanguagesIcon />
                     </label>
                     <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
-                        bind:value={messageInputTranslate}
-                        bind:this={inputTranslateEle}
-                        onkeydown={(e) => {
+                              bind:value={messageInputTranslate}
+                              bind:this={inputTranslateEle}
+                              onkeydown={(e) => {
                             if(e.key.toLocaleLowerCase() === "enter" && (!e.shiftKey)){
                                 if(DBState.db.sendWithEnter){
                                     send()
@@ -577,10 +583,10 @@
                                 e.preventDefault()
                             }
                         }}
-                        oninput={()=>{updateInputSizeAll();updateInputTransateMessage(true)}}
-                        placeholder={language.enterMessageForTranslateToEnglish}
-                        style:height={inputTranslateHeight}
-></textarea>
+                              oninput={()=>{updateInputSizeAll();updateInputTransateMessage(true)}}
+                              placeholder={language.enterMessageForTranslateToEnglish}
+                              style:height={inputTranslateHeight}
+                    ></textarea>
                 </div>
             {/if}
 
@@ -617,7 +623,7 @@
                 </div>
 
             {/if}
-            
+
             {#if toggleStickers}
                 <div class="ml-4 flex flex-wrap">
                     <AssetInput bind:currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
@@ -632,7 +638,7 @@
                         messageInput += `<span class='notranslate' translate='no'>{{${fileType}::${additionalAsset[0]}}}</span> *${additionalAsset[0]} added*`
                         updateInputSizeAll()
                     }}/>
-                </div>    
+                </div>
             {/if}
 
             {#if DBState.db.useAutoSuggestions}
@@ -642,13 +648,13 @@
                     : msg
                 )} {send}/>
             {/if}
-            
+
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
                 {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
                     <div class="w-full flex justify-center text-textcolor2 italic mb-12">
                         {language.loadingChatData}
                     </div>
-                {:then a} 
+                {:then a}
                     <div></div>
                 {/await}
             {:else}
@@ -657,7 +663,7 @@
                     {#if DBState.db.characters[$selectedCharID].type !== 'group'}
                         <Chat
                             idx={chat.index}
-                            name={DBState.db.characters[$selectedCharID].name} 
+                            name={DBState.db.characters[$selectedCharID].name}
                             message={chat.data}
                             img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
                             rerollIcon={i === 0}
@@ -671,7 +677,7 @@
                     {:else}
                         <Chat
                             idx={chat.index}
-                            name={findCharacterbyId(chat.saying).name} 
+                            name={findCharacterbyId(chat.saying).name}
                             rerollIcon={i === 0}
                             message={chat.data}
                             onReroll={reroll}
@@ -687,7 +693,7 @@
                     <Chat
                         character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
                         idx={chat.index}
-                        name={chat.name ?? currentUsername} 
+                        name={chat.name ?? currentUsername}
                         message={chat.data}
                         img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
                         isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
@@ -753,7 +759,7 @@
             {/if}
 
             {#if openMenu}
-                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" onclick={(e) => {
+                <div class="{DBState.db.fixedChatTextarea ? 'fixed' : 'absolute'} right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" onclick={(e) => {
                     e.stopPropagation()
                 }}>
                     {#if DBState.db.characters[$selectedCharID].type === 'group'}

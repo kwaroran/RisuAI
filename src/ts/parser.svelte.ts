@@ -1278,7 +1278,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 }
                 case 'getglobalvar':{
                     return getGlobalChatVar(v)
-                }
+                } // setglobalvar cbs support?
                 case 'button':{
                     return `<button class="button-default" risu-trigger="${arra[2]}">${arra[1]}</button>`
                 }
@@ -1379,7 +1379,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'previous_chat_log':{
                     const selchar = db.characters[get(selectedCharID)]
                     const chat = selchar?.chats?.[selchar.chatPage]
-                    return chat?.message[chatID - 1]?.data ?? 'Out of range'
+                    return chat?.message[Number(arra[1])]?.data ?? 'Out of range'
     
                 }
                 case 'tonumber':{
@@ -2233,6 +2233,10 @@ export function getChatVar(key:string){
 
 export function getGlobalChatVar(key:string){
     return DBState.db.globalChatVariables[key] ?? 'null'
+}
+
+export function setGlobalChatVar(key:string, value:string){ 
+    DBState.db.globalChatVariables[key] = value // String to String Map(dictionary)
 }
 
 export function setChatVar(key:string, value:string){
