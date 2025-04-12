@@ -1,5 +1,5 @@
 import { get } from "svelte/store"
-import { getDatabase, type character } from "../storage/database.svelte"
+import { getDatabase, type character, type NAIImgConfig } from "../storage/database.svelte"
 import { requestChatData } from "./request"
 import { alertError } from "../alert"
 import { fetchNative, globalFetch, readImage } from "../globalApi.svelte"
@@ -125,6 +125,62 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
         let reqlist:any = {}
 
+        const commonReq = {
+            body: {
+                "input": genPrompt,
+                "model": db.NAIImgModel,
+                "parameters": {
+                    "params_version": 3,
+                    "add_original_image": true,
+                    "cfg_rescale": 0,
+                    "controlnet_strength": 1,
+                    "dynamic_thresholding": false,
+                    "n_samples": 1,
+                    "width": db.NAIImgConfig.width,
+                    "height": db.NAIImgConfig.height,
+                    "sampler": db.NAIImgConfig.sampler,
+                    "steps": db.NAIImgConfig.steps,
+                    "scale": db.NAIImgConfig.scale,
+                    "negative_prompt": neg,
+                    "sm": false,
+                    "sm_dyn": false,
+                    "noise": db.NAIImgConfig.noise,
+                    "noise_schedule": "native",
+                    "strength": db.NAIImgConfig.strength,
+                    "ucPreset": 3,
+                    "uncond_scale": 1,
+                    "qualityToggle": false,
+                    "lagacy_v3_extend": false,
+                    "lagacy": false,
+                    "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
+                    "reference_strength": db.NAIImgConfig.RefStrength,
+                    //add v4
+                    "autoSmea": db.NAIImgConfig.autoSmea || false,
+                    use_coords: db.NAIImgConfig.use_coords || false,
+                    legacy_uc: db.NAIImgConfig.legacy_uc || false,
+                    v4_prompt:{
+                        caption:{
+                            base_caption:genPrompt,
+                            char_captions: []
+                        },
+                        use_coords: false,//db.NAIImgConfig.v4_prompt.use_coords || false,
+                        use_order: true//db.NAIImgConfig.v4_prompt.use_order || true
+                    },
+                    "v4_negative_prompt":{
+                        caption:{
+                            base_caption:neg,
+                            char_captions: []
+                        },
+                        legacy_uc: false//db.NAIImgConfig.v4_negative_prompt.legacy_uc || false,
+                    }
+                }
+            },
+            headers:{
+                "Authorization": "Bearer " + db.NAIApiKey
+            },
+            rawResponse: true
+        }
+
         if(db.NAII2I){
             let seed = Math.floor(Math.random() * 10000000000)
          
@@ -139,9 +195,6 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             }
 
             let refimgbase64 = undefined
-            
-
-
 
             if(db.NAIREF){
                 if(db.NAIImgConfig.refimage !== ''){
@@ -149,56 +202,19 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 }
             }
             
-            reqlist = {
-                body: {
-                    "action": "img2img",
-                    "input": genPrompt,
-                    "model": db.NAIImgModel,
-                    "parameters": {
-                        "params_version": 1,
-                        "add_original_image": true,
-                        "cfg_rescale": 0,
-                        "controlnet_strength": 1,
-                        "dynamic_thresholding": false,
-                        "extra_noise_seed": seed,
-                        "n_samples": 1,
-                        "width": db.NAIImgConfig.width,
-                        "height": db.NAIImgConfig.height,
-                        "sampler": db.NAIImgConfig.sampler,
-                        "steps": db.NAIImgConfig.steps,
-                        "scale": db.NAIImgConfig.scale,
-                        "seed": seed,
-                        "negative_prompt": neg,
-                        "sm": false,
-                        "sm_dyn": false,
-                        "noise": db.NAIImgConfig.noise,
-                        "noise_schedule": "native",
-                        "strength": db.NAIImgConfig.strength,
-                        "image": base64img,
-                        "ucPreset": 3,
-                        "uncond_scale": 1,
-                        "qualityToggle": false,
-                        "lagacy_v3_extend": false,
-                        "lagacy": false,
-                        "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
-                        "reference_strength": db.NAIImgConfig.RefStrength
-                    }
-                },
-                headers:{
-                    "Authorization": "Bearer " + db.NAIApiKey
-                },
-                rawResponse: true
-            }
+            reqlist = commonReq;
+            reqlist.body.action = "img2img";
+            reqlist.body.parameters.image = base64img;
+            reqlist.body.parameters.extra_noise_seed = seed;
+            reqlist.body.parameters.seed = seed;
 
             if(refimgbase64 !== undefined){
                 reqlist.body.parameters.reference_image = refimgbase64
             }
         }else{
-           
 
             if (db.NAIREF) {
-           
-    
+
                 let base64img = ''
                 if(db.NAIImgConfig.image === ''){
                     const charimg = currentChar.image;
@@ -208,84 +224,12 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 }   else{
                     base64img = Buffer.from(await readImage(db.NAIImgConfig.refimage)).toString('base64');
                 }
-                reqlist = {
-                    body: {
-                        "action": "generate",
-                        "input": genPrompt,
-                        "model": db.NAIImgModel,
-                        "parameters": {
-                            "params_version": 1,
-                            "add_original_image": true,
-                            "cfg_rescale": 0,
-                            "controlnet_strength": 1,
-                            "dynamic_thresholding": false,
-                            "n_samples": 1,
-                            "width": db.NAIImgConfig.width,
-                            "height": db.NAIImgConfig.height,
-                            "sampler": db.NAIImgConfig.sampler,
-                            "steps": db.NAIImgConfig.steps,
-                            "scale": db.NAIImgConfig.scale,
-                            "negative_prompt": neg,
-                            "sm": db.NAIImgConfig.sm,
-                            "sm_dyn": db.NAIImgConfig.sm_dyn,
-                            "noise_schedule": "native",
-                            "ucPreset": 3,
-                            "uncond_scale": 1,
-                            "qualityToggle": false,
-                            "legacy": false,
-                            "lagacy_v3_extend": false,
-                            "reference_image": base64img,
-                            "reference_strength": db.NAIImgConfig.RefStrength,
-                            "reference_information_extracted": db.NAIImgConfig.InfoExtracted
-                        }
-                    },
-                    headers:{
-                        "Authorization": "Bearer " + db.NAIApiKey
-                    },
-                    rawResponse: true
-                }
+                reqlist = commonReq;
+                reqlist.body.action = 'generate';
+                reqlist.body.parameters.reference_image = base64img;
             } else {
-                reqlist = {
-                    body: {
-                        "input": genPrompt,
-                        "model": db.NAIImgModel,
-                        "parameters": {
-                            "params_version": 1,
-                            "width": db.NAIImgConfig.width,
-                            "height": db.NAIImgConfig.height,
-                            "scale": db.NAIImgConfig.scale,
-                            "sampler": db.NAIImgConfig.sampler,
-                            "steps": db.NAIImgConfig.steps,
-                            "n_samples": 1,
-                            "ucPreset": 3,
-                            "qualityToggle": false,
-                            "sm": db.NAIImgConfig.sm,
-                            "sm_dyn": db.NAIImgConfig.sm_dyn,
-                            "dynamic_thresholding": false,
-                            "controlnet_strength": 1,
-                            "legacy": false,
-                            "add_original_image": true,
-                            "uncond_scale": 1,
-                            "cfg_rescale": 0,
-                            "noise_schedule": "native",
-                            "legacy_v3_extend": false,
-                            "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
-                            "reference_strength": db.NAIImgConfig.RefStrength,
-                            "negative_prompt": neg,
-                        }
-                    },
-                    headers:{
-                        "Authorization": "Bearer " + db.NAIApiKey
-                    },
-                    rawResponse: true
-
-                }
+                reqlist = commonReq;
             }
-
-
-
-
-                
         }
         try {
             const da = await globalFetch(db.NAIImgUrl, reqlist)   
