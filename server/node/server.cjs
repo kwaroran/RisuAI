@@ -9,6 +9,8 @@ app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
 const {pipeline} = require('stream/promises')
+const https = require('https');
+const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
 
 let password = ''
 
@@ -294,6 +296,57 @@ app.post('/api/write', async (req, res, next) => {
     }
 });
 
-app.listen(6001, () => {
-    console.log("Server is listening on http://localhost:6001/");
-});
+async function getHttpsOptions() {
+
+    const keyPath = path.join(sslPath, 'server.key');
+    const certPath = path.join(sslPath, 'server.crt');
+
+    console.log(keyPath)
+    console.log(certPath)
+
+    try {
+ 
+        await fs.access(keyPath);
+        await fs.access(certPath);
+
+        const [key, cert] = await Promise.all([
+            fs.readFile(keyPath),
+            fs.readFile(certPath)
+        ]);
+       
+        return { key, cert };
+
+    } catch (error) {
+        console.error('SSL setup errors:', error.message);
+        console.log('Start the server with HTTP instead of HTTPS...');
+        return null;
+    }
+}
+
+async function startServer() {
+    const port = process.env.PORT || 6001;
+    const httpsOptions = await getHttpsOptions();
+
+    if (httpsOptions) {
+        // HTTPS
+        https.createServer(httpsOptions, app).listen(port, () => {
+            console.log("HTTPS server is running.");
+            console.log("https://localhost:6001/");
+        });
+
+    } else {
+        // HTTP
+        app.listen(port, () => {
+            console.log("HTTP server is running.");
+            console.log("http://localhost:6001/");
+        });
+    }
+}
+
+(async () => {
+    try {
+        await startServer();
+    } catch (error) {
+        console.error('Fail to start server :', error);
+    }
+})();
