@@ -208,7 +208,7 @@
             <SelectInput className="mt-2 mb-4" bind:value={imageModel} onchange={(e)=>{
                 DBState.db.NAIImgModel = imageModel;
             }}>
-                <OptionInput value="" >선택하여 자동입력</OptionInput>
+                <OptionInput value="" >Choose...</OptionInput>
                 <OptionInput value="nai-diffusion-4-full" >nai-diffusion-4-full</OptionInput>
                 <OptionInput value="nai-diffusion-4-curated-preview" >nai-diffusion-4-curated-preview</OptionInput>
                 <OptionInput value="nai-diffusion-3" >nai-diffusion-3</OptionInput>
