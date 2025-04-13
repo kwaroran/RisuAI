@@ -107,6 +107,8 @@
     }
     // End HypaV3
 
+    let imageModel = '';
+
     // add init NAI V4
     // if(DBState.db.NAIImgConfig.autoSmea === undefined) DBState.db.NAIImgConfig.autoSmea = false;
     // if(DBState.db.NAIImgConfig.use_coords === undefined) DBState.db.NAIImgConfig.use_coords = false;
@@ -203,6 +205,17 @@
 
             <span class="text-textcolor">Model</span>
             <TextInput size="sm" marginBottom placeholder="nai-diffusion-4-full" bind:value={DBState.db.NAIImgModel}/>
+            <SelectInput className="mt-2 mb-4" bind:value={imageModel} onchange={(e)=>{
+                DBState.db.NAIImgModel = imageModel;
+            }}>
+                <OptionInput value="" >선택하여 자동입력</OptionInput>
+                <OptionInput value="nai-diffusion-4-full" >nai-diffusion-4-full</OptionInput>
+                <OptionInput value="nai-diffusion-4-curated-preview" >nai-diffusion-4-curated-preview</OptionInput>
+                <OptionInput value="nai-diffusion-3" >nai-diffusion-3</OptionInput>
+                <OptionInput value="nai-diffusion-furry-3" >nai-diffusion-furry-3</OptionInput>
+                <OptionInput value="nai-diffusion-2" >nai-diffusion-2</OptionInput>
+
+            </SelectInput>
 
             <span class="text-textcolor">Width</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.width}/>
@@ -210,7 +223,8 @@
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.height}/>
             <span class="text-textcolor">Sampler</span>
 
-            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'}
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
                     <OptionInput value="k_euler_ancestral" >(Recommended)Euler Ancestral</OptionInput>
                     <OptionInput value="k_dpmpp_2s_ancestral" >(Recommended)DPM++ 2S Ancestral</OptionInput>
@@ -238,20 +252,22 @@
 
             {#if !DBState.db.NAII2I || DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm} name="Use SMEA"/>
-            {:else if DBState.db.NAIImgModel !== 'nai-diffusion-4-full'}
+            {:else if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm_dyn} name='Use DYN'/>
             {/if}
             <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
 
-            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'}
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <Check bind:check={DBState.db.NAIImgConfig.autoSmea} name='Auto Smea'/>
                 <Check bind:check={DBState.db.NAIImgConfig.use_coords} name='Use coords'/>
                 <Check bind:check={DBState.db.NAIImgConfig.legacy_uc} name='Use legacy uc'/>
 
-<!--                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_coords} name='Use v4 prompt coords'/>-->
-<!--                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_order} name='Use v4 prompt order'/>-->
+                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_coords} name='Use v4 prompt coords'/>
+                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_order} name='Use v4 prompt order'/>
 
-<!--                <Check bind:check={DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc} name='Use v4 negative prompt legacy uc'/>-->
+                <Check bind:check={DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc} name='Use v4 negative prompt legacy uc'/>
             {/if}
 
             {#if DBState.db.NAII2I}

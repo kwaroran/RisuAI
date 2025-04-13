@@ -155,23 +155,23 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
                     "reference_strength": db.NAIImgConfig.RefStrength,
                     //add v4
-                    "autoSmea": db.NAIImgConfig.autoSmea || false,
-                    use_coords: db.NAIImgConfig.use_coords || false,
-                    legacy_uc: db.NAIImgConfig.legacy_uc || false,
+                    "autoSmea": db.NAIImgConfig.autoSmea,
+                    use_coords: db.NAIImgConfig.use_coords,
+                    legacy_uc: db.NAIImgConfig.legacy_uc,
                     v4_prompt:{
                         caption:{
                             base_caption:genPrompt,
                             char_captions: []
                         },
-                        use_coords: false,//db.NAIImgConfig.v4_prompt.use_coords || false,
-                        use_order: true//db.NAIImgConfig.v4_prompt.use_order || true
+                        use_coords: db.NAIImgConfig.v4_prompt.use_coords,
+                        use_order: db.NAIImgConfig.v4_prompt.use_order
                     },
                     "v4_negative_prompt":{
                         caption:{
                             base_caption:neg,
                             char_captions: []
                         },
-                        legacy_uc: false//db.NAIImgConfig.v4_negative_prompt.legacy_uc || false,
+                        legacy_uc: db.NAIImgConfig.v4_negative_prompt.legacy_uc,
                     }
                 }
             },
@@ -211,6 +211,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             if(refimgbase64 !== undefined){
                 reqlist.body.parameters.reference_image = refimgbase64
             }
+            console.log({img2img:reqlist});
         }else{
 
             if (db.NAIREF) {
@@ -227,8 +228,11 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 reqlist = commonReq;
                 reqlist.body.action = 'generate';
                 reqlist.body.parameters.reference_image = base64img;
+                console.log({generate:reqlist});
             } else {
                 reqlist = commonReq;
+                reqlist.body.action = 'generate';
+                console.log({nothing:reqlist});
             }
         }
         try {

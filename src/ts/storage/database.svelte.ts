@@ -286,6 +286,27 @@ export function setDatabase(data:Database){
             }
         }
     }
+    //add NAI v4 (사용중인 사람용 추가 DB Init)
+    if(checkNullish(data.NAIImgConfig.v4_prompt)){
+        data.NAIImgConfig.autoSmea = false;
+        data.NAIImgConfig.use_coords = false;
+        data.NAIImgConfig.legacy_uc = false;
+        data.NAIImgConfig.v4_prompt = {
+            caption:{
+                base_caption:"",
+                char_captions:[]
+            },
+            use_coords:false,
+            use_order:true
+        };
+        data.NAIImgConfig.v4_negative_prompt = {
+            caption:{
+                base_caption:"",
+                char_captions:[]
+            },
+            legacy_uc:false,
+        };
+    }
     if(checkNullish(data.customTextTheme)){
         data.customTextTheme = {
             FontColorStandard: "#f8f8f2",
@@ -1429,9 +1450,7 @@ interface NAIImgConfigV4CharCaption{
             x: number,
             y: number
         }[]
-
 }
-
 
 interface ComfyConfig{
     workflow:string,
