@@ -988,7 +988,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     await processMultiCommand(effectValue)
                     break
                 }
-                case 'stop':{
+                case 'stop':
+                case 'v2StopPromptSending':{
                     stopSending = true
                     break
                 }
