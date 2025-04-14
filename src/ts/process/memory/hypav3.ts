@@ -445,7 +445,11 @@ export async function hypaMemoryV3(
     if (toSummarize.length > 0) {
       const summarizeResult = await retryableSummarize(toSummarize);
 
-      if (!summarizeResult.success) {
+      if (
+        !summarizeResult.success ||
+        !summarizeResult.data ||
+        summarizeResult.data.trim().length === 0
+      ) {
         return {
           currentTokens,
           chats,
@@ -642,7 +646,16 @@ export async function hypaMemoryV3(
     processor.oaikey = db.supaMemoryKey;
 
     // Add summaryChunks to processor for similarity search
-    await processor.addSummaryChunks(summaryChunks);
+    try {
+      await processor.addSummaryChunks(summaryChunks);
+    } catch (error) {
+      return {
+        currentTokens,
+        chats,
+        error: `[HypaV3] Similarity search failed: ${error}`,
+        memory: toSerializableHypaV3Data(data),
+      };
+    }
 
     const scoredSummaries = new Map<Summary, number>();
 
@@ -652,15 +665,24 @@ export async function hypaMemoryV3(
 
       if (!pop) break;
 
-      const searched = await processor.similaritySearchScoredEx(pop.content);
+      try {
+        const searched = await processor.similaritySearchScoredEx(pop.content);
 
-      for (const [chunk, similarity] of searched) {
-        const summary = chunk.summary;
+        for (const [chunk, similarity] of searched) {
+          const summary = chunk.summary;
 
-        scoredSummaries.set(
-          summary,
-          (scoredSummaries.get(summary) || 0) + similarity
-        );
+          scoredSummaries.set(
+            summary,
+            (scoredSummaries.get(summary) || 0) + similarity
+          );
+        }
+      } catch (error) {
+        return {
+          currentTokens,
+          chats,
+          error: `[HypaV3] Similarity search failed: ${error}`,
+          memory: toSerializableHypaV3Data(data),
+        };
       }
     }
 
@@ -670,7 +692,11 @@ export async function hypaMemoryV3(
       const recentChats = chats.slice(-minChatsForSimilarity);
       const summarizeResult = await retryableSummarize(recentChats);
 
-      if (!summarizeResult.success) {
+      if (
+        !summarizeResult.success ||
+        !summarizeResult.data ||
+        summarizeResult.data.trim().length === 0
+      ) {
         return {
           currentTokens,
           chats,
@@ -679,17 +705,26 @@ export async function hypaMemoryV3(
         };
       }
 
-      const searched = await processor.similaritySearchScoredEx(
-        summarizeResult.data
-      );
-
-      for (const [chunk, similarity] of searched) {
-        const summary = chunk.summary;
-
-        scoredSummaries.set(
-          summary,
-          (scoredSummaries.get(summary) || 0) + similarity
+      try {
+        const searched = await processor.similaritySearchScoredEx(
+          summarizeResult.data
         );
+
+        for (const [chunk, similarity] of searched) {
+          const summary = chunk.summary;
+
+          scoredSummaries.set(
+            summary,
+            (scoredSummaries.get(summary) || 0) + similarity
+          );
+        }
+      } catch (error) {
+        return {
+          currentTokens,
+          chats,
+          error: `[HypaV3] Similarity search failed: ${error}`,
+          memory: toSerializableHypaV3Data(data),
+        };
       }
 
       console.log("[HypaV3] Similarity corrected.");
