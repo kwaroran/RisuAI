@@ -115,39 +115,43 @@ export const ColorSchemeTypeStore = writable('dark' as 'dark'|'light')
 export const colorSchemeList = Object.keys(colorShemes) as (keyof typeof colorShemes)[]
 
 export function changeColorScheme(colorScheme: string){
-    let db = getDatabase()
-    if(colorScheme !== 'custom'){
-        db.colorScheme = safeStructuredClone(colorShemes[colorScheme])
-    }
-    db.colorSchemeName = colorScheme
-    setDatabase(db)
-    updateColorScheme()
+    try {
+        let db = getDatabase()
+        if(colorScheme !== 'custom'){
+            db.colorScheme = safeStructuredClone(colorShemes[colorScheme])
+        }
+        db.colorSchemeName = colorScheme
+        setDatabase(db)
+        updateColorScheme()   
+    } catch (error) {}
 }
 
 export function updateColorScheme(){
-    let db = getDatabase()
+    try {
+        let db = getDatabase()
 
-    let colorScheme = db.colorScheme
-
-    if(colorScheme == null){
-        colorScheme = safeStructuredClone(defaultColorScheme)
-    }
-
-    if(get(isLite)){
-        colorScheme = safeStructuredClone(colorShemes.lite)
-    }
-
-    //set css variables
-    document.documentElement.style.setProperty("--risu-theme-bgcolor", colorScheme.bgcolor);
-    document.documentElement.style.setProperty("--risu-theme-darkbg", colorScheme.darkbg);
-    document.documentElement.style.setProperty("--risu-theme-borderc", colorScheme.borderc);
-    document.documentElement.style.setProperty("--risu-theme-selected", colorScheme.selected);
-    document.documentElement.style.setProperty("--risu-theme-draculared", colorScheme.draculared);
-    document.documentElement.style.setProperty("--risu-theme-textcolor", colorScheme.textcolor);
-    document.documentElement.style.setProperty("--risu-theme-textcolor2", colorScheme.textcolor2);
-    document.documentElement.style.setProperty("--risu-theme-darkborderc", colorScheme.darkBorderc);
-    document.documentElement.style.setProperty("--risu-theme-darkbutton", colorScheme.darkbutton);
-    ColorSchemeTypeStore.set(colorScheme.type)
+        let colorScheme = db.colorScheme
+    
+        if(colorScheme == null){
+            colorScheme = safeStructuredClone(defaultColorScheme)
+        }
+    
+        if(get(isLite)){
+            colorScheme = safeStructuredClone(colorShemes.lite)
+        }
+    
+        //set css variables
+        document.documentElement.style.setProperty("--risu-theme-bgcolor", colorScheme.bgcolor);
+        document.documentElement.style.setProperty("--risu-theme-darkbg", colorScheme.darkbg);
+        document.documentElement.style.setProperty("--risu-theme-borderc", colorScheme.borderc);
+        document.documentElement.style.setProperty("--risu-theme-selected", colorScheme.selected);
+        document.documentElement.style.setProperty("--risu-theme-draculared", colorScheme.draculared);
+        document.documentElement.style.setProperty("--risu-theme-textcolor", colorScheme.textcolor);
+        document.documentElement.style.setProperty("--risu-theme-textcolor2", colorScheme.textcolor2);
+        document.documentElement.style.setProperty("--risu-theme-darkborderc", colorScheme.darkBorderc);
+        document.documentElement.style.setProperty("--risu-theme-darkbutton", colorScheme.darkbutton);
+        ColorSchemeTypeStore.set(colorScheme.type)   
+    } catch (error) {}
 }
 
 export function exportColorScheme(){
