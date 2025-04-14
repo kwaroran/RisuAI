@@ -60,7 +60,6 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
 DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
     switch(data.attrName){
         case 'style':{
-            data.attrValue = data.attrValue.replace(/(absolute)|(z-index)|(fixed)/g, '')
             break
         }
         case 'class':{
