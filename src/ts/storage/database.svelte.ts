@@ -264,8 +264,48 @@ export function setDatabase(data:Database){
             image:"",
             refimage:"",
             InfoExtracted:1,
-            RefStrength:0.4
+            RefStrength:0.4,
+            //add 4
+            autoSmea:false,
+            legacy_uc:false,
+            use_coords:false,
+            v4_prompt:{
+                caption:{
+                    base_caption:'',
+                    char_captions:[]
+                },
+                use_coords:false,
+                use_order:true
+            },
+            v4_negative_prompt:{
+                caption:{
+                    base_caption:'',
+                    char_captions:[]
+                },
+                legacy_uc:false,
+            }
         }
+    }
+    //add NAI v4 (사용중인 사람용 추가 DB Init)
+    if(checkNullish(data.NAIImgConfig.v4_prompt)){
+        data.NAIImgConfig.autoSmea = false;
+        data.NAIImgConfig.use_coords = false;
+        data.NAIImgConfig.legacy_uc = false;
+        data.NAIImgConfig.v4_prompt = {
+            caption:{
+                base_caption:"",
+                char_captions:[]
+            },
+            use_coords:false,
+            use_order:true
+        };
+        data.NAIImgConfig.v4_negative_prompt = {
+            caption:{
+                base_caption:"",
+                char_captions:[]
+            },
+            legacy_uc:false,
+        };
     }
     if(checkNullish(data.customTextTheme)){
         data.customTextTheme = {
@@ -1363,7 +1403,7 @@ interface sdConfig{
     hr_upscaler:string
 }
 
-interface NAIImgConfig{
+export interface NAIImgConfig{
     width:number,
     height:number,
     sampler:string,
@@ -1377,6 +1417,39 @@ interface NAIImgConfig{
     refimage:string,
     InfoExtracted:number,
     RefStrength:number
+    //add 4
+    autoSmea:boolean,
+    use_coords:boolean,
+    legacy_uc: boolean,
+    v4_prompt:NAIImgConfigV4Prompt,
+    v4_negative_prompt:NAIImgConfigV4NegativePrompt,
+
+}
+
+//add 4
+interface NAIImgConfigV4Prompt{
+    caption: NAIImgConfigV4Caption,
+    use_coords: boolean,
+    use_order: boolean
+}
+//add 4
+interface NAIImgConfigV4NegativePrompt{
+    caption: NAIImgConfigV4Caption,
+    legacy_uc: boolean
+}
+//add 4
+interface NAIImgConfigV4Caption{
+    base_caption: string,
+    char_captions: NAIImgConfigV4CharCaption[]
+}
+//add 4
+interface NAIImgConfigV4CharCaption{
+    char_caption: string,
+    centers:
+        {
+            x: number,
+            y: number
+        }[]
 }
 
 interface ComfyConfig{

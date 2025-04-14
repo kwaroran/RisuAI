@@ -35,7 +35,25 @@
             image: '',
             InfoExtracted: 0.5,
             RefStrength: 0.5,
-            refimage: ''
+            refimage: '',
+            autoSmea:false,
+            legacy_uc:false,
+            use_coords:false,
+            v4_prompt:{
+                caption:{
+                    base_caption:'',
+                    char_captions:[]
+                },
+                use_coords:false,
+                use_order:true
+            },
+            v4_negative_prompt:{
+                caption:{
+                    base_caption:'',
+                    char_captions:[]
+                },
+                legacy_uc:false,
+            }
         }
         if (DBState.db.NAIImgConfig.sampler === 'ddim_v3'){
             DBState.db.NAIImgConfig.sm = false
@@ -43,7 +61,7 @@
         }
     });
 
-    let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
+    let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
 
     // HypaV3
     $effect(() => {
@@ -88,6 +106,16 @@
         return parseFloat(maxMemoryRatio.toFixed(2));
     }
     // End HypaV3
+
+    let imageModel = '';
+
+    // add init NAI V4
+    // if(DBState.db.NAIImgConfig.autoSmea === undefined) DBState.db.NAIImgConfig.autoSmea = false;
+    // if(DBState.db.NAIImgConfig.use_coords === undefined) DBState.db.NAIImgConfig.use_coords = false;
+    // if(DBState.db.NAIImgConfig.v4_prompt.use_coords === undefined) DBState.db.NAIImgConfig.v4_prompt.use_coords = false;
+    // if(DBState.db.NAIImgConfig.v4_prompt.use_order === undefined) DBState.db.NAIImgConfig.v4_prompt.use_order = false;
+    // if(DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc === undefined) DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc = false;
+
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
 
@@ -168,50 +196,89 @@
                 <TextInput size="sm" marginBottom bind:value={DBState.db.sdConfig.hr_upscaler}/>
             {/if}
         {/if}
-        
+
         {#if DBState.db.sdProvider === 'novelai'}
             <span class="text-textcolor mt-2">Novel AI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="https://image.novelai.net" bind:value={DBState.db.NAIImgUrl}/>
             <span class="text-textcolor">API Key</span>
             <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={DBState.db.NAIApiKey}/>
-        
+
             <span class="text-textcolor">Model</span>
-            <TextInput size="sm" marginBottom placeholder="nai-diffusion-3" bind:value={DBState.db.NAIImgModel}/>
-        
+            <TextInput size="sm" marginBottom placeholder="nai-diffusion-4-full" bind:value={DBState.db.NAIImgModel}/>
+            <SelectInput className="mt-2 mb-4" bind:value={imageModel} onchange={(e)=>{
+                DBState.db.NAIImgModel = imageModel;
+            }}>
+                <OptionInput value="" >Choose...</OptionInput>
+                <OptionInput value="nai-diffusion-4-full" >nai-diffusion-4-full</OptionInput>
+                <OptionInput value="nai-diffusion-4-curated-preview" >nai-diffusion-4-curated-preview</OptionInput>
+                <OptionInput value="nai-diffusion-3" >nai-diffusion-3</OptionInput>
+                <OptionInput value="nai-diffusion-furry-3" >nai-diffusion-furry-3</OptionInput>
+                <OptionInput value="nai-diffusion-2" >nai-diffusion-2</OptionInput>
+
+            </SelectInput>
+
             <span class="text-textcolor">Width</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.width}/>
             <span class="text-textcolor">Height</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.height}/>
             <span class="text-textcolor">Sampler</span>
-            <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
-                <OptionInput value="k_euler" >Euler</OptionInput>
-                <OptionInput value="k_euler_ancestral" >Euler Ancestral</OptionInput>
-                <OptionInput value="k_dpmpp_2s_ancestral" >DPM++ 2S Ancestral</OptionInput>
-                <OptionInput value="k_dpmpp_2m" >DPM++ 2M</OptionInput>
-                <OptionInput value="k_dpmpp_sde" >DPM++ SDE</OptionInput>
-                <OptionInput value="k_dpmpp_2s" >DPM++ 2S</OptionInput>
-                <OptionInput value="ddim_v3" >DDIM</OptionInput>
-            </SelectInput>
+
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
+                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
+                    <OptionInput value="k_euler_ancestral" >(Recommended)Euler Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2s_ancestral" >(Recommended)DPM++ 2S Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2m_sde" >(Recommended)DPM++ 2M SDE</OptionInput>
+                    <OptionInput value="k_euler" >(Other)Euler</OptionInput>
+                    <OptionInput value="k_dpmpp_2m" >(Other)DPM++ 2M</OptionInput>
+                    <OptionInput value="k_dpmpp_sde" >(Other)DPM++ SDE</OptionInput>
+                </SelectInput>
+            {:else}
+                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
+                    <OptionInput value="k_euler" >Euler</OptionInput>
+                    <OptionInput value="k_euler_ancestral" >Euler Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2s_ancestral" >DPM++ 2S Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2m" >DPM++ 2M</OptionInput>
+                    <OptionInput value="k_dpmpp_sde" >DPM++ SDE</OptionInput>
+                    <OptionInput value="k_dpmpp_2s" >DPM++ 2S</OptionInput>
+                    <OptionInput value="ddim_v3" >DDIM</OptionInput>
+                </SelectInput>
+            {/if}
+
             <span class="text-textcolor">steps</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.steps}/>
             <span class="text-textcolor">CFG scale</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.scale}/>
-        
+
             {#if !DBState.db.NAII2I || DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm} name="Use SMEA"/>
+            {:else if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm_dyn} name='Use DYN'/>
             {/if}
             <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
-        
+
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
+                <Check bind:check={DBState.db.NAIImgConfig.autoSmea} name='Auto Smea'/>
+                <Check bind:check={DBState.db.NAIImgConfig.use_coords} name='Use coords'/>
+                <Check bind:check={DBState.db.NAIImgConfig.legacy_uc} name='Use legacy uc'/>
+
+                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_coords} name='Use v4 prompt coords'/>
+                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_order} name='Use v4 prompt order'/>
+
+                <Check bind:check={DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc} name='Use v4 negative prompt legacy uc'/>
+            {/if}
+
             {#if DBState.db.NAII2I}
-        
+
                 <span class="text-textcolor mt-4">Strength</span>
                 <SliderInput min={0} max={0.99} step={0.01} bind:value={DBState.db.NAIImgConfig.strength}/>
                 <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.strength}</span>
                 <span class="text-textcolor">Noise</span>
                 <SliderInput min={0} max={0.99} step={0.01} bind:value={DBState.db.NAIImgConfig.noise}/>
                 <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.noise}</span>
-        
+
                 <span class="text-textcolor">Base image</span>
                 <button onclick={async () => {
                     const img = await selectSingleFile([
@@ -231,12 +298,12 @@
                     {:else}
                         {#await getCharImage(DBState.db.NAIImgConfig.image, 'css')}
                             <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
-                        {:then im} 
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
+                        {:then im}
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>
                         {/await}
                     {/if}
                 </button>
-        
+
             {/if}
 
             <Check bind:check={DBState.db.NAIREF} name="Enable Reference" className="mt-4"/>
@@ -273,8 +340,8 @@
                     {:else}
                         {#await getCharImage(DBState.db.NAIImgConfig.refimage, 'css')}
                             <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
-                        {:then im} 
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>                
+                        {:then im}
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>
                         {/await}
                     {/if}
                 </button>
