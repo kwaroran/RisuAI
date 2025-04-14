@@ -45,6 +45,16 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
           return node.parentNode.removeChild(node);
        }
     }
+    if(data.tagName === 'img'){
+        const loading = node.getAttribute("loading")
+        if(!loading){
+            node.setAttribute("loading","lazy")
+        }
+        const decoding = node.getAttribute("decoding")
+        if(!decoding){
+            node.setAttribute("decoding", "async")
+        }
+    }
 });
 
 DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
