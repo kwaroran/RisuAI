@@ -1022,6 +1022,7 @@ export interface Database{
         flags: LLMFlags[]
     }[]
     igpPrompt:string
+    useTokenizerCaching:boolean
 }
 
 interface SeparateParameters{

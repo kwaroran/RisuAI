@@ -47,18 +47,21 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
     const modelInfo = getModelInfo(db.aiModel);
     const pluginTokenizer = pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer ?? "none";
 
-    const cacheKey = getHash(
-        data,
-        db.aiModel,
-        db.customTokenizer,
-        db.currentPluginProvider,
-        db.googleClaudeTokenizing,
-        modelInfo,
-        pluginTokenizer
-    );
-    const cachedResult = encodeCache.get(cacheKey);
-    if (cachedResult !== undefined) {
-        return cachedResult;
+    let cacheKey = ''
+    if(db.useTokenizerCaching){
+        cacheKey = getHash(
+            data,
+            db.aiModel,
+            db.customTokenizer,
+            db.currentPluginProvider,
+            db.googleClaudeTokenizing,
+            modelInfo,
+            pluginTokenizer
+        );
+        const cachedResult = encodeCache.get(cacheKey);
+        if (cachedResult !== undefined) {
+            return cachedResult;
+        }
     }
 
     let result: number[] | Uint32Array | Int32Array;
@@ -142,7 +145,10 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
     } else {
         result = await tikJS(data);
     }
-    encodeCache.set(cacheKey, result);
+
+    if(db.useTokenizerCaching){
+        encodeCache.set(cacheKey, result);
+    }
 
     return result;
 }

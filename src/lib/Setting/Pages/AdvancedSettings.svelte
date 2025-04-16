@@ -207,6 +207,10 @@
     <Check bind:check={DBState.db.antiServerOverloads} name={language.antiServerOverload}>
     </Check>
 </div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.useTokenizerCaching} name={language.useTokenizerCaching}>
+    </Check>
+</div>
 {#if DBState.db.useExperimental}
     <div class="flex items-center mt-4">
         <Check bind:check={DBState.db.useExperimentalGoogleTranslator} name={"New Google Translate Experimental"}>
