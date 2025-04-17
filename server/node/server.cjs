@@ -11,8 +11,7 @@ app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
 const {pipeline} = require('stream/promises')
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
-const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz'; 
-const fetch = require('node-fetch');
+const hubURL = 'https://sv.risuai.xyz'; 
 
 let password = ''
 
@@ -31,12 +30,17 @@ function isHex(str) {
 }
 
 app.get('/', async (req, res, next) => {
-    console.log("[Server] Connected")
+
+    const clientIP = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'Unknown IP';
+    const timestamp = new Date().toISOString();
+    console.log(`[Server] ${timestamp} | Connection from: ${clientIP}`);
+    
     try {
         const mainIndex = await fs.readFile(path.join(process.cwd(), 'dist', 'index.html'))
         const root = htmlparser.parse(mainIndex)
         const head = root.querySelector('head')
         head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
+        
         res.send(root.toString())
     } catch (error) {
         console.log(error)
@@ -139,116 +143,49 @@ const reverseProxyFunc_get = async (req, res, next) => {
     }
 }
 
-// Risu Realm Proxy
-async function hubProxyHandler(req, res, next) {
+async function hubProxyFunc(req, res) {
+
     try {
-        // Extract request path and query parameters
         const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
-        const externalURL = EXTERNAL_HUB_URL + pathAndQuery;
-
-        console.log(`[Hub Proxy] Forwarding ${req.method} request to: ${externalURL}`);
-
-        // Prepare headers to send to the realm server (including Accept-Encoding modification)
+        const externalURL = hubURL + pathAndQuery;
+        
         const headersToSend = { ...req.headers };
-        delete headersToSend['host'];
-        delete headersToSend['connection'];
-        headersToSend['accept-encoding'] = 'gzip, deflate'; // Exclude zstd, etc.
-        if (!headersToSend['x-forwarded-for']) {
-            headersToSend['x-forwarded-for'] = req.ip;
-        }
-
-        // Execute the fetch request to the realm server
-        const response = await fetch(externalURL, {
+        delete headersToSend.host;
+        delete headersToSend.connection;
+        
+        const proxyReq = new Request(externalURL, {
             method: req.method,
             headers: headersToSend,
-            body: (req.method !== 'GET' && req.method !== 'HEAD') ? req.body : undefined,
+            body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
+            duplex: 'half'
         });
-
-        console.log(`[Hub Proxy] Received status ${response.status} from external server`);
-
-        // Handle the realm server response
-        // Clean up response headers and extract Content-Type
-        const responseHeaders = {};
-        // Check the Content-Type of the realm server response (use default if missing)
-        let contentType = response.headers.get('content-type') || 'application/octet-stream';
-
-        response.headers.forEach((value, key) => {
-            const lowerKey = key.toLowerCase();
-            // List of headers not to be forwarded to the client
-            const excludedHeaders = [
-                'transfer-encoding', 'connection', 'content-encoding',
-                'access-control-allow-origin', 'access-control-allow-methods',
-                'access-control-allow-headers', 'content-security-policy',
-                'content-security-policy-report-only', 'clear-site-data',
-                'strict-transport-security', 'expect-ct',
-                'cf-ray', 'cf-cache-status', 'report-to', 'nel', 'server', 'server-timing', 'alt-svc'
-            ];
-            if (!excludedHeaders.includes(lowerKey)) {
-                responseHeaders[key] = value;
-            }
-        });
-
-        // Set the status code and cleaned headers for the client
-        res.status(response.status).set(responseHeaders);
-
-        // Determine body processing method based on Content-Type
-        try {
-            if (contentType.startsWith('application/json')) {
-                // JSON response: read as text and send
-                const bodyText = await response.text();
-                console.log(`[Hub Proxy] Processing JSON response (size: ${bodyText.length})`);
-                res.setHeader('Content-Type', contentType); // Set the final Content-Type
-                res.send(bodyText);
-
-            } else if (contentType.startsWith('image/')) {
-                // Image response: read as buffer and send
-                const bodyBuffer = await response.buffer(); // Assuming 'fetch' response object has a .buffer() method or similar
-                console.log(`[Hub Proxy] Processing Image response (type: ${contentType}, size: ${bodyBuffer.length} bytes)`);
-                res.setHeader('Content-Type', contentType); // Set the final Content-Type
-                res.send(bodyBuffer);
-
-            } else {
-                // Other responses (HTML, other text, unknown binary, etc.): read as buffer and send safely
-                const bodyBuffer = await response.buffer(); // Assuming 'fetch' response object has a .buffer() method or similar
-                console.log(`[Hub Proxy] Processing Other response as buffer (type: ${contentType}, size: ${bodyBuffer.length} bytes)`);
-                // Use original Content-Type if available, otherwise use octet-stream (already handled by default assignment)
-                res.setHeader('Content-Type', contentType);
-                res.send(bodyBuffer);
-            }
-        } catch (bodyError) {
-            // If an error occurs while reading/processing the response body
-            console.error("[Hub Proxy] Error reading/processing response body:", bodyError);
-            if (!res.headersSent) {
-                res.status(500).send({ error: 'Failed to process response body from hub server.' });
-            } else {
-                console.error("[Hub Proxy] Headers already sent, cannot send body error to client.");
-                res.end();
-            }
-            return; // End the handler
+        
+        const response = await fetch(proxyReq);
+        
+        for (const [key, value] of response.headers.entries()) {
+            res.setHeader(key, value);
         }
-
+        res.status(response.status);
+        
+        await pipeline(response.body, res);
+        
     } catch (error) {
-        // Fetch request itself failed or other exceptions
-        console.error("[Hub Proxy] Request failed:", error);
+        console.error("[Hub Proxy] Error:", error);
         if (!res.headersSent) {
-            res.status(502).send({ error: 'Proxy failed to connect to or get response from the hub server.' });
+            res.status(502).send({ error: 'Proxy request failed' });
         } else {
-            console.error("[Hub Proxy] Headers already sent, cannot send connection error to client.");
             res.end();
         }
     }
 }
 
-app.get('/hub-proxy/*', hubProxyHandler);
-app.post('/hub-proxy/*', hubProxyHandler);
-app.put('/hub-proxy/*', hubProxyHandler);
-
 app.get('/proxy', reverseProxyFunc_get);
 app.get('/proxy2', reverseProxyFunc_get);
+app.get('/hub-proxy/*', hubProxyFunc);
 
 app.post('/proxy', reverseProxyFunc);
 app.post('/proxy2', reverseProxyFunc);
-
+app.post('/hub-proxy/*', hubProxyFunc);
 
 app.get('/api/password', async(req, res)=> {
     if(password === ''){
@@ -407,9 +344,6 @@ async function getHttpsOptions() {
 
     const keyPath = path.join(sslPath, 'server.key');
     const certPath = path.join(sslPath, 'server.crt');
-
-    console.log(keyPath)
-    console.log(certPath)
 
     try {
  
