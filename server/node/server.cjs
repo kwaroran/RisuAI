@@ -153,26 +153,45 @@ async function hubProxyFunc(req, res) {
         delete headersToSend.host;
         delete headersToSend.connection;
         
-        const proxyReq = new Request(externalURL, {
+        const response = await fetch(externalURL, {
             method: req.method,
             headers: headersToSend,
             body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
-            duplex: 'half'
+            redirect: 'manual'
         });
-        
-        const response = await fetch(proxyReq);
         
         for (const [key, value] of response.headers.entries()) {
             res.setHeader(key, value);
         }
         res.status(response.status);
         
+        if (response.status >= 300 && response.status < 400) {
+            // Redirect handling (due to ‘/redirect/docs/lua’)
+            const redirectUrl = response.headers.get('location');
+            if (redirectUrl) {
+                
+                if (redirectUrl.startsWith('http')) {
+                    
+                    if (redirectUrl.startsWith(hubURL)) {
+                        const newPath = redirectUrl.replace(hubURL, '/hub-proxy');
+                        res.setHeader('location', newPath);
+                    }
+                    
+                } else if (redirectUrl.startsWith('/')) {
+                    
+                    res.setHeader('location', `/hub-proxy${redirectUrl}`);
+                }
+            }
+
+            return res.end();
+        }
+        
         await pipeline(response.body, res);
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);
         if (!res.headersSent) {
-            res.status(502).send({ error: 'Proxy request failed' });
+            res.status(502).send({ error: 'Proxy request failed: ' + error.message });
         } else {
             res.end();
         }
