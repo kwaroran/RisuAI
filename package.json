@@ -69,7 +69,6 @@
     "mnemonist": "^0.40.3",
     "mobile-drag-drop": "3.0.0-rc.0",
     "msgpackr": "1.10.1",
-    "node-fetch": "2",
     "node-html-parser": "^6.1.12",
     "ollama": "^0.5.0",
     "pdfjs-dist": "^4.0.379",
