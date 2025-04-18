@@ -157,7 +157,8 @@ async function hubProxyFunc(req, res) {
             method: req.method,
             headers: headersToSend,
             body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
-            redirect: 'manual'
+            redirect: 'manual',
+            duplex: 'half'
         });
         
         for (const [key, value] of response.headers.entries()) {
