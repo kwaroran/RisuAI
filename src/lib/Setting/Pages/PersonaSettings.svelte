@@ -14,13 +14,17 @@
     import { setDatabase } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { get } from "svelte/store";
+    import { v4 } from "uuid"
 
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
+    let selectedId:string = null
     const createStb = () => {
         stb = Sortable.create(ele, {
             onStart: async () => {
+                DBState.db.personas[DBState.db.selectedPersona].id ??= v4()
+                selectedId = DBState.db.personas[DBState.db.selectedPersona].id
                 saveUserPersona()
             },
             onEnd: async () => {
@@ -39,7 +43,8 @@
                     newValue.push(DBState.db.personas[i])
                 })
                 DBState.db.personas = newValue
-                changeUserPersona(0, 'noSave')
+                const selectedPersona = DBState.db.personas.findIndex((e) => e.id === selectedId)
+                changeUserPersona(selectedPersona !== -1 ? selectedPersona : 0, 'noSave')
                 try {
                     stb.destroy()
                 } catch (error) {}
