@@ -2,6 +2,9 @@
     import { language } from "src/lang";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import LoreBookData from "src/lib/SideBars/LoreBook/LoreBookData.svelte";
+    import type { loreBook } from "src/ts/storage/database.svelte";
+    import LoreBookList from "src/lib/SideBars/LoreBook/LoreBookList.svelte";
+    import { type CCLorebook, convertExternalLorebook } from "src/ts/process/lorebook.svelte";
     import type { RisuModule } from "src/ts/process/modules";
     import { DownloadIcon, FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
@@ -9,7 +12,8 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-    import { getFileSrc, openURL, saveAsset } from "src/ts/globalApi.svelte";
+    import { getFileSrc, openURL, saveAsset, downloadFile } from "src/ts/globalApi.svelte";
+    import { alertNormal, alertError } from "src/ts/alert";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import { selectMultipleFile } from "src/ts/util";
     
@@ -54,6 +58,48 @@
             })
 
             currentModule.lorebook = currentModule.lorebook
+        }
+    }
+
+    async function exportLoreBook(){
+        try {
+            const lore = currentModule.lorebook        
+            const stringl = Buffer.from(JSON.stringify({
+                type: 'risu',
+                ver: 1,
+                data: lore
+            }), 'utf-8')
+
+            await downloadFile(`lorebook_export.json`, stringl)
+
+            alertNormal(language.successExport)
+        } catch (error) {
+            alertError(`${error}`)
+        }
+    }
+
+    async function importLoreBook(){
+        let lore = currentModule.lorebook
+        const lorebook = (await selectMultipleFile(['json', 'lorebook']))
+        if(!lorebook){
+            return
+        }
+        try {
+            for(const f of lorebook){
+                const importedlore = JSON.parse(Buffer.from(f.data).toString('utf-8'))
+                if(importedlore.type === 'risu' && importedlore.data){
+                    const datas:loreBook[] = importedlore.data
+                    for(const data of datas){
+                        lore.push(data)
+                    }
+                }
+                else if(importedlore.entries){
+                    const entries:{[key:string]:CCLorebook} = importedlore.entries
+                    lore.push(...convertExternalLorebook(entries))
+                }
+            }
+        } catch (error) {
+            alertError(`${error}`)
         }
     }
 
@@ -150,17 +196,18 @@
     <TextAreaInput bind:value={currentModule.customModuleToggle}/>
 {/if}
 {#if submenu === 1 && (Array.isArray(currentModule.lorebook))}
-    <div class="border border-selected p-2 flex flex-col rounded-md mt-2">
-        {#each currentModule.lorebook as lore, i}
-            <LoreBookData bind:value={currentModule.lorebook[i]} idx={i} onRemove={() => {
-                currentModule.lorebook.splice(i, 1)
-                currentModule.lorebook = currentModule.lorebook
-            }}/>
-        {/each}
+    <LoreBookList externalLoreBooks={currentModule.lorebook} />
+    <div class="text-textcolor2 mt-2 flex">
+        <button onclick={() => {addLorebook()}} class="hover:text-textcolor cursor-pointer ml-1">
+            <PlusIcon />
+        </button>
+        <button onclick={() => {exportLoreBook()}} class="hover:text-textcolor cursor-pointer ml-2">
+            <DownloadIcon />
+        </button>
+        <button onclick={() => {importLoreBook()}} class="hover:text-textcolor cursor-pointer ml-2">
+            <FolderUpIcon />
+        </button>
     </div>
-    <button onclick={() => {addLorebook()}} class="hover:text-textcolor cursor-pointer">
-        <PlusIcon />
-    </button>
 {/if}
 
 {#if submenu === 2 && (Array.isArray(currentModule.regex))}

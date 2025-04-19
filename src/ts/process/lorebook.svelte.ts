@@ -510,7 +510,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     }
 }
 
-interface CCLorebook{
+export interface CCLorebook{
     key:string[]
     comment:string
     content:string
