@@ -6,27 +6,9 @@ import { supportsInlayImage } from "./process/files/inlays";
 import { risuChatParser } from "./parser.svelte";
 import { tokenizeGGUFModel } from "./process/models/local";
 import { globalFetch } from "./globalApi.svelte";
-import { getModelInfo, LLMTokenizer, type LLMModel } from "./model/modellist";
+import { getModelInfo, LLMTokenizer } from "./model/modellist";
 import { pluginV2 } from "./plugins/plugins";
 import type { GemmaTokenizer } from "@huggingface/transformers";
-import { LRUMap } from 'mnemonist';
-
-const MAX_CACHE_SIZE = 1500;
-
-const encodeCache = new LRUMap<string, number[] | Uint32Array | Int32Array>(MAX_CACHE_SIZE);
-
-function getHash(
-    data: string,
-    aiModel: string,
-    customTokenizer: string,
-    currentPluginProvider: string,
-    googleClaudeTokenizing: boolean,
-    modelInfo: LLMModel,
-    pluginTokenizer: string
-): string {
-    const combined = `${data}::${aiModel}::${customTokenizer}::${currentPluginProvider}::${googleClaudeTokenizing ? '1' : '0'}::${modelInfo.tokenizer}::${pluginTokenizer}`;
-    return combined;
-}
 
 
 export const tokenizerList = [
@@ -43,114 +25,100 @@ export const tokenizerList = [
 ] as const
 
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
-    const db = getDatabase();
-    const modelInfo = getModelInfo(db.aiModel);
-    const pluginTokenizer = pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer ?? "none";
-
-    let cacheKey = ''
-    if(db.useTokenizerCaching){
-        cacheKey = getHash(
-            data,
-            db.aiModel,
-            db.customTokenizer,
-            db.currentPluginProvider,
-            db.googleClaudeTokenizing,
-            modelInfo,
-            pluginTokenizer
-        );
-        const cachedResult = encodeCache.get(cacheKey);
-        if (cachedResult !== undefined) {
-            return cachedResult;
-        }
-    }
-
-    let result: number[] | Uint32Array | Int32Array;
-
+    let db = getDatabase()
     if(db.aiModel === 'openrouter' || db.aiModel === 'reverse_proxy'){
         switch(db.customTokenizer){
             case 'mistral':
-                result = await tokenizeWebTokenizers(data, 'mistral'); break;
+                return await tokenizeWebTokenizers(data, 'mistral')
             case 'llama':
-                result = await tokenizeWebTokenizers(data, 'llama'); break;
+                return await tokenizeWebTokenizers(data, 'llama')
             case 'novelai':
-                result = await tokenizeWebTokenizers(data, 'novelai'); break;
+                return await tokenizeWebTokenizers(data, 'novelai')
             case 'claude':
-                result = await tokenizeWebTokenizers(data, 'claude'); break;
+                return await tokenizeWebTokenizers(data, 'claude')
             case 'novellist':
-                result = await tokenizeWebTokenizers(data, 'novellist'); break;
+                return await tokenizeWebTokenizers(data, 'novellist')
             case 'llama3':
-                result = await tokenizeWebTokenizers(data, 'llama'); break;
+                return await tokenizeWebTokenizers(data, 'llama')
             case 'gemma':
-                result = await gemmaTokenize(data); break;
+                return await gemmaTokenize(data)
             case 'cohere':
-                result = await tokenizeWebTokenizers(data, 'cohere'); break;
+                return await tokenizeWebTokenizers(data, 'cohere')
             case 'deepseek':
-                result = await tokenizeWebTokenizers(data, 'DeepSeek'); break;
+                return await tokenizeWebTokenizers(data, 'DeepSeek')
             default:
-                result = await tikJS(data, 'o200k_base'); break;
+                return await tikJS(data, 'o200k_base')
         }
     }
-    
-    if(db.aiModel === 'custom' && pluginTokenizer){
-        switch(pluginTokenizer){
+
+    const modelInfo = getModelInfo(db.aiModel)
+
+    if(db.aiModel === 'custom' && pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer){
+        const tokenizer = pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizer
+        switch(tokenizer){
             case 'mistral':
-                result = await tokenizeWebTokenizers(data, 'mistral'); break;
+                return await tokenizeWebTokenizers(data, 'mistral')
             case 'llama':
-                result = await tokenizeWebTokenizers(data, 'llama'); break;
+                return await tokenizeWebTokenizers(data, 'llama')
             case 'novelai':
-                result = await tokenizeWebTokenizers(data, 'novelai'); break;
+                return await tokenizeWebTokenizers(data, 'novelai')
             case 'claude':
-                result = await tokenizeWebTokenizers(data, 'claude'); break;
+                return await tokenizeWebTokenizers(data, 'claude')
             case 'novellist':
-                result = await tokenizeWebTokenizers(data, 'novellist'); break;
+                return await tokenizeWebTokenizers(data, 'novellist')
             case 'llama3':
-                result = await tokenizeWebTokenizers(data, 'llama'); break;
+                return await tokenizeWebTokenizers(data, 'llama')
             case 'gemma':
-                result = await gemmaTokenize(data); break;
+                return await gemmaTokenize(data)
             case 'cohere':
-                result = await tokenizeWebTokenizers(data, 'cohere'); break;
+                return await tokenizeWebTokenizers(data, 'cohere')
             case 'o200k_base':
-                result = await tikJS(data, 'o200k_base'); break;
+                return await tikJS(data, 'o200k_base')
             case 'cl100k_base':
-                result = await tikJS(data, 'cl100k_base'); break;
+                return await tikJS(data, 'cl100k_base')
             case 'custom':
-                result = await pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizerFunc?.(data) ?? [0]; break;
+                return await pluginV2.providerOptions.get(db.currentPluginProvider)?.tokenizerFunc?.(data) ?? [0]
             default:
-                result = await tikJS(data, 'o200k_base'); break; 
+                return await tikJS(data, 'o200k_base')
         }
-    } 
-    
+    }
+
     if(modelInfo.tokenizer === LLMTokenizer.NovelList){
-        result = await tokenizeWebTokenizers(data, 'novellist');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Claude){
-        result = await tokenizeWebTokenizers(data, 'claude');
-    } else if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
-        result = await tokenizeWebTokenizers(data, 'novelai');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Mistral){
-        result = await tokenizeWebTokenizers(data, 'mistral');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Llama){
-        result = await tokenizeWebTokenizers(data, 'llama');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Local){
-        result = await tokenizeGGUFModel(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
-        result = await tikJS(data, 'o200k_base');
-    } else if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
-        result = await tokenizeGoogleCloud(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
-        result = await gemmaTokenize(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.DeepSeek){
-        result = await tokenizeWebTokenizers(data, 'DeepSeek');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Cohere){
-        result = await tokenizeWebTokenizers(data, 'cohere');
-    } else {
-        result = await tikJS(data);
+        const nv= await tokenizeWebTokenizers(data, 'novellist')
+        return nv
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Claude){
+        return await tokenizeWebTokenizers(data, 'claude')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
+        return await tokenizeWebTokenizers(data, 'novelai')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Mistral){
+        return await tokenizeWebTokenizers(data, 'mistral')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Llama){
+        return await tokenizeWebTokenizers(data, 'llama')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Local){
+        return await tokenizeGGUFModel(data)
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
+        return await tikJS(data, 'o200k_base')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
+        return await tokenizeGoogleCloud(data)
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
+        return await gemmaTokenize(data)
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.DeepSeek){
+        return await tokenizeWebTokenizers(data, 'DeepSeek')
+    }
+    if(modelInfo.tokenizer === LLMTokenizer.Cohere){
+        return await tokenizeWebTokenizers(data, 'cohere')
     }
 
-    if(db.useTokenizerCaching){
-        encodeCache.set(cacheKey, result);
-    }
-
-    return result;
+    return await tikJS(data)
 }
 
 type tokenizerType = 'novellist'|'claude'|'novelai'|'llama'|'mistral'|'llama3'|'gemma'|'cohere'|'googleCloud'|'DeepSeek'
