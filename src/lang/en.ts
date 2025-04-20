@@ -1052,6 +1052,7 @@ export const languageEnglish = {
         nextSummarizationLabel: "HypaV3 will summarize [{0}]",
         nextSummarizationNoMessagesFoundLabel: "WARN: No messages found",
         nextSummarizationLoadingError: "Error loading next summarization target: {0}",
+        summarizationConditionLabel: "Tip: HypaV3 begins summarization when input tokens exceed the maximum context size.",
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
     },
     bulkEnabling: "Lorebook Bulk Enabling",
@@ -1115,5 +1116,8 @@ export const languageEnglish = {
     fallbackWhenBlankResponse: "Fallback When Blank Response",
     doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
     customModels: "Custom Models",
-    igpPrompt: "IGP Prompt"
+    igpPrompt: "IGP Prompt",
+    hypaMemoryV2Modal: "Hypa V2 Modal",
+    hypaMemoryV3Modal: "Hypa V3 Modal",
+    showMenuHypaMemoryModal: "Show Menu Hypa Modal",
 }
