@@ -89,9 +89,7 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
             default:
                 result = await tikJS(data, 'o200k_base'); break;
         }
-    }
-    
-    if(db.aiModel === 'custom' && pluginTokenizer){
+    } else if (db.aiModel === 'custom' && pluginTokenizer) {
         switch(pluginTokenizer){
             case 'mistral':
                 result = await tokenizeWebTokenizers(data, 'mistral'); break;
@@ -120,32 +118,34 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
         }
     } 
     
-    if(modelInfo.tokenizer === LLMTokenizer.NovelList){
-        result = await tokenizeWebTokenizers(data, 'novellist');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Claude){
-        result = await tokenizeWebTokenizers(data, 'claude');
-    } else if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
-        result = await tokenizeWebTokenizers(data, 'novelai');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Mistral){
-        result = await tokenizeWebTokenizers(data, 'mistral');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Llama){
-        result = await tokenizeWebTokenizers(data, 'llama');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Local){
-        result = await tokenizeGGUFModel(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
-        result = await tikJS(data, 'o200k_base');
-    } else if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
-        result = await tokenizeGoogleCloud(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
-        result = await gemmaTokenize(data);
-    } else if(modelInfo.tokenizer === LLMTokenizer.DeepSeek){
-        result = await tokenizeWebTokenizers(data, 'DeepSeek');
-    } else if(modelInfo.tokenizer === LLMTokenizer.Cohere){
-        result = await tokenizeWebTokenizers(data, 'cohere');
-    } else {
-        result = await tikJS(data);
+    // Fallback
+    if (result === undefined) {
+        if(modelInfo.tokenizer === LLMTokenizer.NovelList){
+            result = await tokenizeWebTokenizers(data, 'novellist');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Claude){
+            result = await tokenizeWebTokenizers(data, 'claude');
+        } else if(modelInfo.tokenizer === LLMTokenizer.NovelAI){
+            result = await tokenizeWebTokenizers(data, 'novelai');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Mistral){
+            result = await tokenizeWebTokenizers(data, 'mistral');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Llama){
+            result = await tokenizeWebTokenizers(data, 'llama');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Local){
+            result = await tokenizeGGUFModel(data);
+        } else if(modelInfo.tokenizer === LLMTokenizer.tiktokenO200Base){
+            result = await tikJS(data, 'o200k_base');
+        } else if(modelInfo.tokenizer === LLMTokenizer.GoogleCloud && db.googleClaudeTokenizing){
+            result = await tokenizeGoogleCloud(data);
+        } else if(modelInfo.tokenizer === LLMTokenizer.Gemma || modelInfo.tokenizer === LLMTokenizer.GoogleCloud){
+            result = await gemmaTokenize(data);
+        } else if(modelInfo.tokenizer === LLMTokenizer.DeepSeek){
+            result = await tokenizeWebTokenizers(data, 'DeepSeek');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Cohere){
+            result = await tokenizeWebTokenizers(data, 'cohere');
+        } else {
+            result = await tikJS(data);
+        }
     }
-
     if(db.useTokenizerCaching){
         encodeCache.set(cacheKey, result);
     }
