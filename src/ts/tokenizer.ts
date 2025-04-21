@@ -209,6 +209,7 @@ async function gemmaTokenize(text:string) {
 
 async function tikJS(text:string, model='cl100k_base') {
     if(!tikParser || lastTikModel !== model){
+        tikParser?.free()
         if(model === 'cl100k_base'){
             const {Tiktoken} = await import('@dqbd/tiktoken')
             const cl100k_base = await import("@dqbd/tiktoken/encoders/cl100k_base.json");
