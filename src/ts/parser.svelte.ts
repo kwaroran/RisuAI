@@ -650,6 +650,11 @@ function decodeStyleRule(rule:CssAtRuleAST){
             rule.rules[i] = decodeStyleRule(rule.rules[i])
         }
     }
+    if(rule.type === 'import'){
+       if(rule.import.startsWith('data:')){
+            rule.import = 'data:,'
+       }
+    }
     return rule
 }
 

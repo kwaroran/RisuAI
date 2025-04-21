@@ -1117,6 +1117,7 @@ export const languageEnglish = {
     doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
     customModels: "Custom Models",
     igpPrompt: "IGP Prompt",
+    useTokenizerCaching: "Tokenizer Caching",
     hypaMemoryV2Modal: "Hypa V2 Modal",
     hypaMemoryV3Modal: "Hypa V3 Modal",
     showMenuHypaMemoryModal: "Show Menu Hypa Modal",
