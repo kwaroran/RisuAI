@@ -59,9 +59,15 @@ export interface OpenAIChatFull extends OpenAIChat{
     }
 }
 
+export interface requestTokenPart{
+    name:string
+    tokens:number
+}
+
 export const doingChat = writable(false)
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
+export let requestTokenParts:{[key:string]:requestTokenPart[]} = {}
 export let previewFormated:OpenAIChat[] = []
 export let previewBody:string = ''
 

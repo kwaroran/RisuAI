@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "158.2.1"
+export let appVer = "159.0.0"
 export let webAppSubVer = ''
 
 
@@ -1022,6 +1022,7 @@ export interface Database{
         flags: LLMFlags[]
     }[]
     igpPrompt:string
+    useTokenizerCaching:boolean
 }
 
 interface SeparateParameters{

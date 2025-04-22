@@ -1115,5 +1115,6 @@ export const languageEnglish = {
     fallbackWhenBlankResponse: "Fallback When Blank Response",
     doNotChangeFallbackModels: "Do Not Change Fallback Models on Preset Change",
     customModels: "Custom Models",
-    igpPrompt: "IGP Prompt"
+    igpPrompt: "IGP Prompt",
+    useTokenizerCaching: "Tokenizer Caching"
 }
