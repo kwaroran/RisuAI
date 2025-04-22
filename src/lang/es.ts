@@ -709,6 +709,7 @@ export const languageSpanish = {
         "noSummariesLabel": "Aún no hay resúmenes",
         "searchPlaceholder": "Ingrese #N, ID o búsqueda",
         "summaryNumberLabel": "Resumen #{0}",
+        "deleteThisConfirmMessage": "¿Eliminar este resumen?",
         "deleteAfterConfirmMessage": "¿Eliminar todos los resúmenes después de este?",
         "deleteAfterConfirmSecondMessage": "Esta acción no se puede deshacer. ¿Está realmente seguro?",
         "translationLabel": "Traducción",

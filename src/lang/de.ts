@@ -464,6 +464,7 @@ export const languageGerman = {
         "noSummariesLabel": "Noch keine Zusammenfassungen",
         "searchPlaceholder": "Geben Sie #N, ID oder Suchanfrage ein",
         "summaryNumberLabel": "Zusammenfassung #{0}",
+        "deleteThisConfirmMessage": "Diese Zusammenfassung löschen?",
         "deleteAfterConfirmMessage": "Alle Zusammenfassungen nach dieser löschen?",
         "deleteAfterConfirmSecondMessage": "Diese Aktion kann nicht rückgängig gemacht werden. Sind Sie wirklich sicher?",
         "translationLabel": "Übersetzung",
