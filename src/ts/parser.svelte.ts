@@ -1239,6 +1239,11 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             case 'screen_height':{
                 return get(SizeStore).h.toString()
             }
+            case 'cbr':
+            case 'cnl':
+            case 'cnewline':{
+                return '\\n'
+            }
         }
         const arra = p1.split("::")
         if(arra.length > 1){
@@ -1688,7 +1693,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'cbr':
                 case 'cnl':
                 case 'cnewline':{
-                    return '\\n'
+                    return '\\n'.repeat(Number(arra[1]))
                 }
             }
         }
