@@ -2124,7 +2124,7 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                 }
-                if(dat.startsWith('/')){
+                if(dat.startsWith('/') && !dat.startsWith('//')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
                         if( blockType.type === 'ignore' || blockType.type === 'pure' ||
