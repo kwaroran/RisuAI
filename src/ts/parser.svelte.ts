@@ -1877,7 +1877,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1923,6 +1923,10 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1 === '#pure_display' || p1 === '#puredisplay'){
         return {type:'pure-display'}
     }
+    if(p1 === '#code'){
+        return {type:'normalize'}
+
+    }
     if(p1.startsWith('#each')){
         let t2 = p1.substring(5).trim()
         if(t2.startsWith('as ')){
@@ -1962,6 +1966,31 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
         }
         case 'parse-pure':{
             return p1
+        }
+        case 'normalize':{
+            return p1Trimed.trim().replaceAll('\n','').replaceAll('\t','')
+            .replaceAll(/\\(.)/g, (match, p1) => {
+                switch(p1){
+                    case 'n':
+                        return '\n'
+                    case 'r':
+                        return '\r'
+                    case 't':
+                        return '\t'
+                    case 'b':
+                        return '\b'
+                    case 'f':
+                        return '\f'
+                    case 'v':
+                        return '\v'
+                    case 'a':
+                        return '\a'
+                    case 'x':
+                        return '\x00'
+                    default:
+                        return p1
+                }
+            })
         }
         default:{
             return ''
