@@ -1695,6 +1695,19 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'cnewline':{
                     return '\\n'.repeat(Number(arra[1]))
                 }
+                case 'dice':{
+                    const notation = arra[1].split('d')
+                    const num = Number(notation[0])
+                    const sides = Number(notation[1])
+                    if(isNaN(num) || isNaN(sides)){
+                        return 'NaN'
+                    }
+                    let total = 0
+                    for(let i = 0; i < num; i++){
+                        total += Math.floor(Math.random() * sides) + 1
+                    }
+                    return total.toString()
+                }
             }
         }
         if(p1.startsWith('random')){
