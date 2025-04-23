@@ -1969,6 +1969,9 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
         }
         case 'normalize':{
             return p1Trimed.trim().replaceAll('\n','').replaceAll('\t','')
+            .replaceAll(/\\u([0-9A-Fa-f]{4})/g, (match, p1) => {
+                return String.fromCharCode(parseInt(p1, 16))
+            })
             .replaceAll(/\\(.)/g, (match, p1) => {
                 switch(p1){
                     case 'n':
