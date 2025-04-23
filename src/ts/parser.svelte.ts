@@ -1677,6 +1677,19 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'hash':{
                     return ((pickHashRand(0, arra[1]) * 10000000) + 1).toFixed(0).padStart(7, '0')
                 }
+                case 'randint':{
+                    const min = Number(arra[1])
+                    const max = Number(arra[2])
+                    if(isNaN(min) || isNaN(max)){
+                        return 'NaN'
+                    }
+                    return (Math.floor(Math.random() * (max - min + 1)) + min).toString()
+                }
+                case 'cbr':
+                case 'cnl':
+                case 'cnewline':{
+                    return '\\n'
+                }
             }
         }
         if(p1.startsWith('random')){
