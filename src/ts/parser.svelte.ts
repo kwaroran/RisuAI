@@ -1239,6 +1239,11 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             case 'screen_height':{
                 return get(SizeStore).h.toString()
             }
+            case 'cbr':
+            case 'cnl':
+            case 'cnewline':{
+                return '\\n'
+            }
         }
         const arra = p1.split("::")
         if(arra.length > 1){
@@ -1677,6 +1682,32 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'hash':{
                     return ((pickHashRand(0, arra[1]) * 10000000) + 1).toFixed(0).padStart(7, '0')
                 }
+                case 'randint':{
+                    const min = Number(arra[1])
+                    const max = Number(arra[2])
+                    if(isNaN(min) || isNaN(max)){
+                        return 'NaN'
+                    }
+                    return (Math.floor(Math.random() * (max - min + 1)) + min).toString()
+                }
+                case 'cbr':
+                case 'cnl':
+                case 'cnewline':{
+                    return '\\n'.repeat(Number(arra[1]))
+                }
+                case 'dice':{
+                    const notation = arra[1].split('d')
+                    const num = Number(notation[0])
+                    const sides = Number(notation[1])
+                    if(isNaN(num) || isNaN(sides)){
+                        return 'NaN'
+                    }
+                    let total = 0
+                    for(let i = 0; i < num; i++){
+                        total += Math.floor(Math.random() * sides) + 1
+                    }
+                    return total.toString()
+                }
             }
         }
         if(p1.startsWith('random')){
@@ -1877,7 +1908,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1923,6 +1954,10 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     if(p1 === '#pure_display' || p1 === '#puredisplay'){
         return {type:'pure-display'}
     }
+    if(p1 === '#code'){
+        return {type:'normalize'}
+
+    }
     if(p1.startsWith('#each')){
         let t2 = p1.substring(5).trim()
         if(t2.startsWith('as ')){
@@ -1962,6 +1997,34 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
         }
         case 'parse-pure':{
             return p1
+        }
+        case 'normalize':{
+            return p1Trimed.trim().replaceAll('\n','').replaceAll('\t','')
+            .replaceAll(/\\u([0-9A-Fa-f]{4})/g, (match, p1) => {
+                return String.fromCharCode(parseInt(p1, 16))
+            })
+            .replaceAll(/\\(.)/g, (match, p1) => {
+                switch(p1){
+                    case 'n':
+                        return '\n'
+                    case 'r':
+                        return '\r'
+                    case 't':
+                        return '\t'
+                    case 'b':
+                        return '\b'
+                    case 'f':
+                        return '\f'
+                    case 'v':
+                        return '\v'
+                    case 'a':
+                        return '\a'
+                    case 'x':
+                        return '\x00'
+                    default:
+                        return p1
+                }
+            })
         }
         default:{
             return ''
@@ -2124,7 +2187,7 @@ export function risuChatParser(da:string, arg:{
                         break
                     }
                 }
-                if(dat.startsWith('/')){
+                if(dat.startsWith('/') && !dat.startsWith('//')){
                     if(stackType[nested.length] === 5){
                         const blockType = blockNestType.get(nested.length)
                         if( blockType.type === 'ignore' || blockType.type === 'pure' ||

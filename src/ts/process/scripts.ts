@@ -74,9 +74,7 @@ function generateScriptCacheKey(scripts: customscript[], data: string, mode: Scr
         if(script.type !== mode){
             continue
         }
-        hash += `${script.flag?.includes('<cbs>') ? 
-            risuChatParser(script.in, { chatID: chatID, cbsConditions }) : 
-            script.in}|||${risuChatParser(script.out, { chatID: chatID, cbsConditions})}|||${script.flag ?? ''}|||${script.ableFlag ? 1 : 0}`;
+        hash += `${script.flag?.includes('<cbs>') ? risuChatParser(script.in, { chatID: chatID, cbsConditions }) : script.in}|||${script.out}${chatID}|||${script.flag ?? ''}|||${script.ableFlag ? 1 : 0}`;
     }
     return hash;
 }
