@@ -86,6 +86,9 @@
 <span class="text-textcolor">Kei Server URL</span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.keiServerURL} placeholder="Leave it blank to use default"/>
 
+<span class="text-textcolor">Asset Server URL <Help key="assetServerURL"/></span>
+<TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.assetServerURL} placeholder="Leave it blank to not use"/>
+
 <span class="text-textcolor">{language.presetChain} <Help key="presetChain"/></span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.presetChain} placeholder="Leave it blank to not use">
 </TextInput>

@@ -352,8 +352,8 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
 
-    data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
-        name = name.toLocaleLowerCase()
+    data = await replaceAsync(data, assetRegex, async (full:string, type:string, rawName:string) => {
+        const name = rawName.toLocaleLowerCase()
         const moduleAssets = getModuleAssets()
         if (char.additionalAssets) {
             await getAssetSrc(char.additionalAssets, name, assetPaths)
@@ -401,6 +401,12 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         if(path.path.length > 1){
             p = path.path[Math.floor(arg.ch % p.length)]
         }
+
+        if(DBState.db.assetServerURL){
+            const trimedUrl = encodeURI(DBState.db.assetServerURL.replace(/\/+$/, ''))
+            p = `${trimedUrl}/${rawName}${path.ext ? `.${path.ext}` : ''}`
+        }
+
         switch(type){
             case 'raw':
             case 'path':
