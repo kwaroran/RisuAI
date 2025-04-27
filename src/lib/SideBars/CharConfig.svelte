@@ -1103,7 +1103,7 @@
             >
                 {language.hypaMemoryV2Modal}
             </Button>
-        {:else if DBState.db.supaModelType !== 'none' && DBState.db.hypaV3}
+        {:else if DBState.db.hypaV3}
             <Button
                 onclick={() => {
                     showHypaV3Alert()
