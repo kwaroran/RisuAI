@@ -132,7 +132,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 "parameters": {
                     "params_version": 3,
                     "add_original_image": true,
-                    "cfg_rescale": 0,
+                    "cfg_rescale": db.NAIImgConfig.cfg_rescale,
                     "controlnet_strength": 1,
                     "dynamic_thresholding": false,
                     "n_samples": 1,
@@ -145,7 +145,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "sm": false,
                     "sm_dyn": false,
                     "noise": db.NAIImgConfig.noise,
-                    "noise_schedule": "native",
+                    "noise_schedule": db.NAIImgConfig.noise_schedule,
                     "strength": db.NAIImgConfig.strength,
                     "ucPreset": 3,
                     "uncond_scale": 1,
