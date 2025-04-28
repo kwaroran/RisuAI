@@ -1708,6 +1708,12 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     }
                     return total.toString()
                 }
+                case 'fromhex':{
+                    return Number.parseInt(arra[1], 16).toString()
+                }
+                case 'tohex':{
+                    return Number.parseInt(arra[1]).toString(16)
+                }
             }
         }
         if(p1.startsWith('random')){
