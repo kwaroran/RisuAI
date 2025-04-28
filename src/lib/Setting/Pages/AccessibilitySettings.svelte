@@ -44,6 +44,10 @@
 </div>
 
 <div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.showMenuHypaMemoryModal} name={language.showMenuHypaMemoryModal}/>
+</div>
+
+<div class="flex items-center mt-2">
     <Check bind:check={DBState.db.goCharacterOnImport} name={language.goCharacterOnImport}/>
 </div>
 

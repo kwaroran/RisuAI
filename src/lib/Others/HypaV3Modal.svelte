@@ -91,6 +91,15 @@
   let showImportantOnly = $state(false);
 
   $effect.pre(() => {
+    untrack(() => {
+      DBState.db.characters[$selectedCharID].chats[
+        DBState.db.characters[$selectedCharID].chatPage
+      ].hypaV3Data ??= {
+        summaries: [],
+        lastSelectedSummaries: [],
+      };
+    });
+
     summaryUIStates = hypaV3DataState.summaries.map((summary) => ({
       originalRef: null,
       isTranslating: false,
@@ -1359,14 +1368,18 @@
           {/await}
         </div>
 
-        <!-- No First Message -->
-        {#if !getFirstMessage()}
-          <div class="mt-2 sm:mt-4">
+        <div class="mt-2 sm:mt-4">
+          <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
+            {language.hypaV3Modal.summarizationConditionLabel}
+          </div>
+
+          <!-- No First Message -->
+          {#if !getFirstMessage()}
             <span class="text-sm text-red-400"
               >{language.hypaV3Modal.emptySelectedFirstMessageLabel}</span
             >
-          </div>
-        {/if}
+          {/if}
+        </div>
       </div>
     </div>
   </div>

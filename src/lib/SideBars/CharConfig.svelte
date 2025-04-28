@@ -1101,20 +1101,16 @@
                 }}
                 className="mt-4"
             >
-                {language.HypaMemory} V2 Data
+                {language.hypaMemoryV2Modal}
             </Button>
         {:else if DBState.db.supaModelType !== 'none' && DBState.db.hypaV3}
             <Button
                 onclick={() => {
-                    DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV3Data ??= {
-                        summaries: [],
-                        lastSelectedSummaries: [],
-                    }
                     showHypaV3Alert()
                 }}
                 className="mt-4"
             >
-                {language.HypaMemory} V3 Data
+                {language.hypaMemoryV3Modal}
             </Button>
         {:else if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].supaMemoryData.length > 4 || DBState.db.characters[$selectedCharID].supaMemory}
             <span class="text-textcolor mt-4">{language.SuperMemory}</span>
