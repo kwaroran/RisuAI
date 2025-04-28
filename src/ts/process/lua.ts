@@ -13,6 +13,7 @@ import { v4 } from "uuid";
 import { getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
+import { fetchNative } from "../globalApi.svelte";
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -217,10 +218,10 @@ export async function runLua(code:string, arg:{
                     lastRequestResetTime = Date.now()
                 }
                 
-                if(lastRequestsCount > 8){
+                if(lastRequestsCount > 5){
                     return {
                         status: 429,
-                        data: 'Too many requests. you can request 8 times per minute'
+                        data: 'Too many requests. you can request 5 times per minute'
                     }
                 }
 
@@ -236,7 +237,9 @@ export async function runLua(code:string, arg:{
                     }
 
                     //browser fetch
-                    const d = await fetch(url)
+                    const d = await fetchNative(url, {
+                        method: "GET"
+                    })
                     const text = await d.text()
                     return {
                         status: d.status,
