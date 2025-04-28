@@ -1023,6 +1023,7 @@ export interface Database{
     }[]
     igpPrompt:string
     useTokenizerCaching:boolean
+    showMenuHypaMemoryModal:boolean
 }
 
 interface SeparateParameters{
