@@ -236,6 +236,29 @@ export async function runLua(code:string, arg:{
                         }
                     }
 
+                    if(!url.startsWith('https://')){
+                        return {
+                            status: 400,
+                            data: "Only https requests are allowed"
+                        }
+                    }
+
+                    const bannedURL = [
+                        "https://realm.risuai.net",
+                        "https://risuai.net",
+                        "https://risuai.xyz"
+                    ]
+
+                    for(const burl of bannedURL){
+
+                        if(url.startsWith(burl)){
+                            return {
+                                status: 400,
+                                data: "request to " + url + ' is not allowed'
+                            }
+                        }
+                    }
+
                     //browser fetch
                     const d = await fetchNative(url, {
                         method: "GET"
