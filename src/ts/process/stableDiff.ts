@@ -435,7 +435,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 }
                 await new Promise(r => setTimeout(r, 1000))
             } // Check history until the generation is complete.
-            const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images)[0];
+            const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images || [])[0];
 
             const imgResponse = await fetchNative(createUrl('/view', {
                 filename: genImgInfo.filename,
