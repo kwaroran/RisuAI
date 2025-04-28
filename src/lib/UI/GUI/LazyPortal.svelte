@@ -27,25 +27,23 @@
         target.appendChild(paddingEle)
 
     
-        sleep(100).then(() => {
-            const observer = new IntersectionObserver((v) => {
-                if(v[0].intersectionRatio > 0.5){
-                    seen = true
-                    target.removeChild(paddingEle)
-                    observer.disconnect()
-                }
-            }, {
-                threshold: 0.5,
-            })
-
-            observer.observe(target)
-            
-            return () => {
-                if(!seen){
-                    observer.disconnect()
-                }
+        const observer = new IntersectionObserver((v) => {
+            if(v[0].intersectionRatio > 0.5){
+                seen = true
+                target.removeChild(paddingEle)
+                observer.disconnect()
             }
+        }, {
+            threshold: 0.5,
         })
+
+        observer.observe(target)
+        
+        return () => {
+            if(!seen){
+                observer.disconnect()
+            }
+        }
     })
 
 	$effect(() => {
