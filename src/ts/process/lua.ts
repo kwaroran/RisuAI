@@ -18,6 +18,8 @@ let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
 let LuaEditDisplayIds = new Set<string>()
 let LuaLowLevelIds = new Set<string>()
+let lastRequestResetTime = 0
+let lastRequestsCount = 0
 
 interface LuaEngineState {
     code?: string;
@@ -203,6 +205,50 @@ export async function runLua(code:string, arg:{
                 const processer = new HypaProcesser()
                 await processer.addText(value)
                 return await processer.similaritySearch(source)
+            })
+
+            luaEngine.global.set('request', async (id:string, url:string) => {
+                if(!LuaLowLevelIds.has(id)){
+                    return
+                }
+
+                if(lastRequestResetTime + 60000 < Date.now()){
+                    lastRequestsCount = 0
+                    lastRequestResetTime = Date.now()
+                }
+                
+                if(lastRequestsCount > 8){
+                    return {
+                        status: 429,
+                        data: 'Too many requests. you can request 8 times per minute'
+                    }
+                }
+
+                lastRequestsCount++
+
+                try {
+                    //for security and other reasons, only get request in 120 char is allowed
+                    if(url.length > 120){
+                        return {
+                            status: 413,
+                            data: 'URL to large. max is 120 characters'
+                        }
+                    }
+
+                    //browser fetch
+                    const d = await fetch(url)
+                    const text = await d.text()
+                    return {
+                        status: d.status,
+                        data: text
+                    }
+
+                } catch (error) {
+                    return {
+                        status: 400,
+                        data: 'internal error'
+                    }
+                }
             })
 
             luaEngine.global.set('generateImage', async (id:string, value:string, negValue:string = '') => {
