@@ -850,6 +850,7 @@ export const languageChineseTraditional = {
         "nextSummarizationLabel": "HypaV3 將摘要 [{0}]",
         "nextSummarizationNoMessagesFoundLabel": "警告：找不到訊息",
         "nextSummarizationLoadingError": "載入下一個摘要目標時出錯：{0}",
+        "summarizationConditionLabel": "提示：當輸入標記超過最大上下文大小時，HypaV3 將開始進行摘要處理。",
         "emptySelectedFirstMessageLabel": "警告：選定的第一條訊息為空"
     },
 }

@@ -481,6 +481,7 @@ export const languageGerman = {
         "nextSummarizationLabel": "HypaV3 wird [{0}] zusammenfassen",
         "nextSummarizationNoMessagesFoundLabel": "WARNUNG: Keine Nachrichten gefunden",
         "nextSummarizationLoadingError": "Fehler beim Laden des nächsten Zusammenfassungsziels: {0}",
+        "summarizationConditionLabel": "Hinweis: HypaV3 beginnt mit der Zusammenfassung, wenn die Eingabe-Tokens die maximale Kontextgröße überschreiten.",
         "emptySelectedFirstMessageLabel": "WARNUNG: Ausgewählte erste Nachricht ist leer"
     },
 }

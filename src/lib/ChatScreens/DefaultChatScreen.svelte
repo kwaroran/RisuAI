@@ -2,7 +2,7 @@
 
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "lucide-svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
@@ -12,7 +12,7 @@
     import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
-    import { alertError, alertNormal, alertWait } from "../../ts/alert";
+    import { alertError, alertNormal, alertWait, showHypaV2Alert, showHypaV3Alert } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import { processScript } from "src/ts/process/scripts";
     import CreatorQuote from "./CreatorQuote.svelte";
@@ -29,11 +29,11 @@
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
     import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
+    import LazyPortal from '../UI/GUI/LazyPortal.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
     let openMenu = $state(false)
-    let loadPages = $state(30)
     let autoMode = $state(false)
     let rerolls:Message[][] = []
     let rerollid = -1
@@ -42,6 +42,23 @@
     let currentCharacter:character|groupChat = $state(DBState.db.characters[$selectedCharID])
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+    let blocks = $state(new Uint8Array(500) )//hacky hacky
+    let blockEle:HTMLElement[] = []
+    let root: HTMLElement = $state(null)
+
+    for(let i=0;i<500;i++){
+        blockEle.push(null)
+    }
+
+    $effect(() => {
+        if(blocks.length-10 < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
+            blocks = new Uint8Array(blocks.length + 500)
+            for(let i=0;i<500;i++){
+                blockEle.push(null)
+            }
+        }
+        
+    })
 
     async function send(){
         return sendMain(false)
@@ -365,7 +382,6 @@
 
     async function screenShot(){
         try {
-            loadPages = Infinity
             const html2canvas = await import('html-to-image');
             const chats = document.querySelectorAll('.default-chat-screen .risu-chat')
             alertWait("Taking screenShot...")
@@ -412,7 +428,6 @@
                 mergedCanvas.remove();
             }
             alertNormal(language.screenshotSaved)
-            loadPages = 10
         } catch (error) {
             console.error(error)
             alertError("Error while taking screenshot")
@@ -435,13 +450,7 @@
             <PlaygroundMenu />
         {/if}
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
-            //@ts-ignore  
-            const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
-            if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
-                loadPages += 15
-            }
-        }}>
+        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen" bind:this={root}>
             <div
                     class="{DBState.db.fixedChatTextarea ? 'sticky pt-2 pb-2 right-0 bottom-0 bg-bgcolor' : 'mt-2 mb-2'} flex items-stretch w-full"
                     style="{DBState.db.fixedChatTextarea ? 'z-index:29;' : ''}"
@@ -649,6 +658,15 @@
                 )} {send}/>
             {/if}
 
+            {#each blocks as block, i}
+                <div
+                    class="w-full max-w-full" id={'x-chat-' + (blocks.length - i - 1)}
+                    bind:this={blockEle[blocks.length - i - 1]}
+                >
+
+                </div>
+            {/each}
+            
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
                 {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
                     <div class="w-full flex justify-center text-textcolor2 italic mb-12">
@@ -658,103 +676,108 @@
                     <div></div>
                 {/await}
             {:else}
-            {#each messageForm(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
-                {#if chat.role === 'char'}
-                    {#if DBState.db.characters[$selectedCharID].type !== 'group'}
-                        <Chat
-                            idx={chat.index}
-                            name={DBState.db.characters[$selectedCharID].name}
-                            message={chat.data}
-                            img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                            rerollIcon={i === 0}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                            character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                            largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
-                            messageGenerationInfo={chat.generationInfo}
-                        />
+
+            {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message as chat, i}
+                <LazyPortal root={root} idx={i} target={blockEle[i + 1]}>
+                    {#if chat.role === 'char'}
+                        {#if DBState.db.characters[$selectedCharID].type !== 'group'}
+                            <Chat
+                                idx={i}
+                                name={DBState.db.characters[$selectedCharID].name}
+                                message={chat.data}
+                                img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
+                                rerollIcon={i === 0}
+                                onReroll={reroll}
+                                unReroll={unReroll}
+                                isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                                character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                                largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
+                                messageGenerationInfo={chat.generationInfo}
+                            />
+                        {:else}
+                            <Chat
+                                idx={i}
+                                name={findCharacterbyId(chat.saying).name}
+                                rerollIcon={i === 0}
+                                message={chat.data}
+                                onReroll={reroll}
+                                unReroll={unReroll}
+                                img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
+                                isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                                character={chat.saying}
+                                largePortrait={findCharacterbyId(chat.saying).largePortrait}
+                                messageGenerationInfo={chat.generationInfo}
+                            />
+                        {/if}
                     {:else}
                         <Chat
-                            idx={chat.index}
-                            name={findCharacterbyId(chat.saying).name}
-                            rerollIcon={i === 0}
+                            character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                            idx={i}
+                            name={chat.name ?? currentUsername}
                             message={chat.data}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                            img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
+                            img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
                             isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                            character={chat.saying}
-                            largePortrait={findCharacterbyId(chat.saying).largePortrait}
+                            largePortrait={userIconProtrait}
                             messageGenerationInfo={chat.generationInfo}
                         />
                     {/if}
-                {:else}
-                    <Chat
-                        character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                        idx={chat.index}
-                        name={chat.name ?? currentUsername}
-                        message={chat.data}
-                        img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
-                        isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                        largePortrait={userIconProtrait}
-                        messageGenerationInfo={chat.generationInfo}
-                    />
-                {/if}
+                </LazyPortal>
             {/each}
 
-            {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
-                {#if DBState.db.characters[$selectedCharID].type !== 'group' }
-                    <Chat
-                        character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                        name={DBState.db.characters[$selectedCharID].name}
-                        message={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex === -1 ? DBState.db.characters[$selectedCharID].firstMessage :
-                            DBState.db.characters[$selectedCharID].alternateGreetings[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex]}
-                        img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                        idx={-1}
-                        altGreeting={DBState.db.characters[$selectedCharID].alternateGreetings.length > 0}
-                        largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
-                        firstMessage={true}
-                        onReroll={() => {
-                            const cha = DBState.db.characters[$selectedCharID]
-                            const chat = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
-                            if(cha.type !== 'group'){
-                                if (chat.fmIndex >= (cha.alternateGreetings.length - 1)){
-                                    chat.fmIndex = -1
-                                }
-                                else{
-                                    chat.fmIndex += 1
-                                }
-                            }
-                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
-                        }}
-                        unReroll={() => {
-                            const cha = DBState.db.characters[$selectedCharID]
-                            const chat = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
-                            if(cha.type !== 'group'){
-                                if (chat.fmIndex === -1){
-                                    chat.fmIndex = (cha.alternateGreetings.length - 1)
-                                }
-                                else{
-                                    chat.fmIndex -= 1
-                                }
-                            }
-                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
-                        }}
-                        isLastMemory={false}
+                <LazyPortal root={root} target={blockEle[0]}>
 
-                    />
-                    {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
-                        <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
-                            const cha = DBState.db.characters[$selectedCharID]
-                            if(cha.type !== 'group'){
-                                cha.removedQuotes = true
-                            }
-                            DBState.db.characters[$selectedCharID] = cha
-                        }} />
+                    {#if DBState.db.characters[$selectedCharID].type !== 'group' }
+                        <Chat
+                            character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                            name={DBState.db.characters[$selectedCharID].name}
+                            message={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex === -1 ? DBState.db.characters[$selectedCharID].firstMessage :
+                                DBState.db.characters[$selectedCharID].alternateGreetings[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex]}
+                            img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
+                            idx={-1}
+                            altGreeting={DBState.db.characters[$selectedCharID].alternateGreetings.length > 0}
+                            largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
+                            firstMessage={true}
+                            onReroll={() => {
+                                const cha = DBState.db.characters[$selectedCharID]
+                                const chat = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
+                                if(cha.type !== 'group'){
+                                    if (chat.fmIndex >= (cha.alternateGreetings.length - 1)){
+                                        chat.fmIndex = -1
+                                    }
+                                    else{
+                                        chat.fmIndex += 1
+                                    }
+                                }
+                                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
+                            }}
+                            unReroll={() => {
+                                const cha = DBState.db.characters[$selectedCharID]
+                                const chat = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
+                                if(cha.type !== 'group'){
+                                    if (chat.fmIndex === -1){
+                                        chat.fmIndex = (cha.alternateGreetings.length - 1)
+                                    }
+                                    else{
+                                        chat.fmIndex -= 1
+                                    }
+                                }
+                                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
+                            }}
+                            isLastMemory={false}
+
+                        />
+                        {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
+                            <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
+                                const cha = DBState.db.characters[$selectedCharID]
+                                if(cha.type !== 'group'){
+                                    cha.removedQuotes = true
+                                }
+                                DBState.db.characters[$selectedCharID] = cha
+                            }} />
+                        {/if}
                     {/if}
-                {/if}
-            {/if}
+
+                </LazyPortal>  
 
             {/if}
 
@@ -802,6 +825,30 @@
                             <DatabaseIcon />
                             <span class="ml-2">{language.chatList}</span>
                         </div>
+                    {/if}
+
+                    {#if DBState.db.showMenuHypaMemoryModal}
+                        {#if DBState.db.supaModelType !== 'none' && (DBState.db.hypav2 || DBState.db.hypaV3)}
+                            <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                                if (DBState.db.hypav2) {
+                                    DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data ??= {
+                                        lastMainChunkID: 0,
+                                        mainChunks: [],
+                                        chunks: [],
+                                    }
+                                    showHypaV2Alert();
+                                } else if (DBState.db.hypaV3) {
+                                    showHypaV3Alert();
+                                }
+
+                                openMenu = false
+                            }}>
+                                <BrainIcon />
+                                <span class="ml-2">
+                                    {DBState.db.hypav2 ? language.hypaMemoryV2Modal : language.hypaMemoryV3Modal}
+                                </span>
+                            </div>
+                        {/if}
                     {/if}
                     
                     {#if DBState.db.translator !== ''}

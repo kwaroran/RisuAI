@@ -726,6 +726,7 @@ export const languageSpanish = {
         "nextSummarizationLabel": "HypaV3 resumirá [{0}]",
         "nextSummarizationNoMessagesFoundLabel": "ADVERTENCIA: No se encontraron mensajes",
         "nextSummarizationLoadingError": "Error al cargar el siguiente objetivo de resumen: {0}",
+        "summarizationConditionLabel": "Consejo: HypaV3 comienza a resumir cuando los tokens de entrada superan el tamaño máximo de contexto.",
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
 }

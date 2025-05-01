@@ -11,9 +11,10 @@
         globalMode?: boolean;
         submenu?: number;
         lorePlus?: boolean;
+        externalLoreBooks?: loreBook[];
     }
 
-    let { globalMode = false, submenu = 0, lorePlus = false }: Props = $props();
+    let { globalMode = false, submenu = 0, lorePlus = false, externalLoreBooks = null }: Props = $props();
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
@@ -30,6 +31,13 @@
                         newLore.push(DBState.db.loreBook[DBState.db.loreBookPage].data[i])
                     })
                     DBState.db.loreBook[DBState.db.loreBookPage].data = newLore
+                }
+                else if(externalLoreBooks){
+                    let newLore:loreBook[] = []
+                    idx.forEach((i) => {
+                        newLore.push(externalLoreBooks[i])
+                    })
+                    externalLoreBooks = newLore
                 }
                 else if(submenu === 1){
                     let newLore:loreBook[] = []
@@ -94,6 +102,18 @@
                         let lore = DBState.db.loreBook[DBState.db.loreBookPage].data
                         lore.splice(i, 1)
                         DBState.db.loreBook[DBState.db.loreBookPage].data = lore
+                    }} onOpen={onOpen} onClose={onClose}/>
+                {/each}
+            {/if}
+        {:else if externalLoreBooks}
+            {#if externalLoreBooks.length === 0}
+                <span class="text-textcolor2">No Lorebook</span>
+            {:else}
+                {#each externalLoreBooks as book, i}
+                    <LoreBookData bind:value={externalLoreBooks[i]} idx={i} onRemove={() => {
+                        let lore = externalLoreBooks
+                        lore.splice(i, 1)
+                        externalLoreBooks = lore
                     }} onOpen={onOpen} onClose={onClose}/>
                 {/each}
             {/if}

@@ -87,7 +87,16 @@ export async function downloadFile(name:string, dat:Uint8Array|ArrayBuffer|strin
         await writeFile(name, data, {baseDir: BaseDirectory.Download})
     }
     else{
-        downloadURL(`data:png/image;base64,${Buffer.from(data).toString('base64')}`, name)
+        const blob = new Blob([data], { type: 'application/octet-stream' })
+        const url = URL.createObjectURL(blob)
+
+        downloadURL(url, name)
+
+        setTimeout(() => {
+            URL.revokeObjectURL(url)
+        }, 10000)
+
+        
     }
 }
 

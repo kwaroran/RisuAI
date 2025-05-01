@@ -55,7 +55,8 @@ export async function loadLoreBookV3Prompt(){
     const recursiveScanning = char.loreSettings?.recursiveScanning ?? true
     let recursivePrompt:{
         prompt: string,
-        source: string
+        source: string,
+        data: string
     }[] = []
     let matchLog:{
         prompt: string,
@@ -75,23 +76,27 @@ export async function loadLoreBookV3Prompt(){
         let mList:{
             source:string
             prompt:string
+            data:string
         }[] = sliced.map((msg, i) => {
             if(msg.role === 'user'){
                 return {
                     source: `message ${i} by user`,
-                    prompt: `\x01{{${DBState.db.username}}}:` + msg.data + '\x01'
+                    prompt: `\x01{{${DBState.db.username}}}:` + msg.data + '\x01',
+                    data: msg.data
                 }
             }
             else{
                 return {
                     source: `message ${i} by char`,
-                    prompt: `\x01{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data + '\x01'
+                    prompt: `\x01{{${msg.name ?? (msg.saying ? findCharacterbyId(msg.saying)?.name : null) ?? char.name}}}:` + msg.data + '\x01',
+                    data: msg.data
                 }
             }
         }).concat(recursivePrompt.map((msg) => {
             return {
                 source: 'lorebook ' + msg.source,
-                prompt: msg.prompt
+                prompt: msg.prompt,
+                data: msg.data
             }
         }))
 
@@ -106,7 +111,7 @@ export async function loadLoreBookV3Prompt(){
                         arg.keys[0] = regexString.replace('/'+regexFlag,'')
                         try {
                             const regex = new RegExp(arg.keys[0],regexFlag)
-                            const d = regex.test(mText.prompt)
+                            const d = regex.test(mText.data)
                             if(d){
                                 matchLog.push({
                                     prompt: mText.prompt,
@@ -127,7 +132,8 @@ export async function loadLoreBookV3Prompt(){
         mList = mList.map((m) => {
             return {
                 source: m.source,
-                prompt: m.prompt.toLocaleLowerCase().replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
+                prompt: m.prompt.toLocaleLowerCase().replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,''),
+                data: m.data.toLocaleLowerCase().replace(/\{\{\/\/(.+?)\}\}/g,'').replace(/\{\{comment:(.+?)\}\}/g,'')
             }
         })
 
@@ -135,7 +141,7 @@ export async function loadLoreBookV3Prompt(){
         let allModeMatched = true
 
         for(const m of mList){
-            let mText = m.prompt
+            let mText = m.data
             if(arg.fullWordMatching){
                 const splited = mText.split(' ')
                 for(const key of arg.keys){
@@ -510,7 +516,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
     }
 }
 
-interface CCLorebook{
+export interface CCLorebook{
     key:string[]
     comment:string
     content:string

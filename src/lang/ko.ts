@@ -972,7 +972,8 @@ export const languageKorean = {
         "nextSummarizationLabel": "HypaV3가 [{0}]를 요약할 예정입니다",
         "nextSummarizationNoMessagesFoundLabel": "경고: 메시지를 찾을 수 없습니다",
         "nextSummarizationLoadingError": "다음 요약 대상을 불러오는 동안 오류 발생: {0}",
-        "emptySelectedFirstMessageLabel": "경고: 선택된 첫 메시지가 비어있습니다"
+        "summarizationConditionLabel": "팁: HypaV3는 입력 토큰이 최대 컨텍스트 크기를 넘으면 요약을 시작합니다.",
+        "emptySelectedFirstMessageLabel": "경고: 선택된 첫 메시지가 비어있습니다",
     },
     "bulkEnabling": "한번에 로어북 활성화 버튼",
     "showTranslationLoading": "번역 로딩 보이기",
@@ -985,4 +986,7 @@ export const languageKorean = {
     "childLoreDesc": "이것은 캐릭터 로어의 복사본이며, 삭제하거나 원본 로어에서 직접 비활성화하기 전에는 '언제나 활성화' 상태로 유지됩니다.",
     "cachePoint": "캐시 포인트",
     "all": "모두",
+    "hypaMemoryV2Modal": "하이파 V2 모달",
+    "hypaMemoryV3Modal": "하이파 V3 모달",
+    "showMenuHypaMemoryModal": "메뉴에서 하이파 모달 보이기",
 }
