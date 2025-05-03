@@ -27,8 +27,10 @@
             width: 512,
             height: 512,
             sampler: 'k_euler',
+            noise_schedule: 'native',
             steps: 100,
             scale: 1,
+            cfg_rescale: 0,
             sm: false,
             sm_dyn: false,
             strength: 0.5,
@@ -252,10 +254,21 @@
                 </SelectInput>
             {/if}
 
+            <span class="text-textcolor">Noise Schedule</span>
+            <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.noise_schedule}>
+                <OptionInput value="" >Choose...</OptionInput>
+                <OptionInput value="native" >native</OptionInput>
+                <OptionInput value="karras" >karras</OptionInput>
+                <OptionInput value="exponential" >exponential</OptionInput>
+                <OptionInput value="polyexponential" >polyexponential</OptionInput>
+            </SelectInput>
+
             <span class="text-textcolor">steps</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.steps}/>
             <span class="text-textcolor">CFG scale</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.scale}/>
+            <span class="text-textcolor">CFG rescale</span>
+            <NumberInput size="sm" marginBottom min={0} max={1} bind:value={DBState.db.NAIImgConfig.cfg_rescale}/>
 
             <span class="text-textcolor">Noise Schedule</span>
             <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.noise_schedule}>

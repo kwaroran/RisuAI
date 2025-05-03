@@ -12,7 +12,7 @@ import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 
-export let appVer = "158.2.1"
+export let appVer = "159.0.0"
 export let webAppSubVer = ''
 
 
@@ -255,8 +255,10 @@ export function setDatabase(data:Database){
             width:512,
             height:768,
             sampler:"k_dpmpp_sde",
+            noise_schedule:"native",
             steps:28,
             scale:5,
+            cfg_rescale: 0,
             sm:true,
             sm_dyn:false,
             noise:0.0,
@@ -1026,6 +1028,8 @@ export interface Database{
         flags: LLMFlags[]
     }[]
     igpPrompt:string
+    useTokenizerCaching:boolean
+    showMenuHypaMemoryModal:boolean
 }
 
 interface SeparateParameters{
@@ -1411,8 +1415,10 @@ export interface NAIImgConfig{
     width:number,
     height:number,
     sampler:string,
+    noise_schedule:string,
     steps:number,
     scale:number,
+    cfg_rescale:number,
     sm:boolean,
     sm_dyn:boolean,
     noise:number,

@@ -29,7 +29,7 @@ tauri-plugin-fs = "2"
 tauri-plugin-os = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-process = "2"
-tauri-plugin-shell = "2"
+tauri-plugin-shell = "2.2.1"
 tauri-plugin-http = "2"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-deep-link = "2"
