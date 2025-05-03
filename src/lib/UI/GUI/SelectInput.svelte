@@ -17,7 +17,7 @@
 </select>
 <script lang="ts">
     interface Props {
-        value: string;
+        value: string | number;
         className?: string;
         size?: 'sm'|'md'|'lg'|'xl';
         children?: import('svelte').Snippet;
