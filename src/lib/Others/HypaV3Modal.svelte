@@ -413,23 +413,23 @@
     summaryUIState.isTranslating = false;
   }
 
-  function isRerollable(summaryIndex: number): boolean {
+  function isOrphan(summaryIndex: number): boolean {
     const summary = hypaV3DataState.summaries[summaryIndex];
 
     for (const chatMemo of summary.chatMemos) {
       if (!getMessageFromChatMemo(chatMemo)) {
-        return false;
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   async function toggleReroll(summaryIndex: number): Promise<void> {
     const summaryUIState = summaryUIStates[summaryIndex];
 
     if (summaryUIState.isRerolling) return;
-    if (!isRerollable(summaryIndex)) return;
+    if (isOrphan(summaryIndex)) return;
 
     summaryUIState.isRerolling = true;
     summaryUIState.rerolledText = "Loading...";
@@ -1083,10 +1083,30 @@
                     <button
                       class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
                       tabindex="-1"
-                      disabled={!isRerollable(i)}
+                      disabled={isOrphan(i)}
                       onclick={async () => await toggleReroll(i)}
                     >
                       <RefreshCw class="w-4 h-4" />
+                    </button>
+
+                    <!-- Delete This Button -->
+                    <button
+                      class="p-2 text-zinc-400 hover:text-rose-300 transition-colors"
+                      tabindex="-1"
+                      disabled={!isOrphan(i)}
+                      onclick={async () => {
+                        if (
+                          await alertConfirm(language.hypaV3Modal.deleteThisConfirmMessage)
+                        ) {
+                          hypaV3DataState.summaries = hypaV3DataState.summaries.filter(
+                            (_, index) => index !== i
+                          );
+                        }
+
+                        showHypaV3Alert();
+                      }}
+                    >
+                      <Trash2Icon class="w-4 h-4" />
                     </button>
 
                     <!-- Delete After Button -->

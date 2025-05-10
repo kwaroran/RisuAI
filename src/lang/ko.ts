@@ -955,6 +955,7 @@ export const languageKorean = {
         "noSummariesLabel": "아직 요약이 없습니다",
         "searchPlaceholder": "#N, ID 또는 검색어 입력",
         "summaryNumberLabel": "요약 #{0}",
+        "deleteThisConfirmMessage": "이 요약을 삭제하시겠습니까?",
         "deleteAfterConfirmMessage": "이 요약 이후의 모든 요약을 삭제하시겠습니까?",
         "deleteAfterConfirmSecondMessage": "이 작업은 되돌릴 수 없습니다. 정말 삭제하시겠습니까?",
         "translationLabel": "번역",

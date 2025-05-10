@@ -438,6 +438,7 @@ export const LanguageVietnamese = {
         "noSummariesLabel": "Chưa có tóm tắt nào",
         "searchPlaceholder": "Nhập #N, ID hoặc từ khóa",
         "summaryNumberLabel": "Tóm tắt #{0}",
+        "deleteThisConfirmMessage": "Xóa bản tóm tắt này?",
         "deleteAfterConfirmMessage": "Xóa tất cả các tóm tắt sau tóm tắt này?",
         "deleteAfterConfirmSecondMessage": "Hành động này không thể hoàn tác. Bạn có chắc chắn không?",
         "translationLabel": "Bản dịch",
