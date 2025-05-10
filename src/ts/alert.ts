@@ -10,7 +10,7 @@ export interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
             |'input'|'toast'|'wait2'|'markdown'|'select'|'login'
             |'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule'
-            |'chatOptions'|'pukmakkurit'|'branches'|'hypaV3'|'progress',
+            |'chatOptions'|'pukmakkurit'|'branches'|'progress',
     msg: string,
     submsg?: string
 }
@@ -316,13 +316,6 @@ export function alertRequestData(info:AlertGenerationInfoStoreData){
 export function showHypaV2Alert(){
     alertStoreImported.set({
         'type': 'hypaV2',
-        'msg': ""
-    })
-}
-
-export function showHypaV3Alert(){
-    alertStoreImported.set({
-        'type': 'hypaV3',
         'msg': ""
     })
 }
