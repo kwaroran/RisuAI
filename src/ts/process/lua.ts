@@ -1,6 +1,6 @@
-import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument } from "../parser.svelte";
+import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type loreBook } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
@@ -10,10 +10,11 @@ import { writeInlayImage } from "./files/inlays";
 import type { OpenAIChat } from "./index.svelte";
 import { requestChatData } from "./request";
 import { v4 } from "uuid";
-import { getModuleTriggers } from "./modules";
+import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
 import { fetchNative } from "../globalApi.svelte";
+import { loadLoreBookV3Prompt } from './lorebook.svelte';
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -484,6 +485,58 @@ export async function runLua(code:string, arg:{
                 return true
             })
 
+            // Lore books
+            luaEngine.global.set('getLoreBookMain', (id:string, search: string) => {
+                if (char.type !== 'character') {
+                    return
+                }
+
+                const loreBooks = [...char.chats[char.chatPage]?.localLore ?? [], ...char.globalLore, ...getModuleLorebooks()]
+                const found = loreBooks.find((b) => b.comment === search)
+
+                return found ? JSON.stringify({ ...found, content: risuChatParser(found.content, { chara: char }) } satisfies loreBook) : false
+            })
+
+            luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
+                if(!LuaLowLevelIds.has(id)){
+                    return
+                }
+
+                if (char.type !== 'character') {
+                    return
+                }
+
+                const db = getDatabase()
+                const fullLoreBooks = (await loadLoreBookV3Prompt()).actives
+                const maxContext = db.maxContext - usedContext
+                if (maxContext < 0) {
+                    return
+                }
+
+                let totalTokens = 0
+                const loreBooks = []
+
+                for (const book of fullLoreBooks) {
+                    const parsed = risuChatParser(book.prompt, { chara: char }).trim()
+                    if (parsed.length === 0) {
+                        continue
+                    }
+
+                    const tokens = await tokenize(parsed)
+
+                    if (totalTokens + tokens > maxContext) {
+                        break
+                    }
+                    totalTokens += tokens
+                    loreBooks.push({
+                        data: parsed,
+                        role: book.role === 'assistant' ? 'char' : book.role,
+                    })
+                }
+
+                return JSON.stringify(loreBooks)
+            })
+
             luaEngine.global.set('axLLMMain', async (id:string, promptStr:string) => {
                 let prompt:{
                     role: string,
@@ -706,6 +759,15 @@ end
 
 function log(value)
     logMain(json.encode(value))
+end
+
+function getLoreBook(id, search)
+    return json.decode(getLoreBookMain(id, search))
+end
+
+
+function loadLoreBooks(id)
+    return json.decode(loadLoreBooksMain(id):await())
 end
 
 function LLM(id, prompt)
