@@ -1,6 +1,6 @@
-import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument } from "../parser.svelte";
+import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
@@ -14,6 +14,7 @@ import { getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
 import { fetchNative } from "../globalApi.svelte";
+import { getPersonaPrompt, getUserName } from '../util';
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -458,6 +459,26 @@ export async function runLua(code:string, arg:{
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.firstMessage
+            })
+
+            luaEngine.global.set('getPersonaName', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+
+                return getUserName()
+            })
+
+            luaEngine.global.set('getPersonaDescription', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+
+                return risuChatParser(getPersonaPrompt(), { chara: char })
             })
 
             luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
