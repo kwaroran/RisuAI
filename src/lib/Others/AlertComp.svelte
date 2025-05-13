@@ -25,7 +25,6 @@
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
     import { message } from "@tauri-apps/plugin-dialog";
     import HypaV3Modal from './HypaV3Modal.svelte';
-  import Googli from "../UI/Googli.svelte";
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -118,9 +117,6 @@
                 </div>
                 <div class="w-full flex justify-center mt-6">
                     <span class="text-gray-500 text-sm">{$alertStore.submsg + '%'}</span>
-                </div>
-                <div class="w-full flex justify-center">
-                    <Googli className="mt-14" />                    
                 </div>
             {/if}
 
