@@ -487,14 +487,20 @@ export async function runLua(code:string, arg:{
 
             // Lore books
             luaEngine.global.set('getLoreBookMain', (id:string, search: string) => {
-                if (char.type !== 'character') {
+                if(!LuaSafeIds.has(id)){
                     return
                 }
 
-                const loreBooks = [...char.chats[char.chatPage]?.localLore ?? [], ...char.globalLore, ...getModuleLorebooks()]
+                const db = getDatabase()
+                const selectedChar = db.characters[get(selectedCharID)]
+                if (selectedChar.type !== 'character') {
+                    return
+                }
+
+                const loreBooks = [...selectedChar.chats[selectedChar.chatPage]?.localLore ?? [], ...selectedChar.globalLore, ...getModuleLorebooks()]
                 const found = loreBooks.find((b) => b.comment === search)
 
-                return found ? JSON.stringify({ ...found, content: risuChatParser(found.content, { chara: char }) } satisfies loreBook) : false
+                return found ? JSON.stringify({ ...found, content: risuChatParser(found.content, { chara: selectedChar }) } satisfies loreBook) : false
             })
 
             luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
@@ -502,11 +508,14 @@ export async function runLua(code:string, arg:{
                     return
                 }
 
-                if (char.type !== 'character') {
+                const db = getDatabase()
+
+                const selectedChar = db.characters[get(selectedCharID)]
+
+                if (selectedChar.type !== 'character') {
                     return
                 }
 
-                const db = getDatabase()
                 const fullLoreBooks = (await loadLoreBookV3Prompt()).actives
                 const maxContext = db.maxContext - usedContext
                 if (maxContext < 0) {
@@ -517,7 +526,7 @@ export async function runLua(code:string, arg:{
                 const loreBooks = []
 
                 for (const book of fullLoreBooks) {
-                    const parsed = risuChatParser(book.prompt, { chara: char }).trim()
+                    const parsed = risuChatParser(book.prompt, { chara: selectedChar }).trim()
                     if (parsed.length === 0) {
                         continue
                     }
