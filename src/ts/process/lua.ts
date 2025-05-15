@@ -486,7 +486,7 @@ export async function runLua(code:string, arg:{
             })
 
             // Lore books
-            luaEngine.global.set('getLoreBookMain', (id:string, search: string) => {
+            luaEngine.global.set('getLoreBooksMain', (id:string, search: string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
@@ -770,8 +770,8 @@ function log(value)
     logMain(json.encode(value))
 end
 
-function getLoreBook(id, search)
-    return json.decode(getLoreBookMain(id, search))
+function getLoreBooks(id, search)
+    return json.decode(getLoreBooksMain(id, search))
 end
 
 
