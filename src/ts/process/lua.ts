@@ -498,13 +498,9 @@ export async function runLua(code:string, arg:{
                 }
 
                 const loreBooks = [...selectedChar.chats[selectedChar.chatPage]?.localLore ?? [], ...selectedChar.globalLore, ...getModuleLorebooks()]
-                const found = loreBooks.find((b) => b.comment === search)
+                const found = loreBooks.filter((b) => b.comment === search)
 
-                if (found) {
-                    return JSON.stringify({ ...found, content: risuChatParser(found.content, { chara: selectedChar }) } satisfies loreBook)
-                } else {
-                    return JSON.stringify(false)
-                }
+                return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
             })
 
             luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
