@@ -1124,7 +1124,7 @@ export const languageEnglish = {
     hypaMemoryV3Modal: "Hypa V3 Modal",
     showMenuHypaMemoryModal: "Show Menu Hypa Modal",
     promptInfoInsideChat: "Add Prompt Info to Chat",
-    promptTextInfoInsideChat: "Add Prompt Info to Chat",
+    promptTextInfoInsideChat: "Add Prompt Text to Chat",
     promptInfoEmptyMessage: "No prompt information is available for this message.",
     promptInfoEmptyToggle: "No custom toggles are currently active.",
     promptInfoEmptyText: "No prompt text has been saved.",
