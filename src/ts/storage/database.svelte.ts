@@ -1023,6 +1023,9 @@ export interface Database{
     }[]
     igpPrompt:string
     useTokenizerCaching:boolean
+    showMenuHypaMemoryModal:boolean
+    promptInfoInsideChat:boolean
+    promptTextInfoInsideChat:boolean
 }
 
 interface SeparateParameters{
@@ -1501,6 +1504,7 @@ export interface Message{
     chatId?:string
     time?: number
     generationInfo?: MessageGenerationInfo
+    promptInfo?: MessagePresetInfo
     name?:string
     otherUser?:boolean
 }
@@ -1511,6 +1515,12 @@ export interface MessageGenerationInfo{
     inputTokens?: number
     outputTokens?: number
     maxContext?: number
+}
+
+export interface MessagePresetInfo{
+    promptName?: string,
+    promptToggles?: {key: string, value: string}[],
+    promptText?: OpenAIChat[],
 }
 
 interface AINsettings{
@@ -1879,6 +1889,7 @@ import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
 import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
+import type { OpenAIChat } from '../process/index.svelte';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
