@@ -10,7 +10,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.2.0", features = [] }
 
 [dependencies]
 tauri = { version = "2.5.1", features = ["protocol-asset"] }
@@ -26,13 +26,13 @@ futures = "0.3.30"
 url = "2.2"
 uuid = { version = "1.9.1", features = [ "v4" ] }
 tauri-plugin-fs = "2.2.1"
-tauri-plugin-os = "2"
+tauri-plugin-os = "2.2.1"
 tauri-plugin-dialog = "2.2.1"
 tauri-plugin-process = "2.2.1"
 tauri-plugin-shell = "2.2.1"
 tauri-plugin-http = "2.4.3"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
-tauri-plugin-deep-link = "2.1"
+tauri-plugin-deep-link = "2.2.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
