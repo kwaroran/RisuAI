@@ -272,6 +272,7 @@ export function setDatabase(data:Database){
             autoSmea:false,
             legacy_uc:false,
             use_coords:false,
+            cfg_rescale:0,
             v4_prompt:{
                 caption:{
                     base_caption:'',
@@ -309,6 +310,9 @@ export function setDatabase(data:Database){
             },
             legacy_uc:false,
         };
+    }
+    if(checkNullish(data.NAIImgConfig.cfg_rescale)){
+        data.NAIImgConfig.cfg_rescale = 0;
     }
     if(checkNullish(data.customTextTheme)){
         data.customTextTheme = {
@@ -1165,7 +1169,7 @@ export interface character{
         },
         chunk_length:number,
         normalize:boolean,
-        
+
     }
     supaMemory?:boolean
     additionalAssets?:[string, string, string][]
@@ -1424,12 +1428,17 @@ export interface NAIImgConfig{
     InfoExtracted:number,
     RefStrength:number
     //add 4
+    cfg_rescale:number,
     autoSmea:boolean,
     use_coords:boolean,
     legacy_uc: boolean,
     v4_prompt:NAIImgConfigV4Prompt,
     v4_negative_prompt:NAIImgConfigV4NegativePrompt,
-
+    //add vibe
+    reference_image_multiple?:string[],
+    reference_strength_multiple?:number[],
+    vibe_data?:NAIVibeData,
+    vibe_model_selection?:string
 }
 
 //add 4
@@ -1456,6 +1465,35 @@ interface NAIImgConfigV4CharCaption{
             x: number,
             y: number
         }[]
+}
+
+// NAI Vibe Data interfaces
+interface NAIVibeData {
+    identifier: string;
+    version: number;
+    type: string;
+    image: string;
+    id: string;
+    encodings: {
+        [key: string]: {
+            [key: string]: NAIVibeEncoding;
+        }
+    };
+    name: string;
+    thumbnail: string;
+    createdAt: number;
+    importInfo: {
+        model: string;
+        information_extracted: number;
+        strength: number;
+    };
+}
+
+interface NAIVibeEncoding {
+    encoding: string;
+    params: {
+        information_extracted: number;
+    };
 }
 
 interface ComfyConfig{
@@ -2078,7 +2116,7 @@ export async function importPreset(f:{
             }
             else{
                 console.log("Prompt not found", prompt)
-            
+
             }
         }
         if(pre?.assistant_prefill){
