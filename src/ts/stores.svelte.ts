@@ -50,6 +50,13 @@ export const alertStore = writable({
     type: 'none',
     msg: 'n',
 } as alertData)
+export const hypaV3ModalOpen = writable(false)
+export const hypaV3ProgressStore = writable({
+    open: false,
+    miniMsg: '',
+    msg: '',
+    subMsg: '',
+})
 export const selIdState = $state({
     selId: -1
 })

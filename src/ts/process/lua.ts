@@ -1,6 +1,6 @@
-import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument } from "../parser.svelte";
+import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase, type Chat, type character, type groupChat } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type loreBook } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
@@ -10,10 +10,12 @@ import { writeInlayImage } from "./files/inlays";
 import type { OpenAIChat } from "./index.svelte";
 import { requestChatData } from "./request";
 import { v4 } from "uuid";
-import { getModuleTriggers } from "./modules";
+import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
 import { fetchNative } from "../globalApi.svelte";
+import { loadLoreBookV3Prompt } from './lorebook.svelte';
+import { getPersonaPrompt, getUserName } from '../util';
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -460,6 +462,26 @@ export async function runLua(code:string, arg:{
                 return char.firstMessage
             })
 
+            luaEngine.global.set('getPersonaName', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+
+                return getUserName()
+            })
+
+            luaEngine.global.set('getPersonaDescription', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+
+                return risuChatParser(getPersonaPrompt(), { chara: char })
+            })
+
             luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -482,6 +504,67 @@ export async function runLua(code:string, arg:{
                 db.characters[selectedChar].backgroundHTML = data
                 setDatabase(db)
                 return true
+            })
+
+            // Lore books
+            luaEngine.global.set('getLoreBooksMain', (id:string, search: string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+
+                const db = getDatabase()
+                const selectedChar = db.characters[get(selectedCharID)]
+                if (selectedChar.type !== 'character') {
+                    return
+                }
+
+                const loreBooks = [...selectedChar.chats[selectedChar.chatPage]?.localLore ?? [], ...selectedChar.globalLore, ...getModuleLorebooks()]
+                const found = loreBooks.filter((b) => b.comment === search)
+
+                return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
+            })
+
+            luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
+                if(!LuaLowLevelIds.has(id)){
+                    return
+                }
+
+                const db = getDatabase()
+
+                const selectedChar = db.characters[get(selectedCharID)]
+
+                if (selectedChar.type !== 'character') {
+                    return
+                }
+
+                const fullLoreBooks = (await loadLoreBookV3Prompt()).actives
+                const maxContext = db.maxContext - usedContext
+                if (maxContext < 0) {
+                    return
+                }
+
+                let totalTokens = 0
+                const loreBooks = []
+
+                for (const book of fullLoreBooks) {
+                    const parsed = risuChatParser(book.prompt, { chara: selectedChar }).trim()
+                    if (parsed.length === 0) {
+                        continue
+                    }
+
+                    const tokens = await tokenize(parsed)
+
+                    if (totalTokens + tokens > maxContext) {
+                        break
+                    }
+                    totalTokens += tokens
+                    loreBooks.push({
+                        data: parsed,
+                        role: book.role === 'assistant' ? 'char' : book.role,
+                    })
+                }
+
+                return JSON.stringify(loreBooks)
             })
 
             luaEngine.global.set('axLLMMain', async (id:string, promptStr:string) => {
@@ -706,6 +789,15 @@ end
 
 function log(value)
     logMain(json.encode(value))
+end
+
+function getLoreBooks(id, search)
+    return json.decode(getLoreBooksMain(id, search))
+end
+
+
+function loadLoreBooks(id)
+    return json.decode(loadLoreBooksMain(id):await())
 end
 
 function LLM(id, prompt)
