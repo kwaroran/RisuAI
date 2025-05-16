@@ -1,27 +1,33 @@
 import localforage from "localforage";
 import { globalFetch } from "src/ts/globalApi.svelte";
 import { runEmbedding } from "../transformers";
-import { alertError } from "src/ts/alert";
 import { appendLastPath } from "src/ts/util";
 import { getDatabase } from "src/ts/storage/database.svelte";
 
+export type HypaModel = 'custom'|'ada'|'openai3small'|'openai3large'|'MiniLM'|'MiniLMGPU'|'nomic'|'nomicGPU'|'bgeSmallEn'|'bgeSmallEnGPU'|'bgem3'|'bgem3GPU'|'multiMiniLM'|'multiMiniLMGPU'
 
-export type HypaModel = 'ada'|'MiniLM'|'nomic'|'custom'|'nomicGPU'|'bgeSmallEn'|'bgeSmallEnGPU'|'bgem3'|'bgem3GPU'|'openai3small'|'openai3large'
-
-const localModels = {
+// In a typical environment, bge-m3 is a heavy model.
+// If your GPU can't handle this model, you'll see errror below.
+// Failed to execute 'mapAsync' on 'GPUBuffer': [Device] is lost
+export const localModels = {
     models: {
         'MiniLM':'Xenova/all-MiniLM-L6-v2',
+        'MiniLMGPU': "Xenova/all-MiniLM-L6-v2",
         'nomic':'nomic-ai/nomic-embed-text-v1.5',
         'nomicGPU':'nomic-ai/nomic-embed-text-v1.5',
-        'bgeSmallEn': 'BAAI/bge-small-en-v1.5',
-        'bgeSmallEnGPU': 'BAAI/bge-small-en-v1.5',
-        'bgem3': 'BAAI/bge-m3',
-        'bgem3GPU': 'BAAI/bge-m3',
+        'bgeSmallEn': 'Xenova/bge-small-en-v1.5',
+        'bgeSmallEnGPU': 'Xenova/bge-small-en-v1.5',
+        'bgem3': 'Xenova/bge-m3',
+        'bgem3GPU': 'Xenova/bge-m3',
+        'multiMiniLM': 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+        'multiMiniLMGPU': 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
     },
     gpuModels:[
+        'MiniLMGPU',
         'nomicGPU',
         'bgeSmallEnGPU',
-        'bgem3GPU'
+        'bgem3GPU',
+        'multiMiniLMGPU',
     ]
 }
 
@@ -44,7 +50,7 @@ export class HypaProcesser{
         else{
             this.model = model
         }
-        this.customEmbeddingUrl = customEmbeddingUrl || db.hypaCustomSettings.url
+        this.customEmbeddingUrl = customEmbeddingUrl?.trim() || db.hypaCustomSettings?.url?.trim() || ""
     }
 
     async embedDocuments(texts: string[]): Promise<VectorArray[]> {
@@ -80,10 +86,12 @@ export class HypaProcesser{
 
             const db = getDatabase()
             const fetchArgs = {
-                ...(db.hypaCustomSettings.key ? {headers: {"Authorization": "Bearer " + db.hypaCustomSettings.key}} : {}),
+                headers: {
+                    ...(db.hypaCustomSettings?.key?.trim() ? {"Authorization": "Bearer " + db.hypaCustomSettings.key.trim()} : {})
+                },
                 body: {
                     "input": input,
-                    ...(db.hypaCustomSettings.model ? {"model": db.hypaCustomSettings.model} : {})
+                    ...(db.hypaCustomSettings?.model?.trim() ? {"model": db.hypaCustomSettings.model.trim()} : {})
                 }
             };
  
@@ -99,7 +107,7 @@ export class HypaProcesser{
 
             gf = await globalFetch("https://api.openai.com/v1/embeddings", {
                 headers: {
-                    "Authorization": "Bearer " + db.supaMemoryKey || this.oaikey
+                    "Authorization": "Bearer " + (this.oaikey?.trim() || db.supaMemoryKey?.trim())
                 },
                 body: {
                     "input": input,
@@ -134,7 +142,7 @@ export class HypaProcesser{
     
     async addText(texts:string[]) {
         const db = getDatabase()
-        const suffix = (this.model === 'custom' && db.hypaCustomSettings.model) ? `-${db.hypaCustomSettings.model}` : ""
+        const suffix = (this.model === 'custom' && db.hypaCustomSettings?.model?.trim()) ? `-${db.hypaCustomSettings.model.trim()}` : ""
 
         for(let i=0;i<texts.length;i++){
             const itm:memoryVector = await this.forage.getItem(texts[i] + '|' + this.model + suffix)
@@ -205,7 +213,8 @@ export class HypaProcesser{
         return similarity(query1, query2)
     }
 }
-function similarity(a:VectorArray, b:VectorArray) {    
+
+export function similarity(a:VectorArray, b:VectorArray) {    
     let dot = 0;
     for(let i=0;i<a.length;i++){
         dot += a[i] * b[i]

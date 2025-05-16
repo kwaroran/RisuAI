@@ -23,9 +23,8 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
-    import { message } from "@tauri-apps/plugin-dialog";
-    import HypaV3Modal from './HypaV3Modal.svelte';
-  import Googli from "../UI/Googli.svelte";
+    import Googli from "../UI/Googli.svelte";
+
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -688,10 +687,6 @@
             {/if}
         {/each}
     </div>
-{/if}
-
-{#if $alertStore.type === "hypaV3"}
-    <HypaV3Modal />
 {/if}
 
 <style>
