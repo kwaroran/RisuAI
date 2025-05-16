@@ -272,7 +272,6 @@ export function setDatabase(data:Database){
             autoSmea:false,
             legacy_uc:false,
             use_coords:false,
-            cfg_rescale:0,
             v4_prompt:{
                 caption:{
                     base_caption:'',
@@ -972,7 +971,6 @@ export interface Database{
     hypaV3Settings: HypaV3Settings // legacy
     hypaV3Presets: HypaV3Preset[]
     hypaV3PresetId: number
-    showMenuHypaMemoryModal:boolean
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -1428,7 +1426,6 @@ export interface NAIImgConfig{
     InfoExtracted:number,
     RefStrength:number
     //add 4
-    cfg_rescale:number,
     autoSmea:boolean,
     use_coords:boolean,
     legacy_uc: boolean,
