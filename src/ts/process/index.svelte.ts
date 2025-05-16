@@ -1,12 +1,12 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, changeToPreset, setCurrentChat } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError, alertToast } from "../alert";
 import { loadLoreBookV3Prompt } from "./lorebook.svelte";
-import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation } from "../util";
+import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation, parseToggleSyntax } from "../util";
 import { requestChatData } from "./request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull, risuChatParser } from "./scripts";
@@ -30,7 +30,7 @@ import { runLuaEditTrigger } from "./lua";
 import { getGlobalChatVar, parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
-import { getModuleAssets } from "./modules";
+import { getModuleAssets, getModuleToggles } from "./modules";
 import { getFileSrc, readImage } from "../globalApi.svelte";
 
 export interface OpenAIChat{
@@ -186,6 +186,39 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v
     })
     
+// ─────────────────────────────────────────────────────────
+// Snapshot preset name & toggles before sending a message.
+// Ensures correct metadata is recorded, even if presets
+// change immediately after clicking "send".
+//
+// Used later in promptInfo assembly (e.g. promptInfo.promptText)
+// ─────────────────────────────────────────────────────────
+    let promptInfo: MessagePresetInfo = {}
+    let initialPresetNameForPromptInfo = null
+    let initialPromptTogglesForPromptInfo: {
+        key: string,
+        value: string,
+    }[] = []
+    if(DBState.db.promptInfoInsideChat){
+        initialPresetNameForPromptInfo = DBState.db.botPresets[DBState.db.botPresetsId]?.name ?? ''
+        initialPromptTogglesForPromptInfo = parseToggleSyntax(DBState.db.customPromptTemplateToggle + getModuleToggles())
+            .flatMap(toggle => {
+                const raw = DBState.db.globalChatVariables[`toggle_${toggle.key}`]
+                if (toggle.type === 'select' || toggle.type === 'text') {
+                    return [{ key: toggle.value, value: toggle.options[raw] }];
+                }
+                if (raw === '1') {
+                    return [{ key: toggle.value, value: 'ON' }];
+                }
+                return [];
+            })
+
+        promptInfo = {
+            promptName: initialPresetNameForPromptInfo,
+            promptToggles: initialPromptTogglesForPromptInfo,
+        }
+    }
+// ─────────────────────────────────────────────────────────────
 
     let currentChar:character
     let caculatedChatTokens = 0
@@ -367,13 +400,15 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     if(currentChat.note){
         unformated.authorNote.push({
             role: 'system',
-            content: risuChatParser(currentChat.note, {chara: currentChar})
+            content: risuChatParser(currentChat.note, {chara: currentChar}),
+            memo: 'authornote'
         })
     }
     else if(getAuthorNoteDefaultText() !== ''){
         unformated.authorNote.push({
             role: 'system',
-            content: risuChatParser(getAuthorNoteDefaultText(), {chara: currentChar})
+            content: risuChatParser(getAuthorNoteDefaultText(), {chara: currentChar}),
+            memo: 'authornote'
         })
     }
 
@@ -403,7 +438,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
         unformated.description.push({
             role: 'system',
-            content: description
+            content: description,
+            memo: 'description',
         })
 
         if(nowChatroom.type === 'group'){
@@ -424,7 +460,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of normalActives){
         unformated.lorebook.push({
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(lorebook.prompt, {chara: currentChar}),
+            memo: 'lore',
         })
     }
 
@@ -448,7 +485,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     if(DBState.db.personaPrompt){
         unformated.personaPrompt.push({
             role: 'system',
-            content: risuChatParser(getPersonaPrompt(), {chara: currentChar})
+            content: risuChatParser(getPersonaPrompt(), {chara: currentChar}),
+            memo: 'persona',
         })
     }
     
@@ -473,7 +511,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of postEverythingLorebooks){
         unformated.postEverything.push({
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(lorebook.prompt, {chara: currentChar}),
+            memo: 'postEverything',
         })
     }
 
@@ -1061,6 +1100,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
     }
 
+    type MemoType = 'persona' | 'description' | 'authornote' | 'supaMemory';
+    const promptBodyMap: Record<MemoType, string[]> = { persona: [], description: [], authornote: [], supaMemory: [] };
+    function pushPromptInfoBody(memo: MemoType, fmt: string) {
+        promptBodyMap[memo].push(risuChatParser(fmt));
+    }
+
     if(promptTemplate){
         const template = promptTemplate
 
@@ -1071,6 +1116,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+
+                            if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                                pushPromptInfoBody(card.type, card.innerFormat)
+                            }
                         }
                     }
 
@@ -1082,6 +1131,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            
+                            if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                                pushPromptInfoBody(card.type, card.innerFormat)
+                            }
                         }
                     }
 
@@ -1093,6 +1146,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                            
+                            if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                                pushPromptInfoBody(card.type, card.innerFormat)
+                            }
                         }
                     }
 
@@ -1208,6 +1265,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
                             pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+
+                            if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                                pushPromptInfoBody('supaMemory', card.innerFormat)
+                            }
                         }
                     }
 
@@ -1327,6 +1388,29 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return true
     }
 
+    
+    function isPromptMemo(m: string): m is MemoType {
+        return ['persona', 'description', 'authornote', 'supaMemory'].includes(m);
+    }
+    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+        const promptBodyInfo: OpenAIChat[] = formated.flatMap(format => {
+            if (isPromptMemo(format.memo)) {
+                return promptBodyMap[format.memo].map(content => ({
+                    role: format.role,
+                    content,
+                }))
+            }
+
+            if (format.memo == null) {
+                return [format]
+            }
+
+            return []
+        })
+        
+        promptInfo.promptText = promptBodyInfo
+    }
+
     let result = ''
     let emoChanged = false
     let resendChat = false
@@ -1353,6 +1437,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 saying: currentChar.chaId,
                 time: Date.now(),
                 generationInfo,
+                promptInfo,
             })
         }
         DBState.db.characters[selectedChar].chats[selectedChat].isStreaming = true
@@ -1432,7 +1517,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     data: result,
                     saying: currentChar.chaId,
                     time: Date.now(),
-                    generationInfo
+                    generationInfo,
+                    promptInfo,
                 }       
                 if(inlayResult.promise){
                     const p = await inlayResult.promise
@@ -1445,7 +1531,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     data: result,
                     saying: currentChar.chaId,
                     time: Date.now(),
-                    generationInfo
+                    generationInfo,
+                    promptInfo,
                 })
                 const ind = DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1
                 if(inlayResult.promise){

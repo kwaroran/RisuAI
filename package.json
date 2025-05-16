@@ -26,6 +26,7 @@
     "@dqbd/tiktoken": "^1.0.7",
     "@huggingface/jinja": "^0.2.2",
     "@huggingface/transformers": "^3.1.1",
+    "@mlc-ai/web-llm": "^0.2.79",
     "@mlc-ai/web-tokenizers": "^0.1.2",
     "@risuai/ccardlib": "^0.4.1",
     "@rollup/rollup-win32-arm64-msvc": "^4.40.1",

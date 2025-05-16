@@ -3,7 +3,7 @@
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "lucide-svelte";
-    import { selectedCharID, PlaygroundStore, createSimpleCharacter } from "../../ts/stores.svelte";
+    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
@@ -12,7 +12,7 @@
     import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
-    import { alertError, alertNormal, alertWait, showHypaV2Alert, showHypaV3Alert } from "../../ts/alert";
+    import { alertError, alertNormal, alertWait, showHypaV2Alert } from "../../ts/alert";
     import sendSound from '../../etc/send.mp3'
     import { processScript } from "src/ts/process/scripts";
     import CreatorQuote from "./CreatorQuote.svelte";
@@ -829,17 +829,17 @@
                     {/if}
 
                     {#if DBState.db.showMenuHypaMemoryModal}
-                        {#if DBState.db.supaModelType !== 'none' && (DBState.db.hypav2 || DBState.db.hypaV3)}
+                        {#if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2) || DBState.db.hypaV3}
                             <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
                                 if (DBState.db.hypav2) {
                                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data ??= {
                                         lastMainChunkID: 0,
                                         mainChunks: [],
-                                        chunks: [],
+                                        chunks: []
                                     }
-                                    showHypaV2Alert();
+                                    showHypaV2Alert()
                                 } else if (DBState.db.hypaV3) {
-                                    showHypaV3Alert();
+                                    $hypaV3ModalOpen = true
                                 }
 
                                 openMenu = false

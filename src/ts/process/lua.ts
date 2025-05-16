@@ -15,6 +15,7 @@ import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
 import { fetchNative } from "../globalApi.svelte";
 import { loadLoreBookV3Prompt } from './lorebook.svelte';
+import { getPersonaPrompt, getUserName } from '../util';
 
 let luaFactory:LuaFactory
 let LuaSafeIds = new Set<string>()
@@ -459,6 +460,26 @@ export async function runLua(code:string, arg:{
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.firstMessage
+            })
+
+            luaEngine.global.set('getPersonaName', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+
+                return getUserName()
+            })
+
+            luaEngine.global.set('getPersonaDescription', (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+
+                return risuChatParser(getPersonaPrompt(), { chara: char })
             })
 
             luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
