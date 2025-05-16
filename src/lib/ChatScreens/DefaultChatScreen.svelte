@@ -661,12 +661,14 @@
 
             {#each blocks as block, i}
                 <div
-                    class="w-full max-w-full" id={'x-chat-' + (blocks.length - i - 1)}
+                    class="w-full max-w-full lazy-portal" id={'x-lazy-portal-' + (blocks.length - i - 1)}
                     bind:this={blockEle[blocks.length - i - 1]}
                 >
 
                 </div>
             {/each}
+
+            
             
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
                 {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
@@ -728,6 +730,15 @@
                 <LazyPortal root={root} target={blockEle[0]}>
 
                     {#if DBState.db.characters[$selectedCharID].type !== 'group' }
+                        {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
+                            <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
+                                const cha = DBState.db.characters[$selectedCharID]
+                                if(cha.type !== 'group'){
+                                    cha.removedQuotes = true
+                                }
+                                DBState.db.characters[$selectedCharID] = cha
+                            }} />
+                        {/if}
                         <Chat
                             character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
                             name={DBState.db.characters[$selectedCharID].name}
@@ -767,15 +778,6 @@
                             isLastMemory={false}
 
                         />
-                        {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
-                            <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
-                                const cha = DBState.db.characters[$selectedCharID]
-                                if(cha.type !== 'group'){
-                                    cha.removedQuotes = true
-                                }
-                                DBState.db.characters[$selectedCharID] = cha
-                            }} />
-                        {/if}
                     {/if}
 
                 </LazyPortal>  
@@ -948,4 +950,5 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
 </style>

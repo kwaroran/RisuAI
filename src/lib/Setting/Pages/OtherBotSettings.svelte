@@ -3,7 +3,6 @@
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     import { selectSingleFile } from "src/ts/util";
-    import { alertError } from "src/ts/alert";
     import { DBState, selectedCharID } from 'src/ts/stores.svelte';
     import { isTauri, saveAsset, downloadFile } from "src/ts/globalApi.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
@@ -42,7 +41,6 @@
             autoSmea:false,
             legacy_uc:false,
             use_coords:false,
-            cfg_rescale:0,
             v4_prompt:{
                 caption:{
                     base_caption:'',
@@ -62,7 +60,6 @@
             reference_strength_multiple: [0.7],
             vibe_data: undefined,
             vibe_model_selection: undefined,
-            noise_schedule: 'karras'
         }
         if (DBState.db.NAIImgConfig.sampler === 'ddim_v3'){
             DBState.db.NAIImgConfig.sm = false
