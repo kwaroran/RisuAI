@@ -800,6 +800,7 @@ export const languageChinese = {
         "noSummariesLabel": "尚无总结",
         "searchPlaceholder": "输入 #N、ID 或搜索关键词",
         "summaryNumberLabel": "总结 #{0}",
+        "deleteThisConfirmMessage": "删除此摘要？",
         "deleteAfterConfirmMessage": "删除此后的所有总结？",
         "deleteAfterConfirmSecondMessage": "此操作无法撤销。您确定吗？",
         "translationLabel": "翻译",

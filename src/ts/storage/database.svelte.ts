@@ -11,6 +11,7 @@ import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templa
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
 import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
+import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
 export let appVer = "159.0.0"
 export let webAppSubVer = ''
@@ -519,17 +520,21 @@ export function setDatabase(data:Database){
     data.checkCorruption ??= true
     data.OaiCompAPIKeys ??= {}
     data.reasoningEffort ??= 0
-    data.hypaV3Settings = {
-        memoryTokensRatio: data.hypaV3Settings?.memoryTokensRatio ?? 0.2,
-        extraSummarizationRatio: data.hypaV3Settings?.extraSummarizationRatio ?? 0,
-        maxChatsPerSummary: data.hypaV3Settings?.maxChatsPerSummary ?? 4,
-        recentMemoryRatio: data.hypaV3Settings?.recentMemoryRatio ?? 0.4,
-        similarMemoryRatio: data.hypaV3Settings?.similarMemoryRatio ?? 0.4,
-        enableSimilarityCorrection: data.hypaV3Settings?.enableSimilarityCorrection ?? false,
-        preserveOrphanedMemory: data.hypaV3Settings?.preserveOrphanedMemory ?? false,
-        processRegexScript: data.hypaV3Settings?.processRegexScript ?? false,
-        doNotSummarizeUserMessage: data.hypaV3Settings?.doNotSummarizeUserMessage ?? false
+    data.hypaV3Presets ??= [
+        createHypaV3Preset("Default", {
+            summarizationPrompt: data.supaMemoryPrompt ? data.supaMemoryPrompt : "",
+            ...data.hypaV3Settings
+        })
+    ]
+    if (data.hypaV3Presets.length > 0) {
+        data.hypaV3Presets = data.hypaV3Presets.map((preset, i) =>
+            createHypaV3Preset(
+                preset.name || `Preset ${i + 1}`,
+                preset.settings || {}
+            )
+        )
     }
+    data.hypaV3PresetId ??= 0
     data.returnCSSError ??= true
     data.useExperimentalGoogleTranslator ??= false
     if(data.antiClaudeOverload){ //migration
@@ -539,7 +544,7 @@ export function setDatabase(data:Database){
     data.hypaCustomSettings = {
         url: data.hypaCustomSettings?.url ?? "",
         key: data.hypaCustomSettings?.key ?? "",
-        model: data.hypaCustomSettings?.model ?? "",       
+        model: data.hypaCustomSettings?.model ?? ""     
     }
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
@@ -964,17 +969,10 @@ export interface Database{
     showPromptComparison:boolean
     checkCorruption:boolean
     hypaV3:boolean
-    hypaV3Settings: {
-        memoryTokensRatio: number
-        extraSummarizationRatio: number
-        maxChatsPerSummary: number
-        recentMemoryRatio: number
-        similarMemoryRatio: number
-        enableSimilarityCorrection: boolean
-        preserveOrphanedMemory: boolean
-        processRegexScript: boolean
-        doNotSummarizeUserMessage: boolean
-    }
+    hypaV3Settings: HypaV3Settings // legacy
+    hypaV3Presets: HypaV3Preset[]
+    hypaV3PresetId: number
+    showMenuHypaMemoryModal:boolean
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -1030,6 +1028,8 @@ export interface Database{
     igpPrompt:string
     useTokenizerCaching:boolean
     showMenuHypaMemoryModal:boolean
+    promptInfoInsideChat:boolean
+    promptTextInfoInsideChat:boolean
 }
 
 interface SeparateParameters{
@@ -1542,6 +1542,7 @@ export interface Message{
     chatId?:string
     time?: number
     generationInfo?: MessageGenerationInfo
+    promptInfo?: MessagePresetInfo
     name?:string
     otherUser?:boolean
 }
@@ -1552,6 +1553,12 @@ export interface MessageGenerationInfo{
     inputTokens?: number
     outputTokens?: number
     maxContext?: number
+}
+
+export interface MessagePresetInfo{
+    promptName?: string,
+    promptToggles?: {key: string, value: string}[],
+    promptText?: OpenAIChat[],
 }
 
 interface AINsettings{
@@ -1920,6 +1927,7 @@ import type { Parameter } from '../process/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
 import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
+import type { OpenAIChat } from '../process/index.svelte';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()

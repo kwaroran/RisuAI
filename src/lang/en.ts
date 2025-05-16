@@ -176,6 +176,7 @@ export const languageEnglish = {
         comfyWorkflow: "Put the API workflow of comfy UI. you can get your API workflow in comfy UI by pressing the 'Workflow > Export (API)' button. you must also put {{risu_prompt}} in you workflow text. the {{risu_prompt}} will be replaced with the prompt provided by the Risu.",
         automaticCachePoint: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
         experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file. this greatly reduces the size of the chat data, and greatly improves the performance, however its experimental and can be unstable, causing issues in backup feature and more.",
+        promptInfoInsideChatDesc: "When enabled, this stores prompt preset information in the chat metadata. The stored data includes the preset name, active toggles, and the prompt text. This may slightly increase processing time and storage usage.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -1036,6 +1037,7 @@ export const languageEnglish = {
         noSummariesLabel: "No summaries yet",
         searchPlaceholder: "Enter #N, ID, or query",
         summaryNumberLabel: "Summary #{0}",
+        deleteThisConfirmMessage: "Delete this summary?",
         deleteAfterConfirmMessage: "Delete all summaries after this one?",
         deleteAfterConfirmSecondMessage: "This action cannot be undone. Are you really sure?",
         translationLabel: "Translation",
@@ -1121,4 +1123,9 @@ export const languageEnglish = {
     hypaMemoryV2Modal: "Hypa V2 Modal",
     hypaMemoryV3Modal: "Hypa V3 Modal",
     showMenuHypaMemoryModal: "Show Menu Hypa Modal",
+    promptInfoInsideChat: "Add Prompt Info to Chat",
+    promptTextInfoInsideChat: "Add Prompt Text to Chat",
+    promptInfoEmptyMessage: "No prompt information is available for this message.",
+    promptInfoEmptyToggle: "No custom toggles are currently active.",
+    promptInfoEmptyText: "No prompt text has been saved.",
 }

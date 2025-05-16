@@ -14,23 +14,22 @@
     CheckIcon,
   } from "lucide-svelte";
   import {
-    alertConfirm,
-    alertNormalWait,
-    showHypaV3Alert,
-  } from "../../ts/alert";
+    summarize,
+    getCurrentHypaV3Preset,
+  } from "src/ts/process/memory/hypav3";
+  import { type OpenAIChat } from "src/ts/process/index.svelte";
+  import { processScriptFull, risuChatParser } from "src/ts/process/scripts";
+  import { type Message } from "src/ts/storage/database.svelte";
+  import { translateHTML } from "src/ts/translator/translator";
+  import { alertConfirm, alertNormalWait } from "src/ts/alert";
   import {
     DBState,
-    alertStore,
     selectedCharID,
     settingsOpen,
     SettingsMenuIndex,
-  } from "../../ts/stores.svelte";
-  import { type OpenAIChat } from "../../ts/process/index.svelte";
-  import { processScriptFull, risuChatParser } from "../../ts/process/scripts";
-  import { summarize } from "../../ts/process/memory/hypav3";
-  import { type Message } from "../../ts/storage/database.svelte";
-  import { translateHTML } from "../../ts/translator/translator";
-  import { language } from "../../lang";
+    hypaV3ModalOpen,
+  } from "src/ts/stores.svelte";
+  import { language } from "src/lang";
 
   interface SummaryUI {
     originalRef: HTMLTextAreaElement;
@@ -413,23 +412,23 @@
     summaryUIState.isTranslating = false;
   }
 
-  function isRerollable(summaryIndex: number): boolean {
+  function isOrphan(summaryIndex: number): boolean {
     const summary = hypaV3DataState.summaries[summaryIndex];
 
     for (const chatMemo of summary.chatMemos) {
       if (!getMessageFromChatMemo(chatMemo)) {
-        return false;
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   async function toggleReroll(summaryIndex: number): Promise<void> {
     const summaryUIState = summaryUIStates[summaryIndex];
 
     if (summaryUIState.isRerolling) return;
-    if (!isRerollable(summaryIndex)) return;
+    if (isOrphan(summaryIndex)) return;
 
     summaryUIState.isRerolling = true;
     summaryUIState.rerolledText = "Loading...";
@@ -452,9 +451,7 @@
 
       const summarizeResult = await summarize(toSummarize);
 
-      if (summarizeResult.success) {
-        summaryUIState.rerolledText = summarizeResult.data;
-      }
+      summaryUIState.rerolledText = summarizeResult;
     } catch (error) {
       summaryUIState.rerolledText = "Reroll failed";
     } finally {
@@ -507,7 +504,7 @@
       return null;
     }
 
-    return DBState.db.hypaV3Settings.processRegexScript
+    return getCurrentHypaV3Preset().settings.processRegexScript
       ? await processRegexScript(unprocessed)
       : unprocessed;
   }
@@ -642,7 +639,7 @@
       return null;
     }
 
-    return DBState.db.hypaV3Settings.processRegexScript
+    return getCurrentHypaV3Preset().settings.processRegexScript
       ? await processRegexScript(unprocessed)
       : unprocessed;
   }
@@ -826,7 +823,7 @@
 </script>
 
 <!-- Modal backdrop -->
-<div class="fixed inset-0 z-50 p-1 sm:p-2 bg-black/50">
+<div class="fixed inset-0 z-40 p-1 sm:p-2 bg-black/50">
   <!-- Modal wrapper -->
   <div class="flex justify-center w-full h-full">
     <!-- Modal window -->
@@ -877,13 +874,9 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={() => {
-              alertStore.set({
-                type: "none",
-                msg: "",
-              });
-
-              settingsOpen.set(true);
-              SettingsMenuIndex.set(2); // Other bot settings
+              $hypaV3ModalOpen = false;
+              $settingsOpen = true;
+              $SettingsMenuIndex = 2; // Other bot settings
             }}
           >
             <SettingsIcon class="w-6 h-6" />
@@ -906,8 +899,6 @@
                   summaries: [],
                   lastSelectedSummaries: [],
                 };
-              } else {
-                showHypaV3Alert();
               }
             }}
           >
@@ -919,10 +910,7 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={() => {
-              alertStore.set({
-                type: "none",
-                msg: "",
-              });
+              $hypaV3ModalOpen = false;
             }}
           >
             <XIcon class="w-6 h-6" />
@@ -960,8 +948,6 @@
                         )
                       );
                     }
-
-                    showHypaV3Alert();
                   }}
                 >
                   {language.hypaV3Modal.convertButton}
@@ -976,7 +962,7 @@
 
           <!-- Search Bar -->
         {:else if searchUIState}
-          <div class="sticky top-0 z-50 p-2 sm:p-3 bg-zinc-800">
+          <div class="sticky top-0 z-40 p-2 sm:p-3 bg-zinc-800">
             <div class="flex items-center gap-2">
               <div class="relative flex flex-1 items-center">
                 <form
@@ -1083,10 +1069,30 @@
                     <button
                       class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
                       tabindex="-1"
-                      disabled={!isRerollable(i)}
+                      disabled={isOrphan(i)}
                       onclick={async () => await toggleReroll(i)}
                     >
                       <RefreshCw class="w-4 h-4" />
+                    </button>
+
+                    <!-- Delete This Button -->
+                    <button
+                      class="p-2 text-zinc-400 hover:text-rose-300 transition-colors"
+                      tabindex="-1"
+                      onclick={async () => {
+                        if (
+                          await alertConfirm(
+                            language.hypaV3Modal.deleteThisConfirmMessage
+                          )
+                        ) {
+                          hypaV3DataState.summaries =
+                            hypaV3DataState.summaries.filter(
+                              (_, index) => index !== i
+                            );
+                        }
+                      }}
+                    >
+                      <Trash2Icon class="w-4 h-4" />
                     </button>
 
                     <!-- Delete After Button -->
@@ -1102,8 +1108,6 @@
                         ) {
                           hypaV3DataState.summaries.splice(i + 1);
                         }
-
-                        showHypaV3Alert();
                       }}
                     >
                       <ScissorsLineDashed class="w-4 h-4" />
