@@ -689,7 +689,7 @@
                                 name={DBState.db.characters[$selectedCharID].name}
                                 message={chat.data}
                                 img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                                rerollIcon={i === 0}
+                                rerollIcon={i === DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1}
                                 onReroll={reroll}
                                 unReroll={unReroll}
                                 isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
@@ -701,7 +701,7 @@
                             <Chat
                                 idx={i}
                                 name={findCharacterbyId(chat.saying).name}
-                                rerollIcon={i === 0}
+                                rerollIcon={i === DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1}
                                 message={chat.data}
                                 onReroll={reroll}
                                 unReroll={unReroll}
