@@ -427,6 +427,7 @@ export function setDatabase(data:Database){
         maxThoughtTagDepth: -1
     }
     data.keiServerURL ??= ''
+    data.assetServerURL ??= ''
     data.top_k ??= 0
     data.promptSettings.maxThoughtTagDepth ??= -1
     data.openrouterFallback ??= true
@@ -1028,6 +1029,7 @@ export interface Database{
     showMenuHypaMemoryModal:boolean
     promptInfoInsideChat:boolean
     promptTextInfoInsideChat:boolean
+    assetServerURL:string
 }
 
 interface SeparateParameters{

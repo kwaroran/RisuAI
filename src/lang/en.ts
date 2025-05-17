@@ -177,6 +177,7 @@ export const languageEnglish = {
         automaticCachePoint: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
         experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file. this greatly reduces the size of the chat data, and greatly improves the performance, however its experimental and can be unstable, causing issues in backup feature and more.",
         promptInfoInsideChatDesc: "When enabled, this stores prompt preset information in the chat metadata. The stored data includes the preset name, active toggles, and the prompt text. This may slightly increase processing time and storage usage.",
+        assetServerURL: "If this option is set, assets are loaded from the specified remote server instead of from the local environment. If left blank, assets will be loaded from the local environment.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
