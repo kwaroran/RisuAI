@@ -1758,7 +1758,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
                 case '__risuaixa__':{
                     if(DBState.db.characters[get(selectedCharID)]?.chaId === 'risuaixa'){
-                        return airisu
+                        return risuChatParser(airisu)
                     }
                 }
             }
