@@ -1760,6 +1760,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     if(DBState.db.characters[get(selectedCharID)]?.chaId === 'risuaixa'){
                         return risuChatParser(airisu)
                     }
+                    return ''
                 }
             }
         }
