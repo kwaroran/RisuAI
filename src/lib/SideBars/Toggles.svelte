@@ -21,7 +21,7 @@
 </script>
 
 {#snippet toggles(reverse: boolean = false)}
-    {#each parsedKv as toggle}
+    {#each parsedKv as toggle, index}
         {#if toggle.type === 'select'}
             <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
                 <span>{toggle.value}</span>
@@ -37,6 +37,17 @@
                 <span>{toggle.value}</span>
                 <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
+        {:else if toggle.type === 'divider'}
+            {@const prevToggle = parsedKv[index - 1]}
+            <!-- Prevent multiple dividers appearing in a row -->
+            {#if index === 0 || prevToggle.type !== 'divider' || prevToggle.value !== toggle.value}
+                <div class="flex gap-2 mt-2 w-full min-h-5 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+                    {#if toggle.value}
+                        <span>{toggle.value}</span>
+                    {/if}
+                    <hr class="border-t border-darkborderc m-0 min-w-32 flex-grow" />
+                </div>
+            {/if}
         {:else}
             <div class="flex mt-2 items-center">
                 <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse={reverse} name={toggle.value} onChange={() => {

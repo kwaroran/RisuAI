@@ -1009,33 +1009,48 @@ export function parseKeyValue(template:string){
     }
 }
 
+type sidebarToggle = 
+    | {
+        key?:string,
+        value?:string,
+        type:'divider',
+        options?:string[]
+    } 
+    | {
+        key:string,
+        value:string,
+        type:'select',
+        options:string[]
+    }
+    | {
+        key:string,
+        value:string,
+        type:string|undefined,
+        options?:string[]
+    }
+
 export function parseToggleSyntax(template:string){
     try {
-        console.log(template)
         if(!template){
             return []
         }
     
-        const keyValue:{
-            key:string,
-            value:string,
-            type?:string,
-            options?:string[]
-        }[] = []
+        const keyValue:sidebarToggle[] = []
     
         const splited = template.split('\n')
 
         for(const line of splited){
             const [key, value, type, option] = line.split('=')
-            if(key && value){
+            if((key && value) || type === 'divider'){
                 keyValue.push({
-                    key, value, type, options: option ? option.split(',') : []
+                    key,
+                    value,
+                    type,
+                    options: option?.split(',') ?? []
                 })
             }
         }
 
-        console.log(keyValue)
-    
         return keyValue   
     } catch (error) {
         console.error(error)
