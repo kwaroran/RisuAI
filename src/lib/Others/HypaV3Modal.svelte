@@ -413,11 +413,17 @@
   }
 
   function isOrphan(summaryIndex: number): boolean {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const summary = hypaV3DataState.summaries[summaryIndex];
 
     for (const chatMemo of summary.chatMemos) {
-      if (!getMessageFromChatMemo(chatMemo)) {
-        return true;
+      if (chatMemo == null) {
+        // Check first message exists
+        if (!getFirstMessage()) return true;
+      } else {
+        if (chat.message.findIndex((m) => m.chatId === chatMemo) === -1)
+          return true;
       }
     }
 
@@ -437,8 +443,7 @@
       const summary = hypaV3DataState.summaries[summaryIndex];
       const toSummarize: OpenAIChat[] = await Promise.all(
         summary.chatMemos.map(async (chatMemo) => {
-          // Processed message
-          const message = await getProcessedMessageFromChatMemo(chatMemo);
+          const message = await getMessageFromChatMemo(chatMemo);
 
           return {
             role: (message.role === "char"
@@ -495,31 +500,28 @@
     summaryUIState.isRerolledTranslating = false;
   }
 
-  async function getProcessedMessageFromChatMemo(
+  async function getMessageFromChatMemo(
     chatMemo: string | null
   ): Promise<Message | null> {
-    const unprocessed = getMessageFromChatMemo(chatMemo);
-
-    if (!unprocessed) {
-      return null;
-    }
-
-    return getCurrentHypaV3Preset().settings.processRegexScript
-      ? await processRegexScript(unprocessed)
-      : unprocessed;
-  }
-
-  function getMessageFromChatMemo(chatMemo: string | null): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
+
+    let msg = null;
+    let msgIndex = -1;
 
     if (chatMemo == null) {
       const firstMessage = getFirstMessage();
 
-      return firstMessage ? { role: "char", data: firstMessage } : null;
+      if (!firstMessage) return null;
+      msg = { role: "char", data: firstMessage };
+    } else {
+      msgIndex = chat.message.findIndex((m) => m.chatId === chatMemo);
+      if (msgIndex === -1) return null;
+      msg = chat.message[msgIndex];
     }
 
-    return chat.message.find((m) => m.chatId === chatMemo) || null;
+    return shouldProcess ? await processRegexScript(msg, msgIndex) : msg;
   }
 
   function getFirstMessage(): string | null {
@@ -533,15 +535,17 @@
         : null;
   }
 
-  async function processRegexScript(msg: Message): Promise<Message> {
+  async function processRegexScript(
+    msg: Message,
+    msgIndex: number = -1
+  ): Promise<Message> {
     const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const newData: string = (
       await processScriptFull(
         char,
         risuChatParser(msg.data, { chara: char, role: msg.role }),
         "editprocess",
-        -1,
+        msgIndex,
         {
           chatRole: msg.role,
         }
@@ -593,8 +597,7 @@
       return;
     }
 
-    // Processed message
-    const message = await getProcessedMessageFromChatMemo(
+    const message = await getMessageFromChatMemo(
       expandedMessageUIState.selectedChatMemo
     );
 
@@ -632,52 +635,41 @@
     }
   }
 
-  async function getProcessedNextSummarizationTarget(): Promise<Message | null> {
-    const unprocessed = getNextSummarizationTarget();
-
-    if (!unprocessed) {
-      return null;
-    }
-
-    return getCurrentHypaV3Preset().settings.processRegexScript
-      ? await processRegexScript(unprocessed)
-      : unprocessed;
-  }
-
-  function getNextSummarizationTarget(): Message | null {
+  async function getNextSummarizationTarget(): Promise<Message | null> {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
 
     // Summaries exist
     if (hypaV3DataState.summaries.length > 0) {
       const lastSummary = hypaV3DataState.summaries.at(-1);
       const lastMessageIndex = chat.message.findIndex(
-        (msg) => msg.chatId === lastSummary.chatMemos.at(-1)
+        (m) => m.chatId === lastSummary.chatMemos.at(-1)
       );
 
       if (lastMessageIndex !== -1) {
-        const nextMessage = chat.message[lastMessageIndex + 1];
+        const next = chat.message[lastMessageIndex + 1] ?? null;
 
-        if (nextMessage) {
-          return nextMessage;
-        }
+        return next && shouldProcess
+          ? await processRegexScript(next, lastMessageIndex + 1)
+          : next;
       }
     }
 
+    // When no summaries exist OR couldn't find last connected message,
+    // check if first message is available
     const firstMessage = getFirstMessage();
 
-    // When no summaries exist OR couldn't find last connected message
-    // Check if first message is available
-    if (!firstMessage || firstMessage.trim() === "") {
-      if (chat.message.length > 0) {
-        return chat.message[0];
-      }
+    if (!firstMessage) {
+      const next = chat.message[0] ?? null;
 
-      return null;
+      return next && shouldProcess ? await processRegexScript(next, 0) : next;
     }
 
-    // will summarize first message
-    return { role: "char", chatId: "first", data: firstMessage };
+    // Will summarize first message
+    const next: Message = { role: "char", chatId: "first", data: firstMessage };
+
+    return shouldProcess ? await processRegexScript(next) : next;
   }
 
   function isHypaV2ConversionPossible(): boolean {
@@ -1278,8 +1270,7 @@
                 {#if expandedMessageUIState?.summaryIndex === i}
                   <!-- Expanded Message -->
                   <div class="mt-2 sm:mt-4">
-                    <!-- Processed Message -->
-                    {#await getProcessedMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
+                    {#await getMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
                       {#if expandedMessage}
                         <!-- Role -->
                         <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
@@ -1336,7 +1327,7 @@
 
         <!-- Next Summarization Target -->
         <div class="mt-2 sm:mt-4">
-          {#await getProcessedNextSummarizationTarget() then nextMessage}
+          {#await getNextSummarizationTarget() then nextMessage}
             {#if nextMessage}
               {@const chatId =
                 nextMessage.chatId === "first"
