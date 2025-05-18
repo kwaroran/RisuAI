@@ -418,6 +418,19 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
+            luaEngine.global.set('getDescription', async (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+                if(char.type === 'group'){
+                    throw('Character is a group')
+                }
+                return char.desc
+            })
+            
             luaEngine.global.set('setDescription', async (id:string, desc:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
