@@ -310,9 +310,6 @@ export function setDatabase(data:Database){
             legacy_uc:false,
         };
     }
-    if(checkNullish(data.NAIImgConfig.cfg_rescale)){
-        data.NAIImgConfig.cfg_rescale = 0;
-    }
     if(checkNullish(data.customTextTheme)){
         data.customTextTheme = {
             FontColorStandard: "#f8f8f2",
