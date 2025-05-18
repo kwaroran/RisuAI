@@ -15,6 +15,7 @@ import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
+import airisu from '../etc/airisu.cbs?raw'
 
 const markdownItOptions = {
     html: true,
@@ -1751,6 +1752,14 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 }
                 case 'iserror':{
                     return arra[1].toLocaleLowerCase().startsWith('error:') ? '1' : '0'
+                }
+                //the underlined ones are for internal use only.
+                //these doesn't support backward compatibility and breaking changes could happen easily
+                //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
+                case '__risuaixa__':{
+                    if(DBState.db.characters[get(selectedCharID)]?.chaId === 'risuaixa'){
+                        return airisu
+                    }
                 }
             }
         }
