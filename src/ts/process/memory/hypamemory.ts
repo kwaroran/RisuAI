@@ -21,6 +21,8 @@ export const localModels = {
         'bgem3GPU': 'Xenova/bge-m3',
         'multiMiniLM': 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
         'multiMiniLMGPU': 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+        'bgeM3Ko': 'HyperBlaze/BGE-m3-ko',
+        'bgeM3KoGPU': 'HyperBlaze/BGE-m3-ko',
     },
     gpuModels:[
         'MiniLMGPU',
@@ -28,6 +30,7 @@ export const localModels = {
         'bgeSmallEnGPU',
         'bgem3GPU',
         'multiMiniLMGPU',
+        'bgeM3KoGPU',
     ]
 }
 
