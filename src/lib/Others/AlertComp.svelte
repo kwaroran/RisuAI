@@ -96,11 +96,13 @@
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
-                <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
-                    {#await ParseMarkdown($alertStore.msg) then msg}
-                        {@html msg}                        
-                    {/await}
-                </span>
+                <div class="overflow-y-auto">
+                    <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
+                        {#await ParseMarkdown($alertStore.msg) then msg}
+                            {@html msg}                        
+                        {/await}
+                    </span>
+                </div>
             {:else if $alertStore.type === 'tos'}
                 <!-- svelte-ignore a11y_missing_attribute -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
