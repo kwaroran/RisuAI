@@ -1749,6 +1749,9 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
 
                     }
                 }
+                case 'iserror':{
+                    return arra[1].toLocaleLowerCase().startsWith('error:') ? '1' : '0'
+                }
             }
         }
         if(p1.startsWith('random')){
