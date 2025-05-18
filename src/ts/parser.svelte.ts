@@ -1,8 +1,8 @@
 import DOMPurify from 'dompurify';
 import markdownit from 'markdown-it'
-import { getCurrentCharacter, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
+import { appVer, getCurrentCharacter, type Database, type Message, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { getFileSrc } from './globalApi.svelte';
+import { getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
@@ -1713,6 +1713,41 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 }
                 case 'tohex':{
                     return Number.parseInt(arra[1]).toString(16)
+                }
+                case 'metadata':{
+                    switch(arra[1].toLocaleLowerCase()){
+                        case 'mobile':{
+                            return isMobile ? '1' : '0'
+                        }
+                        case 'local':{
+                            return isTauri ? '1' : '0'
+                        }
+                        case 'node':{
+                            return isNodeServer ? '1' : '0'
+                        }
+                        case 'version':{
+                            return appVer
+                        }
+                        case 'majorversion':
+                        case 'majorver':
+                        case 'major':{
+                            return appVer.split('.')[0]
+                        }
+                        case 'language':
+                        case 'locale':
+                        case 'lang':{
+                            return DBState.db.language
+                        }
+                        case 'browserlanguage':
+                        case 'browserlocale':
+                        case 'browserlang':{
+                            return navigator.language
+                        }
+                        default:{
+                            return `Error: ${arra[1]} is not a valid metadata key. Valid keys are: mobile, local, node, version, majorversion, language, browserlanguage`
+                        }
+
+                    }
                 }
             }
         }
