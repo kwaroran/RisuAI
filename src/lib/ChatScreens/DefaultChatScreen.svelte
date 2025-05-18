@@ -52,7 +52,7 @@
 
     $effect(() => {
         if($selectedCharID < 0) return
-        if(blocks.length-10 < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
+        while(blocks.length-10 < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
             blocks = new Uint8Array(blocks.length + 500)
             for(let i=0;i<500;i++){
                 blockEle.push(null)
