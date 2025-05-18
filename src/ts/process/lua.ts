@@ -67,22 +67,16 @@ export async function runLua(code:string, arg:{
             luaEngineState.code = code
             luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             const luaEngine = luaEngineState.engine
+            luaEngine.global.set('getChatVar', (id:string,key:string) => {
+                return luaEngineState.getVar(key)
+            })
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                     return
                 }
                 luaEngineState.setVar(key, value)
             })
-            luaEngine.global.set('getChatVar', (id:string,key:string) => {
-                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
-                    return
-                }
-                return luaEngineState.getVar(key)
-            })
             luaEngine.global.set('getGlobalVar', (id:string, key:string) => {
-                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
-                    return
-                }
                 return getGlobalChatVar(key)
             })
             luaEngine.global.set('stopChat', (id:string) => {
@@ -166,11 +160,9 @@ export async function runLua(code:string, arg:{
                 return await tokenize(value)
             })
             luaEngine.global.set('getChatLength', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
                 return luaEngineState.chat.message.length
             })
+
             luaEngine.global.set('getFullChatMain', (id:string) => {
                 const data = JSON.stringify(luaEngineState.chat.message.map((v) => {
                     return {
@@ -183,10 +175,11 @@ export async function runLua(code:string, arg:{
             })
 
             luaEngine.global.set('setFullChatMain', (id:string, value:string) => {
-                const realValue = JSON.parse(value)
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                const realValue = JSON.parse(value)
+
                 luaEngineState.chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
@@ -396,9 +389,6 @@ export async function runLua(code:string, arg:{
             })
             
             luaEngine.global.set('getName', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
@@ -436,6 +426,13 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
+            luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+                return char.firstMessage
+            })
+
             luaEngine.global.set('setCharacterFirstMessage', async (id:string, data:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -452,34 +449,20 @@ export async function runLua(code:string, arg:{
                 return true
             })
 
-            luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-                const db = getDatabase()
-                const selectedChar = get(selectedCharID)
-                const char = db.characters[selectedChar]
-                return char.firstMessage
-            })
-
             luaEngine.global.set('getPersonaName', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-
                 return getUserName()
             })
 
             luaEngine.global.set('getPersonaDescription', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-                
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
 
                 return risuChatParser(getPersonaPrompt(), { chara: char })
+            })
+
+            luaEngine.global.set('getAuthorsNote', (id:string) => {
+                return luaEngineState.chat?.note ?? ''
             })
 
             luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
@@ -508,10 +491,6 @@ export async function runLua(code:string, arg:{
 
             // Lore books
             luaEngine.global.set('getLoreBooksMain', (id:string, search: string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-
                 const db = getDatabase()
                 const selectedChar = db.characters[get(selectedCharID)]
                 if (selectedChar.type !== 'character') {
