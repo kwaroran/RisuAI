@@ -50,7 +50,7 @@
         blockEle.push(null)
     }
 
-    $effect(() => {
+    $effect.pre(() => {
         if($selectedCharID < 0) return
         while(blocks.length-10 < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
             blocks = new Uint8Array(blocks.length + 500)
