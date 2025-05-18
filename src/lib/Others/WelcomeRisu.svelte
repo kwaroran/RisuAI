@@ -6,7 +6,9 @@
     import Chat from "../ChatScreens/Chat.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
+    import Airisu from '../../etc/Airisu.webp'
 
+    const airisuStyle = `background: url("${Airisu}");background-size: cover;`
     let step = $state(0)
     let provider = $state('')
     let input = $state('')
@@ -207,10 +209,10 @@
                     </div>
 
                 {:else}
-                    <Chat name="Risu" message={language.setup.welcome} isLastMemory={false} />
+                    <Chat name="Airisu" img={airisuStyle} message={language.setup.welcome} isLastMemory={false} />
                     {#if step >= 2}
                         <Chat name={DBState.db.username} message={DBState.db.username} isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.setupLaterMessage.replace('{username}', DBState.db.username)} isLastMemory={false} />
+                        <Chat name="Airisu" img={airisuStyle} message={language.setup.setupLaterMessage.replace('{username}', DBState.db.username)} isLastMemory={false} />
                     {/if}
                     {#if step === 2}
                         <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
@@ -230,7 +232,7 @@
                     {/if}
                     {#if step >= 3}
                         <Chat name={DBState.db.username} message={language.setup.setupMessageOption1} isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.welcome2.replace('{username}', DBState.db.username)} isLastMemory={false} />
+                        <Chat name="Airisu" img={airisuStyle} message={language.setup.welcome2.replace('{username}', DBState.db.username)} isLastMemory={false} />
                     {/if}
                     {#if step === 3}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -267,14 +269,14 @@
                     {#if step >= 4}
                         <Chat name={DBState.db.username} message={provider} isLastMemory={false} />
                         {#if provider === 'openai'}
-                            <Chat name="Risu" message={language.setup.setupOpenAI} isLastMemory={false} />
+                            <Chat name="Airisu" img={airisuStyle} message={language.setup.setupOpenAI} isLastMemory={false} />
                         {/if}
                         {#if provider === 'openrouter'}
-                            <Chat name="Risu" message={language.setup.setupOpenrouter} isLastMemory={false} />
+                            <Chat name="Airisu" img={airisuStyle} message={language.setup.setupOpenrouter} isLastMemory={false} />
                         {/if}
                         {#if provider === 'claude'}
                             {#each language.setup.setupClaudeSteps as step, i}
-                                <Chat name="Risu" message={
+                                <Chat name="Airisu" img={airisuStyle} message={
                                 `![alt text](/welcome/claude/ant_${i}.webp)\n\n${i === 0 ? 'https://console.anthropic.com/login?returnTo=%2F%3F\n\n' : ''}` + step
                             } isLastMemory={false} />
                                 
@@ -283,7 +285,7 @@
                     {/if}
                     {#if step >= 5}
                         <Chat name={DBState.db.username} message="<HIDDEN>" isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.chooseChatType} isLastMemory={false} />
+                        <Chat name="Airisu" img={airisuStyle} message={language.setup.chooseChatType} isLastMemory={false} />
                     {/if}
                     {#if step === 5}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -314,7 +316,7 @@
                         <Chat name={DBState.db.username} message={
                             language.setup[`chooseChatTypeOption${chatLang+1}`]
                         } isLastMemory={false} />
-                        <Chat name="Risu" message={language.setup.chooseCheapOrMemory} isLastMemory={false} />
+                        <Chat name="Airisu" img={airisuStyle} message={language.setup.chooseCheapOrMemory} isLastMemory={false} />
                     {/if}
                     {#if step === 6}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -349,7 +351,7 @@
                         </div>
                     {/if}
                     {#if step === 10}
-                        <Chat name="Risu" message={language.setup.allDone} isLastMemory={false} />
+                        <Chat name="Airisu" img={airisuStyle} message={language.setup.allDone} isLastMemory={false} />
                     {/if}
                     <div class="flex items-stretch mb-2 w-full mt-auto">
                         <textarea class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"

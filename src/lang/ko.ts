@@ -141,7 +141,7 @@ export const languageKorean = {
         "themeDescClassic": "모든 기기에 적합합니다",
         "texttheme": "텍스트 색상을 선택해주세요",
         "inputName": "마지막으로, 닉네임을 입력해 주세요",
-        "welcome": "리스AI에 오신 것을 환영합니다! 저는 셋업 도우미 입니다. 먼저 닉네임을 입력해 주세요.",
+        "welcome": "Risuai에 오신 것을 환영합니다! 저는 Risuai 셋업을 도와줄 아이리스라고 합니다. 먼저 닉네임을 입력해 주세요.",
         "welcome2": "{username}님 안녕하세요! 시작하기 전에, 몇가지 설정만 하면 됩니다. 먼저, Ai 제공자를 선택해 주세요.",
         "openrouterProvider": "Openrouter는 여러 무료/유료 모델이 있습니다. 기본적으로 무료로 설정됩니다.",
         "hordeProvider": "Horde는 특별한 설정이 필요없는 무료 모델입니다. 하지만, 성능이 좋지 않습니다.",
