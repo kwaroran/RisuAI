@@ -128,7 +128,7 @@ export async function hypaMemoryV3(
   } finally {
     if (settings.summarizationModel !== "subModel") {
       try {
-        unloadEngine();
+        await unloadEngine();
       } catch {}
     }
   }
