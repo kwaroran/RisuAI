@@ -98,7 +98,7 @@ function renderMarkdown(md:markdownit, data:string){
         quotes = DBState.db.customQuotesData ?? quotes
     }
 
-    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/\uE9b8/g, '{{').replace(/\uE9b9/g, '}}')
+    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/\uE9b8/g, '{').replace(/\uE9b9/g, '}')
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
