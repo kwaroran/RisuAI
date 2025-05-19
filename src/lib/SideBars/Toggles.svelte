@@ -46,7 +46,7 @@
                     class:justify-end={$MobileGUI}>
                     {toggle.value}
                 </summary>
-                <div class="flex flex-col px-2 py-4 pt-0">
+                <div class="flex flex-col px-2 pt-2 pb-4">
                     {@render toggles((toggle as sidebarToggleGroup).children, reverse)}
                 </div>
             </details>
