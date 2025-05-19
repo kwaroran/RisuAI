@@ -40,14 +40,18 @@
 {#snippet toggles(items: sidebarToggle[], reverse: boolean = false)}
     {#each items as toggle, index}
         {#if toggle.type === 'group' && toggle.children.length > 0}
-            <details class="mt-3 mb-1 w-full border border-darkborderc rounded">
-                <summary class="-m-px p-2 bg-darkbutton border border-darkborderc rounded text-xs cursor-pointer select-none hover:bg-selected transition-colors duration-190">{toggle.value}</summary>
+            <details class="w-full mt-3 mb-1 border border-darkborderc rounded">
+                <summary
+                    class="-m-px p-2 bg-darkbutton border border-darkborderc rounded text-xs cursor-pointer select-none hover:bg-selected transition-colors duration-190"
+                    class:justify-end={$MobileGUI}>
+                    {toggle.value}
+                </summary>
                 <div class="flex flex-col px-2 py-4 pt-0">
                     {@render toggles((toggle as sidebarToggleGroup).children, reverse)}
                 </div>
             </details>
         {:else if toggle.type === 'select'}
-            <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+            <div class="w-full flex gap-2 mt-2 items-center" class:justify-end={$MobileGUI} >
                 <span>{toggle.value}</span>
                 <SelectInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
                     {#each toggle.options as option, i}
@@ -56,7 +60,7 @@
                 </SelectInput>
             </div>
         {:else if toggle.type === 'text'}
-            <div class="flex gap-2 mt-2 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+            <div class="w-full flex gap-2 mt-2 items-center" class:justify-end={$MobileGUI}>
                 <span>{toggle.value}</span>
                 <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
@@ -64,7 +68,7 @@
             {@const prevToggle = groupedToggles[index - 1]}
             <!-- Prevent multiple dividers appearing in a row -->
             {#if index === 0 || prevToggle.type !== 'divider' || prevToggle.value !== toggle.value}
-                <div class="flex gap-2 mt-2 w-full min-h-5 items-center" class:flex-row-reverse={!reverse} class:justify-end={!reverse}>
+                <div class="w-full min-h-5 flex gap-2 mt-2 items-center" class:justify-end={!reverse}>
                     {#if toggle.value}
                         <span>{toggle.value}</span>
                     {/if}
@@ -72,7 +76,7 @@
                 </div>
             {/if}
         {:else}
-            <div class="flex mt-2 items-center">
+            <div class="w-full flex mt-2 items-center" class:justify-end={$MobileGUI}>
                 <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse={reverse} name={toggle.value} onChange={() => {
                     DBState.db.globalChatVariables[`toggle_${toggle.key}`] = DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1' ? '0' : '1'
                 }} />
