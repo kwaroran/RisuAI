@@ -1094,6 +1094,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
     }
 
+    let promptBodyformatedForChatStore: OpenAIChat[] = []
+    function pushPromptInfoBody(role: "function" | "system" | "user" | "assistant", fmt: string, promptBody: OpenAIChat[]) {
+        if(!fmt.trim()){
+            return
+        }
+        promptBody.push({
+            role: role,
+            content: risuChatParser(fmt),
+        })
+    }
+
     if(promptTemplate){
         const template = promptTemplate
 
@@ -1106,7 +1117,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
 
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
-                                
+                                pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
                             }
                         }
                     }
@@ -1121,7 +1132,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                             
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
-                                
+                                pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
                             }
                         }
                     }
@@ -1136,7 +1147,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                             pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
                             
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
-                                
+                                pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
                             }
                         }
                     }
@@ -1192,6 +1203,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     const prompt:OpenAIChat ={
                         role: convertRole[card.role],
                         content: content
+                    }
+
+                    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                        pushPromptInfoBody(prompt.role, prompt.content, promptBodyformatedForChatStore)
                     }
 
                     pushPrompts([prompt])
@@ -1255,7 +1270,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                             pmt[i].content = risuChatParser(card.innerFormat, {chara: currentChar}).replace('{{slot}}', pmt[i].content)
 
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
-                                
+                                pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
                             }
                         }
                     }
@@ -1294,6 +1309,13 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v
     })
 
+    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+        promptBodyformatedForChatStore = promptBodyformatedForChatStore.map((v) => {
+            v.content = v.content.trim()
+            return v
+        })
+    }
+
 
     if(currentChar.depth_prompt && currentChar.depth_prompt.prompt && currentChar.depth_prompt.prompt.length > 0){
         //depth_prompt
@@ -1305,6 +1327,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     formated = await runLuaEditTrigger(currentChar, 'editRequest', formated)
+
+    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+        promptBodyformatedForChatStore = await runLuaEditTrigger(currentChar, 'editRequest', promptBodyformatedForChatStore)
+        promptInfo.promptText = promptBodyformatedForChatStore
+    }
 
     //token rechecking
     let inputTokens = 0
