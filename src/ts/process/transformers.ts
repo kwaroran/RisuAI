@@ -60,12 +60,19 @@ export const runEmbedding = async (texts: string[], model:EmbeddingModel = 'Xeno
     console.log('running embedding')
     let embeddingModelQuery = model + device
     if(!extractor || embeddingModelQuery !== lastEmbeddingModelQuery){
+        // Dispose old extractor
+        if(extractor) {
+            await extractor.dispose()
+        }
         extractor = await pipeline('feature-extraction', model, {
+            // Default dtype for webgpu is fp32, so we can use q8, which is the default dtype in wasm.
+            dtype: "q8",
             device: device,
             progress_callback: (progress) => {
                 console.log(progress)
             }
         });
+        lastEmbeddingModelQuery = embeddingModelQuery
         console.log('extractor loaded')
     }
     let result = await extractor(texts, { pooling: 'mean', normalize: true });

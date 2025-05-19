@@ -448,6 +448,7 @@ export async function loadLoreBookV3Prompt(){
                     matching = true
                     recursivePrompt.push({
                         prompt: content,
+                        data: content,
                         source: fullLore[i].comment || `lorebook ${i}`
                     })
                 }

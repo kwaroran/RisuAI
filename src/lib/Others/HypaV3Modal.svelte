@@ -14,23 +14,22 @@
     CheckIcon,
   } from "lucide-svelte";
   import {
-    alertConfirm,
-    alertNormalWait,
-    showHypaV3Alert,
-  } from "../../ts/alert";
+    summarize,
+    getCurrentHypaV3Preset,
+  } from "src/ts/process/memory/hypav3";
+  import { type OpenAIChat } from "src/ts/process/index.svelte";
+  import { processScriptFull, risuChatParser } from "src/ts/process/scripts";
+  import { type Message } from "src/ts/storage/database.svelte";
+  import { translateHTML } from "src/ts/translator/translator";
+  import { alertConfirm, alertNormalWait } from "src/ts/alert";
   import {
     DBState,
-    alertStore,
     selectedCharID,
     settingsOpen,
     SettingsMenuIndex,
-  } from "../../ts/stores.svelte";
-  import { type OpenAIChat } from "../../ts/process/index.svelte";
-  import { processScriptFull, risuChatParser } from "../../ts/process/scripts";
-  import { summarize } from "../../ts/process/memory/hypav3";
-  import { type Message } from "../../ts/storage/database.svelte";
-  import { translateHTML } from "../../ts/translator/translator";
-  import { language } from "../../lang";
+    hypaV3ModalOpen,
+  } from "src/ts/stores.svelte";
+  import { language } from "src/lang";
 
   interface SummaryUI {
     originalRef: HTMLTextAreaElement;
@@ -413,23 +412,29 @@
     summaryUIState.isTranslating = false;
   }
 
-  function isRerollable(summaryIndex: number): boolean {
+  function isOrphan(summaryIndex: number): boolean {
+    const char = DBState.db.characters[$selectedCharID];
+    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const summary = hypaV3DataState.summaries[summaryIndex];
 
     for (const chatMemo of summary.chatMemos) {
-      if (!getMessageFromChatMemo(chatMemo)) {
-        return false;
+      if (chatMemo == null) {
+        // Check first message exists
+        if (!getFirstMessage()) return true;
+      } else {
+        if (chat.message.findIndex((m) => m.chatId === chatMemo) === -1)
+          return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   async function toggleReroll(summaryIndex: number): Promise<void> {
     const summaryUIState = summaryUIStates[summaryIndex];
 
     if (summaryUIState.isRerolling) return;
-    if (!isRerollable(summaryIndex)) return;
+    if (isOrphan(summaryIndex)) return;
 
     summaryUIState.isRerolling = true;
     summaryUIState.rerolledText = "Loading...";
@@ -438,8 +443,7 @@
       const summary = hypaV3DataState.summaries[summaryIndex];
       const toSummarize: OpenAIChat[] = await Promise.all(
         summary.chatMemos.map(async (chatMemo) => {
-          // Processed message
-          const message = await getProcessedMessageFromChatMemo(chatMemo);
+          const message = await getMessageFromChatMemo(chatMemo);
 
           return {
             role: (message.role === "char"
@@ -452,9 +456,7 @@
 
       const summarizeResult = await summarize(toSummarize);
 
-      if (summarizeResult.success) {
-        summaryUIState.rerolledText = summarizeResult.data;
-      }
+      summaryUIState.rerolledText = summarizeResult;
     } catch (error) {
       summaryUIState.rerolledText = "Reroll failed";
     } finally {
@@ -498,31 +500,28 @@
     summaryUIState.isRerolledTranslating = false;
   }
 
-  async function getProcessedMessageFromChatMemo(
+  async function getMessageFromChatMemo(
     chatMemo: string | null
   ): Promise<Message | null> {
-    const unprocessed = getMessageFromChatMemo(chatMemo);
-
-    if (!unprocessed) {
-      return null;
-    }
-
-    return DBState.db.hypaV3Settings.processRegexScript
-      ? await processRegexScript(unprocessed)
-      : unprocessed;
-  }
-
-  function getMessageFromChatMemo(chatMemo: string | null): Message | null {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
+
+    let msg = null;
+    let msgIndex = -1;
 
     if (chatMemo == null) {
       const firstMessage = getFirstMessage();
 
-      return firstMessage ? { role: "char", data: firstMessage } : null;
+      if (!firstMessage) return null;
+      msg = { role: "char", data: firstMessage };
+    } else {
+      msgIndex = chat.message.findIndex((m) => m.chatId === chatMemo);
+      if (msgIndex === -1) return null;
+      msg = chat.message[msgIndex];
     }
 
-    return chat.message.find((m) => m.chatId === chatMemo) || null;
+    return shouldProcess ? await processRegexScript(msg, msgIndex) : msg;
   }
 
   function getFirstMessage(): string | null {
@@ -536,15 +535,17 @@
         : null;
   }
 
-  async function processRegexScript(msg: Message): Promise<Message> {
+  async function processRegexScript(
+    msg: Message,
+    msgIndex: number = -1
+  ): Promise<Message> {
     const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
     const newData: string = (
       await processScriptFull(
         char,
         risuChatParser(msg.data, { chara: char, role: msg.role }),
         "editprocess",
-        -1,
+        msgIndex,
         {
           chatRole: msg.role,
         }
@@ -596,8 +597,7 @@
       return;
     }
 
-    // Processed message
-    const message = await getProcessedMessageFromChatMemo(
+    const message = await getMessageFromChatMemo(
       expandedMessageUIState.selectedChatMemo
     );
 
@@ -635,52 +635,41 @@
     }
   }
 
-  async function getProcessedNextSummarizationTarget(): Promise<Message | null> {
-    const unprocessed = getNextSummarizationTarget();
-
-    if (!unprocessed) {
-      return null;
-    }
-
-    return DBState.db.hypaV3Settings.processRegexScript
-      ? await processRegexScript(unprocessed)
-      : unprocessed;
-  }
-
-  function getNextSummarizationTarget(): Message | null {
+  async function getNextSummarizationTarget(): Promise<Message | null> {
     const char = DBState.db.characters[$selectedCharID];
     const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
+    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
 
     // Summaries exist
     if (hypaV3DataState.summaries.length > 0) {
       const lastSummary = hypaV3DataState.summaries.at(-1);
       const lastMessageIndex = chat.message.findIndex(
-        (msg) => msg.chatId === lastSummary.chatMemos.at(-1)
+        (m) => m.chatId === lastSummary.chatMemos.at(-1)
       );
 
       if (lastMessageIndex !== -1) {
-        const nextMessage = chat.message[lastMessageIndex + 1];
+        const next = chat.message[lastMessageIndex + 1] ?? null;
 
-        if (nextMessage) {
-          return nextMessage;
-        }
+        return next && shouldProcess
+          ? await processRegexScript(next, lastMessageIndex + 1)
+          : next;
       }
     }
 
+    // When no summaries exist OR couldn't find last connected message,
+    // check if first message is available
     const firstMessage = getFirstMessage();
 
-    // When no summaries exist OR couldn't find last connected message
-    // Check if first message is available
-    if (!firstMessage || firstMessage.trim() === "") {
-      if (chat.message.length > 0) {
-        return chat.message[0];
-      }
+    if (!firstMessage) {
+      const next = chat.message[0] ?? null;
 
-      return null;
+      return next && shouldProcess ? await processRegexScript(next, 0) : next;
     }
 
-    // will summarize first message
-    return { role: "char", chatId: "first", data: firstMessage };
+    // Will summarize first message
+    const next: Message = { role: "char", chatId: "first", data: firstMessage };
+
+    return shouldProcess ? await processRegexScript(next) : next;
   }
 
   function isHypaV2ConversionPossible(): boolean {
@@ -826,7 +815,7 @@
 </script>
 
 <!-- Modal backdrop -->
-<div class="fixed inset-0 z-50 p-1 sm:p-2 bg-black/50">
+<div class="fixed inset-0 z-40 p-1 sm:p-2 bg-black/50">
   <!-- Modal wrapper -->
   <div class="flex justify-center w-full h-full">
     <!-- Modal window -->
@@ -877,13 +866,9 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={() => {
-              alertStore.set({
-                type: "none",
-                msg: "",
-              });
-
-              settingsOpen.set(true);
-              SettingsMenuIndex.set(2); // Other bot settings
+              $hypaV3ModalOpen = false;
+              $settingsOpen = true;
+              $SettingsMenuIndex = 2; // Other bot settings
             }}
           >
             <SettingsIcon class="w-6 h-6" />
@@ -906,8 +891,6 @@
                   summaries: [],
                   lastSelectedSummaries: [],
                 };
-              } else {
-                showHypaV3Alert();
               }
             }}
           >
@@ -919,10 +902,7 @@
             class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
             tabindex="-1"
             onclick={() => {
-              alertStore.set({
-                type: "none",
-                msg: "",
-              });
+              $hypaV3ModalOpen = false;
             }}
           >
             <XIcon class="w-6 h-6" />
@@ -960,8 +940,6 @@
                         )
                       );
                     }
-
-                    showHypaV3Alert();
                   }}
                 >
                   {language.hypaV3Modal.convertButton}
@@ -976,7 +954,7 @@
 
           <!-- Search Bar -->
         {:else if searchUIState}
-          <div class="sticky top-0 z-50 p-2 sm:p-3 bg-zinc-800">
+          <div class="sticky top-0 z-40 p-2 sm:p-3 bg-zinc-800">
             <div class="flex items-center gap-2">
               <div class="relative flex flex-1 items-center">
                 <form
@@ -1083,10 +1061,30 @@
                     <button
                       class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
                       tabindex="-1"
-                      disabled={!isRerollable(i)}
+                      disabled={isOrphan(i)}
                       onclick={async () => await toggleReroll(i)}
                     >
                       <RefreshCw class="w-4 h-4" />
+                    </button>
+
+                    <!-- Delete This Button -->
+                    <button
+                      class="p-2 text-zinc-400 hover:text-rose-300 transition-colors"
+                      tabindex="-1"
+                      onclick={async () => {
+                        if (
+                          await alertConfirm(
+                            language.hypaV3Modal.deleteThisConfirmMessage
+                          )
+                        ) {
+                          hypaV3DataState.summaries =
+                            hypaV3DataState.summaries.filter(
+                              (_, index) => index !== i
+                            );
+                        }
+                      }}
+                    >
+                      <Trash2Icon class="w-4 h-4" />
                     </button>
 
                     <!-- Delete After Button -->
@@ -1102,8 +1100,6 @@
                         ) {
                           hypaV3DataState.summaries.splice(i + 1);
                         }
-
-                        showHypaV3Alert();
                       }}
                     >
                       <ScissorsLineDashed class="w-4 h-4" />
@@ -1274,8 +1270,7 @@
                 {#if expandedMessageUIState?.summaryIndex === i}
                   <!-- Expanded Message -->
                   <div class="mt-2 sm:mt-4">
-                    <!-- Processed Message -->
-                    {#await getProcessedMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
+                    {#await getMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
                       {#if expandedMessage}
                         <!-- Role -->
                         <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
@@ -1332,7 +1327,7 @@
 
         <!-- Next Summarization Target -->
         <div class="mt-2 sm:mt-4">
-          {#await getProcessedNextSummarizationTarget() then nextMessage}
+          {#await getNextSummarizationTarget() then nextMessage}
             {#if nextMessage}
               {@const chatId =
                 nextMessage.chatId === "first"

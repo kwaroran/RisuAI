@@ -145,20 +145,22 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "sm": false,
                     "sm_dyn": false,
                     "noise": db.NAIImgConfig.noise,
-                    "noise_schedule": db.NAIImgConfig.noise_schedule,
+                    "noise_schedule": "karras",
+                    "normalize_reference_strength_multiple":false,
                     "strength": db.NAIImgConfig.strength,
                     "ucPreset": 3,
                     "uncond_scale": 1,
                     "qualityToggle": false,
-                    "lagacy_v3_extend": false,
-                    "lagacy": false,
-                    "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
-                    "reference_strength": db.NAIImgConfig.RefStrength,
+                    "legacy_v3_extend": false,
+                    "legacy": false,
+                    // "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
+                    // Only set reference_strength if we're not using reference_strength_multiple
+                    "reference_strength": db.NAIImgConfig.reference_strength_multiple !== undefined ? undefined : db.NAIImgConfig.RefStrength,
                     //add v4
                     "autoSmea": db.NAIImgConfig.autoSmea,
-                    use_coords: db.NAIImgConfig.use_coords,
-                    legacy_uc: db.NAIImgConfig.legacy_uc,
-                    v4_prompt:{
+                    "use_coords": db.NAIImgConfig.use_coords,
+                    "legacy_uc": db.NAIImgConfig.legacy_uc,
+                    "v4_prompt":{
                         caption:{
                             base_caption:genPrompt,
                             char_captions: []
@@ -172,7 +174,9 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                             char_captions: []
                         },
                         legacy_uc: db.NAIImgConfig.v4_negative_prompt.legacy_uc,
-                    }
+                    },
+                    "reference_image_multiple" : [],
+                    "reference_strength_multiple" : [],
                 }
             },
             headers:{
@@ -181,13 +185,51 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             rawResponse: true
         }
 
+        // Add vibe reference_image_multiple if exists
+        if(db.NAIImgConfig.vibe_data) {
+            const vibeData = db.NAIImgConfig.vibe_data;
+            // Determine which model to use based on vibe_model_selection or fallback to current model
+            const modelKey = db.NAIImgConfig.vibe_model_selection || 
+                            (db.NAIImgModel.includes('nai-diffusion-4-full') ? 'v4full' : 
+                             db.NAIImgModel.includes('nai-diffusion-4-curated') ? 'v4curated' : null);
+
+            if(modelKey && vibeData.encodings && vibeData.encodings[modelKey]) {
+                // Initialize arrays if they don't exist
+                if(!commonReq.body.parameters.reference_image_multiple) {
+                    commonReq.body.parameters.reference_image_multiple = [];
+                }
+                if(!commonReq.body.parameters.reference_strength_multiple) {
+                    commonReq.body.parameters.reference_strength_multiple = [];
+                }
+
+                // Use selected encoding or first available
+                let encodingKey = db.NAIImgConfig.vibe_model_selection ? 
+                                 Object.keys(vibeData.encodings[modelKey]).find(key => 
+                                    vibeData.encodings[modelKey][key].params.information_extracted === 
+                                    (db.NAIImgConfig.InfoExtracted || 1)) : 
+                                 Object.keys(vibeData.encodings[modelKey])[0];
+
+                if(encodingKey) {
+                    const encoding = vibeData.encodings[modelKey][encodingKey].encoding;
+                    // Add encoding to the array
+                    commonReq.body.parameters.reference_image_multiple.push(encoding);
+
+                    // Add reference_strength_multiple if it exists
+                    const strength = db.NAIImgConfig.reference_strength_multiple && 
+                                    db.NAIImgConfig.reference_strength_multiple.length > 0 ? 
+                                    db.NAIImgConfig.reference_strength_multiple[0] : 0.5;
+                    commonReq.body.parameters.reference_strength_multiple.push(strength);
+                }
+            }
+        }
+
         if(db.NAII2I){
             let seed = Math.floor(Math.random() * 10000000000)
-         
+
             let base64img = ''
             if(db.NAIImgConfig.image === ''){
                 const charimg = currentChar.image;
-                
+
                 const img = await readImage(charimg)
                 base64img = Buffer.from(img).toString('base64');
             }   else{
@@ -201,7 +243,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     refimgbase64 = Buffer.from(await readImage(db.NAIImgConfig.refimage)).toString('base64');
                 }
             }
-            
+
             reqlist = commonReq;
             reqlist.body.action = "img2img";
             reqlist.body.parameters.image = base64img;
@@ -211,6 +253,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             if(refimgbase64 !== undefined){
                 reqlist.body.parameters.reference_image = refimgbase64
             }
+
+
             console.log({img2img:reqlist});
         }else{
 
@@ -219,7 +263,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 let base64img = ''
                 if(db.NAIImgConfig.image === ''){
                     const charimg = currentChar.image;
-                    
+
                     const img = await readImage(charimg)
                     base64img = Buffer.from(img).toString('base64');
                 }   else{
@@ -228,10 +272,12 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 reqlist = commonReq;
                 reqlist.body.action = 'generate';
                 reqlist.body.parameters.reference_image = base64img;
+
                 console.log({generate:reqlist});
             } else {
                 reqlist = commonReq;
                 reqlist.body.action = 'generate';
+
                 console.log({nothing:reqlist});
             }
         }
@@ -407,7 +453,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                         if(inputKeys[j] === 'seed' && typeof input === 'number'){
                             input = Math.floor(Math.random() * 1000000000)
                         }
-                        
+
                         node.inputs[inputKeys[j]] = input
                     }
                 }
@@ -435,7 +481,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 }
                 await new Promise(r => setTimeout(r, 1000))
             } // Check history until the generation is complete.
-            const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images || [])[0];
+            const genImgInfo = Object.values(item.outputs).flatMap((output: any) => output.images)[0];
 
             const imgResponse = await fetchNative(createUrl('/view', {
                 filename: genImgInfo.filename,
@@ -495,7 +541,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             CharEmotion.set(charemotions)
         }
         return returnSdData
-        
+
     }
     if(db.sdProvider === 'fal'){
         const model = db.falModel

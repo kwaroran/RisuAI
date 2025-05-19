@@ -8,7 +8,6 @@
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
     import { tooltip } from "src/ts/gui/tooltip";
-  import Googli from "../Googli.svelte";
 
     interface Props {
         openedData: hubType;
@@ -71,8 +70,6 @@
             </div>
 
         </div>
-
-        <Googli />
 
         <div class="flex flex-row-reverse gap-2">
             <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {

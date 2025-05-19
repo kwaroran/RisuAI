@@ -30,6 +30,61 @@ body{
   --risu-theme-darkbutton: #374151;
   --risu-height-size: 100%;
   --risu-font-family: Arial, sans-serif, serif;
+
+    --risu-theme-neutral-50: #f9fafb;
+    --risu-theme-neutral-100: #f3f4f6;
+    --risu-theme-neutral-200: #e5e7eb;
+    --risu-theme-neutral-300: #d1d5db;
+    --risu-theme-neutral-400: #9ca3af;
+    --risu-theme-neutral-500: #6b7280;
+    --risu-theme-neutral-600: #4b5563;
+    --risu-theme-neutral-700: #374151; 
+    --risu-theme-neutral-800: #1f2937;
+    --risu-theme-neutral-900: #111827;
+  
+    --risu-theme-primary-50: #eff6ff;
+    --risu-theme-primary-100: #dbeafe;
+    --risu-theme-primary-200: #bfdbfe;
+    --risu-theme-primary-300: #93c5fd;
+    --risu-theme-primary-400: #60a5fa;
+    --risu-theme-primary-500: #3b82f6;
+    --risu-theme-primary-600: #2563eb;
+    --risu-theme-primary-700: #1d4ed8;
+    --risu-theme-primary-800: #1e40af;
+    --risu-theme-primary-900: #1e3a8a;
+  
+    --risu-theme-secondary-50: #f5f3ff;
+    --risu-theme-secondary-100: #ede9fe;
+    --risu-theme-secondary-200: #ddd6fe;
+    --risu-theme-secondary-300: #c4b5fd;
+    --risu-theme-secondary-400: #a78bfa;
+    --risu-theme-secondary-500: #8b5cf6;
+    --risu-theme-secondary-600: #7c3aed;
+    --risu-theme-secondary-700: #6d28d9;
+    --risu-theme-secondary-800: #5b21b6;
+    --risu-theme-secondary-900: #4c1d95;
+
+    --risu-theme-danger-50: #fef2f2;
+    --risu-theme-danger-100: #fee2e2;
+    --risu-theme-danger-200: #fecaca;
+    --risu-theme-danger-300: #fca5a5;
+    --risu-theme-danger-400: #f87171;
+    --risu-theme-danger-500: #ef4444;
+    --risu-theme-danger-600: #dc2626;
+    --risu-theme-danger-700: #b91c1c;
+    --risu-theme-danger-800: #991b1b;
+    --risu-theme-danger-900: #7f1d1d;
+  
+    --risu-theme-success-50: #f0fdf4;
+    --risu-theme-success-100: #dcfce7;
+    --risu-theme-success-200: #bbf7d0;
+    --risu-theme-success-300: #86efac;
+    --risu-theme-success-400: #4ade80;
+    --risu-theme-success-500: #22c55e;
+    --risu-theme-success-600: #16a34a;
+    --risu-theme-success-700: #15803d;
+    --risu-theme-success-800: #166534;
+    --risu-theme-success-900: #14532d;
 }
 
 .x-risu-language-json{

@@ -25,7 +25,8 @@
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
     import { message } from "@tauri-apps/plugin-dialog";
     import HypaV3Modal from './HypaV3Modal.svelte';
-  import Googli from "../UI/Googli.svelte";
+    import Googli from "../UI/Googli.svelte";
+
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -118,9 +119,6 @@
                 </div>
                 <div class="w-full flex justify-center mt-6">
                     <span class="text-gray-500 text-sm">{$alertStore.submsg + '%'}</span>
-                </div>
-                <div class="w-full flex justify-center">
-                    <Googli className="mt-14" />                    
                 </div>
             {/if}
 
@@ -225,6 +223,9 @@
                     <Button selected={generationInfoMenuIndex === 2} size="sm" onclick={() => {generationInfoMenuIndex = 2}}>
                         {language.log}
                     </Button>
+                    <Button selected={generationInfoMenuIndex === 3} size="sm" onclick={() => {generationInfoMenuIndex = 3}}>
+                        {language.prompt}
+                    </Button>
                     <button class="ml-auto" onclick={() => {
                         alertStore.set({
                             type: 'none',
@@ -294,6 +295,42 @@
                             <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.response)}</code>
                         {/if}
                     {/await}
+                {/if}
+                {#if generationInfoMenuIndex === 3}
+                    {#if Object.keys(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo || {}).length === 0}
+                        <div class="text-gray-300 text-lg mt-2">{language.promptInfoEmptyMessage}</div>
+                    {:else}
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-4">
+                            <span class="text-blue-500">Preset Name</span>
+                            <span class="text-blue-500 justify-self-end">{DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptName}</span>
+                            <span class="text-purple-500">Toggles</span>
+                            <div class="col-span-2 max-h-32 overflow-y-auto border border-stone-500 rounded p-2 bg-gray-900">
+                                {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptToggles.length === 0}
+                                    <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyToggle}</div>
+                                {:else}
+                                    <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                                        {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptToggles as toggle}
+                                        <span class="text-gray-200 truncate">{toggle.key}</span>
+                                        <span class="text-gray-200 justify-self-end truncate">{toggle.value}</span>
+                                        {/each}
+                                    </div>
+                                {/if}
+                            </div>
+                            <span class="text-red-500">Prompt Text</span>
+                            <div class="col-span-2 max-h-80 overflow-y-auto border border-stone-500 rounded p-4 bg-gray-900">
+                                {#if !DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText}
+                                    <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyText}</div>
+                                {:else}
+                                    {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText as block}
+                                        <div class="mb-2">
+                                            <div class="font-bold text-gray-600">{block.role}</div>
+                                            <pre class="whitespace-pre-wrap text-sm bg-stone-900 p-2 rounded border border-stone-500">{block.content}</pre>
+                                        </div>
+                                    {/each}
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
                 {/if}
             {:else if $alertStore.type === 'hypaV2'}
                 <div class="flex flex-wrap gap-2 mb-4 max-w-full w-124">
@@ -649,10 +686,6 @@
             {/if}
         {/each}
     </div>
-{/if}
-
-{#if $alertStore.type === "hypaV3"}
-    <HypaV3Modal />
 {/if}
 
 <style>
