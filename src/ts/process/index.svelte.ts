@@ -1205,7 +1205,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         content: content
                     }
 
-                    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
+                    if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat && card.type2 !== 'globalNote'){
                         pushPromptInfoBody(prompt.role, prompt.content, promptBodyformatedForChatStore)
                     }
 
