@@ -16,6 +16,7 @@ import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
 import airisu from '../etc/airisu.cbs?raw'
+import { getModelInfo } from './model/modellist';
 
 const markdownItOptions = {
     html: true,
@@ -97,7 +98,7 @@ function renderMarkdown(md:markdownit, data:string){
         quotes = DBState.db.customQuotesData ?? quotes
     }
 
-    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'"))
+    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/\uE9b8/g, '{{').replace(/\uE9b9/g, '}}')
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
@@ -1245,6 +1246,25 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             case 'cnewline':{
                 return '\\n'
             }
+            case 'decbo':
+            case 'displayescapedcurlybracketopen':{
+                return '\uE9b8'
+            }
+            case 'decbc':
+            case 'displayescapedcurlybracketclose':{
+                return '\uE9b9'
+            }
+            case 'bo':
+            case 'ddecbo':
+            case 'doubledisplayescapedcurlybracketopen':{
+                return '\uE9b8\uE9b8'
+            }
+            case 'bc':
+            case 'ddecbc':
+            case 'doubledisplayescapedcurlybracketclose':{
+                return '\uE9b9\uE9b9'
+            }
+            
         }
         const arra = p1.split("::")
         if(arra.length > 1){
@@ -1744,8 +1764,45 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                         case 'browserlang':{
                             return navigator.language
                         }
+                        case 'languagekey':{
+                            return language[arra[2]] ?? `Error: ${arra[2]} is not a valid language key.`
+                        }
+                        case 'modelshortname':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.shortName ?? modelInfo.name ?? modelInfo.id
+                        }
+                        case 'modelname':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.name ?? modelInfo.id
+                        }
+                        case 'modelinternalid':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.internalID ?? modelInfo.id
+                        }
+                        case 'modelformat':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.format.toString()
+                        }
+                        case 'modelprovider':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.provider.toString()
+                        }
+                        case 'modeltokenizer':{
+                            const modelInfo = getModelInfo(DBState.db.aiModel)
+                            return modelInfo.tokenizer.toString()
+                        }
+                        case 'imateapot':{
+                            //just a easter egg because why not
+                            return '🫖'
+                        }
+                        case 'risutype':{
+                            return isTauri ? 'local' : isNodeServer ? 'node' : 'web'
+                        }
+                        case 'maxcontext':{
+                            return DBState.db.maxContext.toString()
+                        }
                         default:{
-                            return `Error: ${arra[1]} is not a valid metadata key. Valid keys are: mobile, local, node, version, majorversion, language, browserlanguage`
+                            return `Error: ${arra[1]} is not a valid metadata key.`
                         }
 
                     }
@@ -1756,8 +1813,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //the underlined ones are for internal use only.
                 //these doesn't support backward compatibility and breaking changes could happen easily
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
-                case '__risuaixa__':{
-                    if(DBState.db.characters[get(selectedCharID)]?.chaId === 'risuaixa'){
+                case '__assistantprompt':{
+                    if(DBState.db.characters[get(selectedCharID)]?.chaId === '__airisu'){
                         return risuChatParser(airisu)
                     }
                     return ''
