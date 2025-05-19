@@ -1009,12 +1009,26 @@ export function parseKeyValue(template:string){
     }
 }
 
-type sidebarToggle = 
+export type sidebarToggleGroup = {
+    key?:string,
+    value?:string,
+    type:'group',
+    children:sidebarToggle[]
+}
+
+export type sidebarToggleGroupEnd = {
+    key?:string,
+    value?:string,
+    type:'groupEnd',
+}
+
+export type sidebarToggle =
+    | sidebarToggleGroup
+    | sidebarToggleGroupEnd
     | {
         key?:string,
         value?:string,
         type:'divider',
-        options?:string[]
     } 
     | {
         key:string,
@@ -1025,7 +1039,7 @@ type sidebarToggle =
     | {
         key:string,
         value:string,
-        type:string|undefined,
+        type:'text'|undefined,
         options?:string[]
     }
 
@@ -1041,11 +1055,18 @@ export function parseToggleSyntax(template:string){
 
         for(const line of splited){
             const [key, value, type, option] = line.split('=')
-            if((key && value) || type === 'divider'){
+            if(type === 'group' || type === 'groupEnd' || type === 'divider'){
                 keyValue.push({
                     key,
                     value,
                     type,
+                    children: []
+                })
+            } else if((key && value)){
+                keyValue.push({
+                    key,
+                    value,
+                    type: type === 'select' || type === 'text' ? type : undefined,
                     options: option?.split(',') ?? []
                 })
             }
