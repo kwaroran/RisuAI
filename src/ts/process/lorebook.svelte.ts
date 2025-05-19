@@ -96,7 +96,7 @@ export async function loadLoreBookV3Prompt(){
         }).concat(recursivePrompt.map((msg) => {
             return {
                 source: 'lorebook ' + msg.source,
-                prompt: msg.prompt,
+                prompt: dontSearchWhenRecursive ? '' : msg.prompt,
                 data: msg.data
             }
         }))
@@ -204,6 +204,7 @@ export async function loadLoreBookV3Prompt(){
     let matchTimes = 0
     let keepActivateAfterMatch = false
     let dontActivateAfterMatch = false
+    let dontSearchWhenRecursive = false
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -402,6 +403,10 @@ export async function loadLoreBookV3Prompt(){
                     }
                     case 'recursive':{
                         itemRecursive = true
+                        return
+                    }
+                    case 'no_recursive_search':{
+                        dontSearchWhenRecursive = true
                         return
                     }
                     default:{
