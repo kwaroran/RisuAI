@@ -23,6 +23,7 @@ import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/model
 import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
 import { v4 } from "uuid";
+import { DBState } from "../stores.svelte";
 
 
 

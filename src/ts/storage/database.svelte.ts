@@ -1026,6 +1026,7 @@ export interface Database{
     igpPrompt:string
     useTokenizerCaching:boolean
     showMenuHypaMemoryModal:boolean
+    mcpURLs:string[]
 }
 
 interface SeparateParameters{
