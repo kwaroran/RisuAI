@@ -1051,3 +1051,20 @@ export const sortableOptions = {
         return event.related.className.indexOf('no-sort') === -1
     }
 } as const
+
+
+export function pickHashRand(cid:number,word:string) {
+    let hashAddress = 5515
+    const rand = (word:string) => {
+        for (let counter = 0; counter<word.length; counter++){
+            hashAddress = ((hashAddress << 5) + hashAddress) + word.charCodeAt(counter)
+        }
+        return hashAddress
+    }
+    const randF = sfc32(rand(word), rand(word), rand(word), rand(word))
+    const v = cid % 1000
+    for (let i = 0; i < v; i++){
+        randF()
+    }
+    return randF()
+}

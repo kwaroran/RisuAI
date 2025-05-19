@@ -3,12 +3,13 @@ import {selectedCharID} from '../stores.svelte'
 import { type Message, type loreBook } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { tokenize } from "../tokenizer";
-import { checkNullish, findCharacterbyId, selectSingleFile } from "../util";
+import { checkNullish, findCharacterbyId, pickHashRand, selectSingleFile, sfc32 } from "../util";
 import { alertError, alertNormal } from "../alert";
 import { language } from "../../lang";
 import { downloadFile } from "../globalApi.svelte";
 import { getModuleLorebooks } from "./modules";
 import { CCardLib } from "@risuai/ccardlib";
+import { getChatVar, setChatVar } from "../parser.svelte";
 
 export function addLorebook(type:number) {
     const selectedID = get(selectedCharID)
@@ -201,6 +202,8 @@ export async function loadLoreBookV3Prompt(){
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
     let matchTimes = 0
+    let keepActivateAfterMatch = false
+    let dontActivateAfterMatch = false
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -239,6 +242,7 @@ export async function loadLoreBookV3Prompt(){
                     }
                 }
             }
+            let itemRecursive:'global'|true|false = 'global'
             const content = CCardLib.decorator.parse(fullLore[i].content, (name, arg) => {
                 switch(name){
                     case 'end':{
@@ -267,11 +271,23 @@ export async function loadLoreBookV3Prompt(){
                         return
                     }
                     case 'keep_activate_after_match':{
-                        //TODO
+                        const vara = getChatVar('__internal_ka_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()))
+                        if(vara === 'true'){
+                            forceState = 'activate'
+                        }
+                        else{
+                            keepActivateAfterMatch = true
+                        }
                         return false
                     }
                     case 'dont_activate_after_match': {
-                        //TODO
+                        const vara = getChatVar('__internal_da_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()))
+                        if(vara === 'true'){
+                            forceState = 'deactivate'
+                        }
+                        else{
+                            dontActivateAfterMatch = true
+                        }
                         return false
                     }
                     case 'depth':
@@ -379,6 +395,15 @@ export async function loadLoreBookV3Prompt(){
                         priority = parseInt(arg[0])
                         return
                     }
+                    //We can already do it with search depth, but its more readable and performant this way
+                    case 'unrecursive':{
+                        itemRecursive = false
+                        return
+                    }
+                    case 'recursive':{
+                        itemRecursive = true
+                        return
+                    }
                     default:{
                         return false
                     }
@@ -444,7 +469,21 @@ export async function loadLoreBookV3Prompt(){
                     source: fullLore[i].comment || `lorebook ${i}`
                 })
                 activatedIndexes.push(i)
-                if(recursiveScanning){
+
+                if(keepActivateAfterMatch){
+                    setChatVar('__internal_ka_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()), 'true')
+                }
+                if(dontActivateAfterMatch){
+                    setChatVar('__internal_da_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()), 'true')
+                }
+
+
+                let recursive = recursiveScanning
+                if(itemRecursive !== 'global'){
+                    recursive = itemRecursive
+                }
+
+                if(recursive){
                     matching = true
                     recursivePrompt.push({
                         prompt: content,

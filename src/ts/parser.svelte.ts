@@ -8,7 +8,7 @@ import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand} from './util';
 import { getInlayAsset } from './process/files/inlays';
 import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
@@ -1947,22 +1947,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
     } catch (error) {
         return null   
     }
-}
-
-function pickHashRand(cid:number,word:string) {
-    let hashAddress = 5515
-    const rand = (word:string) => {
-        for (let counter = 0; counter<word.length; counter++){
-            hashAddress = ((hashAddress << 5) + hashAddress) + word.charCodeAt(counter)
-        }
-        return hashAddress
-    }
-    const randF = sfc32(rand(word), rand(word), rand(word), rand(word))
-    const v = cid % 1000
-    for (let i = 0; i < v; i++){
-        randF()
-    }
-    return randF()
 }
 
 const dateTimeFormat = (main:string, time = 0) => {
