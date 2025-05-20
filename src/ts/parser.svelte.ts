@@ -92,13 +92,27 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
     }
 });
 
+
+const replacements = [
+    '{', //0xE9B8
+    '}', //0xE9B9
+    '(', //0xE9BA
+    ')', //0xE9BB
+    '&lt;', //0xE9BE
+    '&gt;', //0xE9BF
+    ':', //0xE9BE
+    ';', //0xE9BF
+]
+
 function renderMarkdown(md:markdownit, data:string){
     let quotes = ['“', '”', '‘', '’']
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
-
-    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/\uE9b8/g, '{').replace(/\uE9b9/g, '}')
+    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/[\uE9b8-\uE9bf]/g, (f) => {
+        const index = f.charCodeAt(0) - 0xE9B8
+        return replacements[index]
+    })
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
@@ -1275,22 +1289,52 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return '\\n'
             }
             case 'decbo':
-            case 'displayescapedcurlybracketopen':{
+            case 'displayescapedcurlybracketopen':{ // {
                 return '\uE9b8'
             }
             case 'decbc':
-            case 'displayescapedcurlybracketclose':{
+            case 'displayescapedcurlybracketclose':{ // }
                 return '\uE9b9'
             }
             case 'bo':
             case 'ddecbo':
-            case 'doubledisplayescapedcurlybracketopen':{
+            case 'doubledisplayescapedcurlybracketopen':{ // {{
                 return '\uE9b8\uE9b8'
             }
             case 'bc':
             case 'ddecbc':
-            case 'doubledisplayescapedcurlybracketclose':{
+            case 'doubledisplayescapedcurlybracketclose':{ // }}
                 return '\uE9b9\uE9b9'
+            }
+            case 'displayescapedbracketopen':
+            case 'debo':
+            case '(':{ // (
+                return '\uE9BA'
+            }
+            case 'displayescapedbracketclose':
+            case 'debc':
+            case ')':{ // )
+                return '\uE9BB'
+            }
+            case 'displayescapedanglebracketopen':
+            case 'deabo':
+            case '<':{ // <
+                return '\uE9BC'
+            }
+            case 'displayescapedanglebracketclose':
+            case 'deabc':
+            case '>':{ // >
+                return '\uE9BD'
+            }
+            case 'displayescapedcolon':
+            case 'dec':
+            case ':':{ // :
+                return '\uE9BE'
+            }
+            case 'displayescapedsemicolon':
+            //since desc is already used for other things, we can't use simplified name
+            case ';':{ // ;
+                return '\uE9BF'
             }
             
         }
