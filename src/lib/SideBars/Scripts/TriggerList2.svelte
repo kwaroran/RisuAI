@@ -1219,6 +1219,13 @@
                 </div>
             {:else if menuMode === 1}
                 <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
+                    <div class="p-4 border-b border-darkborderc">
+                        <button class="p-2 bg-darkbutton hover:bg-borderc text-textcolor rounded-md flex items-center" onclick={() => {
+                            menuMode = 0
+                        }}>
+                            <span class="mr-1">←</span> 뒤로가기
+                        </button>
+                    </div>
                     {#each effectV2Types.filter((e) => {
 
                         return checkSupported(e)
