@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, XIcon } from "lucide-svelte";
+    import { PlusIcon, XIcon, ArrowLeftIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
@@ -1220,10 +1220,10 @@
             {:else if menuMode === 1}
                 <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
                     <div class="p-4 border-b border-darkborderc">
-                        <button class="p-2 bg-darkbutton hover:bg-borderc text-textcolor rounded-md flex items-center" onclick={() => {
+                        <button class="p-2 text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
                             menuMode = 0
                         }}>
-                            <span class="mr-1">←</span>
+                            <ArrowLeftIcon />
                         </button>
                     </div>
                     {#each effectV2Types.filter((e) => {
