@@ -1239,9 +1239,16 @@
                 </div>
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
-                    <h2 class="text-xl mb-4">
-                        {language.triggerDesc[editTrigger.type]}
-                    </h2>
+                    <div class="flex items-center gap-2 mb-4">
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                            menuMode = 0
+                        }}>
+                            <ArrowLeftIcon />
+                        </button>
+                        <h2 class="text-xl">
+                            {language.triggerDesc[editTrigger.type]}
+                        </h2>
+                    </div>
                     {#if editTrigger.type === 'v2SetVar'}
                         <span class="block text-textcolor">{language.varName}</span>
                         <TextInput bind:value={editTrigger.var} />
