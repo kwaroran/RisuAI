@@ -1852,10 +1852,7 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //these doesn't support backward compatibility and breaking changes could happen easily
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
                 case '__assistantprompt':{
-                    if(DBState.db.characters[get(selectedCharID)]?.chaId === '__airisu'){
-                        return risuChatParser(airisu)
-                    }
-                    return ''
+                    return risuChatParser(airisu)
                 }
             }
         }

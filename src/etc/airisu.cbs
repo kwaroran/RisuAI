@@ -153,11 +153,183 @@ Miscellaneous sidebar, when chatting with a character, shortly called "chat misc
 {{// Since we are writing CBS docs in CBS itself, lets use [[]] instead of brackets, so it won't be confused, and lets replace it with brackets when we are done.}}
 CBS, formally known as Curly Braced Syntax (CBS, currently only called "CBS"), is a syntax that is used to write simple macro scripts for {{gettempvar::production_name}}.
 It can be used almost any textboxes in {{gettempvar::production_name}}, such as character description, lorebook, regex script, trigger script, and other textboxes.
+It can be mixed with plain text, like "[[char]] is a character", or "Hello [[user]]".
 It's syntax is like [[char]], or with arguments like [[random::arg1::arg2::arg3]]. it can also be nested like [[random::[[user]]::[[char]]]].
 It also has a block syntax, starts with [[#block <A>]] and ends with [[/block]] or simplified [[/]].
 
 {{#if {{? maxcontext > 20000}}}}
 
+CSV documentation of CBS
+First row is name of the function (also called "macro"), and second row is the description of the function.
+Third row is the example of the alias, separated by /, Fourth row is the arguments of the function, separated by /. if arguments has ..., it means it can take multiple arguments.
+if it is blank, it means it doesn't have any arguments.
+
+```csv
+name,description,aliases,arguments,example
+previous_char_chat,Returns the previous character message,"previous_char_chat/previouscharchat/lastcharmessage",,"[[previous_char_chat]]"
+previous_user_chat,Returns the previous user message,"previous_user_chat/previoususerchat/lastusermessage",,"[[previous_user_chat]]"
+char,Returns the character's name or nickname,"char/bot",,"[[char]]"
+user,Returns the user's name,"user",,"[[user]]"
+personality,Returns the character's personality,"personality/char_persona/charpersona",,"[[personality]]"
+description,Returns the character's description,"description/char_desc/chardesc",,"[[description]]"
+scenario,Returns the character's scenario,"scenario",,"[[scenario]]"
+example_dialogue,Returns the character's example dialogue,"example_dialogue/example_message/exampledialogue/examplemessage",,"[[example_dialogue]]"
+persona,Returns the user's persona,"persona/user_persona/userpersona",,"[[persona]]"
+main_prompt,Returns the main/system prompt,"main_prompt/system_prompt/systemprompt/mainprompt",,"[[main_prompt]]"
+lorebook,Returns the lorebook/world info,"lorebook/world_info/worldinfo",,"[[lorebook]]"
+history,Returns the full chat history,"history/messages",,"[[history]]"
+user_history,Returns the user's message history,"user_history/user_messages/userhistory/usermessages",,"[[user_history]]"
+char_history,Returns the character's message history,"char_history/char_messages/charhistory/charmessages",,"[[char_history]]"
+ujb,Returns the global/system note,"ujb/global_note/system_note/globalnote/systemnote",,"[[ujb]]"
+chat_index,Returns the current chat index,"chat_index/chatindex",,"[[chat_index]]"
+first_msg_index,Returns the first message index,"first_msg_index/firstmessageindex/firstmsgindex",,"[[first_msg_index]]"
+blank,Returns an empty string,"blank/none",,"[[blank]]"
+message_time,Returns the time of the message,"message_time/messagetime",,"[[message_time]]"
+message_date,Returns the date of the message,"message_date/messagedate",,"[[message_date]]"
+message_unixtime_array,Returns an array of message unix times,"message_unixtime_array/messageunixtimearray",,"[[message_unixtime_array]]"
+unixtime,Returns the current unix time,"unixtime",,"[[unixtime]]"
+time,Returns the current time,"time",,"[[time]]"
+date,Returns the current date,"date",,"[[date]]"
+isotime,Returns the current UTC time,"isotime",,"[[isotime]]"
+isodate,Returns the current UTC date,"isodate",,"[[isodate]]"
+message_idle_duration,Returns idle duration between last two user messages,"message_idle_duration/messageidleduration",,"[[message_idle_duration]]"
+idle_duration,Returns idle duration since last message,"idle_duration/idleduration",,"[[idle_duration]]"
+br,Returns a newline character,"br/newline",,"[[br]]"
+model,Returns the current AI model,"model",,"[[model]]"
+axmodel,Returns the submodel,"axmodel",,"[[axmodel]]"
+role,Returns the message role,"role",,"[[role]]"
+isfirstmsg,Returns 1 if first message, else 0,"isfirstmsg/is_first_msg/is_first_message/isfirstmessage",,"[[isfirstmsg]]"
+random,Returns a random number,"random",,"[[random]]"
+maxcontext,Returns the max context value,"maxcontext",,"[[maxcontext]]"
+lastmessage,Returns the last message data,"lastmessage",,"[[lastmessage]]"
+lastmessageid,Returns the last message index,"lastmessageid/lastmessageindex",,"[[lastmessageid]]"
+emotionlist,Returns the list of emotion names,"emotionlist",,"[[emotionlist]]"
+assetlist,Returns the list of asset names,"assetlist",,"[[assetlist]]"
+prefill_supported,Returns 1 if prefill is supported,"prefill_supported/prefillsupported/prefill",,"[[prefill_supported]]"
+screen_width,Returns the screen width,"screen_width/screenwidth",,"[[screen_width]]"
+screen_height,Returns the screen height,"screen_height/screenheight",,"[[screen_height]]"
+cbr,Returns a literal newline string,"cbr/cnl/cnewline",,"[[cbr]]"
+decbo,Returns a special open curly bracket character,"decbo/displayescapedcurlybracketopen",,"[[decbo]]"
+decbc,Returns a special close curly bracket character,"decbc/displayescapedcurlybracketclose",,"[[decbc]]"
+bo,Returns double open curly bracket character,"bo/ddecbo/doubledisplayescapedcurlybracketopen",,"[[bo]]"
+bc,Returns double close curly bracket character,"bc/ddecbc/doubledisplayescapedcurlybracketclose",,"[[bc]]"
+tempvar,Get a temporary variable,"tempvar/gettempvar","name","[[tempvar::myvar]]"
+settempvar,Set a temporary variable,"settempvar","name/value","[[settempvar::myvar::42]]"
+return,Set a return value and force return,"return","value","[[return::done]]"
+getvar,Get a chat variable,"getvar","name","[[getvar::score]]"
+calc,Calculate a string expression,"calc","expression","[[calc::2+2]]"
+addvar,Add a value to a chat variable,"addvar","name/value","[[addvar::score::1]]"
+setvar,Set a chat variable,"setvar","name/value","[[setvar::score::10]]"
+setdefaultvar,Set a default value if variable is not set,"setdefaultvar","name/value","[[setdefaultvar::score::5]]"
+getglobalvar,Get a global chat variable,"getglobalvar","name","[[getglobalvar::total]]"
+button,Create a button,"button","label/action","[[button::Click Me::doSomething]]"
+risu,Insert a Risu logo image,"risu","size","[[risu::60]]"
+equal,Check if two values are equal,"equal","a/b","[[equal::1::1]]"
+not_equal,Check if two values are not equal,"not_equal/notequal","a/b","[[not_equal::1::2]]"
+greater,Check if a > b,"greater","a/b","[[greater::5::3]]"
+less,Check if a < b,"less","a/b","[[less::2::3]]"
+greater_equal,Check if a >= b,"greater_equal/greaterequal","a/b","[[greater_equal::3::3]]"
+less_equal,Check if a <= b,"less_equal/lessequal","a/b","[[less_equal::2::3]]"
+and,Logical AND of two values,"and","a/b","[[and::1::1]]"
+or,Logical OR of two values,"or","a/b","[[or::1::0]]"
+not,Logical NOT of a value,"not","a","[[not::1]]"
+file,Display file or decode base64,"file","name/base64data","[[file::filename.txt::YmFzZTY0]]"
+startswith,Check if a string starts with another,"startswith","string/prefix","[[startswith::hello::he]]"
+endswith,Check if a string ends with another,"endswith","string/suffix","[[endswith::hello::lo]]"
+contains,Check if a string contains another,"contains","string/substring","[[contains::hello::el]]"
+replace,Replace all occurrences in a string,"replace","string/target/replacement","[[replace::hello::l::r]]"
+split,Split a string into an array,"split","string/delimiter","[[split::a,b,c::,]]"
+join,Join an array into a string,"join","array/delimiter","[[join::[a,b,c]::,]]"
+spread,Spread an array with :: separator,"spread","array","[[spread::[a,b,c]]]"
+trim,Trim whitespace from a string,"trim","string","[[trim:: hello ]] "
+length,Get length of a string,"length","string","[[length::hello]]"
+arraylength,Get length of an array,"arraylength/array_length","array","[[arraylength::[a,b,c]]]"
+lower,Convert string to lowercase,"lower","string","[[lower::HELLO]]"
+upper,Convert string to uppercase,"upper","string","[[upper::hello]]"
+capitalize,Capitalize first letter,"capitalize","string","[[capitalize::hello]]"
+round,Round a number,"round","number","[[round::3.6]]"
+floor,Floor a number,"floor","number","[[floor::3.6]]"
+ceil,Ceil a number,"ceil","number","[[ceil::3.1]]"
+abs,Absolute value,"abs","number","[[abs::-5]]"
+remaind,Modulo operation,"remaind","a/b","[[remaind::5::2]]"
+previous_chat_log,Get previous chat log by index,"previous_chat_log","index","[[previous_chat_log::2]]"
+tonumber,Extract numbers from string,"tonumber","string","[[tonumber::a1b2c3]]"
+pow,Power operation,"pow","base/exponent","[[pow::2::3]]"
+arrayelement,Get array element by index,"arrayelement/array_element","array/index","[[arrayelement::[a,b,c]::1]]"
+dictelement,Get dictionary/object element by key,"dictelement/dict_element/objectelement/object_element","dict/key","[[dictelement::{"a":1}::a]]"
+object_assert,Assert key in object, "object_assert/dict_assert/dictassert/objectassert","dict/key/value","[[object_assert::{}::a::1]]"
+element,Get nested element from JSON,"element/ele","json/key1/key2/...","[[element::{"a":{"b":2]]::a::b]]"
+arrayshift,Remove first element from array,"arrayshift/array_shift","array","[[arrayshift::[a,b,c]]]"
+arraypop,Remove last element from array,"arraypop/array_pop","array","[[arraypop::[a,b,c]]]"
+arraypush,Push value to array,"arraypush/array_push","array/value","[[arraypush::[a,b]::c]]"
+arraysplice,Splice array,"arraysplice/array_splice","array/start/deleteCount/item","[[arraysplice::[a,b,c]::1::1::x]]"
+arrayassert,Assert index in array,"arrayassert/array_assert","array/index/value","[[arrayassert::[a]::2::b]]"
+makearray,Create array from arguments,"makearray/array/a/make_array","item1/item2/...","[[makearray::a::b::c]]"
+makedict,Create dictionary/object from key=value pairs,"makedict/dict/d/make_dict/makeobject/object/o/make_object","key1=value1/key2=value2/...","[[makedict::a=1::b=2]]"
+range,Create a range array,"range","start/end/step","[[range::0::5::1]]"
+date,Format date/time,"date/time/datetimeformat/date_time_format. format is a subset of Moment.js time format","format/timestamp","[[date::YYYY-MM-DD::1620000000000]]"
+module_enabled,Check if module is enabled,"module_enabled/moduleenabled","namespace","[[module_enabled::modulename]]"
+module_assetlist,Get asset list from module,"module_assetlist/moduleassetlist","namespace","[[module_assetlist::modulename]]"
+filter,"Filter array. Type can be:
+- unique: Remove duplicates
+- nonempty: Remove empty values
+- all: do unique and nonempty
+","filter","array/type","[[filter::[a,,b,a]::unique]]"
+all,Check if all values are 1,"all","array/...","[[all::1::1::1]]"
+any,Check if any value is 1,"any","array/...","[[any::0::1::0]]"
+min,Get minimum value,"min","array/...","[[min::1::2::3]]"
+max,Get maximum value,"max","array/...","[[max::1::2::3]]"
+sum,Sum values,"sum","array/...","[[sum::1::2::3]]"
+average,Average values,"average","array/...","[[average::1::2::3]]"
+fixnum,Fix number to decimals,"fixnum/fix_num/fixnumber/fix_number","number/decimals","[[fixnum::3.14159::2]]"
+unicode_encode,Get unicode code of char,"unicode_encode/unicodeencode","string/index","[[unicode_encode::A]]"
+unicode_decode,Decode unicode code to char,"unicode_decode/unicodedecode","code","[[unicode_decode::65]]"
+u,Decode unicode from hex,"u/unicodedecodefromhex","hex","[[u::41]]"
+ue,Encode unicode from hex,"ue/unicodeencodefromhex","hex","[[ue::41]]"
+hash,Hash a string,"hash","string","[[hash::hello]]"
+randint,Random integer in range,"randint","min/max","[[randint::1::10]]"
+dice,Roll dice in NdM notation,"dice","NdM","[[dice::2d6]]"
+fromhex,Convert hex to decimal,"fromhex","hex","[[fromhex::1a]]"
+tohex,Convert decimal to hex,"tohex","number","[[tohex::26]]"
+metadata,"Get metadata value. argument can be:
+- mobile (is mobile)
+- local (is local)
+- node (is node)
+- version (version of Risuai)
+- major (Major version of risuai)
+- lang (current language code)
+- browserlang (same as navigator.language in js)
+- modelshortname (returns current model's short name)
+- modelname (returns current model's name)
+- modelformat (returns current model's format)
+- modelprovider (returns current model's provider)
+- modeltokenizer (returns current model's tokenizer)
+- risutype (returns current risuai type like node web and etc.)
+- maxcontext (returns current max context)
+","metadata","key","[[metadata::version]]"
+iserror,Check if string is error,"iserror","string","[[iserror::Error: Something]]"
+asset,Returns a asset image named first argument,"asset","name","[[asset::image.png]]"
+emotion,Returns a emotion image named first argument,"emotion","name","[[emotion::happy]]"
+audio,Returns a audio named first argument,"audio","name","[[audio::sound.mp3]]"
+bg,Returns a image with width and height as 100% named first argument,"bg","name","[[bg::image.png]]"
+video,Returns a video named first argument,"video","name","[[video::video.mp4]]"
+video-img,Return a video that is styled like a image named first argument,"video-img","name","[[video-img::video.mp4]]"
+path,Returns a string which is a path to the file named first argument,path/raw,"name","[[path::image.png]]"
+image,Returns a image named first argument,"image","name","[[image::image.png]]"
+img,Returns a image named first argument but without styling,"img","name","[[img::image.png]]"
+bgm,Returns a audio which is hidden named first argument,"bgm","name","[[bgm::sound.mp3]]"
+inlay,Returns a image from inlay data named first argument,"inlay","name","[[inlay::image.png]]"
+inlayed,Returns a image from inlay data named first argument but with styling,"inlayed","name","[[inlayed::image.png]]"
+inlayeddata,Returns a image from inlay data named first argument but with styling and data. unlike inlayed it is also sent to the AI when character sent with this function,"inlayeddata","name","[[inlayeddata::image.png]]"
+?,Do math operations doesn't follow the usual syntax of arguments supports + - * / ^ % < > <= >= || && == != !,"?",, [[? 1 + 2 * 6]]
+random,Returns a random selection of arguments,"random","arg1/arg2/arg3/...","[[random::a::b::c]]"
+pick,same as random but seed is fixed by message index resulting consistent output,"pick","arg1/arg2/arg3/...","[[pick::a::b::c]]"
+roll,Returns a random integer from 1 to first argument,"roll","number","[[roll::6]]"
+rollp,same as roll but seed is fixed by message index resulting consistent output,"rollp","number","[[rollp::6]]"
+slot,returns the current element being iterated over, identified by named first argument,"slot","name","[[slot::name]]"
+slot,unlike slot with argument, this returns different value dependening where it is used,"slot","name","[[slot]]"
+
+```
 
 {{/if}}
 {{#if {{? maxcontext <= 20000}}}}
