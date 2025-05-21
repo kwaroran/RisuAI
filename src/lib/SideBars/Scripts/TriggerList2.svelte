@@ -1220,7 +1220,7 @@
             {:else if menuMode === 1}
                 <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
                     <div class="p-4 border-b border-darkborderc">
-                        <button class="p-2 text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
                             menuMode = 0
                         }}>
                             <ArrowLeftIcon />
