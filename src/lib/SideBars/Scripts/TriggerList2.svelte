@@ -1223,7 +1223,7 @@
                         <button class="p-2 bg-darkbutton hover:bg-borderc text-textcolor rounded-md flex items-center" onclick={() => {
                             menuMode = 0
                         }}>
-                            <span class="mr-1">←</span> 뒤로가기
+                            <span class="mr-1">←</span>
                         </button>
                     </div>
                     {#each effectV2Types.filter((e) => {
