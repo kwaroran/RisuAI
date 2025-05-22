@@ -33,11 +33,11 @@
                     DBState.db.loreBook[DBState.db.loreBookPage].data = newLore
                 }
                 else if(externalLoreBooks){
-                    let newLore:loreBook[] = []
+                    const tempArray = [...externalLoreBooks];
+                    externalLoreBooks.length = 0;
                     idx.forEach((i) => {
-                        newLore.push(externalLoreBooks[i])
-                    })
-                    externalLoreBooks = newLore
+                        externalLoreBooks.push(tempArray[i]);
+                    });
                 }
                 else if(submenu === 1){
                     let newLore:loreBook[] = []
