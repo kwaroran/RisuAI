@@ -779,6 +779,34 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 4 Opus (20250514) v1',
+        id: 'anthropic.claude-opus-4-20250514-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 4 Sonnet (20250514) v1',
+        id: 'anthropic.claude-sonnet-4-20250514-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Claude 3.7 Sonnet (20250219) v1',
         id: 'anthropic.claude-3-7-sonnet-20250219-v1:0',
         provider: LLMProvider.AWS,
