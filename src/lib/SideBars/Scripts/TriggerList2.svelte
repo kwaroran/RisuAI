@@ -1413,7 +1413,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
 
                     {:else if editTrigger.type === 'v2Impersonate'}
                         <span>{language.role}</span>
@@ -1426,7 +1426,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
 
                     {:else if editTrigger.type === 'v2ModifyChat'}
                         <span>{language.index}</span>
@@ -1440,7 +1440,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2LoopNTimes'}
                         <span>{language.value}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
