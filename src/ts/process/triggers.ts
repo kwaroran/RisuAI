@@ -178,6 +178,7 @@ export type triggerV2IfVar = {
     targetType: 'var'|'value',
     target: string,
     source: string,
+    sourceType: 'var',
     indent: number
 }
 
