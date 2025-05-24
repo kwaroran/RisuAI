@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, XIcon } from "lucide-svelte";
+    import { PlusIcon, XIcon, ArrowLeftIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
@@ -7,6 +7,7 @@
     import Portal from "src/lib/UI/GUI/Portal.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
 
@@ -133,6 +134,8 @@
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
     let contextMenuLoc = $state({x: 0, y: 0})
+    let menu0Container = $state<HTMLDivElement>(null)
+    let menu0ScrollPosition = $state(0)
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -147,6 +150,13 @@
     $effect(() => {
         if(menuMode === 0){
             addElse = false
+            setTimeout(() => {
+                menu0Container.scrollTop = menu0ScrollPosition
+            }, 0)
+        } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
+            if(menu0Container) {
+                menu0ScrollPosition = menu0Container.scrollTop
+            }
         }
     })
 
@@ -1167,7 +1177,7 @@
                             </SelectInput>
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto">
+                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto" bind:this={menu0Container}>
                         {#each value[selectedIndex].effect as effect, i}
                             <button class="p-2 w-full text-start text-purple-500"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
@@ -1219,6 +1229,13 @@
                 </div>
             {:else if menuMode === 1}
                 <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
+                    <div class="p-4 border-b border-darkborderc">
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                            menuMode = 0
+                        }}>
+                            <ArrowLeftIcon />
+                        </button>
+                    </div>
                     {#each effectV2Types.filter((e) => {
 
                         return checkSupported(e)
@@ -1232,9 +1249,16 @@
                 </div>
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
-                    <h2 class="text-xl mb-4">
-                        {language.triggerDesc[editTrigger.type]}
-                    </h2>
+                    <div class="flex items-center gap-2 mb-4">
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                            menuMode = 0
+                        }}>
+                            <ArrowLeftIcon />
+                        </button>
+                        <h2 class="text-xl">
+                            {language.triggerDesc[editTrigger.type]}
+                        </h2>
+                    </div>
                     {#if editTrigger.type === 'v2SetVar'}
                         <span class="block text-textcolor">{language.varName}</span>
                         <TextInput bind:value={editTrigger.var} />
@@ -1398,7 +1422,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
 
                     {:else if editTrigger.type === 'v2Impersonate'}
                         <span>{language.role}</span>
@@ -1411,7 +1435,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
 
                     {:else if editTrigger.type === 'v2ModifyChat'}
                         <span>{language.index}</span>
@@ -1425,7 +1449,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2LoopNTimes'}
                         <span>{language.value}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
