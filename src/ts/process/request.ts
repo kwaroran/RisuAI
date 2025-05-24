@@ -11,7 +11,7 @@ import { risuChatParser } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { supportsInlayImage, writeInlayImage } from "./files/inlays";
+import { setInlayAsset, supportsInlayImage, writeInlayImage } from "./files/inlays";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -2167,6 +2167,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         delete body.systemInstruction
     }
 
+    if(arg.modelInfo.flags.includes(LLMFlags.hasAudioOutput)){
+        body.generation_config.responseModalities = [
+            'TEXT', 'AUDIO'
+        ]
+        arg.useStreaming = false
+    }
     if(arg.imageResponse){
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
@@ -2515,11 +2521,26 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 if(part.inlineData){
                     const imgHTML = new Image()
                     const id = crypto.randomUUID()
-                    imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
-                    await writeInlayImage(imgHTML, {
-                        id: id
-                    })
-                    rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+
+                    if(part.inlineData.mimeType.startsWith('image/')){
+
+                        imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                        await writeInlayImage(imgHTML, {
+                            id: id
+                        })
+                        rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+                    }
+                    else{
+                        const id = v4()
+                        await setInlayAsset(id, {
+                            name: 'gemini-audio',
+                            type: 'audio',
+                            data: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+                            height: 0,
+                            width: 0,
+                            ext: part.inlineData.mimeType.split('/')[1],
+                        })
+                    }
                 }
             }   
         }
