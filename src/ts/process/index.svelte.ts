@@ -1374,7 +1374,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         continue: arg.continue,
         chatId: generationId,
         imageResponse: DBState.db.outputImageModal,
-        previewBody: arg.previewPrompt
+        previewBody: arg.previewPrompt,
+        escape: nowChatroom.type === 'character' && nowChatroom.escapeOutput
     }, 'model', abortSignal)
 
     console.log(req)

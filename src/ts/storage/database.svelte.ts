@@ -1210,6 +1210,7 @@ export interface character{
     lastInteraction?:number
     translatorNote?:string
     doNotChangeSeperateModels?:boolean
+    escapeOutput?:boolean
 }
 
 

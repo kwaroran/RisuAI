@@ -1089,6 +1089,10 @@
             <span> <Help key="utilityBot" name={language.utilityBot}/></span>
         </div>
 
+        <div class="flex items-center mt-4">
+            <Check bind:check={DBState.db.characters[$selectedCharID].escapeOutput} name={language.escapeOutput}/>
+        </div>
+
         {#if DBState.db.supaModelType !== 'none' && DBState.db.hypav2}
             <Button
                 onclick={() => {

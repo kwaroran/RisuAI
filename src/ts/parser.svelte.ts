@@ -104,10 +104,22 @@ const replacements = [
     ';', //0xE9BF
 ]
 
-export function unescape(text:string){
+export function risuUnescape(text:string){
     return text.replace(/[\uE9b8-\uE9bf]/g, (f) => {
         const index = f.charCodeAt(0) - 0xE9B8
         return replacements[index]
+    })
+}
+
+export function risuEscape(text:string){
+    return text.replace(/[{}()]/g, (f) => {
+        switch(f){
+            case '{': return '\uE9B8'
+            case '}': return '\uE9B9'
+            case '(': return '\uE9BA'
+            case ')': return '\uE9BB'
+            default: return f
+        }
     })
 }
 
@@ -116,7 +128,7 @@ function renderMarkdown(md:markdownit, data:string){
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
-    let text = unescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
+    let text = risuUnescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
@@ -2210,28 +2222,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
             })
         }
         case 'escape':{
-            return p1Trimed.replace(/[\{\}\<\>\(\)\:\;]/g,(m) => {
-                switch(m){
-                    case '{':
-                        return '\uE9B8'
-                    case '}':
-                        return '\uE9B9'
-                    case '<':
-                        return '\uE9BC'
-                    case '>':
-                        return '\uE9BD'
-                    case '(':
-                        return '\uE9BA'
-                    case ')':
-                        return '\uE9BB'
-                    case ':':
-                        return '\uE9BE'
-                    case ';':
-                        return '\uE9BF'
-                    default:
-                        return m
-                }
-            })
+            return risuEscape(p1Trimed)
         }
         default:{
             return ''

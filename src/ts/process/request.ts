@@ -7,7 +7,7 @@ import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyRe
 import { sleep } from "../util";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
-import { risuChatParser } from "../parser.svelte";
+import { risuChatParser, risuEscape } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
@@ -23,8 +23,7 @@ import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/model
 import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
 import { v4 } from "uuid";
-import { DBState } from "../stores.svelte";
-import { unescape } from "lodash";
+import { risuUnescape } from "../parser.svelte";
 
 
 
@@ -48,6 +47,7 @@ interface requestDataArgument{
     imageResponse?:boolean
     previewBody?:boolean
     staticModel?: string
+    escape?:boolean
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -275,8 +275,13 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     fallBackModels.push('')
     let da:requestDataResponse
 
+    if(arg.escape){
+        arg.useStreaming = false
+        console.warn('Escape is enabled, disabling streaming')
+    }
+
     const originalFormated = safeStructuredClone(arg.formated).map(m => {
-        m.content = unescape(m.content)
+        m.content = risuUnescape(m.content)
         return m
     })
 
@@ -336,6 +341,10 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                     type: 'fail',
                     result: 'Aborted'
                 }
+            }
+
+            if(da.type === 'success' && arg.escape){
+                da.result = risuEscape(da.result)
             }
     
             if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){

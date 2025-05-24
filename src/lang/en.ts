@@ -1128,5 +1128,6 @@ export const languageEnglish = {
     promptInfoEmptyMessage: "No prompt information is available for this message.",
     promptInfoEmptyToggle: "No custom toggles are currently active.",
     promptInfoEmptyText: "No prompt text has been saved.",
+    escapeOutput: "Escape Output",
     
 }
