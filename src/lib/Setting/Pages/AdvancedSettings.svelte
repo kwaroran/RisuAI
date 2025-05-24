@@ -190,16 +190,18 @@
     <Check bind:check={DBState.db.enableDevTools} name={language.enableDevTools}>
     </Check>
 </div>
-<div class="flex items-center mt-4">
-    <Check bind:check={DBState.db.promptInfoInsideChat} name={language.promptInfoInsideChat}>
-         <Help key="promptInfoInsideChatDesc"/>
-    </Check>
-</div>
-{#if DBState.db.promptInfoInsideChat}
+{#if isNodeServer || isTauri}
     <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.promptTextInfoInsideChat} name={language.promptTextInfoInsideChat}>
+        <Check bind:check={DBState.db.promptInfoInsideChat} name={language.promptInfoInsideChat}>
+            <Help key="promptInfoInsideChatDesc"/>
         </Check>
     </div>
+    {#if DBState.db.promptInfoInsideChat}
+        <div class="flex items-center mt-4">
+            <Check bind:check={DBState.db.promptTextInfoInsideChat} name={language.promptTextInfoInsideChat}>
+            </Check>
+        </div>
+    {/if}
 {/if}
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.dynamicAssets} name={language.dynamicAssets}>
