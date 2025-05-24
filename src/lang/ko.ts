@@ -126,6 +126,7 @@ export const languageKorean = {
         "chatHTML": "A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button.",
         "autoTranslateCachedOnly": "자동 번역 옵션이 켜진 상태에서 활성화하면, 사용자가 이전에 번역한 메시지만 자동으로 번역됩니다.",
         "promptInfoInsideChatDesc": "활성화되면 채팅 메타데이터에 프롬프트 프리셋 정보를 저장합니다. 저장되는 정보는 프롬프트 프리셋 이름과 활성화된 토글, 그리고 프롬프트 텍스트입니다. 약간의 처리 시간과 용량을 차지할 수 있습니다.",
+        "assetServerURL": "이 옵션을 설정하면 로컬이 아닌 설정한 리모트 서버에서 에셋을 불러옵니다. 비워두면 로컬에서 에셋을 불러옵니다.",
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
