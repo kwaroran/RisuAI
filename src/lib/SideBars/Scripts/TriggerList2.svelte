@@ -189,6 +189,7 @@
                     condition: '=',
                     targetType: 'value',
                     target: '',
+                    sourceType: 'var',
                     source: ''
                 }
                 break;

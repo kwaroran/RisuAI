@@ -177,8 +177,8 @@ export type triggerV2IfVar = {
     condition: '='|'!='|'>'|'<'|'>='|'<=',
     targetType: 'var'|'value',
     target: string,
+    sourceType: 'var'|'value',
     source: string,
-    sourceType: 'var',
     indent: number
 }
 
