@@ -41,7 +41,13 @@ export interface HypaV3Settings {
 
 interface HypaV3Data {
   summaries: Summary[];
-  lastSelectedSummaries?: number[];
+  lastSelectedSummaries?: number[]; // legacy
+  metrics?: {
+    lastImportantSummaries: number[];
+    lastRecentSummaries: number[];
+    lastSimilarSummaries: number[];
+    lastRandomSummaries: number[];
+  };
 }
 
 export interface SerializableHypaV3Data {
@@ -50,7 +56,13 @@ export interface SerializableHypaV3Data {
     chatMemos: string[];
     isImportant: boolean;
   }[];
-  lastSelectedSummaries?: number[];
+  lastSelectedSummaries?: number[]; // legacy
+  metrics?: {
+    lastImportantSummaries: number[];
+    lastRecentSummaries: number[];
+    lastSimilarSummaries: number[];
+    lastRandomSummaries: number[];
+  };
 }
 
 interface Summary {
@@ -158,14 +170,11 @@ async function hypaMemoryV3MainExp(
   currentTokens -= db.maxResponse;
 
   // Load existing hypa data if available
-  let data: HypaV3Data = {
-    summaries: [],
-    lastSelectedSummaries: [],
-  };
-
-  if (room.hypaV3Data) {
-    data = toHypaV3Data(room.hypaV3Data);
-  }
+  const data: HypaV3Data = room.hypaV3Data
+    ? toHypaV3Data(room.hypaV3Data)
+    : {
+        summaries: [],
+      };
 
   // Clean orphaned summaries
   if (!settings.preserveOrphanedMemory) {
@@ -464,11 +473,10 @@ async function hypaMemoryV3MainExp(
   const selectedSummaries: Summary[] = [];
   const randomMemoryRatio =
     1 - settings.recentMemoryRatio - settings.similarMemoryRatio;
+  const selectedImportantSummaries: Summary[] = [];
 
   // Select important summaries
   {
-    const selectedImportantSummaries: Summary[] = [];
-
     for (const summary of data.summaries) {
       if (summary.isImportant) {
         const summaryTokens = await tokenizer.tokenizeChat({
@@ -505,10 +513,9 @@ async function hypaMemoryV3MainExp(
     availableMemoryTokens * settings.recentMemoryRatio
   );
   let consumedRecentMemoryTokens = 0;
+  const selectedRecentSummaries: Summary[] = [];
 
   if (settings.recentMemoryRatio > 0) {
-    const selectedRecentSummaries: Summary[] = [];
-
     // Target only summaries that haven't been selected yet
     const unusedSummaries = data.summaries.filter(
       (e) => !selectedSummaries.includes(e)
@@ -554,10 +561,9 @@ async function hypaMemoryV3MainExp(
     availableMemoryTokens * settings.similarMemoryRatio
   );
   let consumedSimilarMemoryTokens = 0;
+  const selectedSimilarSummaries: Summary[] = [];
 
   if (settings.similarMemoryRatio > 0) {
-    const selectedSimilarSummaries: Summary[] = [];
-
     // Utilize unused token space from recent selection
     if (randomMemoryRatio <= 0) {
       const unusedRecentTokens =
@@ -769,10 +775,9 @@ async function hypaMemoryV3MainExp(
     availableMemoryTokens * randomMemoryRatio
   );
   let consumedRandomMemoryTokens = 0;
+  const selectedRandomSummaries: Summary[] = [];
 
   if (randomMemoryRatio > 0) {
-    const selectedRandomSummaries: Summary[] = [];
-
     // Utilize unused token space from recent and similar selection
     const unusedRecentTokens =
       reservedRecentMemoryTokens - consumedRecentMemoryTokens;
@@ -872,9 +877,20 @@ async function hypaMemoryV3MainExp(
   }
 
   // Save last selected summaries
-  data.lastSelectedSummaries = selectedSummaries.map((selectedSummary) =>
-    data.summaries.findIndex((summary) => summary === selectedSummary)
-  );
+  data.metrics = {
+    lastImportantSummaries: selectedImportantSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastRecentSummaries: selectedRecentSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastSimilarSummaries: selectedSimilarSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastRandomSummaries: selectedRandomSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+  };
 
   const newChats: OpenAIChat[] = [
     {
@@ -927,14 +943,11 @@ async function hypaMemoryV3Main(
   currentTokens -= db.maxResponse;
 
   // Load existing hypa data if available
-  let data: HypaV3Data = {
-    summaries: [],
-    lastSelectedSummaries: [],
-  };
-
-  if (room.hypaV3Data) {
-    data = toHypaV3Data(room.hypaV3Data);
-  }
+  const data: HypaV3Data = room.hypaV3Data
+    ? toHypaV3Data(room.hypaV3Data)
+    : {
+        summaries: [],
+      };
 
   // Clean orphaned summaries
   if (!settings.preserveOrphanedMemory) {
@@ -1171,11 +1184,10 @@ async function hypaMemoryV3Main(
   const selectedSummaries: Summary[] = [];
   const randomMemoryRatio =
     1 - settings.recentMemoryRatio - settings.similarMemoryRatio;
+  const selectedImportantSummaries: Summary[] = [];
 
   // Select important summaries
   {
-    const selectedImportantSummaries: Summary[] = [];
-
     for (const summary of data.summaries) {
       if (summary.isImportant) {
         const summaryTokens = await tokenizer.tokenizeChat({
@@ -1212,10 +1224,9 @@ async function hypaMemoryV3Main(
     availableMemoryTokens * settings.recentMemoryRatio
   );
   let consumedRecentMemoryTokens = 0;
+  const selectedRecentSummaries: Summary[] = [];
 
   if (settings.recentMemoryRatio > 0) {
-    const selectedRecentSummaries: Summary[] = [];
-
     // Target only summaries that haven't been selected yet
     const unusedSummaries = data.summaries.filter(
       (e) => !selectedSummaries.includes(e)
@@ -1261,10 +1272,9 @@ async function hypaMemoryV3Main(
     availableMemoryTokens * settings.similarMemoryRatio
   );
   let consumedSimilarMemoryTokens = 0;
+  const selectedSimilarSummaries: Summary[] = [];
 
   if (settings.similarMemoryRatio > 0) {
-    const selectedSimilarSummaries: Summary[] = [];
-
     // Utilize unused token space from recent selection
     if (randomMemoryRatio <= 0) {
       const unusedRecentTokens =
@@ -1441,10 +1451,9 @@ async function hypaMemoryV3Main(
     availableMemoryTokens * randomMemoryRatio
   );
   let consumedRandomMemoryTokens = 0;
+  const selectedRandomSummaries: Summary[] = [];
 
   if (randomMemoryRatio > 0) {
-    const selectedRandomSummaries: Summary[] = [];
-
     // Utilize unused token space from recent and similar selection
     const unusedRecentTokens =
       reservedRecentMemoryTokens - consumedRecentMemoryTokens;
@@ -1546,9 +1555,20 @@ async function hypaMemoryV3Main(
   }
 
   // Save last selected summaries
-  data.lastSelectedSummaries = selectedSummaries.map((selectedSummary) =>
-    data.summaries.findIndex((summary) => summary === selectedSummary)
-  );
+  data.metrics = {
+    lastImportantSummaries: selectedImportantSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastRecentSummaries: selectedRecentSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastSimilarSummaries: selectedSimilarSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+    lastRandomSummaries: selectedRandomSummaries.map((selected) =>
+      data.summaries.findIndex((sum) => sum === selected)
+    ),
+  };
 
   const newChats: OpenAIChat[] = [
     {
@@ -1578,8 +1598,11 @@ async function hypaMemoryV3Main(
 }
 
 function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
+  // Remove legacy property
+  const { lastSelectedSummaries, ...restData } = serialData;
+
   return {
-    ...serialData,
+    ...restData,
     summaries: serialData.summaries.map((summary) => ({
       ...summary,
       // Convert null back to undefined (JSON serialization converts undefined to null)
