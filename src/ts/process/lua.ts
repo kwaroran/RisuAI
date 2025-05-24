@@ -109,6 +109,20 @@ export async function runLua(code:string, arg:{
                 }
                 return alertSelect(value)
             })
+
+            luaEngine.global.set('getChatMain', (id:string, index:number) => {
+                const chat = luaEngineState.chat.message.at(index)
+                if(!chat){
+                    return JSON.stringify(null)
+                }
+                const data = {
+                    role: chat.role,
+                    data: chat.data,
+                    time: chat.time ?? 0
+                }
+                return JSON.stringify(data)
+            })
+
             luaEngine.global.set('setChat', (id:string, index:number, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -153,12 +167,14 @@ export async function runLua(code:string, arg:{
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
             })
+
             luaEngine.global.set('getTokens', async (id:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
                 return await tokenize(value)
             })
+
             luaEngine.global.set('getChatLength', (id:string) => {
                 return luaEngineState.chat.message.length
             })
@@ -173,7 +189,7 @@ export async function runLua(code:string, arg:{
                 }))
                 return data
             })
-
+            
             luaEngine.global.set('setFullChatMain', (id:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -770,6 +786,10 @@ async function getOrCreateEngineState(
 function luaCodeWarper(code:string){
     return `
 json = require 'json'
+
+function getChat(id, index)
+    return json.decode(getChatMain(id, index))
+end
 
 function getFullChat(id)
     return json.decode(getFullChatMain(id))
