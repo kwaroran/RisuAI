@@ -1,6 +1,6 @@
 import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type loreBook } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
@@ -948,13 +948,16 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
 export async function runLuaButtonTrigger(char:character|groupChat|simpleCharacterArgument, data:string):Promise<any>{
     let runResult
     try {
-        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.concat(getModuleTriggers())
-        const lowLevelAccess = char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.map<triggerscript>((v) => ({
+            ...v,
+            lowLevelAccess: char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        })).concat(getModuleTriggers())
+
         for(let trigger of triggers){
             if(trigger?.effect?.[0]?.type === 'triggerlua'){
                 runResult = await runLua(trigger.effect[0].code, {
                     char: char,
-                    lowLevelAccess: lowLevelAccess,
+                    lowLevelAccess: trigger.lowLevelAccess,
                     mode: 'onButtonClick',
                     data: data
                 })
