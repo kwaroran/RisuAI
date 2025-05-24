@@ -4,6 +4,7 @@
     import { parseToggleSyntax, type sidebarToggle, type sidebarToggleGroup } from "src/ts/util";
     import { language } from "src/lang";
     import type { character, groupChat } from "src/ts/storage/database.svelte";
+    import Arcodion from '../UI/Arcodion.svelte'
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
@@ -40,16 +41,11 @@
 {#snippet toggles(items: sidebarToggle[], reverse: boolean = false)}
     {#each items as toggle, index}
         {#if toggle.type === 'group' && toggle.children.length > 0}
-            <details class="w-full mt-3 mb-1 border border-darkborderc rounded">
-                <summary
-                    class="-m-px p-2 bg-darkbutton border border-darkborderc rounded text-xs cursor-pointer select-none hover:bg-selected transition-colors duration-190"
-                    class:justify-end={$MobileGUI}>
-                    {toggle.value}
-                </summary>
-                <div class="flex flex-col px-2 pt-2 pb-4">
+            <div class="w-full">
+                <Arcodion styled name={toggle.value}>
                     {@render toggles((toggle as sidebarToggleGroup).children, reverse)}
-                </div>
-            </details>
+                </Arcodion>
+            </div>
         {:else if toggle.type === 'select'}
             <div class="w-full flex gap-2 mt-2 items-center" class:justify-end={$MobileGUI} >
                 <span>{toggle.value}</span>
