@@ -134,6 +134,8 @@
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
     let contextMenuLoc = $state({x: 0, y: 0})
+    let menu0Container = $state<HTMLDivElement>(null)
+    let menu0ScrollPosition = $state(0)
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -148,6 +150,13 @@
     $effect(() => {
         if(menuMode === 0){
             addElse = false
+            setTimeout(() => {
+                menu0Container.scrollTop = menu0ScrollPosition
+            }, 0)
+        } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
+            if(menu0Container) {
+                menu0ScrollPosition = menu0Container.scrollTop
+            }
         }
     })
 
@@ -1168,7 +1177,7 @@
                             </SelectInput>
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto">
+                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto" bind:this={menu0Container}>
                         {#each value[selectedIndex].effect as effect, i}
                             <button class="p-2 w-full text-start text-purple-500"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
