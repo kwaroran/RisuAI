@@ -151,7 +151,7 @@
             addElse = false
             setTimeout(() => {
                 menu0Container.scrollTop = menu0ScrollPosition
-            }, 10)
+            }, 0)
         } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
