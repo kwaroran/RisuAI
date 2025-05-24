@@ -177,6 +177,7 @@
                     type: 'v2SetVar',
                     operator: '=',
                     var: '',
+                    varType: 'var',
                     value: '',
                     valueType: 'value',
                     indent: 0

@@ -197,6 +197,7 @@ export type triggerV2SetVar = {
     type: 'v2SetVar',
     operator: '='|'+='|'-='|'*='|'/='|'%=',
     var: string,
+    varType: 'var'|'value',
     valueType: 'var'|'value',
     value: string,
     indent: number
