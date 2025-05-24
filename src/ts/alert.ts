@@ -26,14 +26,18 @@ export const alertStore = {
     }
 }
 
-export function alertError(msg:string){
+export function alertError(msg: string | Error) {
     console.error(msg)
     const db = getDatabase()
 
-    if(typeof(msg) !== 'string'){
+    if (typeof(msg) !== 'string') {
         try{
-            msg = JSON.stringify(msg)
-        }catch(e){
+            if (msg instanceof Error) {
+                msg = msg.message
+            } else {
+                msg = JSON.stringify(msg)
+            }
+        } catch {
             msg = `${msg}`
         }
     }
