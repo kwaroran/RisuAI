@@ -24,6 +24,7 @@ import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
 import { v4 } from "uuid";
 import { DBState } from "../stores.svelte";
+import { unescape } from "lodash";
 
 
 
@@ -274,7 +275,11 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     fallBackModels.push('')
     let da:requestDataResponse
 
-    const originalFormated = safeStructuredClone(arg.formated)
+    const originalFormated = safeStructuredClone(arg.formated).map(m => {
+        m.content = unescape(m.content)
+        return m
+    })
+
     for(let fallbackIndex=0;fallbackIndex<fallBackModels.length;fallbackIndex++){
         let trys = 0
         arg.formated = safeStructuredClone(originalFormated)

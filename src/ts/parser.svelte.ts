@@ -98,21 +98,25 @@ const replacements = [
     '}', //0xE9B9
     '(', //0xE9BA
     ')', //0xE9BB
-    '&lt;', //0xE9BE
-    '&gt;', //0xE9BF
+    '&lt;', //0xE9BC
+    '&gt;', //0xE9BD
     ':', //0xE9BE
     ';', //0xE9BF
 ]
+
+export function unescape(text:string){
+    return text.replace(/[\uE9b8-\uE9bf]/g, (f) => {
+        const index = f.charCodeAt(0) - 0xE9B8
+        return replacements[index]
+    })
+}
 
 function renderMarkdown(md:markdownit, data:string){
     let quotes = ['“', '”', '‘', '’']
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
-    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/[\uE9b8-\uE9bf]/g, (f) => {
-        const index = f.charCodeAt(0) - 0xE9B8
-        return replacements[index]
-    })
+    let text = unescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
@@ -2085,7 +2089,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'|'escape'
 
 function parseArray(p1:string):string[]{
     try {
@@ -2133,7 +2137,9 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     }
     if(p1 === '#code'){
         return {type:'normalize'}
-
+    }
+    if(p1 === '#escape'){
+        return {type:'escape'}
     }
     if(p1.startsWith('#each')){
         let t2 = p1.substring(5).trim()
@@ -2200,6 +2206,30 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
                         return '\x00'
                     default:
                         return p1
+                }
+            })
+        }
+        case 'escape':{
+            return p1Trimed.replace(/[\{\}\<\>\(\)\:\;]/g,(m) => {
+                switch(m){
+                    case '{':
+                        return '\uE9B8'
+                    case '}':
+                        return '\uE9B9'
+                    case '<':
+                        return '\uE9BC'
+                    case '>':
+                        return '\uE9BD'
+                    case '(':
+                        return '\uE9BA'
+                    case ')':
+                        return '\uE9BB'
+                    case ':':
+                        return '\uE9BE'
+                    case ';':
+                        return '\uE9BF'
+                    default:
+                        return m
                 }
             })
         }
@@ -2356,7 +2386,7 @@ export function risuChatParser(da:string, arg:{
                         blockNestType.set(nested.length, matchResult)
                         if( matchResult.type === 'ignore' || matchResult.type === 'pure' ||
                             matchResult.type === 'each' || matchResult.type === 'function' ||
-                            matchResult.type === 'pure-display'
+                            matchResult.type === 'pure-display' || matchResult.type === 'escape'
                         ){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
@@ -2369,7 +2399,7 @@ export function risuChatParser(da:string, arg:{
                         const blockType = blockNestType.get(nested.length)
                         if( blockType.type === 'ignore' || blockType.type === 'pure' ||
                             blockType.type === 'each' || blockType.type === 'function' ||
-                            blockType.type === 'pure-display'
+                            blockType.type === 'pure-display' || blockType.type === 'escape'
                         ){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)
