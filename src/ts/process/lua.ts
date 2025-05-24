@@ -516,7 +516,7 @@ export async function runLua(code:string, arg:{
                 return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
             })
 
-            luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
+            luaEngine.global.set('loadLoreBooksMain', async (id:string, reserve:number) => {
                 if(!LuaLowLevelIds.has(id)){
                     return
                 }
@@ -530,9 +530,9 @@ export async function runLua(code:string, arg:{
                 }
 
                 const fullLoreBooks = (await loadLoreBookV3Prompt()).actives
-                const maxContext = db.maxContext - usedContext
+                const maxContext = db.maxContext - reserve
                 if (maxContext < 0) {
-                    return
+                    return JSON.stringify([])
                 }
 
                 let totalTokens = 0
