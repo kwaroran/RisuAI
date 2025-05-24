@@ -805,7 +805,7 @@
                     {/if}
 
                     {#if DBState.db.showMenuHypaMemoryModal}
-                        {#if DBState.db.supaModelType !== 'none' && (DBState.db.hypav2 || DBState.db.hypaV3)}
+                        {#if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2) || DBState.db.hypaV3}
                             <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
                                 if (DBState.db.hypav2) {
                                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data ??= {
