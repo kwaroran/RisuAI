@@ -1013,6 +1013,12 @@
             if(effect[p1 + 'Type'] === 'value'){
                 return `<span class="text-green-500">"${d}"</span>`
             }
+            if(effect.type === 'v2If' && p1 === 'source'){
+                return `<span class="text-yellow-500">${d || 'null'}</span>`
+            }
+            if(effect.type === 'v2SetVar' && p1 === 'var'){
+                return `<span class="text-yellow-500">${d || 'null'}</span>`
+            }
             return `<span class="text-blue-500">${d || 'null'}</span>`
         })
 
