@@ -221,6 +221,10 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.claude1HourCaching} name={language.claude1HourCaching}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.claudeBatching} name={language.claudeBatching}>
         <Help key="experimental" />
     </Check>
