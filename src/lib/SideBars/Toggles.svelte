@@ -61,14 +61,13 @@
                 <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
         {:else if toggle.type === 'divider'}
-            {@const prevToggle = groupedToggles[index - 1]}
             <!-- Prevent multiple dividers appearing in a row -->
-            {#if index === 0 || prevToggle.type !== 'divider' || prevToggle.value !== toggle.value}
+            {#if index === 0 || items[index - 1]?.type !== 'divider' || items[index - 1]?.value !== toggle.value}
                 <div class="w-full min-h-5 flex gap-2 mt-2 items-center" class:justify-end={!reverse}>
                     {#if toggle.value}
-                        <span>{toggle.value}</span>
+                        <span class="shrink-0">{toggle.value}</span>
                     {/if}
-                    <hr class="border-t border-darkborderc m-0 min-w-32 flex-grow" />
+                    <hr class="border-t border-darkborderc m-0 flex-grow" />
                 </div>
             {/if}
         {:else}
