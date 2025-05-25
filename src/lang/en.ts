@@ -1130,5 +1130,5 @@ export const languageEnglish = {
     promptInfoEmptyText: "No prompt text has been saved.",
     escapeOutput: "Escape Output",
     claudeBatching: "Claude Batching",
-    
+    claude1HourCaching: "Claude 1 Hour Caching",    
 }

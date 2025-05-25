@@ -1033,6 +1033,7 @@ export interface Database{
     promptInfoInsideChat:boolean
     promptTextInfoInsideChat:boolean
     claudeBatching:boolean
+    claude1HourCaching:boolean
 }
 
 interface SeparateParameters{

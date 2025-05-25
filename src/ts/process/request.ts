@@ -2949,7 +2949,10 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     interface Claude3TextBlock {
         type: 'text',
         text: string,
-        cache_control?: {"type": "ephemeral"}
+        cache_control?: {
+            "type": "ephemeral",
+            "ttl"?: "5m" | "1h"
+        }
     }
 
     interface Claude3ImageBlock {
@@ -2959,7 +2962,10 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             media_type: string,
             data: string
         }
-        cache_control?: {"type": "ephemeral"}
+        cache_control?: {
+            "type": "ephemeral"
+            "ttl"?: "5m" | "1h"
+        }
     }
 
     type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
@@ -3024,8 +3030,17 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 }
             }
             if(chat.cache){
-                content[content.length-1].cache_control = {
-                    type: 'ephemeral'
+
+                if(db.claude1HourCaching){
+                    content[content.length-1].cache_control = {
+                        type: 'ephemeral',
+                        ttl: "1h"
+                    }
+                }
+                else{
+                    content[content.length-1].cache_control = {
+                        type: 'ephemeral'
+                    }
                 }
             }
             claudeChat[claudeChat.length-1].content = content
@@ -3317,6 +3332,11 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         betas.push('output-128k-2025-02-19')
     }
 
+
+    if(db.claude1HourCaching){
+        betas.push('extended-cache-ttl-2025-04-11')
+    }
+
     if(betas.length > 0){
         headers['anthropic-beta'] = betas.join(',')
     }
@@ -3324,6 +3344,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     if(db.usePlainFetch){
         headers['anthropic-dangerous-direct-browser-access'] = 'true'
     }
+
 
     if(arg.previewBody){
         return {
