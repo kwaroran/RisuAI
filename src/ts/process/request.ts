@@ -3336,6 +3336,120 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
+    if(db.claudeBatching){
+        if(body.stream !== undefined){
+            delete body.stream
+        }
+        const id = v4()
+        const resp = await fetchNative(replacerURL + '/batches', {
+            "body": JSON.stringify({
+                "requests": [{
+                    "custom_id": id,
+                    "params": body,
+                }]
+            }),
+            "method": "POST",
+            signal: arg.abortSignal,
+            headers: headers
+        })
+
+        if(resp.status !== 200){
+            return {
+                type: 'fail',
+                result: await textifyReadableStream(resp.body)
+            }
+        }
+
+        const r = (await resp.json())
+
+        if(!r.id){
+            return {
+                type: 'fail',
+                result: 'No results URL returned from Claude batch request'
+            }
+        }
+
+        const resultsUrl = replacerURL + `/batches/${r.id}/results`
+        const statusUrl = replacerURL + `/batches/${r.id}`
+
+        let received = false
+        while(!received){
+            try {
+                await sleep(3000)
+                if(arg?.abortSignal?.aborted){
+                    return {
+                        type: 'fail',
+                        result: 'Request aborted'
+                    }
+                }
+
+                const statusRes = await fetchNative(statusUrl, {
+                    "method": "GET",
+                    "headers": {
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    "signal": arg.abortSignal,
+                })
+
+                if(statusRes.status !== 200){
+                    return {
+                        type: 'fail',
+                        result: await textifyReadableStream(statusRes.body)
+                    }
+                }
+
+                const statusData = await statusRes.json()
+
+                if(statusData.processing_status !== 'ended'){
+                    continue
+                }
+
+                const batchRes = await fetchNative(resultsUrl, {
+                    "method": "GET",
+                    "headers": {
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    "signal": arg.abortSignal,
+                })
+
+                if(batchRes.status !== 200){
+                    return {
+                        type: 'fail',
+                        result: await textifyReadableStream(batchRes.body)
+                    }
+                }
+
+                //since jsonl
+                const batchTextData = (await batchRes.text()).split('\n').filter((v) => v.trim() !== ''). map((v) => {
+                    try {
+                        return JSON.parse(v)
+                    } catch (error) {
+                        return null
+                    }
+                }).filter((v) => v !== null)
+                for(const batchData of batchTextData){
+                    const type = batchData?.result?.type
+                    console.log('Claude batch result type:', type)
+                    if(batchData?.result?.type === 'succeeded'){
+                        return {
+                            type: 'success',
+                            result: batchData.result.message.content?.[0]?.text ?? ''
+                        }
+                    }
+                    if(batchData?.result?.type === 'errored'){
+                        return {
+                            type: 'fail',
+                            result:  JSON.stringify(batchData.result.error),
+                        }
+                    }
+                }   
+            } catch (error) {
+                console.error('Error while waiting for Claude batch results:', error)
+            }
+        }
+    }
     
     
     if(db.claudeRetrivalCaching){

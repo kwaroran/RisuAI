@@ -996,4 +996,5 @@ export const languageKorean = {
     "promptInfoEmptyToggle": "활성화된 커스텀 토글이 없습니다.",
     "promptInfoEmptyText": "저장된 프롬프트 텍스트가 없습니다.",
     "escapeOutput": "출력 이스케이프",
+    "claudeBatching": "Claude 배칭",
 }

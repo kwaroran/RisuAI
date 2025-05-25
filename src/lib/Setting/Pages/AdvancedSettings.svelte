@@ -221,6 +221,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.claudeBatching} name={language.claudeBatching}>
+        <Help key="experimental" />
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useTokenizerCaching} name={language.useTokenizerCaching}>
     </Check>
 </div>

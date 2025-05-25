@@ -1129,5 +1129,6 @@ export const languageEnglish = {
     promptInfoEmptyToggle: "No custom toggles are currently active.",
     promptInfoEmptyText: "No prompt text has been saved.",
     escapeOutput: "Escape Output",
+    claudeBatching: "Claude Batching",
     
 }

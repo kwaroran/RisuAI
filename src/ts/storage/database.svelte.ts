@@ -562,7 +562,7 @@ export function setDatabase(data:Database){
     data.customModels ??= []
 
     //@ts-ignore
-    if(!__NODE__ && !window.__TAURI_INTERNALS__){
+    if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
         data.promptInfoInsideChat = false
     }
@@ -1032,6 +1032,7 @@ export interface Database{
     mcpURLs:string[]
     promptInfoInsideChat:boolean
     promptTextInfoInsideChat:boolean
+    claudeBatching:boolean
 }
 
 interface SeparateParameters{
