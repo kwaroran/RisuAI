@@ -4,7 +4,7 @@
     import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID, hypaV3ModalOpen } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, FolderUpIcon, Share2Icon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -596,7 +596,7 @@
             }}><DownloadIcon /></button>
             <button class="font-medium cursor-pointer hover:text-green-500" onclick={async () => {
                 DBState.db.characters[$selectedCharID].customscript = await importRegex(DBState.db.characters[$selectedCharID].customscript)
-            }}><FolderUpIcon /></button>
+            }}><HardDriveUploadIcon /></button>
         </div>
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>

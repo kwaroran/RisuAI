@@ -1070,7 +1070,7 @@ export interface loreBook{
     insertorder: number
     comment: string
     content: string
-    mode: 'multiple'|'constant'|'normal'|'child',
+    mode: 'multiple'|'constant'|'normal'|'child'|'folder',
     alwaysActive: boolean
     selective:boolean
     extentions?:{
@@ -1084,6 +1084,7 @@ export interface loreBook{
     useRegex?:boolean
     bookVersion?:number
     id?:string
+    folder?:string
 }
 
 export interface character{

@@ -10,6 +10,7 @@ import { downloadFile } from "../globalApi.svelte";
 import { getModuleLorebooks } from "./modules";
 import { CCardLib } from "@risuai/ccardlib";
 import { getChatVar, setChatVar } from "../parser.svelte";
+import { v4 } from "uuid";
 
 export function addLorebook(type:number) {
     const selectedID = get(selectedCharID)
@@ -36,6 +37,36 @@ export function addLorebook(type:number) {
             alwaysActive: false,
             secondkey: "",
             selective: false
+        })
+    }
+}
+
+export function addLorebookFolder(type:number) {
+    const selectedID = get(selectedCharID)
+    const id = v4()
+    if(type === 0){
+        DBState.db.characters[selectedID].globalLore.push({
+            key: '\uf000folder:' + id,
+            comment: `New Folder`,
+            content: '',
+            mode: 'folder',
+            insertorder: 100,
+            alwaysActive: false,
+            secondkey: "",
+            selective: false,
+        })
+    }
+    else{
+        const page = DBState.db.characters[selectedID].chatPage
+        DBState.db.characters[selectedID].chats[page].localLore.push({
+            key: '\uf000folder:' + id,
+            comment: `New Folder`,
+            content: '',
+            mode: 'folder',
+            insertorder: 100,
+            alwaysActive: false,
+            secondkey: "",
+            selective: false,
         })
     }
 }

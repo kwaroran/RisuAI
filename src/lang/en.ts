@@ -1131,4 +1131,6 @@ export const languageEnglish = {
     escapeOutput: "Escape Output",
     claudeBatching: "Claude Batching",
     claude1HourCaching: "Claude 1 Hour Caching",    
+    folderNameInput: "Please input the new folder name",
+    folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
 }

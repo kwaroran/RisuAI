@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DownloadIcon, FolderUpIcon, PlusIcon } from "lucide-svelte";
+    import { DownloadIcon, HardDriveUploadIcon, PlusIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     
@@ -25,5 +25,5 @@
     }}><DownloadIcon /></button>
     <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
         importRegex()
-    }}><FolderUpIcon /></button>
+    }}><HardDriveUploadIcon /></button>
 </div>

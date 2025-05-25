@@ -10,7 +10,7 @@
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
-    import { PlusIcon, TrashIcon, FolderUpIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, HardDriveUploadIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -551,7 +551,7 @@
                 if(Array.isArray(JSON.parse(utf8))){
                     DBState.db.bias = JSON.parse(utf8)
                 }
-            }}><FolderUpIcon /></button>
+            }}><HardDriveUploadIcon /></button>
         </div>
     </Arcodion>
 

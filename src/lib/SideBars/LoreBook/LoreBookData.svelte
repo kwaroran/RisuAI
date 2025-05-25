@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { XIcon, LinkIcon, SunIcon, BookCopyIcon } from "lucide-svelte";
+    import { XIcon, LinkIcon, SunIcon, BookCopyIcon, FolderIcon, FolderOpen, FolderInputIcon, PlusIcon, PencilIcon } from "lucide-svelte";
     import { v4 } from "uuid";
     import { language } from "../../../lang";
     import { getCurrentCharacter, getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";
-    import { alertConfirm, alertMd } from "../../../ts/alert";
+    import { alertConfirm, alertInput, alertMd } from "../../../ts/alert";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
@@ -11,6 +11,7 @@
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import { tokenizeAccurate } from "src/ts/tokenizer";
   import { DBState } from "src/ts/stores.svelte";
+  import LoreBookList from "./LoreBookList.svelte";
 
     interface Props {
         value: loreBook;
@@ -19,6 +20,8 @@
         onOpen?: () => void;
         lorePlus?: boolean;
         idx: number;
+        externalLoreBooks?: loreBook[];
+        idgroup: string;
     }
 
     let {
@@ -27,7 +30,9 @@
         onClose = () => {},
         onOpen = () => {},
         lorePlus = false,
-        idx
+        idx,
+        externalLoreBooks = $bindable(),
+        idgroup
     }: Props = $props();
     let open = $state(false)
 
@@ -83,19 +88,30 @@
     }
 </script>
 
-<div class="w-full flex flex-col pt-2 mt-2 border-t border-t-selected first:pt-0 first:mt-0 first:border-0" data-risu-idx={idx}>
+<div class={"w-full flex flex-col " + (value.folder ? 'border-0 py-1' : 'pt-2  mt-2 border-t border-t-selected  first:pt-0 first:mt-0 first:border-0')}
+    data-risu-idx={idx} data-risu-idgroup={idgroup}
+>
     <div class="flex items-center transition-colors w-full p-1">
+
     {#if value.mode !== 'child'}
-        <button class="endflex valuer border-darkborderc" onclick={() => {
+        <button class="endflex valuer border-darkborderc flex items-center" onclick={() => {
             value.secondkey = value.secondkey ?? ''
-            open = !open
-            if(open){
+            if(!open){
                 onOpen()
+                open = true
             }
             else{
                 onClose()
+                open = false
             }
         }}>
+            {#if value.mode === 'folder'}
+                {#if open}
+                    <FolderOpen size={20} class="mr-1" />
+                {:else}
+                    <FolderIcon size={20} class="mr-1" />
+                {/if}
+            {/if}
             <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
         </button>
         <button
@@ -103,6 +119,13 @@
             class:text-textcolor2={!value.alwaysActive}
             class:text-textcolor={value.alwaysActive}
             onclick={async () => {
+                if(value.mode === 'folder'){
+                    for(let i = 0; i < externalLoreBooks.length; i++){
+                        if(externalLoreBooks[i].folder === value.key){
+                            externalLoreBooks[i].alwaysActive = !value.alwaysActive
+                        }
+                    }
+                }
                 value.alwaysActive = !value.alwaysActive
             }}
         >
@@ -113,6 +136,15 @@
             {/if}
         </button>
         <button class="valuer" onclick={async () => {
+
+            if(value.mode === 'folder'){
+                if(externalLoreBooks.filter(e => e.folder === value.key).length > 0){
+                    alertMd(language.folderRemoveLengthError)
+                    return
+                }
+            }
+
+
             const d = await alertConfirm(language.removeConfirm + value.comment)
             if(d){
                 if(!open){
@@ -143,6 +175,35 @@
     {/if}
     </div>
     {#if open}
+        {#if value.mode === 'folder'}
+        <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
+            <LoreBookList externalLoreBooks={externalLoreBooks} showFolder={value.key} />
+            <div class="mt-2 flex gap-1">
+                <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                    externalLoreBooks.push({
+                        key: '',
+                        comment: '',
+                        content: '',
+                        mode: 'normal',
+                        insertorder: 100,
+                        alwaysActive: true,
+                        secondkey: '',
+                        selective: false,
+                        folder: value.key,
+                    })
+                }}>
+                    <PlusIcon size={20} />
+                </button>
+                <button  class="text-textcolor2 hover:text-textcolor" onclick={async () => {
+                    const name = await alertInput(language.folderNameInput)
+                    value.comment = name ?? ''
+                }}>
+
+                    <PencilIcon size={20} />
+                </button>
+            </div>
+        </div>
+        {:else}
         <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
             <span class="text-textcolor mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
@@ -204,6 +265,7 @@
                 </div>
             {/if}
         </div>
+        {/if}
     {/if}
 </div>
 

@@ -2,8 +2,8 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { language } from "../../../lang";
-    import { DownloadIcon, FolderUpIcon, ImportIcon, PlusIcon, SunIcon, LinkIcon } from "lucide-svelte";
-    import { addLorebook, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
+    import { DownloadIcon, HardDriveUploadIcon, ImportIcon, PlusIcon, SunIcon, LinkIcon, FolderPlusIcon } from "lucide-svelte";
+    import { addLorebook, addLorebookFolder, exportLoreBook, importLoreBook } from "../../../ts/process/lorebook.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import LoreBookList from "./LoreBookList.svelte";
@@ -129,9 +129,14 @@
         <DownloadIcon />
     </button>
     <button onclick={() => {
+        addLorebookFolder(globalMode ? -1 : submenu)
+    }} class="hover:text-textcolor ml-2  cursor-pointer">
+        <FolderPlusIcon />
+    </button>
+    <button onclick={() => {
         importLoreBook(globalMode ? 'sglobal' : submenu === 0 ? 'global' : 'local')
     }} class="hover:text-textcolor ml-2  cursor-pointer">
-        <FolderUpIcon />
+        <HardDriveUploadIcon />
     </button>
     {#if DBState.db.bulkEnabling}
         <button onclick={() => {

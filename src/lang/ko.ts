@@ -997,4 +997,6 @@ export const languageKorean = {
     "promptInfoEmptyText": "저장된 프롬프트 텍스트가 없습니다.",
     "escapeOutput": "출력 이스케이프",
     "claudeBatching": "Claude 배칭",
+    "folderNameInput": "새 폴더 이름을 입력해주세요",
+    "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다.",
 }

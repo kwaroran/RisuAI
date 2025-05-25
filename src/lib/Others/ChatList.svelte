@@ -4,7 +4,7 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
-    import { DownloadIcon, EditIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { DownloadIcon, EditIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
     import TextInput from "../UI/GUI/TextInput.svelte";
@@ -93,7 +93,7 @@
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
             }}>
-                <FolderUpIcon size={18}/>
+                <HardDriveUploadIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
