@@ -23,9 +23,6 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
-    import { message } from "@tauri-apps/plugin-dialog";
-    import HypaV3Modal from './HypaV3Modal.svelte';
-    import Googli from "../UI/Googli.svelte";
 
     let btn
     let input = $state('')
@@ -62,14 +59,6 @@
             return data
         }
     }
-
-    interface Props{
-        onclick?: (e:MouseEvent) => void
-    }
-
-    let {
-        onclick
-    }:Props = $props()
 </script>
 
 <svelte:window onmessage={async (e) => {
@@ -512,7 +501,6 @@
     <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
         <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" role="button" tabindex="0" onclick={(e) => {
             e.stopPropagation()
-            onclick(e)
         }}>
             <h1 class="font-bold text-2xl w-full">
                 <span>
