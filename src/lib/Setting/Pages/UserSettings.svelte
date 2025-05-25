@@ -20,7 +20,7 @@
 
 <svelte:window onmessage={async (e) => {
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1") || e.origin === window.location.origin){
-        if(e.data.msg.type === 'drive'){
+        if(e.data.msg?.type === 'drive'){
             await loadRisuAccountData()
             DBState.db.account.data.refresh_token = e.data.msg.data.refresh_token
             DBState.db.account.data.access_token = e.data.msg.data.access_token
@@ -28,7 +28,7 @@
             await saveRisuAccountData()
             popup.close()
         }
-        else if(e.data.msg.data.vaild){
+        else if(e.data.msg?.data.vaild){
             openIframe = false
             DBState.db.account = {
                 id: e.data.msg.id,
