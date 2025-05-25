@@ -1009,33 +1009,69 @@ export function parseKeyValue(template:string){
     }
 }
 
+export type sidebarToggleGroup = {
+    key?:string,
+    value?:string,
+    type:'group',
+    children:sidebarToggle[]
+}
+
+export type sidebarToggleGroupEnd = {
+    key?:string,
+    value?:string,
+    type:'groupEnd',
+}
+
+export type sidebarToggle =
+    | sidebarToggleGroup
+    | sidebarToggleGroupEnd
+    | {
+        key?:string,
+        value?:string,
+        type:'divider',
+    } 
+    | {
+        key:string,
+        value:string,
+        type:'select',
+        options:string[]
+    }
+    | {
+        key:string,
+        value:string,
+        type:'text'|undefined,
+        options?:string[]
+    }
+
 export function parseToggleSyntax(template:string){
     try {
-        console.log(template)
         if(!template){
             return []
         }
     
-        const keyValue:{
-            key:string,
-            value:string,
-            type?:string,
-            options?:string[]
-        }[] = []
+        const keyValue:sidebarToggle[] = []
     
         const splited = template.split('\n')
 
         for(const line of splited){
             const [key, value, type, option] = line.split('=')
-            if(key && value){
+            if(type === 'group' || type === 'groupEnd' || type === 'divider'){
                 keyValue.push({
-                    key, value, type, options: option ? option.split(',') : []
+                    key,
+                    value,
+                    type,
+                    children: []
+                })
+            } else if((key && value)){
+                keyValue.push({
+                    key,
+                    value,
+                    type: type === 'select' || type === 'text' ? type : undefined,
+                    options: option?.split(',') ?? []
                 })
             }
         }
 
-        console.log(keyValue)
-    
         return keyValue   
     } catch (error) {
         console.error(error)
