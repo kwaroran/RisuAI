@@ -133,6 +133,7 @@
     let addElse = $state(false)
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
+    let clickPos = $state({x: 0, y: 0})
     let contextMenuLoc = $state({x: 0, y: 0})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
@@ -996,7 +997,10 @@
     const handleContextMenu = (e, mode, effectIndex = -1, effect = null) => {
         contextMenu = true
         selectMode = mode
-        contextMenuLoc = {x: e.clientX, y: e.clientY}
+        
+        clickPos = {x: e.clientX, y: e.clientY}
+    
+        contextMenuLoc = {x: clickPos.x, y: clickPos.y}
         
         if (mode === 1) {
             selectedEffectIndex = effectIndex
