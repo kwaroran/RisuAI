@@ -20,6 +20,7 @@
     import { getModelInfo } from "src/ts/model/modellist";
   import { getCharImage } from "src/ts/characters";
   import { getFileSrc } from "src/ts/globalApi.svelte";
+  import { getUserName, getUserIcon } from "src/ts/util";
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -335,6 +336,108 @@
 
                         const parser = new DOMParser()
                         const doc = parser.parseFromString(lastParsed, 'text/html')
+                        
+                        // 버튼 요소들 제거 (뷰어 익스텐션으로 인한 이모지 버튼들)
+                        doc.querySelectorAll('button').forEach((el) => {
+                            el.remove()
+                        })
+                        
+                        // 클래스명으로 버튼 요소들 제거
+                        doc.querySelectorAll('.button-icon-copy, .button-icon-tts, .button-icon-edit, .button-icon-remove, .button-icon-translate, .button-icon-reroll, .button-icon-unreroll').forEach((el) => {
+                            el.remove()
+                        })
+                        
+                        // 이모지만 있는 텍스트 노드들 제거 (🪺🔮📋🗑️ 등)
+                        const emojiPattern = /^[\s🪺🔮📋🗑️🎭🎨🎪🎯🎲🎸🎺🎻🎤🎧🎬🎮]+$/
+                        const walker = document.createTreeWalker(
+                            doc.body,
+                            NodeFilter.SHOW_TEXT
+                        )
+                        const textNodesToRemove = []
+                        let node
+                        while (node = walker.nextNode()) {
+                            if (emojiPattern.test(node.textContent.trim())) {
+                                textNodesToRemove.push(node)
+                            }
+                        }
+                        textNodesToRemove.forEach(node => {
+                            // 부모 요소가 비어있게 되면 부모도 제거
+                            const parent = node.parentNode
+                            node.remove()
+                            if (parent && parent.textContent.trim() === '' && parent.children.length === 0) {
+                                parent.remove()
+                            }
+                        })
+                        
+                        // 불필요한 공백과 줄바꿈 제거
+                        const removeExcessWhitespace = (element) => {
+                            const walker = document.createTreeWalker(
+                                element,
+                                NodeFilter.SHOW_TEXT
+                            )
+                            const textNodes = []
+                            let node
+                            while (node = walker.nextNode()) {
+                                textNodes.push(node)
+                            }
+                            textNodes.forEach(textNode => {
+                                // 연속된 공백과 줄바꿈을 정리
+                                if (textNode.textContent.match(/^[\s\u00A0]+$/)) {
+                                    textNode.remove()
+                                } else {
+                                    // 텍스트 앞뒤의 과도한 공백 제거
+                                    textNode.textContent = textNode.textContent.replace(/^[\s\u00A0]+|[\s\u00A0]+$/g, '')
+                                }
+                            })
+                            
+                            // 빈 요소들 제거
+                            const allElements = element.querySelectorAll('*')
+                            allElements.forEach(el => {
+                                if (el.textContent.trim() === '' && el.children.length === 0 && el.tagName !== 'BR' && el.tagName !== 'IMG') {
+                                    el.remove()
+                                }
+                            })
+                        }
+                        removeExcessWhitespace(doc.body)
+                        
+                        // HTML 전체에서 과도한 공백 제거 및 정리
+                        let htmlContent = doc.body.innerHTML
+                        
+                        // 1단계: 기본 정리
+                        htmlContent = htmlContent.replace(/>\s+</g, '><')
+                        htmlContent = htmlContent.replace(/(&nbsp;\s*){2,}/g, '')
+                        
+                        // 2단계: 빈 태그들 제거
+                        htmlContent = htmlContent.replace(/<p[^>]*>\s*<\/p>/g, '')
+                        htmlContent = htmlContent.replace(/<div[^>]*>\s*<\/div>/g, '')
+                        
+                        // 3단계: 구분선에 br 태그 추가
+                        htmlContent = htmlContent.replace(
+                            /<div style="height:\s*1px[^"]*"[^>]*><\/div>/g, 
+                            '<div style="height: 1px; background: ' + root.style.getPropertyValue('--risu-theme-darkborderc') + '; margin: 1rem 0; border-radius: 0.5px;"><br></div>'
+                        )
+                        
+                        // 4단계: 텍스트 노드 앞뒤 정리
+                        htmlContent = htmlContent.replace(/(<\/[^>]+>)\s+([^<])/g, '$1$2')
+                        htmlContent = htmlContent.replace(/([^>])\s+(<[^\/])/g, '$1$2')
+                        
+                        // 5단계: 최종 정리
+                        htmlContent = htmlContent.replace(/\s+/g, ' ')
+                        htmlContent = htmlContent.replace(/>\s+/g, '>')
+                        htmlContent = htmlContent.replace(/\s+</g, '<')
+                        
+                        doc.body.innerHTML = htmlContent
+                        
+                        // 본문에서 캐릭터 이름 제거 (첫 번째로 나오는 캐릭터 이름만)
+                        const firstTextNode = doc.body.querySelector('div[style*="margin-bottom: 1.5rem"]')
+                        if (firstTextNode && firstTextNode.firstChild && firstTextNode.firstChild.nodeType === Node.TEXT_NODE) {
+                            const text = firstTextNode.firstChild.textContent.trim()
+                            const characterName = role === 'user' ? getUserName() : name
+                            if (text === characterName) {
+                                firstTextNode.firstChild.remove()
+                            }
+                        }
+                        
                         doc.querySelectorAll('mark').forEach((el) => {
                             const d = el.getAttribute('risu-mark')
                             if(d === 'quote1' || d === 'quote2'){
@@ -366,73 +469,183 @@
                         for(const img of imgs){
                             img.setAttribute('alt', 'from RisuAI')
                             const url = img.getAttribute('src')
-                            if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
+                            
+                            // 이미지 스타일링 개선 - 목표 스타일에 맞게
+                            img.setAttribute('style', `
+                                max-width: 100%;
+                                margin: 10px 0;
+                                border-radius: 12px;
+                                box-shadow: rgba(0,0,0,0.12) 0px 4px 16px;
+                                display: block;
+                                margin-left: auto;
+                                margin-right: auto;
+                            `)
+                            
+                            // 로컬 이미지나 특정 도메인 이미지 처리
+                            if(url && (url.startsWith('http://localhost') || url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai') || url.startsWith('/sw/') || url.startsWith('/assets/'))){
                                 try {
-                                    const data = await fetch(url)
+                                    // 로컬 이미지의 경우 절대 URL로 변환
+                                    let fetchUrl = url
+                                    if(url.startsWith('/')) {
+                                        fetchUrl = window.location.origin + url
+                                    }
+                                    
+                                    const data = await fetch(fetchUrl)
                                     const canvas = document.createElement('canvas')
                                     const ctx = canvas.getContext('2d')
-                                    const img = new Image()
-                                    img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                    const imgElement = new Image()
+                                    imgElement.crossOrigin = 'anonymous'
+                                    imgElement.src = await data.blob().then((b) => new Promise((resolve, reject) => {
                                         const reader = new FileReader()
                                         reader.onload = () => resolve(reader.result as string)
                                         reader.onerror = reject
                                         reader.readAsDataURL(b)
                                     }))
                                     await new Promise((resolve) => {
-                                        img.onload = resolve
+                                        imgElement.onload = resolve
                                     })
-                                    canvas.width = img.width
-                                    canvas.height = img.height
-                                    ctx.drawImage(img, 0, 0)
+                                    canvas.width = imgElement.width
+                                    canvas.height = imgElement.height
+                                    ctx.drawImage(imgElement, 0, 0)
                                     const dataURL = canvas.toDataURL('image/jpeg')
                                     img.setAttribute('src', dataURL)
                                 } catch (error) {
-                                    console.error(error)
+                                    console.error('본문 이미지 처리 오류:', error)
+                                    // 이미지 로드 실패 시 숨기기
+                                    img.style.display = 'none'
+                                }
+                            }
+                            
+                            // 이미지를 중앙 정렬 div로 감싸기
+                            const wrapper = document.createElement('div')
+                            wrapper.setAttribute('style', `
+                                margin-bottom: 1rem; 
+                                width: 100%; 
+                                text-align: center;
+                            `)
+                            img.parentNode.insertBefore(wrapper, img)
+                            wrapper.appendChild(img)
+                        }
+
+                        let iconImage = ''
+                        let iconDataUrl = ''
+                        let hasValidImage = false
+
+                        try {
+                            iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
+                            
+                            if(iconImage && (iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai') || iconImage.startsWith('data:') || iconImage.startsWith('http') || iconImage.startsWith('/'))){
+                                if(iconImage.startsWith('data:')){
+                                    // 이미 데이터 URL인 경우
+                                    iconDataUrl = iconImage
+                                    hasValidImage = true
+                                } else {
+                                    const data = await fetch(iconImage)
+                                    if (data.ok) {
+                                        const canvas = document.createElement('canvas')
+                                        const ctx = canvas.getContext('2d')
+                                        const img = new Image()
+                                        img.crossOrigin = 'anonymous'
+                                        img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                            const reader = new FileReader()
+                                            reader.onload = () => resolve(reader.result as string)
+                                            reader.onerror = reject
+                                            reader.readAsDataURL(b)
+                                        }))
+                                        await new Promise((resolve, reject) => {
+                                            img.onload = () => {
+                                                canvas.width = img.width
+                                                canvas.height = img.height
+                                                ctx.drawImage(img, 0, 0)
+                                                iconDataUrl = canvas.toDataURL('image/jpeg')
+                                                hasValidImage = true
+                                                resolve(true)
+                                            }
+                                            img.onerror = () => {
+                                                hasValidImage = false
+                                                resolve(false)
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('이미지 처리 오류:', error)
+                            hasValidImage = false
+                        }
+
+
+                        // 유저 메시지와 캐릭터 메시지에 따라 다른 정보 설정
+                        const isUserMessage = role === 'user'
+                        const displayName = isUserMessage ? getUserName() : name
+                        const modelInfo = messageGenerationInfo ? capitalize(getModelInfo(messageGenerationInfo.model).shortName) : (isUserMessage ? 'User' : 'AI')
+                        
+                        // 유저 메시지인 경우 유저 아이콘 처리
+                        let finalIconDataUrl = iconDataUrl
+                        let finalHasValidImage = hasValidImage
+                        
+                        if (isUserMessage) {
+                            finalHasValidImage = false
+                            const userIcon = getUserIcon()
+                            if (userIcon) {
+                                try {
+                                    const userIconSrc = await getFileSrc(userIcon)
+                                    if (userIconSrc && (userIconSrc.startsWith('http://asset.localhost') || userIconSrc.startsWith('https://asset.localhost') || userIconSrc.startsWith('https://sv.risuai') || userIconSrc.startsWith('data:') || userIconSrc.startsWith('http') || userIconSrc.startsWith('/'))) {
+                                        if (userIconSrc.startsWith('data:')) {
+                                            finalIconDataUrl = userIconSrc
+                                            finalHasValidImage = true
+                                        } else {
+                                            const data = await fetch(userIconSrc)
+                                            if (data.ok) {
+                                                const canvas = document.createElement('canvas')
+                                                const ctx = canvas.getContext('2d')
+                                                const img = new Image()
+                                                img.crossOrigin = 'anonymous'
+                                                img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                                    const reader = new FileReader()
+                                                    reader.onload = () => resolve(reader.result as string)
+                                                    reader.onerror = reject
+                                                    reader.readAsDataURL(b)
+                                                }))
+                                                await new Promise((resolve, reject) => {
+                                                    img.onload = () => {
+                                                        canvas.width = img.width
+                                                        canvas.height = img.height
+                                                        ctx.drawImage(img, 0, 0)
+                                                        finalIconDataUrl = canvas.toDataURL('image/jpeg')
+                                                        finalHasValidImage = true
+                                                        resolve(true)
+                                                    }
+                                                    img.onerror = () => {
+                                                        finalHasValidImage = false
+                                                        resolve(false)
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('유저 아이콘 처리 오류:', error)
+                                    finalHasValidImage = false
                                 }
                             }
                         }
-
-                        let iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
-                        let iconDataUrl = ''
-
-                        if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
-                            try {
-                                const data = await fetch(iconImage)
-                                const canvas = document.createElement('canvas')
-                                const ctx = canvas.getContext('2d')
-                                const img = new Image()
-                                img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
-                                    const reader = new FileReader()
-                                    reader.onload = () => resolve(reader.result as string)
-                                    reader.onerror = reject
-                                    reader.readAsDataURL(b)
-                                }))
-                                await new Promise((resolve) => {
-                                    img.onload = resolve
-                                })
-                                canvas.width = img.width
-                                canvas.height = img.height
-                                ctx.drawImage(img, 0, 0)
-                                iconDataUrl = canvas.toDataURL('image/jpeg')
-                            } catch (error) {
-                                console.error(error)
-                            }
-                        }
-
-
-                        const html = `
-                            <div style="background: ${root.style.getPropertyValue('--risu-theme-bgcolor')};display: flex;flex-direction: column;align-items: center;justify-content: center;border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};border-radius: 0.5rem;box-shadow: 0 0 0.5rem ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin: 1rem;">
-                                <div style="display: flex;align-items: center;justify-content: center; margin-top: 0.5rem;">
-                                    <img style="max-width: 100px; max-height: 100px;border-radius: 50%;border: 2px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin-top: 1rem;width: 100px; height: 100px;" src="${iconDataUrl}" alt="from RisuAI" width="100" height="100">
-                                </div><span style="font-size: 1.5rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};font-weight: bold;">${name}</span><span style="background: ${root.style.getPropertyValue('--risu-theme-darkbg')};color: ${root.style.getPropertyValue('--risu-theme-textcolor')};padding: 0.25rem;border-radius: 0.5rem;font-size: 0.75rem;">${capitalize(getModelInfo(messageGenerationInfo.model).shortName)}</span>
-                                <div style="padding-left: 1rem;padding-right: 1rem;padding-bottom: 0.5rem;padding-top: 1rem;width: 100%;">
-                                    ${doc.body.innerHTML}
-                                </div>
-                                <div style="text-align: right;padding: 0.5rem;">
-                                    <span style="font-size: 0.75rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};">From RisuAI</span>
-                                </div>
-                            </div>
-                        `
+                        
+                        const html = `<p><br></p>
+<div style="font-family: Segoe UI, Roboto, Arial, sans-serif; color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; line-height: 1.8; width: 100%; max-width: 600px; margin: 1rem auto; background: ${root.style.getPropertyValue('--risu-theme-bgcolor')}; border-radius: 16px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2);">
+<div style="padding: 24px;">
+<div style="font-size: 15px; padding: 0;">
+<div style="display: flex; flex-direction: column; text-align: center; margin-bottom: 1.25rem;">
+${finalHasValidImage ? `<div style="margin-bottom: 1rem; text-align: center; width: 100%;"><img style="max-width: 100%; border-radius: 12px; box-shadow: rgba(0,0,0,0.12) 0px 4px 16px;" src="${finalIconDataUrl}" alt="profile"></div>` : ''}
+<h3 style="color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; font-weight: 600; font-size: 28px; margin-bottom: 0.5rem;">${displayName}</h3>
+${!isUserMessage ? `<p><br></p><div style="text-align: center; margin: 0 auto; max-width: fit-content; margin-bottom: 0.5rem;"><span style="display: inline-block; border-radius: 20px; font-size: 0.85rem; padding: 0.2rem 0.8rem; white-space: nowrap; background: transparent; color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; border: 1px solid ${root.style.getPropertyValue('--risu-theme-textcolor')};">${modelInfo}</span></div>` : ''}
+<div style="height: 1px; background: ${root.style.getPropertyValue('--risu-theme-darkborderc')}; margin: 1rem 0; border-radius: 0.5px;"><br></div>
+</div>
+${doc.body.innerHTML}
+</div>
+</div>
+</div>
+<p><br></p>`
 
 
                         await window.navigator.clipboard.write([
