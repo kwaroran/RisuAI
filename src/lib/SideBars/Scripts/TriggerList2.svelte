@@ -133,8 +133,7 @@
     let addElse = $state(false)
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
-    let clickPos = $state({x: 0, y: 0})
-    let contextMenuLoc = $state({x: 0, y: 0, style: ''}) // style 문자열 추가
+    let contextMenuLoc = $state({x: 0, y: 0, style: ''})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
 
@@ -998,12 +997,20 @@
         contextMenu = true
         selectMode = mode
         
-        clickPos = {x: e.clientX, y: e.clientY}
+        const clickPos = {x: e.clientX, y: e.clientY}
+        
+        const yPosition = clickPos.y > (window.innerHeight * 0.75)
+            ? `bottom: ${window.innerHeight - clickPos.y}px;`
+            : `top: ${clickPos.y}px;`
+        
+        const xPosition = clickPos.x > (window.innerWidth * 0.75)
+            ? `right: ${window.innerWidth - clickPos.x}px;`
+            : `left: ${clickPos.x}px;`
         
         contextMenuLoc = {
             x: clickPos.x, 
             y: clickPos.y,
-            style: `top: ${clickPos.y}px; left: ${clickPos.x}px`
+            style: `${yPosition} ${xPosition}`
         }
         
         if (mode === 1) {
