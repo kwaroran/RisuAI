@@ -1992,6 +1992,12 @@
                         else if(menuMode === 2){
                             editTrigger.indent = (value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2).indent
                             if(editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced' || editTrigger.type === 'v2Loop' || editTrigger.type === 'v2LoopNTimes' || editTrigger.type === 'v2Else'){
+                                value[selectedIndex].effect.splice(selectedEffectIndex, 0, {
+                                    type: 'v2EndIndent',
+                                    indent: editTrigger.indent + 1,
+                                    endOfLoop: editTrigger.type === 'v2Loop' || editTrigger.type === 'v2LoopNTimes'
+                                })
+                                
                                 if(addElse){
                                     value[selectedIndex].effect.splice(selectedEffectIndex, 0, {
                                         type: 'v2Else',
@@ -2002,12 +2008,6 @@
                                         indent: editTrigger.indent + 1
                                     })
                                 }
-
-                                value[selectedIndex].effect.splice(selectedEffectIndex, 0, {
-                                    type: 'v2EndIndent',
-                                    indent: editTrigger.indent + 1,
-                                    endOfLoop: editTrigger.type === 'v2Loop' || editTrigger.type === 'v2LoopNTimes'
-                                })
                             }
                             value[selectedIndex].effect.splice(selectedEffectIndex, 0, editTrigger)
                         }
