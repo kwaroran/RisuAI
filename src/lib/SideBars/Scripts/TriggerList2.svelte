@@ -134,7 +134,7 @@
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
     let clickPos = $state({x: 0, y: 0})
-    let contextMenuLoc = $state({x: 0, y: 0})
+    let contextMenuLoc = $state({x: 0, y: 0, style: ''}) // style 문자열 추가
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
 
@@ -999,8 +999,12 @@
         selectMode = mode
         
         clickPos = {x: e.clientX, y: e.clientY}
-    
-        contextMenuLoc = {x: clickPos.x, y: clickPos.y}
+        
+        contextMenuLoc = {
+            x: clickPos.x, 
+            y: clickPos.y,
+            style: `top: ${clickPos.y}px; left: ${clickPos.x}px`
+        }
         
         if (mode === 1) {
             selectedEffectIndex = effectIndex
@@ -1081,7 +1085,7 @@
         contextMenu = false
     }}>
         {#if contextMenu}
-            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style:top={`${contextMenuLoc.y}px`} style:left={`${contextMenuLoc.x}px`}>
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style={contextMenuLoc.style}>
                 {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
                     <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                         menuMode = 3
