@@ -357,7 +357,7 @@
                                         <span class="text-gray-400 text-sm">{new Date(commentary.createdAt).toLocaleDateString()}</span>
                                         <span class="text-gray-400 text-sm">{new Date(commentary.createdAt).toLocaleTimeString()}</span>
                                     </div>
-                                    <button onclick={(e) => {
+                                    <button onclick={async (e) => {
                                         e.stopPropagation()
                                         if(commentary.locked) return
 
@@ -367,7 +367,7 @@
                                             return
                                         }
                                         
-                                        const r = confirm(`${language.commentariesDelete}`)
+                                        const r = await confirm(`${language.commentariesDelete}`)
                                         if(!r) return
 
                                         targetMessage.commentaries = targetMessage.commentaries.filter((_, i) => i !== idx)
