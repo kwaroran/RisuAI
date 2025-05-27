@@ -851,7 +851,7 @@
         }
 
         for(const effect of clipboard.value){
-            value[selectedIndex].effect.splice(selectedEffectIndex, 0, effect)
+            value[selectedIndex].effect.splice(selectedEffectIndex, 0, safeStructuredClone(effect))
             selectedEffectIndex += 1
         }
     }
@@ -869,7 +869,7 @@
         }
 
         for(const trigger of clipboard.value){
-            value.splice(selectedIndex, 0, trigger)
+            value.splice(selectedIndex, 0, safeStructuredClone(trigger))
             selectedIndex += 1
         }
     }
