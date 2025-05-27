@@ -995,6 +995,8 @@ export const languageKorean = {
     "promptInfoEmptyMessage": "이 메시지에 대한 프롬프트 정보가 없습니다.",
     "promptInfoEmptyToggle": "활성화된 커스텀 토글이 없습니다.",
     "promptInfoEmptyText": "저장된 프롬프트 텍스트가 없습니다.",
+    "commentariesEmptyMessage": "저장된 코멘트가 없습니다.",
+    "commentaries": "코멘트",
     "escapeOutput": "출력 이스케이프",
     "claudeBatching": "Claude 배칭",
     "folderNameInput": "새 폴더 이름을 입력해주세요",

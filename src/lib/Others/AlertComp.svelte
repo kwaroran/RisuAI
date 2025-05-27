@@ -10,7 +10,7 @@
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon, PlusIcon, Lock } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -59,6 +59,10 @@
             return data
         }
     }
+    
+    let commentExpandedId: string | null = $state(null)
+    let commentDraftTitle = $state('')
+    let commentDraftContent = $state('')
 </script>
 
 <svelte:window onmessage={async (e) => {
@@ -217,6 +221,9 @@
                     <Button selected={generationInfoMenuIndex === 3} size="sm" onclick={() => {generationInfoMenuIndex = 3}}>
                         {language.prompt}
                     </Button>
+                    <Button selected={generationInfoMenuIndex === 4} size="sm" onclick={() => {generationInfoMenuIndex = 4}}>
+                        {language.commentaries}
+                    </Button>
                     <button class="ml-auto" onclick={() => {
                         alertStore.set({
                             type: 'none',
@@ -322,6 +329,116 @@
                             </div>
                         </div>
                     {/if}
+                {/if}
+                {#if generationInfoMenuIndex === 4}
+                    {#if Object.keys(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].commentaries || {}).length === 0}
+                        <div class="text-gray-300 text-lg mt-2">{language.commentariesEmptyMessage}</div>
+                    {:else}
+                        <div class="space-y-3 mt-4">
+                            {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].commentaries as commentary, idx (commentary.id)}
+                                <div role="button" tabindex="0" class="flex items-center bg-gray-900 rounded-md px-4 py-3 shadow-sm hover:bg-neutral-700 transition-all" onclick={(e) => {
+                                        e.preventDefault()
+                                        commentExpandedId = commentExpandedId === commentary.id ? null : commentary.id
+                                        commentDraftTitle = commentary.title
+                                        commentDraftContent = commentary.content
+                                    }}
+                                    onkeydown={() => {
+
+                                    }}>
+                                    <button class={`mr-2 ${commentary.locked ? 'text-green-500' : 'hover:text-green-500 text-textcolor2'} cursor-pointer`} onclick={(e) => {
+                                        e.stopPropagation()
+                                        commentary.locked = !commentary.locked
+                                    }}>
+                                        <Lock />
+                                    </button>
+                                    <span class="flex-1 font-semibold w-2xl text-lg text-gray-100 truncate">{commentary.title}</span>
+                                    <div class="flex flex-col sm:flex-row items-end text-sm text-gray-300 leading-tight mr-2">
+                                        <span class="text-gray-400 text-sm">{new Date(commentary.createdAt).toLocaleDateString()}</span>
+                                        <span class="text-gray-400 text-sm">{new Date(commentary.createdAt).toLocaleTimeString()}</span>
+                                    </div>
+                                    <button onclick={(e) => {
+                                        e.stopPropagation()
+                                        if(commentary.locked) return
+
+                                        let targetMessage = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]
+                                        if(!Array.isArray(targetMessage.commentaries)){
+                                            console.error(`[Commentary Delete] 'commentaries' should be an array but got: ${targetMessage.commentaries} at ${targetMessage}`)
+                                            return
+                                        }
+                                        
+                                        targetMessage.commentaries = targetMessage.commentaries.filter((_, i) => i !== idx)
+                                    }} class={`text-textcolor2 ${commentary.locked ? 'opacity-30' : 'hover:text-green-500 opacity-100'} cursor-pointer`} disabled={commentary.locked}>
+                                        <XIcon />
+                                    </button>
+                                </div>
+                                {#if commentExpandedId === commentary.id}
+                                    <div class="mt-3 mb-6 rounded-md bg-neutral-800 border-l-4 border-green-600 pl-4 pr-2 py-4 overflow-hidden">
+                                        <input
+                                            type="text"
+                                            bind:value={commentDraftTitle}
+                                            readonly={commentary.locked}
+                                            class="w-full bg-neutral-900 text-lg font-semibold px-2 py-1 rounded mb-2" />
+                                        <div class="text-xs text-gray-400 flex gap-4 mb-2">
+                                            <span>Created: {new Date(commentary.createdAt).toLocaleString()}</span>
+                                            <span>Updated: {new Date(commentary.updatedAt).toLocaleString()}</span>
+                                        </div>
+                                        <textarea
+                                            bind:value={commentDraftContent}
+                                            rows="6"
+                                            class="w-full bg-neutral-900 text-gray-100 px-2 py-1 rounded"
+                                            readonly={commentary.locked}
+                                        ></textarea>
+                                        <div class="mt-3 flex justify-end gap-2">
+                                            <button
+                                                class="px-3 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                                                onclick={() => commentExpandedId = null}
+                                            >Cancel</button>
+                                            <button
+                                                class={`px-3 py-1 rounded bg-green-600 ${commentary.locked ? 'opacity-30' : 'hover:bg-green-700 opacity-100'} text-white`} disabled={commentary.locked}
+                                                onclick={() => {
+                                                    if(commentary.locked) return
+                                                    
+                                                    commentary.title = commentDraftTitle.trim() || 'New comment'
+                                                    commentary.content = commentDraftContent
+                                                    commentary.updatedAt = new Date().toISOString()
+                                                    commentExpandedId = null
+                                                }}
+                                            >Save</button>
+                                        </div>                                        
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                    {/if}
+
+                    <div class="mt-6 flex items-center justify-between">
+                        <button onclick={() => {
+                            let targetMessage = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]
+                            if((!Array.isArray(targetMessage.commentaries))){
+                                console.error(`[Commentary Add] 'commentaries' should be an array but got: ${targetMessage.commentaries} at ${targetMessage}`)
+                                return
+                            }
+                            if(targetMessage.commentaries.length >= 20){
+                                return
+                            }
+
+                            let newCommentary = {
+                                id: crypto.randomUUID(),
+                                title: 'New comment',
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                                content: '',
+                                locked: false,
+                            }
+
+                            targetMessage.commentaries = [...targetMessage.commentaries, newCommentary]
+                        }} class="text-textcolor2 hover:text-green-500 cursor-pointer">
+                            <PlusIcon />
+                        </button>
+                          <span class="ml-2 inline-flex items-end px-2 py-1 rounded-full bg-neutral-700 text-gray-300 text-sm font-mono">
+                            {DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].commentaries?.length ?? 0} / 20
+                        </span>
+                    </div>
                 {/if}
             {:else if $alertStore.type === 'hypaV2'}
                 <div class="flex flex-wrap gap-2 mb-4 max-w-full w-124">
