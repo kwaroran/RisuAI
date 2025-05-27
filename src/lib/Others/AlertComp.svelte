@@ -63,6 +63,7 @@
     let commentExpandedId: string | null = $state(null)
     let commentDraftTitle = $state('')
     let commentDraftContent = $state('')
+    const commentDraftByte = $derived(new TextEncoder().encode(commentDraftContent).length)
 </script>
 
 <svelte:window onmessage={async (e) => {
@@ -391,22 +392,25 @@
                                             class="w-full bg-neutral-900 text-gray-100 px-2 py-1 rounded"
                                             readonly={commentary.locked}
                                         ></textarea>
-                                        <div class="mt-3 flex justify-end gap-2">
-                                            <button
-                                                class="px-3 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
-                                                onclick={() => commentExpandedId = null}
-                                            >Cancel</button>
-                                            <button
-                                                class={`px-3 py-1 rounded bg-green-600 ${commentary.locked ? 'opacity-30' : 'hover:bg-green-700 opacity-100'} text-white`} disabled={commentary.locked}
-                                                onclick={() => {
-                                                    if(commentary.locked) return
-                                                    
-                                                    commentary.title = commentDraftTitle.trim() || 'New comment'
-                                                    commentary.content = commentDraftContent
-                                                    commentary.updatedAt = new Date().toISOString()
-                                                    commentExpandedId = null
-                                                }}
-                                            >Save</button>
+                                        <div class="mt-3 flex items-center justify-between">
+                                            <div class={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${commentDraftByte > 50000 ? 'text-red-400' : 'text-gray-200'} bg-neutral-700 rounded-full select-none`}>{commentDraftByte.toLocaleString()} Bytes</div>
+                                            <div class="mt-3 flex justify-end gap-2">
+                                                <button
+                                                    class="px-3 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                                                    onclick={() => commentExpandedId = null}
+                                                >Cancel</button>
+                                                <button
+                                                    class={`px-3 py-1 rounded bg-green-600 ${commentary.locked ? 'opacity-30' : 'hover:bg-green-700 opacity-100'} text-white`} disabled={commentary.locked}
+                                                    onclick={() => {
+                                                        if(commentary.locked) return
+                                                        
+                                                        commentary.title = commentDraftTitle.trim() || 'New comment'
+                                                        commentary.content = commentDraftContent
+                                                        commentary.updatedAt = new Date().toISOString()
+                                                        commentExpandedId = null
+                                                    }}
+                                                >Save</button>
+                                            </div>
                                         </div>                                        
                                     </div>
                                 {/if}
