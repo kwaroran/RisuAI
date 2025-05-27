@@ -1130,6 +1130,7 @@ export const languageEnglish = {
     promptInfoEmptyText: "No prompt text has been saved.",
     commentaries: "Comments",
     commentariesEmptyMessage: "No comments yet.",
+    commentariesDelete: "Are you sure you want to delete this comment?",
     escapeOutput: "Escape Output",
     claudeBatching: "Claude Batching",
     claude1HourCaching: "Claude 1 Hour Caching",    

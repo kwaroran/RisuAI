@@ -366,6 +366,9 @@
                                             return
                                         }
                                         
+                                        const r = confirm(`${language.commentariesDelete}`)
+                                        if(!r) return
+
                                         targetMessage.commentaries = targetMessage.commentaries.filter((_, i) => i !== idx)
                                     }} class={`text-textcolor2 ${commentary.locked ? 'opacity-30' : 'hover:text-green-500 opacity-100'} cursor-pointer`} disabled={commentary.locked}>
                                         <XIcon />
