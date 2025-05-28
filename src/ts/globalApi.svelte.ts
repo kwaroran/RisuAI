@@ -806,7 +806,7 @@ export function addFetchLog(arg: {
     url: arg.url,
     chatId: arg.chatId
   });
-  return fetchLog.length - 1;
+  return 0;
 }
 
 /**
