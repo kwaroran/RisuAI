@@ -23,9 +23,6 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
-    import { message } from "@tauri-apps/plugin-dialog";
-    import HypaV3Modal from './HypaV3Modal.svelte';
-    import Googli from "../UI/Googli.svelte";
 
     let btn
     let input = $state('')
@@ -62,19 +59,11 @@
             return data
         }
     }
-
-    interface Props{
-        onclick?: (e:MouseEvent) => void
-    }
-
-    let {
-        onclick
-    }:Props = $props()
 </script>
 
 <svelte:window onmessage={async (e) => {
     if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1") || e.origin === window.location.origin){
-        if(e.data.msg.data.vaild && $alertStore.type === 'login'){
+        if(e.data.msg?.data?.vaild && $alertStore.type === 'login'){
             $alertStore = {
                 type: 'none',
                 msg: JSON.stringify(e.data.msg)
@@ -96,11 +85,13 @@
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Input</h2>
             {/if}
             {#if $alertStore.type === 'markdown'}
-                <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
-                    {#await ParseMarkdown($alertStore.msg) then msg}
-                        {@html msg}                        
-                    {/await}
-                </span>
+                <div class="overflow-y-auto">
+                    <span class="text-gray-300 chattext prose chattext2" class:prose-invert={$ColorSchemeTypeStore}>
+                        {#await ParseMarkdown($alertStore.msg) then msg}
+                            {@html msg}                        
+                        {/await}
+                    </span>
+                </div>
             {:else if $alertStore.type === 'tos'}
                 <!-- svelte-ignore a11y_missing_attribute -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -510,7 +501,6 @@
     <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
         <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" role="button" tabindex="0" onclick={(e) => {
             e.stopPropagation()
-            onclick(e)
         }}>
             <h1 class="font-bold text-2xl w-full">
                 <span>

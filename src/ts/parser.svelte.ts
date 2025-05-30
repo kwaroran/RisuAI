@@ -8,7 +8,7 @@ import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, sfc32, sleep, uuidtoNumber } from './util';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand} from './util';
 import { getInlayAsset } from './process/files/inlays';
 import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
@@ -92,13 +92,43 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
     }
 });
 
+
+const replacements = [
+    '{', //0xE9B8
+    '}', //0xE9B9
+    '(', //0xE9BA
+    ')', //0xE9BB
+    '&lt;', //0xE9BC
+    '&gt;', //0xE9BD
+    ':', //0xE9BE
+    ';', //0xE9BF
+]
+
+export function risuUnescape(text:string){
+    return text.replace(/[\uE9b8-\uE9bf]/g, (f) => {
+        const index = f.charCodeAt(0) - 0xE9B8
+        return replacements[index]
+    })
+}
+
+export function risuEscape(text:string){
+    return text.replace(/[{}()]/g, (f) => {
+        switch(f){
+            case '{': return '\uE9B8'
+            case '}': return '\uE9B9'
+            case '(': return '\uE9BA'
+            case ')': return '\uE9BB'
+            default: return f
+        }
+    })
+}
+
 function renderMarkdown(md:markdownit, data:string){
     let quotes = ['“', '”', '‘', '’']
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
-
-    let text = md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")).replace(/\uE9b8/g, '{{').replace(/\uE9b9/g, '}}')
+    let text = risuUnescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
 
     if(DBState.db?.unformatQuotes){
         text = text.replace(/\uE9b0/gu, quotes[0]).replace(/\uE9b1/gu, quotes[1])
@@ -1275,22 +1305,52 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 return '\\n'
             }
             case 'decbo':
-            case 'displayescapedcurlybracketopen':{
+            case 'displayescapedcurlybracketopen':{ // {
                 return '\uE9b8'
             }
             case 'decbc':
-            case 'displayescapedcurlybracketclose':{
+            case 'displayescapedcurlybracketclose':{ // }
                 return '\uE9b9'
             }
             case 'bo':
             case 'ddecbo':
-            case 'doubledisplayescapedcurlybracketopen':{
+            case 'doubledisplayescapedcurlybracketopen':{ // {{
                 return '\uE9b8\uE9b8'
             }
             case 'bc':
             case 'ddecbc':
-            case 'doubledisplayescapedcurlybracketclose':{
+            case 'doubledisplayescapedcurlybracketclose':{ // }}
                 return '\uE9b9\uE9b9'
+            }
+            case 'displayescapedbracketopen':
+            case 'debo':
+            case '(':{ // (
+                return '\uE9BA'
+            }
+            case 'displayescapedbracketclose':
+            case 'debc':
+            case ')':{ // )
+                return '\uE9BB'
+            }
+            case 'displayescapedanglebracketopen':
+            case 'deabo':
+            case '<':{ // <
+                return '\uE9BC'
+            }
+            case 'displayescapedanglebracketclose':
+            case 'deabc':
+            case '>':{ // >
+                return '\uE9BD'
+            }
+            case 'displayescapedcolon':
+            case 'dec':
+            case ':':{ // :
+                return '\uE9BE'
+            }
+            case 'displayescapedsemicolon':
+            //since desc is already used for other things, we can't use simplified name
+            case ';':{ // ;
+                return '\uE9BF'
             }
             
         }
@@ -1946,22 +2006,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
     }
 }
 
-function pickHashRand(cid:number,word:string) {
-    let hashAddress = 5515
-    const rand = (word:string) => {
-        for (let counter = 0; counter<word.length; counter++){
-            hashAddress = ((hashAddress << 5) + hashAddress) + word.charCodeAt(counter)
-        }
-        return hashAddress
-    }
-    const randF = sfc32(rand(word), rand(word), rand(word), rand(word))
-    const v = cid % 1000
-    for (let i = 0; i < v; i++){
-        randF()
-    }
-    return randF()
-}
-
 const dateTimeFormat = (main:string, time = 0) => {
     const date = time === 0 ? (new Date()) : (new Date(time))
     if(!main){
@@ -2054,7 +2098,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'
+type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'|'escape'
 
 function parseArray(p1:string):string[]{
     try {
@@ -2102,7 +2146,9 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
     }
     if(p1 === '#code'){
         return {type:'normalize'}
-
+    }
+    if(p1 === '#escape'){
+        return {type:'escape'}
     }
     if(p1.startsWith('#each')){
         let t2 = p1.substring(5).trim()
@@ -2171,6 +2217,9 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
                         return p1
                 }
             })
+        }
+        case 'escape':{
+            return risuEscape(p1Trimed)
         }
         default:{
             return ''
@@ -2325,7 +2374,7 @@ export function risuChatParser(da:string, arg:{
                         blockNestType.set(nested.length, matchResult)
                         if( matchResult.type === 'ignore' || matchResult.type === 'pure' ||
                             matchResult.type === 'each' || matchResult.type === 'function' ||
-                            matchResult.type === 'pure-display'
+                            matchResult.type === 'pure-display' || matchResult.type === 'escape'
                         ){
                             pureModeNest.set(nested.length, true)
                             pureModeNestType.set(nested.length, "block")
@@ -2338,7 +2387,7 @@ export function risuChatParser(da:string, arg:{
                         const blockType = blockNestType.get(nested.length)
                         if( blockType.type === 'ignore' || blockType.type === 'pure' ||
                             blockType.type === 'each' || blockType.type === 'function' ||
-                            blockType.type === 'pure-display'
+                            blockType.type === 'pure-display' || blockType.type === 'escape'
                         ){
                             pureModeNest.delete(nested.length)
                             pureModeNestType.delete(nested.length)

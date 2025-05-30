@@ -1128,5 +1128,9 @@ export const languageEnglish = {
     promptInfoEmptyMessage: "No prompt information is available for this message.",
     promptInfoEmptyToggle: "No custom toggles are currently active.",
     promptInfoEmptyText: "No prompt text has been saved.",
-    
+    escapeOutput: "Escape Output",
+    claudeBatching: "Claude Batching",
+    claude1HourCaching: "Claude 1 Hour Caching",    
+    folderNameInput: "Please input the new folder name",
+    folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
 }

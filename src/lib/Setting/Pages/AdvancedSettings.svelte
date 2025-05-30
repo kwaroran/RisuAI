@@ -190,16 +190,18 @@
     <Check bind:check={DBState.db.enableDevTools} name={language.enableDevTools}>
     </Check>
 </div>
-<div class="flex items-center mt-4">
-    <Check bind:check={DBState.db.promptInfoInsideChat} name={language.promptInfoInsideChat}>
-         <Help key="promptInfoInsideChatDesc"/>
-    </Check>
-</div>
-{#if DBState.db.promptInfoInsideChat}
+{#if isNodeServer || isTauri}
     <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.promptTextInfoInsideChat} name={language.promptTextInfoInsideChat}>
+        <Check bind:check={DBState.db.promptInfoInsideChat} name={language.promptInfoInsideChat}>
+            <Help key="promptInfoInsideChatDesc"/>
         </Check>
     </div>
+    {#if DBState.db.promptInfoInsideChat}
+        <div class="flex items-center mt-4">
+            <Check bind:check={DBState.db.promptTextInfoInsideChat} name={language.promptTextInfoInsideChat}>
+            </Check>
+        </div>
+    {/if}
 {/if}
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.dynamicAssets} name={language.dynamicAssets}>
@@ -216,6 +218,15 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.antiServerOverloads} name={language.antiServerOverload}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.claude1HourCaching} name={language.claude1HourCaching}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.claudeBatching} name={language.claudeBatching}>
+        <Help key="experimental" />
     </Check>
 </div>
 <div class="flex items-center mt-4">

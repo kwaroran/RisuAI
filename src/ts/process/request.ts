@@ -7,11 +7,11 @@ import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyRe
 import { sleep } from "../util";
 import { NovelAIBadWordIds, stringlizeNAIChat } from "./models/nai";
 import { strongBan, tokenize, tokenizeNum } from "../tokenizer";
-import { risuChatParser } from "../parser.svelte";
+import { risuChatParser, risuEscape } from "../parser.svelte";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { supportsInlayImage, writeInlayImage } from "./files/inlays";
+import { setInlayAsset, supportsInlayImage, writeInlayImage } from "./files/inlays";
 import { Capacitor } from "@capacitor/core";
 import { getFreeOpenRouterModel } from "../model/openrouter";
 import { runTransformers } from "./transformers";
@@ -23,7 +23,7 @@ import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../model/model
 import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
 import { v4 } from "uuid";
-import { DBState } from "../stores.svelte";
+import { risuUnescape } from "../parser.svelte";
 
 
 
@@ -47,6 +47,7 @@ interface requestDataArgument{
     imageResponse?:boolean
     previewBody?:boolean
     staticModel?: string
+    escape?:boolean
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -274,7 +275,16 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     fallBackModels.push('')
     let da:requestDataResponse
 
-    const originalFormated = safeStructuredClone(arg.formated)
+    if(arg.escape){
+        arg.useStreaming = false
+        console.warn('Escape is enabled, disabling streaming')
+    }
+
+    const originalFormated = safeStructuredClone(arg.formated).map(m => {
+        m.content = risuUnescape(m.content)
+        return m
+    })
+
     for(let fallbackIndex=0;fallbackIndex<fallBackModels.length;fallbackIndex++){
         let trys = 0
         arg.formated = safeStructuredClone(originalFormated)
@@ -331,6 +341,10 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                     type: 'fail',
                     result: 'Aborted'
                 }
+            }
+
+            if(da.type === 'success' && arg.escape){
+                da.result = risuEscape(da.result)
             }
     
             if(da.type === 'success' && pluginV2.replacerafterRequest.size > 0){
@@ -2167,6 +2181,12 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
         delete body.systemInstruction
     }
 
+    if(arg.modelInfo.flags.includes(LLMFlags.hasAudioOutput)){
+        body.generation_config.responseModalities = [
+            'TEXT', 'AUDIO'
+        ]
+        arg.useStreaming = false
+    }
     if(arg.imageResponse){
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
@@ -2515,11 +2535,26 @@ async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise
                 if(part.inlineData){
                     const imgHTML = new Image()
                     const id = crypto.randomUUID()
-                    imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
-                    await writeInlayImage(imgHTML, {
-                        id: id
-                    })
-                    rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+
+                    if(part.inlineData.mimeType.startsWith('image/')){
+
+                        imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                        await writeInlayImage(imgHTML, {
+                            id: id
+                        })
+                        rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
+                    }
+                    else{
+                        const id = v4()
+                        await setInlayAsset(id, {
+                            name: 'gemini-audio',
+                            type: 'audio',
+                            data: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+                            height: 0,
+                            width: 0,
+                            ext: part.inlineData.mimeType.split('/')[1],
+                        })
+                    }
                 }
             }   
         }
@@ -2892,7 +2927,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     const aiModel = arg.aiModel
     const useStreaming = arg.useStreaming
     let replacerURL = arg.customURL ?? ('https://api.anthropic.com/v1/messages')
-    let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
+    let apiKey = arg.key || ((aiModel === 'reverse_proxy') ? db.proxyKey : db.claudeAPIKey)
     const maxTokens = arg.maxTokens
     if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
         if(replacerURL.endsWith('v1')){
@@ -2914,7 +2949,10 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     interface Claude3TextBlock {
         type: 'text',
         text: string,
-        cache_control?: {"type": "ephemeral"}
+        cache_control?: {
+            "type": "ephemeral",
+            "ttl"?: "5m" | "1h"
+        }
     }
 
     interface Claude3ImageBlock {
@@ -2924,7 +2962,10 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
             media_type: string,
             data: string
         }
-        cache_control?: {"type": "ephemeral"}
+        cache_control?: {
+            "type": "ephemeral"
+            "ttl"?: "5m" | "1h"
+        }
     }
 
     type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
@@ -2989,8 +3030,17 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
                 }
             }
             if(chat.cache){
-                content[content.length-1].cache_control = {
-                    type: 'ephemeral'
+
+                if(db.claude1HourCaching){
+                    content[content.length-1].cache_control = {
+                        type: 'ephemeral',
+                        ttl: "1h"
+                    }
+                }
+                else{
+                    content[content.length-1].cache_control = {
+                        type: 'ephemeral'
+                    }
                 }
             }
             claudeChat[claudeChat.length-1].content = content
@@ -3282,6 +3332,11 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         betas.push('output-128k-2025-02-19')
     }
 
+
+    if(db.claude1HourCaching){
+        betas.push('extended-cache-ttl-2025-04-11')
+    }
+
     if(betas.length > 0){
         headers['anthropic-beta'] = betas.join(',')
     }
@@ -3289,6 +3344,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     if(db.usePlainFetch){
         headers['anthropic-dangerous-direct-browser-access'] = 'true'
     }
+
 
     if(arg.previewBody){
         return {
@@ -3301,6 +3357,120 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
+    if(db.claudeBatching){
+        if(body.stream !== undefined){
+            delete body.stream
+        }
+        const id = v4()
+        const resp = await fetchNative(replacerURL + '/batches', {
+            "body": JSON.stringify({
+                "requests": [{
+                    "custom_id": id,
+                    "params": body,
+                }]
+            }),
+            "method": "POST",
+            signal: arg.abortSignal,
+            headers: headers
+        })
+
+        if(resp.status !== 200){
+            return {
+                type: 'fail',
+                result: await textifyReadableStream(resp.body)
+            }
+        }
+
+        const r = (await resp.json())
+
+        if(!r.id){
+            return {
+                type: 'fail',
+                result: 'No results URL returned from Claude batch request'
+            }
+        }
+
+        const resultsUrl = replacerURL + `/batches/${r.id}/results`
+        const statusUrl = replacerURL + `/batches/${r.id}`
+
+        let received = false
+        while(!received){
+            try {
+                await sleep(3000)
+                if(arg?.abortSignal?.aborted){
+                    return {
+                        type: 'fail',
+                        result: 'Request aborted'
+                    }
+                }
+
+                const statusRes = await fetchNative(statusUrl, {
+                    "method": "GET",
+                    "headers": {
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    "signal": arg.abortSignal,
+                })
+
+                if(statusRes.status !== 200){
+                    return {
+                        type: 'fail',
+                        result: await textifyReadableStream(statusRes.body)
+                    }
+                }
+
+                const statusData = await statusRes.json()
+
+                if(statusData.processing_status !== 'ended'){
+                    continue
+                }
+
+                const batchRes = await fetchNative(resultsUrl, {
+                    "method": "GET",
+                    "headers": {
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    "signal": arg.abortSignal,
+                })
+
+                if(batchRes.status !== 200){
+                    return {
+                        type: 'fail',
+                        result: await textifyReadableStream(batchRes.body)
+                    }
+                }
+
+                //since jsonl
+                const batchTextData = (await batchRes.text()).split('\n').filter((v) => v.trim() !== ''). map((v) => {
+                    try {
+                        return JSON.parse(v)
+                    } catch (error) {
+                        return null
+                    }
+                }).filter((v) => v !== null)
+                for(const batchData of batchTextData){
+                    const type = batchData?.result?.type
+                    console.log('Claude batch result type:', type)
+                    if(batchData?.result?.type === 'succeeded'){
+                        return {
+                            type: 'success',
+                            result: batchData.result.message.content?.[0]?.text ?? ''
+                        }
+                    }
+                    if(batchData?.result?.type === 'errored'){
+                        return {
+                            type: 'fail',
+                            result:  JSON.stringify(batchData.result.error),
+                        }
+                    }
+                }   
+            } catch (error) {
+                console.error('Error while waiting for Claude batch results:', error)
+            }
+        }
+    }
     
     
     if(db.claudeRetrivalCaching){

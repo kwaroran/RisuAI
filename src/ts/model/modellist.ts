@@ -598,7 +598,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasFirstSystemPrompt,
             LLMFlags.hasStreaming
         ],
-        recommended: true,
         parameters: ClaudeParameters,
         tokenizer: LLMTokenizer.Claude
     },
@@ -606,6 +605,40 @@ export const LLMModels: LLMModel[] = [
         name: "Claude 3.7 Sonnet",
         id: 'claude-3-7-sonnet-latest',
         shortName: "3.7 Sonnet",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
+        recommended: true,
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: "Claude 4 Sonnet (20250514)",
+        id: 'claude-sonnet-4-20250514',
+        shortName: "4 Sonnet",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
+        recommended: true,
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: "Claude 4 Opus (20250514)",
+        id: 'claude-opus-4-20250514',
+        shortName: "4 Opus",
         provider: LLMProvider.Anthropic,
         format: LLMFormat.Anthropic,
         flags: [
@@ -822,6 +855,34 @@ export const LLMModels: LLMModel[] = [
         format: LLMFormat.AnthropicLegacy,
         flags: [LLMFlags.hasPrefill],
         parameters: ClaudeParameters,
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 4 Opus (20250514) v1',
+        id: 'anthropic.claude-opus-4-20250514-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: 'Claude 4 Sonnet (20250514) v1',
+        id: 'anthropic.claude-sonnet-4-20250514-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
         tokenizer: LLMTokenizer.Claude
     },
     {
@@ -1057,6 +1118,26 @@ export const LLMModels: LLMModel[] = [
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
     },
+    {
+        name: "Gemini Flash 2.5 Preview (05/20)",
+        id: 'gemini-2.5-flash-preview-05-20',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    //     {
+    //     name: "Gemini Flash 2.5 PRO TTS",
+    //     id: 'gemini-2.5-pro-tts',
+    //     provider: LLMProvider.GoogleCloud,
+    //     format: LLMFormat.GoogleCloud,
+    //     flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking, LLMFlags.hasAudioOutput],
+    //     parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+    //     tokenizer: LLMTokenizer.GoogleCloud,
+    //     recommended: true
+    // },
     {
         name: "Gemini Flash 2.0 Thinking 1219",
         id: 'gemini-2.0-flash-thinking-exp-1219',

@@ -3,6 +3,8 @@
   import {
     SearchIcon,
     SettingsIcon,
+    MoreVerticalIcon,
+    BarChartIcon,
     Trash2Icon,
     XIcon,
     ChevronUpIcon,
@@ -88,6 +90,8 @@
   let expandedMessageUIState = $state<ExpandedMessageUI>(null);
   let searchUIState = $state<SearchUI>(null);
   let showImportantOnly = $state(false);
+  let showDropdown = $state(false);
+  let showMetrics = $state(false);
 
   $effect.pre(() => {
     untrack(() => {
@@ -95,7 +99,6 @@
         DBState.db.characters[$selectedCharID].chatPage
       ].hypaV3Data ??= {
         summaries: [],
-        lastSelectedSummaries: [],
       };
     });
 
@@ -187,15 +190,14 @@
 
     // Search summary index
     if (query.match(/^#\d+$/)) {
-      const summaryNumber = parseInt(query.substring(1)) - 1;
+      const summaryIndex = parseInt(query.substring(1)) - 1;
 
       if (
-        summaryNumber >= 0 &&
-        summaryNumber < hypaV3DataState.summaries.length &&
-        (!showImportantOnly ||
-          hypaV3DataState.summaries[summaryNumber].isImportant)
+        summaryIndex >= 0 &&
+        summaryIndex < hypaV3DataState.summaries.length &&
+        isSummaryVisible(summaryIndex)
       ) {
-        results.push(new SummarySearchResult(summaryNumber, 0, 0));
+        results.push(new SummarySearchResult(summaryIndex, 0, 0));
       }
 
       return results;
@@ -204,10 +206,7 @@
     if (isGuidLike(query)) {
       // Search chatMemo
       summaryUIStates.forEach((summaryUI, summaryIndex) => {
-        if (
-          !showImportantOnly ||
-          hypaV3DataState.summaries[summaryIndex].isImportant
-        ) {
+        if (isSummaryVisible(summaryIndex)) {
           summaryUI.chatMemoRefs.forEach((buttonRef, memoIndex) => {
             const buttonText = buttonRef.textContent?.toLowerCase() || "";
 
@@ -220,10 +219,7 @@
     } else {
       // Search summary
       summaryUIStates.forEach((summaryUI, summaryIndex) => {
-        if (
-          !showImportantOnly ||
-          hypaV3DataState.summaries[summaryIndex].isImportant
-        ) {
+        if (isSummaryVisible(summaryIndex)) {
           const textAreaText = summaryUI.originalRef.value?.toLowerCase();
           let pos = -1;
 
@@ -373,6 +369,23 @@
 
     // Adjust the scroll so that the selected text is centered on the screen
     textarea.scrollTop = selectionTop - textarea.clientHeight / 2;
+  }
+
+  function isSummaryVisible(index: number): boolean {
+    const summary = hypaV3DataState.summaries[index];
+    const metrics = hypaV3DataState.metrics;
+
+    const metricsFilter =
+      !showMetrics ||
+      !metrics ||
+      metrics.lastImportantSummaries.includes(index) ||
+      metrics.lastRecentSummaries.includes(index) ||
+      metrics.lastSimilarSummaries.includes(index) ||
+      metrics.lastRandomSummaries.includes(index);
+
+    const importantFilter = !showImportantOnly || summary.isImportant;
+
+    return metricsFilter && importantFilter;
   }
 
   async function toggleTranslate(
@@ -730,7 +743,6 @@
           chatMemos: [...mainChunk.chatMemos],
           isImportant: false,
         })),
-        lastSelectedSummaries: [],
       };
 
       chat.hypaV3Data = newHypaV3Data;
@@ -819,11 +831,17 @@
   <!-- Modal wrapper -->
   <div class="flex justify-center w-full h-full">
     <!-- Modal window -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="flex flex-col p-3 sm:p-6 rounded-lg bg-zinc-900 w-full max-w-3xl {hypaV3DataState
         .summaries.length === 0
         ? 'h-fit'
         : 'h-full'}"
+      onclick={(e) => {
+        e.stopPropagation();
+        showDropdown = false;
+      }}
     >
       <!-- Header -->
       <div class="flex justify-between items-center mb-2 sm:mb-4">
@@ -831,6 +849,7 @@
         <h1 class="text-lg sm:text-2xl font-semibold text-zinc-300">
           {language.hypaV3Modal.titleLabel}
         </h1>
+
         <!-- Buttons Container -->
         <div class="flex items-center gap-2">
           <!-- Search Button -->
@@ -874,28 +893,69 @@
             <SettingsIcon class="w-6 h-6" />
           </button>
 
-          <!-- Reset Button -->
-          <button
-            class="p-2 text-zinc-400 hover:text-rose-300 transition-colors"
-            tabindex="-1"
-            onclick={async () => {
-              if (
-                await alertConfirmTwice(
-                  language.hypaV3Modal.resetConfirmMessage,
-                  language.hypaV3Modal.resetConfirmSecondMessage
-                )
-              ) {
-                DBState.db.characters[$selectedCharID].chats[
-                  DBState.db.characters[$selectedCharID].chatPage
-                ].hypaV3Data = {
-                  summaries: [],
-                  lastSelectedSummaries: [],
-                };
-              }
-            }}
-          >
-            <Trash2Icon class="w-6 h-6" />
-          </button>
+          <!-- Show Dropdown Button -->
+          <div class="relative">
+            <button
+              class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+              tabindex="-1"
+              onclick={(e) => {
+                e.stopPropagation();
+                showDropdown = true;
+              }}
+            >
+              <MoreVerticalIcon class="w-6 h-6" />
+            </button>
+
+            {#if showDropdown}
+              <div
+                class="absolute z-10 right-0 mt-1 p-2 rounded-md shadow-lg border border-zinc-700 bg-zinc-800"
+              >
+                <!-- Buttons Container -->
+                <div class="flex items-center gap-2">
+                  <!-- Show Metrics Button -->
+                  <button
+                    class="p-2 transition-colors {showMetrics
+                      ? 'text-blue-400 hover:text-blue-300'
+                      : 'text-zinc-400 hover:text-zinc-200'}"
+                    tabindex="-1"
+                    onclick={() => {
+                      if (searchUIState) {
+                        searchUIState.query = "";
+                        searchUIState.results = [];
+                        searchUIState.currentResultIndex = -1;
+                      }
+
+                      showMetrics = !showMetrics;
+                    }}
+                  >
+                    <BarChartIcon class="w-6 h-6" />
+                  </button>
+
+                  <!-- Reset Button -->
+                  <button
+                    class="p-2 text-zinc-400 hover:text-rose-300 transition-colors"
+                    tabindex="-1"
+                    onclick={async () => {
+                      if (
+                        await alertConfirmTwice(
+                          language.hypaV3Modal.resetConfirmMessage,
+                          language.hypaV3Modal.resetConfirmSecondMessage
+                        )
+                      ) {
+                        DBState.db.characters[$selectedCharID].chats[
+                          DBState.db.characters[$selectedCharID].chatPage
+                        ].hypaV3Data = {
+                          summaries: [],
+                        };
+                      }
+                    }}
+                  >
+                    <Trash2Icon class="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            {/if}
+          </div>
 
           <!-- Close Button -->
           <button
@@ -954,7 +1014,7 @@
 
           <!-- Search Bar -->
         {:else if searchUIState}
-          <div class="sticky top-0 z-40 p-2 sm:p-3 bg-zinc-800">
+          <div class="sticky top-0 p-2 sm:p-3 bg-zinc-800">
             <div class="flex items-center gap-2">
               <div class="relative flex flex-1 items-center">
                 <form
@@ -1016,7 +1076,7 @@
 
         <!-- Summaries List -->
         {#each hypaV3DataState.summaries as summary, i}
-          {#if !showImportantOnly || summary.isImportant}
+          {#if isSummaryVisible(i)}
             {#if summaryUIStates[i]}
               <!-- Summary Item  -->
               <div
@@ -1024,13 +1084,50 @@
               >
                 <!-- Original Summary Header -->
                 <div class="flex justify-between items-center">
-                  <span class="text-sm text-zinc-400"
-                    >{language.hypaV3Modal.summaryNumberLabel.replace(
-                      "{0}",
-                      (i + 1).toString()
-                    )}</span
-                  >
+                  <!-- Summary Number / Metrics Container -->
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm text-zinc-400"
+                      >{language.hypaV3Modal.summaryNumberLabel.replace(
+                        "{0}",
+                        (i + 1).toString()
+                      )}</span
+                    >
 
+                    {#if showMetrics && hypaV3DataState.metrics}
+                      <div class="flex flex-wrap gap-1">
+                        {#if hypaV3DataState.metrics.lastImportantSummaries.includes(i)}
+                          <span
+                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-purple-200 bg-purple-900/70"
+                          >
+                            Important
+                          </span>
+                        {/if}
+                        {#if hypaV3DataState.metrics.lastRecentSummaries.includes(i)}
+                          <span
+                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-blue-200 bg-blue-900/70"
+                          >
+                            Recent
+                          </span>
+                        {/if}
+                        {#if hypaV3DataState.metrics.lastSimilarSummaries.includes(i)}
+                          <span
+                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-green-200 bg-green-900/70"
+                          >
+                            Similar
+                          </span>
+                        {/if}
+                        {#if hypaV3DataState.metrics.lastRandomSummaries.includes(i)}
+                          <span
+                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-yellow-200 bg-yellow-900/70"
+                          >
+                            Random
+                          </span>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- Buttons Container -->
                   <div class="flex items-center gap-2">
                     <!-- Translate Button -->
                     <button

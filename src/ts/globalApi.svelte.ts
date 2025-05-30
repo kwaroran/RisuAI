@@ -1974,7 +1974,7 @@ export async function fetchNative(url:string, arg:{
                 id: fetchId,
                 url: url,
                 headers: JSON.stringify(headers),
-                body: Buffer.from(realBody).toString('base64'),
+                body: realBody ? Buffer.from(realBody).toString('base64') : '',
                 method: arg.method
             }).then((res) => {
                 try {
@@ -1994,7 +1994,7 @@ export async function fetchNative(url:string, arg:{
                 id: fetchId,
                 url: url,
                 headers: headers,
-                body: Buffer.from(realBody).toString('base64'),
+                body: realBody ? Buffer.from(realBody).toString('base64') : '',
             }).then((res) => {
                 if(!res.success){
                     error = res.error

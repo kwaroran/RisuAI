@@ -17,7 +17,7 @@
     import { untrack } from "svelte";
     import { tokenizePreset } from "src/ts/process/prompt";
     import { getCharToken } from "src/ts/tokenizer";
-    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, FolderUpIcon } from "lucide-svelte";
+    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
 
@@ -812,7 +812,7 @@
                         alertError(`${error}`)
                     }
                 }}>
-                    <FolderUpIcon size={24}/>
+                    <HardDriveUploadIcon size={24}/>
                 </button>
             </div>
 

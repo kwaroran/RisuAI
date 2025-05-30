@@ -4,7 +4,7 @@
     import Sortable from "sortablejs";
     import { sleep, sortableOptions } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
-  import { DownloadIcon, FolderUpIcon, PlusIcon } from "lucide-svelte";
+  import { DownloadIcon, HardDriveUploadIcon, PlusIcon } from "lucide-svelte";
   import { exportRegex, importRegex } from "src/ts/process/scripts";
     interface Props {
         value?: customscript[];
@@ -95,6 +95,6 @@
         }}><DownloadIcon /></button>
         <button class="rounded-md text-textcolor2 hover:text-textcolor focus-within:text-textcolor" onclick={async () => {
             value = await importRegex(value)
-        }}><FolderUpIcon /></button>
+        }}><HardDriveUploadIcon /></button>
     </div>
 {/if}

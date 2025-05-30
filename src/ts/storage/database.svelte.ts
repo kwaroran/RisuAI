@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "160.0.2"
+export let appVer = "161.3.0"
 export let webAppSubVer = ''
 
 
@@ -560,6 +560,12 @@ export function setDatabase(data:Database){
         otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
     }
     data.customModels ??= []
+
+    //@ts-ignore
+    if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
+        //this is intended to forcely reduce the size of the database in web
+        data.promptInfoInsideChat = false
+    }
     changeLanguage(data.language)
     setDatabaseLite(data)
 }
@@ -1026,6 +1032,8 @@ export interface Database{
     mcpURLs:string[]
     promptInfoInsideChat:boolean
     promptTextInfoInsideChat:boolean
+    claudeBatching:boolean
+    claude1HourCaching:boolean
 }
 
 interface SeparateParameters{
@@ -1062,7 +1070,7 @@ export interface loreBook{
     insertorder: number
     comment: string
     content: string
-    mode: 'multiple'|'constant'|'normal'|'child',
+    mode: 'multiple'|'constant'|'normal'|'child'|'folder',
     alwaysActive: boolean
     selective:boolean
     extentions?:{
@@ -1076,6 +1084,7 @@ export interface loreBook{
     useRegex?:boolean
     bookVersion?:number
     id?:string
+    folder?:string
 }
 
 export interface character{
@@ -1210,6 +1219,7 @@ export interface character{
     lastInteraction?:number
     translatorNote?:string
     doNotChangeSeperateModels?:boolean
+    escapeOutput?:boolean
 }
 
 

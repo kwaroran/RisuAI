@@ -1,6 +1,6 @@
 import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type loreBook } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
@@ -67,22 +67,16 @@ export async function runLua(code:string, arg:{
             luaEngineState.code = code
             luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
             const luaEngine = luaEngineState.engine
+            luaEngine.global.set('getChatVar', (id:string,key:string) => {
+                return luaEngineState.getVar(key)
+            })
             luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
                 if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
                     return
                 }
                 luaEngineState.setVar(key, value)
             })
-            luaEngine.global.set('getChatVar', (id:string,key:string) => {
-                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
-                    return
-                }
-                return luaEngineState.getVar(key)
-            })
             luaEngine.global.set('getGlobalVar', (id:string, key:string) => {
-                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
-                    return
-                }
                 return getGlobalChatVar(key)
             })
             luaEngine.global.set('stopChat', (id:string) => {
@@ -115,6 +109,20 @@ export async function runLua(code:string, arg:{
                 }
                 return alertSelect(value)
             })
+
+            luaEngine.global.set('getChatMain', (id:string, index:number) => {
+                const chat = luaEngineState.chat.message.at(index)
+                if(!chat){
+                    return JSON.stringify(null)
+                }
+                const data = {
+                    role: chat.role,
+                    data: chat.data,
+                    time: chat.time ?? 0
+                }
+                return JSON.stringify(data)
+            })
+
             luaEngine.global.set('setChat', (id:string, index:number, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -159,18 +167,18 @@ export async function runLua(code:string, arg:{
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
                 luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
             })
+
             luaEngine.global.set('getTokens', async (id:string, value:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
                 }
                 return await tokenize(value)
             })
+
             luaEngine.global.set('getChatLength', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
                 return luaEngineState.chat.message.length
             })
+
             luaEngine.global.set('getFullChatMain', (id:string) => {
                 const data = JSON.stringify(luaEngineState.chat.message.map((v) => {
                     return {
@@ -181,12 +189,13 @@ export async function runLua(code:string, arg:{
                 }))
                 return data
             })
-
+            
             luaEngine.global.set('setFullChatMain', (id:string, value:string) => {
-                const realValue = JSON.parse(value)
                 if(!LuaSafeIds.has(id)){
                     return
                 }
+                const realValue = JSON.parse(value)
+
                 luaEngineState.chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
@@ -396,9 +405,6 @@ export async function runLua(code:string, arg:{
             })
             
             luaEngine.global.set('getName', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
@@ -418,6 +424,19 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
+            luaEngine.global.set('getDescription', async (id:string) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+                if(char.type === 'group'){
+                    throw('Character is a group')
+                }
+                return char.desc
+            })
+            
             luaEngine.global.set('setDescription', async (id:string, desc:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -436,6 +455,13 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
+            luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
+                const db = getDatabase()
+                const selectedChar = get(selectedCharID)
+                const char = db.characters[selectedChar]
+                return char.firstMessage
+            })
+
             luaEngine.global.set('setCharacterFirstMessage', async (id:string, data:string) => {
                 if(!LuaSafeIds.has(id)){
                     return
@@ -452,34 +478,20 @@ export async function runLua(code:string, arg:{
                 return true
             })
 
-            luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-                const db = getDatabase()
-                const selectedChar = get(selectedCharID)
-                const char = db.characters[selectedChar]
-                return char.firstMessage
-            })
-
             luaEngine.global.set('getPersonaName', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-
                 return getUserName()
             })
 
             luaEngine.global.set('getPersonaDescription', (id:string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-                
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
 
                 return risuChatParser(getPersonaPrompt(), { chara: char })
+            })
+
+            luaEngine.global.set('getAuthorsNote', (id:string) => {
+                return luaEngineState.chat?.note ?? ''
             })
 
             luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
@@ -508,10 +520,6 @@ export async function runLua(code:string, arg:{
 
             // Lore books
             luaEngine.global.set('getLoreBooksMain', (id:string, search: string) => {
-                if(!LuaSafeIds.has(id)){
-                    return
-                }
-
                 const db = getDatabase()
                 const selectedChar = db.characters[get(selectedCharID)]
                 if (selectedChar.type !== 'character') {
@@ -524,7 +532,7 @@ export async function runLua(code:string, arg:{
                 return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
             })
 
-            luaEngine.global.set('loadLoreBooksMain', async (id:string, usedContext:number) => {
+            luaEngine.global.set('loadLoreBooksMain', async (id:string, reserve:number) => {
                 if(!LuaLowLevelIds.has(id)){
                     return
                 }
@@ -538,9 +546,9 @@ export async function runLua(code:string, arg:{
                 }
 
                 const fullLoreBooks = (await loadLoreBookV3Prompt()).actives
-                const maxContext = db.maxContext - usedContext
+                const maxContext = db.maxContext - reserve
                 if (maxContext < 0) {
-                    return
+                    return JSON.stringify([])
                 }
 
                 let totalTokens = 0
@@ -779,6 +787,10 @@ function luaCodeWarper(code:string){
     return `
 json = require 'json'
 
+function getChat(id, index)
+    return json.decode(getChatMain(id, index))
+end
+
 function getFullChat(id)
     return json.decode(getFullChatMain(id))
 end
@@ -956,13 +968,16 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
 export async function runLuaButtonTrigger(char:character|groupChat|simpleCharacterArgument, data:string):Promise<any>{
     let runResult
     try {
-        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.concat(getModuleTriggers())
-        const lowLevelAccess = char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.map<triggerscript>((v) => ({
+            ...v,
+            lowLevelAccess: char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        })).concat(getModuleTriggers())
+
         for(let trigger of triggers){
             if(trigger?.effect?.[0]?.type === 'triggerlua'){
                 runResult = await runLua(trigger.effect[0].code, {
                     char: char,
-                    lowLevelAccess: lowLevelAccess,
+                    lowLevelAccess: trigger.lowLevelAccess,
                     mode: 'onButtonClick',
                     data: data
                 })

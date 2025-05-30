@@ -6,7 +6,7 @@
     import LoreBookList from "src/lib/SideBars/LoreBook/LoreBookList.svelte";
     import { type CCLorebook, convertExternalLorebook } from "src/ts/process/lorebook.svelte";
     import type { RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, FolderUpIcon, PlusIcon, TrashIcon } from "lucide-svelte";
+    import { DownloadIcon, FolderPlusIcon, HardDriveUploadIcon, PlusIcon, TrashIcon } from "lucide-svelte";
     import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
     import TriggerList from "src/lib/SideBars/Scripts/TriggerList.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
@@ -18,6 +18,7 @@
     import { selectMultipleFile } from "src/ts/util";
     
     import { DBState } from 'src/ts/stores.svelte';
+  import { v4 } from "uuid";
 
     let submenu = $state(0)
     interface Props {
@@ -55,6 +56,24 @@
                 alwaysActive: false,
                 secondkey: "",
                 selective: false
+            })
+
+            currentModule.lorebook = currentModule.lorebook
+        }
+    }
+
+    function addLorebookFolder(){
+        if(Array.isArray(currentModule.lorebook)){
+            const id = v4()
+            currentModule.lorebook.push({
+                key: '\uf000folder:' + id,
+                comment: `New Folder`,
+                content: '',
+                mode: 'folder',
+                insertorder: 100,
+                alwaysActive: false,
+                secondkey: "",
+                selective: false,
             })
 
             currentModule.lorebook = currentModule.lorebook
@@ -204,8 +223,13 @@
         <button onclick={() => {exportLoreBook()}} class="hover:text-textcolor cursor-pointer ml-2">
             <DownloadIcon />
         </button>
+        <button onclick={() => {
+            addLorebookFolder()
+        }} class="hover:text-textcolor ml-2  cursor-pointer">
+            <FolderPlusIcon />
+        </button>
         <button onclick={() => {importLoreBook()}} class="hover:text-textcolor cursor-pointer ml-2">
-            <FolderUpIcon />
+            <HardDriveUploadIcon />
         </button>
     </div>
 {/if}
@@ -221,7 +245,7 @@
         }}><DownloadIcon /></button>
         <button class="font-medium cursor-pointer hover:text-green-500" onclick={async () => {
             currentModule.regex = await importRegex(currentModule.regex)
-        }}><FolderUpIcon /></button>
+        }}><HardDriveUploadIcon /></button>
     </div>
 {/if}
 

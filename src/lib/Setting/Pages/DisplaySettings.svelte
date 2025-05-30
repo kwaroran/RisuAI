@@ -10,7 +10,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
     import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
-    import { DownloadIcon, FolderUpIcon } from "lucide-svelte";
+    import { DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
@@ -143,7 +143,7 @@
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
                 importColorScheme()
             }}>
-                <FolderUpIcon size={18}/>
+                <HardDriveUploadIcon size={18}/>
             </button>
         </div>
     </div>

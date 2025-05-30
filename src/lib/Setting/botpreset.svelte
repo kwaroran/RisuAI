@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     import { changeToPreset, copyPreset, downloadPreset, importPreset, getDatabase } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { CopyIcon, Share2Icon, PencilIcon, FolderUpIcon, PlusIcon, TrashIcon, XIcon, GitCompare } from "lucide-svelte";
+    import { CopyIcon, Share2Icon, PencilIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon, GitCompare } from "lucide-svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
@@ -404,7 +404,7 @@
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importPreset()
             }}>
-                <FolderUpIcon size={18}/>
+                <HardDriveUploadIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode

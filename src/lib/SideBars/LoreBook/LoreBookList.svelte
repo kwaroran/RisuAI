@@ -6,23 +6,26 @@
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { sleep, sortableOptions } from "src/ts/util";
+    import { v4 } from "uuid";
 
     interface Props {
         globalMode?: boolean;
         submenu?: number;
         lorePlus?: boolean;
         externalLoreBooks?: loreBook[];
+        showFolder?: string
     }
 
-    let { globalMode = false, submenu = 0, lorePlus = false, externalLoreBooks = null }: Props = $props();
+    let { globalMode = false, submenu = 0, lorePlus = false, externalLoreBooks = null, showFolder = '' }: Props = $props();
     let stb: Sortable = null
     let ele: HTMLDivElement = $state()
     let sorted = $state(0)
+    let idgroup = 'a' + v4() //make should it starts with alphabetic character
     const createStb = () => {
         stb = Sortable.create(ele, {
             onEnd: async () => {
                 let idx:number[] = []
-                ele.querySelectorAll('[data-risu-idx]').forEach((e, i) => {
+                ele.querySelectorAll(`[data-risu-idx][data-risu-idgroup=${idgroup}]`).forEach((e, i) => {
                     idx.push(parseInt(e.getAttribute('data-risu-idx')))
                 })
                 if(globalMode){
@@ -33,11 +36,11 @@
                     DBState.db.loreBook[DBState.db.loreBookPage].data = newLore
                 }
                 else if(externalLoreBooks){
-                    let newLore:loreBook[] = []
+                    const tempArray = [...externalLoreBooks];
+                    externalLoreBooks.length = 0;
                     idx.forEach((i) => {
-                        newLore.push(externalLoreBooks[i])
-                    })
-                    externalLoreBooks = newLore
+                        externalLoreBooks.push(tempArray[i]);
+                    });
                 }
                 else if(submenu === 1){
                     let newLore:loreBook[] = []
@@ -60,7 +63,7 @@
                 await sleep(1)
                 createStb()
             },
-            ...sortableOptions
+            ...sortableOptions,
         })
     }
     onMount(createStb)
@@ -94,27 +97,23 @@
 {#key sorted}
     <div class="border-solid border-selected p-2 flex flex-col border-1 rounded-md" bind:this={ele}>
         {#if globalMode}
-            {#if DBState.db.loreBook[DBState.db.loreBookPage].data.length === 0}
-                <span class="text-textcolor2">No Lorebook</span>
-            {:else}
-                {#each DBState.db.loreBook[DBState.db.loreBookPage].data as book, i}
-                    <LoreBookData bind:value={DBState.db.loreBook[DBState.db.loreBookPage].data[i]} idx={i} onRemove={() => {
-                        let lore = DBState.db.loreBook[DBState.db.loreBookPage].data
-                        lore.splice(i, 1)
-                        DBState.db.loreBook[DBState.db.loreBookPage].data = lore
-                    }} onOpen={onOpen} onClose={onClose}/>
-                {/each}
-            {/if}
+            <!--
+                This was a place for global lorebooks, but it was removed :)
+            -->
         {:else if externalLoreBooks}
             {#if externalLoreBooks.length === 0}
                 <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each externalLoreBooks as book, i}
-                    <LoreBookData bind:value={externalLoreBooks[i]} idx={i} onRemove={() => {
-                        let lore = externalLoreBooks
-                        lore.splice(i, 1)
-                        externalLoreBooks = lore
-                    }} onOpen={onOpen} onClose={onClose}/>
+                    {#if (!showFolder && !book.folder) || (showFolder === book.folder)}
+                        <LoreBookData idgroup={idgroup} bind:value={externalLoreBooks[i]} idx={i} onRemove={() => {
+                            let lore = externalLoreBooks
+                            lore.splice(i, 1)
+                            externalLoreBooks = lore
+                        }} onOpen={onOpen} onClose={onClose} bind:externalLoreBooks={externalLoreBooks} />
+                    {:else}
+                        <div data-risu-idx={i} data-risu-idgroup={idgroup}></div>
+                    {/if}
                 {/each}
             {/if}
         {:else if submenu === 0}
@@ -122,11 +121,15 @@
                 <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each DBState.db.characters[$selectedCharID].globalLore as book, i}
-                    <LoreBookData bind:value={DBState.db.characters[$selectedCharID].globalLore[i]} idx={i} onRemove={() => {
-                        let lore  = DBState.db.characters[$selectedCharID].globalLore
-                        lore.splice(i, 1)
-                        DBState.db.characters[$selectedCharID].globalLore = lore
-                    }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
+                    {#if (!showFolder && !book.folder) || (showFolder === book.folder)}
+                        <LoreBookData idgroup={idgroup} bind:value={DBState.db.characters[$selectedCharID].globalLore[i]} idx={i} onRemove={() => {
+                            let lore  = DBState.db.characters[$selectedCharID].globalLore
+                            lore.splice(i, 1)
+                            DBState.db.characters[$selectedCharID].globalLore = lore
+                        }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus} bind:externalLoreBooks={DBState.db.characters[$selectedCharID].globalLore}/>
+                    {:else}
+                        <div data-risu-idx={i} data-risu-idgroup={idgroup}></div>
+                    {/if}
                 {/each}
             {/if}
         {:else if submenu === 1}
@@ -134,11 +137,15 @@
                 <span class="text-textcolor2">No Lorebook</span>
             {:else}
                 {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore as book, i}
-                    <LoreBookData bind:value={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore[i]} idx={i} onRemove={() => {
-                        let lore  = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore
-                        lore.splice(i, 1)
-                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore = lore
-                    }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus}/>
+                    {#if (!showFolder && !book.folder) || (showFolder === book.folder)}
+                        <LoreBookData idgroup={idgroup} bind:value={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore[i]} idx={i} onRemove={() => {
+                            let lore  = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore
+                            lore.splice(i, 1)
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore = lore
+                        }} onOpen={onOpen} onClose={onClose} lorePlus={lorePlus} bind:externalLoreBooks={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore}/>
+                    {:else}
+                        <div data-risu-idx={i} data-risu-idgroup={idgroup}></div>
+                    {/if}
                 {/each}
             {/if}
         {/if}
