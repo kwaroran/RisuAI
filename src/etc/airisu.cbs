@@ -311,7 +311,7 @@ iserror,Check if string is error,"iserror","string","[[iserror::Error: Something
 asset,Returns a asset image named first argument,"asset","name","[[asset::image.png]]"
 emotion,Returns a emotion image named first argument,"emotion","name","[[emotion::happy]]"
 audio,Returns a audio named first argument,"audio","name","[[audio::sound.mp3]]"
-bg,Returns a image with width and height as 100% named first argument,"bg","name","[[bg::image.png]]"
+bg,Returns a image with width and height as 100% named first argument. mostly used with background embedding feature in character,"bg","name","[[bg::image.png]]"
 video,Returns a video named first argument,"video","name","[[video::video.mp4]]"
 video-img,Return a video that is styled like a image named first argument,"video-img","name","[[video-img::video.mp4]]"
 path,Returns a string which is a path to the file named first argument,path/raw,"name","[[path::image.png]]"
