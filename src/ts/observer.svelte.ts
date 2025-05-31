@@ -59,39 +59,46 @@ function nodeObserve(node:HTMLElement){
 
     if(hlLang){
         node.addEventListener('contextmenu', (e)=>{
-            e.preventDefault();
-            const menu = document.createElement('div');
+            e.preventDefault()
+
+            const prevContextMenu = document.getElementById('code-contextmenu')
+            if(prevContextMenu){
+                prevContextMenu.remove()
+            }
+
+            const menu = document.createElement('div')
+            menu.id = 'code-contextmenu'
             menu.setAttribute('class', 'fixed z-50 min-w-[160px] py-2 bg-gray-800 rounded-lg border border-gray-700')
 
-            const copyOption = document.createElement('div');
-            copyOption.textContent = 'Copy';
+            const copyOption = document.createElement('div')
+            copyOption.textContent = 'Copy'
             copyOption.setAttribute('class', 'px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer')
             copyOption.addEventListener('click', ()=>{
-                navigator.clipboard.writeText(node.getAttribute('x-hl-text'));
-                menu.remove();
+                navigator.clipboard.writeText(node.textContent)
+                menu.remove()
             })
 
             const downloadOption = document.createElement('div');
             downloadOption.textContent = 'Download';
             downloadOption.setAttribute('class', 'px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer')
             downloadOption.addEventListener('click', ()=>{
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([node.getAttribute('x-hl-text')], {type: 'text/plain'}));
-                a.download = 'code.' + hlLang;
-                a.click();
-                menu.remove();
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(new Blob([node.textContent], {type: 'text/plain'}))
+                a.download = 'code.' + hlLang
+                a.click()
+                menu.remove()
             })
 
-            menu.appendChild(copyOption);
-            menu.appendChild(downloadOption);
+            menu.appendChild(copyOption)
+            menu.appendChild(downloadOption)
 
-            menu.style.left = e.clientX + 'px';
-            menu.style.top = e.clientY + 'px';
+            menu.style.left = e.clientX + 'px'
+            menu.style.top = e.clientY + 'px'
 
-            document.body.appendChild(menu);
+            document.body.appendChild(menu)
             
             document.addEventListener('click', ()=>{
-                menu.remove();
+                menu?.remove()
             }, {once: true})
         })
     }
