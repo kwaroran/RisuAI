@@ -1,25 +1,24 @@
 <script lang="ts">
-    import { ArrowLeft, Sparkles, ArrowRight, PencilIcon, LanguagesIcon, RefreshCcwIcon, TrashIcon, CopyIcon, Volume2Icon, BotIcon, ArrowLeftRightIcon, UserIcon } from "lucide-svelte";
-    import { type CbsConditions, ParseMarkdown, postTranslationParse, type simpleCharacterArgument } from "../../ts/parser.svelte";
-    import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte";
-    import { alertClear, alertConfirm, alertError, alertNormal, alertRequestData, alertWait } from "../../ts/alert";
-    import { language } from "../../lang";
-    import { type MessageGenerationInfo } from "../../ts/storage/database.svelte";
-    import { alertStore, DBState } from 'src/ts/stores.svelte';
-    import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte";
-    import { translateHTML, getLLMCache } from "../../ts/translator/translator";
-    import { risuChatParser } from "src/ts/process/scripts";
-    import { type Unsubscriber } from "svelte/store";
-    import { get, isEqual, startsWith } from "lodash";
-    import { sayTTS } from "src/ts/process/tts";
-    import { capitalize, sleep } from "src/ts/util";
-    import { longpress } from "src/ts/gui/longtouch";
-    import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
-    import { ConnectionOpenStore } from "src/ts/sync/multiuser";
-    import { onDestroy, onMount } from "svelte";
-    import { getModelInfo } from "src/ts/model/modellist";
-  import { getCharImage } from "src/ts/characters";
-  import { getFileSrc } from "src/ts/globalApi.svelte";
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
+    import { getFileSrc } from "src/ts/globalApi.svelte"
+    import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
+    import { longpress } from "src/ts/gui/longtouch"
+    import { getModelInfo } from "src/ts/model/modellist"
+    import { risuChatParser } from "src/ts/process/scripts"
+    import { sayTTS } from "src/ts/process/tts"
+    import { DBState } from 'src/ts/stores.svelte'
+    import { ConnectionOpenStore } from "src/ts/sync/multiuser"
+    import { capitalize } from "src/ts/util"
+    import { onDestroy, onMount } from "svelte"
+    import { type Unsubscriber } from "svelte/store"
+    import { language } from "../../lang"
+    import { alertClear, alertConfirm, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
+    import { type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
+    import { type MessageGenerationInfo } from "../../ts/storage/database.svelte"
+    import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte"
+    import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte"
+    import ChatBody from './ChatBody.svelte'
+
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
@@ -30,11 +29,13 @@
         largePortrait?: boolean;
         isLastMemory: boolean;
         img?: string|Promise<string>;
-        idx?: any;
-        rerollIcon?: boolean;
+        idx?: number;
         messageGenerationInfo?: MessageGenerationInfo|null;
-        onReroll?: any;
-        unReroll?: any;
+        rerollIcon?: boolean;
+        role?: string;
+        totalLength?: number;
+        onReroll?: () => void;
+        unReroll?: () => void;
         character?: simpleCharacterArgument|string|null;
         firstMessage?: boolean;
         altGreeting?: boolean;
@@ -49,6 +50,8 @@
         idx = -1,
         rerollIcon = false,
         messageGenerationInfo = null,
+        role = null,
+        totalLength = 0,
         onReroll = () => {},
         unReroll = () => {},
         character = null,
@@ -58,7 +61,7 @@
 
     let msgDisplay = $state('')
     let translated = $state(false)
-    let role = $derived(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.role)
+
     async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){
             let msg = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message
@@ -121,109 +124,13 @@
         }, timeout)
     }
 
-    // Since in svelte 5, @html isn
     // svelte-ignore non_reactive_update
     let lastParsed = ''
-    let lastCharArg:string|simpleCharacterArgument = null
-    let lastChatId = -10
+
     let blankMessage = $state((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
     $effect.pre(() => {
         blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
     });
-    const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
-        let lastParsedQueue = ''
-        try {
-            if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
-                lastParsedQueue = ''
-                lastCharArg = charArg
-                lastChatId = chatID
-                translateText = false
-                try {
-                    if(DBState.db.autoTranslate){
-                        if(DBState.db.autoTranslateCachedOnly && DBState.db.translatorType === 'llm'){
-                            const cache = DBState.db.translateBeforeHTMLFormatting
-                            ? await getLLMCache(data)
-                            : !DBState.db.legacyTranslation
-                            ? await getLLMCache(await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition()))
-                            : await getLLMCache(await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition()))
-                  
-                            translateText = cache !== null
-                        }
-                        else{
-                            translateText = true
-                        }
-                    }
-
-                    const lastTranslated = translated
-
-                    setTimeout(() => {
-                            translated = translateText
-                    }, 10)
-
-                    // State change of `translated` triggers markParsing again,
-                    // causing redundant translation attempts
-                    if (lastTranslated !== translateText) {
-                        return;
-                    }
-                } catch (error) {
-                    console.error(error)
-                }
-            }
-            if(translateText){
-                if (!retranslate && DBState.db.showTranslationLoading) {
-                    lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
-                }
-                
-                let doRetranslate = retranslate
-                retranslate = false
-                if(DBState.db.translatorType === 'llm' && DBState.db.translateBeforeHTMLFormatting){
-                    await sleep(100)
-                    translating = true
-                    data = await translateHTML(data, false, charArg, chatID, doRetranslate)
-                    translating = false
-                    const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
-                    lastParsedQueue = marked
-                    lastCharArg = charArg
-                    return marked
-                }
-                else if(!DBState.db.legacyTranslation){
-                    const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
-                    translating = true
-                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID, doRetranslate))
-                    translating = false
-                    lastParsedQueue = translated
-                    lastCharArg = charArg
-                    return translated
-                }
-                else{
-                    const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
-                    translating = true
-                    const translated = await translateHTML(marked, false, charArg, chatID, doRetranslate)
-                    translating = false
-                    lastParsedQueue = translated
-                    lastCharArg = charArg
-                    return translated
-                }
-            }
-            else{
-                const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
-                lastParsedQueue = marked
-                lastCharArg = charArg
-                return marked
-            }   
-        } catch (error) {
-            //retry
-            if(tries > 2){
-
-                alertError(`Error while parsing chat message: ${translateText}, ${error.message}, ${error.stack}`)
-                return data
-            }
-            return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
-        }
-        finally{
-            lastParsed = lastParsedQueue
-        }
-    }
 
     $effect.pre(() => {
         displaya(message)
@@ -251,7 +158,6 @@
             return placeholder
         }
     }
-
 </script>
 
 
@@ -312,12 +218,16 @@
             style:font-size="{0.875 * (DBState.db.zoomsize / 100)}rem"
             style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
         >
-            {#key $ReloadGUIPointer}
-                {#await markParsing(msgDisplay, character, 'normal', idx, translated)}
-                    {@html lastParsed}
-                {:then md}
-                    {@html md}
-                {/await}
+            {#key totalLength}
+                <ChatBody
+                    {character}
+                    {firstMessage}
+                    {idx}
+                    {msgDisplay}
+                    {name}
+                    role={role ?? null}
+                    bind:translated={translated}
+                    bind:translating={translating} />
             {/key}
         </span>
     {/if}
@@ -683,7 +593,7 @@
     {/each}
 {/snippet}
 
-<div class="flex max-w-full justify-center risu-chat" style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
+<div class="flex max-w-full justify-center risu-chat" data-chat-index={idx} style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>

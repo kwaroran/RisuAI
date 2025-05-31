@@ -42,7 +42,8 @@
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
 
-    let currentCharacter:character|groupChat = $derived(DBState.db.characters[$selectedCharID])
+    let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
+    let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
 
     async function send(){
         return sendMain(false)
@@ -655,15 +656,19 @@
                     <div></div>
                 {/await}
             {:else}
-            {#each messageForm(currentCharacter.chats[currentCharacter.chatPage].message, loadPages) as chat, i}
+            {#each messageForm(currentChat, loadPages) as chat, i (chat.index)}
+                {@const index = chat.index}
+                {@const role = chat.role}
                 {#if chat.role === 'char'}
                     {#if currentCharacter.type !== 'group'}
                         <Chat
-                            idx={chat.index}
+                            idx={index}
                             name={currentCharacter.name}
                             message={chat.data}
-                            img={getCharImage(currentCharacter.image, 'css')}
                             rerollIcon={i === 0}
+                            role={role}
+                            totalLength={currentChat.length}
+                            img={getCharImage(currentCharacter.image, 'css')}
                             onReroll={reroll}
                             unReroll={unReroll}
                             isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
@@ -673,10 +678,12 @@
                         />
                     {:else}
                         <Chat
-                            idx={chat.index}
+                            idx={index}
                             name={findCharacterbyId(chat.saying).name}
-                            rerollIcon={i === 0}
                             message={chat.data}
+                            rerollIcon={i === 0}
+                            role={role}
+                            totalLength={currentChat.length}
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
@@ -689,9 +696,11 @@
                 {:else}
                     <Chat
                         character={createSimpleCharacter(currentCharacter)}
-                        idx={chat.index}
+                        idx={index}
                         name={chat.name ?? currentUsername}
                         message={chat.data}
+                        role={role}
+                        totalLength={currentChat.length}
                         img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
                         isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                         largePortrait={userIconProtrait}
@@ -707,6 +716,7 @@
                         name={DBState.db.characters[$selectedCharID].name}
                         message={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex === -1 ? DBState.db.characters[$selectedCharID].firstMessage :
                             DBState.db.characters[$selectedCharID].alternateGreetings[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex]}
+                        role='char'
                         img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
                         idx={-1}
                         altGreeting={DBState.db.characters[$selectedCharID].alternateGreetings.length > 0}

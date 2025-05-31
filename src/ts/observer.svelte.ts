@@ -115,12 +115,14 @@ function nodeObserve(node:HTMLElement){
             }
         }
     }
+}
 
+function observeChatBlock(node: HTMLDivElement) {
+    node.addEventListener()
 }
 
 export async function startObserveDom(){
     //For codeblock we are using MutationObserver since it doesn't appear well
-
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
