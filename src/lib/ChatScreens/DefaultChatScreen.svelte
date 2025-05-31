@@ -39,9 +39,10 @@
     let rerollid = -1
     let lastCharId = -1
     let doingChatInputTranslate = false
-    let currentCharacter:character|groupChat = $state(DBState.db.characters[$selectedCharID])
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+
+    let currentCharacter:character|groupChat = $derived(DBState.db.characters[$selectedCharID])
 
     async function send(){
         return sendMain(false)
@@ -418,10 +419,6 @@
             alertError("Error while taking screenshot")
         }
     }
-
-    $effect.pre(() => {
-        currentCharacter = DBState.db.characters[$selectedCharID]
-    });
 </script>
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -626,7 +623,7 @@
 
             {#if toggleStickers}
                 <div class="ml-4 flex flex-wrap">
-                    <AssetInput bind:currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
+                    <AssetInput currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
                         let fileType = 'img'
                         if(additionalAsset.length > 2 && additionalAsset[2]) {
                             const fileExtension = additionalAsset[2]
@@ -658,20 +655,20 @@
                     <div></div>
                 {/await}
             {:else}
-            {#each messageForm(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message, loadPages) as chat, i}
+            {#each messageForm(currentCharacter.chats[currentCharacter.chatPage].message, loadPages) as chat, i}
                 {#if chat.role === 'char'}
-                    {#if DBState.db.characters[$selectedCharID].type !== 'group'}
+                    {#if currentCharacter.type !== 'group'}
                         <Chat
                             idx={chat.index}
-                            name={DBState.db.characters[$selectedCharID].name}
+                            name={currentCharacter.name}
                             message={chat.data}
-                            img={getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
+                            img={getCharImage(currentCharacter.image, 'css')}
                             rerollIcon={i === 0}
                             onReroll={reroll}
                             unReroll={unReroll}
-                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                            character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
-                            largePortrait={DBState.db.characters[$selectedCharID].largePortrait}
+                            isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                            character={createSimpleCharacter(currentCharacter)}
+                            largePortrait={currentCharacter.largePortrait}
                             messageGenerationInfo={chat.generationInfo}
                         />
                     {:else}
@@ -683,7 +680,7 @@
                             onReroll={reroll}
                             unReroll={unReroll}
                             img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                            isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                             character={chat.saying}
                             largePortrait={findCharacterbyId(chat.saying).largePortrait}
                             messageGenerationInfo={chat.generationInfo}
@@ -691,12 +688,12 @@
                     {/if}
                 {:else}
                     <Chat
-                        character={createSimpleCharacter(DBState.db.characters[$selectedCharID])}
+                        character={createSimpleCharacter(currentCharacter)}
                         idx={chat.index}
                         name={chat.name ?? currentUsername}
                         message={chat.data}
                         img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
-                        isLastMemory={DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
+                        isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
                         largePortrait={userIconProtrait}
                         messageGenerationInfo={chat.generationInfo}
                     />
