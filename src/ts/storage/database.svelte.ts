@@ -1548,6 +1548,7 @@ export interface Message{
     time?: number
     generationInfo?: MessageGenerationInfo
     promptInfo?: MessagePresetInfo
+    commentaries?: Commentary[]
     name?:string
     otherUser?:boolean
 }
@@ -1564,6 +1565,15 @@ export interface MessagePresetInfo{
     promptName?: string,
     promptToggles?: {key: string, value: string}[],
     promptText?: OpenAIChat[],
+}
+
+export interface Commentary {
+    id: string
+    title: string
+    createdAt: string   // ISO string for JSON compatibility
+    updatedAt: string   // (Date becomes string when exported/imported)
+    content: string
+    locked?: boolean
 }
 
 interface AINsettings{

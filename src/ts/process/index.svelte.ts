@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Commentary } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
@@ -219,6 +219,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
     }
 // ─────────────────────────────────────────────────────────────
+
+    let messageCommentaries: Commentary[] = []
 
     let currentChar:character
     let caculatedChatTokens = 0
@@ -1431,6 +1433,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 time: Date.now(),
                 generationInfo,
                 promptInfo,
+                commentaries: messageCommentaries,
             })
         }
         DBState.db.characters[selectedChar].chats[selectedChat].isStreaming = true
@@ -1512,6 +1515,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     time: Date.now(),
                     generationInfo,
                     promptInfo,
+                    commentaries: messageCommentaries,
                 }       
                 if(inlayResult.promise){
                     const p = await inlayResult.promise
@@ -1526,6 +1530,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     time: Date.now(),
                     generationInfo,
                     promptInfo,
+                    commentaries: messageCommentaries,
                 })
                 const ind = DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1
                 if(inlayResult.promise){
