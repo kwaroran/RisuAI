@@ -654,7 +654,7 @@
                     <div class="w-full flex justify-center text-textcolor2 italic mb-12">
                         {language.loadingChatData}
                     </div>
-                {:then a}
+                {:then}
                     <div></div>
                 {/await}
             {:else}

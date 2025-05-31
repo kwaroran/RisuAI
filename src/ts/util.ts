@@ -1,12 +1,12 @@
+import { basename } from "@tauri-apps/api/path"
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { open } from '@tauri-apps/plugin-dialog'
+import { readFile } from "@tauri-apps/plugin-fs"
 import { get, writable, type Writable } from "svelte/store"
 import type { Database, Message } from "./storage/database.svelte"
 import { getDatabase } from "./storage/database.svelte"
 import { selectedCharID } from "./stores.svelte"
-import {open} from '@tauri-apps/plugin-dialog'
-import { readFile } from "@tauri-apps/plugin-fs"
-import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isTauri } from "./globalApi.svelte"
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
@@ -17,23 +17,20 @@ export interface Messagec extends Message{
 }
 
 export function messageForm(arg:Message[], loadPages:number){
-    function reformatContent(data:string){
-        return data.trim()
-    }
-
     let a:Messagec[] = []
-    for(let i=0;i<arg.length;i++){
+
+    for(let i = arg.length - 1; i >= Math.max(0, arg.length - loadPages); i--) {
         const m = arg[i]
-        a.unshift({
+        a.push({
             role: m.role,
-            data: reformatContent(m.data),
+            data: m.data.trim(),
             index: i,
             saying: m.saying,
             chatId: m.chatId ?? 'none',
             generationInfo: m.generationInfo,
         })
     }
-    return a.slice(0, loadPages)
+    return a
 }
 
 export function sleep(ms: number) {
