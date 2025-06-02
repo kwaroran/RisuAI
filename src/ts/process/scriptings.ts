@@ -16,36 +16,48 @@ import { tokenize } from "../tokenizer";
 import { fetchNative } from "../globalApi.svelte";
 import { loadLoreBookV3Prompt } from './lorebook.svelte';
 import { getPersonaPrompt, getUserName } from '../util';
-
 let luaFactory:LuaFactory
-let LuaSafeIds = new Set<string>()
-let LuaEditDisplayIds = new Set<string>()
-let LuaLowLevelIds = new Set<string>()
+let ScriptingSafeIds = new Set<string>()
+let ScriptingEditDisplayIds = new Set<string>()
+let ScriptingLowLevelIds = new Set<string>()
 let lastRequestResetTime = 0
 let lastRequestsCount = 0
 
-interface LuaEngineState {
+interface BasicScriptingEngineState {
     code?: string;
-    engine?: LuaEngine;
     mutex: Mutex;
     chat?: Chat;
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
 }
 
-let LuaEngines = new Map<string, LuaEngineState>()
-let luaFactoryPromise: Promise<void> | null = null;
-let pendingEngineCreations = new Map<string, Promise<LuaEngineState>>();
+interface LuaScriptingEngineState extends BasicScriptingEngineState {
+    engine?: LuaEngine;
+    type: 'lua';
+}
 
-export async function runLua(code:string, arg:{
+interface PythonScriptingEngineState extends BasicScriptingEngineState {
+    
+    type: 'py';
+}
+
+type ScriptingEngineState = LuaScriptingEngineState | PythonScriptingEngineState;
+
+let ScriptingEngines = new Map<string, ScriptingEngineState>()
+let luaFactoryPromise: Promise<void> | null = null;
+let pendingEngineCreations = new Map<string, Promise<ScriptingEngineState>>();
+
+export async function runScripted(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
     chat?:Chat
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
     lowLevelAccess?: boolean,
     mode?: string,
-    data?: any
+    data?: any,
+    type?: 'lua'|'py'
 }){
+    const type: 'lua'|'py' = arg.type ?? 'lua'
     const char = arg.char ?? getCurrentCharacter()
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
@@ -55,63 +67,76 @@ export async function runLua(code:string, arg:{
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
-    await ensureLuaFactory()
-    let luaEngineState = await getOrCreateEngineState(mode);
+    if(type === 'lua'){
+        await ensureLuaFactory()
+    }
+    let ScriptingEngineState = await getOrCreateEngineState(mode, type);
     
-    return await luaEngineState.mutex.runExclusive(async () => {
-        luaEngineState.chat = chat
-        luaEngineState.setVar = setVar
-        luaEngineState.getVar = getVar
-        if (code !== luaEngineState.code) {
-            luaEngineState.engine?.global.close()
-            luaEngineState.code = code
-            luaEngineState.engine = await luaFactory.createEngine({injectObjects: true})
-            const luaEngine = luaEngineState.engine
-            luaEngine.global.set('getChatVar', (id:string,key:string) => {
-                return luaEngineState.getVar(key)
+    return await ScriptingEngineState.mutex.runExclusive(async () => {
+        ScriptingEngineState.chat = chat
+        ScriptingEngineState.setVar = setVar
+        ScriptingEngineState.getVar = getVar
+        if (code !== ScriptingEngineState.code) {
+            let declareAPI:(name: string, func:Function) => void
+
+            if(ScriptingEngineState.type === 'lua'){
+                ScriptingEngineState.engine?.global.close()
+                ScriptingEngineState.code = code
+                ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
+                const luaEngine = ScriptingEngineState.engine
+                declareAPI = (name: string, func: Function) => {
+                    luaEngine.global.set(name, func)
+                }
+            }
+            if(ScriptingEngineState.type === 'py'){
+
+                
+            }
+            declareAPI('getChatVar', (id:string,key:string) => {
+                return ScriptingEngineState.getVar(key)
             })
-            luaEngine.global.set('setChatVar', (id:string,key:string, value:string) => {
-                if(!LuaSafeIds.has(id) && !LuaEditDisplayIds.has(id)){
+            declareAPI('setChatVar', (id:string,key:string, value:string) => {
+                if(!ScriptingSafeIds.has(id) && !ScriptingEditDisplayIds.has(id)){
                     return
                 }
-                luaEngineState.setVar(key, value)
+                ScriptingEngineState.setVar(key, value)
             })
-            luaEngine.global.set('getGlobalVar', (id:string, key:string) => {
+            declareAPI('getGlobalVar', (id:string, key:string) => {
                 return getGlobalChatVar(key)
             })
-            luaEngine.global.set('stopChat', (id:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('stopChat', (id:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 stopSending = true
             })
-            luaEngine.global.set('alertError', (id:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('alertError', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 alertError(value)
             })
-            luaEngine.global.set('alertNormal', (id:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('alertNormal', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 alertNormal(value)
             })
-            luaEngine.global.set('alertInput', (id:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('alertInput', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 return alertInput(value)
             })
-            luaEngine.global.set('alertSelect', (id:string, value:string[]) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('alertSelect', (id:string, value:string[]) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 return alertSelect(value)
             })
 
-            luaEngine.global.set('getChatMain', (id:string, index:number) => {
-                const chat = luaEngineState.chat.message.at(index)
+            declareAPI('getChatMain', (id:string, index:number) => {
+                const chat = ScriptingEngineState.chat.message.at(index)
                 if(!chat){
                     return JSON.stringify(null)
                 }
@@ -123,64 +148,64 @@ export async function runLua(code:string, arg:{
                 return JSON.stringify(data)
             })
 
-            luaEngine.global.set('setChat', (id:string, index:number, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setChat', (id:string, index:number, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
-                const message = luaEngineState.chat.message?.at(index)
+                const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
                     message.data = value
                 }
             })
-            luaEngine.global.set('setChatRole', (id:string, index:number, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setChatRole', (id:string, index:number, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
-                const message = luaEngineState.chat.message?.at(index)
+                const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
                     message.role = value === 'user' ? 'user' : 'char'
                 }
             })
-            luaEngine.global.set('cutChat', (id:string, start:number, end:number) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('cutChat', (id:string, start:number, end:number) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
-                luaEngineState.chat.message = luaEngineState.chat.message.slice(start,end)
+                ScriptingEngineState.chat.message = ScriptingEngineState.chat.message.slice(start,end)
             })
-            luaEngine.global.set('removeChat', (id:string, index:number) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('removeChat', (id:string, index:number) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
-                luaEngineState.chat.message.splice(index, 1)
+                ScriptingEngineState.chat.message.splice(index, 1)
             })
-            luaEngine.global.set('addChat', (id:string, role:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('addChat', (id:string, role:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                luaEngineState.chat.message.push({role: roleData, data: value})
+                ScriptingEngineState.chat.message.push({role: roleData, data: value})
             })
-            luaEngine.global.set('insertChat', (id:string, index:number, role:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('insertChat', (id:string, index:number, role:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                luaEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
             })
 
-            luaEngine.global.set('getTokens', async (id:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('getTokens', async (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 return await tokenize(value)
             })
 
-            luaEngine.global.set('getChatLength', (id:string) => {
-                return luaEngineState.chat.message.length
+            declareAPI('getChatLength', (id:string) => {
+                return ScriptingEngineState.chat.message.length
             })
 
-            luaEngine.global.set('getFullChatMain', (id:string) => {
-                const data = JSON.stringify(luaEngineState.chat.message.map((v) => {
+            declareAPI('getFullChatMain', (id:string) => {
+                const data = JSON.stringify(ScriptingEngineState.chat.message.map((v) => {
                     return {
                         role: v.role,
                         data: v.data,
@@ -190,13 +215,13 @@ export async function runLua(code:string, arg:{
                 return data
             })
             
-            luaEngine.global.set('setFullChatMain', (id:string, value:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setFullChatMain', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const realValue = JSON.parse(value)
 
-                luaEngineState.chat.message = realValue.map((v) => {
+                ScriptingEngineState.chat.message = realValue.map((v) => {
                     return {
                         role: v.role,
                         data: v.data
@@ -204,20 +229,20 @@ export async function runLua(code:string, arg:{
                 })
             })
 
-            luaEngine.global.set('logMain', (value:string) => {
+            declareAPI('logMain', (value:string) => {
                 console.log(JSON.parse(value))
             })
 
-            luaEngine.global.set('reloadDisplay', (id:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('reloadDisplay', (id:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
             })
 
             //Low Level Access
-            luaEngine.global.set('similarity', async (id:string, source:string, value:string[]) => {
-                if(!LuaLowLevelIds.has(id)){
+            declareAPI('similarity', async (id:string, source:string, value:string[]) => {
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
                 const processer = new HypaProcesser()
@@ -225,8 +250,8 @@ export async function runLua(code:string, arg:{
                 return await processer.similaritySearch(source)
             })
 
-            luaEngine.global.set('request', async (id:string, url:string) => {
-                if(!LuaLowLevelIds.has(id)){
+            declareAPI('request', async (id:string, url:string) => {
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
 
@@ -294,8 +319,8 @@ export async function runLua(code:string, arg:{
                 }
             })
 
-            luaEngine.global.set('generateImage', async (id:string, value:string, negValue:string = '') => {
-                if(!LuaLowLevelIds.has(id)){
+            declareAPI('generateImage', async (id:string, value:string, negValue:string = '') => {
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
                 const gen = await generateAIImage(value, char as character, negValue, 'inlay')
@@ -308,16 +333,16 @@ export async function runLua(code:string, arg:{
                 return `{{inlay::${inlay}}}`
             })
 
-            luaEngine.global.set('hash', async (id:string, value:string) => {
+            declareAPI('hash', async (id:string, value:string) => {
                 return await hasher(new TextEncoder().encode(value))
             })
 
-            luaEngine.global.set('LLMMain', async (id:string, promptStr:string) => {
+            declareAPI('LLMMain', async (id:string, promptStr:string) => {
                 let prompt:{
                     role: string,
                     content: string
                 }[] = JSON.parse(promptStr)
-                if(!LuaLowLevelIds.has(id)){
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
                 let promptbody:OpenAIChat[] = prompt.map((dict) => {
@@ -370,8 +395,8 @@ export async function runLua(code:string, arg:{
                 })
             })
 
-            luaEngine.global.set('simpleLLM', async (id:string, prompt:string) => {
-                if(!LuaLowLevelIds.has(id)){
+            declareAPI('simpleLLM', async (id:string, prompt:string) => {
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
                 const result = await requestChatData({
@@ -404,15 +429,15 @@ export async function runLua(code:string, arg:{
                 }
             })
             
-            luaEngine.global.set('getName', async (id:string) => {
+            declareAPI('getName', async (id:string) => {
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.name
             })
 
-            luaEngine.global.set('setName', async (id:string, name:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setName', async (id:string, name:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -424,8 +449,8 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
-            luaEngine.global.set('getDescription', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('getDescription', async (id:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -437,8 +462,8 @@ export async function runLua(code:string, arg:{
                 return char.desc
             })
             
-            luaEngine.global.set('setDescription', async (id:string, desc:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setDescription', async (id:string, desc:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -455,15 +480,15 @@ export async function runLua(code:string, arg:{
                 setDatabase(db)
             })
 
-            luaEngine.global.set('getCharacterFirstMessage', async (id:string) => {
+            declareAPI('getCharacterFirstMessage', async (id:string) => {
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.firstMessage
             })
 
-            luaEngine.global.set('setCharacterFirstMessage', async (id:string, data:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setCharacterFirstMessage', async (id:string, data:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -478,11 +503,11 @@ export async function runLua(code:string, arg:{
                 return true
             })
 
-            luaEngine.global.set('getPersonaName', (id:string) => {
+            declareAPI('getPersonaName', (id:string) => {
                 return getUserName()
             })
 
-            luaEngine.global.set('getPersonaDescription', (id:string) => {
+            declareAPI('getPersonaDescription', (id:string) => {
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
@@ -490,12 +515,12 @@ export async function runLua(code:string, arg:{
                 return risuChatParser(getPersonaPrompt(), { chara: char })
             })
 
-            luaEngine.global.set('getAuthorsNote', (id:string) => {
-                return luaEngineState.chat?.note ?? ''
+            declareAPI('getAuthorsNote', (id:string) => {
+                return ScriptingEngineState.chat?.note ?? ''
             })
 
-            luaEngine.global.set('getBackgroundEmbedding', async (id:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('getBackgroundEmbedding', async (id:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -504,8 +529,8 @@ export async function runLua(code:string, arg:{
                 return char.backgroundHTML
             })
 
-            luaEngine.global.set('setBackgroundEmbedding', async (id:string, data:string) => {
-                if(!LuaSafeIds.has(id)){
+            declareAPI('setBackgroundEmbedding', async (id:string, data:string) => {
+                if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 const db = getDatabase()
@@ -519,7 +544,7 @@ export async function runLua(code:string, arg:{
             })
 
             // Lore books
-            luaEngine.global.set('getLoreBooksMain', (id:string, search: string) => {
+            declareAPI('getLoreBooksMain', (id:string, search: string) => {
                 const db = getDatabase()
                 const selectedChar = db.characters[get(selectedCharID)]
                 if (selectedChar.type !== 'character') {
@@ -532,8 +557,8 @@ export async function runLua(code:string, arg:{
                 return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
             })
 
-            luaEngine.global.set('loadLoreBooksMain', async (id:string, reserve:number) => {
-                if(!LuaLowLevelIds.has(id)){
+            declareAPI('loadLoreBooksMain', async (id:string, reserve:number) => {
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
 
@@ -575,12 +600,12 @@ export async function runLua(code:string, arg:{
                 return JSON.stringify(loreBooks)
             })
 
-            luaEngine.global.set('axLLMMain', async (id:string, promptStr:string) => {
+            declareAPI('axLLMMain', async (id:string, promptStr:string) => {
                 let prompt:{
                     role: string,
                     content: string
                 }[] = JSON.parse(promptStr)
-                if(!LuaLowLevelIds.has(id)){
+                if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
                 let promptbody:OpenAIChat[] = prompt.map((dict) => {
@@ -633,80 +658,83 @@ export async function runLua(code:string, arg:{
                 })
             })
 
-            await luaEngine.doString(luaCodeWarper(code))
-            luaEngineState.code = code
+            if(ScriptingEngineState.type === 'lua'){
+                await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
+            }
+            ScriptingEngineState.code = code
         }
         let accessKey = v4()
         if(mode === 'editDisplay'){
-            LuaEditDisplayIds.add(accessKey)
+            ScriptingEditDisplayIds.add(accessKey)
         }
         else{
-            LuaSafeIds.add(accessKey)
+            ScriptingSafeIds.add(accessKey)
             if(lowLevelAccess){
-                LuaLowLevelIds.add(accessKey)
+                ScriptingLowLevelIds.add(accessKey)
             }
         }
         let res:any
-        const luaEngine = luaEngineState.engine
-        try {
-            switch(mode){
-                case 'input':{
-                    const func = luaEngine.global.get('onInput')
-                    if(func){
-                        res = await func(accessKey)
+        if(ScriptingEngineState.type === 'lua'){
+            const luaEngine = ScriptingEngineState.engine
+            try {
+                switch(mode){
+                    case 'input':{
+                        const func = luaEngine.global.get('onInput')
+                        if(func){
+                            res = await func(accessKey)
+                        }
+                        break
                     }
-                    break
-                }
-                case 'output':{
-                    const func = luaEngine.global.get('onOutput')
-                    if(func){
-                        res = await func(accessKey)
+                    case 'output':{
+                        const func = luaEngine.global.get('onOutput')
+                        if(func){
+                            res = await func(accessKey)
+                        }
+                        break
                     }
-                    break
-                }
-                case 'start':{
-                    const func = luaEngine.global.get('onStart')
-                    if(func){
-                        res = await func(accessKey)
+                    case 'start':{
+                        const func = luaEngine.global.get('onStart')
+                        if(func){
+                            res = await func(accessKey)
+                        }
+                        break
                     }
-                    break
-                }
-                case 'onButtonClick':{
-                    const func = luaEngine.global.get('onButtonClick')
-                    if(func){
-                        res = await func(accessKey, data)
+                    case 'onButtonClick':{
+                        const func = luaEngine.global.get('onButtonClick')
+                        if(func){
+                            res = await func(accessKey, data)
+                        }
+                        break
                     }
-                    break
-                }
-                case 'editRequest':
-                case 'editDisplay':
-                case 'editInput':
-                case 'editOutput':{
-                    const func = luaEngine.global.get('callListenMain')
-                    if(func){
-                        res = await func(mode, accessKey, JSON.stringify(data))
-                        res = JSON.parse(res)
+                    case 'editRequest':
+                    case 'editDisplay':
+                    case 'editInput':
+                    case 'editOutput':{
+                        const func = luaEngine.global.get('callListenMain')
+                        if(func){
+                            res = await func(mode, accessKey, JSON.stringify(data))
+                            res = JSON.parse(res)
+                        }
+                        break
                     }
-                    break
-                }
-                default:{
-                    const func = luaEngine.global.get(mode)
-                    if(func){
-                        res = await func(accessKey)
+                    default:{
+                        const func = luaEngine.global.get(mode)
+                        if(func){
+                            res = await func(accessKey)
+                        }
+                        break
                     }
-                    break
+                }   
+                if(res === false){
+                    stopSending = true
                 }
-            }   
-            if(res === false){
-                stopSending = true
+            } catch (error) {
+                console.error(error)
             }
-        } catch (error) {
-            console.error(error)
         }
-
-        LuaSafeIds.delete(accessKey)
-        LuaLowLevelIds.delete(accessKey)
-        chat = luaEngineState.chat
+        ScriptingSafeIds.delete(accessKey)
+        ScriptingLowLevelIds.delete(accessKey)
+        chat = ScriptingEngineState.chat
 
         return {
             stopSending, chat, res
@@ -756,8 +784,9 @@ async function ensureLuaFactory() {
 
 async function getOrCreateEngineState(
     mode: string, 
-): Promise<LuaEngineState> {
-    let engineState = LuaEngines.get(mode);
+    type: 'lua'|'py'
+): Promise<ScriptingEngineState> {
+    let engineState = ScriptingEngines.get(mode);
     if (engineState) {
         return engineState;
     }
@@ -768,10 +797,11 @@ async function getOrCreateEngineState(
     }
     
     const creationPromise = (async () => {
-        const engineState: LuaEngineState = {
+        const engineState: ScriptingEngineState = {
             mutex: new Mutex(),
+            type: type,
         };
-        LuaEngines.set(mode, engineState);
+        ScriptingEngines.set(mode, engineState);
         
         pendingEngineCreations.delete(mode);
         
@@ -948,7 +978,7 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
     
         for(let trigger of triggers){
             if(trigger?.effect?.[0]?.type === 'triggerlua'){
-                const runResult = await runLua(trigger.effect[0].code, {
+                const runResult = await runScripted(trigger.effect[0].code, {
                     char: char,
                     lowLevelAccess: false,
                     mode: mode,
@@ -975,7 +1005,7 @@ export async function runLuaButtonTrigger(char:character|groupChat|simpleCharact
 
         for(let trigger of triggers){
             if(trigger?.effect?.[0]?.type === 'triggerlua'){
-                runResult = await runLua(trigger.effect[0].code, {
+                runResult = await runScripted(trigger.effect[0].code, {
                     char: char,
                     lowLevelAccess: trigger.lowLevelAccess,
                     mode: 'onButtonClick',

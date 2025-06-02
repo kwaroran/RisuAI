@@ -12,7 +12,7 @@ import { HypaProcesser } from "./memory/hypamemory";
 import { requestChatData, type OpenAIChatExtra } from "./request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
-import { runLua } from "./lua";
+import { runScripted } from "./scriptings";
 
 
 export interface triggerscript{
@@ -1148,7 +1148,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
 
                 case 'triggerlua':{
-                    const triggerCodeResult = await runLua(effect.code,{
+                    const triggerCodeResult = await runScripted(effect.code,{
                         lowLevelAccess: trigger.lowLevelAccess,
                         mode: mode === 'manual' ? arg.manualName : mode,
                         setVar: setVar,
