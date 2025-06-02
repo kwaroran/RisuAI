@@ -35,9 +35,8 @@
             strength: 0.5,
             noise: 0.5,
             image: '',
+            base64image: '',
             InfoExtracted: 0.5,
-            RefStrength: 0.5,
-            refimage: '',
             autoSmea:false,
             legacy_uc:false,
             use_coords:false,
@@ -60,6 +59,8 @@
             reference_strength_multiple: [0.7],
             vibe_data: undefined,
             vibe_model_selection: undefined,
+            variety_plus: false,
+            decrisp: false,
         }
         if (DBState.db.NAIImgConfig.sampler === 'ddim_v3'){
             DBState.db.NAIImgConfig.sm = false
@@ -281,95 +282,89 @@
             <span class="text-textcolor">CFG rescale</span>
             <NumberInput size="sm" marginBottom min={0} max={1} bind:value={DBState.db.NAIImgConfig.cfg_rescale}/>
 
-            {#if !DBState.db.NAII2I || DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
+            {#if (DBState.db.NAIImgModel === 'nai-diffusion-3' || DBState.db.NAIImgModel === 'nai-diffusion-furry-3' || DBState.db.NAIImgModel === 'nai-diffusion-2')
+            && DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm} name="Use SMEA"/>
-            {:else if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
+            {/if}
+
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-3' && DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
                 <Check bind:check={DBState.db.NAIImgConfig.sm_dyn} name='Use DYN'/>
             {/if}
-            <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
+
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-4-5-full' || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated' 
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-full' || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'
+            || DBState.db.NAIImgModel === 'nai-diffusion-3' || DBState.db.NAIImgModel === 'nai-diffusion-furry-3'}
+                <Check bind:check={DBState.db.NAIImgConfig.variety_plus} name="Variety+"/>
+            {/if}
+
+            {#if DBState.db.NAIImgModel === 'nai-diffusion-3' || DBState.db.NAIImgModel === 'nai-diffusion-furry-3' || DBState.db.NAIImgModel === 'nai-diffusion-2'}
+                <Check bind:check={DBState.db.NAIImgConfig.decrisp} name="Decrisp"/>
+            {/if}
 
             {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated'}
-                <Check bind:check={DBState.db.NAIImgConfig.autoSmea} name='Auto Smea'/>
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <Check bind:check={DBState.db.NAIImgConfig.legacy_uc} name='Use legacy uc'/>
             {/if}
-
+                
+                <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
+            
             {#if DBState.db.NAII2I}
+            
+                <span class="text-textcolor mt-4">Base image</span>
+                <span class="text-textcolor2 text-xs mb-2 block">Leave blank to use the character's default image.</span>
+                <div class="relative">
+                    <button onclick={async () => {
+                        const img = await selectSingleFile([
+                            'jpg',
+                            'jpeg',
+                            'png',
+                            'webp'
+                        ])
+                        if(!img){
+                            return null
+                        }
+                        DBState.db.NAIImgConfig.base64image = Buffer.from(img.data).toString('base64');
+                        const saveId = await saveAsset(img.data)
+                        DBState.db.NAIImgConfig.image = saveId
+                    }}>
+                        {#if !DBState.db.NAIImgConfig.image || DBState.db.NAIImgConfig.image === ''}
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                                <span class="text-sm">Upload<br />Image</span>
+                            </div>
+                        {:else}
+                            {#await getCharImage(DBState.db.NAIImgConfig.image, 'plain')}
+                                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                                    <span class="text-sm">Uploading<br />Image..</span>
+                                </div>
+                            {:then im}
+                                <img src={im} class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" alt="Base Preview"/>
+                            {/await}
+                        {/if}
+                    </button>
+
+                    {#if DBState.db.NAIImgConfig.image && DBState.db.NAIImgConfig.image !== ''}
+                        <button 
+                            onclick={() => {
+                                DBState.db.NAIImgConfig.image = undefined;
+                                DBState.db.NAIImgConfig.base64image = undefined;
+                            }}
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                        >
+                            Delete
+                        </button>
+                    {/if}
+                </div>
 
                 <span class="text-textcolor mt-4">Strength</span>
-                <SliderInput min={0} max={0.99} step={0.01} bind:value={DBState.db.NAIImgConfig.strength}/>
-                <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.strength}</span>
-                <span class="text-textcolor">Noise</span>
-                <SliderInput min={0} max={0.99} step={0.01} bind:value={DBState.db.NAIImgConfig.noise}/>
-                <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.noise}</span>
+                <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.strength}/>
+                <span class="text-textcolor mt-4">Noise</span>
+                <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.noise}/>
 
-                <span class="text-textcolor">Base image</span>
-                <button onclick={async () => {
-                    const img = await selectSingleFile([
-                        'jpg',
-                        'jpeg',
-                        'png',
-                        'webp'
-                    ])
-                    if(!img){
-                        return null
-                    }
-                    const saveId = await saveAsset(img.data)
-                    DBState.db.NAIImgConfig.image = saveId
-                }}>
-                    {#if DBState.db.NAIImgConfig.image === ''}
-                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
-                    {:else}
-                        {#await getCharImage(DBState.db.NAIImgConfig.image, 'css')}
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>
-                        {:then im}
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>
-                        {/await}
-                    {/if}
-                </button>
 
             {/if}
 
-            <Check bind:check={DBState.db.NAIREF} name="Enable Reference" className="mt-4"/>
-
-            <!--{#if DBState.db.NAIREF}-->
-            <!--    <span class="text-textcolor mt-4">Information Extracted</span>-->
-            <!--    <SliderInput min={0} max={1} step={0.01} bind:value={DBState.db.NAIImgConfig.InfoExtracted}/>-->
-            <!--    <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.InfoExtracted}</span>-->
-            <!--    <span class="text-textcolor">Reference Strength</span>-->
-            <!--    <SliderInput min={0} max={1} step={0.01} bind:value={DBState.db.NAIImgConfig.RefStrength}/>-->
-            <!--    <span class="text-textcolor2 mb-6 text-sm">{DBState.db.NAIImgConfig.RefStrength}</span>-->
-
-            <!--    <span class="text-textcolor">Reference image</span>-->
-            <!--    <button onclick={async () => {-->
-            <!--        const img = await selectSingleFile([-->
-            <!--            'jpg',-->
-            <!--            'jpeg',-->
-            <!--            'png',-->
-            <!--            'webp'-->
-            <!--        ])-->
-            <!--        if(!img){-->
-            <!--            return null-->
-            <!--        }-->
-            <!--        const saveId = await saveAsset(img.data)-->
-            <!--        DBState.db.NAIImgConfig.refimage = saveId-->
-            <!--    }}>-->
-            <!--        {#if DBState.db.NAIImgConfig.refimage === ''}-->
-            <!--            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>-->
-            <!--        {:else}-->
-            <!--            {#await getCharImage(DBState.db.NAIImgConfig.refimage, 'css')}-->
-            <!--                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500"></div>-->
-            <!--            {:then im}-->
-            <!--                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im}></div>-->
-            <!--            {/await}-->
-            <!--        {/if}-->
-            <!--    </button>-->
-            <!--{/if}-->
-
             <span class="text-textcolor mt-4">Vibe</span>
+            <div class="relative">
             <button onclick={async () => {
                 const file = await selectSingleFile(['naiv4vibe'])
                 if(!file){
@@ -416,27 +411,33 @@
                     alertError("Error parsing vibe file: " + error)
                 }
             }}>
-                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
-                    <span class="text-sm">Upload Vibe</span>
-                </div>
+                {#if !DBState.db.NAIImgConfig.vibe_data || !DBState.db.NAIImgConfig.vibe_data.thumbnail}
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                        <span class="text-sm">Upload<br />Vibe</span>
+                    </div>
+                {:else}
+                    <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                {/if}
             </button>
 
             {#if DBState.db.NAIImgConfig.vibe_data}
-                <div class="mt-2 relative">
-                    <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="rounded-md h-60 shadow-lg" />
-                    <button 
-                        onclick={() => {
-                            DBState.db.NAIImgConfig.vibe_data = undefined;
-                            DBState.db.NAIImgConfig.vibe_model_selection = undefined;
-                        }}
-                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-                    >
-                        Delete
-                    </button>
-                </div>
+                <button 
+                    onclick={() => {
+                        DBState.db.NAIImgConfig.vibe_data = undefined;
+                        DBState.db.NAIImgConfig.vibe_model_selection = undefined;
+                    }}
+                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                >
+                    Delete
+                </button>
+            {/if}
+
+            </div>
+
+            {#if DBState.db.NAIImgConfig.vibe_data}
 
                 <span class="text-textcolor mt-4">Vibe Model</span>
-                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.vibe_model_selection} onchange={(e) => {
+                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.vibe_model_selection} onchange={(e) => {
                     // When vibe model changes, set InfoExtracted to the first value
                     if (DBState.db.NAIImgConfig.vibe_data?.encodings &&
                         DBState.db.NAIImgConfig.vibe_model_selection &&
@@ -456,8 +457,8 @@
                     {/if}
                 </SelectInput>
 
-                <span class="text-textcolor mt-4">Information Extracted</span>
-                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.InfoExtracted}>
+                <span class="text-textcolor">Information Extracted</span>
+                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.InfoExtracted}>
                     {#if DBState.db.NAIImgConfig.vibe_model_selection && DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]}
                         {#each Object.entries(DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]) as [key, value]}
                             <OptionInput value={value.params.information_extracted}>{value.params.information_extracted}</OptionInput>
@@ -465,7 +466,7 @@
                     {/if}
                 </SelectInput>
 
-                <span class="text-textcolor mt-4">Reference Strength Multiple</span>
+                <span class="text-textcolor">Reference Strength Multiple</span>
                 <SliderInput marginBottom min={0} max={1} step={0.1} fixed={2} bind:value={DBState.db.NAIImgConfig.reference_strength_multiple[0]} />
             {/if}
         {/if}
