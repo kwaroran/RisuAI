@@ -290,14 +290,11 @@
             <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
 
             {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-full'
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated'}
                 <Check bind:check={DBState.db.NAIImgConfig.autoSmea} name='Auto Smea'/>
-                <Check bind:check={DBState.db.NAIImgConfig.use_coords} name='Use coords'/>
                 <Check bind:check={DBState.db.NAIImgConfig.legacy_uc} name='Use legacy uc'/>
-
-                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_coords} name='Use v4 prompt coords'/>
-                <Check bind:check={DBState.db.NAIImgConfig.v4_prompt.use_order} name='Use v4 prompt order'/>
-                <Check bind:check={DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc} name='Use v4 negative prompt legacy uc'/>
             {/if}
 
             {#if DBState.db.NAII2I}
