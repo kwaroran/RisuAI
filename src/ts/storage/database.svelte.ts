@@ -286,7 +286,9 @@ export function setDatabase(data:Database){
                     char_captions:[]
                 },
                 legacy_uc:false,
-            }
+            },
+            use_char_uc:true,
+            use_multi_character_prompt:true,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
@@ -1444,6 +1446,9 @@ export interface NAIImgConfig{
     reference_strength_multiple?:number[],
     vibe_data?:NAIVibeData,
     vibe_model_selection?:string
+    //add multi-character prompt 
+    use_multi_character_prompt:boolean,
+    use_char_uc:boolean,
 }
 
 //add 4
