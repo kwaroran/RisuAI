@@ -2927,7 +2927,7 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
     const aiModel = arg.aiModel
     const useStreaming = arg.useStreaming
     let replacerURL = arg.customURL ?? ('https://api.anthropic.com/v1/messages')
-    let apiKey = (aiModel === 'reverse_proxy') ?  db.proxyKey : db.claudeAPIKey
+    let apiKey = arg.key || ((aiModel === 'reverse_proxy') ? db.proxyKey : db.claudeAPIKey)
     const maxTokens = arg.maxTokens
     if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
         if(replacerURL.endsWith('v1')){

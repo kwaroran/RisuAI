@@ -133,7 +133,7 @@
     let addElse = $state(false)
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
-    let contextMenuLoc = $state({x: 0, y: 0})
+    let contextMenuLoc = $state({x: 0, y: 0, style: ''})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
 
@@ -993,6 +993,38 @@
         }
     }
 
+    const handleContextMenu = (e, mode, effectIndex = -1, effect = null) => {
+        contextMenu = true
+        selectMode = mode
+        
+        const clickPos = {x: e.clientX, y: e.clientY}
+        
+        const yPosition = clickPos.y > (window.innerHeight * 0.75)
+            ? `bottom: ${window.innerHeight - clickPos.y}px;`
+            : `top: ${clickPos.y}px;`
+        
+        const xPosition = clickPos.x > (window.innerWidth * 0.75)
+            ? `right: ${window.innerWidth - clickPos.x}px;`
+            : `left: ${clickPos.x}px;`
+        
+        contextMenuLoc = {
+            x: clickPos.x, 
+            y: clickPos.y,
+            style: `${yPosition} ${xPosition}`
+        }
+        
+        if (mode === 1) {
+            selectedEffectIndex = effectIndex
+            
+            if (effect) {
+                editTrigger = effect as triggerEffectV2
+            }
+        }
+        
+        e.preventDefault()
+        e.stopPropagation()
+    }
+
     const formatEffectDisplay = (effect:triggerEffect) => {
         const type = effect.type
 
@@ -1060,7 +1092,7 @@
         contextMenu = false
     }}>
         {#if contextMenu}
-            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style:top={`${contextMenuLoc.y}px`} style:left={`${contextMenuLoc.x}px`}>
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style={contextMenuLoc.style}>
                 {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
                     <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                         menuMode = 3
@@ -1122,13 +1154,7 @@
                                         selectMode = 0
                                         selectedIndex = i
                                     }}
-                                    oncontextmenu={(e) => {
-                                        contextMenu = true
-                                        selectMode = 0
-                                        contextMenuLoc = {x: e.clientX, y: e.clientY}
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                    }}
+                                    oncontextmenu={(e) => handleContextMenu(e, 0, i)}
                                 >
                                     {trigger.comment || 'Unnamed Trigger'}
                                 </button>
@@ -1199,15 +1225,7 @@
                                     lastClickTime = Date.now()
                                     selectedEffectIndex = i
                                 }}
-                                oncontextmenu ={(e) => {
-                                    selectMode = 1
-                                    contextMenu = true
-                                    selectedEffectIndex = i
-                                    editTrigger = effect as triggerEffectV2
-                                    contextMenuLoc = {x: e.clientX, y: e.clientY}
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                }}
+                                oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
                             >
                                 {#if effect.type === 'v2EndIndent'}
                                     <span class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</span>
@@ -1223,14 +1241,7 @@
                                 menuMode = 1
                             }
                             lastClickTime = Date.now()
-                        }} oncontextmenu={(e) => {
-                            selectMode = 1
-                            selectedEffectIndex = -1
-                            contextMenu = true
-                            contextMenuLoc = {x: e.clientX, y: e.clientY}
-                            e.preventDefault()
-                            e.stopPropagation()
-                        }}>
+                        }} oncontextmenu={(e) => handleContextMenu(e, 1)}>
                             ...
                         </button>
                     </div>
