@@ -227,8 +227,6 @@
                 DBState.db.NAIImgModel = imageModel;
             }}>
                 <OptionInput value="" >Choose...</OptionInput>
-                <OptionInput value="nai-diffusion-4-5-full" >nai-diffusion-4-5-full</OptionInput>
-                <OptionInput value="nai-diffusion-4-5-curated" >nai-diffusion-4-5-curated</OptionInput>
                 <OptionInput value="nai-diffusion-4-full" >nai-diffusion-4-full</OptionInput>
                 <OptionInput value="nai-diffusion-4-curated-preview" >nai-diffusion-4-curated-preview</OptionInput>
                 <OptionInput value="nai-diffusion-3" >nai-diffusion-3</OptionInput>
@@ -244,9 +242,7 @@
             <span class="text-textcolor">Sampler</span>
 
             {#if DBState.db.NAIImgModel === 'nai-diffusion-4-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-full'
-            || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated'}
+            || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'}
                 <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
                     <OptionInput value="k_euler_ancestral" >(Recommended)Euler Ancestral</OptionInput>
                     <OptionInput value="k_dpmpp_2s_ancestral" >(Recommended)DPM++ 2S Ancestral</OptionInput>
