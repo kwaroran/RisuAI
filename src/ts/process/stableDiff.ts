@@ -133,6 +133,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "params_version": 3,
                     "add_original_image": true,
                     "cfg_rescale": db.NAIImgConfig.cfg_rescale,
+                    "characterPrompts": [], // add multi-character prompts
                     "controlnet_strength": 1,
                     "dynamic_thresholding": false,
                     "n_samples": 1,
@@ -145,7 +146,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "sm": false,
                     "sm_dyn": false,
                     "noise": db.NAIImgConfig.noise,
-                    "noise_schedule": "karras",
+                    "noise_schedule": db.NAIImgConfig.noise_schedule,
                     "normalize_reference_strength_multiple":false,
                     "strength": db.NAIImgConfig.strength,
                     "ucPreset": 3,
@@ -158,25 +159,25 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "reference_strength": db.NAIImgConfig.reference_strength_multiple !== undefined ? undefined : db.NAIImgConfig.RefStrength,
                     //add v4
                     "autoSmea": db.NAIImgConfig.autoSmea,
-                    "use_coords": db.NAIImgConfig.use_coords,
+                    "use_coords": false,
                     "legacy_uc": db.NAIImgConfig.legacy_uc,
                     "v4_prompt":{
                         caption:{
                             base_caption:genPrompt,
                             char_captions: []
                         },
-                        use_coords: db.NAIImgConfig.v4_prompt.use_coords,
-                        use_order: db.NAIImgConfig.v4_prompt.use_order
+                        use_coords: false,
+                        use_order: true,
                     },
                     "v4_negative_prompt":{
                         caption:{
                             base_caption:neg,
                             char_captions: []
                         },
-                        legacy_uc: db.NAIImgConfig.v4_negative_prompt.legacy_uc,
+                        legacy_uc: db.NAIImgConfig.legacy_uc,
                     },
                     "reference_image_multiple" : [],
-                    "reference_strength_multiple" : [],
+                    "reference_strength_multiple" : db.NAIImgConfig.reference_strength_multiple !== undefined ? [] : undefined,
                 }
             },
             headers:{
@@ -221,6 +222,30 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     commonReq.body.parameters.reference_strength_multiple.push(strength);
                 }
             }
+        }
+
+        // Add Multi-Character Prompts for v4 and v4.5 
+        if(db.NAIImgConfig.use_multi_character_prompt && (db.NAIImgModel.includes('nai-diffusion-4-full') || db.NAIImgModel.includes('nai-diffusion-4-curated') ||
+           db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated'))) {
+            let Captions = genPrompt.split('|').map((caption, index) => caption.trim());
+            let base_caption = Captions[0];
+            let char_captions = Captions.slice(1);
+            commonReq.body.parameters.v4_prompt.caption.base_caption = base_caption;
+            commonReq.body.input = base_caption;
+            commonReq.body.parameters.v4_prompt.caption.char_captions = char_captions.map(caption => ({
+                "char_caption": caption,
+                "centers": [{x: 0.5, y: 0.5}],  // Default center, NAI will automatically adjust
+            }))
+            commonReq.body.parameters.characterPrompts = char_captions.map(caption => ({
+                "center": {x: 0.5, y: 0.5}, // Default center, NAI will automatically adjust
+                "enabled": true,
+                "prompt": caption,
+                "uc": db.NAIImgConfig.use_char_uc ? "lowres, aliasing, " : "", // undesired content, can be default or empty
+            }))
+            commonReq.body.parameters.v4_negative_prompt.caption.char_captions = char_captions.map(caption => ({
+                "char_caption": db.NAIImgConfig.use_char_uc ? "lowres, aliasing, " : "", // undesired content, can be default or empty
+                "centers": [{x: 0.5, y: 0.5}],  // Default center, NAI will automatically adjust
+            })) 
         }
 
         if(db.NAII2I){
