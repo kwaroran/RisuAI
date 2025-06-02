@@ -3077,8 +3077,16 @@ async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDat
 
             }
             if(chat.cache){
-                formatedChat.content[0].cache_control = {
-                    type: 'ephemeral'
+                if(db.claude1HourCaching){
+                    formatedChat.content[0].cache_control = {
+                        type: 'ephemeral',
+                        ttl: "1h"
+                    }
+                }
+                else{
+                    formatedChat.content[0].cache_control = {
+                        type: 'ephemeral'
+                    }
                 }
             }
             claudeChat.push(formatedChat)
