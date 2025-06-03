@@ -361,16 +361,16 @@
     </div>
 
     {#if DBState.db.customQuotes}
-        <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
+        <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
         <TextInput bind:value={DBState.db.customQuotesData[0]} />
 
-        <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
+        <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
         <TextInput bind:value={DBState.db.customQuotesData[1]} />
 
-        <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
+        <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
         <TextInput bind:value={DBState.db.customQuotesData[2]} />
 
-        <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
+        <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
         <TextInput bind:value={DBState.db.customQuotesData[3]} />
     {/if}
 
