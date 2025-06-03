@@ -37,8 +37,8 @@ jobs:
       - name: Build Docker image
         shell: bash
         run: |
-          docker build -t ghcr.io/kwaroran/risuai:$(git rev-parse --short "$GITHUB_SHA") .
+          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") .
       - name: Push Docker image
         shell: bash
         run: |
-          docker push ghcr.io/kwaroran/risuai:$(git rev-parse --short "$GITHUB_SHA")
+          docker push ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA")
