@@ -16,6 +16,7 @@
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import { PlusIcon, TrashIcon } from "lucide-svelte";
   import { v4 } from "uuid";
+  import { MCPClient } from "src/ts/process/mcp";
 
     let estaStorage:{
         key:string,
@@ -435,4 +436,15 @@
     }}
 >
 Show Statistics
+</Button>
+
+<Button
+    className="mt-4"
+    onclick={async () => {
+        const testURL = 'https://mcp.paypal.com/sse'
+        const mcp = new MCPClient(testURL)
+        console.log(await mcp.listTools())
+    }}
+>
+MCP Test
 </Button>
