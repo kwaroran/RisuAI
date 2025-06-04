@@ -41,7 +41,7 @@
       </div>
       <TextAreaInput bind:value={toolInputs[tool.name]} placeholder="Input for this tool" />
       <Button onclick={async () => {
-        const x = await callMCPTool(tool.mcpURL,tool.name, JSON.parse(toolInputs[tool.name]));
+        const x = await callMCPTool(tool.name, JSON.parse(toolInputs[tool.name]));
         alertMd(`Tool ${tool.name} executed\n\nResponse:\n\`\`\`json\n${JSON.stringify(x, null, 2)}\n\`\`\``);
       }}>Execute {tool.name}</Button>
     </div>

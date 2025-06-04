@@ -24,6 +24,8 @@ import { runTrigger } from "./triggers";
 import { registerClaudeObserver } from "../observer.svelte";
 import { v4 } from "uuid";
 import { risuUnescape } from "../parser.svelte";
+import { callTool, getTools } from "./mcp/mcp";
+import type { MCPTool } from "./mcp/mcplib";
 
 
 
@@ -48,6 +50,7 @@ interface requestDataArgument{
     previewBody?:boolean
     staticModel?: string
     escape?:boolean
+    tools?: MCPTool[]
 }
 
 interface RequestDataArgumentExtended extends requestDataArgument{
@@ -272,6 +275,7 @@ function applyParameters(data: { [key: string]: any }, parameters: Parameter[], 
 export async function requestChatData(arg:requestDataArgument, model:ModelModeExtended, abortSignal:AbortSignal=null):Promise<requestDataResponse> {
     const db = getDatabase()
     const fallBackModels:string[] = safeStructuredClone(db?.fallbackModels?.[model] ?? [])
+    const tools = await getTools()
     fallBackModels.push('')
     let da:requestDataResponse
 
@@ -333,7 +337,8 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
     
             da = await requestChatDataMain({
                 ...arg,
-                staticModel: fallBackModels[fallbackIndex]
+                staticModel: fallBackModels[fallbackIndex],
+                tools: tools,
             }, model, abortSignal)
 
             if(abortSignal?.aborted){
@@ -341,6 +346,23 @@ export async function requestChatData(arg:requestDataArgument, model:ModelModeEx
                     type: 'fail',
                     result: 'Aborted'
                 }
+            }
+
+            if(da.type === 'success' && da.result.startsWith('functioncall:')){
+                const functionCall:{
+                    name: string,
+                    arguments: any
+                    memo?: string
+                } = JSON.parse(da.result.replace('functioncall:', '').trim())
+                const res = await callTool(functionCall.name, functionCall.arguments)
+                originalFormated.push({
+                    role: 'assistant',
+                    content: `functioncall:${JSON.stringify({
+                        caller: functionCall,
+                        result: res,
+                    })}`,
+                })
+                continue
             }
 
             if(da.type === 'success' && arg.escape){
@@ -435,6 +457,12 @@ export interface OpenAIChatExtra {
     prefix?:boolean
     reasoning_content?:string
     cachePoint?:boolean
+    function?: {
+        name: string
+        description?: string
+        parameters: any
+        strict: boolean
+    }
 }
 
 export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
@@ -705,33 +733,6 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
     }
 
 
-    let oaiFunctions:OaiFunctions[] = []
-
-
-    if(arg.useEmotion){
-        oaiFunctions.push(
-            {
-                "name": "set_emotion",
-                "description": "sets a role playing character's emotion display. must be called one time at the end of response.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "emotion": {
-                            "type": "string", "enum": []
-                        },
-                    },
-                    "required": ["emotion"],
-                },
-            }
-        )
-    }
-
-    if(oaiFunctions.length === 0){
-        oaiFunctions = undefined
-    }
-
-
-    const oaiFunctionCall = oaiFunctions ? (arg.useEmotion ? {"name": "set_emotion"} : "auto") : undefined
     let requestModel = (aiModel === 'reverse_proxy' || aiModel === 'openrouter') ? db.proxyRequestModel : aiModel
     let openrouterRequestModel = db.openrouterRequestModel
     if(aiModel === 'reverse_proxy'){

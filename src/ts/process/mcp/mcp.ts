@@ -1,5 +1,5 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
-import { MCPClient, type MCPTool } from "./mcplib";
+import { MCPClient, type MCPTool, type RPCToolCallContent } from "./mcplib";
 import { DBState } from "src/ts/stores.svelte";
 
 export type MCPToolWithURL = MCPTool & {
@@ -22,7 +22,7 @@ export async function initializeMCPs() {
             const getRefresh:typeof MCPClient.prototype.getRefreshToken = async () => {
                 return DBState.db.authRefreshes.find(refresh => refresh.url === mcp);
             }
-            
+
             const mcpClient = new MCPClient(mcp);
             mcpClient.registerRefreshToken = registerRefresh;
             mcpClient.getRefreshToken = getRefresh;
@@ -64,10 +64,27 @@ export async function getMCPMeta() {
     return meta;
 }
 
-export async function callMCPTool(mcpURL:string, methodName:string, args:any) {
+export async function callMCPTool(methodName:string, args:any):Promise<RPCToolCallContent[]> {
     await initializeMCPs();
-    if(!MCPs[mcpURL]) {
-        throw new Error(`MCP ${mcpURL} not initialized`);
+    for(const key of Object.keys(MCPs)) {
+        const tools = await MCPs[key].getToolList();
+        const tool = tools.find(t => t.name === methodName);
+        if(tool) {
+            return await MCPs[key].callTool(methodName, args);
+        }
     }
-    return await MCPs[mcpURL].callTool(methodName, args);
+    return  [{
+        type: 'text',
+        text: `Tool ${methodName} not found on any MCP`
+    }]
+}
+
+//Currently just a wrapper for getMCPTools, but can be extended later for more than MCPs
+export async function getTools(){
+    return await getMCPTools();
+}
+
+//Currently just a wrapper for callMCPTool, but can be extended later for more than MCPs
+export async function callTool(methodName:string, args:any) {
+    return await callMCPTool(methodName, args);
 }
