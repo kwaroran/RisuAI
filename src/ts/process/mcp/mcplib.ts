@@ -752,4 +752,8 @@ export class MCPClient{
         this.sseIdDone.clear()
         this.sses = []
     }
+
+    ping(){
+        return this.request("ping")
+    }
 }
