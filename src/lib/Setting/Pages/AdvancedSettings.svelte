@@ -16,7 +16,7 @@
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import { PlusIcon, TrashIcon } from "lucide-svelte";
   import { v4 } from "uuid";
-  import { MCPClient } from "src/ts/process/mcp";
+  import { MCPClient } from "src/ts/process/mcp/mcplib";
 
     let estaStorage:{
         key:string,

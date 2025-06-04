@@ -1,6 +1,6 @@
 import { v4 } from "uuid"
-import { fetchNative, openURL } from "../globalApi.svelte"
-import { alertInput } from "../alert";
+import { fetchNative, openURL } from "../../globalApi.svelte"
+import { alertInput } from "../../alert";
 
 type MCPPrompt = {
     name: string;              // Unique identifier for the prompt
