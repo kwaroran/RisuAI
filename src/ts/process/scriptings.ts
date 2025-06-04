@@ -182,7 +182,7 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.push({role: roleData, data: value})
+                ScriptingEngineState.chat.message.push({role: roleData, data: value ?? ''})
             })
             declareAPI('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!ScriptingSafeIds.has(id)){
