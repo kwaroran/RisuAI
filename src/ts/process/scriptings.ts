@@ -80,16 +80,24 @@ export async function runScripted(code:string, arg:{
             let declareAPI:(name: string, func:Function) => void
 
             if(ScriptingEngineState.type === 'lua'){
+                console.log('Creating new Lua engine for mode:', mode)
                 ScriptingEngineState.engine?.global.close()
                 ScriptingEngineState.code = code
                 ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
                 const luaEngine = ScriptingEngineState.engine
-                declareAPI = luaEngine.global.set
+                declareAPI = (name:string, func:Function) => {
+                    luaEngine.global.set(name, func)
+                    console.log('Declared Lua API:', name)
+                }
             }
             if(ScriptingEngineState.type === 'py'){
+                console.log('Creating new Pyodide context for mode:', mode)
                 ScriptingEngineState.pyodide?.close()
                 ScriptingEngineState.pyodide = new PyodideContext()
-                declareAPI = ScriptingEngineState.pyodide.declareAPI
+                declareAPI = (name:string, func:Function) => {
+                    ScriptingEngineState.pyodide?.declareAPI(name, func as any)
+                    console.log('Declared Python API:', name)
+                }
             }
             declareAPI('getChatVar', (id:string,key:string) => {
                 return ScriptingEngineState.getVar(key)
@@ -212,6 +220,10 @@ export async function runScripted(code:string, arg:{
                     }
                 }))
                 return data
+            })
+
+            declareAPI('cbs', (value) => {
+                return risuChatParser(value, { chara: getCurrentCharacter() })
             })
             
             declareAPI('setFullChatMain', (id:string, value:string) => {
@@ -657,6 +669,7 @@ export async function runScripted(code:string, arg:{
                 })
             })
 
+            console.log('Running Lua code:', code)
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
             }
@@ -1058,9 +1071,9 @@ class PyodideContext{
     apis: Record<string, (...args:any[]) => any> = {};
     inited: boolean = false;
     constructor(){
-        this.worker = new Worker(new URL('./pyworker.js', import.meta.url), {
-            type: 'module'
-        })
+        // this.worker = new Worker(new URL('./pyworker.ts', import.meta.url), {
+        //     type: 'module'
+        // })
         this.worker.onmessage = (event:MessageEvent) => {
             if(event.data.type === 'call'){
                 const { function: func, args, callId } = event.data;
