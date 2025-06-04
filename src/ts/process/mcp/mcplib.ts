@@ -2,7 +2,7 @@ import { v4 } from "uuid"
 import { fetchNative, openURL } from "../../globalApi.svelte"
 import { alertInput } from "../../alert";
 
-type MCPPrompt = {
+export type MCPPrompt = {
     name: string;              // Unique identifier for the prompt
     description?: string;      // Human-readable description
     arguments?:{               // Optional list of arguments
@@ -13,14 +13,14 @@ type MCPPrompt = {
     url?:string
 }
 
-type MCPTool ={
+export type MCPTool ={
     name: string
     description: string
     inputSchema: any // JSON schema for input validation
     annotations?: any // Annotations for the tool, can be used for documentation or metadata
 }
 
-type JsonRPC = {
+export type JsonRPC = {
     jsonrpc: "2.0",
     id: number | string,
     result?: any,
@@ -31,13 +31,13 @@ type JsonRPC = {
     }
 }
 
-type JsonPing = {
+export type JsonPing = {
     jsonrpc: "2.0",
     id: string,
     method: "ping"
 }
 
-type RPCRequestResult = {
+export type RPCRequestResult = {
     rpc:JsonRPC,
     http:{
         status: number,
@@ -45,23 +45,23 @@ type RPCRequestResult = {
     }
 }
 
-type SseEventDetail = {
+export type SseEventDetail = {
     mcpClientObjectId: string,
     data: JsonRPC
 }
 
-type RPCToolCallTextContent = {
+export type RPCToolCallTextContent = {
     type: 'text',
     text: string
 }
 
-type RPCToolCallImageAudioContent = {
+export type RPCToolCallImageAudioContent = {
     type: 'image'|'audio',
     data: string // Base64 encoded image
     mimeType: string // e.g. 'image/png', 'image/jpeg'
 }
 
-type RPCToolCallContentResource = {
+export type RPCToolCallContentResource = {
     type: "resource",
     resource: {
         uri: string,
@@ -70,7 +70,7 @@ type RPCToolCallContentResource = {
     }
 }
 
-type RPCToolCallContent = RPCToolCallTextContent | RPCToolCallImageAudioContent | RPCToolCallContentResource
+export type RPCToolCallContent = RPCToolCallTextContent | RPCToolCallImageAudioContent | RPCToolCallContentResource
 
 
 export class MCPClient{
