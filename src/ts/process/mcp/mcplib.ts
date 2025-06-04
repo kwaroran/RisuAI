@@ -31,6 +31,12 @@ type JsonRPC = {
     }
 }
 
+type JsonPing = {
+    jsonrpc: "2.0",
+    id: string,
+    method: "ping"
+}
+
 type RPCRequestResult = {
     rpc:JsonRPC,
     http:{
@@ -158,10 +164,22 @@ export class MCPClient{
                     }
                     else{
                         try {
-                            const jsonData = JSON.parse(data) as JsonRPC
+                            const jsonData = JSON.parse(data) as JsonRPC|JsonPing
                             if(this.sseIdDone.has(jsonData.id)){
                                 continue
                             }
+
+                            //@ts-ignore
+                            if(jsonData.method === 'ping'){
+                                await this.request('response', {}, {
+                                    notifications: true,
+                                    initMethod: 'none',
+                                    id: jsonData.id
+                                })
+                                this.sseIdDone.add(jsonData.id)
+                                continue
+                            }
+
                             const sseEventDetail:SseEventDetail = {
                                 mcpClientObjectId: this.mcpClientObjectId,
                                 data: jsonData,
@@ -179,7 +197,8 @@ export class MCPClient{
 
     async request(method:string, params?:any, options:{
         notifications?:boolean,
-        initMethod?:'init' | 'none'
+        initMethod?:'init' | 'none',
+        id?: string|number
     } = {}):Promise<RPCRequestResult>{
         options ??= {}
         const initMethod = options.initMethod || 'none'
@@ -191,20 +210,26 @@ export class MCPClient{
         const url = this.sseEndpoint ?? this.url
 
 
-        const body = {
+        const body = method === 'response' ? {
             jsonrpc: "2.0",
-            id: v4(),
+            id: options?.id ?? v4(),
+            result: params
+        } : {
+            jsonrpc: "2.0",
+            id: options?.id ?? v4(),
             method: method,
             params: params
         }
 
-        if(options.notifications){
-            delete body.params
-            delete body.id
-        }
+        if(method !== 'response'){
+            if(options.notifications){
+                delete body.params
+                delete body.id
+            }
 
-        else if(!params){
-            delete body.params
+            else if(!params){
+                delete body.params
+            }
         }
 
         try {
