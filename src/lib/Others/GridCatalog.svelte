@@ -59,7 +59,18 @@
 <div class="h-full w-full flex justify-center">
     <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
         <div class="mx-4 mb-6 flex flex-col">
-            <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off"/>
+            <div class="flex items-center gap-3 mb-2">
+                <button 
+                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors flex-shrink-0"
+                    onclick={() => endGrid()}
+                    title="Back"
+                >
+                    <ArrowLeft size={20} />
+                </button>
+                <div class="flex-1">
+                    <TextInput placeholder="Search" bind:value={search} size="lg" autocomplete="off" fullwidth={true}/>
+                </div>
+            </div>
             <div class="flex flex-wrap gap-2 mt-2">
                 <Button styled={selected === 3 ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 3}}>
                     {language.simple}
