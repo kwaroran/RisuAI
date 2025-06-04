@@ -37,6 +37,7 @@ export async function getMCPTools() {
 }
 
 export async function callMCPTool(mcpURL:string, methodName:string, args:any) {
+    await initializeMCPs();
     if(!MCPs[mcpURL]) {
         throw new Error(`MCP ${mcpURL} not initialized`);
     }
