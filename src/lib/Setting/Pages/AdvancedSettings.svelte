@@ -443,7 +443,7 @@ Show Statistics
     onclick={async () => {
         const testURL = 'https://mcp.paypal.com/sse'
         const mcp = new MCPClient(testURL)
-        console.log(await mcp.listTools())
+        console.log(await mcp.getToolList())
     }}
 >
 MCP Test
