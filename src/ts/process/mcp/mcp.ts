@@ -1,6 +1,10 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { MCPClient, type MCPTool } from "./mcplib";
 
+export type MCPToolWithURL = MCPTool & {
+    mcpURL: string;
+};
+
 export const MCPs:Record<string,MCPClient> = {};
 
 export async function initializeMCPs() {
@@ -9,6 +13,7 @@ export async function initializeMCPs() {
         if(!MCPs[mcp]) {
             const mcpClient = new MCPClient(mcp);
             await mcpClient.checkHandshake()
+            MCPs[mcp] = mcpClient;
         }
     }
 
@@ -22,7 +27,7 @@ export async function initializeMCPs() {
 
 export async function getMCPTools() {
     await initializeMCPs();
-    const tools:MCPTool[] = [];
+    const tools:MCPToolWithURL[] = [];
     for(const key of Object.keys(MCPs)) {
         const t = (await MCPs[key].getToolList()).map(tool => {
             return {
@@ -34,6 +39,15 @@ export async function getMCPTools() {
         tools.push(...t);
     }
     return tools;
+}
+
+export async function getMCPMeta() {
+    await initializeMCPs();
+    const meta:Record<string, typeof MCPClient.prototype.serverInfo> = {};
+    for(const key of Object.keys(MCPs)) {
+        meta[key] = MCPs[key].serverInfo
+    }
+    return meta;
 }
 
 export async function callMCPTool(mcpURL:string, methodName:string, args:any) {

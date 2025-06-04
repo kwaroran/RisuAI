@@ -98,6 +98,13 @@ export class MCPClient{
         },
         instructions?: string
     }
+    cached:{
+        prompts?: MCPPrompt[],
+        tools?: MCPTool[]
+    } = {
+        prompts: [],
+        tools: []
+    }
 
     constructor(url:string, arg:{
         accessToken?:string
@@ -203,10 +210,6 @@ export class MCPClient{
         options ??= {}
         const initMethod = options.initMethod || 'none'
         let httpStatus = 500
-        if(method !== 'initialize' && method !== 'notifications/initialized' && !this.initialized){
-            await this.handshake()
-            this.initialized = true
-        }
         const url = this.sseEndpoint ?? this.url
 
 
@@ -443,6 +446,7 @@ export class MCPClient{
     
     async handshake(){
 
+        console.log("MCP Handshake", this.url, this.mcpClientObjectId)
         this.protocolVersion = '2025-03-26' //default to latest version
         let {rpc:d,http} = await this.request('initialize', {
             "protocolVersion": this.protocolVersion,
@@ -546,6 +550,7 @@ export class MCPClient{
                 this.protocolVersion = d.result.protocolVersion
             }
 
+            console.log("MCP Handshake Successful", this.serverInfo, this.mcpClientObjectId)
             this.initialized = true
 
             return this.serverInfo
@@ -662,6 +667,9 @@ export class MCPClient{
         if(!this.serverInfo.capabilities?.prompts){
             return []
         }
+        if(this.cached.prompts.length > 0){
+            return this.cached.prompts
+        }
         let prompts:MCPPrompt[] = []
         let cursor:string|null = null
         while(true){
@@ -688,6 +696,8 @@ export class MCPClient{
             }
         }
 
+        this.cached.prompts = prompts
+
         return prompts
     }
 
@@ -695,6 +705,9 @@ export class MCPClient{
         await this.checkHandshake()
         if(!this.serverInfo.capabilities?.tools){
             return []
+        }
+        if(this.cached.tools.length > 0){
+            return this.cached.tools
         }
         let tools:MCPTool[] = []
         let cursor:string|null = null
@@ -722,6 +735,8 @@ export class MCPClient{
                 break
             }
         }
+
+        this.cached.tools = tools
 
         return tools
     }
