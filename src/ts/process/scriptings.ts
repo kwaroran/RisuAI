@@ -1058,7 +1058,7 @@ class PyodideContext{
     apis: Record<string, (...args:any[]) => any> = {};
     inited: boolean = false;
     constructor(){
-        this.worker = new Worker(new URL('./pyworker.js', import.meta.url), {
+        this.worker = new Worker(new URL('./pyworker.ts', import.meta.url), {
             type: 'module'
         })
         this.worker.onmessage = (event:MessageEvent) => {

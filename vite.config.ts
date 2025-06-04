@@ -27,6 +27,12 @@ export default defineConfig(({command, mode}) => {
       }) : null
     ],
 
+    // Vite defaults to 'iife' for workers, which breaks when using import.meta.url with code-splitting.
+    // Set to 'es' to allow proper ESM worker bundling and fix build errors.
+    worker: {
+      format: 'es',
+    },
+
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
     // prevent vite from obscuring rust errors
     clearScreen: false,
