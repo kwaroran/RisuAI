@@ -105,6 +105,19 @@ export class MCPClient{
         prompts: [],
         tools: []
     }
+    registerRefreshToken: ((arg: {
+        clientId:string
+        clientSecret:string
+        refreshToken:string
+        tokenUrl:string
+    }) => void) | null = null
+
+    getRefreshToken: (() => Promise<{
+        clientId:string
+        clientSecret:string
+        refreshToken:string
+        tokenUrl:string
+    }>) | null = null
 
     constructor(url:string, arg:{
         accessToken?:string
@@ -561,6 +574,32 @@ export class MCPClient{
     }
 
     async oauthLogin(){
+
+        if(this.getRefreshToken){
+            const refreshTokenData = await this.getRefreshToken()
+            if(refreshTokenData){
+                //get access token using refresh token
+                const tokenResponse = await fetchNative(refreshTokenData.tokenUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: (new URLSearchParams({
+                        grant_type: "refresh_token",
+                        refresh_token: refreshTokenData.refreshToken,
+                        client_id: refreshTokenData.clientId,
+                        client_secret: refreshTokenData.clientSecret
+                    })).toString()
+                })
+                if(tokenResponse.status !== 200){
+                    throw new Error("Failed to refresh access token")
+                }
+                const tokenData = await tokenResponse.json()
+                this.accessToken = tokenData.access_token
+                return
+            }
+        }
+
         const OauthDiscovery = new URL(this.url)
         OauthDiscovery.pathname = "/.well-known/oauth-authorization-server"
         const oauthResponse = await fetchNative(OauthDiscovery.toString(), {
@@ -658,6 +697,15 @@ export class MCPClient{
         }
 
         const tokenData = await tokenResponse.json()
+
+        if(this.registerRefreshToken){
+            this.registerRefreshToken({
+                clientId: clientData.client_id,
+                clientSecret: clientData.client_secret,
+                refreshToken: tokenData.refresh_token,
+                tokenUrl: discoveryURLS.token_endpoint
+            })
+        }
         this.accessToken = tokenData.access_token
 
     }

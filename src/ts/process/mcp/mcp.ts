@@ -1,5 +1,6 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { MCPClient, type MCPTool } from "./mcplib";
+import { DBState } from "src/ts/stores.svelte";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
@@ -11,7 +12,20 @@ export async function initializeMCPs() {
     const db = getDatabase()
     for(const mcp of db.mcpURLs) {
         if(!MCPs[mcp]) {
+            const registerRefresh:typeof MCPClient.prototype.registerRefreshToken = (arg) => {
+                DBState.db.authRefreshes.push({
+                    url: mcp,
+                    ...arg
+                })
+            }
+
+            const getRefresh:typeof MCPClient.prototype.getRefreshToken = async () => {
+                return DBState.db.authRefreshes.find(refresh => refresh.url === mcp);
+            }
+            
             const mcpClient = new MCPClient(mcp);
+            mcpClient.registerRefreshToken = registerRefresh;
+            mcpClient.getRefreshToken = getRefresh;
             await mcpClient.checkHandshake()
             MCPs[mcp] = mcpClient;
         }
