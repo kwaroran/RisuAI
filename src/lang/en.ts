@@ -410,6 +410,7 @@ export const languageEnglish = {
     authorNote: "Author's Note",
     firstMessage: 'First Message',
     description: 'Description',
+    note: "Note",
     jailbreakToggle: 'Toggle Jailbreak',
     charIcon: "Character Icon",
     characterDisplay: "Character Display",

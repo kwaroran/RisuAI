@@ -72,6 +72,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.userIcon)){
         data.userIcon = ''
     }
+    if (checkNullish(data.userNote)){
+        data.userNote = ''
+    }
     if(checkNullish(data.additionalPrompt)){
         data.additionalPrompt = 'The assistant must act as {{char}}. user is {{user}}.'
     }
@@ -359,6 +362,7 @@ export function setDatabase(data:Database){
         name: data.username,
         personaPrompt: "",
         icon: data.userIcon,
+        note: data.userNote,
         largePortrait: false
     }]
     data.classicMaxWidth ??= false
@@ -657,6 +661,7 @@ export interface Database{
     supaMemoryPrompt: string
     username: string
     userIcon: string
+    userNote: string
     additionalPrompt: string
     descriptionPrefix: string
     forceReplaceUrl: string

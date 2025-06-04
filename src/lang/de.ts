@@ -131,6 +131,7 @@ export const languageGerman = {
     authorNote: "Autorennotiz",
     firstMessage: 'Erste Nachricht',
     description: 'Beschreibung',
+    note: 'Hinweis',
     jailbreakToggle: 'Jailbreak umschalten',
     charIcon: "Charaktericon",
     characterDisplay: "Charakteranzeige",

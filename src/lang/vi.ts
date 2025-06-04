@@ -102,6 +102,7 @@ export const LanguageVietnamese = {
     "authorNote": "Ghi chú của tác giả",
     "firstMessage": "tin nhắn đầu tiên",
     "description": "Sự miêu tả",
+    "note": "Ghi chú",
     "jailbreakToggle": "Chuyển đổi Bẻ khóa",
     "charIcon": "Biểu tượng nhân vật",
     "characterDisplay": "Hiển thị ký tự",
