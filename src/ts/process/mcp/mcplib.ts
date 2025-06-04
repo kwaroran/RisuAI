@@ -599,12 +599,18 @@ export class MCPClient{
 
         const clientData = await registerResponse.json()
 
+        const code_verifier = (v4() + v4()).replace(/-/g, "")
+        const sha256 = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code_verifier))
+        const code_challenge = Buffer.from(sha256).toString('base64').replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_")
+
         const authUrl = new URL(discoveryURLS.authorization_endpoint)
         authUrl.searchParams.set("client_id", clientData.client_id)
         authUrl.searchParams.set("response_type", "code")
         authUrl.searchParams.set("redirect_uri", redirectURL)
         authUrl.searchParams.set("scope", "")
         authUrl.searchParams.set("state", v4())
+        authUrl.searchParams.set("code_challenge", code_challenge)
+        authUrl.searchParams.set("code_challenge_method", "S256")
 
         openURL(authUrl.toString())
         const code = await alertInput("Input Authorization Code")
@@ -637,7 +643,8 @@ export class MCPClient{
                 code: payload.code || "",
                 redirect_uri: redirectURL,
                 client_id: clientData.client_id,
-                client_secret: clientData.client_secret
+                client_secret: clientData.client_secret,
+                code_verifier: code_verifier
             })).toString()
         })
 
