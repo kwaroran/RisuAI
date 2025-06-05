@@ -244,7 +244,7 @@
         </div>
     {:else}
         {@const chatReloadPointer = $ReloadChatPointer[idx] ?? 0}
-        {@const totalLengthPointer = (idx < totalLength - 11) ? 0 : totalLength}
+        {@const totalLengthPointer = (idx > totalLength - 6) ? totalLength : 0}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
