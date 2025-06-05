@@ -4,7 +4,9 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
+    import { runLuaButtonTrigger } from 'src/ts/process/lua'
     import { risuChatParser } from "src/ts/process/scripts"
+    import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
     import { DBState, ReloadChatPointer } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
@@ -14,7 +16,7 @@
     import { language } from "../../lang"
     import { alertClear, alertConfirm, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
     import { type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
-    import { type MessageGenerationInfo } from "../../ts/storage/database.svelte"
+    import { getCurrentCharacter, getCurrentChat, setCurrentChat, type MessageGenerationInfo } from "../../ts/storage/database.svelte"
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte"
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte"
     import ChatBody from './ChatBody.svelte'
@@ -157,6 +159,41 @@
             return placeholder
         }
     }
+
+    async function handleButtonTriggerWithin(event: UIEvent) {
+        const currentChar = getCurrentCharacter()
+        if(currentChar.type === 'group'){
+            return
+        }
+
+        const target = event.target as HTMLElement
+
+        const triggerName = target.getAttribute('risu-trigger')
+        const btnEvent = target.getAttribute('risu-btn')
+
+        if(triggerName || btnEvent) {
+            event.stopPropagation()
+            event.preventDefault()
+        }
+
+        const triggerResult =
+            triggerName ?
+                await runTrigger(currentChar, 'manual', {
+                    chat: getCurrentChat(),
+                    manualName: triggerName,
+                }) :
+            btnEvent ?
+                await runLuaButtonTrigger(currentChar, btnEvent) :
+            null
+
+        if(triggerResult) {
+            setCurrentChat(triggerResult.chat)
+            ReloadChatPointer.update((v) => {
+                v[idx] = (v[idx] ?? 0) + 1
+                return v
+            })
+        }
+    }
 </script>
 
 
@@ -207,7 +244,7 @@
         </div>
     {:else}
         {@const chatReloadPointer = $ReloadChatPointer[idx] ?? 0}
-        {@const totalLengthPointer = idx < totalLength - 11 ? 0 : totalLength}
+        {@const totalLengthPointer = (idx < totalLength - 11) ? 0 : totalLength}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
@@ -593,7 +630,10 @@
     {/each}
 {/snippet}
 
-<div class="flex max-w-full justify-center risu-chat" data-chat-index={idx} style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}>
+<div class="flex max-w-full justify-center risu-chat"
+     data-chat-index={idx}
+     style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}
+     onclickcapture={handleButtonTriggerWithin}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>

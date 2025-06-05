@@ -7,55 +7,8 @@ import { globalFetch } from "./globalApi.svelte";
 let bgmElement:HTMLAudioElement|null = null;
 
 function nodeObserve(node:HTMLElement){
-    const triggerName = node.getAttribute('risu-trigger');
-    const btnEvent = node.getAttribute('risu-btn');
-    const observerAdded = node.getAttribute('risu-observer');
     const hlLang = node.getAttribute('x-hl-lang');
     const ctrlName = node.getAttribute('risu-ctrl');
-
-    if(observerAdded){
-        return
-    }
-    if(triggerName){
-        node.addEventListener('click', async () => {
-            const currentChar = getCurrentCharacter()
-            if(currentChar.type === 'group'){
-                return;
-            }
-            const triggerResult = await runTrigger(currentChar, 'manual', {
-                chat: getCurrentChat(),
-                manualName: triggerName,
-            });
-
-            if(triggerResult){
-               setCurrentChat(triggerResult.chat);
-            }
-            
-        }, {
-            passive: true,
-        });
-        node.setAttribute('risu-observer', 'true');
-        return
-    }
-
-    if(btnEvent){
-        node.addEventListener('click', async () => {
-            const currentChar = getCurrentCharacter()
-            if(currentChar.type === 'group'){
-                return;
-            }
-            const triggerResult = await runLuaButtonTrigger(currentChar, btnEvent);
-            
-            if(triggerResult){
-                setCurrentChat(triggerResult.chat);
-            }
-            
-        }, {
-            passive: true,
-        });
-        node.setAttribute('risu-observer', 'true');
-        return
-    }
 
     if(hlLang){
         node.addEventListener('contextmenu', (e)=>{
@@ -117,10 +70,6 @@ function nodeObserve(node:HTMLElement){
     }
 }
 
-function observeChatBlock(node: HTMLDivElement) {
-    node.addEventListener()
-}
-
 export async function startObserveDom(){
     //For codeblock we are using MutationObserver since it doesn't appear well
     const observer = new MutationObserver((mutations) => {
@@ -134,7 +83,7 @@ export async function startObserveDom(){
     })
 
     while(true){
-        document.querySelectorAll('[risu-trigger], [risu-btn], [x-hl-lang], [risu-ctrl]').forEach(nodeObserve);
+        document.querySelectorAll('[x-hl-lang], [risu-ctrl]').forEach(nodeObserve);
         await sleep(100);
     }
 }
