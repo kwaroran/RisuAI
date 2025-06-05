@@ -1,5 +1,6 @@
 {{// This is a character description for Airisu. also meant to be used as documentation}}
 {{// TODO: Not finished yet.}}
+{{// This is defined in seperate file, so if program is updated, it can be also automatically updated}}
 
 {{settempvar::production_name::A}}
 {{settempvar::realmname::B}}

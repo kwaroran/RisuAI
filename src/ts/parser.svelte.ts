@@ -8,7 +8,7 @@ import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand} from './util';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync} from './util';
 import { getInlayAsset } from './process/files/inlays';
 import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
@@ -334,14 +334,6 @@ async function renderHighlightableMarkdown(data:string) {
 }
 
 export const assetRegex = /{{(raw|path|img|image|video|audio|bgm|bg|emotion|asset|video-img|source)::(.+?)}}/gms
-
-async function replaceAsync(string, regexp, replacerFunction) {
-    const replacements = await Promise.all(
-        Array.from(string.matchAll(regexp),
-            match => replacerFunction(...match as any)))
-    let i = 0;
-    return string.replace(regexp, () => replacements[i++])
-}
 
 async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string[], ext?: string}}) {
     for (const asset of assetArr) {
