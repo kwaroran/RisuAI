@@ -5,11 +5,11 @@
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "lucide-svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
-    import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
+    import { type Message } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
-    import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
+    import { findCharacterbyId, messageForm, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
     import { alertError, alertNormal, alertWait, showHypaV2Alert } from "../../ts/alert";
@@ -266,27 +266,26 @@
         customStyle?: string;
     }
 
-    let userIconProtrait = $state(false)
-    let currentUsername = $state(DBState.db.username)
-    let userIcon = $state(DBState.db.userIcon)
-
-
-    $effect.pre(() =>{
+    let { userIconPortrait, currentUsername, userIcon } = $derived.by(() => {
         const bindedPersona = DBState?.db?.characters?.[$selectedCharID]?.chats?.[DBState?.db?.characters?.[$selectedCharID]?.chatPage]?.bindedPersona
 
         if(bindedPersona){
             const persona = DBState.db.personas.find((p) => p.id === bindedPersona)
             if(persona){
-                currentUsername = persona.name
-                userIconProtrait = persona.largePortrait
-                userIcon = persona.icon
-                return
+                return {
+                    currentUsername: persona.name,
+                    userIconPortrait: persona.largePortrait,
+                    userIcon: persona.icon
+                }
             }
         }
 
-        currentUsername = DBState.db.username
-        userIconProtrait = DBState.db.personas[DBState.db.selectedPersona].largePortrait
-        userIcon = DBState.db.personas[DBState.db.selectedPersona].icon
+        const selectedPersonaIndex = DBState.db.selectedPersona
+        return {
+            currentUsername: DBState.db.username,
+            userIconPortrait: DBState.db.personas[selectedPersonaIndex].largePortrait,
+            userIcon: DBState.db.personas[selectedPersonaIndex].icon
+        }
     })
 
     let { openModuleList = $bindable(false), openChatList = $bindable(false), customStyle = '' }: Props = $props();
@@ -658,7 +657,6 @@
             {:else}
             {#each messageForm(currentChat, loadPages) as chat, i (chat.index)}
                 {@const index = chat.index}
-                {@const role = chat.role}
                 {#if chat.role === 'char'}
                     {#if currentCharacter.type !== 'group'}
                         <Chat
@@ -666,7 +664,7 @@
                             name={currentCharacter.name}
                             message={chat.data}
                             rerollIcon={i === 0}
-                            role={role}
+                            role='char'
                             totalLength={currentChat.length}
                             img={getCharImage(currentCharacter.image, 'css')}
                             onReroll={reroll}
@@ -682,7 +680,7 @@
                             name={findCharacterbyId(chat.saying).name}
                             message={chat.data}
                             rerollIcon={i === 0}
-                            role={role}
+                            role='char'
                             totalLength={currentChat.length}
                             onReroll={reroll}
                             unReroll={unReroll}
@@ -699,11 +697,11 @@
                         idx={index}
                         name={chat.name ?? currentUsername}
                         message={chat.data}
-                        role={role}
+                        role='user'
                         totalLength={currentChat.length}
                         img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
                         isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                        largePortrait={userIconProtrait}
+                        largePortrait={userIconPortrait}
                         messageGenerationInfo={chat.generationInfo}
                     />
                 {/if}
