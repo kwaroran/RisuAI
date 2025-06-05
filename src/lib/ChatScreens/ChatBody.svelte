@@ -9,7 +9,7 @@
     interface Props {
         character?: simpleCharacterArgument|string|null
         firstMessage?: boolean
-        idx?: any
+        idx?: number
         msgDisplay?: string
         name?: string
         role: string|null
@@ -48,8 +48,8 @@
             }
         }
     }
-    
-    const markParsing = async (data: string, charArg?: string | simpleCharacterArgument, mode?: "normal" | "back", chatID?: number, translateText?:boolean, tries?:number) => {
+
+    const markParsing = async (data: string, charArg: string | simpleCharacterArgument, mode: "normal" | "back", chatID: number, translateText?:boolean, tries?:number) => {
         let lastParsedQueue = ''
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
