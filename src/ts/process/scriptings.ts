@@ -153,7 +153,7 @@ export async function runScripted(code:string, arg:{
                 }
                 const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
-                    message.data = value
+                    message.data = value ?? ''
                 }
             })
             declareAPI('setChatRole', (id:string, index:number, value:string) => {
@@ -189,7 +189,7 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value ?? ''})
             })
 
             declareAPI('getTokens', async (id:string, value:string) => {
