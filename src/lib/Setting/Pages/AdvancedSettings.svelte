@@ -300,6 +300,16 @@
 
     {#each DBState.db.customModels as model, index}
         <Arcodion styled name={model.name ?? "Unnamed"}>
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-medium">{model.name ?? "Unnamed"}</span>
+                <Button styled="outlined" onclick={() => {
+                    let models = DBState.db.customModels
+                    models.splice(index, 1)
+                    DBState.db.customModels = models
+                }}>
+                    <TrashIcon />
+                </Button>
+            </div>
             <span class="text-textcolor">{language.name}</span>
             <TextInput size={"sm"} bind:value={DBState.db.customModels[index].name}/>
             <span class="text-textcolor">{language.proxyRequestModel}</span>
@@ -385,11 +395,6 @@
             })
         }}>
             <PlusIcon />
-        </Button>
-        <Button onclick={() => {
-            DBState.db.customModels.pop()
-        }}>
-            <TrashIcon />
         </Button>
     </div>
 </Arcodion>
