@@ -316,6 +316,8 @@ export const languageKorean = {
         "v2GetDisplayStateDesc": "현재 디스플레이 테이터 가져오기 => {{outputVar}}",
         "v2UpdateGUI": "GUI 업데이트",
         "v2UpdateGUIDesc": "GUI 업데이트",
+        "v2UpdateChatAt": "인덱스의 채팅 업데이트",
+        "v2UpdateChatAtDesc": "{{index}}의 채팅 다시 그리기",
         "v2Wait": "기다리기",
         "v2WaitDesc": "{{value}} 초 기다리기",
         "v2GetRequestState": "리퀘스트 데이터 내용 가져오기",

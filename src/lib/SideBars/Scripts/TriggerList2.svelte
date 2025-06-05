@@ -100,6 +100,7 @@
         //Others
         'v2Random',
         'v2UpdateGUI',
+        'v2UpdateChatAt',
         'v2Wait',
         "v2StopPromptSending",
         'v2Tokenize'
@@ -719,6 +720,14 @@
             case 'v2UpdateGUI':{
                 editTrigger = {
                     type: 'v2UpdateGUI',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2UpdateChatAt':{
+                editTrigger = {
+                    type: 'v2UpdateChatAt',
+                    index: '0',
                     indent: 0
                 }
                 break;
@@ -1973,6 +1982,9 @@
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2UpdateChatAt'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <TextInput bind:value={editTrigger.index} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

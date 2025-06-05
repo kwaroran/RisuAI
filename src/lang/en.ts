@@ -367,6 +367,8 @@ export const languageEnglish = {
         v2SetDisplayStateDesc: "Set Display State to {{value}}",
         v2UpdateGUI: "Update GUI",
         v2UpdateGUIDesc: "Update GUI",
+        v2UpdateChatAt: "Update Chat At Index",
+        v2UpdateChatAtDesc: "Redraw chat at {{index}}",
         v2Wait: "Wait",
         v2WaitDesc: "Wait {{value}} seconds",
         v2GetRequestState: "Get Request Data Content",
