@@ -6,7 +6,7 @@
     import { getModelInfo } from "src/ts/model/modellist"
     import { risuChatParser } from "src/ts/process/scripts"
     import { sayTTS } from "src/ts/process/tts"
-    import { DBState } from 'src/ts/stores.svelte'
+    import { DBState, ReloadChatPointer } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
     import { capitalize } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
@@ -112,7 +112,6 @@
     }
 
     function displaya(message:string){
-        const perf = performance.now()
         msgDisplay = risuChatParser(message, {chara: name, chatID: idx, rmVar: true, visualize: true, cbsConditions: getCbsCondition()})
     }
 
@@ -162,45 +161,44 @@
 
 
 {#snippet genInfo()}
-        <div class="flex flex-col items-end">
-            {#if messageGenerationInfo && DBState.db.requestInfoInsideChat}
-
-                <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                                hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
-                        onclick={() => {
-                            alertRequestData({
-                                genInfo: messageGenerationInfo,
-                                idx: idx,
-                            })
-                        }}
-                >
-                    <BotIcon size={20} />
-                    <span class="ml-1">
-                        {capitalize(getModelInfo(messageGenerationInfo.model).shortName)}
-                    </span>
-                </button>
-            {/if}
-            {#if DBState.db.translatorType === 'llm' && translated && !lastParsed.startsWith(`div class="flex justify-center items-center"><div class="animate-spin`)}
-                <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                                hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
-                        onclick={() => {
-                            lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
-                            retranslate = true
-                            $ReloadGUIPointer = $ReloadGUIPointer + 1
-                        }}
-                >
-                    <RefreshCcwIcon size={20} />
-                    <span class="ml-1">
-                        {language.retranslate}
-                    </span>
-                </button>
-            {/if}
-        </div>
+    <div class="flex flex-col items-end">
+        {#if messageGenerationInfo && DBState.db.requestInfoInsideChat}
+            <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
+                            hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                    onclick={() => {
+                        alertRequestData({
+                            genInfo: messageGenerationInfo,
+                            idx: idx,
+                        })
+                    }}
+            >
+                <BotIcon size={20} />
+                <span class="ml-1">
+                    {capitalize(getModelInfo(messageGenerationInfo.model).shortName)}
+                </span>
+            </button>
+        {/if}
+        {#if DBState.db.translatorType === 'llm' && translated && !lastParsed.startsWith(`div class="flex justify-center items-center"><div class="animate-spin`)}
+            <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
+                            hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                    onclick={() => {
+                        lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
+                        retranslate = true
+                        $ReloadGUIPointer = $ReloadGUIPointer + 1
+                    }}
+            >
+                <RefreshCcwIcon size={20} />
+                <span class="ml-1">
+                    {language.retranslate}
+                </span>
+            </button>
+        {/if}
+    </div>
 {/snippet}
 
 {#snippet textBox()}
     {#if editMode}
-        <AutoresizeArea bind:value={message} handleLongPress={(e) => {
+        <AutoresizeArea bind:value={message} handleLongPress={() => {
             editMode = false
         }} />
     {:else if blankMessage}
@@ -208,6 +206,8 @@
             {language.noMessage}
         </div>
     {:else}
+        {@const chatReloadPointer = $ReloadChatPointer[idx] ?? 0}
+        {@const totalLengthPointer = idx < totalLength - 11 ? 0 : totalLength}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
@@ -218,7 +218,7 @@
             style:font-size="{0.875 * (DBState.db.zoomsize / 100)}rem"
             style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
         >
-            {#key totalLength}
+            {#key `${totalLengthPointer}|${chatReloadPointer}`}
                 <ChatBody
                     {character}
                     {firstMessage}

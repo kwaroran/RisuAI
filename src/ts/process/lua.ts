@@ -2,7 +2,7 @@ import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterA
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
-import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
@@ -213,6 +213,16 @@ export async function runLua(code:string, arg:{
                     return
                 }
                 ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+            })
+
+            luaEngine.global.set('reloadChat', (id: string, index: number) => {
+                if(!LuaSafeIds.has(id)){
+                    return
+                }
+                ReloadChatPointer.update((v) => {
+                    v[index] = (v[index] ?? 0) + 1
+                    return v
+                })
             })
 
             //Low Level Access
