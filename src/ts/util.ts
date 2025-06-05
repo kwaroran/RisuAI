@@ -1104,3 +1104,11 @@ export function pickHashRand(cid:number,word:string) {
     }
     return randF()
 }
+
+export async function replaceAsync(string:string, regexp:RegExp, replacerFunction:Function) {
+    const replacements = await Promise.all(
+        Array.from(string.matchAll(regexp),
+            match => replacerFunction(...match as any)))
+    let i = 0;
+    return string.replace(regexp, () => replacements[i++])
+}
