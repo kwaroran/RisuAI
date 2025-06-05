@@ -1,7 +1,7 @@
-import {
-  type ChatCompletionMessageParam,
-  type ChatCompletionRequestNonStreaming,
-  type MLCEngine
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionRequestNonStreaming,
+  MLCEngine
 } from "@mlc-ai/web-llm";
 
 let engine: MLCEngine = null;
