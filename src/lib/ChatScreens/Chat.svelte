@@ -4,13 +4,13 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
-    import { runLuaButtonTrigger } from 'src/ts/process/lua'
+    import { runLuaButtonTrigger } from 'src/ts/process/scriptings'
     import { risuChatParser } from "src/ts/process/scripts"
     import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
     import { DBState, ReloadChatPointer } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
-    import { capitalize } from "src/ts/util"
+    import { capitalize, getUserIcon, getUserName } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
     import { type Unsubscriber } from "svelte/store"
     import { language } from "../../lang"
@@ -280,8 +280,11 @@
                         alertWait(language.loading)
                         const root = document.querySelector(':root') as HTMLElement;
 
+                        // 안전한 방식으로 HTML 복사본 생성
                         const parser = new DOMParser()
                         const doc = parser.parseFromString(lastParsed, 'text/html')
+                        
+                        // 기존 스타일 적용 (원본 방식 유지)
                         doc.querySelectorAll('mark').forEach((el) => {
                             const d = el.getAttribute('risu-mark')
                             if(d === 'quote1' || d === 'quote2'){
@@ -309,78 +312,177 @@
                         doc.querySelectorAll('strong em').forEach((el) => {
                             el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
                         })
+                        
+                        // 이미지 처리 (개선된 방식)
                         const imgs = doc.querySelectorAll('img')
                         for(const img of imgs){
                             img.setAttribute('alt', 'from RisuAI')
                             const url = img.getAttribute('src')
-                            if(url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai')){
+                            
+                            // 이미지 스타일 개선
+                            img.setAttribute('style', `
+                                max-width: 100%;
+                                margin: 10px 0;
+                                border-radius: 8px;
+                                box-shadow: rgba(0,0,0,0.1) 0px 2px 8px;
+                                display: block;
+                                margin-left: auto;
+                                margin-right: auto;
+                            `)
+                            
+                            // 안전한 이미지 URL 처리
+                            if(url && (url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai') || url.startsWith('data:') || url.startsWith('http') || url.startsWith('/'))){
                                 try {
-                                    const data = await fetch(url)
-                                    const canvas = document.createElement('canvas')
-                                    const ctx = canvas.getContext('2d')
-                                    const img = new Image()
-                                    img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
-                                        const reader = new FileReader()
-                                        reader.onload = () => resolve(reader.result as string)
-                                        reader.onerror = reject
-                                        reader.readAsDataURL(b)
-                                    }))
-                                    await new Promise((resolve) => {
-                                        img.onload = resolve
-                                    })
-                                    canvas.width = img.width
-                                    canvas.height = img.height
-                                    ctx.drawImage(img, 0, 0)
-                                    const dataURL = canvas.toDataURL('image/jpeg')
-                                    img.setAttribute('src', dataURL)
+                                    let fetchUrl = url
+                                    if(url.startsWith('/')) {
+                                        fetchUrl = window.location.origin + url
+                                    }
+                                    
+                                    const data = await fetch(fetchUrl)
+                                    if (data.ok) {
+                                        const canvas = document.createElement('canvas')
+                                        const ctx = canvas.getContext('2d')
+                                        const imgElement = new Image()
+                                        imgElement.crossOrigin = 'anonymous'
+                                        imgElement.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                            const reader = new FileReader()
+                                            reader.onload = () => resolve(reader.result as string)
+                                            reader.onerror = reject
+                                            reader.readAsDataURL(b)
+                                        }))
+                                        await new Promise((resolve) => {
+                                            imgElement.onload = resolve
+                                        })
+                                        canvas.width = imgElement.width
+                                        canvas.height = imgElement.height
+                                        ctx.drawImage(imgElement, 0, 0)
+                                        const dataURL = canvas.toDataURL('image/jpeg', 0.9)
+                                        img.setAttribute('src', dataURL)
+                                    }
                                 } catch (error) {
-                                    console.error(error)
+                                    console.error('이미지 처리 오류:', error)
                                 }
                             }
                         }
 
-                        let iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
+                        // 아이콘 이미지 처리
                         let iconDataUrl = ''
-
-                        if(iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai')){
-                            try {
-                                const data = await fetch(iconImage)
-                                const canvas = document.createElement('canvas')
-                                const ctx = canvas.getContext('2d')
-                                const img = new Image()
-                                img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
-                                    const reader = new FileReader()
-                                    reader.onload = () => resolve(reader.result as string)
-                                    reader.onerror = reject
-                                    reader.readAsDataURL(b)
-                                }))
-                                await new Promise((resolve) => {
-                                    img.onload = resolve
-                                })
-                                canvas.width = img.width
-                                canvas.height = img.height
-                                ctx.drawImage(img, 0, 0)
-                                iconDataUrl = canvas.toDataURL('image/jpeg')
-                            } catch (error) {
-                                console.error(error)
+                        let hasValidImage = false
+                        
+                        try {
+                            const iconImage = (await getFileSrc(DBState.db.characters[selIdState.selId].image ?? '')) ?? ''
+                            
+                            if(iconImage && (iconImage.startsWith('http://asset.localhost') || iconImage.startsWith('https://asset.localhost') || iconImage.startsWith('https://sv.risuai') || iconImage.startsWith('data:') || iconImage.startsWith('http') || iconImage.startsWith('/'))){
+                                if(iconImage.startsWith('data:')){
+                                    iconDataUrl = iconImage
+                                    hasValidImage = true
+                                } else {
+                                    const data = await fetch(iconImage)
+                                    if (data.ok) {
+                                        const canvas = document.createElement('canvas')
+                                        const ctx = canvas.getContext('2d')
+                                        const img = new Image()
+                                        img.crossOrigin = 'anonymous'
+                                        img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                            const reader = new FileReader()
+                                            reader.onload = () => resolve(reader.result as string)
+                                            reader.onerror = reject
+                                            reader.readAsDataURL(b)
+                                        }))
+                                        await new Promise((resolve, reject) => {
+                                            img.onload = () => {
+                                                canvas.width = img.width
+                                                canvas.height = img.height
+                                                ctx.drawImage(img, 0, 0)
+                                                iconDataUrl = canvas.toDataURL('image/jpeg', 0.9)
+                                                hasValidImage = true
+                                                resolve(true)
+                                            }
+                                            img.onerror = () => {
+                                                hasValidImage = false
+                                                resolve(false)
+                                            }
+                                        })
+                                    }
+                                }
                             }
+                        } catch (error) {
+                            console.error('아이콘 처리 오류:', error)
+                            hasValidImage = false
                         }
 
-
-                        const html = `
-                            <div style="background: ${root.style.getPropertyValue('--risu-theme-bgcolor')};display: flex;flex-direction: column;align-items: center;justify-content: center;border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};border-radius: 0.5rem;box-shadow: 0 0 0.5rem ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin: 1rem;">
-                                <div style="display: flex;align-items: center;justify-content: center; margin-top: 0.5rem;">
-                                    <img style="max-width: 100px; max-height: 100px;border-radius: 50%;border: 2px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};margin-top: 1rem;width: 100px; height: 100px;" src="${iconDataUrl}" alt="from RisuAI" width="100" height="100">
-                                </div><span style="font-size: 1.5rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};font-weight: bold;">${name}</span><span style="background: ${root.style.getPropertyValue('--risu-theme-darkbg')};color: ${root.style.getPropertyValue('--risu-theme-textcolor')};padding: 0.25rem;border-radius: 0.5rem;font-size: 0.75rem;">${capitalize(getModelInfo(messageGenerationInfo.model).shortName)}</span>
-                                <div style="padding-left: 1rem;padding-right: 1rem;padding-bottom: 0.5rem;padding-top: 1rem;width: 100%;">
-                                    ${doc.body.innerHTML}
-                                </div>
-                                <div style="text-align: right;padding: 0.5rem;">
-                                    <span style="font-size: 0.75rem;color: ${root.style.getPropertyValue('--risu-theme-textcolor')};">From RisuAI</span>
-                                </div>
-                            </div>
-                        `
-
+                        // 유저 메시지 처리
+                        const isUserMessage = role === 'user'
+                        const displayName = isUserMessage ? getUserName() : name
+                        const modelInfo = messageGenerationInfo ? capitalize(getModelInfo(messageGenerationInfo.model).shortName) : (isUserMessage ? 'User' : 'AI')
+                        
+                        // 유저 아이콘 처리
+                        let finalIconDataUrl = iconDataUrl
+                        let finalHasValidImage = hasValidImage
+                        
+                        if (isUserMessage) {
+                            finalHasValidImage = false
+                            const userIcon = getUserIcon()
+                            if (userIcon) {
+                                try {
+                                    const userIconSrc = await getFileSrc(userIcon)
+                                    if (userIconSrc && (userIconSrc.startsWith('http://asset.localhost') || userIconSrc.startsWith('https://asset.localhost') || userIconSrc.startsWith('https://sv.risuai') || userIconSrc.startsWith('data:') || userIconSrc.startsWith('http') || userIconSrc.startsWith('/'))) {
+                                        if (userIconSrc.startsWith('data:')) {
+                                            finalIconDataUrl = userIconSrc
+                                            finalHasValidImage = true
+                                        } else {
+                                            const data = await fetch(userIconSrc)
+                                            if (data.ok) {
+                                                const canvas = document.createElement('canvas')
+                                                const ctx = canvas.getContext('2d')
+                                                const img = new Image()
+                                                img.crossOrigin = 'anonymous'
+                                                img.src = await data.blob().then((b) => new Promise((resolve, reject) => {
+                                                    const reader = new FileReader()
+                                                    reader.onload = () => resolve(reader.result as string)
+                                                    reader.onerror = reject
+                                                    reader.readAsDataURL(b)
+                                                }))
+                                                await new Promise((resolve, reject) => {
+                                                    img.onload = () => {
+                                                        canvas.width = img.width
+                                                        canvas.height = img.height
+                                                        ctx.drawImage(img, 0, 0)
+                                                        finalIconDataUrl = canvas.toDataURL('image/jpeg', 0.9)
+                                                        finalHasValidImage = true
+                                                        resolve(true)
+                                                    }
+                                                    img.onerror = () => {
+                                                        finalHasValidImage = false
+                                                        resolve(false)
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('유저 아이콘 처리 오류:', error)
+                                    finalHasValidImage = false
+                                }
+                            }
+                        }
+                        
+                        // 개선된 HTML 템플릿 (원본 스타일 기반)
+                        const html = `<div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; line-height: 1.6; max-width: 600px; margin: 1rem auto; background: ${root.style.getPropertyValue('--risu-theme-bgcolor')}; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.15); overflow: hidden;">
+    <div style="padding: 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem; text-align: center;">
+            ${finalHasValidImage ? `<img style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')}; margin-bottom: 0.75rem; object-fit: cover;" src="${finalIconDataUrl}" alt="profile">` : ''}
+            <h3 style="color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; font-weight: 600; font-size: 1.5rem; margin: 0 0 0.5rem 0;">${displayName}</h3>
+            ${!isUserMessage ? `<span style="display: inline-block; border-radius: 16px; font-size: 0.8rem; padding: 0.25rem 0.75rem; background: ${root.style.getPropertyValue('--risu-theme-darkbg')}; color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; border: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};">${modelInfo}</span>` : ''}
+        </div>
+        <div style="border-top: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')}; padding-top: 1rem;">
+            ${doc.body.innerHTML}
+        </div>
+        <div style="text-align: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};">
+            <span style="font-size: 0.75rem; color: ${root.style.getPropertyValue('--risu-theme-textcolor2')}; opacity: 0.7;">From RisuAI</span>
+        </div>
+    </div>
+</div>`
 
                         await window.navigator.clipboard.write([
                             new ClipboardItem({
