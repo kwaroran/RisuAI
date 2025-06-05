@@ -26,7 +26,7 @@ import { addRerolls } from "./prereroll";
 import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
-import { runLuaEditTrigger } from "./lua";
+import { runLuaEditTrigger } from "./scriptings";
 import { getGlobalChatVar, parseChatML } from "../parser.svelte";
 import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";

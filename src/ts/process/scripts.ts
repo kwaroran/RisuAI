@@ -8,7 +8,7 @@ import { selectSingleFile } from "../util";
 import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser.svelte";
 import { getModuleAssets, getModuleRegexScripts, getModuleTriggers } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
-import { runLuaEditTrigger } from "./lua";
+import { runLuaEditTrigger } from "./scriptings";
 import { pluginV2 } from "../plugins/plugins";
 import { runTrigger } from "./triggers";
 

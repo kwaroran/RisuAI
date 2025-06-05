@@ -1,7 +1,7 @@
 import { runTrigger } from "./process/triggers";
 import { sleep } from "./util";
 import { getCurrentCharacter, getCurrentChat, setCurrentChat } from "./storage/database.svelte";
-import { runLuaButtonTrigger } from "./process/lua";
+import { runLuaButtonTrigger } from "./process/scriptings";
 import { globalFetch } from "./globalApi.svelte";
 
 let bgmElement:HTMLAudioElement|null = null;
