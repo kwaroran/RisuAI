@@ -14,7 +14,7 @@
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import { PlusIcon, TrashIcon } from "lucide-svelte";
+  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "lucide-svelte";
   import { v4 } from "uuid";
   import { MCPClient } from "src/ts/process/mcp/mcplib";
 
@@ -314,17 +314,41 @@
                     openedModels = new Set(openedModels)
                 }}
             >
-                <span class="mr-2">{model.name ?? "Unnamed"}</span>
-                <Button styled="outlined" onclick={(e) => {
-                    e.stopPropagation()
-                    let models = DBState.db.customModels
-                    models.splice(index, 1)
-                    DBState.db.customModels = models
-                    openedModels.delete(model.id)
-                    openedModels = new Set(openedModels)
-                }}>
-                    <TrashIcon />
-                </Button>
+                <span class="text-left">{model.name ?? "Unnamed"}</span>
+                <div class="flex items-center gap-1">
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        if(index === 0) return
+                        let models = DBState.db.customModels
+                        let temp = models[index]
+                        models[index] = models[index - 1]
+                        models[index - 1] = temp
+                        DBState.db.customModels = models
+                    }}>
+                        <ArrowUp />
+                    </Button>
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        if(index === DBState.db.customModels.length - 1) return
+                        let models = DBState.db.customModels
+                        let temp = models[index]
+                        models[index] = models[index + 1]
+                        models[index + 1] = temp
+                        DBState.db.customModels = models
+                    }}>
+                        <ArrowDown />
+                    </Button>
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        let models = DBState.db.customModels
+                        models.splice(index, 1)
+                        DBState.db.customModels = models
+                        openedModels.delete(model.id)
+                        openedModels = new Set(openedModels)
+                    }}>
+                        <TrashIcon />
+                    </Button>
+                </div>
             </button>
             {#if openedModels.has(model.id)}
                 <div class="flex flex-col border border-selected p-2 rounded-b-md overflow-x-auto">
