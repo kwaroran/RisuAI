@@ -23,6 +23,8 @@
         size:string,
     }[] = $state([])
 
+    let openedModels = $state(new Set<string>())
+
     const characterSets = [
         'Latn',
         'Hani',
@@ -298,18 +300,34 @@
 
 <Arcodion styled name={language.customModels} className="overflow-x-auto">
 
-    {#each DBState.db.customModels as model, index}
-        <Arcodion styled name={model.name ?? "Unnamed"}>
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-lg font-medium">{model.name ?? "Unnamed"}</span>
-                <Button styled="outlined" onclick={() => {
+    {#each DBState.db.customModels as model, index (model.id)}
+        <div class="flex flex-col mt-2">
+            <button class="hover:bg-selected px-6 py-2 text-lg rounded-t-md border-selected border flex justify-between items-center"
+                class:bg-selected={openedModels.has(model.id)}
+                class:rounded-b-md={!openedModels.has(model.id)}
+                onclick={() => {
+                    if (openedModels.has(model.id)) {
+                        openedModels.delete(model.id)
+                    } else {
+                        openedModels.add(model.id)
+                    }
+                    openedModels = new Set(openedModels)
+                }}
+            >
+                <span class="mr-2">{model.name ?? "Unnamed"}</span>
+                <Button styled="outlined" onclick={(e) => {
+                    e.stopPropagation()
                     let models = DBState.db.customModels
                     models.splice(index, 1)
                     DBState.db.customModels = models
+                    openedModels.delete(model.id)
+                    openedModels = new Set(openedModels)
                 }}>
                     <TrashIcon />
                 </Button>
-            </div>
+            </button>
+            {#if openedModels.has(model.id)}
+                <div class="flex flex-col border border-selected p-2 rounded-b-md overflow-x-auto">
             <span class="text-textcolor">{language.name}</span>
             <TextInput size={"sm"} bind:value={DBState.db.customModels[index].name}/>
             <span class="text-textcolor">{language.proxyRequestModel}</span>
@@ -378,7 +396,9 @@
                 {@render CustomFlagButton(index,'deepSeekThinkingInput', 18)}
                 {@render CustomFlagButton(index,'deepSeekThinkingOutput', 19)}
             </Arcodion>
-        </Arcodion>
+                </div>
+            {/if}
+        </div>
     {/each}
     <div class="flex items-center mt-4">
         <Button onclick={() => {
