@@ -78,6 +78,7 @@
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",
+    "pyodide": "^0.27.6",
     "rfdc": "^1.4.1",
     "rollup": "^3.29.4",
     "showdown": "^2.1.0",
