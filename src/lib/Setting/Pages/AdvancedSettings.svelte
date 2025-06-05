@@ -400,8 +400,8 @@
             {/if}
         </div>
     {/each}
-    <div class="flex items-center mt-4">
-        <Button onclick={() => {
+    <div class="flex flex-col mt-2">
+        <button class="hover:bg-selected px-6 py-2 text-lg rounded-md border-selected border flex justify-center items-center cursor-pointer" onclick={() => {
             DBState.db.customModels.push({
                 internalId: "",
                 url: "",
@@ -415,7 +415,7 @@
             })
         }}>
             <PlusIcon />
-        </Button>
+        </button>
     </div>
 </Arcodion>
 
