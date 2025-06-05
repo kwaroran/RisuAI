@@ -560,6 +560,8 @@ export function setDatabase(data:Database){
         otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
     }
     data.customModels ??= []
+    data.mcpURLs ??= []
+    data.authRefreshes ??= []
 
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
@@ -1030,6 +1032,13 @@ export interface Database{
     useTokenizerCaching:boolean
     showMenuHypaMemoryModal:boolean
     mcpURLs:string[]
+    authRefreshes:{
+        url:string
+        tokenUrl:string
+        refreshToken:string
+        clientId:string
+        clientSecret:string
+    }[]
     promptInfoInsideChat:boolean
     promptTextInfoInsideChat:boolean
     claudeBatching:boolean
