@@ -1056,7 +1056,7 @@
             return `<span class="text-blue-500">${d || 'null'}</span>`
         })
 
-        return `<span class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</span>`
+        return `<div class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
     }
     
     onMount(() => {
@@ -1228,7 +1228,7 @@
                                 oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
                             >
                                 {#if effect.type === 'v2EndIndent'}
-                                    <span class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</span>
+                                    <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
                                 {:else}
                                     {@html formatEffectDisplay(effect)}
                                 {/if}
