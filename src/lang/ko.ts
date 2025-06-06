@@ -358,6 +358,7 @@ export const languageKorean = {
     "authorNote": "작가의 노트",
     "firstMessage": "첫 메시지",
     "description": "설명",
+    "note": "메모",
     "jailbreakToggle": "탈옥 토글",
     "charIcon": "캐릭터 아이콘",
     "characterDisplay": "캐릭터 디스플레이",
