@@ -18,7 +18,7 @@ export interface Messagec extends Message{
 
 export function messageForm(arg:Message[], loadPages:number){
     function reformatContent(data:string){
-        return data.trim()
+        return data?.trim()
     }
 
     let a:Messagec[] = []

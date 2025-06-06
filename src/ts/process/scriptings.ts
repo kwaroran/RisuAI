@@ -157,7 +157,7 @@ export async function runScripted(code:string, arg:{
                 }
                 const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
-                    message.data = value
+                    message.data = value ?? ''
                 }
             })
             declareAPI('setChatRole', (id:string, index:number, value:string) => {
@@ -186,14 +186,14 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.push({role: roleData, data: value})
+                ScriptingEngineState.chat.message.push({role: roleData, data: value ?? ''})
             })
             declareAPI('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value ?? ''})
             })
 
             declareAPI('getTokens', async (id:string, value:string) => {
