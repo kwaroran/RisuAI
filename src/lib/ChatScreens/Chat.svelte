@@ -167,14 +167,15 @@
         }
 
         const target = event.target as HTMLElement
-
-        const triggerName = target.getAttribute('risu-trigger')
-        const btnEvent = target.getAttribute('risu-btn')
-
-        if(triggerName || btnEvent) {
-            event.stopPropagation()
-            event.preventDefault()
+        const origin = target.closest('[risu-trigger], [risu-btn]')
+        if (!origin) {
+            return
         }
+
+        const triggerName = origin.getAttribute('risu-trigger')
+        const btnEvent = origin.getAttribute('risu-btn')
+
+        console.log(origin, triggerName, btnEvent)
 
         const triggerResult =
             triggerName ?
