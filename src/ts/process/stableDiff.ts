@@ -7,6 +7,8 @@ import { CharEmotion, DBState } from "../stores.svelte"
 import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
 import { keiServerURL } from "../kei/kei"
+import { random } from "lodash"
+
 export async function stableDiff(currentChar:character,prompt:string){
     let db = getDatabase()
 
@@ -134,7 +136,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "add_original_image": true,
                     "cfg_rescale": db.NAIImgConfig.cfg_rescale,
                     "controlnet_strength": 1,
-                    "dynamic_thresholding": false,
+                    "dynamic_thresholding": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.decrisp : false,
                     "n_samples": 1,
                     "width": db.NAIImgConfig.width,
                     "height": db.NAIImgConfig.height,
@@ -142,47 +144,63 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "steps": db.NAIImgConfig.steps,
                     "scale": db.NAIImgConfig.scale,
                     "negative_prompt": neg,
-                    "sm": false,
-                    "sm_dyn": false,
-                    "noise": db.NAIImgConfig.noise,
-                    "noise_schedule": "karras",
-                    "normalize_reference_strength_multiple":false,
-                    "strength": db.NAIImgConfig.strength,
+                    "sm": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.sm : undefined,
+                    "sm_dyn": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') ? db.NAIImgConfig.sm_dyn : undefined,
+                    "noise_schedule": db.NAIImgConfig.noise_schedule,
+                    "normalize_reference_strength_multiple":true,
                     "ucPreset": 3,
                     "uncond_scale": 1,
                     "qualityToggle": false,
                     "legacy_v3_extend": false,
                     "legacy": false,
-                    // "reference_information_extracted": db.NAIImgConfig.InfoExtracted,
-                    // Only set reference_strength if we're not using reference_strength_multiple
-                    "reference_strength": db.NAIImgConfig.reference_strength_multiple !== undefined ? undefined : db.NAIImgConfig.RefStrength,
                     //add v4
-                    "autoSmea": db.NAIImgConfig.autoSmea,
-                    "use_coords": db.NAIImgConfig.use_coords,
+                    "autoSmea": false,
+                    "use_coords": false,
                     "legacy_uc": db.NAIImgConfig.legacy_uc,
                     "v4_prompt":{
                         caption:{
                             base_caption:genPrompt,
                             char_captions: []
                         },
-                        use_coords: db.NAIImgConfig.v4_prompt.use_coords,
-                        use_order: db.NAIImgConfig.v4_prompt.use_order
+                        use_coords: false,
+                        use_order: true,
                     },
                     "v4_negative_prompt":{
                         caption:{
                             base_caption:neg,
                             char_captions: []
                         },
-                        legacy_uc: db.NAIImgConfig.v4_negative_prompt.legacy_uc,
+                        legacy_uc: db.NAIImgConfig.legacy_uc,
                     },
                     "reference_image_multiple" : [],
                     "reference_strength_multiple" : [],
+                    //add reference image
+                    "image": undefined, 
+                    "strength": undefined,
+                    "noise": undefined,
+                    //add additional parameters
+                    "seed": random(0, 2**32-1),
+                    "extra_noise_seed": random(0, 2**32-1),
+                    "prefer_brownian": true,
+                    "deliberate_euler_ancestral_bug": false,
+                    "skip_cfg_above_sigma": null,
                 }
             },
             headers:{
                 "Authorization": "Bearer " + db.NAIApiKey
             },
             rawResponse: true
+        }
+
+        // Add Variety+ option 
+        if(db.NAIImgConfig.variety_plus) {
+            if(db.NAIImgModel.includes('nai-diffusion-4-full') || db.NAIImgModel.includes('nai-diffusion-4-curated')
+            || db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3')) {
+                commonReq.body.parameters.skip_cfg_above_sigma = 19;
+            }
+            if(db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
+                commonReq.body.parameters.skip_cfg_above_sigma = 58;
+            }
         }
 
         // Add vibe reference_image_multiple if exists
@@ -224,62 +242,33 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
 
         if(db.NAII2I){
-            let seed = Math.floor(Math.random() * 10000000000)
+            let seed = random(0, 1000000000);
 
             let base64img = ''
-            if(db.NAIImgConfig.image === ''){
+            if(!db.NAIImgConfig.image || db.NAIImgConfig.image === ''){
                 const charimg = currentChar.image;
 
                 const img = await readImage(charimg)
-                base64img = Buffer.from(img).toString('base64');
+                base64img = Buffer.from(img).toString('base64')
             }   else{
-                base64img = Buffer.from(await readImage(db.NAIImgConfig.image)).toString('base64');
+                base64img = db.NAIImgConfig.base64image;
             }
-
-            let refimgbase64 = undefined
-
-            if(db.NAIREF){
-                if(db.NAIImgConfig.refimage !== ''){
-                    refimgbase64 = Buffer.from(await readImage(db.NAIImgConfig.refimage)).toString('base64');
-                }
-            }
+            
 
             reqlist = commonReq;
             reqlist.body.action = "img2img";
             reqlist.body.parameters.image = base64img;
-            reqlist.body.parameters.extra_noise_seed = seed;
-            reqlist.body.parameters.seed = seed;
-
-            if(refimgbase64 !== undefined){
-                reqlist.body.parameters.reference_image = refimgbase64
-            }
-
-
+            reqlist.body.parameters.strength = db.NAIImgConfig.strength || 0.7;
+            reqlist.body.parameters.noise = db.NAIImgConfig.noise || 0;
+            
             console.log({img2img:reqlist});
         }else{
 
-            if (db.NAIREF) {
+            reqlist = commonReq;
+            reqlist.body.action = 'generate';
 
-                let base64img = ''
-                if(db.NAIImgConfig.image === ''){
-                    const charimg = currentChar.image;
-
-                    const img = await readImage(charimg)
-                    base64img = Buffer.from(img).toString('base64');
-                }   else{
-                    base64img = Buffer.from(await readImage(db.NAIImgConfig.refimage)).toString('base64');
-                }
-                reqlist = commonReq;
-                reqlist.body.action = 'generate';
-                reqlist.body.parameters.reference_image = base64img;
-
-                console.log({generate:reqlist});
-            } else {
-                reqlist = commonReq;
-                reqlist.body.action = 'generate';
-
-                console.log({nothing:reqlist});
-            }
+            console.log({nothing:reqlist});
+           
         }
         try {
             const da = await globalFetch(db.NAIImgUrl, reqlist)   

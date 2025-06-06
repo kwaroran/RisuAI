@@ -268,9 +268,8 @@ export function setDatabase(data:Database){
             noise:0.0,
             strength:0.6,
             image:"",
-            refimage:"",
+            base64image:"",
             InfoExtracted:1,
-            RefStrength:0.4,
             //add 4
             autoSmea:false,
             legacy_uc:false,
@@ -289,7 +288,9 @@ export function setDatabase(data:Database){
                     char_captions:[]
                 },
                 legacy_uc:false,
-            }
+            },
+            variety_plus: false,
+            decrisp: false,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
@@ -1444,9 +1445,8 @@ export interface NAIImgConfig{
     noise:number,
     strength:number,
     image:string,
-    refimage:string,
+    base64image:string,
     InfoExtracted:number,
-    RefStrength:number
     //add 4
     autoSmea:boolean,
     use_coords:boolean,
@@ -1458,6 +1458,9 @@ export interface NAIImgConfig{
     reference_strength_multiple?:number[],
     vibe_data?:NAIVibeData,
     vibe_model_selection?:string
+    //add variety+ and decrisp options
+    variety_plus:boolean,
+    decrisp:boolean,
 }
 
 //add 4
