@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte'
     import { alertCardExport, alertConfirm, alertError, alertMd, alertWait } from "../../ts/alert";
     import { language } from "../../lang";
     import { changeToPreset, copyPreset, downloadPreset, importPreset, getDatabase } from "../../ts/storage/database.svelte";
@@ -10,6 +11,9 @@
     import type { PromptItem, PromptItemPlain, PromptItemChatML, PromptItemTyped, PromptItemAuthorNote, PromptItemChat } from "src/ts/process/prompt.ts";
 
     let editMode = $state(false)
+    let mounted = $state(false)
+    let dragEnabled = $state(false)
+    
     interface Props {
         close?: any;
     }
@@ -20,23 +24,78 @@
     let selectedPrompts: string[] = []
     let selectedDiffPreset = $state(-1)
 
+    onMount(() => {
+        // Ensure drag functionality only works after client-side hydration
+        mounted = true
+        // Small delay to ensure DOM is fully ready
+        setTimeout(() => {
+            dragEnabled = true
+        }, 100)
+    })
+
     function reorderPreset(fromIndex: number, toIndex: number) {
+        if (!mounted) return
         if (fromIndex === toIndex) return
         
-        const presets = [...DBState.db.botPresets]
-        const [movedPreset] = presets.splice(fromIndex, 1)
-        presets.splice(toIndex, 0, movedPreset)
-        
-        DBState.db.botPresets = presets
-        
-        // Update current preset ID if needed
-        if (DBState.db.botPresetsId === fromIndex) {
-            DBState.db.botPresetsId = toIndex
-        } else if (DBState.db.botPresetsId > fromIndex && DBState.db.botPresetsId <= toIndex) {
-            DBState.db.botPresetsId--
-        } else if (DBState.db.botPresetsId < fromIndex && DBState.db.botPresetsId >= toIndex) {
-            DBState.db.botPresetsId++
+        try {
+            const presets = [...DBState.db.botPresets]
+            const [movedPreset] = presets.splice(fromIndex, 1)
+            presets.splice(toIndex, 0, movedPreset)
+            
+            DBState.db.botPresets = presets
+            
+            // Update current preset ID if needed
+            if (DBState.db.botPresetsId === fromIndex) {
+                DBState.db.botPresetsId = toIndex
+            } else if (DBState.db.botPresetsId > fromIndex && DBState.db.botPresetsId <= toIndex) {
+                DBState.db.botPresetsId--
+            } else if (DBState.db.botPresetsId < fromIndex && DBState.db.botPresetsId >= toIndex) {
+                DBState.db.botPresetsId++
+            }
+        } catch (error) {
+            console.error('Error reordering presets:', error)
         }
+    }
+
+    function createDropHandler(targetIndex: number) {
+        return (e: DragEvent) => {
+            if (!mounted || !dragEnabled) return
+            
+            try {
+                e.preventDefault()
+                e.stopPropagation()
+                const data = e.dataTransfer?.getData('text')
+                if(data === 'preset'){
+                    const draggedDataString = e.dataTransfer?.getData('preset')
+                    if (draggedDataString) {
+                        const draggedData = JSON.parse(draggedDataString)
+                        reorderPreset(draggedData.index, targetIndex)
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling drop:', error)
+            }
+        }
+    }
+
+    function handleDragStart(e: DragEvent, index: number, preset: any) {
+        if (!mounted || !dragEnabled) {
+            e.preventDefault()
+            return
+        }
+        
+        try {
+            e.dataTransfer?.setData('text', 'preset')
+            e.dataTransfer?.setData('preset', JSON.stringify({index: index, preset: preset}))
+        } catch (error) {
+            console.error('Error starting drag:', error)
+            e.preventDefault()
+        }
+    }
+
+    function handleDragOver(e: DragEvent) {
+        if (!mounted || !dragEnabled) return
+        e.preventDefault()
     }
 
     function isPromptItemPlain(item: PromptItem): item is PromptItemPlain {
@@ -192,7 +251,7 @@
             const removedCount = `<span style="border-left: 4px solid red; padding-left: 8px; padding-right: 8px;">${removedLinesCount}</span>`
             const diffCounts = `<div>${modifiedCount}${addedCount}${removedCount}</div>`
 
-            resultHtml = `<div id="differences-detected" style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review the changes.${diffCounts}</div>` + resultHtml
+            resultHtml = `<div id="differences-detected" style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review.</div>${diffCounts}<br>${resultHtml}`
             alertMd(resultHtml)
 
             setTimeout(() => {
@@ -328,33 +387,13 @@
         {#each DBState.db.botPresets as preset, i}
             {#if i === 0}
                 <div class="first:mt-0 w-full" role="doc-pagebreak" style="height: 6px;"
-                     ondrop={(e) => {
-                         e.preventDefault()
-                         e.stopPropagation()
-                         const data = e.dataTransfer.getData('text')
-                         if(data === 'preset'){
-                             const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
-                             reorderPreset(draggedData.index, i)
-                         }
-                     }} 
-                     ondragover={(e) => {
-                         e.preventDefault()
-                     }}>
+                     ondrop={createDropHandler(i)} 
+                     ondragover={handleDragOver}>
                 </div>
             {:else}
                 <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-darkborderc" role="doc-pagebreak" style="height: 6px;"
-                     ondrop={(e) => {
-                         e.preventDefault()
-                         e.stopPropagation()
-                         const data = e.dataTransfer.getData('text')
-                         if(data === 'preset'){
-                             const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
-                             reorderPreset(draggedData.index, i)
-                         }
-                     }} 
-                     ondragover={(e) => {
-                         e.preventDefault()
-                     }}>
+                     ondrop={createDropHandler(i)} 
+                     ondragover={handleDragOver}>
                 </div>
             {/if}
 
@@ -365,22 +404,10 @@
                 }
             }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" 
                     class:bg-selected={i === DBState.db.botPresetsId}
-                    draggable={!editMode}
-                    ondragstart={(e) => {
-                        e.dataTransfer.setData('text', 'preset')
-                        e.dataTransfer.setData('preset', JSON.stringify({index: i, preset: preset}))
-                    }}
-                    ondragover={(e) => {
-                        e.preventDefault()
-                    }}
-                    ondrop={(e) => {
-                        e.preventDefault()
-                        const data = e.dataTransfer.getData('text')
-                        if(data === 'preset'){
-                            const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
-                            reorderPreset(draggedData.index, i)
-                        }
-                    }}>
+                    draggable={dragEnabled && !editMode}
+                    ondragstart={(e) => handleDragStart(e, i, preset)}
+                    ondragover={handleDragOver}
+                    ondrop={createDropHandler(i)}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.botPresets[i].name} placeholder="string" padding={false}/>
                 {:else}
@@ -460,18 +487,8 @@
         {/each}
         
         <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-darkborderc" role="doc-pagebreak" style="height: 6px;"
-             ondrop={(e) => {
-                 e.preventDefault()
-                 e.stopPropagation()
-                 const data = e.dataTransfer.getData('text')
-                 if(data === 'preset'){
-                     const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
-                     reorderPreset(draggedData.index, DBState.db.botPresets.length)
-                 }
-             }} 
-             ondragover={(e) => {
-                 e.preventDefault()
-             }}>
+             ondrop={createDropHandler(DBState.db.botPresets.length)} 
+             ondragover={handleDragOver}>
         </div>
 
         <div class="flex mt-2 items-center">
