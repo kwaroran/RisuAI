@@ -84,12 +84,16 @@ export async function runScripted(code:string, arg:{
                 ScriptingEngineState.code = code
                 ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
                 const luaEngine = ScriptingEngineState.engine
-                declareAPI = luaEngine.global.set
+                declareAPI = (name:string, func:Function) => {
+                    luaEngine.global.set(name, func)
+                }
             }
             if(ScriptingEngineState.type === 'py'){
                 ScriptingEngineState.pyodide?.close()
                 ScriptingEngineState.pyodide = new PyodideContext()
-                declareAPI = ScriptingEngineState.pyodide.declareAPI
+                declareAPI = (name:string, func:Function) => {
+                    ScriptingEngineState.pyodide?.declareAPI(name, func as any)
+                }
             }
             declareAPI('getChatVar', (id:string,key:string) => {
                 return ScriptingEngineState.getVar(key)

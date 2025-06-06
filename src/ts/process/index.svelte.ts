@@ -57,6 +57,14 @@ export interface OpenAIChatFull extends OpenAIChat{
         name: string
         arguments:string
     }
+    tool_calls?:{
+        function: {
+            name: string
+            arguments:string
+        }
+        id:string
+        type:'function'
+    }[]
 }
 
 export interface requestTokenPart{
