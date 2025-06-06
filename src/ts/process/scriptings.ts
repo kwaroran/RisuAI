@@ -661,6 +661,51 @@ export async function runScripted(code:string, arg:{
                 })
             })
 
+            declareAPI('getCharacterLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return ''
+                }
+
+                const db = getDatabase()
+                const selchar = db.characters[get(selectedCharID)]
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'char') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return selchar.firstMessage
+            })
+
+            declareAPI('getUserLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return null
+                }
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'user') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return null
+            })
+
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
             }
