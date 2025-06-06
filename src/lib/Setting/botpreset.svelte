@@ -20,6 +20,25 @@
     let selectedPrompts: string[] = []
     let selectedDiffPreset = $state(-1)
 
+    function reorderPreset(fromIndex: number, toIndex: number) {
+        if (fromIndex === toIndex) return
+        
+        const presets = [...DBState.db.botPresets]
+        const [movedPreset] = presets.splice(fromIndex, 1)
+        presets.splice(toIndex, 0, movedPreset)
+        
+        DBState.db.botPresets = presets
+        
+        // Update current preset ID if needed
+        if (DBState.db.botPresetsId === fromIndex) {
+            DBState.db.botPresetsId = toIndex
+        } else if (DBState.db.botPresetsId > fromIndex && DBState.db.botPresetsId <= toIndex) {
+            DBState.db.botPresetsId--
+        } else if (DBState.db.botPresetsId < fromIndex && DBState.db.botPresetsId >= toIndex) {
+            DBState.db.botPresetsId++
+        }
+    }
+
     function isPromptItemPlain(item: PromptItem): item is PromptItemPlain {
         return (
             item.type === 'plain' || item.type === 'jailbreak' || item.type === 'cot'
@@ -307,12 +326,61 @@
             </div>
         </div>
         {#each DBState.db.botPresets as preset, i}
+            {#if i === 0}
+                <div class="first:mt-0 w-full" role="doc-pagebreak" style="height: 6px;"
+                     ondrop={(e) => {
+                         e.preventDefault()
+                         e.stopPropagation()
+                         const data = e.dataTransfer.getData('text')
+                         if(data === 'preset'){
+                             const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
+                             reorderPreset(draggedData.index, i)
+                         }
+                     }} 
+                     ondragover={(e) => {
+                         e.preventDefault()
+                     }}>
+                </div>
+            {:else}
+                <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-black" role="doc-pagebreak" style="height: 6px;"
+                     ondrop={(e) => {
+                         e.preventDefault()
+                         e.stopPropagation()
+                         const data = e.dataTransfer.getData('text')
+                         if(data === 'preset'){
+                             const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
+                             reorderPreset(draggedData.index, i)
+                         }
+                     }} 
+                     ondragover={(e) => {
+                         e.preventDefault()
+                     }}>
+                </div>
+            {/if}
+
             <button onclick={() => {
                 if(!editMode){
                     changeToPreset(i)
                     close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.botPresetsId}>
+            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" 
+                    class:bg-selected={i === DBState.db.botPresetsId}
+                    draggable={!editMode}
+                    ondragstart={(e) => {
+                        e.dataTransfer.setData('text', 'preset')
+                        e.dataTransfer.setData('preset', JSON.stringify({index: i, preset: preset}))
+                    }}
+                    ondragover={(e) => {
+                        e.preventDefault()
+                    }}
+                    ondrop={(e) => {
+                        e.preventDefault()
+                        const data = e.dataTransfer.getData('text')
+                        if(data === 'preset'){
+                            const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
+                            reorderPreset(draggedData.index, i)
+                        }
+                    }}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.botPresets[i].name} placeholder="string" padding={false}/>
                 {:else}
@@ -390,6 +458,22 @@
                 </div>
             </button>
         {/each}
+        
+        <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-black" role="doc-pagebreak" style="height: 6px;"
+             ondrop={(e) => {
+                 e.preventDefault()
+                 e.stopPropagation()
+                 const data = e.dataTransfer.getData('text')
+                 if(data === 'preset'){
+                     const draggedData = JSON.parse(e.dataTransfer.getData('preset'))
+                     reorderPreset(draggedData.index, DBState.db.botPresets.length)
+                 }
+             }} 
+             ondragover={(e) => {
+                 e.preventDefault()
+             }}>
+        </div>
+
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
                 let botPresets = DBState.db.botPresets
