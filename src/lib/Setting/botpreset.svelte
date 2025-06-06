@@ -342,7 +342,7 @@
                      }}>
                 </div>
             {:else}
-                <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-black" role="doc-pagebreak" style="height: 6px;"
+                <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-darkborderc" role="doc-pagebreak" style="height: 6px;"
                      ondrop={(e) => {
                          e.preventDefault()
                          e.stopPropagation()
@@ -459,7 +459,7 @@
             </button>
         {/each}
         
-        <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-black" role="doc-pagebreak" style="height: 6px;"
+        <div class="first:mt-0 w-full border-t-1 border-solid border-0 border-darkborderc" role="doc-pagebreak" style="height: 6px;"
              ondrop={(e) => {
                  e.preventDefault()
                  e.stopPropagation()
