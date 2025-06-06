@@ -801,7 +801,9 @@ export interface Database{
         icon:string
         largePortrait?:boolean
         id?:string
+        note?:string
     }[]
+    personaNote:boolean
     assetWidth:number
     animationSpeed:number
     botSettingAtStart:false

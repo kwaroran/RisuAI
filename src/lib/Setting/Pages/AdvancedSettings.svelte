@@ -233,6 +233,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.personaNote} name={language.personaNote}>
+        <Help key="experimental" />
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useTokenizerCaching} name={language.useTokenizerCaching}>
     </Check>
 </div>
