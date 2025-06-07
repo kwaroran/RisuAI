@@ -15,7 +15,7 @@
     import { type Unsubscriber } from "svelte/store"
     import { language } from "../../lang"
     import { alertClear, alertConfirm, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
-    import { type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
+    import { ParseMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getCurrentCharacter, getCurrentChat, setCurrentChat, type MessageGenerationInfo } from "../../ts/storage/database.svelte"
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte"
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte"
@@ -125,8 +125,6 @@
         }, timeout)
     }
 
-    // svelte-ignore non_reactive_update
-    let lastParsed = ''
 
     let blankMessage = $state((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
     $effect.pre(() => {
@@ -216,11 +214,10 @@
                 </span>
             </button>
         {/if}
-        {#if DBState.db.translatorType === 'llm' && translated && !lastParsed.startsWith(`div class="flex justify-center items-center"><div class="animate-spin`)}
+        {#if DBState.db.translatorType === 'llm'}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
                             hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
-                        lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
                         retranslate = true
                         $ReloadGUIPointer = $ReloadGUIPointer + 1
                     }}
@@ -281,11 +278,11 @@
                         alertWait(language.loading)
                         const root = document.querySelector(':root') as HTMLElement;
 
-                        // 안전한 방식으로 HTML 복사본 생성
                         const parser = new DOMParser()
-                        const doc = parser.parseFromString(lastParsed, 'text/html')
+                        const doc = parser.parseFromString(
+                            await ParseMarkdown(msgDisplay, getCurrentCharacter(), 'normal', idx, getCbsCondition())
+                        , 'text/html')
                         
-                        // 기존 스타일 적용 (원본 방식 유지)
                         doc.querySelectorAll('mark').forEach((el) => {
                             const d = el.getAttribute('risu-mark')
                             if(d === 'quote1' || d === 'quote2'){
@@ -314,13 +311,11 @@
                             el.setAttribute('style', `font-weight: bold; font-style: italic; color: ${root.style.getPropertyValue('--FontColorItalicBold')};`)
                         })
                         
-                        // 이미지 처리 (개선된 방식)
                         const imgs = doc.querySelectorAll('img')
                         for(const img of imgs){
                             img.setAttribute('alt', 'from RisuAI')
                             const url = img.getAttribute('src')
                             
-                            // 이미지 스타일 개선
                             img.setAttribute('style', `
                                 max-width: 100%;
                                 margin: 10px 0;
@@ -331,7 +326,6 @@
                                 margin-right: auto;
                             `)
                             
-                            // 안전한 이미지 URL 처리
                             if(url && (url.startsWith('http://asset.localhost') || url.startsWith('https://asset.localhost') || url.startsWith('https://sv.risuai') || url.startsWith('data:') || url.startsWith('http') || url.startsWith('/'))){
                                 try {
                                     let fetchUrl = url
@@ -357,16 +351,15 @@
                                         canvas.width = imgElement.width
                                         canvas.height = imgElement.height
                                         ctx.drawImage(imgElement, 0, 0)
-                                        const dataURL = canvas.toDataURL('image/jpeg', 0.9)
+                                        const dataURL = canvas.toDataURL('image/jpeg', 0.6)
                                         img.setAttribute('src', dataURL)
                                     }
                                 } catch (error) {
-                                    console.error('이미지 처리 오류:', error)
+                                    console.error('Image error:', error)
                                 }
                             }
                         }
 
-                        // 아이콘 이미지 처리
                         let iconDataUrl = ''
                         let hasValidImage = false
                         
@@ -408,16 +401,14 @@
                                 }
                             }
                         } catch (error) {
-                            console.error('아이콘 처리 오류:', error)
+                            console.error('Icon error:', error)
                             hasValidImage = false
                         }
 
-                        // 유저 메시지 처리
                         const isUserMessage = role === 'user'
                         const displayName = isUserMessage ? getUserName() : name
                         const modelInfo = messageGenerationInfo ? capitalize(getModelInfo(messageGenerationInfo.model).shortName) : (isUserMessage ? 'User' : 'AI')
                         
-                        // 유저 아이콘 처리
                         let finalIconDataUrl = iconDataUrl
                         let finalHasValidImage = hasValidImage
                         
@@ -462,13 +453,12 @@
                                         }
                                     }
                                 } catch (error) {
-                                    console.error('유저 아이콘 처리 오류:', error)
+                                    console.error('User icon error:', error)
                                     finalHasValidImage = false
                                 }
                             }
                         }
                         
-                        // 개선된 HTML 템플릿 (원본 스타일 기반)
                         const html = `<div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: ${root.style.getPropertyValue('--risu-theme-textcolor')}; line-height: 1.6; max-width: 600px; margin: 1rem auto; background: ${root.style.getPropertyValue('--risu-theme-bgcolor')}; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.15); overflow: hidden;">
     <div style="padding: 20px;">
         <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem; text-align: center;">
