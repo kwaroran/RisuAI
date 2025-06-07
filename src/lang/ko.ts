@@ -1002,4 +1002,9 @@ export const languageKorean = {
     "claudeBatching": "Claude 배칭",
     "folderNameInput": "새 폴더 이름을 입력해주세요",
     "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다.",
+    "userMemosEmptyMessage": "저장된 사용자 메모가 없습니다.",
+    "userMemos": "메모",
+    "userMemosDelete": "해당 메모를 삭제하시겠습니까?",
+    "userMemoInitialize": "현재 채팅 세션에서 저장된 메모 데이터를 찾을 수 없습니다. 이 채팅에서 메모를 새로 시작하시겠습니까?",
+    "userMemosEnabled": "유저 메모 활성화",
 }
