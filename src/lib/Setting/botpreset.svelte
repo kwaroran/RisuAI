@@ -48,6 +48,35 @@
         return item.type === 'chat'
     }
 
+    function movePreset(fromIndex: number, toIndex: number) {
+        if (fromIndex === toIndex) return;
+        
+        let botPresets = [...DBState.db.botPresets];
+        const movedItem = botPresets.splice(fromIndex, 1)[0];
+        botPresets.splice(toIndex, 0, movedItem);
+        
+        const currentId = DBState.db.botPresetsId;
+        if (currentId === fromIndex) {
+            DBState.db.botPresetsId = toIndex;
+        } else if (fromIndex < currentId && toIndex >= currentId) {
+            DBState.db.botPresetsId = currentId - 1;
+        } else if (fromIndex > currentId && toIndex <= currentId) {
+            DBState.db.botPresetsId = currentId + 1;
+        }
+        
+        DBState.db.botPresets = botPresets;
+    }
+
+    function handlePresetDrop(targetIndex: number, e: DragEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        const data = e.dataTransfer?.getData('text');
+        if (data === 'preset') {
+            const sourceIndex = parseInt(e.dataTransfer?.getData('presetIndex') || '0');
+            movePreset(sourceIndex, targetIndex);
+        }
+    }
+
     function escapeHtml(text: string): string {
         return text
             .replace(/&/g, '&amp;')
@@ -307,12 +336,45 @@
             </div>
         </div>
         {#each DBState.db.botPresets as preset, i}
+            <!-- Drop zone before each preset -->
+            <div class="w-full h-1 transition-colors duration-200 hover:bg-green-500" 
+                ondragover={(e) => {
+                    e.preventDefault()
+                    e.currentTarget.classList.add('bg-green-500')
+                }} 
+                ondragleave={(e) => {
+                    e.currentTarget.classList.remove('bg-green-500')
+                }} 
+                ondrop={(e) => {
+                    e.currentTarget.classList.remove('bg-green-500')
+                    handlePresetDrop(i, e)
+                }}>
+            </div>
+            
             <button onclick={() => {
                 if(!editMode){
                     changeToPreset(i)
                     close()
                 }
-            }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.botPresetsId}>
+            }} 
+            class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" 
+            class:bg-selected={i === DBState.db.botPresetsId}
+            class:draggable-preset={!editMode}
+            draggable={!editMode ? "true" : "false"}
+            ondragstart={(e) => {
+                if (editMode) {
+                    e.preventDefault()
+                    return
+                }
+                e.dataTransfer?.setData('text', 'preset')
+                e.dataTransfer?.setData('presetIndex', i.toString())
+            }}
+            ondragover={(e) => {
+                e.preventDefault()
+            }}
+            ondrop={(e) => {
+                handlePresetDrop(i, e)
+            }}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.botPresets[i].name} placeholder="string" padding={false}/>
                 {:else}
@@ -390,6 +452,22 @@
                 </div>
             </button>
         {/each}
+        
+        <!-- Drop zone after all presets -->
+        <div class="w-full h-1 transition-colors duration-200 hover:bg-green-500" 
+            ondragover={(e) => {
+                e.preventDefault()
+                e.currentTarget.classList.add('bg-green-500')
+            }} 
+            ondragleave={(e) => {
+                e.currentTarget.classList.remove('bg-green-500')
+            }} 
+            ondrop={(e) => {
+                e.currentTarget.classList.remove('bg-green-500')
+                handlePresetDrop(DBState.db.botPresets.length, e)
+            }}>
+        </div>
+        
         <div class="flex mt-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer mr-1" onclick={() => {
                 let botPresets = DBState.db.botPresets
@@ -435,5 +513,18 @@
 
     :global(.prompt-diff-highlight){
         background-color: yellow !important;
+    }
+
+    /* Drag and drop styles */
+    .draggable-preset:hover {
+        cursor: grab;
+    }
+
+    .draggable-preset:active {
+        cursor: grabbing;
+    }
+
+    .h-1 {
+        min-height: 4px;
     }
 </style>
