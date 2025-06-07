@@ -15,6 +15,8 @@
         role: string|null
         translated: boolean
         translating: boolean
+        lastParsed?: string
+        retranslate?: boolean
     }
 
     let {
@@ -24,14 +26,16 @@
         msgDisplay,
         role,
         translated = $bindable(false),
-        translating = $bindable(false)
+        translating = $bindable(false),
+        lastParsed = $bindable(''),
+        retranslate = $bindable(false)
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
-    let lastParsed = ''
+    // let lastParsed = '' // 이제 prop으로 받음
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
-    let retranslate = false
+    // let retranslate = false // 이제 prop으로 받음
 
     function getCbsCondition(){
         try{

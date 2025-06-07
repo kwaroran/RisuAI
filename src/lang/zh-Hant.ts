@@ -405,7 +405,7 @@ export const languageChineseTraditional = {
     "tags": "標籤",
     "backgroundHTML": "背景嵌入",
     "copied": "已複製",
-    "useChatCopy": "啟用聊天訊息複製",
+    "useChatCopy": "使用聊天格式化複製",
     "useChatSticker": "啟用聊天貼圖",
     "useAdditionalAssetsPreview": "使用額外資源預覽",
     "autoTranslateInput": "自動輸入翻譯",

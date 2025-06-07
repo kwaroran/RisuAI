@@ -593,7 +593,7 @@ export const languageEnglish = {
     tags: "Tags",
     backgroundHTML: "Background Embedding",
     copied: "Copied",
-    useChatCopy: "Use Chat Message Copy",
+    useChatCopy: "Use Chat Formatted Copy",
     useChatSticker: "Use Chat Sticker",
     useAdditionalAssetsPreview: "Use Additional Assets Preview",
     autoTranslateInput: "Auto Translate Input",

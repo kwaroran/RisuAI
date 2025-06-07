@@ -24,20 +24,17 @@
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
-    let retranslate = false
     interface Props {
         message?: string;
         name?: string;
         largePortrait?: boolean;
         isLastMemory: boolean;
         img?: string|Promise<string>;
-        idx?: number;
+        idx?: any;
         messageGenerationInfo?: MessageGenerationInfo|null;
-        rerollIcon?: boolean|'dynamic';
-        role?: string;
-        totalLength?: number;
-        onReroll?: () => void;
-        unReroll?: () => void;
+        rerollIcon?: boolean;
+        onReroll?: any;
+        unReroll?: any;
         character?: simpleCharacterArgument|string|null;
         firstMessage?: boolean;
         altGreeting?: boolean;
@@ -52,8 +49,6 @@
         idx = -1,
         rerollIcon = false,
         messageGenerationInfo = null,
-        role = null,
-        totalLength = 0,
         onReroll = () => {},
         unReroll = () => {},
         character = null,
@@ -63,6 +58,7 @@
 
     let msgDisplay = $state('')
     let translated = $state(false)
+    let role = $derived(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.role)
 
     async function rm(e:MouseEvent, rec?:boolean){
         if(e.shiftKey){
@@ -126,7 +122,8 @@
     }
 
     // svelte-ignore non_reactive_update
-    let lastParsed = ''
+    let lastParsed = $state('')
+    let retranslate = $state(false)
 
     let blankMessage = $state((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
     $effect.pre(() => {
@@ -220,7 +217,6 @@
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
                             hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
-                        lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
                         retranslate = true
                         $ReloadGUIPointer = $ReloadGUIPointer + 1
                     }}
@@ -244,8 +240,7 @@
             {language.noMessage}
         </div>
     {:else}
-        {@const chatReloadPointer = $ReloadChatPointer[idx] ?? 0}
-        {@const totalLengthPointer = (idx > totalLength - 6) ? totalLength : 0}
+
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
@@ -256,8 +251,8 @@
             style:font-size="{0.875 * (DBState.db.zoomsize / 100)}rem"
             style:line-height="{(DBState.db.lineHeight ?? 1.25) * (DBState.db.zoomsize / 100)}rem"
         >
-            {#key `${totalLengthPointer}|${chatReloadPointer}`}
-                <ChatBody
+            {#key $ReloadGUIPointer}
+                <ChatBody 
                     {character}
                     {firstMessage}
                     {idx}
@@ -265,7 +260,9 @@
                     {name}
                     role={role ?? null}
                     bind:translated={translated}
-                    bind:translating={translating} />
+                    bind:translating={translating}
+                    bind:lastParsed={lastParsed}
+                    bind:retranslate={retranslate} />
             {/key}
         </span>
     {/if}
@@ -274,8 +271,17 @@
 {#snippet icons(options:{applyTextColors?:boolean} = {})}
     <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
-        {#if DBState.db.useChatCopy && !blankMessage}
+        {#if !blankMessage}
             <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
+                // 꾸미기 기능이 꺼져있으면 순수 텍스트만 복사
+                if(!DBState.db.useChatCopy){
+                    window.navigator.clipboard.writeText(msgDisplay).then(() => {
+                        setStatusMessage(language.copied, 2000)
+                    })
+                    return
+                }
+
+                // 꾸미기 기능이 켜져있으면 HTML 템플릿과 함께 복사
                 if(window.navigator.clipboard.write){
                     try {
                         alertWait(language.loading)
@@ -497,13 +503,15 @@
                     catch (e) {
                         alertClear()
                         window.navigator.clipboard.writeText(msgDisplay).then(() => {
-                            setStatusMessage(language.copied)
+                            setStatusMessage(language.copied, 2000)
                         })
                     }
                 }
-                window.navigator.clipboard.writeText(msgDisplay).then(() => {
-                    setStatusMessage(language.copied)
-                })
+                else{
+                    window.navigator.clipboard.writeText(msgDisplay).then(() => {
+                        setStatusMessage(language.copied, 2000)
+                    })
+                }
             }}>
                 <CopyIcon size={20}/>
             </button>    
@@ -544,14 +552,14 @@
         {/if}
         {#if rerollIcon || altGreeting}
             {#if DBState.db.swipe || altGreeting}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={unReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll}>
                     <ArrowLeft size={22}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
                     <ArrowRight size={22}/>
                 </button>
             {:else}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
                     <RefreshCcwIcon size={20}/>
                 </button>
             {/if}

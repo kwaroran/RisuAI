@@ -49,3 +49,10 @@ dist.zip
 
 # Due to Cargo.lock makes the project build fail, we ignore it
 Cargo.lock
+
+# 참고파일 (백업/레퍼런스 파일들)
+참고파일/
+
+# PNPM 관련 추가 파일들
+.pnpm-store/
+.pnpm-debug.log*

@@ -541,7 +541,7 @@ export const languageKorean = {
     "tags": "Tags",
     "backgroundHTML": "백그라운드 임베딩",
     "copied": "복사됨",
-    "useChatCopy": "채팅 메시지 복사 사용",
+    "useChatCopy": "채팅 복사 시 꾸미기 사용",
     "useChatSticker": "채팅 스티커 사용",
     "useAdditionalAssetsPreview": "추가 에셋 미리보기 사용",
     "autoTranslateInput": "입력 자동 번역",

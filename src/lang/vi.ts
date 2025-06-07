@@ -283,7 +283,7 @@ export const LanguageVietnamese = {
     "tags": "Thẻ",
     "backgroundHTML": "Nhúng nền",
     "copied": "Đã sao chép",
-    "useChatCopy": "Sử dụng Sao chép tin nhắn trò chuyện",
+    "useChatCopy": "Sử dụng Sao chép trò chuyện định dạng",
     "useChatSticker": "Sử dụng nhãn dán trò chuyện",
     "useAdditionalAssetsPreview": "Sử dụng bản xem trước nội dung bổ sung",
     "autoTranslateInput": "Đầu vào dịch tự động",

@@ -312,7 +312,7 @@ export const languageGerman = {
     tags: "Schlagwörter",
     backgroundHTML: "Hintergrund-Einbettung",
     copied: "Kopiert",
-    useChatCopy: "Kopiervorlage für Chatnachrichten verwenden",
+    useChatCopy: "Chat formatiertes Kopieren verwenden",
     useChatSticker: "Chatsticker verwenden",
     useAdditionalAssetsPreview: "Vorschau für zusätzliche Medien verwenden",
     autoTranslateInput: "Eingabe automatisch übersetzen",

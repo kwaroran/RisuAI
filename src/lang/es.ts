@@ -362,7 +362,7 @@ export const languageSpanish = {
     tags: "Etiquetas",
     backgroundHTML: "Incrustación de Fondo",
     copied: "Copiado",
-    useChatCopy: "Usar Copia de Mensaje de Chat",
+    useChatCopy: "Usar Copia de Chat Formateada",
     useChatSticker: "Usar Sticker de Chat",
     useAdditionalAssetsPreview: "Usar Vista Previa de Activos Adicionales",
     autoTranslateInput: "Traducción Automática de Entrada",

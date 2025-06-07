@@ -400,7 +400,7 @@ export const languageChinese = {
     "tags": "标签",
     "backgroundHTML": "背景嵌入",
     "copied": "已复制",
-    "useChatCopy": "激活聊天消息复制",
+    "useChatCopy": "使用聊天格式化复制",
     "useChatSticker": "激活聊天贴图",
     "useAdditionalAssetsPreview": "使用额外资源预览",
     "autoTranslateInput": "自动输入翻译",
