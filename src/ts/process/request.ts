@@ -947,6 +947,16 @@ async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<requestDat
 
     })
 
+    if(arg.tools && arg.tools.length > 0){
+        body.tools = arg.tools.map(tool => {
+            return {
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.inputSchema
+            } as OaiFunctions
+        })
+    }
+
     if(Object.keys(body.logit_bias).length === 0){
         delete body.logit_bias
     }
