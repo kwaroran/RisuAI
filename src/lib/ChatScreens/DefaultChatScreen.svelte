@@ -29,6 +29,7 @@
     import PlaygroundMenu from '../Playground/PlaygroundMenu.svelte';
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
     import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
+    import Chats from './Chats.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -655,57 +656,16 @@
                     <div></div>
                 {/await}
             {:else}
-            {#each messageForm(currentChat, loadPages) as chat, i (chat.index)}
-                {@const index = chat.index}
-                {#if chat.role === 'char'}
-                    {#if currentCharacter.type !== 'group'}
-                        <Chat
-                            idx={index}
-                            name={currentCharacter.name}
-                            message={chat.data}
-                            rerollIcon={i === 0}
-                            role='char'
-                            totalLength={currentChat.length}
-                            img={getCharImage(currentCharacter.image, 'css')}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                            isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                            character={createSimpleCharacter(currentCharacter)}
-                            largePortrait={currentCharacter.largePortrait}
-                            messageGenerationInfo={chat.generationInfo}
-                        />
-                    {:else}
-                        <Chat
-                            idx={index}
-                            name={findCharacterbyId(chat.saying).name}
-                            message={chat.data}
-                            rerollIcon={i === 0}
-                            role='char'
-                            totalLength={currentChat.length}
-                            onReroll={reroll}
-                            unReroll={unReroll}
-                            img={getCharImage(findCharacterbyId(chat.saying).image, 'css')}
-                            isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                            character={chat.saying}
-                            largePortrait={findCharacterbyId(chat.saying).largePortrait}
-                            messageGenerationInfo={chat.generationInfo}
-                        />
-                    {/if}
-                {:else}
-                    <Chat
-                        character={createSimpleCharacter(currentCharacter)}
-                        idx={index}
-                        name={chat.name ?? currentUsername}
-                        message={chat.data}
-                        role='user'
-                        totalLength={currentChat.length}
-                        img={$ConnectionOpenStore ? '' : getCharImage(userIcon, 'css')}
-                        isLastMemory={currentCharacter.chats[currentCharacter.chatPage].lastMemory === (chat.chatId ?? 'none') && DBState.db.showMemoryLimit}
-                        largePortrait={userIconPortrait}
-                        messageGenerationInfo={chat.generationInfo}
-                    />
-                {/if}
-            {/each}
+            
+            <Chats
+                messages={currentChat}
+                loadPages={loadPages}
+                onReroll={reroll}
+                unReroll={unReroll}
+                currentCharacter={currentCharacter}
+                currentUsername={currentUsername}
+                userIcon={userIcon}
+            />
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
                 {#if DBState.db.characters[$selectedCharID].type !== 'group' }
