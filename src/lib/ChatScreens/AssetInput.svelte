@@ -8,7 +8,8 @@
         onSelect: (additionalAsset:[string,string,string])=>void;
     }
 
-    let { currentCharacter = $bindable(), onSelect }: Props = $props();
+    const { currentCharacter, onSelect }: Props = $props();
+
     let assetFileExtensions:string[] = $state([])
     let assetFilePath:string[] = $state([])
 
@@ -45,7 +46,6 @@
                 const extension = name.split('.').pop().toLowerCase()
                 const imgp = await saveAsset(img,'',extension)
                 currentCharacter.additionalAssets.push([name, imgp, extension])
-                currentCharacter = currentCharacter
             }
         }
     }}>

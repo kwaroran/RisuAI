@@ -37,6 +37,7 @@ export const MobileSideBar = writable(0)
 export const ShowVN = writable(false)
 export const SettingsMenuIndex = writable(-1)
 export const ReloadGUIPointer = writable(0)
+export const ReloadChatPointer = writable({} as Record<number, number>)
 export const OpenRealmStore = writable(false)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
@@ -74,6 +75,10 @@ CustomCSSStore.subscribe((css) => {
         s.innerHTML = css
         document.body.appendChild(s)
     }
+})
+
+ReloadGUIPointer.subscribe(() => {
+    ReloadChatPointer.set({})
 })
 
 export function createSimpleCharacter(char:character|groupChat){
