@@ -57,6 +57,7 @@
             if(!hashes.has(currentHash)){
                 const b = document.createElement('div');
                 b.setAttribute('x-hashed', currentHash.toString());
+                b.classList.add('chat-message-container');
                 const inst = mount(Chat, {
                     target: b,
                     props: {
@@ -67,7 +68,7 @@
                         img: message.role === 'user' ? userImage : charImage,
                         onReroll: onReroll,
                         unReroll: unReroll,
-                        rerollIcon: true,
+                        rerollIcon: 'dynamic',
                         character: simpleChar,
                         largePortrait: (currentCharacter as character).largePortrait,
                         messageGenerationInfo: message.generationInfo,
@@ -79,7 +80,12 @@
                 mountInstances.set(currentHash, inst);
                 const nextElement = document.querySelector(`[x-hashed="${nextHash}"]`);
                 console.log('Update Log\nnew element', currentHash, 'at', nextElement);
-                chatBody.insertBefore(b, nextElement);
+                if(nextElement){
+                    chatBody.insertBefore(b, nextElement?.nextSibling);
+                }
+                else{
+                    chatBody.prepend(b);
+                }
             }
             nextHash = currentHash;
             
@@ -126,4 +132,4 @@
     })
 
 </script>
-<div bind:this={chatBody}></div>
+<div class="flex flex-col-reverse" bind:this={chatBody}></div>

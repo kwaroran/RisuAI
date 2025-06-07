@@ -363,3 +363,11 @@ html, body{
   word-break: normal;
   overflow-wrap: anywhere;
 }
+
+.chat-message-container .dyna-icon{
+  display: none;
+}
+
+.chat-message-container:first-of-type .dyna-icon{
+  display: block;
+}

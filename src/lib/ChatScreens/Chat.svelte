@@ -33,7 +33,7 @@
         img?: string|Promise<string>;
         idx?: number;
         messageGenerationInfo?: MessageGenerationInfo|null;
-        rerollIcon?: boolean;
+        rerollIcon?: boolean|'dynamic';
         role?: string;
         totalLength?: number;
         onReroll?: () => void;
@@ -544,14 +544,14 @@
         {/if}
         {#if rerollIcon || altGreeting}
             {#if DBState.db.swipe || altGreeting}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" onclick={unReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={unReroll}>
                     <ArrowLeft size={22}/>
                 </button>
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
                     <ArrowRight size={22}/>
                 </button>
             {:else}
-                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" onclick={onReroll}>
+                <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
                     <RefreshCcwIcon size={20}/>
                 </button>
             {/if}
