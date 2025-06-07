@@ -20,6 +20,8 @@
     let selectedPrompts: string[] = []
     let selectedDiffPreset = $state(-1)
 
+
+
     function isPromptItemPlain(item: PromptItem): item is PromptItemPlain {
         return (
             item.type === 'plain' || item.type === 'jailbreak' || item.type === 'cot'
@@ -67,7 +69,7 @@
         DBState.db.botPresets = botPresets;
     }
 
-    function handlePresetDrop(targetIndex: number, e: DragEvent) {
+    function handlePresetDrop(targetIndex: number, e) {
         e.preventDefault();
         e.stopPropagation();
         const data = e.dataTransfer?.getData('text');
@@ -393,7 +395,7 @@
                             e.stopPropagation()
                             handleDiffMode(i)
                         }} onkeydown={(e) => {
-                            if(e.key === 'Enter'){
+                            if(e.key === 'Enter' && e.currentTarget instanceof HTMLElement){
                                 e.currentTarget.click()
                             }
                         }}>
@@ -404,7 +406,7 @@
                         e.stopPropagation()
                         copyPreset(i)
                     }} onkeydown={(e) => {
-                        if(e.key === 'Enter'){
+                        if(e.key === 'Enter' && e.currentTarget instanceof HTMLElement){
                             e.currentTarget.click()
                         }
                     }}>
@@ -421,7 +423,7 @@
                             $ShowRealmFrameStore = `preset:${i}`
                         }
                     }} onkeydown={(e) => {
-                        if(e.key === 'Enter'){
+                        if(e.key === 'Enter' && e.currentTarget instanceof HTMLElement){
                             e.currentTarget.click()
                         }
                     }}>
@@ -443,7 +445,7 @@
                             changeToPreset(0, false)
                         }
                     }} onkeydown={(e) => {
-                        if(e.key === 'Enter'){
+                        if(e.key === 'Enter' && e.currentTarget instanceof HTMLElement){
                             e.currentTarget.click()
                         }
                     }}>
