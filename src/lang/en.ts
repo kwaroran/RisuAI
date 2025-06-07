@@ -1137,4 +1137,10 @@ export const languageEnglish = {
     folderNameInput: "Please input the new folder name",
     folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
     personaNote: "Persona Note",
+    userMemos: "Memos",
+    userMemosEmptyMessage: "No user memos yet.",
+    userMemosDelete: "Are you sure you want to delete this user memo?",
+    userMemoInitialize: "No saved memo data found in this chat session. Would you like to start a new memo?",
+    userMemosEnabled: "Enable User Memos",
+    userMemosError: "Could not proceed due to an issue with the memo data format. Please check your chat data or export it for backup.",
 }

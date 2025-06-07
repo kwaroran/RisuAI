@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { alertGenerationInfoStore } from "../../ts/alert";
+    import { alertGenerationInfoStore, alertError } from "../../ts/alert";
     
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from '../../ts/characters';
@@ -10,7 +10,7 @@
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon, PlusIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -23,6 +23,7 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { isNodeServer, isTauri } from "src/ts/globalApi.svelte";
 
     let btn
     let input = $state('')
@@ -59,6 +60,13 @@
             return data
         }
     }
+
+    let memoExpandedId: string | null = $state(null)
+    let memoDraftTitle = $state('')
+    let memoDraftContent = $state('')
+    const memoDraftByte = $derived(new TextEncoder().encode(memoDraftContent).length)
+    const MAX_MEMOS_PER_MESSAG = (isNodeServer || isTauri) ? 10 : 3
+    const MAX_MEMO_SIZE = (isNodeServer || isTauri) ? 1024 * 50 : 1024 * 3
 </script>
 
 <svelte:window onmessage={async (e) => {
@@ -217,6 +225,9 @@
                     <Button selected={generationInfoMenuIndex === 3} size="sm" onclick={() => {generationInfoMenuIndex = 3}}>
                         {language.prompt}
                     </Button>
+                    <Button selected={generationInfoMenuIndex === 4} size="sm" onclick={() => {generationInfoMenuIndex = 4}}>
+                        {language.userMemos}
+                    </Button>
                     <button class="ml-auto" onclick={() => {
                         alertStore.set({
                             type: 'none',
@@ -321,6 +332,138 @@
                                 {/if}
                             </div>
                         </div>
+                    {/if}
+                {/if}
+                {#if generationInfoMenuIndex === 4}
+                    {#if !DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]?.userMemos?.[$alertGenerationInfoStore.genInfo.generationId]?.length}
+                        <div class="text-gray-300 text-lg mt-2">{language.userMemosEmptyMessage}</div>
+                    {:else}
+                        <div class="space-y-3 mt-4">
+                            {#each DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]?.userMemos?.[$alertGenerationInfoStore.genInfo.generationId] as userMemo, _ (userMemo.id)}
+                                <div role="button" tabindex="0" class="flex items-center bg-gray-900 rounded-md px-4 py-3 shadow-sm hover:bg-neutral-700 transition-all" onclick={(e) => {
+                                        e.preventDefault()
+                                        memoExpandedId = memoExpandedId === userMemo.id ? null : userMemo.id
+                                        memoDraftTitle = userMemo.title
+                                        memoDraftContent = userMemo.content
+                                    }}
+                                    onkeydown={() => {
+                                    }}>
+                                    <span class="flex-1 font-semibold w-2xl text-lg text-gray-100 truncate">{userMemo.title}</span>
+                                    <div class="flex flex-col sm:flex-row items-end text-sm text-gray-300 leading-tight mr-2">
+                                        <span class="text-gray-400 text-sm">{new Date(userMemo.createdAt).toLocaleDateString()}</span>
+                                        <span class="text-gray-400 text-sm">{new Date(userMemo.createdAt).toLocaleTimeString()}</span>
+                                    </div>
+                                    <button onclick={async (e) => {
+                                        e.stopPropagation()
+                                        let targetUserMemos = DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]?.userMemos
+
+                                        const r = await confirm(`${language.userMemosDelete}`)
+                                        if(!r) return
+
+                                        targetUserMemos[$alertGenerationInfoStore.genInfo.generationId] = targetUserMemos[$alertGenerationInfoStore.genInfo.generationId].filter(memo => memo.id !== userMemo.id)
+                                        console.log(`[Memo Delete] Memo removed from '${DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]?.name}'.`)
+                                        console.log(`[Memo Delete] Current value: ${JSON.stringify(targetUserMemos[$alertGenerationInfoStore.genInfo.generationId])}`)
+
+                                        if (targetUserMemos[$alertGenerationInfoStore.genInfo.generationId] && targetUserMemos[$alertGenerationInfoStore.genInfo.generationId].length === 0) {
+                                            console.log(`[Memo Cleanup] All memos for chatId '${$alertGenerationInfoStore.genInfo.generationId}' are removed. Deleting the key from userMemos.`);
+                                            delete targetUserMemos[$alertGenerationInfoStore.genInfo.generationId];
+                                        }
+
+                                    }} class={`text-textcolor2 hover:text-green-500 opacity-100 cursor-pointer`}>
+                                        <XIcon />
+                                    </button>
+                                </div>
+                                {#if memoExpandedId === userMemo.id}
+                                    <div class="mt-3 mb-6 rounded-md bg-neutral-800 border-l-4 border-green-600 pl-4 pr-2 py-4 overflow-hidden">
+                                        <input
+                                            type="text"
+                                            bind:value={memoDraftTitle}
+                                            class="w-full bg-neutral-900 text-lg font-semibold px-2 py-1 rounded mb-2" />
+                                        <div class="text-xs text-gray-400 flex gap-4 mb-2">
+                                            <span>Created: {new Date(userMemo.createdAt).toLocaleString()}</span>
+                                            <span>Updated: {new Date(userMemo.updatedAt).toLocaleString()}</span>
+                                        </div>
+                                        <textarea
+                                            bind:value={memoDraftContent}
+                                            rows="6"
+                                            class="w-full bg-neutral-900 text-gray-100 px-2 py-1 rounded"
+                                        ></textarea>
+                                        <div class="mt-3 flex items-center justify-between">
+                                            <div class={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${memoDraftByte > MAX_MEMO_SIZE ? 'text-red-400' : (memoDraftByte >= MAX_MEMO_SIZE * 0.8 ? 'text-orange-400' : 'text-gray-200')} bg-neutral-700 rounded-full select-none`}>{memoDraftByte.toLocaleString()} Bytes</div>
+                                            <div class="mt-3 flex justify-end gap-2">
+                                                <button
+                                                    class="px-3 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                                                    onclick={() => memoExpandedId = null}
+                                                >Cancel</button>
+                                                <button
+                                                    class={`px-3 py-1 rounded ${(memoDraftByte > MAX_MEMO_SIZE) || !DBState.db.userMemosEnabled ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 opacity-100'} text-white`}
+                                                    disabled={(memoDraftByte > MAX_MEMO_SIZE) || !DBState.db.userMemosEnabled}
+                                                    onclick={() => {   
+                                                        if (memoDraftByte > MAX_MEMO_SIZE) {
+                                                            return
+                                                        }                                                   
+                                                        userMemo.title = memoDraftTitle.trim() || 'New memo'
+                                                        userMemo.content = memoDraftContent
+                                                        userMemo.updatedAt = new Date().toISOString()
+                                                        memoExpandedId = null
+                                                    }}
+                                                >Save</button>
+                                            </div>
+                                        </div>                                        
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                    {/if}
+                    {#if DBState.db.userMemosEnabled}
+                    <div class="mt-6 flex items-center justify-between">
+                        <button onclick={async () => {
+                            let targetChat = DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]
+                            
+                            if(!Object.prototype.hasOwnProperty.call(targetChat, 'userMemos')){
+                                console.log(`[Memo Add] The 'userMemos' property is missing from the ${targetChat.name} object`)
+                                const r = await confirm(`${language.userMemoInitialize}`)
+                                if(!r){
+                                    console.warn("[Memo Init Denied] User cancelled memo initialization. 'userMemos' remains as is (or missing).")
+                                    return
+                                }
+                                console.log("[Memo Init] User confirmed. Initializing 'userMemos'.")
+                                targetChat.userMemos = {}
+                            }
+                            else if(typeof targetChat.userMemos !== "object" || targetChat.userMemos === null || Array.isArray(targetChat.userMemos)){
+                                console.error(`[Memo Add] Invalid 'userMemos' type detected on '${targetChat.name}': ${typeof targetChat.userMemos}.`)
+                                console.error(`[Memo Add] Current value: ${JSON.stringify(targetChat.userMemos)}. Initialization skipped to avoid overwriting unexpected structure.`)
+                                alertError(language.userMemosError)
+                                return
+                            }
+                            else{
+                                console.log(`[Memo Add] 'userMemos' property exists, and received type '${typeof targetChat.userMemos}' for chat: '${targetChat.name}'.`)
+                                console.log(`[Memo Add] Current value: ${JSON.stringify(targetChat.userMemos)}`)
+                            }
+
+                            let memosForCurrentMessage = targetChat?.userMemos[$alertGenerationInfoStore.genInfo.generationId] ?? []
+
+                            if(memosForCurrentMessage.length >= MAX_MEMOS_PER_MESSAG){
+                                return
+                            }
+
+                            let newMemo = {
+                                id: crypto.randomUUID(),
+                                title: 'New memo',
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                                content: '',
+                                locked: false,
+                            }
+
+                            targetChat.userMemos[$alertGenerationInfoStore.genInfo.generationId] = [...memosForCurrentMessage, newMemo]
+                        }} class="text-textcolor2 hover:text-green-500 cursor-pointer">
+                            <PlusIcon />
+                        </button>
+                        <span class="ml-2 inline-flex items-end px-2 py-1 rounded-full bg-neutral-700 text-gray-300 text-sm font-mono">
+                            {DBState.db.characters[$selectedCharID]?.chats[DBState.db.characters[$selectedCharID].chatPage]?.userMemos?.[$alertGenerationInfoStore.genInfo.generationId]?.length ?? 0} / {MAX_MEMOS_PER_MESSAG}
+                        </span>
+                    </div>
                     {/if}
                 {/if}
             {:else if $alertStore.type === 'hypaV2'}
