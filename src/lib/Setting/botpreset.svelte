@@ -337,16 +337,16 @@
         </div>
         {#each DBState.db.botPresets as preset, i}
             <!-- Drop zone before each preset -->
-            <div class="w-full h-1 transition-colors duration-200 hover:bg-green-500" 
+            <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
                 ondragover={(e) => {
                     e.preventDefault()
-                    e.currentTarget.classList.add('bg-green-500')
+                    e.currentTarget.classList.add('bg-gray-600')
                 }} 
                 ondragleave={(e) => {
-                    e.currentTarget.classList.remove('bg-green-500')
+                    e.currentTarget.classList.remove('bg-gray-600')
                 }} 
                 ondrop={(e) => {
-                    e.currentTarget.classList.remove('bg-green-500')
+                    e.currentTarget.classList.remove('bg-gray-600')
                     handlePresetDrop(i, e)
                 }}>
             </div>
@@ -454,16 +454,16 @@
         {/each}
         
         <!-- Drop zone after all presets -->
-        <div class="w-full h-1 transition-colors duration-200 hover:bg-green-500" 
+        <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
             ondragover={(e) => {
                 e.preventDefault()
-                e.currentTarget.classList.add('bg-green-500')
+                e.currentTarget.classList.add('bg-gray-600')
             }} 
             ondragleave={(e) => {
-                e.currentTarget.classList.remove('bg-green-500')
+                e.currentTarget.classList.remove('bg-gray-600')
             }} 
             ondrop={(e) => {
-                e.currentTarget.classList.remove('bg-green-500')
+                e.currentTarget.classList.remove('bg-gray-600')
                 handlePresetDrop(DBState.db.botPresets.length, e)
             }}>
         </div>
