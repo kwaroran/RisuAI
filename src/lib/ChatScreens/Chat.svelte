@@ -175,8 +175,6 @@
         const triggerName = origin.getAttribute('risu-trigger')
         const btnEvent = origin.getAttribute('risu-btn')
 
-        console.log(origin, triggerName, btnEvent)
-
         const triggerResult =
             triggerName ?
                 await runTrigger(currentChar, 'manual', {
@@ -244,7 +242,7 @@
             {language.noMessage}
         </div>
     {:else}
-        {@const chatReloadPointer = $ReloadChatPointer[idx] ?? 0}
+        {@const chatReloadPointer = $ReloadGUIPointer + ($ReloadChatPointer[idx] ?? 0)}
         {@const totalLengthPointer = (idx > totalLength - 6) ? totalLength : 0}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->

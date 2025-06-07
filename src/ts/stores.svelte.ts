@@ -77,10 +77,6 @@ CustomCSSStore.subscribe((css) => {
     }
 })
 
-ReloadGUIPointer.subscribe(() => {
-    ReloadChatPointer.set({})
-})
-
 export function createSimpleCharacter(char:character|groupChat){
     if((!char) || char.type === 'group'){
         return null
@@ -118,6 +114,7 @@ export const QuickSettings = $state({
 export const disableHighlight = writable(true)
 
 ReloadGUIPointer.subscribe(() => {
+    ReloadChatPointer.set({})
     resetScriptCache()
 })
 
