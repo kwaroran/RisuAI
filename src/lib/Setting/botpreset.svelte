@@ -338,8 +338,8 @@
             </div>
         </div>
         {#each DBState.db.botPresets as preset, i}
-            <!-- Drop zone before each preset -->
             <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
+                role="listitem"
                 ondragover={(e) => {
                     e.preventDefault()
                     e.currentTarget.classList.add('bg-gray-600')
@@ -455,8 +455,8 @@
             </button>
         {/each}
         
-        <!-- Drop zone after all presets -->
         <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
+            role="listitem"
             ondragover={(e) => {
                 e.preventDefault()
                 e.currentTarget.classList.add('bg-gray-600')
