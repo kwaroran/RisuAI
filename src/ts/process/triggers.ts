@@ -1688,6 +1688,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const db = getDatabase()
                     if(db.personas[db.selectedPersona]){
                         db.personas[db.selectedPersona].personaPrompt = value
+                        db.personaPrompt = value
                         setDatabase(db)
                     }
                     break
