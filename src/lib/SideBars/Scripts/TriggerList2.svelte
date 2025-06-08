@@ -1704,7 +1704,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight  bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2GetPersonaDesc'}
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
@@ -1714,7 +1714,7 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight  bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2ExtractRegex'}
                         <span>{language.input}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
