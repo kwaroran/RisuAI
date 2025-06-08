@@ -1,5 +1,5 @@
 import { parseChatML, risuChatParser } from "../parser.svelte";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, type Chat, type character } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, setDatabase, type Chat, type character } from "../storage/database.svelte";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
@@ -34,7 +34,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2GetMessageCount|triggerV2ModifyLorebook|triggerV2GetLorebook|triggerV2GetLorebookCount|triggerV2GetLorebookEntry|
                                 triggerV2SetLorebookActivation|triggerV2GetLorebookIndexViaName|triggerV2LoopNTimes|triggerV2Random|triggerV2GetCharAt|
                                 triggerV2GetCharCount|triggerV2ToLowerCase|triggerV2ToUpperCase|triggerV2SetCharAt|triggerV2SplitString|triggerV2GetCharacterDesc|
-                                triggerV2SetCharacterDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
+                                triggerV2SetCharacterDesc|triggerV2GetPersonaDesc|triggerV2SetPersonaDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
                                 triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2UpdateChatAt|triggerV2Wait|
@@ -473,6 +473,19 @@ export type triggerV2GetCharacterDesc = {
 
 export type triggerV2SetCharacterDesc = {
     type: 'v2SetCharacterDesc',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetPersonaDesc = {
+    type: 'v2GetPersonaDesc',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetPersonaDesc = {
+    type: 'v2SetPersonaDesc',
     value: string,
     valueType: 'var'|'value',
     indent: number
@@ -1663,6 +1676,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const db = getDatabase();
                     (db.characters[selectedCharId] as character).desc = value
                     setCurrentCharacter(char)
+                    break
+                }
+                case 'v2GetPersonaDesc':{
+                    const db = getDatabase()
+                    setVar(effect.outputVar, db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    break
+                }
+                case 'v2SetPersonaDesc':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    const db = getDatabase()
+                    if(db.personas[db.selectedPersona]){
+                        db.personas[db.selectedPersona].personaPrompt = value
+                        setDatabase(db)
+                    }
                     break
                 }
                 case 'v2MakeArrayVar':{

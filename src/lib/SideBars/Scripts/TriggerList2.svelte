@@ -82,6 +82,8 @@
         //Character
         'v2GetCharacterDesc',
         'v2SetCharacterDesc',
+        'v2GetPersonaDesc',
+        'v2SetPersonaDesc',
 
         //Array
         'v2MakeArrayVar',
@@ -529,6 +531,21 @@
             case 'v2SetCharacterDesc':
                 editTrigger = {
                     type: 'v2SetCharacterDesc',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0
+                }
+                break;
+            case 'v2GetPersonaDesc':
+                editTrigger = {
+                    type: 'v2GetPersonaDesc',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            case 'v2SetPersonaDesc':
+                editTrigger = {
+                    type: 'v2SetPersonaDesc',
                     value: '',
                     valueType: 'value',
                     indent: 0
@@ -1682,6 +1699,16 @@
                         <TextInput bind:value={editTrigger.outputVar} />
 
                     {:else if editTrigger.type === 'v2SetCharacterDesc'}
+                        <span>{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2GetPersonaDesc'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2SetPersonaDesc'}
                         <span>{language.value}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
                             <OptionInput value="value">{language.value}</OptionInput>
