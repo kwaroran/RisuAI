@@ -188,12 +188,6 @@
         <span>{language.triggerScript}</span>
     </button>
     <button onclick={() => {
-        currentModule.backgroundEmbedding ??= ''
-        submenu = 4
-    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 4}>
-        <span>{language.backgroundHTML}</span>
-    </button>
-    <button onclick={() => {
         currentModule.assets ??= []
         submenu = 5
     }} class="p-2 flex-1" class:bg-darkbutton={submenu === 5}>
@@ -235,6 +229,7 @@
 {/if}
 
 {#if submenu === 2 && (Array.isArray(currentModule.regex))}
+    <TextAreaInput bind:value={currentModule.backgroundEmbedding} className="mt-2" placeholder={language.backgroundHTML} size="sm"/>
     <RegexList bind:value={currentModule.regex}/>
     <div class="text-textcolor2 mt-2 flex gap-2">
         <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
@@ -247,10 +242,6 @@
             currentModule.regex = await importRegex(currentModule.regex)
         }}><HardDriveUploadIcon /></button>
     </div>
-{/if}
-
-{#if submenu === 4 && typeof(currentModule.backgroundEmbedding) === 'string'}
-    <TextAreaInput bind:value={currentModule.backgroundEmbedding} className="mt-2" placeholder={language.backgroundHTML} size="sm"/>
 {/if}
 
 {#if submenu === 5 && (Array.isArray(currentModule.assets))}
