@@ -1220,9 +1220,28 @@
                             </SelectInput>
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto" bind:this={menu0Container}>
+                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto relative" bind:this={menu0Container}>
                         {#each value[selectedIndex].effect as effect, i}
-                            <button class="p-2 w-full text-start text-purple-500"
+                            {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
+                                {@const blockIndent = (effect as triggerEffectV2).indent}
+                                {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
+                                    idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
+                                )}
+                                {#if endIndex !== -1}
+                                    <div 
+                                        class="absolute w-px bg-gray-600 opacity-40"
+                                        style="left: {0.5 + blockIndent * 1}rem; top: {(i + 1) * 2.5}rem; height: {(endIndex - i - 0.5) * 2.5}rem;"
+                                    ></div>
+                                    <div 
+                                        class="absolute h-px bg-gray-600 opacity-40"
+                                        style="left: {0.5 + blockIndent * 1}rem; top: {(endIndex + 0.5) * 2.5}rem; width: 0.5rem;"
+                                    ></div>
+                                {/if}
+                            {/if}
+                        {/each}
+                        
+                        {#each value[selectedIndex].effect as effect, i}
+                            <button class="p-2 w-full text-start text-purple-500 relative"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
                                 onclick={() => {
