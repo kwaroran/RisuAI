@@ -137,6 +137,8 @@
     let contextMenuLoc = $state({x: 0, y: 0, style: ''})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
+    let effectElements = $state<HTMLButtonElement[]>([])
+    let guideLineKey = $state(0) // 가이드 라인 강제 업데이트용
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -1068,12 +1070,18 @@
         return `<div class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
     }
     
+    const updateGuideLines = () => {
+        guideLineKey += 1
+    }
+
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
+        window.addEventListener('resize', updateGuideLines);
     })
 
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
+        window.removeEventListener('resize', updateGuideLines);
     })
 </script>
 
@@ -1221,29 +1229,37 @@
                         </div>
                     </div>
                     <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto relative" bind:this={menu0Container}>
-                        {#each value[selectedIndex].effect as effect, i}
-                            {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
-                                {@const blockIndent = (effect as triggerEffectV2).indent}
-                                {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
-                                    idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
-                                )}
-                                {#if endIndex !== -1}
-                                    <div 
-                                        class="absolute w-px bg-gray-600 opacity-40"
-                                        style="left: {0.5 + blockIndent * 1}rem; top: {(i + 1) * 2.5}rem; height: {(endIndex - i - 0.5) * 2.5}rem;"
-                                    ></div>
-                                    <div 
-                                        class="absolute h-px bg-gray-600 opacity-40"
-                                        style="left: {0.5 + blockIndent * 1}rem; top: {(endIndex + 0.5) * 2.5}rem; width: 0.5rem;"
-                                    ></div>
+                        {#key guideLineKey}
+                            {#each value[selectedIndex].effect as effect, i}
+                                {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
+                                    {@const blockIndent = (effect as triggerEffectV2).indent}
+                                    {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
+                                        idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
+                                    )}
+                                    {#if endIndex !== -1 && effectElements[i] && effectElements[endIndex]}
+                                        {@const startRect = effectElements[i].getBoundingClientRect()}
+                                        {@const endRect = effectElements[endIndex].getBoundingClientRect()}
+                                        {@const containerRect = menu0Container.getBoundingClientRect()}
+                                        {@const startTop = startRect.bottom - containerRect.top + menu0Container.scrollTop}
+                                        {@const endTop = endRect.top - containerRect.top + menu0Container.scrollTop + endRect.height * 0.5}
+                                        <div 
+                                            class="absolute w-px bg-gray-600 opacity-40"
+                                            style="left: {0.5 + blockIndent * 1}rem; top: {startTop}px; height: {endTop - startTop}px;"
+                                        ></div>
+                                        <div 
+                                            class="absolute h-px bg-gray-600 opacity-40"
+                                            style="left: {0.5 + blockIndent * 1}rem; top: {endTop}px; width: 0.5rem;"
+                                        ></div>
+                                    {/if}
                                 {/if}
-                            {/if}
-                        {/each}
+                            {/each}
+                        {/key}
                         
                         {#each value[selectedIndex].effect as effect, i}
                             <button class="p-2 w-full text-start text-purple-500 relative"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
+                                bind:this={effectElements[i]}
                                 onclick={() => {
                                     if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
                                         menuMode = 1
@@ -1254,6 +1270,7 @@
                                     selectedEffectIndex = i
                                 }}
                                 oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
+                                onresize={updateGuideLines}
                             >
                                 {#if effect.type === 'v2EndIndent'}
                                     <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
