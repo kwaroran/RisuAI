@@ -316,7 +316,7 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5(picomatch@4.0.2)(svelte@5.1.9)(typescript@5.6.3)
       svelte-preprocess:
-        specifier: ^6.0.0
+        specifier: ^6.0.3
         version: 6.0.3(postcss-load-config@4.0.2(postcss@8.4.33)(ts-node@10.9.2(@swc/core@1.5.7)(@types/node@18.19.7)(typescript@5.6.3)))(postcss@8.4.33)(svelte@5.1.9)(typescript@5.6.3)
       tailwindcss:
         specifier: ^3.4.1
@@ -325,10 +325,10 @@ importers:
         specifier: ^2.6.2
         version: 2.6.2
       typescript:
-        specifier: ^5.5.0
+        specifier: ^5.6.3
         version: 5.6.3
       vite:
-        specifier: ^5.4.4
+        specifier: ^5.4.9
         version: 5.4.9(@types/node@18.19.7)
       vite-plugin-top-level-await:
         specifier: 1.4.1
@@ -1558,8 +1558,8 @@ packages:
     resolution: {integrity: sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==}
     engines: {node: '>=6'}
 
-  caniuse-lite@1.0.30001651:
-    resolution: {integrity: sha512-9Cf+Xv1jJNe1xPZLGuUXLNkE1BoDkqRqYyFJ9TDYSqhduqA4hu4oR9HluGoWYQC/aj8WHjsGVV+bwkh0+tegRg==}
+  caniuse-lite@1.0.30001721:
+    resolution: {integrity: sha512-cOuvmUVtKrtEaoKiO0rSc29jcjwMwX5tOHDy4MgVFEWiUXj4uBMJkwI8MDySkgXidpMiHUcviogAvFi4pA2hDQ==}
 
   canvas@2.11.2:
     resolution: {integrity: sha512-ItanGBMrmRV7Py2Z+Xhs7cT+FNt5K0vPL4p9EZ/UX/Mu7hFbkxSjKF2KVtPwX7UYWp7dRKnrTvReflgrItJbdw==}
@@ -4981,7 +4981,7 @@ snapshots:
   autoprefixer@10.4.16(postcss@8.4.33):
     dependencies:
       browserslist: 4.22.2
-      caniuse-lite: 1.0.30001651
+      caniuse-lite: 1.0.30001721
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -5073,7 +5073,7 @@ snapshots:
 
   browserslist@4.22.2:
     dependencies:
-      caniuse-lite: 1.0.30001651
+      caniuse-lite: 1.0.30001721
       electron-to-chromium: 1.4.630
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.22.2)
@@ -5108,7 +5108,7 @@ snapshots:
 
   camelcase@5.3.1: {}
 
-  caniuse-lite@1.0.30001651: {}
+  caniuse-lite@1.0.30001721: {}
 
   canvas@2.11.2:
     dependencies:

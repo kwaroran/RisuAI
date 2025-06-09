@@ -16,6 +16,9 @@ import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
 import airisu from '../etc/airisu.cbs?raw'
+import cbsIntro from '../etc/docs/cbs_intro.cbs?raw'
+import cbsDocs from '../etc/docs/cbs_docs.cbs?raw'
+import docsText from '../etc/docs/docs_text.cbs?raw'
 import { getModelInfo } from './model/modellist';
 
 const markdownItOptions = {
@@ -706,7 +709,10 @@ function decodeStyle(text:string){
                 }
                 ast.stylesheet.rules = rules
             }
-            return `<style>${css.stringify(ast)}</style>`
+            return `<style>${css.stringify(ast, {
+                indent: '',
+                compress: true,
+            })}</style>`
 
         } catch (error) {
             if(DBState.db.returnCSSError){
@@ -1916,6 +1922,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
                 case '__assistantprompt':{
                     return risuChatParser(airisu)
+                }
+                case '__cbsintro':{
+                    return risuChatParser(cbsIntro).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
+                }
+                case '__cbsdocs':{
+                    return risuChatParser(cbsDocs).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
+                }
+                case '__doc':{
+                    return risuChatParser(docsText).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
                 }
             }
         }

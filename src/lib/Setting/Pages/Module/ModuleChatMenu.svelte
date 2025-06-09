@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CheckCircle2Icon, XIcon } from "lucide-svelte";
+    import { CheckCircle2Icon, Waypoints, XIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -57,7 +57,10 @@
                     {#if i !== 0}
                         <div class="border-t-1 border-selected"></div>
                     {/if}
-                    <div class="pl-3 py-3 text-left flex">
+                    <div class="pl-3 py-3 text-left flex items-center">
+                        {#if rmodule.mcp}
+                            <Waypoints size={18} class="mr-2" />
+                        {/if}
                         {#if !alertMode && DBState.db.enabledModules.includes(rmodule.id)}
                             <span class="text-textcolor2">{rmodule.name}</span>
                         {:else}

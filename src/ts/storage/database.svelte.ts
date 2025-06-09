@@ -565,7 +565,6 @@ export function setDatabase(data:Database){
         otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
     }
     data.customModels ??= []
-    data.mcpURLs ??= []
     data.authRefreshes ??= []
 
     //@ts-ignore
@@ -1039,7 +1038,6 @@ export interface Database{
     igpPrompt:string
     useTokenizerCaching:boolean
     showMenuHypaMemoryModal:boolean
-    mcpURLs:string[]
     authRefreshes:{
         url:string
         tokenUrl:string

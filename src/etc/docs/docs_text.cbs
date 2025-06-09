@@ -1,0 +1,119 @@
+Risuai is a roleplaying platform/software that allows users to create and play as their own characters, and chat with ai characters.
+Users can create their own characters, and chat with them in Risuai.
+Risuai is open source, and is available on GitHub.
+[software versions]
+Risuai software is available in three different versions: Local version, Web version, and node version.
+- Local version: This version is available for Windows, Mac, and Linux. It is a standalone application that can be run on your computer.
+- Web version: This version is available on the web, hosted by Risuai. It is a web application that can be accessed from any device with a web browser.
+- Node version: This version is a self hosted version of Risuai. mostly acts like Web version, but can be hosted on your own server via Node.js.
+Web version is mostly used by users, and is the most popular version of Risuai.
+And their are some technical information about versions. since this is kinda technical, only response if user ask about it.
+- Local version: Runs with Tauri, which is a cross platform framework. it has auto updater. Mac is unstable, and not recommended to use.
+- Web version: Auto updated, has account sync feature. saved in indexeddb, no size limitation if not logged in, and saved in server, has size limitation if logged in. sometimes it can be slow and buggy due to browser's built in security features and limitations.
+- Node version: Has account sync feature. saved in hosted server, no size limitation. needs to be manually updated. must be hosted on your own server in HTTPS. if it isn't configured properly, it can not work properly. and it is not recommended to use if you are not familiar with self hosting and programming.
+[api connections]
+Risuai doesn't have built in AI, so it needs to be connected to external AI services to work.
+Risuai can be connected to OpenAI, Anthropic, GoogleCloud, VertexAI, Mistral, NovelList, Cohere, NovelAI, WebLLM, Horde, AWS, AI21, DeepSeek, DeepInfra, Ooba, Mancer, OpenRouter, Kobold, Ollama, and more.
+To connect to these services, you need to have an API key or other credentials to access the service.
+Risuai doesn't manage things that handled by external services, so if you have any issues with these services, such as billing, account, or other issues, you need to contact the service provider directly, not Risuai.
+Note: If Airisu has been asked for connection information, if AI knows about it, Airisu will provide the information, if not known, Airisu will say something like "I don't know about it, but you can find it on the internet."
+[Screens]
+Risuai has a few screens that are used to interact with the software.
+- Welcome/Landing screen: This is the first screen that you see when you first open Risuai. Airisu will guide you through the setup.
+- Main screen: This is a screen that you see when you open Risuai, if it is already set up. It has a list of characters that other users have created, and you can download them to your own Risuai.
+- Chat screen: A screen that you see when you chat with a character, also known as a chat window. It has list of messages that you have sent and received, and you can send messages to the character.
+- Sidebar: A sidebar, which is always on the left side of the screen. It can be hidden or shown by clicking the arrow button on the top left corner of the screen. its seperated into two sections, one is for character list, and the other is for other features. the first section in called "character list sidebar", and the second section is called "miscellaneous sidebar".
+- Character list sidebar: This is a sidebar that shows the list of characters that you have created, and you can select a character to chat with. Its a column, and you can scroll up and down to see the list of characters.
+    - Folder: You can create a folder to organize your characters. You can create it by dragging a character to another character, and it will create a folder. You can config the folder by left click / or long press on the folder, and it will open a menu. You can rename the folder, delete the folder, change the color of the folder, change preview to a image. to delete the folder, just drag and drop the characters inside the folder, and it will delete the folder.
+    - Character: By clicking the character, you can select the character to chat with. You can drag to move the order of the character.
+    - Note: In some environments, mostly on mobile or safari, which doesn't support drag and drop browser API, you may not be able to order the character or create a folder.
+    - Plus button: Always located on the bottom of the character list sidebar. By clicking it, you can create a new character, or import a character from local file or Risurealm.
+- Settings screen: A screen that you can configure the settings of Risuai. You can access it by clicking the gear icon on the top right corner of the screen. It has a few sections.
+[Chat screen]
+- Messages: A list of messages that you have sent and received. You can scroll up and down to see the list of messages.
+    - Icon buttons: A icon buttons at the top right corner of each message. Some might appear depending on the message type or your settings.
+        - Reroll button: If pressed, it will reroll the message. Only appears in most recent AI response.
+        - Unroll button: If pressed, it will unroll the message. Only appears in most recent AI response, and if swipe reroll config has been enabled.
+        - Copy button: If pressed, it will copy the message to clipboard. Only appears if copy message config has been enabled.
+        - Edit button: If pressed, it will open a edit window to edit the message.
+        - Delete button: If pressed, it will delete the message. You can shift + click to remove without confirmation plus remove all messages after to the selected message.
+        - TTS button: If pressed, it will play the TTS of the message. Only appears if TTS config in the character config has been set.
+        - Generation info button: if press, it will show the generation info of the message. Only appears if generation info config in the character config has been set. you can see the generation info of the message, such as the model used, the prompt used, and other information. Note: internally, it is handled separately from icon buttons. but in most cases, its okay to refer it as one of the icon buttons.
+        - Translation button: If pressed, it will translate the message, into user's preferred language. Only appears if translation config has been set.
+    - Icon: A character/or user's icon that sent the message, at the left side of the message.
+    - Content: A content of the message.
+- Input box: A input box that you can type a message to send to the character.
+    - Send button: A button that you can click to send the message. You can also press enter key to send the message.
+    - Hamburger button: A button that you can click to open the input box menu.
+- Input box menu: 
+    - Automode button: A button that you can click to enable or disable the automode. If enabled, it will automatically send the message. only appears on group chat.
+    - Stop TTS button: A button that you can click to stop the TTS. only appears if TTS is playing.
+    - Continue Response button: If pressed, it will continue generating the response.
+    - Chat list button: If pressed, it will open the chat list.
+    - Hypamemory Modal: If pressed, it will open the hypamemory modal.
+    - Auto Translate Input: It is togglable button that you can click to enable or disable the auto translate input. If enabled, it will automatically translate the message into user's preferred language. only appears if translation config has been set.
+    - Screenshot button: If pressed, it will take a screenshot of the chat screen. note: it might be buggy in current version, and might not work properly.
+    - Post file button: If pressed, it will open a file picker to select a file to send. Note: only supports files that current model can accept.
+    - Modules button: If pressed, it will open the chat modules dialog. In chat modules dialog, you can select a module to use in the chat.
+    - Reroll button: If pressed, it will reroll the most recent message.
+[Miscellaneous sidebar, when chatting with a character]
+Miscellaneous sidebar, when chatting with a character, shortly called "chat misc sidebar", has a few sections.
+    - Chat list: A list of chats that you have created inside a character
+        - Chat: By clicking the chat, you can select the chat to switch to. You can drag to move the order of the chat.
+        - Plus button: Always located on the bottom of the chat list. By clicking it, you can create a new chat, or import a chat from local file or Risurealm.
+    - Character config: A config that you can configure the settings of the character. it has a few sections, navigated by icon buttons.
+        - Basics Tab  (Person like icon):
+            - Character name: A name of the character.
+            - Character description: A description of the character. it will be prompted to the AI when generating a response. most users uses key-value pair template, such as "Name: (name), Description: (description), Personality: (personality), Appearance: (appearance), etc.".
+            - First message: A first message of the character. it will be shown when start of the chat. also known as "Greeting" or "Greeting message".
+            - Author's Note: A additional prompt that will be prompted to the AI when generating a response. although it is in the character config section, it is chat-dependent, not character-dependent. so you can set different author's note for each chat. its recommended to put how should the story should go, like "[Genre: Romance] [Setting: Fantasy]"
+        - Character Display Tab (Smily face icon):
+            - Character icon: A icon of the character. it will be shown in the chat screen. the icon is also known as "avatar", "portrait".
+            - large portrait checkbox: A checkbox that you can check to enable or disable the large portrait. If enabled, it will show 3:2 aspect ratio icon of the character. If disabled, it will show 1:1 aspect ratio portrait of the character.
+            - Additional Character Screen option: Also known as "viewscreen". It can set emotion images and image generation in the additional character screen. you can select "Emotion images" or "Image generation" to set the additional character screen.
+                - Emotion images: A list of emotion images that you can set for the character. You can set the image for each emotion, and it will be shown in the chat screen, dependening on the situation of the last message of the character.
+                - Image generation: Works almost smae as Emotion images, but it will generate a image of the character, instead of showing a predefined image.
+        - Lorebook Tab (Book icon):
+            - Lorebook: A lorebook of the character. you can set the lorebook for the character, or the chat lorebook.
+        - Scripts (Icon that looks like {}):
+            - Regex Script: Regex script for the character.
+            - Trigger Script: Trigger script for the character.
+        - Advanced Tab (Gear icon):
+            - Note: Do not touch this tab unless you know what you are doing. it is mostly used for advanced users.
+            - Example Messages, System Prompt: A textbox for input example messages / system prompt that you can set for the character. Warning: it is not recommended to use these days. please put it on "Character description" or "Lorebook" instead. its mostly used for legacy reasons.
+            - Global Note Replacement: A textbox for AI instuctions that AI should follow in high priority. Note: on legacy days, It was used to replace a thing named "Global Note" in the prompt section. recently global note is blank, so it serves like a just a instruction set.
+            - Additional Description: A textbox for additional description of the character. it will be prompted to the AI when generating a response, but only if the model feels nessesary. Note: it is not recommended to use unless you know what RAG (Retrieval-Augmented Generation) is, since it is runned by a RAG model.
+            - Personality, Scenario: A textbox that serves exactly the same as "Character description". Note: this is a legacy feature, and it is not recommended to use these days. please put it on "Character description" or "Lorebook" instead. its mostly used for legacy reasons when they did different things.
+            - Background Embedding: A textbox for background embedding of the character. background embedding is a HTML code that will be injected into the background of the chat screen. its recommended to place CSS here if you need styling, rather than other places. also known as "Background HTML" or "Background CSS".
+            - Default Variables: A key-value list pair of default variables that you can set for the character. variables here will be used in CBS and Trigger script.
+            - Translator's note: A textbox for translator's note of the character. translator's note is a note that will be prompted to the translator. it can be used to instruct the translator, like "Please translate Kelly as Kelly, not Kelly-chan". 
+            - Creator: A textbox for creator of the character. used for crediting.
+            - Character Version: A textbox for character version of the character. used for versioning.
+            - Nickname: A textbox for nickname of the character. if is set, it will the [[char]] cbs syntax will be replaced with the nickname, not the character name.
+            - Depth Prompt: A key-value pair, which is used to instruction. lower the number, the more strict it is. higher the number, the more flexible it is. Note: it is not recommended to use these days. please put use "Lorebook" with "@@depth" syntax instead. its mostly used for legacy reasons.
+            - Additional Assets: a list of additional assets, binded to the character.
+            - low level access: A checkbox that you can check to enable or disable the low level access. If enabled, it will allow the character's trigger script to access low level features, such as ai, network, and other low level features. however, on import, it will show a warning message.
+            - Hide Chat Icon: A checkbox that you can check to enable or disable the hide chat icon. If enabled, it will hide the chat icon of the character.
+            - Utility bot: A checkbox that you can check to enable or disable the utility bot. If enabled, it will allow the character to act as a utility bot, which means all roleplaying prompts and features will be disabled.
+            - Hypamemory modal button: A button that you can click to open the hypamemory modal.
+            - Apply module button: A button that merges the selected module to the character. Note: this is NOT enabling the module for the character, it is just merging the module to the character, which means all module features will be copied to the character, rather than enabling.
+        - Share Tab (Share icon):
+            - Upload to Risurealm: A button that you can click to upload the character to Risurealm, if the character is already uploaded, it will show Update to Risurealm button instead.
+            - Update to Risurealm: A button that you can click to update the character to Risurealm, only appears if the character is already uploaded to Risurealm.
+            - Export Character: A button that you can click to export the character to a local file. You can select the file format to export, such as PNG, JPG, CHARX.
+
+[Settings screen]
+{{// TODO}}
+
+[Additional Assets]
+{{// TODO}}
+
+[Lorebook]
+{{// TODO}}
+
+[Regex Script]
+
+{{// TODO}}
+
+[Modules]
+{{// TODO}}

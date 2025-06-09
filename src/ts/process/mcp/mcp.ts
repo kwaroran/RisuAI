@@ -1,6 +1,9 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { MCPClient, type MCPTool, type RPCToolCallContent } from "./mcplib";
 import { DBState } from "src/ts/stores.svelte";
+import { getModuleMcps } from "../modules";
+import { alertError, alertInput, alertNormal } from "src/ts/alert";
+import { v4 } from "uuid";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
@@ -8,9 +11,17 @@ export type MCPToolWithURL = MCPTool & {
 
 export const MCPs:Record<string,MCPClient> = {};
 
-export async function initializeMCPs() {
+export async function initializeMCPs(additionalMCPs?:string[]) {
     const db = getDatabase()
-    for(const mcp of db.mcpURLs) {
+    const mcpUrls = getModuleMcps()
+    if(additionalMCPs && additionalMCPs.length > 0) {
+        for(const mcp of additionalMCPs) {
+            if(!mcpUrls.includes(mcp)) {
+                mcpUrls.push(mcp);
+            }
+        }
+    }
+    for(const mcp of mcpUrls) {
         if(!MCPs[mcp]) {
             const registerRefresh:typeof MCPClient.prototype.registerRefreshToken = (arg) => {
                 DBState.db.authRefreshes.push({
@@ -32,15 +43,15 @@ export async function initializeMCPs() {
     }
 
     for(const key of Object.keys(MCPs)) {
-        if(!db.mcpURLs.includes(key)) {
+        if(!mcpUrls.includes(key)) {
             MCPs[key].destroy()
             delete MCPs[key];
         }
     }
 }
 
-export async function getMCPTools() {
-    await initializeMCPs();
+export async function getMCPTools(additionalMCPs?:string[]) {
+    await initializeMCPs(additionalMCPs);
     const tools:MCPToolWithURL[] = [];
     for(const key of Object.keys(MCPs)) {
         const t = (await MCPs[key].getToolList()).map(tool => {
@@ -55,8 +66,8 @@ export async function getMCPTools() {
     return tools;
 }
 
-export async function getMCPMeta() {
-    await initializeMCPs();
+export async function getMCPMeta(additionalMCPs?:string[]) {
+    await initializeMCPs(additionalMCPs);
     const meta:Record<string, typeof MCPClient.prototype.serverInfo> = {};
     for(const key of Object.keys(MCPs)) {
         meta[key] = MCPs[key].serverInfo
@@ -87,4 +98,35 @@ export async function getTools(){
 //Currently just a wrapper for callMCPTool, but can be extended later for more than MCPs
 export async function callTool(methodName:string, args:any) {
     return await callMCPTool(methodName, args);
+}
+
+export async function importMCPModule(){
+    const x = await alertInput('Please enter the URL of the MCP module to import:')
+
+    if(!x.startsWith('http')){
+        alertError('Invalid URL');
+        return;
+    }
+    try {
+        const metas = (await getMCPMeta([x]))
+        console.log(metas)
+        const meta = metas[x];
+        if(!meta) {
+            alertError('MCP module not found or invalid URL');
+            return;
+        }
+        const db = getDatabase();
+        db.modules.push({
+            name: meta.serverInfo.name,
+            description: "MCP from " + x,
+            mcp: {
+                url: x
+            },
+            id: v4()
+        })
+        alertNormal(`MCP module imported successfully!\nName: ${meta.serverInfo.name}`);
+
+    } catch (error) {
+        alertError(error)
+    }
 }
