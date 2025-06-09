@@ -4,12 +4,13 @@ import { DBState } from "src/ts/stores.svelte";
 import { getModuleMcps } from "../modules";
 import { alertError, alertInput, alertNormal } from "src/ts/alert";
 import { v4 } from "uuid";
+import type { MCPClientLike } from "./internalmcp";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
 };
 
-export const MCPs:Record<string,MCPClient> = {};
+export const MCPs:Record<string,MCPClient|MCPClientLike> = {};
 
 export async function initializeMCPs(additionalMCPs?:string[]) {
     const db = getDatabase()
@@ -23,6 +24,20 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
     }
     for(const mcp of mcpUrls) {
         if(!MCPs[mcp]) {
+
+            if(mcp.startsWith('internal:')) {
+                switch(mcp) {
+                    case 'internal:fs':{
+                        const { FileSystemClient } = await import('./filesystemclient');
+                        MCPs[mcp] = new FileSystemClient();
+                        break;
+                    }
+                }
+
+                await MCPs[mcp].checkHandshake();
+                continue;
+            }
+
             const registerRefresh:typeof MCPClient.prototype.registerRefreshToken = (arg) => {
                 DBState.db.authRefreshes.push({
                     url: mcp,
@@ -103,7 +118,12 @@ export async function callTool(methodName:string, args:any) {
 export async function importMCPModule(){
     const x = await alertInput('Please enter the URL of the MCP module to import:')
 
-    if(!x.startsWith('http')){
+    if(
+        !x.startsWith('http://localhost') &&
+        !x.startsWith('http://127') &&
+        !x.startsWith('https:') &&
+        !x.startsWith('internal:'))
+    {
         alertError('Invalid URL');
         return;
     }
