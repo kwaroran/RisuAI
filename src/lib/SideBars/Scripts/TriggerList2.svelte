@@ -894,6 +894,35 @@
         }
     }
 
+    const moveTrigger = (fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex || fromIndex === 0 || toIndex === 0) return;
+        
+        let triggers = [...value];
+        const movedItem = triggers.splice(fromIndex, 1)[0];
+        triggers.splice(toIndex, 0, movedItem);
+        
+        // Update selectedIndex if needed
+        if (selectedIndex === fromIndex) {
+            selectedIndex = toIndex;
+        } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
+            selectedIndex = selectedIndex - 1;
+        } else if (fromIndex > selectedIndex && toIndex <= selectedIndex) {
+            selectedIndex = selectedIndex + 1;
+        }
+        
+        value = triggers;
+    }
+
+    const handleTriggerDrop = (targetIndex: number, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const data = e.dataTransfer?.getData('text');
+        if (data === 'trigger') {
+            const sourceIndex = parseInt(e.dataTransfer?.getData('triggerIndex') || '0');
+            moveTrigger(sourceIndex, targetIndex);
+        }
+    }
+
     const handleKeydown = (e:KeyboardEvent) => {
         console.log(e.key)
         if(e.key === 'Escape'){
@@ -1156,9 +1185,35 @@
                             {#if i === 0}
                                 <!-- Header, skip the first trigger -->
                             {:else}
+                                <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
+                                    role="listitem"
+                                    ondragover={(e) => {
+                                        e.preventDefault()
+                                        e.currentTarget.classList.add('bg-gray-600')
+                                    }} 
+                                    ondragleave={(e) => {
+                                        e.currentTarget.classList.remove('bg-gray-600')
+                                    }} 
+                                    ondrop={(e) => {
+                                        e.currentTarget.classList.remove('bg-gray-600')
+                                        handleTriggerDrop(i, e)
+                                    }}>
+                                </div>
+                                
                                 <button
-                                    class="p-2 text-start text-textcolor2 hover:text-textcolor"
+                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing"
                                     class:bg-darkbg={selectedIndex === i}
+                                    draggable="true"
+                                    ondragstart={(e) => {
+                                        e.dataTransfer?.setData('text', 'trigger')
+                                        e.dataTransfer?.setData('triggerIndex', i.toString())
+                                    }}
+                                    ondragover={(e) => {
+                                        e.preventDefault()
+                                    }}
+                                    ondrop={(e) => {
+                                        handleTriggerDrop(i, e)
+                                    }}
                                     onclick={() => {
                                         selectMode = 0
                                         selectedIndex = i
@@ -1169,6 +1224,21 @@
                                 </button>
                             {/if}
                         {/each}
+                        
+                        <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
+                            role="listitem"
+                            ondragover={(e) => {
+                                e.preventDefault()
+                                e.currentTarget.classList.add('bg-gray-600')
+                            }} 
+                            ondragleave={(e) => {
+                                e.currentTarget.classList.remove('bg-gray-600')
+                            }} 
+                            ondrop={(e) => {
+                                e.currentTarget.classList.remove('bg-gray-600')
+                                handleTriggerDrop(value.length, e)
+                            }}>
+                        </div>
                     </div>
                     <div>
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
