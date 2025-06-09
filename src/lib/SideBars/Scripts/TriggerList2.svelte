@@ -1101,7 +1101,7 @@
         contextMenu = false
     }}>
         {#if contextMenu}
-            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style={contextMenuLoc.style}>
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md z-50" style={contextMenuLoc.style}>
                 {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
                     <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                         menuMode = 3
