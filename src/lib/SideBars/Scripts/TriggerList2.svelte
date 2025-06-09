@@ -896,9 +896,13 @@
 
     const moveTrigger = (fromIndex: number, toIndex: number) => {
         if (fromIndex === toIndex || fromIndex === 0 || toIndex === 0) return;
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= value.length || toIndex > value.length) return;
+        if (!value[fromIndex]) return;
         
         let triggers = [...value];
         const movedItem = triggers.splice(fromIndex, 1)[0];
+        if (!movedItem) return;
+        
         triggers.splice(toIndex, 0, movedItem);
         
         // Update selectedIndex if needed
@@ -1220,7 +1224,7 @@
                                     }}
                                     oncontextmenu={(e) => handleContextMenu(e, 0, i)}
                                 >
-                                    {trigger.comment || 'Unnamed Trigger'}
+                                    {trigger?.comment || 'Unnamed Trigger'}
                                 </button>
                             {/if}
                         {/each}
@@ -1263,13 +1267,15 @@
                     }}>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.name}</span>
-                            <TextInput value={value[selectedIndex].comment} onchange={(e) => {
+                            <TextInput value={value[selectedIndex]?.comment || ''} onchange={(e) => {
+                                if (!value[selectedIndex]) return;
                                 const comment = e.currentTarget.value
                                 const prev = value[selectedIndex].comment
                                 for(let i = 1; i < value.length; i++){
+                                    if (!value[i] || !value[i].effect) continue;
                                     for(let j = 0; j < value[i].effect.length; j++){
                                         const effect = value[i].effect[j]
-                                        if(effect.type === 'v2RunTrigger' && effect.target === prev){
+                                        if(effect && effect.type === 'v2RunTrigger' && effect.target === prev){
                                             effect.target = comment
                                         }
                                     }
@@ -1279,40 +1285,43 @@
                         </div>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.triggerOn}</span>
-                            <SelectInput bind:value={value[selectedIndex].type}>
-                                <OptionInput value="start">{language.triggerStart}</OptionInput>
-                                <OptionInput value="output">{language.triggerOutput}</OptionInput>
-                                <OptionInput value="input">{language.triggerInput}</OptionInput>
-                                <OptionInput value="manual">{language.triggerManual}</OptionInput>
-                                <OptionInput value="display">{language.editDisplay}</OptionInput>
-                                <OptionInput value="request">{language.editProcess}</OptionInput>
-
-                            </SelectInput>
+                            {#if value[selectedIndex]}
+                                <SelectInput bind:value={value[selectedIndex].type}>
+                                    <OptionInput value="start">{language.triggerStart}</OptionInput>
+                                    <OptionInput value="output">{language.triggerOutput}</OptionInput>
+                                    <OptionInput value="input">{language.triggerInput}</OptionInput>
+                                    <OptionInput value="manual">{language.triggerManual}</OptionInput>
+                                    <OptionInput value="display">{language.editDisplay}</OptionInput>
+                                    <OptionInput value="request">{language.editProcess}</OptionInput>
+                                </SelectInput>
+                            {/if}
                         </div>
                     </div>
                     <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto" bind:this={menu0Container}>
-                        {#each value[selectedIndex].effect as effect, i}
-                            <button class="p-2 w-full text-start text-purple-500"
-                                class:hover:bg-selected={selectedEffectIndex !== i}
-                                class:bg-selected={selectedEffectIndex === i}
-                                onclick={() => {
-                                    if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
-                                        menuMode = 1
-                                    }
+                        {#if value[selectedIndex] && value[selectedIndex].effect}
+                            {#each value[selectedIndex].effect as effect, i}
+                                <button class="p-2 w-full text-start text-purple-500"
+                                    class:hover:bg-selected={selectedEffectIndex !== i}
+                                    class:bg-selected={selectedEffectIndex === i}
+                                    onclick={() => {
+                                        if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
+                                            menuMode = 1
+                                        }
 
-                                    selectMode = 1
-                                    lastClickTime = Date.now()
-                                    selectedEffectIndex = i
-                                }}
-                                oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
-                            >
-                                {#if effect.type === 'v2EndIndent'}
-                                    <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
-                                {:else}
-                                    {@html formatEffectDisplay(effect)}
-                                {/if}
-                            </button>
-                        {/each}
+                                        selectMode = 1
+                                        lastClickTime = Date.now()
+                                        selectedEffectIndex = i
+                                    }}
+                                    oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
+                                >
+                                    {#if effect && effect.type === 'v2EndIndent'}
+                                        <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
+                                    {:else if effect}
+                                        {@html formatEffectDisplay(effect)}
+                                    {/if}
+                                </button>
+                            {/each}
+                        {/if}
                         <button class="p-2 w-full text-start hover:bg-selected" onclick={() => {
                             //add effect
                             if(lastClickTime + 500 > Date.now()){
