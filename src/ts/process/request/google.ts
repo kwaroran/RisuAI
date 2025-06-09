@@ -1,12 +1,40 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
-import { sleep } from "src/ts/util"
+import { simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import { setInlayAsset, writeInlayImage } from "../files/inlays"
 import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
+import { callTool } from "../mcp/mcp"
+
+type GeminiFunctionCall = {
+    id: string;
+    name: string;
+    args: any
+}
+
+type GeminiFunctionResponse = {
+    id: string;
+    name: string;
+    response: any
+}
+
+interface GeminiPart{
+    text?:string
+    "inlineData"?: {
+        "mimeType": string,
+        "data": string
+    },
+    functionCall?: GeminiFunctionCall
+    functionResponse?: GeminiFunctionResponse
+}
+
+interface GeminiChat {
+    role: "USER"|"MODEL"
+    parts:|GeminiPart[]
+}
 
 
 export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
@@ -14,20 +42,6 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     const formated = arg.formated
     const db = getDatabase()
     const maxTokens = arg.maxTokens
-
-    interface GeminiPart{
-        text?:string
-        "inlineData"?: {
-            "mimeType": string,
-            "data": string
-        },
-    }
-    
-    interface GeminiChat {
-        role: "USER"|"MODEL"
-        parts:|GeminiPart[]
-    }
-
 
     let reformatedChat:GeminiChat[] = []
     let systemPrompt = ''
@@ -180,6 +194,16 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                 }
             ]
         },
+        tools: {
+            functionDeclarations: arg?.tools?.map((tool, i) => {
+                console.log(tool.name, i)
+                return {
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: simplifySchema(tool.inputSchema)
+                }
+            }) ?? []
+        }
     }
 
     if(systemPrompt === ''){
@@ -295,6 +319,24 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
     }
 
+    if(arg.previewBody){
+        return {
+            type: 'success',
+            result: JSON.stringify({
+                url: url,
+                body: body,
+                headers: headers
+            })      
+        }
+    }
+
+    return requestGoogle(url, body, headers, arg)
+}
+
+async function requestGoogle(url:string, body:any, headers:{[key:string]:string}, arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
+    
+    const db = getDatabase()
+
     const fallBackGemini = async (originalError:string):Promise<requestDataResponse> => {
         if(!db.antiServerOverloads){
             return {
@@ -318,77 +360,8 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                 failByServerError: true
             }
         }
-        try {
-            const OAIMessages:OpenAIChat[] = body.contents.map((v) => {
-                return {
-                    role: v.role === 'USER' ? 'user' : 'assistant',
-                    content: v.parts.map((v) => {
-                        return v.text ?? ''
-                    }).join('\n')
-                }
-            })
-            if(body?.systemInstruction?.parts?.[0]?.text){
-                OAIMessages.unshift({
-                    role: 'system',
-                    content: body.systemInstruction.parts[0].text
-                })
-            }
-            await sleep(2000)
-            const res = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-                body: JSON.stringify({
-                    model: arg.modelInfo.internalID,
-                    messages: OAIMessages,
-                    max_tokens: maxTokens,
-                    temperature: body.generation_config?.temperature,
-                    top_p: body.generation_config?.topP,
-                    presence_penalty: body.generation_config?.presencePenalty,
-                    frequency_penalty: body.generation_config?.frequencyPenalty,
-                }),
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${db.google.accessToken}`
-                },
-                signal: arg.abortSignal
-            })
 
-            if(!res.ok){
-                return {
-                    type: 'fail',
-                    result: originalError,
-                    failByServerError: true
-                }
-            }
-
-            if(arg?.abortSignal?.aborted){
-                return {
-                    type: 'fail',
-                    result: originalError
-                }
-            }
-
-            const d = await res.json()
-
-            if(d?.choices?.[0]?.message?.content){
-                return {
-                    type: 'success',
-                    result: d.choices[0].message.content
-                }
-            }
-            else{
-                return {
-                    type: 'fail',
-                    result: originalError,
-                    failByServerError: true
-                }
-            }
-        } catch (error) {
-            return {
-                type: 'fail',
-                result: originalError,
-                failByServerError: true
-            }
-        }
+        return requestGoogle(url, body, headers, arg)
     }
 
     if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
@@ -447,16 +420,6 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                             if(i > 0){
                                 rDatas.push('')
                             }
-
-                            // Due to error, do not use this
-                            // rDatas[rDatas.length-1] += part.text ?? ''
-                            // if(part.inlineData){
-                            //     const imgHTML = new Image()
-                            //     const id = crypto.randomUUID()
-                            //     imgHTML.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
-                            //     writeInlayImage(imgHTML)
-                            //     rDatas[rDatas.length-1] += (`\n{{inlayeddata::${id}}}\n`)
-                            // }
                         }
                     }
 
@@ -495,17 +458,6 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         }
     }
 
-    if(arg.previewBody){
-        return {
-            type: 'success',
-            result: JSON.stringify({
-                url: url,
-                body: body,
-                headers: headers
-            })      
-        }
-    }
-
     const res = await globalFetch(url, {
         headers: headers,
         body: body,
@@ -526,8 +478,10 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     }
 
     let rDatas:string[] = ['']
-    const processDataItem = async (data:any) => {
+    const processDataItem = async (data:any):Promise<GeminiFunctionCall[]> => {
         const parts = data?.candidates?.[0]?.content?.parts
+        const calls:GeminiFunctionCall[] = []
+
         if(parts){
          
             for(let i=0;i<parts.length;i++){
@@ -538,8 +492,8 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
 
                 rDatas[rDatas.length-1] += part.text ?? ''
 
-                if(part.function_call){
-                    //TODO: handle tool
+                if(part.functionCall){
+                    calls.push(part.functionCall as GeminiFunctionCall)
                 }
 
                 if(part.inlineData){
@@ -569,27 +523,102 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             }   
         }
         
-        if(data?.errors){
-            return {
-                type: 'fail',
-                result: `${JSON.stringify(data.errors)}`
-            }
-        }
-        else{
-            return {
-                type: 'fail',
-                result: `${JSON.stringify(data)}`
-            }
-        }
+        return calls
     }
 
     // traverse responded data if it contains multipart contents
+    let calls:GeminiFunctionCall[] = []
     if (typeof (res.data)[Symbol.iterator] === 'function') {
         for(const data of res.data){
-            await processDataItem(data)
+            const c = await processDataItem(data)
+            calls = calls.concat(c)
         }
     } else {
-        await processDataItem(res.data)
+        const c = await processDataItem(res.data)
+        calls = calls.concat(c)
+    }
+
+    if(calls.length > 0){
+        const chat = body.contents as GeminiChat[]
+        chat.push({
+            role: 'MODEL',
+            parts: calls.map((call) => {
+                return {
+                    functionCall: {
+                        id: call.id,
+                        name: call.name,
+                        args: call.args
+                    }
+                }
+            })
+        })
+
+        const parts: GeminiPart[] = []
+        const tools = arg?.tools ?? []
+        
+        for(const call of calls){
+            const functionName = call.name
+            const functionArgs = call.args
+
+            for(const call of calls){
+                if(call.name === functionName && call.args){
+                    const tool = tools.find((t) => t.name === functionName)
+                    if(tool){
+                        const result = (await callTool(tool.name, functionArgs)).filter((r) => {
+                            return r.type === 'text'
+                        })
+                        if(result.length === 0){
+                            parts.push({
+                                functionResponse: {
+                                    id: call.id,
+                                    name: call.name,
+                                    response: 'No response from tool.'
+                                }
+                            })
+                        }
+                        for(let i=0;i<result.length;i++){
+                            let response:any = result[i].text
+                            try {
+                                //try json parse
+                                response = JSON.parse(response)
+                            } catch (error) {
+                                response = {
+                                    text: response
+                                }
+                            }
+                            parts.push({
+                                functionResponse: {
+                                    id: call.id,
+                                    name: call.name,
+                                    response
+                                }
+                            })
+                        }
+                    }
+                    else{
+                        parts.push({
+                            functionResponse: {
+                                id: call.id,
+                                name: call.name,
+                                response: `Tool ${call.name} not found.`
+                            }
+                        })
+                    }
+                }
+            }
+
+            chat.push({
+                role: 'USER',
+                parts: parts
+            })
+
+            body.contents = chat
+
+            return requestGoogle(url, body, headers, arg)
+
+
+
+        }
     }
 
     if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){

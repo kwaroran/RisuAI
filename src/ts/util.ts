@@ -1112,3 +1112,80 @@ export async function replaceAsync(string:string, regexp:RegExp, replacerFunctio
     let i = 0;
     return string.replace(regexp, () => replacements[i++])
 }
+
+export function simplifySchema(schema:any, args:{
+    upperType?:boolean,
+} = {}){
+    if(!schema || typeof schema !== 'object'){
+        console.error('Schema is not an object', schema)
+        return schema
+    }
+
+
+    if(Array.isArray(schema.type)){
+        if(schema.type.includes('null')){
+            schema.nullable = true
+        }
+        schema.type = (schema.type as string[]).filter(v => v !== 'null')[0]
+    }
+    
+    console.log('schema',schema)
+    const result:any = {
+    }
+
+    if(schema.type){
+        result.type = (schema.type as string)?.toLowerCase()
+    }
+    if(schema.type === 'object'){
+        result.properties = {}
+        for(const key in schema.properties){
+            result.properties[key] = simplifySchema(schema.properties[key], args)
+        }
+        if(schema.required && schema.required.length > 0){
+            result.required = schema.required
+        }
+    }
+    if(schema.type === 'array'){
+        result.items = simplifySchema(schema.items, args)
+    }
+
+    if(schema.type === 'string' && schema.enum && schema.enum.length > 0){
+        result.enum = schema.enum
+    }
+
+    if(schema.type === 'string' && schema.format){
+        result.format = schema.format
+    }
+
+    if(schema.nullable){
+        result.nullable = true
+    }
+
+    if(schema.maxLength !== undefined && schema.maxLength !== null){
+        result.maxLength = schema.maxLength
+    }
+
+    if(schema.minLength !== undefined && schema.minLength !== null){
+        result.minLength = schema.minLength
+    }
+
+    if(schema.minProperties !== undefined && schema.minProperties !== null){
+        result.minProperties = schema.minProperties
+    }
+
+    if(schema.maxProperties !== undefined && schema.maxProperties !== null){
+        result.maxProperties = schema.maxProperties
+    }
+
+    if(schema.description){
+        result.description = schema.description
+    }
+
+    if(schema.anyOf && schema.anyOf.length > 0){
+        console.log('anyOf', schema.anyOf)
+        result.anyOf = schema.anyOf.map((v:any) => simplifySchema(v, args))
+    }
+
+    return result
+
+}

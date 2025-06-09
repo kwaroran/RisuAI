@@ -4,7 +4,7 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import { selectSingleFile } from "src/ts/util";
-    import { requestChatData } from "src/ts/process/request";
+    import { requestChatData } from "src/ts/process/request/request";
     import { alertError } from "src/ts/alert";
 
     let selLang = $state("en");
