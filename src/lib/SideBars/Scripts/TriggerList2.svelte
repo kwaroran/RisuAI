@@ -138,7 +138,7 @@
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
     let effectElements = $state<HTMLButtonElement[]>([])
-    let guideLineKey = $state(0) // 가이드 라인 강제 업데이트용
+    let guideLineKey = $state(0)
 
     type VirtualClipboard = {
         type: 'trigger',
