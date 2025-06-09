@@ -5,11 +5,67 @@ import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalAp
 import { LLMFormat } from "src/ts/model/modellist"
 import { registerClaudeObserver } from "src/ts/observer.svelte"
 import { getDatabase } from "src/ts/storage/database.svelte"
-import { sleep } from "src/ts/util"
+import { simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import type { MultiModal } from "../index.svelte"
 import { extractJSON } from "../templates/jsonSchema"
 import { applyParameters, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
+import { callTool } from "../mcp/mcp"
+
+interface Claude3TextBlock {
+    type: 'text',
+    text: string,
+    cache_control?: {
+        "type": "ephemeral",
+        "ttl"?: "5m" | "1h"
+    }
+}
+
+interface Claude3ImageBlock {
+    type: 'image',
+    source: {
+        type: 'base64'
+        media_type: string,
+        data: string
+    }
+    cache_control?: {
+        "type": "ephemeral"
+        "ttl"?: "5m" | "1h"
+    }
+}
+
+interface Claude3ToolUseBlock {
+    "type": "tool_use",
+    "id": string,
+    "name": string,
+    "input": any,
+    cache_control?: {
+        "type": "ephemeral"
+        "ttl"?: "5m" | "1h"
+    }
+}
+
+interface Claude3ToolResponseBlock {
+    type: "tool_result",
+    tool_use_id: string
+    content: Claude3ContentBlock[]
+    cache_control?: {
+        "type": "ephemeral"
+        "ttl"?: "5m" | "1h"
+    }
+}
+
+type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock|Claude3ToolUseBlock|Claude3ToolResponseBlock
+
+interface Claude3Chat {
+    role: 'user'|'assistant'
+    content: Claude3ContentBlock[]
+}
+
+interface Claude3ExtendedChat {
+    role: 'user'|'assistant'
+    content: Claude3ContentBlock[]|string
+}
 
 export async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
     const formated = arg.formated
@@ -34,40 +90,6 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                 replacerURL += '/v1/messages'
             }
         }
-    }
-
-    interface Claude3TextBlock {
-        type: 'text',
-        text: string,
-        cache_control?: {
-            "type": "ephemeral",
-            "ttl"?: "5m" | "1h"
-        }
-    }
-
-    interface Claude3ImageBlock {
-        type: 'image',
-        source: {
-            type: 'base64'
-            media_type: string,
-            data: string
-        }
-        cache_control?: {
-            "type": "ephemeral"
-            "ttl"?: "5m" | "1h"
-        }
-    }
-
-    type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock
-
-    interface Claude3Chat {
-        role: 'user'|'assistant'
-        content: Claude3ContentBlock[]
-    }
-
-    interface Claude3ExtendedChat {
-        role: 'user'|'assistant'
-        content: Claude3ContentBlock[]|string
     }
 
     let claudeChat: Claude3Chat[] = []
@@ -443,6 +465,16 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         headers['anthropic-dangerous-direct-browser-access'] = 'true'
     }
 
+    if(arg.tools && arg.tools.length > 0){
+        body.tools = arg.tools.map((v) => {
+            return {
+                name: v.name,
+                description: v.description,
+                input_schema: simplifySchema(v.inputSchema)
+            }
+        })
+
+    }
 
     if(arg.previewBody){
         return {
@@ -579,7 +611,12 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         })
     }
 
-    if(useStreaming){
+    return requestClaudeHTTP(replacerURL, headers, body, arg)
+}
+
+async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:string}, body:any, arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
+    
+    if(arg.useStreaming){
         
         const res = await fetchNative(replacerURL, {
             body: JSON.stringify(body),
@@ -720,6 +757,8 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         }
 
     }
+
+    const db = getDatabase()
     const res = await globalFetch(replacerURL, {
         body: body,
         headers: headers,
@@ -752,6 +791,76 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
     }
     let resText = ''
     let thinking = false
+
+    const hasToolUse = (contents as any[]).some((v) => v.type === 'tool_use')
+
+    if(hasToolUse){
+
+        const messages:Claude3ExtendedChat[] = body.messages
+        const response:Claude3Chat = {
+            role: 'user',
+            content: []
+        }
+        
+        for(const content of (contents as Claude3ContentBlock[])){
+            if(messages[messages.length-1].role !== 'assistant'){
+                messages.push({
+                    role: 'assistant',
+                    content: []
+                })
+            }
+            if(typeof messages[messages.length-1].content === 'string'){
+                messages[messages.length-1].content = [{
+                    type: 'text',
+                    text: messages[messages.length-1].content as string
+                }]
+            }
+
+            if(content.type === 'tool_use'){
+                const used = await callTool(content.name, content.input)
+                const r:Claude3ToolResponseBlock = {
+                    type: 'tool_result',
+                    tool_use_id: content.id,
+                    content: used.map((v) => {
+                        switch(v.type){
+                            case 'text':{
+                                return {
+                                    type: 'text',
+                                    text: v.text,
+                                }
+                            }
+                            case 'image':{
+                                return {
+                                    type: 'image',
+                                    source: {
+                                        type: 'base64',
+                                        media_type: v.mimeType,
+                                        data: v.data
+                                    }
+                                }
+                            }
+                            default:{
+                                return {
+                                    type: 'text',
+                                    text: `Unsupported tool response type: ${v.type}`
+                                }
+                            }
+                        }
+                    })
+                }
+                response.content.push(r)
+            }
+
+            (messages[messages.length-1] as Claude3Chat).content.push(content)
+        }
+
+        messages.push(response)
+
+        body.messages = messages
+        body.stream = false
+
+        return requestClaudeHTTP(replacerURL, headers, body, arg)
+    }
     for(const content of contents){
         if(content.type === 'text'){
             if(thinking){
