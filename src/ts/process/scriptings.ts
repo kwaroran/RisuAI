@@ -684,9 +684,6 @@ export async function runScripted(code:string, arg:{
                 while (pointer >= 0) {
                     if (chat.message[pointer].role === 'char') {
                         const messageData = chat.message[pointer].data
-                        if (typeof messageData === 'object' && messageData.content) {
-                            return messageData.content
-                        }
                         return messageData
                     }
                     pointer--
@@ -705,9 +702,6 @@ export async function runScripted(code:string, arg:{
                 while (pointer >= 0) {
                     if (chat.message[pointer].role === 'user') {
                         const messageData = chat.message[pointer].data
-                        if (typeof messageData === 'object' && messageData.content) {
-                            return messageData.content
-                        }
                         return messageData
                     }
                     pointer--
