@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "161.3.0"
+export let appVer = "162.0.0"
 export let webAppSubVer = ''
 
 
@@ -71,6 +71,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.userIcon)){
         data.userIcon = ''
+    }
+    if (checkNullish(data.userNote)){
+        data.userNote = ''
     }
     if(checkNullish(data.additionalPrompt)){
         data.additionalPrompt = 'The assistant must act as {{char}}. user is {{user}}.'
@@ -265,9 +268,8 @@ export function setDatabase(data:Database){
             noise:0.0,
             strength:0.6,
             image:"",
-            refimage:"",
+            base64image:"",
             InfoExtracted:1,
-            RefStrength:0.4,
             //add 4
             autoSmea:false,
             legacy_uc:false,
@@ -286,7 +288,9 @@ export function setDatabase(data:Database){
                     char_captions:[]
                 },
                 legacy_uc:false,
-            }
+            },
+            variety_plus: false,
+            decrisp: false,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
@@ -359,6 +363,7 @@ export function setDatabase(data:Database){
         name: data.username,
         personaPrompt: "",
         icon: data.userIcon,
+        note: data.userNote,
         largePortrait: false
     }]
     data.classicMaxWidth ??= false
@@ -560,7 +565,6 @@ export function setDatabase(data:Database){
         otherAx: data.fallbackModels.otherAx.filter((v) => v !== '')
     }
     data.customModels ??= []
-    data.mcpURLs ??= []
     data.authRefreshes ??= []
 
     //@ts-ignore
@@ -659,6 +663,7 @@ export interface Database{
     supaMemoryPrompt: string
     username: string
     userIcon: string
+    userNote: string
     additionalPrompt: string
     descriptionPrefix: string
     forceReplaceUrl: string
@@ -795,7 +800,9 @@ export interface Database{
         icon:string
         largePortrait?:boolean
         id?:string
+        note?:string
     }[]
+    personaNote:boolean
     assetWidth:number
     animationSpeed:number
     botSettingAtStart:false
@@ -1031,7 +1038,6 @@ export interface Database{
     igpPrompt:string
     useTokenizerCaching:boolean
     showMenuHypaMemoryModal:boolean
-    mcpURLs:string[]
     authRefreshes:{
         url:string
         tokenUrl:string
@@ -1439,9 +1445,8 @@ export interface NAIImgConfig{
     noise:number,
     strength:number,
     image:string,
-    refimage:string,
+    base64image:string,
     InfoExtracted:number,
-    RefStrength:number
     //add 4
     autoSmea:boolean,
     use_coords:boolean,
@@ -1453,6 +1458,9 @@ export interface NAIImgConfig{
     reference_strength_multiple?:number[],
     vibe_data?:NAIVibeData,
     vibe_model_selection?:string
+    //add variety+ and decrisp options
+    variety_plus:boolean,
+    decrisp:boolean,
 }
 
 //add 4
@@ -1937,7 +1945,7 @@ import type { SerializableHypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
-import type { Parameter } from '../process/request';
+import type { Parameter } from '../process/request/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
 import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';

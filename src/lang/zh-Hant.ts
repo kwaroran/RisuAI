@@ -224,6 +224,7 @@ export const languageChineseTraditional = {
     "authorNote": "作者備註",
     "firstMessage": "初始訊息",
     "description": "描述",
+    "note": "說明",
     "jailbreakToggle": "使用越獄提示詞",
     "charIcon": "角色頭像",
     "characterDisplay": "角色展示",

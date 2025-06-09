@@ -367,6 +367,8 @@ export const languageEnglish = {
         v2SetDisplayStateDesc: "Set Display State to {{value}}",
         v2UpdateGUI: "Update GUI",
         v2UpdateGUIDesc: "Update GUI",
+        v2UpdateChatAt: "Update Chat At Index",
+        v2UpdateChatAtDesc: "Redraw chat at {{index}}",
         v2Wait: "Wait",
         v2WaitDesc: "Wait {{value}} seconds",
         v2GetRequestState: "Get Request Data Content",
@@ -410,6 +412,7 @@ export const languageEnglish = {
     authorNote: "Author's Note",
     firstMessage: 'First Message',
     description: 'Description',
+    note: "Note",
     jailbreakToggle: 'Toggle Jailbreak',
     charIcon: "Character Icon",
     characterDisplay: "Character Display",
@@ -1133,4 +1136,5 @@ export const languageEnglish = {
     claude1HourCaching: "Claude 1 Hour Caching",    
     folderNameInput: "Please input the new folder name",
     folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
+    personaNote: "Persona Note",
 }

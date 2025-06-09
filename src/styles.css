@@ -284,19 +284,28 @@ html, body{
   text-decoration: line-through;
 }
 
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::before {
-  content: "";
-}
-
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::after {
-  content: "";
-}
-
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *)):not(pre code) {
-  color: var(--tw-prose-pre-code);
+.prose pre {
   background-color: var(--tw-prose-pre-bg);
-  padding: 0.125rem 0.25rem;
+  color: var(--tw-prose-pre-code);
+}
+
+.prose :where(pre code) * {
+  font-family: inherit;
+}
+
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before {
+  content: "";
+}
+
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: "";
+}
+
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)):not(pre code) {
+  background-color: var(--tw-prose-pre-bg);
   border-radius: 0.25rem;
+  color: var(--tw-prose-pre-code);
+  padding: 0.125rem 0.25rem;
 }
 
 .x-risu-risu-inlay-image{
@@ -353,4 +362,12 @@ html, body{
   max-width: calc(100% - 0.5rem);
   word-break: normal;
   overflow-wrap: anywhere;
+}
+
+.chat-message-container .dyna-icon{
+  display: none;
+}
+
+.chat-message-container:first-of-type .dyna-icon{
+  display: block;
 }

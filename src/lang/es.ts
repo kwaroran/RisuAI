@@ -181,6 +181,7 @@ export const languageSpanish = {
     authorNote: "Nota del Autor",
     firstMessage: 'Primer Mensaje',
     description: 'Descripción',
+    note: 'Nota',
     jailbreakToggle: 'Alternar Jailbreak',
     charIcon: "Icono del Personaje",
     characterDisplay: "Pantalla del Personaje",

@@ -2,13 +2,13 @@ import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterA
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
-import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import type { OpenAIChat } from "./index.svelte";
-import { requestChatData } from "./request";
+import { requestChatData } from "./request/request";
 import { v4 } from "uuid";
 import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
@@ -87,7 +87,6 @@ export async function runScripted(code:string, arg:{
                 const luaEngine = ScriptingEngineState.engine
                 declareAPI = (name:string, func:Function) => {
                     luaEngine.global.set(name, func)
-                    console.log('Declared Lua API:', name)
                 }
             }
             if(ScriptingEngineState.type === 'py'){
@@ -96,7 +95,6 @@ export async function runScripted(code:string, arg:{
                 ScriptingEngineState.pyodide = new PyodideContext()
                 declareAPI = (name:string, func:Function) => {
                     ScriptingEngineState.pyodide?.declareAPI(name, func as any)
-                    console.log('Declared Python API:', name)
                 }
             }
             declareAPI('getChatVar', (id:string,key:string) => {
@@ -161,7 +159,7 @@ export async function runScripted(code:string, arg:{
                 }
                 const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
-                    message.data = value
+                    message.data = value ?? ''
                 }
             })
             declareAPI('setChatRole', (id:string, index:number, value:string) => {
@@ -190,14 +188,14 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.push({role: roleData, data: value})
+                ScriptingEngineState.chat.message.push({role: roleData, data: value ?? ''})
             })
             declareAPI('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value ?? ''})
             })
 
             declareAPI('getTokens', async (id:string, value:string) => {
@@ -249,6 +247,16 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+            })
+
+            declareAPI('reloadChat', (id: string, index: number) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                ReloadChatPointer.update((v) => {
+                    v[index] = (v[index] ?? 0) + 1
+                    return v
+                })
             })
 
             //Low Level Access
@@ -669,6 +677,96 @@ export async function runScripted(code:string, arg:{
                 })
             })
 
+            declareAPI('getCharacterLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return ''
+                }
+
+                const db = getDatabase()
+                const selchar = db.characters[get(selectedCharID)]
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'char') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return selchar.firstMessage
+            })
+
+            declareAPI('getUserLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return null
+                }
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'user') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return null
+            })
+
+            declareAPI('getCharacterLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return ''
+                }
+
+                const db = getDatabase()
+                const selchar = db.characters[get(selectedCharID)]
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'char') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return selchar.firstMessage
+            })
+
+            declareAPI('getUserLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return null
+                }
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'user') {
+                        const messageData = chat.message[pointer].data
+                        if (typeof messageData === 'object' && messageData.content) {
+                            return messageData.content
+                        }
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return null
+            })
+
             console.log('Running Lua code:', code)
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
@@ -1071,9 +1169,9 @@ class PyodideContext{
     apis: Record<string, (...args:any[]) => any> = {};
     inited: boolean = false;
     constructor(){
-        // this.worker = new Worker(new URL('./pyworker.ts', import.meta.url), {
-        //     type: 'module'
-        // })
+        this.worker = new Worker(new URL('./pyworker.ts', import.meta.url), {
+            type: 'module'
+        })
         this.worker.onmessage = (event:MessageEvent) => {
             if(event.data.type === 'call'){
                 const { function: func, args, callId } = event.data;

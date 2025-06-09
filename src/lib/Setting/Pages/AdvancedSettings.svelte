@@ -14,7 +14,7 @@
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import { PlusIcon, TrashIcon } from "lucide-svelte";
+  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "lucide-svelte";
   import { v4 } from "uuid";
   import { MCPClient } from "src/ts/process/mcp/mcplib";
 
@@ -22,6 +22,8 @@
         key:string,
         size:string,
     }[] = $state([])
+
+    let openedModels = $state(new Set<string>())
 
     const characterSets = [
         'Latn',
@@ -231,6 +233,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.personaNote} name={language.personaNote}>
+        <Help key="experimental" />
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useTokenizerCaching} name={language.useTokenizerCaching}>
     </Check>
 </div>
@@ -298,8 +305,58 @@
 
 <Arcodion styled name={language.customModels} className="overflow-x-auto">
 
-    {#each DBState.db.customModels as model, index}
-        <Arcodion styled name={model.name ?? "Unnamed"}>
+    {#each DBState.db.customModels as model, index (model.id)}
+        <div class="flex flex-col mt-2">
+            <button class="hover:bg-selected px-6 py-2 text-lg rounded-t-md border-selected border flex justify-between items-center"
+                class:bg-selected={openedModels.has(model.id)}
+                class:rounded-b-md={!openedModels.has(model.id)}
+                onclick={() => {
+                    if (openedModels.has(model.id)) {
+                        openedModels.delete(model.id)
+                    } else {
+                        openedModels.add(model.id)
+                    }
+                    openedModels = new Set(openedModels)
+                }}
+            >
+                <span class="text-left">{model.name ?? "Unnamed"}</span>
+                <div class="flex items-center gap-1">
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        if(index === 0) return
+                        let models = DBState.db.customModels
+                        let temp = models[index]
+                        models[index] = models[index - 1]
+                        models[index - 1] = temp
+                        DBState.db.customModels = models
+                    }}>
+                        <ArrowUp />
+                    </Button>
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        if(index === DBState.db.customModels.length - 1) return
+                        let models = DBState.db.customModels
+                        let temp = models[index]
+                        models[index] = models[index + 1]
+                        models[index + 1] = temp
+                        DBState.db.customModels = models
+                    }}>
+                        <ArrowDown />
+                    </Button>
+                    <Button size="sm" styled="outlined" onclick={(e) => {
+                        e.stopPropagation()
+                        let models = DBState.db.customModels
+                        models.splice(index, 1)
+                        DBState.db.customModels = models
+                        openedModels.delete(model.id)
+                        openedModels = new Set(openedModels)
+                    }}>
+                        <TrashIcon />
+                    </Button>
+                </div>
+            </button>
+            {#if openedModels.has(model.id)}
+                <div class="flex flex-col border border-selected p-2 rounded-b-md overflow-x-auto">
             <span class="text-textcolor">{language.name}</span>
             <TextInput size={"sm"} bind:value={DBState.db.customModels[index].name}/>
             <span class="text-textcolor">{language.proxyRequestModel}</span>
@@ -368,10 +425,12 @@
                 {@render CustomFlagButton(index,'deepSeekThinkingInput', 18)}
                 {@render CustomFlagButton(index,'deepSeekThinkingOutput', 19)}
             </Arcodion>
-        </Arcodion>
+                </div>
+            {/if}
+        </div>
     {/each}
-    <div class="flex items-center mt-4">
-        <Button onclick={() => {
+    <div class="flex flex-col mt-2">
+        <button class="hover:bg-selected px-6 py-2 text-lg rounded-md border-selected border flex justify-center items-center cursor-pointer" onclick={() => {
             DBState.db.customModels.push({
                 internalId: "",
                 url: "",
@@ -385,12 +444,7 @@
             })
         }}>
             <PlusIcon />
-        </Button>
-        <Button onclick={() => {
-            DBState.db.customModels.pop()
-        }}>
-            <TrashIcon />
-        </Button>
+        </button>
     </div>
 </Arcodion>
 

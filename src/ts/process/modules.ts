@@ -11,6 +11,10 @@ import { Capacitor } from "@capacitor/core"
 import { HideIconStore, moduleBackgroundEmbedding, ReloadGUIPointer } from "../stores.svelte"
 import {get} from "svelte/store"
 
+export interface MCPModule{
+    url: string
+}
+
 export interface RisuModule{
     name: string
     description: string
@@ -25,6 +29,7 @@ export interface RisuModule{
     assets?:[string,string,string][]
     namespace?:string
     customModuleToggle?:string
+    mcp?:MCPModule
 }
 
 export async function exportModule(module:RisuModule, arg:{
@@ -383,6 +388,12 @@ export function getModuleToggles() {
         }
     }
     return costomModuleToggles
+}
+
+export function getModuleMcps() {
+    const modules = getModules()
+
+    return modules.map((v) => v.mcp?.url).filter((v) => v)
 }
 
 export async function applyModule() {

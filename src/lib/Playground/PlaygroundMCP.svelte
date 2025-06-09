@@ -5,16 +5,11 @@
     import { type MCPToolWithURL, callMCPTool, getMCPMeta, getMCPTools, initializeMCPs } from "src/ts/process/mcp/mcp";
     import { alertMd } from "src/ts/alert";
 
-
-
-    let urls = $state(DBState.db.mcpURLs.join('\n'))
     let metadatas = $state('')
     let tools:MCPToolWithURL[] = $state([]);
     let toolInputs:{[key:string]:string}= $state({});
 
     async function refresh() {
-        DBState.db.mcpURLs = urls.split('\n').filter(url => url.trim() !== '');
-        console.log('Refreshing MCPs with URLs:', DBState.db.mcpURLs);
         await initializeMCPs()
         metadatas = JSON.stringify(await getMCPMeta(), null, 4);
         tools = await getMCPTools()
@@ -23,9 +18,6 @@
 </script>
 
 <h2 class="text-4xl text-textcolor my-6 font-black relative">MCP</h2>
-
-<span class="text-textcolor text-lg">Urls</span>
-<TextAreaInput bind:value={urls} />
 
 <span class="text-textcolor text-lg">Metadatas</span>
 <TextAreaInput value={metadatas} />

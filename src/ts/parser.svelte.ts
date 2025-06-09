@@ -16,6 +16,9 @@ import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
 import airisu from '../etc/airisu.cbs?raw'
+import cbsIntro from '../etc/docs/cbs_intro.cbs?raw'
+import cbsDocs from '../etc/docs/cbs_docs.cbs?raw'
+import docsText from '../etc/docs/docs_text.cbs?raw'
 import { getModelInfo } from './model/modellist';
 
 const markdownItOptions = {
@@ -158,152 +161,165 @@ async function renderHighlightableMarkdown(data:string) {
             }
             //import language if not already loaded
             //we do not refactor this to a function because we want to keep vite to only import the languages that are needed
-            let languageModule:any = null
-            let shotLang = ''
+            let languageModule: typeof import('highlight.js/lib/languages/*')|null = null
+            let fileExt = ''
+
             switch(lang){
+                case 'bash':{
+                    fileExt = 'sh'
+                    lang = 'bash'
+                    if(!hljs.getLanguage('bash')){
+                        languageModule = await import('highlight.js/lib/languages/bash')
+                    }
+                    break
+                }
+                case 'c':
+                case 'cpp':{
+                    fileExt = lang
+                    lang = 'cpp'
+                    if(!hljs.getLanguage('cpp')){
+                        languageModule = await import('highlight.js/lib/languages/cpp')
+                    }
+                    break
+                }
+                case 'cs':
+                case 'csharp':{
+                    fileExt = 'cs'
+                    lang = 'csharp'
+                    if(!hljs.getLanguage('csharp')){
+                        languageModule = await import('highlight.js/lib/languages/csharp')
+                    }
+                    break
+                }
+                case 'css':{
+                    fileExt = 'css'
+                    lang = 'css'
+                    if(!hljs.getLanguage('css')){
+                        languageModule = await import('highlight.js/lib/languages/css')
+                    }
+                    break
+                }
+                case 'dart':{
+                    fileExt = 'dart'
+                    lang = 'dart'
+                    if(!hljs.getLanguage('dart')){
+                        languageModule = await import('highlight.js/lib/languages/dart')
+                    }
+                    break
+                }
+                case 'html':
+                case 'svg':
+                case 'xml':{
+                    fileExt = lang
+                    lang = 'xml'
+                    if(!hljs.getLanguage('xml')){
+                        languageModule = await import('highlight.js/lib/languages/xml')
+                    }
+                    break
+                }
+                case 'java':{
+                    fileExt = 'java'
+                    lang = 'java'
+                    if(!hljs.getLanguage('java')){
+                        languageModule = await import('highlight.js/lib/languages/java')
+                    }
+                    break
+                }
                 case 'js':
+                case 'jsx':
                 case 'javascript':{
+                    fileExt = 'js'
                     lang = 'javascript'
-                    shotLang = 'js'
                     if(!hljs.getLanguage('javascript')){
                         languageModule = await import('highlight.js/lib/languages/javascript')
                     }
                     break
                 }
+                case 'json':{
+                    fileExt = 'json'
+                    lang = 'json'
+                    if(!hljs.getLanguage('json')){
+                        languageModule = await import('highlight.js/lib/languages/json')
+                    }
+                    break
+                }
+                case 'lua':{
+                    fileExt = 'lua'
+                    lang = 'lua'
+                    if(!hljs.getLanguage('lua')){
+                        languageModule = await import('highlight.js/lib/languages/lua')
+                    }
+                    break
+                }
+                case 'markdown':
+                case 'md':{
+                    fileExt = 'md'
+                    lang = 'markdown'
+                    if(!hljs.getLanguage('markdown')){
+                        languageModule = await import('highlight.js/lib/languages/markdown')
+                    }
+                    break
+                }
+                case 'py':
+                case 'python':{
+                    fileExt = 'py'
+                    lang = 'python'
+                    if(!hljs.getLanguage('python')){
+                        languageModule = await import('highlight.js/lib/languages/python')
+                    }
+                    break
+                }
+                case 'rust':{
+                    fileExt = 'rs'
+                    lang = 'rust'
+                    if(!hljs.getLanguage('rust')){
+                        languageModule = await import('highlight.js/lib/languages/rust')
+                    }
+                    break
+                }
+                case 'shell':{
+                    fileExt = 'sh'
+                    lang = 'shell'
+                    if(!hljs.getLanguage('shell')){
+                        languageModule = await import('highlight.js/lib/languages/shell')
+                    }
+                    break
+                }
+                case 'ts':
+                case 'tsx':
+                case 'typescript':{
+                    fileExt = 'ts'
+                    lang = 'typescript'
+                    if(!hljs.getLanguage('typescript')){
+                        languageModule = await import('highlight.js/lib/languages/typescript')
+                    }
+                    break
+                }
                 case 'txt':
                 case 'vtt':{
-                    shotLang = lang
+                    fileExt = lang
                     lang = 'plaintext'
                     if(!hljs.getLanguage('plaintext')){
                         languageModule = await import('highlight.js/lib/languages/plaintext')
                     }
                     break
                 }
-                case 'py':
-                case 'python':{
-                    lang = 'python'
-                    shotLang = 'py'
-                    if(!hljs.getLanguage('python')){
-                        languageModule = await import('highlight.js/lib/languages/python')
-                    }
-                    break
-                }
-                case 'css':{
-                    lang = 'css'
-                    shotLang = 'css'
-                    if(!hljs.getLanguage('css')){
-                        languageModule = await import('highlight.js/lib/languages/css')
-                    }
-                    break
-                }
-                case 'xml':
-                case 'html':{
-                    lang = 'xml'
-                    shotLang = 'xml'
-                    if(!hljs.getLanguage('xml')){
-                        languageModule = await import('highlight.js/lib/languages/xml')
-                    }
-                    break
-                }
-                case 'lua':{
-                    lang = 'lua'
-                    shotLang = 'lua'
-                    if(!hljs.getLanguage('lua')){
-                        languageModule = await import('highlight.js/lib/languages/lua')
-                    }
-                    break
-                }
-                case 'dart':{
-                    lang = 'dart'
-                    shotLang = 'dart'
-                    if(!hljs.getLanguage('dart')){
-                        languageModule = await import('highlight.js/lib/languages/dart')
-                    }
-                    break
-                }
-                case 'java':{
-                    lang = 'java'
-                    shotLang = 'java'
-                    if(!hljs.getLanguage('java')){
-                        languageModule = await import('highlight.js/lib/languages/java')
-                    }
-                    break
-                }
-                case 'rust':{
-                    lang = 'rust'
-                    shotLang = 'rs'
-                    if(!hljs.getLanguage('rust')){
-                        languageModule = await import('highlight.js/lib/languages/rust')
-                    }
-                    break
-                }
-                case 'c':
-                case 'cpp':{
-                    lang = 'cpp'
-                    shotLang = 'cpp'
-                    if(!hljs.getLanguage('cpp')){
-                        languageModule = await import('highlight.js/lib/languages/cpp')
-                    }
-                    break
-                }
-                case 'csharp':
-                case 'cs':{
-                    lang = 'csharp'
-                    shotLang = 'cs'
-                    if(!hljs.getLanguage('csharp')){
-                        languageModule = await import('highlight.js/lib/languages/csharp')
-                    }
-                    break
-                }
-                case 'ts':
-                case 'typescript':{
-                    lang = 'typescript'
-                    shotLang = 'ts'
-                    if(!hljs.getLanguage('typescript')){
-                        languageModule = await import('highlight.js/lib/languages/typescript')
-                    }
-                    break
-                }
-                case 'json':{
-                    lang = 'json'
-                    shotLang = 'json'
-                    if(!hljs.getLanguage('json')){
-                        languageModule = await import('highlight.js/lib/languages/json')
-                    }
-                    break
-                }
                 case 'yaml':{
+                    fileExt = 'yml'
                     lang = 'yaml'
-                    shotLang = 'yml'
                     if(!hljs.getLanguage('yaml')){
                         languageModule = await import('highlight.js/lib/languages/yaml')
                     }
                     break
                 }
-                case 'shell':{
-                    lang = 'shell'
-                    shotLang = 'sh'
-                    if(!hljs.getLanguage('shell')){
-                        languageModule = await import('highlight.js/lib/languages/shell')
-                    }
-                    break
-                }
-                case 'bash':{
-                    lang = 'bash'
-                    shotLang = 'sh'
-                    if(!hljs.getLanguage('bash')){
-                        languageModule = await import('highlight.js/lib/languages/bash')
-                    }
-                    break
-                }
                 case 'risuerror':{
                     lang = 'error'
-                    shotLang = 'error'
+                    fileExt = 'error'
                     break
                 }
                 default:{
                     lang = 'none'
-                    shotLang = 'none'
+                    fileExt = 'none'
                 }
             }
             if(languageModule){
@@ -320,9 +336,7 @@ async function renderHighlightableMarkdown(data:string) {
                     language: lang,
                     ignoreIllegals: true
                 }).value
-                rendered = rendered.replace(placeholder, `<pre class="hljs" x-hl-lang="${shotLang}" x-hl-text="${
-                    Buffer.from(code).toString('hex')
-                }"><code>${highlighted}</code></pre>`)   
+                rendered = rendered.replace(placeholder, `<pre class="hljs" x-hl-lang="${fileExt}"><code>${highlighted}</code></pre>`)   
             }
         } catch (error) {
             
@@ -695,7 +709,10 @@ function decodeStyle(text:string){
                 }
                 ast.stylesheet.rules = rules
             }
-            return `<style>${css.stringify(ast)}</style>`
+            return `<style>${css.stringify(ast, {
+                indent: '',
+                compress: true,
+            })}</style>`
 
         } catch (error) {
             if(DBState.db.returnCSSError){
@@ -1905,6 +1922,15 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
                 case '__assistantprompt':{
                     return risuChatParser(airisu)
+                }
+                case '__cbsintro':{
+                    return risuChatParser(cbsIntro).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
+                }
+                case '__cbsdocs':{
+                    return risuChatParser(cbsDocs).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
+                }
+                case '__doc':{
+                    return risuChatParser(docsText).replaceAll('[[', '\uE9B8\uE9B8').replaceAll(']]', '\uE9B9\uE9B9')
                 }
             }
         }

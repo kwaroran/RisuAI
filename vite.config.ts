@@ -64,6 +64,9 @@ export default defineConfig(({command, mode}) => {
         'src':'/src',
         'modules': '/modules'
       }
+    },
+    worker: {
+      format: 'es'
     }
 }
 });
