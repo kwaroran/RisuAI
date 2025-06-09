@@ -905,7 +905,6 @@
         
         triggers.splice(toIndex, 0, movedItem);
         
-        // Update selectedIndex if needed
         if (selectedIndex === fromIndex) {
             selectedIndex = toIndex;
         } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
@@ -1205,12 +1204,22 @@
                                 </div>
                                 
                                 <button
-                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing"
+                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing trigger-item"
                                     class:bg-darkbg={selectedIndex === i}
                                     draggable="true"
                                     ondragstart={(e) => {
                                         e.dataTransfer?.setData('text', 'trigger')
                                         e.dataTransfer?.setData('triggerIndex', i.toString())
+                                        
+                                        const dragElement = document.createElement('div')
+                                        dragElement.textContent = trigger?.comment || 'Unnamed Trigger'
+                                        dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                                        document.body.appendChild(dragElement)
+                                        e.dataTransfer?.setDragImage(dragElement, 10, 10)
+                                        
+                                        setTimeout(() => {
+                                            document.body.removeChild(dragElement)
+                                        }, 0)
                                     }}
                                     ondragover={(e) => {
                                         e.preventDefault()
