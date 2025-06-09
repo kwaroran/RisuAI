@@ -8,7 +8,7 @@ import {
   getDatabase,
 } from "src/ts/storage/database.svelte";
 import { type OpenAIChat } from "../index.svelte";
-import { requestChatData } from "../request";
+import { requestChatData } from "../request/request";
 import { chatCompletion, unloadEngine } from "../webllm";
 import { parseChatML } from "src/ts/parser.svelte";
 import { hypaV3ProgressStore } from "src/ts/stores.svelte";

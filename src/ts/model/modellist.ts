@@ -1,4 +1,4 @@
-import type { Parameter } from "../process/request"
+import type { Parameter } from "../process/request/request"
 import { getDatabase } from "../storage/database.svelte"
 
 export enum LLMFlags{

@@ -6,7 +6,7 @@ import {
 } from "src/ts/storage/database.svelte";
 import type { OpenAIChat } from "../index.svelte";
 import type { ChatTokenizer } from "src/ts/tokenizer";
-import { requestChatData } from "../request";
+import { requestChatData } from "../request/request";
 import { HypaProcesser } from "./hypamemory";
 import { globalFetch } from "src/ts/globalApi.svelte";
 import { runSummarizer } from "../transformers";

@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import { getDatabase, type character, type NAIImgConfig } from "../storage/database.svelte"
-import { requestChatData } from "./request"
+import { requestChatData } from "./request/request"
 import { alertError } from "../alert"
 import { fetchNative, globalFetch, readImage } from "../globalApi.svelte"
 import { CharEmotion, DBState } from "../stores.svelte"
